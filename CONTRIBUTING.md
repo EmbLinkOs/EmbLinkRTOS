@@ -23,7 +23,7 @@ Every commit must carry a `Signed-off-by` line certifying the [Developer Certifi
 Signed-off-by: Your Name <your.email@example.com>
 ```
 
-Add it with `git commit -s`. Use your real name and a working email address. Pull requests with unsigned commits are not merged.
+Add it with `git commit -s`. Pull requests with unsigned commits are not merged.
 
 Every source file starts with an SPDX header:
 
