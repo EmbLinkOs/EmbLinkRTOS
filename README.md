@@ -20,6 +20,10 @@ Start with [`docs/architecture/README.md`](docs/architecture/README.md).
 
 Native simulation and AVR (ATmega328P) first, then Cortex-M (Armv6-M to Armv8-M with MPU and TrustZone), then RISC-V with PMP, then symmetric and asymmetric multicore.
 
+## Licence and contributing
+
+Apache-2.0 (see `LICENSE` and `NOTICE`). Contributions are welcome under the Developer Certificate of Origin; see `CONTRIBUTING.md`. Security reports: see `SECURITY.md`.
+
 ## Part of the EmbLink platform
 
 EmbLinkRTOS integrates with EmbCC, EmbBuild, EmbDebug, EmbFlash, and EmbStudio while remaining fully usable with third-party compilers, debuggers, probes, and build systems.

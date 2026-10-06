@@ -2,6 +2,8 @@
 
 These need your decision. Each has a recommendation so the default path is clear if you agree. Answering them converts the PROPOSED items in 02 to 06 into LOCKED.
 
+**Decided on 2026-10-06:** Q2 (licence), Q9 (hardware description), Q10 (first Cortex-M target). See ADR-004, ADR-024, ADR-025. The remaining questions keep their recommendations as the working default until answered.
+
 ---
 
 ## A. Identity and governance
@@ -10,10 +12,11 @@ These need your decision. Each has a recommendation so the default path is clear
 *Recommendation:* keep `emb_`; reserve `embk_` for kernel internals. Never use `embos`.
 
 **Q2. Licence.** Apache-2.0 (recommended), MIT, or something else? Is a commercial licensing option anticipated?
-*Recommendation:* Apache-2.0 now; dual licensing can be added later only if all contributions are under a contributor agreement, so decide the contribution model at the same time.
+*Decided:* Apache-2.0 with the Developer Certificate of Origin; outside contributions accepted; no contributor licence agreement, so dual licensing is not planned (ADR-024).
 
 **Q3. Is EmbLinkRTOS open source from the first commit, or developed privately until 1.0?**
 *Recommendation:* public from the start; architecture discussion in the open attracts reviewers and board contributors.
+*Note:* the decision to accept outside contributions implies public development; confirm if you intend otherwise.
 
 ## B. Kernel semantics
 
@@ -36,9 +39,10 @@ These need your decision. Each has a recommendation so the default path is clear
 
 **Q9. Hardware description: own YAML schema with importers (recommended, ADR-004) or DeviceTree source directly?**
 This is the highest-impact platform decision. Own schema costs generator work up front; DeviceTree costs authoring pain forever and a dependency on its toolchain.
+*Decided:* own YAML schema with CMSIS-SVD and DeviceTree importers, borrowing `compatible` strings, bus hierarchy, named references, status flags, layered inheritance, and fixed partitions from DeviceTree; a DeviceTree exporter if interop ever requires it (ADR-004).
 
 **Q10. First Cortex-M SoC family for M3.** STM32F4 (ubiquitous, Discovery boards cheap), STM32L4/U5 (low power plus Armv8-M for isolation), nRF52/nRF53 (BLE later, nRF53 is dual-core Armv8-M), RP2350 (Armv8-M plus RISC-V on one chip, cheap, ideal for AMP and for proving two ports on one board)?
-*Recommendation:* STM32F4 for breadth in M3, then RP2350 in M4 for Armv8-M isolation, RISC-V, and AMP on one inexpensive board.
+*Decided:* STM32F4 (STM32F407 Discovery or NUCLEO-F446RE) for the port, with the RP2350 (Pico 2) acquired at the same time for Armv8-M isolation in M3, RISC-V in M5, and SMP and AMP in M6; an STM32U5 or H5 class part as the second family in M4 (ADR-025).
 
 **Q11. Image format.** MCUboot-compatible (recommended, ADR-008) or project-specific?
 

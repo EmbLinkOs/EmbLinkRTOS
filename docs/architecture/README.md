@@ -12,7 +12,7 @@ This directory is the architecture baseline for EmbLinkRTOS. It supersedes the v
 | 03 | [Kernel architecture](03-kernel-architecture.md) | Execution model, scheduling classes and budgets, wait protocol, time, synchronization, IPC, objects and capabilities, partitions, memory, faults |
 | 04 | [Platform architecture](04-platform-architecture.md) | Hardware description pipeline, device and driver model, power, boot and update, security, observability, multicore, simulation, middleware |
 | 05 | [Engineering system](05-engineering-system.md) | API conventions, configuration and build, repository layout, verification, quality gates, traceability, release, support, documentation |
-| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-024 with alternatives and consequences |
+| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-025 with alternatives and consequences; ADR-004, ADR-024, and ADR-025 are accepted, the rest await review |
 | 07 | [Roadmap](07-roadmap.md) | 1.0 boundary, milestones M0 to M6+, specification work order, risks |
 | 08 | [Open questions](08-open-questions.md) | Decisions awaiting the project owner, each with a recommendation |
 
