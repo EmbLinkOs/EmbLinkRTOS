@@ -11,7 +11,7 @@ There is no kernel code yet, by design. Until Milestone 1 of the [roadmap](docs/
 - answers and evidence for the items in `docs/architecture/08-open-questions.md`;
 - experience reports from other RTOSes that bear on a specific decision.
 
-Once code exists, contributions are especially welcome in architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, and documentation. The core kernel (scheduler, wait protocol, synchronization, object model) is written and maintained by the project owner so that its semantics stay understood end to end; proposals there are welcome as ADRs and reference-model changes first.
+Once code exists, contributions are especially welcome in architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, documentation and the core kernel (scheduler, wait protocol, synchronization, object model).
 
 ## Licence and the Developer Certificate of Origin
 
