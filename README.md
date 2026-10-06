@@ -1,0 +1,25 @@
+# EmbLinkRTOS
+
+A deterministic real-time kernel at the center of a complete embedded software platform, scaling from 8-bit microcontrollers with 2 KB of RAM to isolated, multicore 32-bit systems with one kernel source, one set of semantics, and one tool pipeline.
+
+**Current phase: architecture.** There is no kernel code yet, on purpose. The semantics, invariants, isolation model, hardware pipeline, and verification strategy are being fixed first so the implementation does not have to be rebuilt around them later.
+
+Start with [`docs/architecture/README.md`](docs/architecture/README.md).
+
+## What makes it different
+
+- **Isolation-ready by construction.** Capabilities and partitions exist at every scale: a pointer on a 2 KB device, hardware-enforced isolation with restartable partitions on an MPU device, same application source.
+- **Temporal protection.** Fixed-priority scheduling with execution budgets and deadline monitoring, instead of silent starvation or priority aging.
+- **Hardware as data.** SoCs and boards are validated descriptions; device tables, memory maps, pin and clock configuration, and linker fragments are generated.
+- **Observability by default.** Deferred-format logging, Common Trace Format tracing, retained crash records, and a versioned debug descriptor any debugger can read.
+- **Evidence over claims.** An executable reference model is the scheduler's oracle; every requirement maps to a test; every timing number ships with its configuration.
+- **Secure lifecycle.** Signed, measured, updatable images; reproducible builds; software bill of materials; disclosure policy; long-term support windows.
+- **Toolchain independent.** EmbCC first-class; GCC and Clang required.
+
+## Target progression
+
+Native simulation and AVR (ATmega328P) first, then Cortex-M (Armv6-M to Armv8-M with MPU and TrustZone), then RISC-V with PMP, then symmetric and asymmetric multicore.
+
+## Part of the EmbLink platform
+
+EmbLinkRTOS integrates with EmbCC, EmbBuild, EmbDebug, EmbFlash, and EmbStudio while remaining fully usable with third-party compilers, debuggers, probes, and build systems.

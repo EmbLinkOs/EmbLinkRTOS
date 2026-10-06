@@ -1,0 +1,72 @@
+# 08 - Open Questions for Review
+
+These need your decision. Each has a recommendation so the default path is clear if you agree. Answering them converts the PROPOSED items in 02 to 06 into LOCKED.
+
+---
+
+## A. Identity and governance
+
+**Q1. Public API prefix.** Keep `emb_` (recommended, ADR-002) or adopt a distinctive short prefix such as `elk_`?
+*Recommendation:* keep `emb_`; reserve `embk_` for kernel internals. Never use `embos`.
+
+**Q2. Licence.** Apache-2.0 (recommended), MIT, or something else? Is a commercial licensing option anticipated?
+*Recommendation:* Apache-2.0 now; dual licensing can be added later only if all contributions are under a contributor agreement, so decide the contribution model at the same time.
+
+**Q3. Is EmbLinkRTOS open source from the first commit, or developed privately until 1.0?**
+*Recommendation:* public from the start; architecture discussion in the open attracts reviewers and board contributors.
+
+## B. Kernel semantics
+
+**Q4. Default wait ordering.** Priority-then-FIFO (recommended) or pure FIFO by default?
+*Recommendation:* priority-then-FIFO; pure FIFO as a per-object option.
+
+**Q5. Mutex owner termination.** Fault (recommended default) or release with `EMB_EOWNERDEAD`?
+*Recommendation:* fault in checked builds, configurable `EOWNERDEAD` for release builds that need it.
+
+**Q6. Thread cancellation in 1.0.** Cooperative cancellation (recommended) or none until later?
+*Recommendation:* include it; it is small once the wait protocol has wake results.
+
+**Q7. Notification width.** 32 bits everywhere, or 8 bits on tiny?
+*Recommendation:* configurable, default 32, tiny profile may select 8 or 16.
+
+**Q8. Time slicing per priority level (KRN-SCH-037).** Worth the configuration surface?
+*Recommendation:* yes; it is a small table and solves the common "round-robin for background only" need.
+
+## C. Platform
+
+**Q9. Hardware description: own YAML schema with importers (recommended, ADR-004) or DeviceTree source directly?**
+This is the highest-impact platform decision. Own schema costs generator work up front; DeviceTree costs authoring pain forever and a dependency on its toolchain.
+
+**Q10. First Cortex-M SoC family for M3.** STM32F4 (ubiquitous, Discovery boards cheap), STM32L4/U5 (low power plus Armv8-M for isolation), nRF52/nRF53 (BLE later, nRF53 is dual-core Armv8-M), RP2350 (Armv8-M plus RISC-V on one chip, cheap, ideal for AMP and for proving two ports on one board)?
+*Recommendation:* STM32F4 for breadth in M3, then RP2350 in M4 for Armv8-M isolation, RISC-V, and AMP on one inexpensive board.
+
+**Q11. Image format.** MCUboot-compatible (recommended, ADR-008) or project-specific?
+
+**Q12. Trace format.** CTF (recommended, ADR-021), or a simpler project format with an EmbDebug-only viewer?
+
+**Q13. Logging.** Deferred-format as the default in base and above (recommended, ADR-009), or opt-in?
+
+## D. Engineering process
+
+**Q14. Configuration.** Kconfig semantics (recommended, ADR-005) or a project-specific typed configuration language designed for EmbStudio?
+*Note:* a typed schema can be layered on Kconfig output later; starting with a custom language delays M1.
+
+**Q15. Reference model language.** Python (fast to write, readable to non-C reviewers) or C on the host (closer to kernel, reusable in differential tests without a bridge)?
+*Recommendation:* Python for the model and TLA+ or exhaustive Python exploration for the wake race; the differential test bridge is a small JSON protocol.
+
+**Q16. Documentation toolchain.** Sphinx with a requirements extension (mature traceability tooling) or MkDocs plus project scripts (simpler)?
+*Recommendation:* Sphinx; traceability is the point.
+
+**Q17. CI hardware.** Which boards will be physically available for HIL in M1 to M3? This determines the HIL runner's first targets.
+
+## E. EmbLink ecosystem
+
+**Q18. EmbCC status today.** Which C standard features and attributes does it support for Cortex-M and RISC-V? Does it emit DWARF suitable for the debug descriptor consumer? When is AVR support planned? The answers set the compiler portability layer's shape and the M1 compiler for AVR.
+
+**Q19. EmbDebug and EmbFlash status.** Do they exist in usable form for M3 HIL, or does the HIL runner start on OpenOCD, pyOCD, or probe-rs?
+
+**Q20. EmbBuild.** Does it exist? If not, CMake is the only build until it does, which the architecture already assumes.
+
+---
+
+When you answer, the next step is to update the status markers in 02 to 06, open `docs/requirements/` with one file per identifier group, and begin specification work item 1 (API conventions) from the roadmap.
