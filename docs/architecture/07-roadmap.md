@@ -40,25 +40,25 @@ Exit: all kernel requirement groups covered in the traceability matrix; differen
 
 ### M3 - Cortex-M, isolation, and the hardware pipeline
 
-Deliverables: `arch/cortex_m` for Armv6-M, Armv7-M (lazy FPU stacking), Armv8-M (MPU, stack limits, TrustZone non-secure); partitions with supervisor on MPU targets; syscall boundary and validated capabilities; budgets; hardware description schema v1, SVD importer, generator, first SoC (STM32F4 class) and board; device model; drivers GPIO, pinctrl, clock, timer, UART, DMA; deferred-format logging with decoder; CTF trace with generated metadata; debug descriptor; crash record; Renode in CI; first HIL board.
+Deliverables: `arch/cortex_m` for Armv6-M, Armv7-M (lazy FPU stacking), Armv8-M (MPU, stack limits, TrustZone non-secure); partitions with supervisor on MPU targets; syscall boundary and validated capabilities; budgets; hardware description schema v1, SVD importer, generator, first SoC family STM32F4 with the STM32F407 Discovery and NUCLEO-F446RE boards, then the RP2350 (Raspberry Pi Pico 2) as the Armv8-M isolation board (ADR-025); device model; drivers GPIO, pinctrl, clock, timer, UART, DMA; deferred-format logging with decoder; CTF trace with generated metadata; debug descriptor; crash record; Renode in CI; first HIL board.
 
-Exit: conformance suite unchanged and green on native, AVR, three Cortex-M variants; a partition fault is contained and restarted on an Armv8-M board; a second board on the same SoC is added with no C changes.
+Exit: conformance suite unchanged and green on native, AVR, three Cortex-M variants; a partition fault is contained and restarted on the RP2350; a second board on the same SoC is added with no C changes.
 
 ### M4 - Platform maturity
 
-Deliverables: power management core and device power states; SPI, I2C, watchdog, flash, RTC, entropy drivers; MCUboot-compatible images and update service; software watchdog; flight recorder; `emb` CLI; EmbDebug descriptor consumer; benchmark publication pipeline; SBOM and reproducible build verification; DTS importer; second SoC family.
+Deliverables: power management core and device power states; SPI, I2C, watchdog, flash, RTC, entropy drivers; MCUboot-compatible images and update service; software watchdog; flight recorder; `emb` CLI; EmbDebug descriptor consumer; benchmark publication pipeline; SBOM and reproducible build verification; DTS importer; second SoC family, an industrial Armv8-M part in the STM32U5 or STM32H5 class with CAN-FD and Ethernet.
 
 Exit: a reference application updates itself A/B with power-loss injection on HIL; measured idle power states on a reference board; support matrix generated from CI.
 
 ### M5 - RISC-V, qualification, and 1.0
 
-Deliverables: `arch/riscv` with PMP partitions; EmbCC qualified for all ports; compiler version matrix; API freeze review; documentation complete per 05 §9; SECURITY.md and disclosure process; LTS policy; release engineering; coverage targets met on kernel.
+Deliverables: `arch/riscv` with PMP partitions, first on the RP2350's Hazard3 cores and on an emulated RV32 target in Renode; EmbCC qualified for all ports; compiler version matrix; API freeze review; documentation complete per 05 §9; SECURITY.md and disclosure process; LTS policy; release engineering; coverage targets met on kernel.
 
 Exit: 1.0 criteria in §1 met; 1.0 released.
 
 ### M6+ - Advanced platform
 
-SMP (global structure first, ADR-012); AMP ports; DEADLINE and TIME_TABLE classes; networking and USB integrations; filesystems; CMSIS-RTOS2 and POSIX layers; PSA secure partition integration; attestation; safety evidence packages; broad board catalog; EmbStudio integration; first LTS line.
+SMP on the RP2350 (global structure first, ADR-012); AMP ports, with the RP2350 in mixed Arm and RISC-V configuration and an STM32H7 dual-core part as candidates; DEADLINE and TIME_TABLE classes; networking and USB integrations; filesystems; CMSIS-RTOS2 and POSIX layers; PSA secure partition integration; attestation; safety evidence packages; broad board catalog; EmbStudio integration; first LTS line.
 
 ## 3. Specification work order (before M1 code)
 

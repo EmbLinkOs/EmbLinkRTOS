@@ -50,7 +50,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Full control of schema and error quality; EmbStudio can edit the model directly; DTS files from other ecosystems remain usable through import; the schema must be versioned from 1.0.
 
-**Status.** Proposed.
+**Status.** Accepted 2026-10-06.
 
 ## ADR-005 Kconfig semantics for configuration; CMake as the reference build
 
@@ -280,14 +280,26 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Status.** Proposed.
 
-## ADR-024 Licence: Apache-2.0 (recommendation)
+## ADR-024 Licence and contribution model: Apache-2.0 with the Developer Certificate of Origin
 
-**Context.** Licence and governance are undecided.
+**Context.** EmbLinkRTOS is linked statically into commercial firmware, is one component of the larger EmbLink platform, and will accept code from outside contributors.
 
-**Decision (recommended).** Apache-2.0 for kernel, ports, drivers, and tools; developer certificate of origin for contributions; CODEOWNERS per layer.
+**Decision.** Apache-2.0 for kernel, ports, drivers, tools, hardware descriptions, and generated code. Contributions are accepted under the Developer Certificate of Origin (DCO 1.1) with a `Signed-off-by` line on every commit; inbound licence equals outbound licence; no contributor licence agreement. SPDX identifiers in every source file. A `NOTICE` file names the copyright holder and reserves the EmbLink names. `CODEOWNERS` per layer, starting with the project owner for everything. The core kernel remains written and understood by the project owner (v0.1 §1.2); outside contributions are expected first in ports, SoC and board descriptions, drivers, tooling, tests, and documentation.
 
-**Alternatives.** MIT (simpler, no patent grant); dual licensing with a commercial option (possible later, start permissive); GPL variants (limits product adoption).
+**Alternatives.** MIT (simpler, no patent grant; chosen by FreeRTOS and ThreadX). A contributor licence agreement (keeps the option of relicensing or dual licensing, but deters individual contributors and adds administration). Copyleft licences (block product adoption; LGPL is impractical for static linking).
 
-**Consequences.** Broad industry acceptance; compatible with common middleware; the decision is yours (see 08).
+**Consequences.** The explicit patent grant and the trademark exclusion protect adopters and the EmbLink names. Middleware under Apache-2.0, BSD, and MIT combines cleanly. Because contributions arrive under the DCO and not a CLA, contributed code cannot later be relicensed or dual-licensed without each contributor's consent; this is a deliberate choice for an open project and is only reversible before the first external contribution is merged. Hardware importers must take data only from permissively licensed sources.
 
-**Status.** Open.
+**Status.** Accepted 2026-10-06.
+
+## ADR-025 First Cortex-M targets: STM32F4 for the port, RP2350 for Armv8-M, RISC-V, and multicore
+
+**Context.** Milestone 3 needs a board on which to develop the Cortex-M port, and a board with Armv8-M protection on which to prove partitions. Later milestones need RISC-V and multicore hardware.
+
+**Decision.** Develop the Cortex-M port on the STM32F4 family (STM32F407 Discovery or NUCLEO-F446RE): the canonical Armv7E-M implementation with FPU, DMA, and the classic MPU, with Renode platform support and the largest community and SVD corpus. Acquire the Raspberry Pi Pico 2 (RP2350) at the same time: dual Cortex-M33 with FPU, MPU, and TrustZone, each core alternatively bootable as a Hazard3 RISC-V core. The RP2350 is the Armv8-M isolation board in M3, the first RISC-V board in M5, and the SMP and AMP board in M6. An industrial Armv8-M family (STM32U5 or STM32H5 class, with CAN-FD and Ethernet) is the planned second SoC family in M4.
+
+**Alternatives.** RP2350 alone (cheapest and covers three ports, but unconventional peripherals, a bootrom-centric boot flow, and weaker industrial representativeness). STM32U5 or H5 first (closest to shipping products, but weaker emulator support and more complex flash and option-byte handling).
+
+**Consequences.** The port is learned on the simplest and best-documented Cortex-M. Memory protection is implemented first on the Armv8-M model, whose regions use base and limit addresses, then on the Armv7-M model, whose regions must be power-of-two sized and aligned. One inexpensive board de-risks three later milestones and gives EmbCC both of its existing architectures on one target.
+
+**Status.** Accepted 2026-10-06.

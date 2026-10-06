@@ -8,6 +8,8 @@
 
 ### 1.1 Decision (ADR-004)
 
+**Status: LOCKED.** Accepted by the project owner on 2026-10-06.
+
 Hardware is described in a **project-owned, schema-validated YAML** model with two levels: SoC descriptions and board descriptions. A generator consumes them together with the configuration and emits everything hardware-specific that would otherwise be hand-written C.
 
 The model borrows what works from DeviceTree (the `compatible` string binding a node to a driver, hierarchical buses, phandles as references) and from CMSIS-SVD (register-level detail for tooling) without adopting their syntax. **Importers** exist for CMSIS-SVD (peripheral instances, IRQ numbers, memory map) and for DeviceTree source (to bootstrap from Zephyr or Linux board files), so that authors curate rather than transcribe.

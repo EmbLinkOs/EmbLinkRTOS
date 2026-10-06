@@ -188,6 +188,8 @@ Experimental, Supported, Validated, LTS-qualified, declared independently for ea
 
 Docs-as-code. Architecture (these documents), requirements, API reference generated from annotated headers, one generated page per board and per architecture port, porting guides for architecture and SoC, user guide per profile, and the decision log. API pages state parameters, status values, context class, blocking class, timing class, ownership, lifecycle constraints, and configuration dependencies, all sourced from the header annotations.
 
-## 10. Licence and governance (open decision, see 08)
+## 10. Licence and governance (LOCKED, ADR-024)
 
-Recommendation: Apache-2.0 for kernel, ports, drivers, and tools (patent grant, broad industry acceptance, compatible with most middleware licences). Contribution under a developer certificate of origin. CODEOWNERS per layer. The core kernel remains written and understood by the project owner, per v0.1 §1.2; external assistance stays in review, specification, tooling, and verification.
+Apache-2.0 for kernel, ports, drivers, tools, hardware descriptions, and generated code. Outside contributions are accepted under the Developer Certificate of Origin with a `Signed-off-by` line on every commit; inbound licence equals outbound licence, and there is no contributor licence agreement. Every source file carries an SPDX identifier. `NOTICE` names the copyright holder and reserves the EmbLink names. `.github/CODEOWNERS` assigns review ownership per layer, starting with the project owner for everything.
+
+The core kernel remains written and understood by the project owner, per v0.1 §1.2; outside contributions are expected first in ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, and documentation, and kernel proposals arrive as ADRs and reference-model changes. The files `LICENSE`, `NOTICE`, `DCO`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md` at the repository root implement this section.
