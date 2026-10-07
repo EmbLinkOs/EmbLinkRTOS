@@ -85,6 +85,26 @@ bool emb_test_fork_begin(void);
 EMB_NORETURN void emb_test_fork_child_no_fault(void);
 void emb_test_fork_expect_fault(const char *file, int line, const char *what);
 
+/* A misuse: faults in checked builds, returns @status in release builds (SPEC-001 §5.3). */
+#if CONFIG_EMB_CHECKED
+#define EMB_ASSERT_MISUSE(expr, status) EMB_ASSERT_FAULTS((void)(expr))
+#else
+#define EMB_ASSERT_MISUSE(expr, status) EMB_ASSERT_STATUS((expr), (status))
+#endif
+
+/* Event marks: threads and handlers push small integers; the runner checks the order. */
+void emb_test_mark(int code);
+void emb_test_marks_clear(void);
+unsigned emb_test_marks_count(void);
+int emb_test_mark_at(unsigned i);
+void emb_test_marks_check(const char *file, int line, const int *expected, size_t n);
+#define EMB_ASSERT_MARKS(...)                                            \
+    emb_test_marks_check(__FILE__, __LINE__, (const int[]){__VA_ARGS__}, \
+                         sizeof((const int[]){__VA_ARGS__}) / sizeof(int))
+
+/* Virtual ticks since the kernel started. */
+#define EMB_TEST_NOW() ((uint32_t)emb_time_now().ticks)
+
 /* Helper threads: a fixed pool of stacks and storages the tests draw from. */
 #define EMB_TEST_MAX_THREADS 8
 #define EMB_TEST_STACK_SIZE  4096
@@ -92,6 +112,7 @@ void emb_test_fork_expect_fault(const char *file, int line, const char *what);
 emb_thread_t emb_test_thread(const char *name, uint8_t priority, uint8_t flags,
                              emb_thread_entry_t entry, void *arg);
 void emb_test_threads_reset(void); /* destroy every helper thread that is reusable */
+emb_status_t emb_test_thread_destroy(emb_thread_t h); /* destroy a helper and free its pool slot */
 
 /* Advance virtual time by sleeping; the runner's priority is the lowest. */
 #define EMB_TEST_RUNNER_PRIORITY 1u

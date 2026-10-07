@@ -241,6 +241,10 @@ void emb_thread_exit(int code)
     if (joiner != NULL) {
         self->tflags |= EMBK_THREAD_JOINED;
         (void)embk_wait_wake(joiner, EMBK_WAKE_SATISFIED, (uintptr_t)(intptr_t)code);
+    } else if ((self->tflags & EMBK_THREAD_DETACHED) != 0u) {
+        self->tflags |= EMBK_THREAD_JOINED; /* detached: reusable at step 5 */
+    } else {
+        /* joinable: the object waits for its joiner */
     }
     embk_timeout_disarm(&self->timeout);
 #if CONFIG_EMB_NOTIFY
@@ -255,11 +259,8 @@ void emb_thread_exit(int code)
 
 void embk_thread_launch(emb_thread_entry_t entry, void *arg)
 {
-    /* A fresh context starts with interrupts enabled (SPEC-012 §4.2): no critical
-     * section is held, whatever the switching thread held when it left. */
-#if CONFIG_EMB_CHECKED
-    embk_cpu.irq_lock_depth = 0u;
-#endif
+    /* A fresh context starts with interrupts enabled (SPEC-012 §4.2) and at critical
+     * section depth 0, which the scheduler restored from the thread's own record. */
     if (entry == NULL) {
         embk_idle_loop();
     }
@@ -587,15 +588,11 @@ emb_status_t emb_thread_sleep_until(emb_instant_t t)
 {
     EMBK_REQUIRE_THREAD();
 #if CONFIG_EMB_TICK_32BIT
-    {
-        emb_tick_t now = emb_time_now().ticks;
-        if (!embk_tick_before(now, t.ticks)) {
-            emb_thread_yield();
-            return EMB_OK;
-        }
-        if ((emb_tick_t)(t.ticks - now) > EMB_TIMEOUT_MAX_TICKS) {
-            return EMB_EOVERFLOW; /* KRN-TIM-022 */
-        }
+    /* A 32-bit instant more than EMB_TIMEOUT_MAX_TICKS ahead is indistinguishable from
+     * one in the past (SPEC-003 §5.2 window); it takes the past-deadline path. */
+    if (!embk_tick_before(emb_time_now().ticks, t.ticks)) {
+        emb_thread_yield();
+        return EMB_OK;
     }
 #else
     if (embk_deadline_passed(t.ticks)) {

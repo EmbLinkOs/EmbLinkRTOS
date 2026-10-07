@@ -86,6 +86,61 @@ void emb_test_fork_expect_fault(const char *file, int line, const char *what)
 #endif
 }
 
+/* ---- marks ------------------------------------------------------------------------ */
+
+#define MARKS_MAX 128
+static int
+    marks[MARKS_MAX]; /* lock: pushed from any context; the runner reads when all are quiet */
+static unsigned marks_n;
+
+void emb_test_mark(int code)
+{
+    emb_irq_key_t key = emb_irq_lock();
+    if (marks_n < (unsigned)MARKS_MAX) {
+        marks[marks_n] = code;
+        marks_n++;
+    }
+    emb_irq_unlock(key);
+}
+
+void emb_test_marks_clear(void)
+{
+    emb_irq_key_t key = emb_irq_lock();
+    marks_n = 0u;
+    emb_irq_unlock(key);
+}
+
+unsigned emb_test_marks_count(void)
+{
+    return marks_n;
+}
+
+int emb_test_mark_at(unsigned i)
+{
+    return (i < marks_n) ? marks[i] : -1;
+}
+
+void emb_test_marks_check(const char *file, int line, const int *expected, size_t n)
+{
+    size_t i;
+    bool ok = marks_n == n;
+    for (i = 0u; ok && i < n; i++) {
+        ok = marks[i] == expected[i];
+    }
+    if (!ok) {
+        (void)printf("  marks:   ");
+        for (i = 0u; i < marks_n; i++) {
+            (void)printf("%d ", marks[i]);
+        }
+        (void)printf("\n  expected:");
+        for (i = 0u; i < n; i++) {
+            (void)printf(" %d", expected[i]);
+        }
+        (void)printf("\n");
+        emb_test_fail(file, line, "mark sequence");
+    }
+}
+
 /* ---- helper threads ------------------------------------------------------------- */
 
 static emb_thread_storage_t pool_storage[EMB_TEST_MAX_THREADS];
@@ -124,6 +179,21 @@ emb_thread_t emb_test_thread(const char *name, uint8_t priority, uint8_t flags,
     return h;
 }
 
+emb_status_t emb_test_thread_destroy(emb_thread_t h)
+{
+    unsigned i;
+    emb_status_t st = emb_thread_destroy(h);
+    if (st != EMB_OK) {
+        return st;
+    }
+    for (i = 0u; i < (unsigned)EMB_TEST_MAX_THREADS; i++) {
+        if (pool_used[i] != 0u && EMB_HANDLE_EQ(pool_handle[i], h)) {
+            pool_used[i] = 0u;
+        }
+    }
+    return EMB_OK;
+}
+
 void emb_test_threads_reset(void)
 {
     unsigned i;
@@ -155,6 +225,7 @@ static void runner(void *arg)
         }
         current_name = tc->name;
         current_failed = 0u;
+        emb_test_marks_clear();
         (void)printf("TEST %s\n", tc->name);
         (void)fflush(stdout);
         tc->fn();

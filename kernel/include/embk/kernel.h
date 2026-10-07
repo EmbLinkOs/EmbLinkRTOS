@@ -123,6 +123,9 @@ struct embk_thread {
     uint8_t tflags;      /* EMBK_THREAD_* */
     uint8_t cancel_disable;
     embk_wait_result_t wake_result;
+#if CONFIG_EMB_CHECKED
+    uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
+#endif
     embk_wait_gen_t wait_gen;
     uintptr_t wake_data;
     embk_wait_queue_t *wait_queue; /* the queue the thread waits in, or NULL */

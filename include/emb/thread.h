@@ -380,8 +380,8 @@ emb_status_t emb_thread_sleep(emb_duration_t d);
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_ECANCELED; EMB_EOVERFLOW for a deadline beyond
- *         EMB_TIMEOUT_MAX_TICKS from now in the 32-bit profile.
+ * Return: EMB_OK; EMB_ECANCELED. In the 32-bit profile a deadline more than
+ *         EMB_TIMEOUT_MAX_TICKS ahead is indistinguishable from a past one and yields.
  */
 emb_status_t emb_thread_sleep_until(emb_instant_t t);
 

@@ -233,6 +233,12 @@ embk_thread_t *embk_sched_select(bool yield)
     }
     check_stack(cur);
     EMBK_TRACE(EMB_TRACE_SWITCH, embk_thread_index(cur), embk_thread_index(next), 0u);
+#if CONFIG_EMB_CHECKED
+    /* the depth belongs to the context: a thread that blocked inside its section resumes
+     * at 1, a preempted one at 0, a fresh one at 0 */
+    cur->lock_depth = embk_cpu.irq_lock_depth;
+    embk_cpu.irq_lock_depth = next->lock_depth;
+#endif
     embk_cpu.current = next;
     return next;
 }

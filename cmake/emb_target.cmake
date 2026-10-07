@@ -25,5 +25,6 @@ function(emb_add_test name)
   emb_add_executable(${name} ${ARGN})
   target_link_libraries(${name} PRIVATE emb_test)
   add_test(NAME ${name} COMMAND ${name})
-  set_tests_properties(${name} PROPERTIES TIMEOUT 120)
+  # misuse tests fork (TEST-010); ThreadSanitizer refuses threads after a fork unless told
+  set_tests_properties(${name} PROPERTIES TIMEOUT 300 ENVIRONMENT "TSAN_OPTIONS=die_after_fork=0")
 endfunction()

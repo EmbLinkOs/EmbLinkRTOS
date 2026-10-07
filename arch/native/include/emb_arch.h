@@ -48,8 +48,8 @@ static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
 
 /* Kernel-aware handlers are plain functions bound to a number with emb_irq_connect()
  * (CONFIG_EMB_IRQ_DYNAMIC is the native default). Both forms take the connect argument. */
-#define EMB_ISR(name)     void name(void *emb_isr_arg_)
-#define EMB_ISR_RAW(name) void name(void *emb_isr_arg_)
+#define EMB_ISR(name)     static void name(void *emb_isr_arg_)
+#define EMB_ISR_RAW(name) static void name(void *emb_isr_arg_)
 
 #ifdef __cplusplus
 }

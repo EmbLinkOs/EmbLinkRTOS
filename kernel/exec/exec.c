@@ -72,6 +72,9 @@ void emb_kernel_start(void)
     embk_cpu.current = first;
     embk_cpu.reschedule_pending = 0u;
     embk_cpu.kernel_state = EMBK_KERNEL_RUNNING;
+#if CONFIG_EMB_CHECKED
+    embk_cpu.irq_lock_depth = 0u; /* the first thread is a fresh context; the idle record is 0 too */
+#endif
     EMBK_TRACE(EMB_TRACE_SWITCH, 0xFFu, embk_thread_index(first), 0u);
     (void)key; /* the launch restores the first thread's own interrupt state (P3) */
     emb_arch_kernel_start(first, &embk_idle_thread);
