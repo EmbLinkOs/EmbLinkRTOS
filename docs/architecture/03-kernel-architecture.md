@@ -291,7 +291,7 @@ work_item:  node + handler + optional delay (delayed work uses a timer)
 **KRN-WQ-003** Delayed work shall be implemented over software timers, not a separate timing mechanism.
 **KRN-WQ-004** Cancellation shall report whether the item was pending, running, or idle.
 
-### 6.3 Message queues (PLANNED, semantics fixed)
+### 6.3 Message queues (specified in `docs/specs/SPEC-007-inter-thread-communication.md`)
 
 Fixed-size messages by copy, ring storage provided by caller, full and empty blocking with timeout, ISR-safe send and receive with `NO_WAIT`, waiter order by wait policy, optional send-to-front for urgent messages.
 

@@ -47,7 +47,7 @@ Rules:
 | KRN-SYNC | Synchronization | [`KRN-SYNC.md`](KRN-SYNC.md) | Complete; Accepted 2026-10-07 (work item 5). v0.1 §8.6 and 03 §5.2 identifiers restated |
 | KRN-NOTIF | Notifications and binding | [`KRN-NOTIF.md`](KRN-NOTIF.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.1 identifiers restated |
 | KRN-WQ | Work queues and delayed work | [`KRN-WQ.md`](KRN-WQ.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.2 identifiers restated |
-| KRN-IPC | Inter-thread communication | pending | 03 §6, v0.1 §9 |
+| KRN-IPC | Inter-thread communication | [`KRN-IPC.md`](KRN-IPC.md) | Complete; Accepted 2026-10-07 (work item 6b). v0.1 §9.4 and 03 §6.5, §6.6 identifiers restated |
 | KRN-OBJ, KRN-CAP | Objects and capabilities | pending | 03 §7 (work item 8) |
 | KRN-PART | Partitions | pending | 03 §8 (work item 9) |
 | KRN-MEM | Memory | pending | 03 §9, v0.1 §11 |

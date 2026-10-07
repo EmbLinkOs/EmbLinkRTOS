@@ -74,7 +74,7 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 5. Mutex, semaphore, event, condition variable semantics and the inheritance algorithm (03 §5). **Accepted 2026-10-07:** `docs/specs/SPEC-005-synchronization.md`, `docs/requirements/KRN-SYNC.md`; the reference model has the mutex with inheritance, explored exhaustively.
 6. Notifications and work queues (03 §6.1, §6.2). **Accepted 2026-10-07:** `docs/specs/SPEC-006-notifications-and-work-queues.md`, `docs/requirements/KRN-NOTIF.md`, `docs/requirements/KRN-WQ.md`; notifications and binding in the reference model.
 
-   6b. Inter-thread communication: message queues, pipes and streams, buffer pools with ownership transfer, ports outline (03 §6.3 to §6.6). Added because M2 delivers message queues and the original list had no item for them.
+   6b. Inter-thread communication: message queues, pipes and streams, buffer pools with ownership transfer, ports outline (03 §6.3 to §6.6). Added because M2 delivers message queues and the original list had no item for them. **Accepted 2026-10-07:** `docs/specs/SPEC-007-inter-thread-communication.md`, `docs/requirements/KRN-IPC.md`.
 7. Thread lifecycle: start, suspend, join, detach, cancel, destroy (03 §1).
 8. Object, capability, and storage generation (03 §7).
 9. Partition model and syscall boundary, scoped to what M3 implements (03 §8).
