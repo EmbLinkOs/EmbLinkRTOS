@@ -1,6 +1,6 @@
 # R-003 - Differentiation: Why Someone Would Choose EmbLinkRTOS
 
-**Status:** Research record with proposed decisions, 2026-10-07. The decisions are recorded as ADR-026 to ADR-037 in `docs/architecture/06-decision-records.md` with status Proposed; this document holds the reasoning and the measurable claims behind them.
+**Status:** Research record, 2026-10-07. Its decisions are ADR-026 to ADR-037 in `docs/architecture/06-decision-records.md`, **accepted 2026-10-07** by the project owner with the answers in §9; this document holds the reasoning and the measurable claims behind them.
 **Inputs:** `R-001` (mechanism comparison of eleven kernels), `R-002` (market, performance, certification, regulation), the v0.2 architecture (`docs/architecture/`), and the accepted specifications SPEC-001 to SPEC-003.
 **Rule:** Every reason to choose EmbLinkRTOS stated here must be either measurable on a board with the harness in §6 or demonstrable by a conformance test. Claims that cannot be verified are not made.
 
@@ -223,9 +223,9 @@ Requirement additions outside those ADRs: KRN-SCH-041 (preempted thread ahead of
 - `07-roadmap.md`: research records inserted before work item 4; harness in M2; adapters in M4.
 - `08-open-questions.md`: Q4, Q5, Q7, Q8 recommendations confirmed or revised by R-001.
 
-## 9. Questions for the owner
+## 9. Questions for the owner and answers (2026-10-07)
 
-1. Accept ADR-026 to ADR-037 as Proposed, to be refined by the specification work items that implement them? Any to reject outright?
-2. Are the targets in §4 the right level of ambition? T5 (<= 200 cycles yield) and T7 (<= 150 cycles masked) are the two that constrain implementation most.
-3. ADR-037 (API adapters) is a strategy decision more than a kernel decision: is middleware compatibility through CMSIS-RTOS2 and a FreeRTOS-API layer wanted, or should the project stay native-only?
-4. ADR-031 rejects preemption threshold for 1.0. Keep that, or carry it as FUTURE?
+1. *Accept ADR-026 to ADR-037?* **All twelve accepted.** The specification work items refine them; a refinement that changes a decision goes through a new ADR.
+2. *Are T5 (<= 200 cycles yield) and T7 (<= 150 cycles masked) the right ambition?* **Kept as stated.** They are design targets; the first harness measurement becomes the baseline that later releases may not regress (OBS-012), and the promise made to users is always relative ("not slower than the best competitor measured on the same board"), never the absolute number until measured.
+3. *API adapters (ADR-037)?* **Wanted.** CMSIS-RTOS2 first because vendor middleware targets it, the FreeRTOS API second for migration; optional layers in M4, never part of the certified profile, never influencing the native API.
+4. *Preemption threshold (ADR-031)?* **Rejected for 1.0 and carried as FUTURE**, to be reopened only with harness evidence of a switch-count problem on a real workload.

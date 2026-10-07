@@ -98,7 +98,7 @@ The scheduler is organized as an ordered list of classes. At a decision point it
 **KRN-SCH-039** The four-state thread model shall be identical across classes.
 **KRN-SCH-040** When no optional class is configured, the class dispatch shall compile to a direct call into the fixed-priority implementation with zero overhead.
 
-### 2.3 Temporal protection (PROPOSED, revised per ADR-029)
+### 2.3 Temporal protection (PROPOSED detail; model fixed by ADR-029, accepted)
 
 Fixed priority alone cannot stop a thread that runs longer than designed. v0.2 adds budgets without changing scheduling order among threads that are within budget. R-001 §1 and R-002 §5 showed two proven models beyond "capacity per period": the sporadic server (POSIX `SCHED_SPORADIC` in NuttX, seL4 MCS scheduling contexts) for threads, and the sliding-window share with idle-time sharing (QNX adaptive partitioning) for partitions. Both are adopted (ADR-029).
 
@@ -144,7 +144,7 @@ cpu[n]:
 
 **PLANNED in v0.1; PROPOSED design here.** This is the most important internal contract in the kernel, because every blocking primitive is a thin layer over it.
 
-The protocol is realized by a three-state wait flag (`READY`, `INTEND_TO_BLOCK`, `BLOCKED`) with a per-thread wait generation and a superseded bit on in-flight timeouts (ADR-026), so that no interrupt-masked section spans the window between deciding to block and being blocked. R-001 §4.2 compares the alternatives used by other kernels.
+The protocol is realized by a three-state wait flag (`READY`, `INTEND_TO_BLOCK`, `BLOCKED`) with a per-thread wait generation and a superseded bit on in-flight timeouts (ADR-026), so that no interrupt-masked section spans the window between deciding to block and being blocked. R-001 §4.2 compares the alternatives used by other kernels. The full protocol is `docs/specs/SPEC-004-wait-and-wake-protocol.md`; the requirements are `docs/requirements/KRN-WAIT.md`.
 
 ### 3.1 Wait object
 
@@ -269,7 +269,7 @@ A per-thread 32-bit (configurable) bit set.
 **KRN-NOTIF-002** Only the owning thread shall wait on its notifications.
 **KRN-NOTIF-003** Notification set and wait shall be O(1) and allocation free.
 
-**Binding (ADR-027).** Any waitable object may be bound to one `(thread, bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition is met, a stream reaches its trigger level), the kernel sets the bit. A thread waiting on several objects waits once on its notification mask, then performs the non-blocking operation on each signalled object and loops on `EMB_EBUSY` if another consumer was faster. This replaces queue sets, poll objects, and pend-multi with an O(1) mechanism that has no per-object poller lists and no global lock.
+**Binding (ADR-027).** Any waitable object may be bound to one `(thread, bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition is met, a stream reaches its trigger level), the kernel sets the bit. A thread waiting on several objects waits once on its notification mask, then performs the operation with `EMB_NO_WAIT` on each signalled object and loops on `EMB_ETIMEDOUT` if another consumer was faster (SPEC-001 §4). This replaces queue sets, poll objects, and pend-multi with an O(1) mechanism that has no per-object poller lists and no global lock.
 
 **KRN-NOTIF-004** Every waitable kernel object shall support binding to one notification bit of one thread; the set shall be O(1) and shall happen on every transition to the ready condition.
 **KRN-NOTIF-005** Binding shall not change the object's own wait-queue semantics for threads blocked directly on it.

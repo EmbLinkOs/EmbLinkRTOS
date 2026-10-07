@@ -314,19 +314,19 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** No masked section spans the block window; the remaining masked sections are single list operations whose bound is stated (priority-ordered insert, bounded by the waiters of one object; timeout insert, bounded by armed timeouts, with the wheel of ADR-010 as the escape). SMP needs no global lock for blocking. The thread control block gains one byte of state and one or two bytes of generation. The reference model expresses exactly these states, which is what KRN-WAIT-007 asks for. KRN-WAIT-008 and 009 record this.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-027 Multi-object wait by binding objects to notification bits
 
 **Context.** R-001 §4.3: FreeRTOS queue sets copy a handle into a container queue on every post; Zephyr's `k_poll` keeps per-object poller lists under one global lock and supports only one mode; uC/OS-III removed pend-multi in favour of per-task primitives. ChibiOS events, RIOT thread flags, Hubris notifications, and FreeRTOS stream buffers all converge on per-thread bits set by other mechanisms.
 
-**Decision.** Any waitable object may be bound to one `(thread, notification bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition becomes true, a stream reaches its trigger level), the kernel sets the bit with the ordinary O(1), ISR-safe notification set. A thread that waits on several objects waits once on its notification mask, then performs the non-blocking operation on each signalled object and loops on `EMB_EBUSY` when another consumer was faster. One binding per object in 1.0; rebinding requires the object to have no bound waiter in flight. Threads blocked directly on the object are unaffected.
+**Decision.** Any waitable object may be bound to one `(thread, notification bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition becomes true, a stream reaches its trigger level), the kernel sets the bit with the ordinary O(1), ISR-safe notification set. A thread that waits on several objects waits once on its notification mask, then performs the operation with `EMB_NO_WAIT` on each signalled object and loops on `EMB_ETIMEDOUT` when another consumer was faster (SPEC-001 §4: there is no would-block code). One binding per object in 1.0; rebinding requires the object to have no bound waiter in flight. Threads blocked directly on the object are unaffected.
 
 **Alternatives.** Queue sets (extra copy, sets are queues of handles); a poll object with per-object poller lists (global lock, memory per poller); pend-multi arrays (O(objects) per wait, removed by its own authors).
 
 **Consequences.** Multi-object wait costs nothing per object beyond a thread pointer and a bit index; no new kernel object; works from the tiny profile upward; the notification width must leave bits for the application (KRN-NOTIF-006, answers Q7). Edge semantics (set on every transition to ready, thread re-checks) mean no lost wakeups and at most one spurious pass.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-028 Priority inheritance algorithm
 
@@ -338,7 +338,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Per mutex: an owner pointer, two list links, and the wait queue. Per thread: an owned-list head, base and effective priority. The chain walk is O(depth) with each hop a bounded masked section. KRN-SYNC-014 to 016 record the algorithm; R-003 target T9 bounds its cost.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-029 Temporal protection: sporadic thread budgets, sliding-window partition shares, critical budget; donation FUTURE
 
@@ -350,7 +350,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Mixed-criticality on an MCU gets the QNX model that no MCU kernel offers; the accounting cost is one timestamp per switch when enabled; the sliding window needs `windows / sub-windows` counters per partition. KRN-TP-006 to 009 record the refinements.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-030 Compile-time priority ceilings from the static system description
 
@@ -362,7 +362,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Deadlock-free, bounded-inversion locking with O(1) cost for statically described systems; the generator becomes part of the synchronization story; KRN-SYNC-017 records it.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-031 Preemption threshold: rejected for 1.0
 
@@ -374,7 +374,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** The scheduler stays a single bitmap plus FIFO queues; inheritance and budgets have one priority to reason about.
 
-**Status.** Proposed (R-003). Rejected for 1.0.
+**Status.** Accepted 2026-10-07 (proposed by R-003): rejected for 1.0, carried as FUTURE pending harness data.
 
 ## ADR-032 Generation-tagged thread and partition handles with dead codes; leases for cross-partition buffers
 
@@ -386,7 +386,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Restart semantics are visible and testable; cross-partition zero-copy without a kernel buffer; the validation cost is per access, which is why small messages are still copied. KRN-OBJ-005 and KRN-IPC-009 record it.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-033 Partition-local kernel storage
 
@@ -398,7 +398,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Per-partition kernel memory is a visible number in the generated layout; restart is a re-initialization of one region; no kernel allocator is needed for partitions; the MPU region count per partition rises by one, which the generator checks against the hardware. KRN-PART-007 records it.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-034 Worst-case monitors with caller address as part of the observability baseline
 
@@ -410,7 +410,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** The bounds the project promises are self-checking on every target in every build that enables them; the cost is one timestamp read at each interval boundary when enabled and nothing otherwise. OBS-009 to 011 record it.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-035 Checked-build architecture: transition checker, separable validation layer, generator consistency checks, safety gate
 
@@ -422,7 +422,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Release builds carry no check code by construction; checked builds catch context misuse at the transition, not at the next symptom; configurations cannot be silently incomplete. BLD-007 and 008 record the build side.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-036 Tiny profile scheduler: priority-indexed thread table and optional idle thread
 
@@ -434,7 +434,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** TCB target of 32 bytes on AVR (R-003 T2); wait queues of one or two bytes; one more implementation of the class interface to test, which the reference model already covers. KRN-SCH-042 and 043 record it.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
 
 ## ADR-037 CMSIS-RTOS2 and FreeRTOS-API adapters as optional layers
 
@@ -446,4 +446,4 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Existing middleware and applications run while the native API stays clean; two more test targets; a migration guide becomes a deliverable.
 
-**Status.** Proposed (R-003).
+**Status.** Accepted 2026-10-07 (proposed by R-003).
