@@ -1,0 +1,88 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 20, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "native-gcc",
+      "displayName": "native, GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-gcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "base" }
+    },
+    {
+      "name": "native-clang",
+      "displayName": "native, Clang, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-clang.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "base" }
+    },
+    {
+      "name": "native-release",
+      "displayName": "native, GCC, base profile, release build kind",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "base", "EMB_CONF": "configs/release.conf" }
+    },
+    {
+      "name": "native-tiny",
+      "displayName": "native, GCC, tiny profile (table scheduler, 32-bit time)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "tiny" }
+    },
+    {
+      "name": "native-asan",
+      "displayName": "native, Clang, AddressSanitizer + UBSan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-asan",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-sanitizers.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "base" }
+    },
+    {
+      "name": "native-tsan",
+      "displayName": "native, Clang, ThreadSanitizer",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-tsan",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-tsan.cmake",
+      "cacheVariables": { "EMB_BOARD": "native", "EMB_PROFILE": "base" }
+    },
+    {
+      "name": "avr-uno",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny", "EMB_BUILD_TESTS": "OFF" }
+    },
+    {
+      "name": "avr-uno-release",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, release (footprint reference)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny", "EMB_CONF": "configs/release.conf", "EMB_BUILD_TESTS": "OFF" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "native-gcc", "configurePreset": "native-gcc" },
+    { "name": "native-clang", "configurePreset": "native-clang" },
+    { "name": "native-release", "configurePreset": "native-release" },
+    { "name": "native-tiny", "configurePreset": "native-tiny" },
+    { "name": "native-asan", "configurePreset": "native-asan" },
+    { "name": "native-tsan", "configurePreset": "native-tsan" },
+    { "name": "avr-uno", "configurePreset": "avr-uno" },
+    { "name": "avr-uno-release", "configurePreset": "avr-uno-release" }
+  ],
+  "testPresets": [
+    { "name": "native-gcc", "configurePreset": "native-gcc", "output": { "outputOnFailure": true } },
+    { "name": "native-clang", "configurePreset": "native-clang", "output": { "outputOnFailure": true } },
+    { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } },
+    { "name": "native-tiny", "configurePreset": "native-tiny", "output": { "outputOnFailure": true } },
+    { "name": "native-asan", "configurePreset": "native-asan", "output": { "outputOnFailure": true } },
+    { "name": "native-tsan", "configurePreset": "native-tsan", "output": { "outputOnFailure": true } }
+  ]
+}

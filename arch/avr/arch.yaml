@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Port manifest, SPEC-012 §2 (format: SPEC-011 §2).
+arch: avr
+variants: [atmega328p]
+word_bits: 8
+endian: little
+stack: { align: 1, growth: down, min_thread: 96, context_frame: 37 }
+features:
+  irq_nesting: false
+  zero_latency_irqs: []
+  cas: []
+  interrupt_stack: false
+  hw_stack_limit: []
+  mpu: none
+  fpu_lazy: []
+  cycle_counter: []
+  tickless: true
+  smp: false
+  syscall_trap: none
+  fault_entry: false
+  priority_bits: none
+tcb_extension_bytes: 0

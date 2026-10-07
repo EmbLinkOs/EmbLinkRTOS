@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Architecture symbols. The EMB_ARCH* and EMB_ARCH_HAS_* values are derived from the
+# selected port's arch/<arch>/arch.yaml manifest (SPEC-011 §2); they are declared here so
+# that every Kconfig expression can name them, and they cannot be set by a fragment.
+
+menu "Architecture"
+
+config EMB_ARCH
+	string
+	help
+	  Port name from the manifest: native, avr, cortex_m, riscv.
+
+config EMB_ARCH_VARIANT
+	string
+
+config EMB_ARCH_NATIVE
+	bool
+
+config EMB_ARCH_AVR
+	bool
+
+config EMB_ARCH_WORD_BITS
+	int
+	help
+	  The kernel's bitmap word width: 8 on AVR, 32 or 64 elsewhere (SPEC-012 §2).
+
+config EMB_ARCH_STACK_ALIGN
+	int
+
+config EMB_ARCH_STACK_MIN
+	int
+
+config EMB_ARCH_CONTEXT_FRAME
+	int
+
+config EMB_ARCH_HAS_IRQ_NESTING
+	bool
+
+config EMB_ARCH_HAS_ZERO_LATENCY_IRQS
+	bool
+
+config EMB_ARCH_HAS_CAS
+	bool
+
+config EMB_ARCH_HAS_INTERRUPT_STACK
+	bool
+
+config EMB_ARCH_HAS_HW_STACK_LIMIT
+	bool
+
+config EMB_ARCH_HAS_FPU_LAZY
+	bool
+
+config EMB_ARCH_HAS_CYCLE_COUNTER
+	bool
+
+config EMB_ARCH_HAS_TICKLESS
+	bool
+
+config EMB_ARCH_HAS_SMP
+	bool
+
+config EMB_ARCH_HAS_FAULT_ENTRY
+	bool
+
+config EMB_ARCH_MPU
+	string
+
+config EMB_ARCH_SYSCALL_TRAP
+	string
+
+config EMB_ARCH_TCB_EXTENSION
+	int
+	default 0
+
+source "native/Kconfig"
+source "avr/Kconfig"
+
+endmenu

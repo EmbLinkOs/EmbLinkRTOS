@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Root of the EmbLinkRTOS configuration tree (05 §2.1). Read by tools/kconfig/embconfig.py.
+# Symbols are written without the CONFIG_ prefix here and appear as CONFIG_EMB_* in
+# <emb/config.h>, config.cmake, and config.json.
+
+mainmenu "EmbLinkRTOS configuration"
+
+source "arch/Kconfig"
+source "kernel/Kconfig"

@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
+# in M1 the matching hw_config.h is written by hand (include/hw_config.h).
+board: arduino_uno
+soc: microchip/atmega/atmega328p
+oscillators: { main: { hz: 16000000, source: external_crystal } }
+console: { device: usart0, baud: 115200, pins: { tx: PD1, rx: PD0 } }
+leds: [ { name: user, gpio: PB5 } ]
+flash_partitions:
+  - { name: app, base: 0x0000, size: 32256 }
+  - { name: bootloader, base: 0x7E00, size: 512, reserved: true }
+defaults: { CONFIG_EMB_PROFILE: tiny, CONFIG_EMB_TICK_NS: 1000000 }
