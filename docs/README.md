@@ -41,8 +41,10 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-011](specs/SPEC-011-architecture-port-contract.md) | Architecture port contract: port manifest, TCB contribution, startup and kernel start, context init and switch, interrupts and critical sections, timer and cycle counter, atomics, idle and power, stacks, faults, protection and trap hooks, SMP names, debug hooks, toolchain rules, port deliverables and conformance, per-architecture summary | 07 §3 item 10 | Accepted 2026-10-07 |
 | [SPEC-012](specs/SPEC-012-atmega328p-port.md) | ATmega328P port and the `arduino_uno` board: manifest, startup, the single 37-byte frame, switch and interrupt epilogue, Timer1 modes, memory budget and `const`-in-RAM handling, robustness without fault hardware, debug and emulation path, board description, footprint and latency targets | 07 §3 item 11 | Accepted 2026-10-07 |
 | [SPEC-013](specs/SPEC-013-native-port.md) | Native port: host abstraction, the gate, deterministic and asynchronous interrupt delivery, virtual time, fault injection and software region checks, differential bridge to the reference model, replay, multi-CPU reservation, CI legs | 07 §3 item 12 | Accepted 2026-10-07 |
+| [SPEC-014](specs/SPEC-014-hardware-description-schema.md) | Hardware description schema v0 and generator: SoC, board, and system descriptions, conventions, generated outputs, semantic validation, SVD and DeviceTree importers, determinism, versioning | 07 §3 item 13 | Accepted 2026-10-07 |
+| [SPEC-015](specs/SPEC-015-observability-formats.md) | Observability formats: deferred log records, CTF trace catalogue and rings, crash record v1 and v2, debug descriptor, monitors and statistics API, framing and memory channel, host tools, profile defaults | 07 §3 item 14 | Accepted 2026-10-07 |
 
-Upcoming, in roadmap order: hardware description schema; observability formats.
+All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. The next step is M1 implementation (07 §2), in dependency order: the native and AVR ports (SPEC-011 to 013), then the kernel modules (SPEC-002 to 008), with the reference model as oracle.
 
 ## Research records
 

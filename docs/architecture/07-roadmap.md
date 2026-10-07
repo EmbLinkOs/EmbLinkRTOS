@@ -20,11 +20,13 @@ SMP scheduling (experimental only), DEADLINE and TIME_TABLE classes, dynamic par
 
 ## 2. Milestones
 
-### M0 - Architecture baseline (now)
+### M0 - Architecture baseline (complete 2026-10-07)
 
-Deliverables: these documents accepted; the specification work in §3 completed; requirement files created under `docs/requirements/`; API conventions and coding standard written; hardware description schema v0 drafted; reference model skeleton written against the wait and scheduler requirements.
+Deliverables: these documents accepted; the specification work in §3 completed (SPEC-001 to SPEC-015); requirement files created under `docs/requirements/` for every group the specifications cover; API conventions written (SPEC-001); hardware description schema v0 specified (SPEC-014); the reference model written and explored for the wait protocol, mutexes with inheritance, notifications, and thread lifecycle (`tools/model/`, 48 scenarios, 44 tests); the research records R-001 to R-003 and ADR-026 to ADR-037 accepted.
 
-Exit: every LOCKED and PROPOSED item in 02 and 03 has requirement identifiers, and the reference model executes the scheduler transition reference (v0.1 Appendix A) as tests.
+Exit: met for the kernel groups (KRN-*), PORT, ARCH-AVR, SIM, HW, OBS. Still pending from the original exit criterion: the coding standard document (05 §1 names it; written at the start of M1 together with the first source files), and the remaining architecture groups without their own specification (KRN-MEM, KRN-TP beyond ADR-029, KRN-SMP/MC, FLT, DRV, PWR, BOOT, SEC, BLD, TEST, REL), whose identifiers stay in documents 03 to 05 until their milestones (M3 to M5) specify them.
+
+Status of the §3 work order: 1 to 14 and 6b accepted; see each item's line below.
 
 ### M1 - First execution on two ports (native + AVR)
 
@@ -81,10 +83,10 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 10. Architecture-port contract in enough detail to implement native and AVR (02, 04 §9). **Accepted 2026-10-07:** `docs/specs/SPEC-011-architecture-port-contract.md`, `docs/requirements/PORT.md`.
 11. ATmega328P startup, interrupt, timer, and context-frame specification. **Accepted 2026-10-07:** `docs/specs/SPEC-012-atmega328p-port.md`, `docs/requirements/ARCH-AVR.md`.
 12. Native port design: host gate, virtual time, interrupt injection. **Accepted 2026-10-07:** `docs/specs/SPEC-013-native-port.md`, `docs/requirements/SIM.md`.
-13. Hardware description schema v0 and generator outputs (04 §1).
-14. Observability formats: log record, trace event set, crash record, debug descriptor (04 §7).
+13. Hardware description schema v0 and generator outputs (04 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-014-hardware-description-schema.md`, `docs/requirements/HW.md`.
+14. Observability formats: log record, trace event set, crash record, debug descriptor (04 §7). **Accepted 2026-10-07:** `docs/specs/SPEC-015-observability-formats.md`, `docs/requirements/OBS.md`.
 
-Only then does M1 implementation begin.
+All items are specified and accepted as of 2026-10-07; M1 implementation begins with the native and AVR ports and the kernel modules in dependency order, with the reference model (`tools/model/`) as the oracle and the specifications' decision sections as the contract.
 
 ## 4. Risks and mitigations
 

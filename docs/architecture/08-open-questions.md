@@ -31,6 +31,7 @@ These need your decision. Each has a recommendation so the default path is clear
 
 **Q6. Thread cancellation in 1.0.** Cooperative cancellation (recommended) or none until later?
 *Recommendation:* include it; it is small once the wait protocol has wake results.
+*Answered 2026-10-07 (SPEC-008 §7, KRN-THR-021):* cooperative cancellation with a per-thread disable count is in 1.0; there is no asynchronous terminate.
 
 **Q7. Notification width.** 32 bits everywhere, or 8 bits on tiny?
 *Recommendation:* configurable, default 32, tiny profile may select 8 or 16.

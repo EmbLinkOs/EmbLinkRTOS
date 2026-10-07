@@ -14,7 +14,7 @@ Hardware is described in a **project-owned, schema-validated YAML** model with t
 
 The model borrows what works from DeviceTree (the `compatible` string binding a node to a driver, hierarchical buses, phandles as references) and from CMSIS-SVD (register-level detail for tooling) without adopting their syntax. **Importers** exist for CMSIS-SVD (peripheral instances, IRQ numbers, memory map) and for DeviceTree source (to bootstrap from Zephyr or Linux board files), so that authors curate rather than transcribe.
 
-### 1.2 Model
+### 1.2 Model (specified in detail in `docs/specs/SPEC-014-hardware-description-schema.md`)
 
 ```
 soc/<vendor>/<family>/<part>.yaml
@@ -200,6 +200,8 @@ Out of scope for the kernel: invasive silicon attacks; these are mitigated by So
 **SEC-011** Debug access policy (open, authenticated, locked) shall be a provisioning-time decision supported by the boot chain.
 
 ## 7. Observability
+
+Formats and tools are specified in `docs/specs/SPEC-015-observability-formats.md`.
 
 ### 7.1 Deferred-format logging (ADR-009)
 

@@ -55,12 +55,12 @@ Rules:
 | KRN-TP | Temporal protection | pending | 03 §2.3 |
 | KRN-SMP, MC | Multicore | pending | v0.1 §13, 04 §8 |
 | FLT | Fault management | pending | 03 §10 |
-| HW | Hardware description | pending | 04 §1 (work item 13) |
+| HW | Hardware description and generator | [`HW.md`](HW.md) | Complete; Accepted 2026-10-07 (work item 13). 04 §1.3 identifiers restated |
 | DRV | Device and driver model | pending | 04 §2, §3 |
 | PWR | Power management | pending | 04 §4 |
 | BOOT | Boot, images, update | pending | 04 §5 |
 | SEC | Security | pending | 04 §6, v0.1 §17 |
-| OBS | Observability | pending | 04 §7 (work item 14) |
+| OBS | Observability | [`OBS.md`](OBS.md) | Complete; Accepted 2026-10-07 (work item 14). 04 §7 identifiers restated |
 | SIM | Simulation and the native port | [`SIM.md`](SIM.md) | Complete; Accepted 2026-10-07 (work item 12). 04 §9 identifiers restated |
 | PORT | Compiler portability (PORT-ABI) and the architecture port contract (PORT) | [`PORT.md`](PORT.md) | Complete; Accepted 2026-10-07 (work item 10). v0.1 §21.5 identifiers restated |
 | ARCH-AVR | ATmega328P port | [`ARCH-AVR.md`](ARCH-AVR.md) | Complete; Accepted 2026-10-07 (work item 11). New group |
