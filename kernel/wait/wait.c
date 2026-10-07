@@ -72,25 +72,7 @@ static void dequeue(embk_wait_queue_t *q, embk_thread_t *t)
 embk_thread_t *embk_wait_first(const embk_wait_queue_t *q)
 {
 #if CONFIG_EMB_SCHED_TABLE
-    embk_word_t set = q->set;
-    embk_thread_t *best;
-    if (set == 0u) {
-        return NULL;
-    }
-    best = embk_thread_table[embk_word_highest(set)];
-    if (embk_sched_raised_count != 0u) {
-        /* a blocked waiter may itself be raised; bounded by CONFIG_EMB_PRIORITY_COUNT */
-        embk_word_t rest = set & (embk_word_t)~EMBK_WORD_BIT(best->base_prio);
-        while (rest != 0u) {
-            unsigned i = embk_word_highest(rest);
-            embk_thread_t *c = embk_thread_table[i];
-            if (c->eff_prio > best->eff_prio) {
-                best = c;
-            }
-            rest &= (embk_word_t)~EMBK_WORD_BIT(i);
-        }
-    }
-    return best;
+    return embk_sched_table_best(q->set);
 #else
     embk_list_node_t *n = embk_list_first(&q->waiters);
     return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_thread_t, wait_node);
@@ -106,7 +88,7 @@ void embk_wait_prepare(embk_wait_queue_t *q, uint8_t reason)
     EMBK_ASSERT(self->wait_queue == NULL);
     self->wait_reason = reason;
     self->wait_queue = q;
-    self->wake_result = EMBK_WAKE_NONE;
+    embk_thread_set_wake_result(self, EMBK_WAKE_NONE);
     enqueue(q, self);
     self->wait_state = EMBK_WAIT_INTEND_TO_BLOCK;
     EMBK_TRACE(EMB_TRACE_BLOCK, embk_thread_index(self), reason, q);
@@ -121,7 +103,7 @@ embk_wait_result_t embk_wait_commit(emb_tick_t deadline, uintptr_t *data_out)
     if (deadline != EMBK_DEADLINE_FOREVER) {
         key = embk_lock_timeout(); /* section 2 */
         if (self->wait_state == EMBK_WAIT_INTEND_TO_BLOCK) {
-            embk_timeout_arm(&self->timeout, deadline, self->wait_gen);
+            embk_timeout_arm(&self->timeout, deadline);
         }
         embk_unlock_timeout(key);
     }
@@ -135,9 +117,9 @@ embk_wait_result_t embk_wait_commit(emb_tick_t deadline, uintptr_t *data_out)
         embk_timeout_disarm(&self->timeout);
     }
     EMBK_ASSERT(self->wait_state == EMBK_WAIT_READY);
-    EMBK_ASSERT(self->wake_result != EMBK_WAKE_NONE);
+    EMBK_ASSERT(embk_thread_wake_result(self) != EMBK_WAKE_NONE);
     EMBK_ASSERT(self->wait_queue == NULL);
-    result = self->wake_result;
+    result = embk_thread_wake_result(self);
     *data_out = self->wake_data;
     embk_unlock_sched(key);
     return result;
@@ -162,7 +144,7 @@ bool embk_wait_wake(embk_thread_t *t, embk_wait_result_t result, uintptr_t data)
     }
     dequeue(q, t);
     t->wait_queue = NULL;
-    t->wake_result = result; /* KRN-WAIT-005: result before READY */
+    embk_thread_set_wake_result(t, result); /* KRN-WAIT-005: result before READY */
     t->wake_data = data;
     t->wait_gen++; /* every later timeout, cancel, or flush for this wait is stale */
     was = t->wait_state;
@@ -215,10 +197,10 @@ void embk_wait_requeue(embk_thread_t *t)
 
 /* ---- timeout, cancel, flush (§5.3, §6.6, §6.7) ------------------------------------- */
 
-void embk_wait_wake_timeout(embk_thread_t *t, embk_wait_gen_t gen)
+void embk_wait_wake_timeout(embk_thread_t *t)
 {
-    if (t->wait_gen != gen || t->wait_queue == NULL) {
-        return; /* stale: the wait completed */
+    if (t->wait_queue == NULL) {
+        return; /* the wait completed in the same section that would have disarmed it */
     }
     EMBK_TRACE(EMB_TRACE_TIMEOUT_EXPIRE, embk_thread_index(t), 0u, 0u);
     (void)embk_wait_wake(t, EMBK_WAKE_TIMEOUT, 0u);

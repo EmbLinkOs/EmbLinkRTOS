@@ -32,7 +32,7 @@ unsigned embk_wait_wake_all(embk_wait_queue_t *q, embk_wait_result_t result, uin
 void embk_wait_requeue(embk_thread_t *t);
 
 /* Timeout expiry (SPEC-004 §5.3), lock held. */
-void embk_wait_wake_timeout(embk_thread_t *t, embk_wait_gen_t gen);
+void embk_wait_wake_timeout(embk_thread_t *t);
 
 /* Cancellation (§6.6), lock held: wakes @t with CANCELED if it waits with a cancelable
  * reason and cancellation is enabled; returns whether it did. */

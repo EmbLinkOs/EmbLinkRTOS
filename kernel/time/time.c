@@ -14,9 +14,15 @@
 
 typedef struct embk_time_state {
     emb_tick_t
-        ticks;    /* lock: timeout domain for writes; sequence lock or critical section for reads */
+        ticks; /* lock: timeout domain for writes; sequence lock or critical section for reads */
+#if EMB_ARCH_CLOCK_SEQLOCK
     uint32_t seq; /* odd while a write is in progress */
+#endif
+#if CONFIG_EMB_SCHED_TABLE
+    embk_timeout_t *head; /* the earliest armed deadline, NULL when none; lock: timeout domain */
+#else
     embk_list_t timeouts; /* ordered by deadline; lock: timeout domain */
+#endif
 #if CONFIG_EMB_TICKLESS
     emb_arch_timer_raw_t last_raw; /* counter value at which ticks was last exact */
     uint32_t raw_per_tick;
@@ -30,14 +36,18 @@ static embk_time_state_t ts;
 
 static EMB_INLINE void clock_write_begin(void)
 {
+#if EMB_ARCH_CLOCK_SEQLOCK
     ts.seq++;
     EMB_COMPILER_BARRIER();
+#endif
 }
 
 static EMB_INLINE void clock_write_end(void)
 {
+#if EMB_ARCH_CLOCK_SEQLOCK
     EMB_COMPILER_BARRIER();
     ts.seq++;
+#endif
 }
 
 emb_tick_t embk_time_ticks_locked(void)
@@ -88,27 +98,77 @@ emb_instant_t emb_time_now(void)
 
 /* ---- timeout list (SPEC-003 §5.1) --------------------------------------------------- */
 
-static void program_if_head(const embk_timeout_t *node)
+/* The two representations behind one interface: a doubly linked list (base profile,
+ * O(1) removal) or a singly linked one bounded by the table's thread count (tiny
+ * profile, SPEC-012 §13): there a node's next is NULL when not armed and the last
+ * node points to itself. */
+#if CONFIG_EMB_SCHED_TABLE
+static EMB_INLINE embk_timeout_t *tl_first(void)
 {
-#if CONFIG_EMB_TICKLESS
-    if (embk_list_first(&ts.timeouts) == &node->node) {
-        embk_time_program();
-    }
-#else
-    (void)node;
-#endif
+    return ts.head;
 }
 
-void embk_timeout_arm(embk_timeout_t *node, emb_tick_t deadline, embk_wait_gen_t gen)
+static EMB_INLINE embk_timeout_t *tl_after(const embk_timeout_t *n)
 {
-    embk_list_node_t *p;
-    EMBK_ASSERT(!embk_list_node_is_linked(&node->node));
-    node->deadline = deadline;
-    node->gen = gen;
+    return (n->next == n) ? NULL : n->next;
+}
+
+static EMB_INLINE bool tl_is_linked(const embk_timeout_t *n)
+{
+    return n->next != NULL;
+}
+
+/* Insert in deadline order, behind equal deadlines (they expire in arming order). */
+static void tl_insert(embk_timeout_t *node)
+{
+    embk_timeout_t *prev = NULL;
+    embk_timeout_t *p = ts.head;
+    /* bounded by the armed nodes, at most the table's thread count */
+    while (p != NULL && !embk_tick_before(node->deadline, p->deadline)) {
+        prev = p;
+        p = tl_after(p);
+    }
+    node->next = (p == NULL) ? node : p;
+    if (prev == NULL) {
+        ts.head = node;
+    } else {
+        prev->next = node;
+    }
+}
+
+static void tl_remove(embk_timeout_t *node)
+{
+    embk_timeout_t *after = tl_after(node);
+    if (ts.head == node) {
+        ts.head = after;
+    } else {
+        embk_timeout_t *p = ts.head;
+        /* bounded by the armed nodes; node is one of them */
+        while (tl_after(p) != node) {
+            p = tl_after(p);
+        }
+        p->next = (after == NULL) ? p : after;
+    }
+    node->next = NULL;
+}
+#else
+static EMB_INLINE embk_timeout_t *tl_first(void)
+{
+    embk_list_node_t *n = embk_list_first(&ts.timeouts);
+    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_timeout_t, node);
+}
+
+static EMB_INLINE bool tl_is_linked(const embk_timeout_t *n)
+{
+    return embk_list_node_is_linked(&n->node);
+}
+
+static void tl_insert(embk_timeout_t *node)
+{
     /* from the tail: a new deadline is most often later than most; bounded by the armed nodes */
-    p = embk_list_last(&ts.timeouts);
+    embk_list_node_t *p = embk_list_last(&ts.timeouts);
     while (p != NULL &&
-           embk_tick_before(deadline, EMB_CONTAINER_OF(p, embk_timeout_t, node)->deadline)) {
+           embk_tick_before(node->deadline, EMB_CONTAINER_OF(p, embk_timeout_t, node)->deadline)) {
         p = embk_list_prev(&ts.timeouts, p);
     }
     if (p == NULL) {
@@ -116,10 +176,27 @@ void embk_timeout_arm(embk_timeout_t *node, emb_tick_t deadline, embk_wait_gen_t
     } else {
         embk_list_insert_after(p, &node->node); /* equal deadlines expire in arming order */
     }
+}
+
+static EMB_INLINE void tl_remove(embk_timeout_t *node)
+{
+    embk_list_remove(&node->node);
+}
+#endif
+
+void embk_timeout_arm(embk_timeout_t *node, emb_tick_t deadline)
+{
+    EMBK_ASSERT(!tl_is_linked(node));
+    node->deadline = deadline;
+    tl_insert(node);
     EMBK_TRACE(EMB_TRACE_TIMEOUT_ARM,
                embk_thread_index(EMB_CONTAINER_OF(node, embk_thread_t, timeout)),
                (uint32_t)deadline, 0u);
-    program_if_head(node);
+#if CONFIG_EMB_TICKLESS
+    if (tl_first() == node) {
+        embk_time_program();
+    }
+#endif
 }
 
 void embk_timeout_disarm(embk_timeout_t *node)
@@ -127,13 +204,13 @@ void embk_timeout_disarm(embk_timeout_t *node)
 #if CONFIG_EMB_TICKLESS
     bool was_head;
 #endif
-    if (!embk_list_node_is_linked(&node->node)) {
+    if (!tl_is_linked(node)) {
         return;
     }
 #if CONFIG_EMB_TICKLESS
-    was_head = embk_list_first(&ts.timeouts) == &node->node;
+    was_head = tl_first() == node;
 #endif
-    embk_list_remove(&node->node);
+    tl_remove(node);
 #if CONFIG_EMB_TICKLESS
     if (was_head) {
         embk_time_program();
@@ -143,38 +220,35 @@ void embk_timeout_disarm(embk_timeout_t *node)
 
 bool embk_timeout_is_armed(const embk_timeout_t *node)
 {
-    return embk_list_node_is_linked(&node->node);
+    return tl_is_linked(node);
 }
 
 bool embk_timeout_next(emb_tick_t *out_deadline)
 {
-    embk_list_node_t *n = embk_list_first(&ts.timeouts);
+    const embk_timeout_t *n = tl_first();
     if (n == NULL) {
         return false;
     }
-    *out_deadline = EMB_CONTAINER_OF(n, embk_timeout_t, node)->deadline;
+    *out_deadline = n->deadline;
     return true;
 }
 
 /* Expire every node whose deadline is at or before @now, in deadline order (§5.3). */
 static void expire(emb_tick_t now)
 {
-    embk_list_node_t *n;
+    embk_timeout_t *node;
     /* bounded by the number of expired nodes */
-    while ((n = embk_list_first(&ts.timeouts)) != NULL) {
-        embk_timeout_t *node = EMB_CONTAINER_OF(n, embk_timeout_t, node);
+    while ((node = tl_first()) != NULL) {
         if (embk_tick_before(now, node->deadline)) {
             break;
         }
-        embk_list_remove(n);
-        embk_wait_wake_timeout(EMB_CONTAINER_OF(node, embk_thread_t, timeout), node->gen);
+        tl_remove(node);
+        embk_wait_wake_timeout(EMB_CONTAINER_OF(node, embk_thread_t, timeout));
     }
 }
 
-/* ---- modes (§4) ---------------------------------------------------------------------- */
-
 #if CONFIG_EMB_TICKLESS
-/* Fold the counter's progress into the clock (§4.2), lock held. */
+/* Re-base the clock from the free-running counter (§4.1); lock held. */
 static void update(void)
 {
     emb_arch_timer_raw_t raw = emb_arch_timer_now_raw();
@@ -215,8 +289,14 @@ void embk_time_program(void)
 void embk_time_init(void)
 {
     ts.ticks = 0u;
+#if EMB_ARCH_CLOCK_SEQLOCK
     ts.seq = 0u;
+#endif
+#if CONFIG_EMB_SCHED_TABLE
+    ts.head = NULL;
+#else
     embk_list_init(&ts.timeouts);
+#endif
 }
 
 void embk_time_start(void)

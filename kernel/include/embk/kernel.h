@@ -46,7 +46,6 @@ typedef struct embk_obj {
     uint8_t type;  /* EMBK_OBJ_*; a type tag the handle check reads */
     uint8_t state; /* EMBK_OBJ_UNINIT | ACTIVE | DESTROYING */
     uint8_t flags; /* EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO | type-specific low bits */
-    uint8_t reserved_;
 #if CONFIG_EMB_OBJ_NAMES
     const char *name;
 #endif
@@ -77,10 +76,18 @@ typedef uint8_t embk_wait_gen_t;
 typedef uint16_t embk_wait_gen_t;
 #endif
 
+/* A deadline in the ordered timeout list. The uniprocessor kernel disarms a timeout in
+ * the same critical section that ends the wait, so an expiry never meets a finished
+ * wait and the node carries no generation (SPEC-004 §8 adds it for SMP; amendment A15).
+ * On the tiny profile the list is singly linked, bounded by the table's thread count:
+ * next == NULL means not armed, a node whose next is itself is the last one. */
 typedef struct embk_timeout {
+#if CONFIG_EMB_SCHED_TABLE
+    struct embk_timeout *next;
+#else
     embk_list_node_t node; /* in the timeout list when armed; next == NULL otherwise */
+#endif
     emb_tick_t deadline;
-    embk_wait_gen_t gen; /* the wait generation this deadline belongs to */
 } embk_timeout_t;
 
 /* ---- thread control block (SPEC-004 §2.1, SPEC-005 §2.3, SPEC-008) --------------- */
@@ -99,7 +106,7 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_WAKE_STALE       ((embk_wait_result_t)4u)
 #define EMBK_WAKE_INTERRUPTED ((embk_wait_result_t)5u)
 #define EMBK_WAKE_BUDGET      ((embk_wait_result_t)6u)
-#define EMBK_WAKE_NONE        ((embk_wait_result_t)0xFFu)
+#define EMBK_WAKE_NONE        ((embk_wait_result_t)7u) /* no result yet: the window is open */
 
 /* tflags: lifecycle and overlays */
 #define EMBK_THREAD_STARTED        ((uint8_t)0x01u)
@@ -110,6 +117,12 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_THREAD_CANCEL_PENDING ((uint8_t)0x20u)
 #define EMBK_THREAD_KERNEL         ((uint8_t)0x40u) /* idle or work-queue thread */
 #define EMBK_THREAD_CRITICAL       ((uint8_t)0x80u)
+
+/* A thread's type-specific obj.flags bits (SPEC-009 §2): the notification mode of the
+ * current wait (bits 0 to 1) and the wake result (bits 2 to 4). */
+#define EMBK_TOBJ_NOTIFY_MASK  ((uint8_t)0x03u)
+#define EMBK_TOBJ_RESULT_SHIFT 2u
+#define EMBK_TOBJ_RESULT_MASK  ((uint8_t)0x1Cu)
 
 struct embk_mutex;
 
@@ -122,12 +135,11 @@ struct embk_thread {
     uint8_t wait_reason; /* EMB_WAIT_REASON_* */
     uint8_t tflags;      /* EMBK_THREAD_* */
     uint8_t cancel_disable;
-    embk_wait_result_t wake_result;
 #if CONFIG_EMB_CHECKED
     uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
 #endif
     embk_wait_gen_t wait_gen;
-    uintptr_t wake_data;
+    uintptr_t wake_data; /* the waker's datum; the exit code once TERMINATED (SPEC-008 §5) */
     embk_wait_queue_t *wait_queue; /* the queue the thread waits in, or NULL */
 #if !CONFIG_EMB_SCHED_TABLE
     embk_list_node_t wait_node;
@@ -140,12 +152,10 @@ struct embk_thread {
 #if CONFIG_EMB_NOTIFY
     emb_notify_bits_t notify_bits;
     emb_notify_bits_t notify_mask;
-    uint8_t notify_mode;
 #endif
 #if CONFIG_EMB_MUTEX
     struct embk_mutex *owned; /* singly linked in acquisition order (SPEC-005 §2.3) */
 #endif
-    int exit_code;
     uint8_t *stack_base; /* lowest address; the guard words live here */
     size_t stack_size;
 #if CONFIG_EMB_THREAD_LIST
@@ -178,9 +188,10 @@ typedef struct embk_cpu {
     uint8_t irq_nesting_depth; /* 0 in thread context */
     uint8_t sched_lock_depth;
     uint8_t reschedule_pending;
-    uint8_t irq_lock_depth; /* checked builds: critical-section nesting */
-    uint8_t kernel_state;   /* EMBK_KERNEL_* */
-    uint8_t reserved_[3];
+    uint8_t kernel_state; /* EMBK_KERNEL_* */
+#if CONFIG_EMB_CHECKED
+    uint8_t irq_lock_depth; /* critical-section nesting */
+#endif
 } embk_cpu_t;
 
 extern embk_cpu_t embk_cpu; /* lock domain: the critical section; reads of single bytes are safe */
@@ -341,12 +352,33 @@ static EMB_INLINE void embk_obj_init(embk_obj_t *o, uint8_t type, uint8_t flags,
     o->type = type;
     o->state = EMBK_OBJ_ACTIVE;
     o->flags = flags;
-    o->reserved_ = 0u;
 #if CONFIG_EMB_OBJ_NAMES
     o->name = name;
 #else
     (void)name;
 #endif
+}
+
+static EMB_INLINE embk_wait_result_t embk_thread_wake_result(const embk_thread_t *t)
+{
+    return (embk_wait_result_t)((t->obj.flags & EMBK_TOBJ_RESULT_MASK) >> EMBK_TOBJ_RESULT_SHIFT);
+}
+
+static EMB_INLINE void embk_thread_set_wake_result(embk_thread_t *t, embk_wait_result_t r)
+{
+    t->obj.flags = (uint8_t)((t->obj.flags & (uint8_t)~EMBK_TOBJ_RESULT_MASK) |
+                             (uint8_t)((uint8_t)r << EMBK_TOBJ_RESULT_SHIFT));
+}
+
+static EMB_INLINE uint8_t embk_thread_notify_mode(const embk_thread_t *t)
+{
+    return (uint8_t)(t->obj.flags & EMBK_TOBJ_NOTIFY_MASK);
+}
+
+static EMB_INLINE void embk_thread_set_notify_mode(embk_thread_t *t, uint8_t mode)
+{
+    t->obj.flags = (uint8_t)((t->obj.flags & (uint8_t)~EMBK_TOBJ_NOTIFY_MASK) |
+                             (uint8_t)(mode & EMBK_TOBJ_NOTIFY_MASK));
 }
 
 #endif /* EMBK_KERNEL_H */

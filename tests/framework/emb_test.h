@@ -132,6 +132,11 @@ void emb_test_check_elapsed(unsigned line, uint32_t elapsed, uint32_t expected);
 #define EMB_TEST_IRQ_SLOTS 4
 void emb_test_irq_connect(unsigned slot, emb_isr_fn_t fn, void *arg);
 void emb_test_irq_raise(unsigned slot);
+/* After a raise made while interrupts were masked: returns once the handler has run.
+ * The hardware takes the interrupt one instruction after the unmask; an emulator may
+ * take it only at its next scheduling point (SIM-002), so a test that asserts the
+ * order of events around an unlock calls this before its next observable step. */
+void emb_test_irq_settle(void);
 void emb_test_irq_enable(unsigned slot);
 void emb_test_irq_disable(unsigned slot);
 bool emb_test_irq_is_enabled(unsigned slot);

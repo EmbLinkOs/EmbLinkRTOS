@@ -14,7 +14,7 @@ void embk_time_start(
 emb_tick_t embk_time_ticks_locked(void);
 
 /* Timeout list (SPEC-003 §5.1), lock held. */
-void embk_timeout_arm(embk_timeout_t *node, emb_tick_t deadline, embk_wait_gen_t gen);
+void embk_timeout_arm(embk_timeout_t *node, emb_tick_t deadline);
 void embk_timeout_disarm(embk_timeout_t *node);
 bool embk_timeout_is_armed(const embk_timeout_t *node);
 bool embk_timeout_next(emb_tick_t *out_deadline);

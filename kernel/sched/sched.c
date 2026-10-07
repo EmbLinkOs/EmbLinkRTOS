@@ -22,8 +22,10 @@ embk_thread_t embk_idle_thread;
 
 #if CONFIG_EMB_SCHED_TABLE
 embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT];
-static embk_word_t ready_set;    /* bit i: embk_thread_table[i] is READY */
+static embk_word_t ready_set; /* bit i: embk_thread_table[i] is READY */
+#if CONFIG_EMB_MUTEX
 uint8_t embk_sched_raised_count; /* threads whose eff_prio != base_prio (lock: sched) */
+#endif
 #else
 #define READY_WORDS ((CONFIG_EMB_PRIORITY_COUNT + EMBK_WORD_BITS - 1u) / EMBK_WORD_BITS)
 static embk_list_t ready_lists[CONFIG_EMB_PRIORITY_COUNT];
@@ -48,7 +50,9 @@ void embk_sched_init(void)
         embk_thread_table[i] = NULL;
     }
     ready_set = 0u;
+#if CONFIG_EMB_MUTEX
     embk_sched_raised_count = 0u;
+#endif
 #else
     unsigned i;
     for (i = 0u; i < (unsigned)CONFIG_EMB_PRIORITY_COUNT; i++) {
@@ -114,15 +118,15 @@ bool embk_sched_is_ready(const embk_thread_t *t)
 #endif
 }
 
-embk_thread_t *embk_sched_peek(void)
-{
 #if CONFIG_EMB_SCHED_TABLE
-    embk_word_t set = ready_set;
+embk_thread_t *embk_sched_table_best(embk_word_t set)
+{
     embk_thread_t *best;
     if (set == 0u) {
         return NULL;
     }
     best = embk_thread_table[embk_word_highest(set)];
+#if CONFIG_EMB_MUTEX
     if (embk_sched_raised_count != 0u) {
         /* bounded by CONFIG_EMB_PRIORITY_COUNT: find the highest effective priority */
         embk_word_t rest = set & (embk_word_t)~EMBK_WORD_BIT(best->base_prio);
@@ -135,7 +139,15 @@ embk_thread_t *embk_sched_peek(void)
             rest &= (embk_word_t)~EMBK_WORD_BIT(i);
         }
     }
+#endif
     return best;
+}
+#endif
+
+embk_thread_t *embk_sched_peek(void)
+{
+#if CONFIG_EMB_SCHED_TABLE
+    return embk_sched_table_best(ready_set);
 #else
     unsigned w;
     unsigned p;
@@ -289,6 +301,7 @@ void embk_sched_yield_locked(void)
 void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
 {
 #if CONFIG_EMB_SCHED_TABLE
+#if CONFIG_EMB_MUTEX
     bool was_raised = old_eff != t->base_prio;
     bool is_raised = t->eff_prio != t->base_prio;
     if (was_raised != is_raised) {
@@ -298,6 +311,9 @@ void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
             embk_sched_raised_count--;
         }
     }
+#else
+    (void)old_eff;
+#endif
 #else
     if (embk_sched_is_ready(t)) {
         /* unlink from the old level, relink behind the peers of the new one (SPEC-005 §2.1) */

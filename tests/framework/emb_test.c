@@ -144,6 +144,11 @@ void emb_test_irq_raise(unsigned slot)
     emb_test_platform_irq_trigger();
 }
 
+void emb_test_irq_settle(void)
+{
+    emb_test_platform_irq_settle();
+}
+
 void emb_test_irq_enable(unsigned slot)
 {
     if (slot < (unsigned)EMB_TEST_IRQ_SLOTS) {

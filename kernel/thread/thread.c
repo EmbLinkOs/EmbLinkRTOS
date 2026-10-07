@@ -45,12 +45,12 @@ static void tcb_reset(embk_thread_t *t)
     (void)EMB_MEMSET(t, 0, sizeof(*t));
     embk_wait_queue_init(&t->self_q, EMBK_WAIT_SELF);
     embk_wait_queue_init(&t->join_q, EMBK_WAIT_JOIN);
-    embk_list_node_init(&t->timeout.node);
 #if !CONFIG_EMB_SCHED_TABLE
+    embk_list_node_init(&t->timeout.node);
     embk_list_node_init(&t->wait_node);
     embk_list_node_init(&t->ready_node);
 #endif
-    t->wake_result = EMBK_WAKE_NONE;
+    embk_thread_set_wake_result(t, EMBK_WAKE_NONE);
 }
 
 #if CONFIG_EMB_IDLE_THREAD
@@ -236,7 +236,7 @@ void emb_thread_exit(int code)
 #endif
     EMBK_TRACE(EMB_TRACE_THREAD_EXIT, embk_thread_index(self), code, 0u); /* step 3 */
     /* step 4, one critical section */
-    self->exit_code = code;
+    self->wake_data = (uintptr_t)(intptr_t)code; /* no waker writes it after this point */
     joiner = embk_wait_first(&self->join_q);
     if (joiner != NULL) {
         self->tflags |= EMBK_THREAD_JOINED;
@@ -303,7 +303,7 @@ emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *ou
         return EMB_ECANCELED;
     }
     if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
-        int code = t->exit_code;
+        int code = (int)(intptr_t)t->wake_data;
         t->tflags |= EMBK_THREAD_JOINED;
         embk_unlock_sched(key);
         if (out_code != NULL) {
@@ -507,6 +507,7 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
                 embk_sched_make_ready(t, false);
             }
         }
+#if CONFIG_EMB_MUTEX
         if (t->eff_prio != old) {
             embk_sched_raised_count--; /* recomputed against the new base below */
         }
@@ -514,6 +515,9 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
         if (t->eff_prio != t->base_prio) {
             embk_sched_raised_count++;
         }
+#else
+        t->eff_prio = priority;
+#endif
     }
 #else
     t->base_prio = priority;

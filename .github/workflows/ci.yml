@@ -35,7 +35,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [avr-uno, avr-uno-release]
+        include:
+          - preset: avr-uno
+            sample: first_execution
+          - preset: avr-uno-release
+            sample: first_execution
+          - preset: avr-uno-t1
+            sample: footprint_t1
     steps:
       - uses: actions/checkout@v4
       - name: Install tools
@@ -51,8 +57,8 @@ jobs:
       - name: Footprint
         run: |
           python3 -I tools/footprint/footprint.py \
-            build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
-            --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm avr-nm \
+            build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf.map \
+            --elf build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf --nm avr-nm \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json \
             --thresholds tools/footprint/thresholds-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@v4

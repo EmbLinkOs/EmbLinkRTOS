@@ -55,6 +55,7 @@ void emb_test_platform_init(void);
 /* Port-level software interrupt, used by the framework's slot layer. */
 void emb_test_platform_irq_bind(void (*dispatch)(void));
 void emb_test_platform_irq_trigger(void);
+void emb_test_platform_irq_settle(void);
 
 #ifdef __cplusplus
 }

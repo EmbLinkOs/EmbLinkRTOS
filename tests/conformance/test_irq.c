@@ -70,6 +70,7 @@ EMB_TEST(irq_delivery_is_deferred_while_masked)
     emb_test_irq_raise(IRQ_A);
     emb_test_mark(1); /* still pending */
     emb_irq_unlock(key);
+    emb_test_irq_settle(); /* taken at the unlock on hardware; see the hook's contract */
     emb_test_mark(2);
     EMB_ASSERT_MARKS(1, 100, 101, 3, 2);
 }

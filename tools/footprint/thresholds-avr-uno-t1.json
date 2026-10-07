@@ -1,0 +1,6 @@
+{
+  "_comment": "arduino_uno, tiny profile, release build, samples/footprint_t1 with configs/footprint-t1.conf: the R-003 targets T1 (kernel text <= 4 KB on AVR) and T2 (static RAM <= 64 bytes plus <= 32 bytes per thread) as hard limits.",
+  "kernel_text_max": 4096,
+  "kernel_ram_max": 64,
+  "tcb_max": 32
+}

@@ -33,6 +33,11 @@ bool embk_sched_is_ready(const embk_thread_t *t);
 
 /* Highest-priority READY thread, or NULL. The structure is not changed. */
 embk_thread_t *embk_sched_peek(void);
+#if CONFIG_EMB_SCHED_TABLE
+/* The highest effective priority among the table slots in @set (the slot order is the
+ * base-priority order; raised threads are scanned when any exists). NULL when empty. */
+embk_thread_t *embk_sched_table_best(embk_word_t set);
+#endif
 
 /* The scheduling decision of a preemption point: updates embk_cpu.current and the
  * ready structure, emits the switch trace, and returns the thread to switch to, or
@@ -62,7 +67,9 @@ bool embk_sched_current_runnable(void);
 void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff);
 
 #if CONFIG_EMB_SCHED_TABLE
+#if CONFIG_EMB_MUTEX
 extern uint8_t embk_sched_raised_count; /* threads with eff_prio != base_prio; lock: sched */
+#endif
 #endif
 
 /* A thread became runnable at priority @prio: should it preempt the current thread? */

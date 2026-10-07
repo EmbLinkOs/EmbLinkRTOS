@@ -10,7 +10,9 @@ set(CMAKE_SIZE avr-size)
 set(CMAKE_NM avr-nm)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(EMB_AVR_MCU "atmega328p" CACHE STRING "AVR device for -mmcu")
-set(EMB_TOOLCHAIN_C_FLAGS -mmcu=${EMB_AVR_MCU} -Os -g -fno-short-enums)
-set(EMB_TOOLCHAIN_LINK_FLAGS -mmcu=${EMB_AVR_MCU} -Wl,--gc-sections)
+# -mrelax lets the linker shorten call/jmp to rcall/rjmp; -mcall-prologues shares the
+# register save and restore sequences (SPEC-012 §13: both are part of the measured build).
+set(EMB_TOOLCHAIN_C_FLAGS -mmcu=${EMB_AVR_MCU} -Os -g -fno-short-enums -mrelax -mcall-prologues)
+set(EMB_TOOLCHAIN_LINK_FLAGS -mmcu=${EMB_AVR_MCU} -mrelax -Wl,--gc-sections)
 set(EMB_TOOLCHAIN_DEFINES)
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")

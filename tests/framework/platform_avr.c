@@ -54,6 +54,8 @@ void emb_test_exit(int code)
 
 static void (*bound_dispatch)(void);
 static volatile uint8_t fired; /* written by the handler, polled by the raiser */
+static uint8_t masked_before;  /* the count at a raise made while masked */
+static uint8_t masked_pending; /* such a raise awaits emb_test_irq_settle() */
 
 EMB_ISR(USART_UDRE)
 {
@@ -85,11 +87,36 @@ void emb_test_platform_irq_trigger(void)
     spin = 0u;
     UCSR0B |= (uint8_t)(1u << UDRIE0);
     if (emb_irq_is_locked()) {
+        masked_before = before;
+        masked_pending = 1u;
         return; /* level-pending: delivered at the unlock */
     }
     /* unmasked: the interrupt is taken within a character time; wait for it so that
      * delivery is as immediate as the native port's (bounded spin) */
     while (fired == before && spin < 20000u) {
+        spin++;
+    }
+}
+
+void emb_test_platform_irq_settle(void)
+{
+    uint16_t spin = 0u;
+    emb_irq_key_t key;
+    if (masked_pending == 0u) {
+        return;
+    }
+    masked_pending = 0u;
+    /* The hardware took the interrupt one instruction after the unmask. QEMU takes a
+     * pending interrupt only when it returns to its main loop, which a `sei` inside a
+     * chain of translated blocks does not force; re-asserting the enable bit does
+     * (the device signals the line again), so the handler runs here at the latest.
+     * Under cli so that a handler that already ran cannot be re-armed by the write. */
+    key = emb_irq_lock();
+    if (fired == masked_before) {
+        UCSR0B |= (uint8_t)(1u << UDRIE0);
+    }
+    emb_irq_unlock(key);
+    while (fired == masked_before && spin < 20000u) {
         spin++;
     }
 }

@@ -13,7 +13,7 @@
 static bool satisfied(const embk_thread_t *t)
 {
     emb_notify_bits_t got = t->notify_bits & t->notify_mask;
-    if ((t->notify_mode & EMB_NOTIFY_ALL) != 0u) {
+    if ((embk_thread_notify_mode(t) & EMB_NOTIFY_ALL) != 0u) {
         return got == t->notify_mask;
     }
     return got != 0u;
@@ -23,7 +23,7 @@ static bool satisfied(const embk_thread_t *t)
 static emb_notify_bits_t consume(embk_thread_t *t)
 {
     emb_notify_bits_t got = t->notify_bits & t->notify_mask;
-    if ((t->notify_mode & EMB_NOTIFY_CLEAR) != 0u) {
+    if ((embk_thread_notify_mode(t) & EMB_NOTIFY_CLEAR) != 0u) {
         t->notify_bits &= (emb_notify_bits_t)~got;
     }
     return got;
@@ -76,7 +76,7 @@ static emb_status_t wait_common(emb_notify_bits_t mask, uint8_t mode, emb_tick_t
         return EMB_ECANCELED;
     }
     self->notify_mask = mask;
-    self->notify_mode = mode;
+    embk_thread_set_notify_mode(self, mode);
     if (satisfied(self)) {
         emb_notify_bits_t got = consume(self);
         embk_unlock_object(self, key);

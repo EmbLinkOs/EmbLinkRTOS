@@ -61,6 +61,11 @@ void emb_test_platform_irq_trigger(void)
     emb_native_irq_raise(TEST_IRQ);
 }
 
+void emb_test_platform_irq_settle(void)
+{
+    /* delivery is deterministic at the unlock (SPEC-013 §5): nothing to wait for */
+}
+
 /* ---- fault expectation by fork (TEST-010) -------------------------------------- */
 
 static pid_t fork_child = -1;

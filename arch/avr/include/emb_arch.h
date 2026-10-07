@@ -39,17 +39,9 @@ static EMB_ALWAYS_INLINE emb_irq_key_t emb_arch_irq_lock(void)
     return s;
 }
 
-/* Restores the I bit only: the other SREG flags are meaningless across a call, and a
- * `sei` ends QEMU's translation block so that a pending interrupt is taken at the
- * unlock exactly as the hardware does after one instruction (`out SREG` would be
- * serviced only at the next indirect jump under emulation; SPEC-012 amendment). */
 static EMB_ALWAYS_INLINE void emb_arch_irq_unlock(emb_irq_key_t key)
 {
-    __asm__ __volatile__("sbrc %0, 7\n\t"
-                         "sei"
-                         :
-                         : "r"(key)
-                         : "memory");
+    __asm__ __volatile__("out __SREG__, %0" : : "r"(key) : "memory");
 }
 
 static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)

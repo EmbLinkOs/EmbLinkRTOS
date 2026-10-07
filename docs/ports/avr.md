@@ -34,7 +34,7 @@ The manifest budgets 37 bytes per context (`stack.context_frame`), two more than
 
 ## Interrupts and critical sections
 
-- `emb_arch_irq_lock()`: `in r, SREG; cli`; the key is the saved SREG. `unlock`: `sbrc key, 7; sei` (the I bit is all that matters across a call, and `sei` makes QEMU service a pending interrupt at the unlock as the hardware does; amendment A14). Both always-inline with a `"memory"` clobber.
+- `emb_arch_irq_lock()`: `in r, SREG; cli`; the key is the saved SREG. `unlock`: `out SREG, key`. Both always-inline with a `"memory"` clobber. Under QEMU a pending interrupt is taken after the unlock only when the emulator returns to its main loop (amendment A14); the conformance suite synchronizes on the handler through `emb_test_irq_settle()` where the order of events around an unlock is asserted.
 - Kernel-aware handlers run with I clear (no nesting); `CONFIG_EMB_AVR_ISR_STACK_RESERVE` (64 bytes) is the per-thread reserve for the 35-byte frame plus the handler's C frame.
 - The mask table (`arch/avr/avr_port.c`) maps each of the 26 vectors to its interrupt-enable register and bit; `emb_irq_set_level` is a no-op (vector order is the priority), `emb_irq_pend` is `EMB_ENOTSUP`, and `emb_irq_clear_pending` covers the external, pin-change and timer flags.
 
@@ -48,16 +48,17 @@ Periodic tick on Timer1 CTC: prescaler `CONFIG_EMB_AVR_TIMER1_PRESCALER` (64), `
 - `const` tables of the kernel are `EMB_FLASH_CONST` (`progmem`) and read with `pgm_read_*`; string literals of a checked build (`__func__` locations) stay in RAM on avr-gcc 7, so the tiny profile sets `CONFIG_EMB_FAULT_WHERE=n`.
 - Stack checks: the kernel's guard words (8 bytes at the stack limit) at every switch; no hardware limit, no MPU.
 
-## Footprint (M1 baseline, avr-gcc 7.3 `-Os`, `samples/first_execution`, tiny profile)
+## Footprint (avr-gcc 7.3 `-Os -mrelax -mcall-prologues`, tiny profile)
 
-Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only.
+Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only. The R-003 reference is `samples/footprint_t1` under `configs/footprint-t1.conf` (the T1 feature set: scheduler, notifications, sleep and timeouts, one semaphore; no mutex, no trace), gated per commit on the `avr-uno-t1` preset with the targets as hard limits. The two `first_execution` rows link the mutex as well and are gated at their baseline plus 10 percent.
 
-| build | kernel text | kernel static RAM | thread control block | R-003 target |
-|---|---:|---:|---:|---|
-| checked | 5396 | 85 | 43 | — |
-| release | 4609 | 84 | 42 | 4096 / 64 / 32 (T1, T2) |
+| preset | program | kernel text | kernel static RAM | thread control block | R-003 target |
+|---|---|---:|---:|---:|---|
+| avr-uno-t1 (release) | `footprint_t1` | 3805 | 63 | 32 | 4096 / 64 / 32 (T1, T2): met |
+| avr-uno-release | `first_execution` | 3909 | 66 | 34 | — |
+| avr-uno (checked) | `first_execution` | 4654 | 68 | 35 | — |
 
-The targets are not yet met. Candidates recorded for the footprint work: the idle context's full control block (43 bytes of the 85), the 64-bit conversion helpers linked for `EMB_MS()` at run time, the per-call context checks, and the control-block fields that the tiny profile does not need (`stack_size`, `exit_code` separate from `wake_data`, the object header padding). The CI gate (`tools/footprint/thresholds-avr-uno*.json`) is the baseline plus 10 percent until the targets are reached.
+What the pass changed (amendments A15 to A17): linker relaxation and shared prologues in the reference build; no padding byte in the object header; the exit code in `wake_data`; the wake result and notification mode in the thread's `obj.flags` bits; a singly linked timeout list without a generation field on the tiny profile; the clock sequence counter only where the port reads the clock through it; the raised-priority count only with mutexes; one table scan shared by the scheduler and the wait queues. The first M1 baseline, for the record, was 4577 / 84 / 42 (release, `first_execution`).
 
 ## Skipped conformance tests
 
