@@ -57,7 +57,7 @@ EmbCC compiles a single dialect, C17 plus GNU extensions, and ignores `-std=` (0
 
 ### 1.6 Coding standard
 
-A written standard covering: undefined-behavior policy, integer and conversion rules, `volatile` for registers only and never for synchronization, no variable-length arrays, no recursion in kernel paths, fixed-width types at ABI boundaries, bounded loops on real-time paths, and MISRA C:2023 orientation with recorded deviations. Enforced by clang-format, clang-tidy, cppcheck, and EmbCC diagnostics in CI.
+`docs/CODING-STANDARD.md` (rules `CS-x.y`, with `.clang-format`, `.clang-tidy`, and `.editorconfig` at the repository root) covers: undefined-behavior policy, integer and conversion rules, `volatile` for registers only and never for synchronization, no variable-length arrays, no recursion in kernel paths, fixed-width types at ABI boundaries, bounded loops on real-time paths, and MISRA C:2023 orientation with recorded deviations. Enforced by clang-format, clang-tidy, cppcheck, and EmbCC diagnostics in CI.
 
 ## 2. Configuration and build (ADR-005)
 

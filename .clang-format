@@ -1,0 +1,78 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# EmbLinkRTOS layout (docs/CODING-STANDARD.md §13). Requires clang-format 14 or newer.
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++17
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+BreakBeforeBraces: Linux
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
+BinPackArguments: true
+BinPackParameters: true
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+AlignOperands: Align
+AlignTrailingComments: true
+PointerAlignment: Right
+DerivePointerAlignment: false
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceInEmptyParentheses: false
+IndentCaseLabels: false
+IndentPPDirectives: None
+IndentGotoLabels: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+ReflowComments: true
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<emb/'
+    Priority: 1
+  - Regex: '^<embk/'
+    Priority: 2
+  - Regex: '^<emb_arch'
+    Priority: 2
+  - Regex: '^<std|^<limits|^<stdatomic'
+    Priority: 3
+  - Regex: '^".*"'
+    Priority: 0
+  - Regex: '.*'
+    Priority: 4
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+PenaltyBreakAssignment: 10
+PenaltyReturnTypeOnItsOwnLine: 200
+ForEachMacros: []
+StatementMacros:
+  - EMB_ISR
+  - EMB_ISR_RAW
+  - EMB_TEST
+AttributeMacros:
+  - EMB_ALWAYS_INLINE
+  - EMB_NOINLINE
+  - EMB_NORETURN
+  - EMB_NAKED
+  - EMB_UNUSED
+  - EMB_USED
+  - EMB_WEAK
+  - EMB_PACKED
+MacroBlockBegin: ''
+MacroBlockEnd: ''
+...

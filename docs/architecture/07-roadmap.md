@@ -24,7 +24,7 @@ SMP scheduling (experimental only), DEADLINE and TIME_TABLE classes, dynamic par
 
 Deliverables: these documents accepted; the specification work in §3 completed (SPEC-001 to SPEC-015); requirement files created under `docs/requirements/` for every group the specifications cover; API conventions written (SPEC-001); hardware description schema v0 specified (SPEC-014); the reference model written and explored for the wait protocol, mutexes with inheritance, notifications, and thread lifecycle (`tools/model/`, 48 scenarios, 44 tests); the research records R-001 to R-003 and ADR-026 to ADR-037 accepted.
 
-Exit: met for the kernel groups (KRN-*), PORT, ARCH-AVR, SIM, HW, OBS. Still pending from the original exit criterion: the coding standard document (05 §1 names it; written at the start of M1 together with the first source files), and the remaining architecture groups without their own specification (KRN-MEM, KRN-TP beyond ADR-029, KRN-SMP/MC, FLT, DRV, PWR, BOOT, SEC, BLD, TEST, REL), whose identifiers stay in documents 03 to 05 until their milestones (M3 to M5) specify them.
+Exit: met for the kernel groups (KRN-*), PORT, ARCH-AVR, SIM, HW, OBS. The coding standard (05 §1.6) is written as the first M1 deliverable: `docs/CODING-STANDARD.md` with `.clang-format`, `.clang-tidy`, and `.editorconfig`. Still pending from the original exit criterion: the remaining architecture groups without their own specification (KRN-MEM, KRN-TP beyond ADR-029, KRN-SMP/MC, FLT, DRV, PWR, BOOT, SEC, BLD, TEST, REL), whose identifiers stay in documents 03 to 05 until their milestones (M3 to M5) specify them.
 
 Status of the §3 work order: 1 to 14 and 6b accepted; see each item's line below.
 

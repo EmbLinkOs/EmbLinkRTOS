@@ -44,7 +44,7 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-014](specs/SPEC-014-hardware-description-schema.md) | Hardware description schema v0 and generator: SoC, board, and system descriptions, conventions, generated outputs, semantic validation, SVD and DeviceTree importers, determinism, versioning | 07 §3 item 13 | Accepted 2026-10-07 |
 | [SPEC-015](specs/SPEC-015-observability-formats.md) | Observability formats: deferred log records, CTF trace catalogue and rings, crash record v1 and v2, debug descriptor, monitors and statistics API, framing and memory channel, host tools, profile defaults | 07 §3 item 14 | Accepted 2026-10-07 |
 
-All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. The next step is M1 implementation (07 §2), in dependency order: the native and AVR ports (SPEC-011 to 013), then the kernel modules (SPEC-002 to 008), with the reference model as oracle.
+All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. M1 implementation (07 §2) follows, in dependency order: the coding standard (`CODING-STANDARD.md` in this directory, with the formatter and analyzer configuration at the repository root), the configuration and build system, the public headers, the kernel modules (SPEC-002 to 008), the native and AVR ports (SPEC-011 to 013), and the conformance suite, with the reference model as oracle.
 
 ## Research records
 

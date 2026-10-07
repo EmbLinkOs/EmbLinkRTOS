@@ -2,16 +2,19 @@
 
 Thank you for your interest. This page explains what kind of contributions are useful right now, the legal terms, and the process.
 
-## Current phase: architecture
+## Current phase: Milestone 1, first execution
 
-There is no kernel code yet, by design. Until Milestone 1 of the [roadmap](docs/architecture/07-roadmap.md) begins, the most valuable contributions are:
+The architecture is accepted (`docs/architecture/`, `docs/specs/`, `docs/requirements/`) and the code of Milestone 1 of the [roadmap](docs/architecture/07-roadmap.md) is being written: the configuration and build system, the public headers, the kernel core, the native and AVR ports, and the conformance suite. Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements; a change to kernel semantics updates the specification, the reference model (`tools/model/`), and the conformance suite in the same pull request.
 
-- review comments and issues on the documents in `docs/architecture/`;
+Valuable contributions now:
+
+- review comments and issues on the specifications and on the code against them;
 - proposals for new or changed decisions, written as an Architecture Decision Record (see the format in `docs/architecture/06-decision-records.md`);
 - answers and evidence for the items in `docs/architecture/08-open-questions.md`;
-- experience reports from other RTOSes that bear on a specific decision.
+- experience reports from other RTOSes that bear on a specific decision;
+- once the ports exist: architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, and documentation.
 
-Once code exists, contributions are especially welcome in architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, and documentation. The core kernel (scheduler, wait protocol, synchronization, object model) is written and maintained by the project owner so that its semantics stay understood end to end; proposals there are welcome as ADRs and reference-model changes first.
+The core kernel (scheduler, wait protocol, synchronization, object model) is written and maintained by the project owner so that its semantics stay understood end to end; proposals there are welcome as ADRs and reference-model changes first.
 
 ## Licence and the Developer Certificate of Origin
 

@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# docs/CODING-STANDARD.md §13.4
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{c,h,S,cpp,hpp}]
+max_line_length = 100
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = off
+
+[Makefile]
+indent_style = tab
+
+[*.{cmake,txt}]
+indent_size = 2
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[*.ld]
+indent_size = 4

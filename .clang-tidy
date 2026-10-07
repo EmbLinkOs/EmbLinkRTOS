@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# EmbLinkRTOS static-analysis configuration (docs/CODING-STANDARD.md §12, §13).
+# A check is disabled only here, with a reason, never per line except for the
+# recorded deviations of CODING-STANDARD §12, which use NOLINT(<check>) naming them.
+---
+Checks: >
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-reserved-identifier,
+  cert-*,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp,
+  clang-analyzer-*,
+  misc-*,
+  -misc-no-recursion,
+  -misc-include-cleaner,
+  performance-*,
+  portability-*,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-avoid-nested-conditional-operator,
+  -readability-else-after-return,
+  -readability-math-missing-parentheses,
+  hicpp-multiway-paths-covered,
+  hicpp-no-assembler,
+  misc-no-recursion
+# Reasons:
+#   bugprone-easily-swappable-parameters: the port contract fixes parameter orders.
+#   bugprone-reserved-identifier, cert-dcl37-c, cert-dcl51-cpp: the generated
+#     headers and the compiler layer legitimately define __emb_ / _EMB_ names
+#     (SPEC-001 §2); hand-written code is checked by scripts/check-banned.py.
+#   misc-include-cleaner: include-path isolation is enforced by its own script.
+#   readability-magic-numbers: register values and frame offsets in ports.
+#   readability-function-cognitive-complexity: the function-length rule CS-8.1 is
+#     reviewed by people; the metric mis-scores switch dispatch tables.
+#   readability-identifier-length: short names (t, q, m, sp) are idiomatic in the
+#     kernel and defined by the specifications.
+#   readability-else-after-return: conflicts with the fast-path shape of CS-7.2.
+#   misc-no-recursion is listed twice: removed from the wildcard, then re-enabled
+#     explicitly so it is applied to every file (CS-4.2).
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(include/emb|kernel|arch|soc|boards|drivers|subsys|compatibility)/.*'
+FormatStyle: file
+CheckOptions:
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.UnionCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefSuffix
+    value: _t
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: lower_case
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: 0
+  - key: readability-implicit-bool-conversion.AllowIntegerConditions
+    value: false
+  - key: readability-implicit-bool-conversion.AllowPointerConditions
+    value: false
+  - key: bugprone-narrowing-conversions.WarnOnIntegerNarrowingConversion
+    value: true
+  - key: hicpp-multiway-paths-covered.WarnOnMissingElse
+    value: false
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
+...
