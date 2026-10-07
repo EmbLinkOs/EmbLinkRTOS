@@ -3,12 +3,12 @@ over generated scenarios, and a hypothesis stateful test when hypothesis is inst
 import random
 import unittest
 
-from embmodel import (Cancel, Destroy, Give, Lock, NotifySet, NotifyWait, Policy, Protocol, Resume,
-                      Scenario, SchedLock, SchedUnlock, SetPrio, Sleep, Suspend, Take, Unlock, Yield,
-                      FOREVER, NO_WAIT, random_walk)
+from embmodel import (Cancel, Destroy, Exit, Give, Join, Lock, NotifySet, NotifyWait, Policy, Protocol,
+                      Resume, Scenario, SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, Unlock,
+                      Yield, FOREVER, NO_WAIT, random_walk)
 
 OPS = ["take", "give", "sleep", "yield", "setprio", "suspend", "resume", "cancel", "destroy", "schedpair",
-       "lockpair", "lockpair", "lock_nested", "notify_wait", "notify_set"]
+       "lockpair", "lockpair", "lock_nested", "notify_wait", "notify_set", "join", "start"]
 
 
 def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) -> Scenario:
@@ -46,6 +46,10 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) ->
                                        clear=rng.random() < 0.8, timeout=rng.choice([NO_WAIT, 1, 3, FOREVER])))
             elif kind == "notify_set":
                 prog.append(NotifySet(rng.choice(tids), rng.choice([0x1, 0x2, 0x4, 0x7])))
+            elif kind == "join":
+                prog.append(Join(rng.choice(tids), rng.choice([NO_WAIT, 2, FOREVER])))
+            elif kind == "start":
+                prog.append(Start(rng.choice(tids)))
             elif kind == "lock_nested":
                 a, b = rng.randrange(nmutexes), rng.randrange(nmutexes)
                 prog.append(Lock(a, rng.choice([2, FOREVER])))
@@ -54,7 +58,10 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) ->
                 prog.append(Unlock(a))
             else:
                 prog.append(SchedLock()); prog.append(Give(rng.randrange(nsems))); prog.append(SchedUnlock())
+        if rng.random() < 0.3:
+            prog.append(Exit(rng.randrange(0, 4)))
         threads[tid] = (rng.randrange(1, 6), tuple(prog))
+    inactive = tuple(t for t in tids if rng.random() < 0.2)
     sems = {s: dict(count=rng.randrange(0, 2), policy=rng.choice([Policy.PRIORITY_FIFO, Policy.FIFO]))
             for s in range(nsems)}
     isrs = tuple((rng.choice([Give(rng.randrange(nsems)), NotifySet(rng.choice(tids), rng.choice([0x1, 0x2, 0x4]))]),)
@@ -67,7 +74,7 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) ->
         proto = rng.choice([Protocol.INHERIT, Protocol.INHERIT, Protocol.CEILING, Protocol.NONE])
         mutexes[m] = dict(protocol=proto, ceiling=5 if proto == Protocol.CEILING else 0,
                           recursive=rng.random() < 0.3)
-    return Scenario(name="random", threads=threads, sems=sems, mutexes=mutexes, isrs=isrs)
+    return Scenario(name="random", threads=threads, sems=sems, mutexes=mutexes, isrs=isrs, inactive=inactive)
 
 
 class RandomWalks(unittest.TestCase):

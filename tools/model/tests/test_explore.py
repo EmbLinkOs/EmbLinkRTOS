@@ -149,10 +149,9 @@ class NotifyExhaustive(unittest.TestCase):
             bits = dict(o["notify_bits"])[1]
             if d[1][0][1] == Result.SATISFIED:
                 self.assertEqual(d[1][0][2], 0x1)
-                self.assertEqual(bits, 0)                 # CLEAR consumed it
             else:
-                self.assertEqual(d[1][0][1], Result.TIMEOUT)
-                self.assertEqual(bits, 0x1, "a set after the timeout must leave the bit set (level)")
+                self.assertEqual(d[1][0][1], Result.TIMEOUT)   # the set landed after the deadline
+            self.assertEqual(bits, 0)                         # consumed by CLEAR, or discarded at exit (SPEC-008 §5)
 
     def test_all_mode_delivers_exactly_the_mask(self):
         rep = explore(S.notify_all_two_sets())
@@ -174,3 +173,46 @@ class NotifyExhaustive(unittest.TestCase):
             taken = sum(1 for (idx, r, _) in d[1] if r == Result.SATISFIED and idx in (1, 2, 4, 5))
             # two units were given in total; each is either taken by the bound thread or still in a count
             self.assertEqual(taken + sems[0] + sems[1], 2, outcome)
+
+
+class LifecycleExhaustive(unittest.TestCase):
+    """SPEC-008 §15 / KRN-THR-030."""
+
+    def test_all_join_scenarios_hold_invariants(self):
+        for make in S.JOIN:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                rep = explore(sc)
+                self.assertGreater(rep.terminals, 0, rep.summary())
+
+    def test_join_delivers_the_exit_code(self):
+        for make, code in ((S.join_before_exit, 7), (S.join_after_exit, 5), (S.start_inactive, 3),
+                           (S.exit_owning_mutex_joined, 4)):
+            rep = explore(make())
+            with self.subTest(scenario=make.__name__):
+                for outcome in rep.outcomes:
+                    o = dict(outcome)
+                    d = dict(o["threads"])
+                    self.assertEqual(d[1][-1][1:], (Result.SATISFIED, code))   # the join is T1's last op
+                    self.assertEqual(o["blocked"], ())
+
+    def test_join_timeout_then_second_join_succeeds(self):
+        rep = explore(S.join_timeout_then_exit())
+        for outcome in rep.outcomes:
+            d = dict(dict(outcome)["threads"])
+            self.assertEqual(d[1][0][1], Result.TIMEOUT)
+            self.assertEqual(d[1][1][1:], (Result.SATISFIED, 9))
+
+    def test_second_joiner_refused_first_gets_code(self):
+        rep = explore(S.join_second_ebusy())
+        for outcome in rep.outcomes:
+            d = dict(dict(outcome)["threads"])
+            self.assertEqual(d[1][0][1:], (Result.SATISFIED, 1))
+            self.assertEqual(d[2][0][1], Result.EPERM)
+
+    def test_canceled_joiner_frees_the_slot(self):
+        rep = explore(S.cancel_joiner())
+        for outcome in rep.outcomes:
+            d = dict(dict(outcome)["threads"])
+            self.assertEqual(d[1][0][1], Result.CANCELED)
+            self.assertIn(d[1][1][1], (Result.TIMEOUT, Result.SATISFIED))   # NO_WAIT join: T2 may or may not have exited

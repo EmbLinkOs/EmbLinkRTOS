@@ -278,3 +278,61 @@ def bound_two_sems():
 
 NOTIFY = [notify_set_in_window, notify_level, notify_all_two_sets, bound_two_sems]
 ALL = ALL + NOTIFY
+
+
+# ---------------------------------------------------------------------------------------
+# SPEC-008: start, join, exit codes
+# ---------------------------------------------------------------------------------------
+from embmodel import Exit, Join, Start  # noqa: E402
+
+
+def join_before_exit():
+    """T1 (high) joins T2 before T2 exits; the exit code 7 arrives by hand-off."""
+    return Scenario(name="join_before_exit",
+                    threads={1: (3, (Join(2),)), 2: (1, (Yield(), Exit(7)))})
+
+
+def join_after_exit():
+    """T2 exits first; T1's later join returns at once with the code."""
+    return Scenario(name="join_after_exit",
+                    threads={1: (1, (Sleep(2), Join(2))), 2: (3, (Exit(5),))})
+
+
+def join_timeout_then_exit():
+    """T1 joins with a 2-tick timeout; T2 sleeps 1 or 3 ticks (ISR-free: both orders via ticks)."""
+    return Scenario(name="join_timeout_then_exit",
+                    threads={1: (3, (Join(2, 2), Join(2))), 2: (1, (Sleep(3), Exit(9)))})
+
+
+def join_second_ebusy():
+    """Two joiners: the second is refused (modeled as EPERM standing in for EMB_EBUSY)."""
+    return Scenario(name="join_second_ebusy",
+                    threads={1: (3, (Join(3),)), 2: (2, (Join(3),)), 3: (1, (Yield(), Exit(1)))})
+
+
+def cancel_joiner():
+    """T1 waits on T2 forever; T4 cancels T1: the join returns CANCELED and T2's slot is freed."""
+    return Scenario(name="cancel_joiner",
+                    threads={1: (3, (Join(2), Join(2, NO_WAIT))), 2: (1, (Sleep(4), Exit(2))),
+                             4: (2, (Sleep(1), Cancel(1)))})
+
+
+def start_inactive():
+    """T2 is created INACTIVE; an ISR or T1 starts it; T1 joins it."""
+    return Scenario(name="start_inactive",
+                    threads={1: (2, (Sleep(1), Start(2), Join(2))), 2: (1, (Exit(3),))},
+                    inactive=(2,),
+                    isrs=((Start(2),),))
+
+
+def exit_owning_mutex_joined():
+    """T2 exits owning M0 (RELEASE policy) while T1 joins it and T3 waits for M0."""
+    return Scenario(name="exit_owning_mutex_joined",
+                    threads={1: (3, (Join(2),)), 2: (1, (Lock(0), Yield(), Exit(4))),
+                             3: (2, (Sleep(1), Lock(0), Unlock(0)))},
+                    mutexes={0: {}})
+
+
+JOIN = [join_before_exit, join_after_exit, join_timeout_then_exit, join_second_ebusy, cancel_joiner,
+        start_inactive, exit_owning_mutex_joined]
+ALL = ALL + JOIN

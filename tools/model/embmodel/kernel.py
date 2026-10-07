@@ -155,10 +155,23 @@ class SchedUnlock:
 
 @dataclass(frozen=True)
 class Exit:
-    pass
+    code: int = 0
 
 
-ISR_SAFE_OPS = (Give, Resume, NotifySet)   # SPEC-001 §5.2: signal-type operations are `thread isr`
+@dataclass(frozen=True)
+class Start:
+    """emb_thread_start(tid): wake an INACTIVE thread (reason START); thread or ISR context."""
+    tid: int
+
+
+@dataclass(frozen=True)
+class Join:
+    """emb_thread_join(tid, timeout): one joiner; the exit code arrives by hand-off."""
+    tid: int
+    timeout: Optional[int] = FOREVER
+
+
+ISR_SAFE_OPS = (Give, Resume, NotifySet, Start)   # SPEC-001 §5.2: signal-type operations are `thread isr`
 
 
 # ----------------------------------------------------------------------------------------
@@ -188,6 +201,9 @@ class Thread:
     notify_all: bool = False
     notify_clear: bool = True
     owned: list = field(default_factory=list)  # mutex ids in acquisition order (KRN-SYNC-014)
+    inactive: bool = False                    # INACTIVE: initialized, not started (SPEC-008 §4)
+    exit_code: Optional[int] = None           # set at termination (SPEC-008 §5)
+    joiner: Optional[int] = None              # the one joiner's tid, while blocked (SPEC-008 §6)
 
     def key(self):
         return (self.tid, self.prio, self.base_prio, int(self.wait_state), self.wait_gen,
@@ -195,7 +211,7 @@ class Thread:
                 None if self.wake_result is None else int(self.wake_result), self.wake_data,
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
                 self.saved_gen, self.results, self.notify_bits, self.notify_mask, self.notify_all,
-                self.notify_clear, tuple(self.owned))
+                self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner)
 
 
 @dataclass
@@ -250,6 +266,7 @@ class Scenario:
     mutexes: dict = field(default_factory=dict)  # mid -> dict(protocol=, ceiling=, recursive=)
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
+    inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
     name: str = ""
 
 
@@ -257,8 +274,9 @@ def build(sc: Scenario) -> "Kernel":
     k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs),
                owner_death=sc.owner_death)
     for tid, (prio, _) in sc.threads.items():
-        k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio)
-        k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)
+        k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio, inactive=(tid in sc.inactive))
+        k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)        # SLEEP / NOTIFY / START
+        k.queues[-(1000 + tid)] = WaitQueue(qid=-(1000 + tid), policy=Policy.FIFO)  # join slot
     bitmap = any(cfg.get("policy") == Policy.BITMAP for cfg in sc.sems.values())
     for sid, cfg in sc.sems.items():
         if sid >= MUTEX_QID_BASE:
@@ -277,7 +295,14 @@ def build(sc: Scenario) -> "Kernel":
         if len(set(prios)) != len(prios):
             raise ModelError("BITMAP wait queues require unique priorities (ADR-036)")
     for t in k.threads.values():
-        k._make_ready(t, preempted=False)
+        if t.inactive:
+            q = k.queues[-(t.tid + 1)]
+            t.wait_reason = Reason.START
+            t.wait_queue = q.qid
+            k._enqueue(q, t)
+            t.wait_state = WaitState.BLOCKED
+        else:
+            k._make_ready(t, preempted=False)
     k.reschedule_pending = False
     k.dispatch()
     return k
@@ -532,6 +557,10 @@ class Kernel:
             self._event("wake", t.tid, int(result), "blocked")
         else:
             raise ModelError(f"wake of thread {t.tid} in state {t.wait_state}")
+        if q.qid <= -1000:                                                 # join slot (SPEC-008 §6)
+            target = self.threads[-(q.qid + 1000)]
+            if target.joiner == t.tid:
+                target.joiner = None
         # SPEC-005 §3.3 / KRN-SYNC-022: a waiter left a mutex queue for a reason other than hand-off
         m = self._queue_mutex(q.qid)
         if not handoff and m is not None and m.protocol == Protocol.INHERIT and m.owner is not None:
@@ -666,7 +695,11 @@ class Kernel:
         return (got == t.notify_mask) if t.notify_all else (got != 0)
 
     def _notify_set(self, t: Thread, bits: int):
-        """emb_notify_set: OR the bits; hand over and wake the owner if its wait is now satisfied."""
+        """emb_notify_set: OR the bits; hand over and wake the owner if its wait is now satisfied.
+        A set to a terminated thread is dropped (SPEC-006 §3.2, SPEC-008 §5)."""
+        if t.terminated:
+            self._event("notify_dropped", t.tid, bits)
+            return
         t.notify_bits |= bits
         self._event("notify_set", t.tid, bits)
         q = self.queues[-(t.tid + 1)]
@@ -769,15 +802,57 @@ class Kernel:
             return
         self._release(t, m, dead=False)
 
-    def _exit(self, t: Thread):
+    def _exit(self, t: Thread, code: int = 0):
+        """SPEC-008 §5: release mutexes, store the code, wake the joiner by hand-off, terminate, switch."""
         if t.owned:
             if self.owner_death == "fault":
                 raise ModelError(f"thread {t.tid} exits owning mutexes {t.owned} (CONFIG_EMB_MUTEX_OWNER_DEATH=FAULT)")
             for mid in list(t.owned):                                     # acquisition order
                 self._release(t, self.mutexes[mid], dead=True)
+        t.exit_code = code
+        jq = self.queues[-(1000 + t.tid)]
+        w = self.wait_first(jq)
+        if w is not None:
+            self.wake(w, Result.SATISFIED, code, jq, handoff=True)
+            t.joiner = None
+        t.notify_bits = 0
+        t.cancel_pending = False
         t.terminated = True
+        self._event("thread_exit", t.tid, code)
         self.current = None
         self.dispatch()
+
+    def _op_start(self, op: Start):
+        t = self.threads[op.tid]
+        if not t.inactive:
+            return                                                        # EMB_ESTATE in the kernel
+        t.inactive = False
+        self.wake(t, Result.SATISFIED, 0, self.queues[-(t.tid + 1)], handoff=True)
+        self._event("thread_start", t.tid)
+
+    def _op_join(self, t: Thread, op: Join) -> bool:
+        target = self.threads[op.tid]
+        if t.pc == 0:
+            if op.tid == t.tid:
+                self._finish(t, Result.DEADLOCK)                          # EMB_EDEADLK
+                return True
+            if target.joiner is not None and target.joiner != t.tid:
+                self._finish(t, Result.EPERM)                             # stands in for EMB_EBUSY: second joiner
+                return True
+        jq = self.queues[-(1000 + op.tid)]
+
+        def satisfied():
+            return target.terminated
+
+        def consume():
+            return target.exit_code if target.exit_code is not None else 0
+
+        def on_enqueue():
+            target.joiner = t.tid
+        done = self._block_section(t, jq, Reason.JOIN, op.timeout, satisfied, consume, on_enqueue=on_enqueue)
+        if done and target.joiner == t.tid:
+            target.joiner = None
+        return done
 
     # ------------------------------------------------------------------ other operations
     def _op_sleep(self, t: Thread, op: Sleep) -> bool:
@@ -894,10 +969,16 @@ class Kernel:
             self.sched_lock_depth -= 1
             self._advance(t)
             self.reschedule_if_needed()
+        elif isinstance(op, Start):
+            self._op_start(op)
+            self._advance(t)
+            self.reschedule_if_needed()
+        elif isinstance(op, Join):
+            self._op_join(t, op)
         elif isinstance(op, Exit):
             if self.sched_lock_depth:
                 raise ModelError("thread exit with the scheduler locked")
-            self._exit(t)
+            self._exit(t, op.code)
         else:
             raise ModelError(f"unknown op {op!r}")
         return True
@@ -917,6 +998,8 @@ class Kernel:
                 self._op_resume(op)
             elif isinstance(op, NotifySet):
                 self._notify_set(self.threads[op.tid], op.bits)
+            elif isinstance(op, Start):
+                self._op_start(op)
         self.irq_nesting -= 1
         self._p1()
 
@@ -953,6 +1036,13 @@ class Kernel:
             # SPEC-005 §2.1 / KRN-SYNC-018
             if not t.terminated and t.prio != self.effective(t):
                 raise ModelError(f"effective priority of thread {t.tid} is {t.prio}, expected {self.effective(t)}")
+            if t.terminated and (membership or t.owned or t.wait_state != WaitState.READY):
+                raise ModelError(f"terminated thread {t.tid} still in queues {membership} or owning {t.owned}")
+            jq = self.queues[-(1000 + t.tid)]
+            if len(jq.waiters) > 1:
+                raise ModelError(f"thread {t.tid} has {len(jq.waiters)} joiners (KRN-THR-018)")
+            if t.terminated and jq.waiters:
+                raise ModelError(f"terminated thread {t.tid} still has a blocked joiner")
             if t.wait_state == WaitState.BLOCKED and t.wait_reason == Reason.NOTIFY and self._notify_satisfied(t):
                 raise ModelError(f"thread {t.tid} is blocked on notifications that are already satisfied (KRN-NOTIF-008)")
             if len(set(t.owned)) != len(t.owned):

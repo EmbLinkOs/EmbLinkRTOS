@@ -6,7 +6,7 @@
 
 ## 1. Execution model
 
-### 1.1 Thread states (LOCKED, clarified)
+### 1.1 Thread states (LOCKED, clarified; lifecycle specified in `docs/specs/SPEC-008-thread-lifecycle.md`)
 
 The four states remain READY, RUNNING, BLOCKED, TERMINATED. v0.2 places two lifecycle situations v0.1 left implicit into the same model as **wait reasons**:
 

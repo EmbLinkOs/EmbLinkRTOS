@@ -37,7 +37,7 @@ Rules:
 | Group | Scope | File | Migration status |
 |---|---|---|---|
 | API | Public API conventions, status codes, time types, context classes | [`API.md`](API.md) | Complete; Accepted 2026-10-07 (work item 1) |
-| KRN-THR | Threads | pending | In `docs/architecture/03-kernel-architecture.md` §1 and v0.1 §3 |
+| KRN-THR | Threads | [`KRN-THR.md`](KRN-THR.md) | Complete; Accepted 2026-10-07 (work item 7). v0.1 §3.3 and 03 §1.1 identifiers restated |
 | KRN-SCH | Scheduler | pending | 03 §2, v0.1 §4 |
 | KRN-RQ, KRN-TCB | Ready queues and thread control block | pending | v0.1 §5 |
 | KRN-IRQ | Interrupts, exceptions, critical sections, scheduler lock, preemption points | [`KRN-IRQ.md`](KRN-IRQ.md) | Complete; Accepted 2026-10-07 (work item 2). v0.1 identifiers restated |

@@ -35,8 +35,9 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-005](specs/SPEC-005-synchronization.md) | Synchronization: effective priority and the inheritance walk, mutex (inherit, ceiling, none, recursive, deadlock detection, owner death), semaphores, event flags, condition variables, barriers, spinlocks, atomics, priority changes, tiny profile, model extension | 07 §3 item 5 | Accepted 2026-10-07; mutex in the reference model |
 | [SPEC-006](specs/SPEC-006-notifications-and-work-queues.md) | Notifications (per-thread bits, kernel bits), notification binding of objects (ADR-027), work queues and delayed work, system work queue, misuse, observability, tiny profile, model extension | 07 §3 item 6 | Accepted 2026-10-07; notifications and binding in the reference model |
 | [SPEC-007](specs/SPEC-007-inter-thread-communication.md) | Inter-thread communication: message queues (copy by value, direct copy and slot hand-off, send to front, ownership queues), pipes (chunked and SPSC lock-free paths, min_len reads, close and reset), buffer pools (O(1), checked-build ownership tracking), ports outline | 07 §3 item 6b | Accepted 2026-10-07 |
+| [SPEC-008](specs/SPEC-008-thread-lifecycle.md) | Thread lifecycle: attributes, init and start, exit path and reusability point, join and detach, suspend, cancellation with disable count, priorities, TLS slots, stacks, kernel threads, destroy, misuse, observability, tiny profile, model extension | 07 §3 item 7 | Accepted 2026-10-07; start, join, exit codes in the reference model |
 
-Upcoming, in roadmap order: thread lifecycle; objects and capabilities; partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
+Upcoming, in roadmap order: objects and capabilities; partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
 
 ## Research records
 
