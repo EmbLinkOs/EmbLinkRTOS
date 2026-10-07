@@ -440,7 +440,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Context.** R-003 §5: the two reasons a team would still not switch are middleware written against another kernel API and the migration cost of existing code. Most vendor middleware targets CMSIS-RTOS2 or the FreeRTOS API; ESP-IDF demonstrates a FreeRTOS API served by another kernel.
 
-**Decision.** In M4, optional `compat/cmsis_rtos2/` and `compat/freertos/` layers over the native API, each documenting where semantics differ (inheritance, timer control, `FromISR` mapping to context classes). Adapters never influence native API design and are validated with the upstream validation suites where they exist. They are not part of the certified profile.
+**Decision.** In M4, optional `compatibility/cmsis_rtos2/` and `compatibility/freertos/` layers (05 §3) over the native API, each documenting where semantics differ (inheritance, timer control, `FromISR` mapping to context classes). Adapters never influence native API design and are validated with the upstream validation suites where they exist. They are not part of the certified profile.
 
 **Alternatives.** Native API only (purer, slower adoption); make one of these the native API (inherits their semantic flaws, R-001 §5).
 

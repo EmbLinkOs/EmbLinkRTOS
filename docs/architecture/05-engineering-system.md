@@ -100,9 +100,9 @@ EmbLinkRTOS/
   boards/                 <vendor>/<board>/    board description yaml, board init
   drivers/                <class>/             class API + implementations
   subsys/                 power/ logging/ tracing/ security/ storage/ net/ usb/ ...
-  compatibility/          cmsis_rtos2/ posix/ cxx/
+  compatibility/          cmsis_rtos2/ freertos/ posix/ cxx/   (ADR-037 adapters, M4)
   hw/                     schemas, importers, generator
-  tools/                  emb cli, decoders (log, trace, crash), reference model, hil runner
+  tools/                  emb cli, decoders (log, trace, crash), model/ (reference model, ADR-013), hil runner
   tests/                  conformance/ kernel/ arch/ drivers/ stress/ fuzz/ hil/ benchmarks/
   samples/
   docs/                   architecture/ specs/ requirements/ api/ boards/ ports/

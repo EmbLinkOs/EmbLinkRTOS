@@ -60,6 +60,7 @@ This is the highest-impact platform decision. Own schema costs generator work up
 
 **Q15. Reference model language.** Python (fast to write, readable to non-C reviewers) or C on the host (closer to kernel, reusable in differential tests without a bridge)?
 *Recommendation:* Python for the model and TLA+ or exhaustive Python exploration for the wake race; the differential test bridge is a small JSON protocol.
+*Answered 2026-10-07 (SPEC-004 §16.6):* Python 3 with exhaustive section-granularity exploration in `tools/model/` and `hypothesis` for randomized runs; the bridge is a trace replay.
 
 **Q16. Documentation toolchain.** Sphinx with a requirements extension (mature traceability tooling) or MkDocs plus project scripts (simpler)?
 *Recommendation:* Sphinx; traceability is the point.

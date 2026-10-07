@@ -1,6 +1,6 @@
 # SPEC-004 - Wait and Wake Protocol
 
-**Status:** Proposed 2026-10-07, with the defaults of §16 awaiting the owner's acceptance. Specification work item 4 of the roadmap (07 §3).
+**Status:** Accepted 2026-10-07 by the project owner, with the defaults of §16. Specification work item 4 of the roadmap (07 §3). Reference model: `tools/model/` (SPEC-004 §13).
 **Requirements:** `docs/requirements/KRN-WAIT.md` (KRN-WAIT-001 to 009 restated; new from 010).
 **Builds on:** 03 §1.1 (thread states and wait reasons), 03 §3; SPEC-001 §4 (status codes), §5 (contexts and misuse); SPEC-002 §2 (per-CPU state), §4 (critical sections), §5 (scheduler lock), §6 (preemption points); SPEC-003 §5 (timeouts); ADR-013 (reference model), ADR-020 (destroy with waiters), ADR-026 (this protocol), ADR-027 (notification binding), ADR-036 (tiny profile scheduler).
 **Research:** R-001 §4 compares how eleven kernels handle the same problem; this protocol takes RTEMS's three-state wait flag, ThreadX's suspension sequence number, Zephyr's superseded in-flight timeout and swap-data hand-off, and uC/OS-III's single pend path under every primitive.
@@ -295,7 +295,7 @@ With `CONFIG_EMB_SCHED_TABLE`, threads are indexed by unique priority and a wait
 
 ## 13. Reference model (ADR-013, KRN-WAIT-007)
 
-The model is the first executable artifact of the project and is written in **Python 3** (answers 08 Q15, §16.6): fastest to write and to read in review, with `hypothesis` for property-based exploration; the differential bridge to the kernel is a trace replay, so the model's language is independent of the kernel's.
+The model is the first executable artifact of the project and is written in **Python 3** (answers 08 Q15, §16.6): fastest to write and to read in review, with `hypothesis` for property-based exploration; the differential bridge to the kernel is a trace replay, so the model's language is independent of the kernel's. It lives in `tools/model/` (05 §3) and is described in `tools/model/README.md`.
 
 **Structure.** `model/kernel.py` holds `Cpu` (SPEC-002 §2 state machine), `Thread` (§2.1 fields), `WaitQueue` (§2.2, both the list and the bitmap form), `TimeoutList` (SPEC-003 §5), and `Kernel` with operations `block_on`, `wake`, `expire(now)`, `cancel`, `suspend`, `resume`, `flush`, `set_priority`, `irq_enter`, `irq_exit`, `sched_lock`, `sched_unlock`, `yield`. Each operation is written as the sequence of sections of §5, and the explorer may interleave other operations (including interrupts and, in the SMP model, other CPUs) only at section boundaries, which is exactly the real system's atomicity.
 
@@ -320,7 +320,7 @@ Semaphore take with a 10 ms timeout, counting semaphore at zero, one other waite
 5. At the outermost ISR exit (P1) T1 runs, reads `wake_result == SATISFIED`, returns `EMB_OK`.
 6. If instead the deadline had passed first: expiry pops T1's node with generation 7, `embk_wait_wake_timeout(T1, 7)` finds the generation unchanged and the queue matching, wakes with `TIMEOUT`; `emb_sem_take` returns `EMB_ETIMEDOUT`; the later give finds the lower-priority waiter first instead.
 
-## 16. Decisions proposed for acceptance
+## 16. Decisions taken at acceptance (2026-10-07)
 
 1. Wait queues are protected by the lock domain of the object that embeds them; they carry no lock of their own. On uniprocessor all three domains are the single critical section, and the protocol's guarantee is the split into three bounded sections.
 2. The wait state transitions are compare-and-set operations; architectures without an atomic compare-and-swap (AVR, Armv6-M) perform them in a short critical section with identical semantics.
