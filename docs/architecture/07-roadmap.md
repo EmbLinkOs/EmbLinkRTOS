@@ -40,13 +40,13 @@ Exit: all kernel requirement groups covered in the traceability matrix; differen
 
 ### M3 - Cortex-M, isolation, and the hardware pipeline
 
-Deliverables: `arch/cortex_m` for Armv6-M, Armv7-M (lazy FPU stacking), Armv8-M (MPU, stack limits, TrustZone non-secure); partitions with supervisor on MPU targets; syscall boundary and validated capabilities; budgets; hardware description schema v1, SVD importer, generator, first SoC family STM32F4 with the STM32F407 Discovery and NUCLEO-F446RE boards, then the RP2350 (Raspberry Pi Pico 2) as the Armv8-M isolation board (ADR-025); device model; drivers GPIO, pinctrl, clock, timer, UART, DMA; deferred-format logging with decoder; CTF trace with generated metadata; debug descriptor; crash record; Renode in CI; first HIL board.
+Deliverables: `arch/cortex_m` for Armv6-M, Armv7-M (lazy FPU stacking), Armv8-M (MPU, stack limits, TrustZone non-secure); partitions with supervisor on MPU targets; syscall boundary and validated capabilities; budgets; hardware description schema v1, SVD importer, generator, first SoC family STM32F4 with the STM32F407 Discovery and NUCLEO-F446RE boards, then the RP2350 (Raspberry Pi Pico 2) as the Armv8-M isolation board (ADR-025); device model; drivers GPIO, pinctrl, clock, timer, UART, DMA; deferred-format logging with decoder; CTF trace with generated metadata; debug descriptor; crash record; Renode in CI; first HIL board; first run of the cross-RTOS benchmark harness against FreeRTOS, Zephyr, and ThreadX on the STM32F4 boards (R-003 §6, TEST-012).
 
-Exit: conformance suite unchanged and green on native, AVR, three Cortex-M variants; a partition fault is contained and restarted on the RP2350; a second board on the same SoC is added with no C changes.
+Exit: conformance suite unchanged and green on native, AVR, three Cortex-M variants; a partition fault is contained and restarted on the RP2350; a second board on the same SoC is added with no C changes; harness results for R-003 targets T1 to T9 published with raw data.
 
 ### M4 - Platform maturity
 
-Deliverables: power management core and device power states; SPI, I2C, watchdog, flash, RTC, entropy drivers; MCUboot-compatible images and update service; software watchdog; flight recorder; `emb` CLI; EmbDebug descriptor consumer; benchmark publication pipeline; SBOM and reproducible build verification; DTS importer; second SoC family, an industrial Armv8-M part in the STM32U5 or STM32H5 class with CAN-FD and Ethernet.
+Deliverables: power management core and device power states; SPI, I2C, watchdog, flash, RTC, entropy drivers; MCUboot-compatible images and update service; software watchdog; flight recorder; `emb` CLI; CMSIS-RTOS2 and FreeRTOS-API adapters (ADR-037); EmbDebug descriptor consumer; benchmark publication pipeline; SBOM and reproducible build verification; DTS importer; second SoC family, an industrial Armv8-M part in the STM32U5 or STM32H5 class with CAN-FD and Ethernet.
 
 Exit: a reference application updates itself A/B with power-loss injection on HIL; measured idle power states on a reference board; support matrix generated from CI.
 
@@ -67,6 +67,9 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 1. API conventions, status codes, time types, context classes (05 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-001-api-conventions.md` and `docs/requirements/API.md` (API-001 to API-032).
 2. Interrupt, exception, and critical-section specification, including the kernel-independent interrupt class. **Accepted 2026-10-07:** `docs/specs/SPEC-002-interrupts-and-critical-sections.md` and `docs/requirements/KRN-IRQ.md`.
 3. Time source, timeout, and software timer specification (03 §4). **Accepted 2026-10-07:** `docs/specs/SPEC-003-time-timeouts-and-timers.md` and `docs/requirements/KRN-TIM.md`.
+
+   Between items 3 and 4 the research records `docs/research/R-001` (mechanism comparison of eleven kernels), `R-002` (market, performance, certification, regulation), and `R-003` (differentiation, ADR-026 to ADR-037, measurable targets T1 to T14, the benchmark harness) were produced. Items 4 to 9 implement the proposed decisions where they apply: item 4 ADR-026 and 027; item 5 ADR-028 and 030; item 6 ADR-027; item 7 ADR-032; item 8 ADR-032 and 033; item 9 ADR-029 and 033; item 14 ADR-034.
+
 4. Wait and wake protocol, including the wake race, modeled and explored exhaustively (03 §3).
 5. Mutex, semaphore, event, condition variable semantics and the inheritance algorithm (03 §5).
 6. Notifications and work queues (03 §6.1, §6.2).

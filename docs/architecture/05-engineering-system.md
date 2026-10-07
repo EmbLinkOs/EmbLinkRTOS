@@ -85,6 +85,8 @@ hardware description + Kconfig + sources
 **BLD-004** Builds shall be reproducible given the pinned toolchain container; CI shall verify by double build.
 **BLD-005** The `emb` command-line tool shall wrap configure, build, flash, debug, trace, and test with per-board defaults, using EmbFlash and `embdbg` when present and third-party tools otherwise.
 **BLD-006** The reference build shall be able to emit an EmbBuild manifest (`.ebm`: name, kind, inputs, args, output per target, with derived header closures) so that EmbLinkRTOS builds under EmbBuild on EmbLinkOS (09 §9).
+**BLD-007** The generator shall emit a configuration consistency check that fails the build when a required configuration symbol is missing, when the configuration version does not match the kernel version, or when a profile constraint is violated (ADR-035; ChibiOS `chchecks.h`).
+**BLD-008** A profile marked `safety` shall reject option combinations that remove checks, run timer callbacks in interrupt context, permit object creation after `emb_system_freeze()`, or disable stack protection (ADR-035; ThreadX `TX_SAFETY_CRITICAL`).
 
 ## 3. Repository layout (PLANNED, refined)
 
@@ -145,10 +147,13 @@ The wake-race protocol and inheritance recomputation are additionally explored e
 **TEST-009** The requirement-to-test traceability matrix shall be generated from test annotations and shall fail CI on uncovered normative requirements.
 **TEST-010** Kernel misuse paths (ISR blocking, non-owner unlock, destroy with waiters, stale capability) shall have tests in checked and release configurations.
 **TEST-011** Footprint (flash and RAM) per profile and reference board shall be tracked per commit with regression thresholds.
+**TEST-012** A cross-RTOS benchmark harness shall run the same operations on the same board, compiler, and options for EmbLinkRTOS, FreeRTOS, Zephyr, and ThreadX, with at least 10,000 samples per operation and the metadata of §4.4, and its raw data shall be published with every release (R-003 §6).
 
 ### 4.4 Benchmarks
 
 Metrics from v0.1 §29 stand. Each benchmark result is stored as raw samples plus a metadata record (board, SoC revision, clock, compiler and version, flags, LTO, configuration hash, enabled features, timer source, instrumentation method, interrupt load, cache and FPU state). Published numbers include distributions and worst observed values. The HIL runner produces this automatically.
+
+The cross-RTOS harness (TEST-012, R-003 §6) is part of this: `tests/benchmarks/` holds one adapter per kernel, competitor configurations are published and reviewed for fairness, and a regression against the previous release's baseline fails the release (OBS-012). Vendor numbers are never quoted as comparisons; only harness results are.
 
 ## 5. Quality gates
 

@@ -234,6 +234,13 @@ The image exports a versioned, read-only descriptor: struct offsets for TCB fiel
 
 Per thread: CPU time, switch count, stack high-water, deadline misses, budget overruns. Per CPU: utilization, idle residency, max critical section, interrupt counts. Per object: contention counts. All optional, all compile-out.
 
+**Worst-case monitors (ADR-034).** Beyond averages, the kernel records, when enabled, the longest interrupt-masked interval, the longest scheduler-locked interval, the longest ISR per vector, and the longest uninterrupted run per thread, each with the program counter of the code that opened the interval. A configurable threshold per category raises a trace event, a notification to a supervisor, or a fault. These monitors make the latency bounds of SPEC-002 and the targets of R-003 §4 self-checking in the field (NuttX critmonitor, R-001 §8).
+
+**OBS-009** Worst-case interrupt-masked and scheduler-locked intervals shall be recorded per CPU and per thread with the address of the opener, as a compile-time option.
+**OBS-010** Thresholds per monitored category shall be configurable to trace, notify, or fault.
+**OBS-011** Monitor state shall be exported through the debug descriptor and the statistics API.
+**OBS-012** Benchmark results of a release shall be compared with the previous release's baseline on the same board and configuration; a regression beyond the configured threshold shall fail the release.
+
 ## 8. Multicore
 
 ### 8.1 SMP (FUTURE, constraints LOCKED)

@@ -303,3 +303,147 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** The port is learned on the simplest and best-documented Cortex-M. Memory protection is implemented first on the Armv8-M model, whose regions use base and limit addresses, then on the Armv7-M model, whose regions must be power-of-two sized and aligned. One inexpensive board de-risks three later milestones and gives EmbCC both of its existing architectures on one target.
 
 **Status.** Accepted 2026-10-06.
+
+## ADR-026 Wait protocol: three-state wait flag with a wait generation and a superseded in-flight timeout
+
+**Context.** KRN-WAIT-004 to 007 require that exactly one of wake, timeout, cancel, and destroy wins for a blocked thread. R-001 §4.2 found three ways kernels achieve this: one lock held across everything (uC/OS-III, NuttX, ChibiOS, Zephyr's scheduler spinlock), which makes the longest masked section proportional to list length; replay under a side lock (FreeRTOS), which doubles the code paths; or an idempotent state machine (RTEMS's READY / INTEND_TO_BLOCK / BLOCKED wait flags changed by compare-and-swap, ThreadX's suspension sequence number), which needs no lock across the block window. Zephyr adds a superseded bit on an in-flight timeout so that cancelling a timeout whose handler runs on another CPU is safe.
+
+**Decision.** Every thread carries `wait_state` in {READY, INTEND_TO_BLOCK, BLOCKED} and a `wait_generation`. Blocking: under the object's lock (a critical section on uniprocessor, the object's spinlock on SMP) check the condition, enqueue the wait node by policy, set INTEND_TO_BLOCK and capture the generation, release the object lock; arm the timeout under the timeout lock with that generation; then compare-and-swap INTEND_TO_BLOCK to BLOCKED and switch. If the swap fails a waker already won: disarm the timeout and return the recorded result without switching. Waking: under the object lock dequeue the node, write the wake result, then swap INTEND_TO_BLOCK to READY, or, if BLOCKED, set READY and make the thread ready; a second wake source finds neither state and does nothing. The timeout handler compares the generation it was armed with against the thread's current one and does nothing on mismatch. On SMP, cancelling a timeout whose handler is running marks it superseded and retries; the handler checks the bit before acting. On cores without compare-and-swap (AVR) the swap is a short critical section.
+
+**Alternatives.** One lock across everything: simplest, unbounded masked time, a global lock on SMP. FreeRTOS-style replay lists: two code paths and tick-delayed wakes.
+
+**Consequences.** No masked section spans the block window; the remaining masked sections are single list operations whose bound is stated (priority-ordered insert, bounded by the waiters of one object; timeout insert, bounded by armed timeouts, with the wheel of ADR-010 as the escape). SMP needs no global lock for blocking. The thread control block gains one byte of state and one or two bytes of generation. The reference model expresses exactly these states, which is what KRN-WAIT-007 asks for. KRN-WAIT-008 and 009 record this.
+
+**Status.** Proposed (R-003).
+
+## ADR-027 Multi-object wait by binding objects to notification bits
+
+**Context.** R-001 §4.3: FreeRTOS queue sets copy a handle into a container queue on every post; Zephyr's `k_poll` keeps per-object poller lists under one global lock and supports only one mode; uC/OS-III removed pend-multi in favour of per-task primitives. ChibiOS events, RIOT thread flags, Hubris notifications, and FreeRTOS stream buffers all converge on per-thread bits set by other mechanisms.
+
+**Decision.** Any waitable object may be bound to one `(thread, notification bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition becomes true, a stream reaches its trigger level), the kernel sets the bit with the ordinary O(1), ISR-safe notification set. A thread that waits on several objects waits once on its notification mask, then performs the non-blocking operation on each signalled object and loops on `EMB_EBUSY` when another consumer was faster. One binding per object in 1.0; rebinding requires the object to have no bound waiter in flight. Threads blocked directly on the object are unaffected.
+
+**Alternatives.** Queue sets (extra copy, sets are queues of handles); a poll object with per-object poller lists (global lock, memory per poller); pend-multi arrays (O(objects) per wait, removed by its own authors).
+
+**Consequences.** Multi-object wait costs nothing per object beyond a thread pointer and a bit index; no new kernel object; works from the tiny profile upward; the notification width must leave bits for the application (KRN-NOTIF-006, answers Q7). Edge semantics (set on every transition to ready, thread re-checks) mean no lost wakeups and at most one spurious pass.
+
+**Status.** Proposed (R-003).
+
+## ADR-028 Priority inheritance algorithm
+
+**Context.** R-001 §5: FreeRTOS raises only the direct holder, disinherits only on the last mutex, and handles timeout disinheritance only when one mutex is held; ThreadX is non-transitive; Zephyr documents deferred priority drop and non-propagated priority down caused by its lock ordering; NuttX is single-level and panics when its holder pool is exhausted. Only RTEMS is correct in every column, at the price of 64-bit priorities and red-black trees. uC/OS-III and ChibiOS show that a small kernel can be transitive and restore correctly with an owned-mutex list, but ChibiOS forces LIFO unlock order and uC/OS-III has an owner-death hand-off bug.
+
+**Decision.** Each thread keeps an intrusive list of the mutexes it owns. Lock, slow path: enqueue priority-ordered; walk the owner chain: for each owner whose effective priority is below the waiter's, raise it and reposition it in its ready queue or wait queue (KRN-WAIT-003), then continue with the mutex that owner is waiting on, up to `CONFIG_EMB_PI_MAX_DEPTH` (default 8); beyond the depth the walk stops and records a trace event (checked builds fault, KRN-SYNC-009); if the walk reaches the caller the result is `EMB_EDEADLK` (checked builds fault). Unlock: remove the mutex from the owned list, recompute the effective priority as the maximum of the base priority and the highest waiter over all still-owned mutexes, and hand the mutex directly to its highest-priority waiter. A waiter's timeout, cancel, or priority change recomputes the owner's effective priority immediately, in the same operation, not deferred to the waiter's resumption. Owner termination follows KRN-SYNC-011 (fault by default, or `EMB_EOWNERDEAD` delivered to the next owner). Any unlock order is allowed. Ceiling mutexes use the same effective-priority recomputation (ADR-030).
+
+**Alternatives.** Priority aggregation trees (RTEMS): correct and general, too heavy for the tiny and base profiles. Non-transitive inheritance (FreeRTOS, ThreadX): fails the nested-mutex cases the conformance suite will contain.
+
+**Consequences.** Per mutex: an owner pointer, two list links, and the wait queue. Per thread: an owned-list head, base and effective priority. The chain walk is O(depth) with each hop a bounded masked section. KRN-SYNC-014 to 016 record the algorithm; R-003 target T9 bounds its cost.
+
+**Status.** Proposed (R-003).
+
+## ADR-029 Temporal protection: sporadic thread budgets, sliding-window partition shares, critical budget; donation FUTURE
+
+**Context.** 03 §2.3 defined budgets as `(capacity, period, policy)`. R-002 §5 and R-001 §1 showed two proven refinements: the sporadic server (POSIX `SCHED_SPORADIC` in NuttX, seL4 MCS scheduling contexts) replenishes consumed time one period after it was consumed, with a bounded refill list, which gives smoother service than a hard reset per period; QNX adaptive partitioning gives each partition a share of CPU over a sliding window and hands unused time to partitions that want it, so the scheduler is plain priority when not overloaded and a partition scheduler when it is, with a separate critical budget for interrupt-driven threads.
+
+**Decision.** Thread budgets are sporadic servers: `(capacity, period, overrun_policy)`; consumed slices are replenished one period after their start; the replenishment list is bounded (`CONFIG_EMB_BUDGET_REFILLS`, default 2) and overflow merges entries. Partition shares are `(share_percent, window, critical_capacity)` over a sliding window (default 100 ms, implemented as a ring of sub-windows); when total demand exceeds the CPU, a partition over its share is eligible only when no partition under its share has runnable threads, implemented as an eligibility filter in the class order next to TIME_TABLE; when the system is not overloaded, ordering is pure fixed priority (KRN-TP-005 holds). A thread marked `EMB_THREAD_CRITICAL` may exceed its partition's share up to `critical_capacity` per window; exhausting that is a partition fault with the usual fault policy. The `FAULT` overrun policy delivers the consumed time in the fault record. Budget donation (a server runs on its client's budget across a Port) is reserved as FUTURE with Ports. All of it compiles out when not configured (KRN-TP-002).
+
+**Alternatives.** Hard periodic budgets only (simplest, bursty service, no idle sharing); time-table scheduling only (ARINC 653, static); CBS under EDF (DEADLINE class, FUTURE).
+
+**Consequences.** Mixed-criticality on an MCU gets the QNX model that no MCU kernel offers; the accounting cost is one timestamp per switch when enabled; the sliding window needs `windows / sub-windows` counters per partition. KRN-TP-006 to 009 record the refinements.
+
+**Status.** Proposed (R-003).
+
+## ADR-030 Compile-time priority ceilings from the static system description
+
+**Context.** KRN-SYNC-012 asks for a ceiling protocol as a per-mutex option. RTIC computes each resource's ceiling at compile time from the declared users and makes locking a priority raise with no waiters and no blocking (R-002 §5). RTEMS implements ceilings as priority nodes at run time.
+
+**Decision.** A ceiling mutex declared in the system description lists the threads (or partitions) that may lock it; the generator computes the ceiling as the highest base priority among them and emits it into the mutex's storage initializer. Locking raises the caller's effective priority to the ceiling immediately (immediate ceiling, as in the Stack Resource Policy); unlocking restores it through the recomputation of ADR-028. In checked builds a locker that is not a declared user, or whose base priority exceeds the ceiling, faults; in release builds the lock fails with `EMB_EPERM`. When every user is declared, the mutex can never have a waiter, so it needs no wait queue; the tiny profile may offer only this mutex form. Runtime-created mutexes may still set a ceiling explicitly. Interrupt-level ceilings (RTIC's `BASEPRI`) are out of scope: thread-level only; sharing with interrupts uses `emb_irq_lock()` or the zero-latency class.
+
+**Alternatives.** Runtime-only ceilings (no generator involvement, no static guarantee); no ceiling protocol (inheritance only).
+
+**Consequences.** Deadlock-free, bounded-inversion locking with O(1) cost for statically described systems; the generator becomes part of the synchronization story; KRN-SYNC-017 records it.
+
+**Status.** Proposed (R-003).
+
+## ADR-031 Preemption threshold: rejected for 1.0
+
+**Context.** ThreadX's preemption threshold lets a thread forbid preemption by priorities between its own and a threshold, reducing context switches (R-001 §1.1, R-002 §5). It costs a second bitmap of preempted priorities and a re-selection path on suspend, and it interacts with priority inheritance (which priority does the threshold follow when the thread is boosted) and with budgets.
+
+**Decision.** Not in 1.0. The two needs it serves are met otherwise: fewer switches among equal-priority threads by time slicing only at or below a threshold level (KRN-SCH-037 revised), and short non-preemptible regions by the scheduler lock. Reconsidered only if the benchmark harness (R-003 §6) shows a switch-count problem on a real workload.
+
+**Alternatives.** Adopt it (ThreadX); adopt meta-IRQ bands instead (Zephyr).
+
+**Consequences.** The scheduler stays a single bitmap plus FIFO queues; inheritance and budgets have one priority to reason about.
+
+**Status.** Proposed (R-003). Rejected for 1.0.
+
+## ADR-032 Generation-tagged thread and partition handles with dead codes; leases for cross-partition buffers
+
+**Context.** 03 §7 already gives objects a generation for stale-handle detection. Hubris extends the idea to tasks: a task id carries a generation, a restart bumps it, and every peer blocked on the old id is woken with a dead code so restarts are visible without polling (R-001 §7). Hubris also replaces large message copies with leases: borrowed buffers validated on every access and revoked automatically when the lender resumes.
+
+**Decision.** In every profile that checks generations (tagged pointers in `base`, capability tables in `isolated`), thread and partition handles carry a generation; a partition restart bumps the generation of the partition and of its threads; any thread blocked on such a handle (join, port request, notification binding) completes with `EMB_ESTALE`. For Ports (03 §6.6, FUTURE for 1.0), a message may carry up to `CONFIG_EMB_PORT_MAX_LEASES` lease descriptors `(base, length, rights)` over the client's memory; the server accesses leased memory only through kernel calls that validate against the client's regions; a lease is valid only while the client is blocked in that request and is revoked implicitly when the client resumes for any reason. Messages up to the copy threshold (default 64 bytes) are copied; larger buffers are leased.
+
+**Alternatives.** Kernel copies for everything (bounded message size or large kernel buffers); shared-memory regions set up by the application (no revocation, no validation).
+
+**Consequences.** Restart semantics are visible and testable; cross-partition zero-copy without a kernel buffer; the validation cost is per access, which is why small messages are still copied. KRN-OBJ-005 and KRN-IPC-009 record it.
+
+**Status.** Proposed (R-003).
+
+## ADR-033 Partition-local kernel storage
+
+**Context.** Every isolating kernel must keep state about each partition (thread control blocks, wait nodes, capability tables, object headers). Tock carves that state ("grants") out of the process's own memory so that it is freed with the process and so that a process cannot exhaust kernel memory (R-001 §7). No C kernel does this.
+
+**Decision.** In isolated profiles each partition's region set includes one kernel-owned sub-region, sized by the generator from the partition's declared threads and objects. The kernel state describing the partition, and the storage of the kernel objects the partition declares (ADR-006 storage types), live in that sub-region. It is accessible only in privileged mode, is re-initialized on partition restart, and is never grown at run time (KRN-PART-006). The kernel partition's own state lives in kernel RAM as before.
+
+**Alternatives.** All kernel state in kernel RAM (restart must find and release it; a partition's demand is invisible in its own budget); dynamic grants (Tock; conflicts with the static-partition rule).
+
+**Consequences.** Per-partition kernel memory is a visible number in the generated layout; restart is a re-initialization of one region; no kernel allocator is needed for partitions; the MPU region count per partition rises by one, which the generator checks against the hardware. KRN-PART-007 records it.
+
+**Status.** Proposed (R-003).
+
+## ADR-034 Worst-case monitors with caller address as part of the observability baseline
+
+**Context.** SPEC-002 promises latency bounds, and R-003 target T7 bounds the longest interrupt-masked section. R-001 §8 found that only NuttX's critmonitor and uC/OS-III's interrupt-disable measurement record worst cases at run time, and only NuttX keeps the address of the code responsible.
+
+**Decision.** As compile-time options, the kernel records the longest interrupt-masked interval, the longest scheduler-locked interval, the longest ISR per vector, and the longest uninterrupted run per thread, each with the program counter of the code that opened the interval, per CPU and per thread where applicable. A configurable threshold per category raises a trace event, a notification to a supervisor, or a fault. The state is exported through the debug descriptor (ADR-011) and the statistics API.
+
+**Alternatives.** Averages only (hide the outliers that break deadlines); external measurement only (not available in the field).
+
+**Consequences.** The bounds the project promises are self-checking on every target in every build that enables them; the cost is one timestamp read at each interval boundary when enabled and nothing otherwise. OBS-009 to 011 record it.
+
+**Status.** Proposed (R-003).
+
+## ADR-035 Checked-build architecture: transition checker, separable validation layer, generator consistency checks, safety gate
+
+**Context.** SPEC-001 rules that misuse is a fault in checked builds and a status in release builds. R-001 §2.3 and §9 found the two strongest designs for this: ChibiOS's runtime state machine over `isr_cnt` and `lock_cnt` that halts on any illegal transition, and ThreadX's `txe_` layer whose removal is a name mapping; and the two strongest configuration guards: ChibiOS's `chchecks.h` (errors on any missing symbol or version mismatch) and ThreadX's `TX_SAFETY_CRITICAL` (rejects unsafe option combinations).
+
+**Decision.** (1) Context-class checking is a transition checker over the per-CPU `irq_nesting_depth`, `irq_lock_depth`, and `sched_lock_depth` of SPEC-002 with an explicit table of legal transitions; an illegal transition is a kernel fault in checked builds. (2) All argument, context, and state validation lives in a separable layer that the kernel core never calls and that release builds do not compile; the public names are mapped to the checked or the direct entry by macro. (3) The generator emits a configuration consistency check that fails the build on a missing required symbol, a configuration-version mismatch, or a violated profile constraint. (4) A profile marked `safety` rejects option combinations that remove checks, run timer callbacks in interrupt context, permit creation after `emb_system_freeze()`, or disable stack protection.
+
+**Alternatives.** Independent asserts scattered through the core (hard to compile out completely, no transition semantics); configuration defaults with `#ifndef` (FreeRTOS: silent on omissions).
+
+**Consequences.** Release builds carry no check code by construction; checked builds catch context misuse at the transition, not at the next symptom; configurations cannot be silently incomplete. BLD-007 and 008 record the build side.
+
+**Status.** Proposed (R-003).
+
+## ADR-036 Tiny profile scheduler: priority-indexed thread table and optional idle thread
+
+**Context.** ChibiOS NIL shows that a kernel for a handful of threads needs no ready list at all: the thread array is indexed by priority and the scheduler scans for the first ready entry (R-001 §1.1). uC/OS-III 3.08, ChibiOS, and RIOT make the idle thread optional and idle inside the scheduler. Both save RAM that matters on a 2 KB AVR. ChibiOS pays for this with two kernels; the class interface (KRN-SCH-038) lets EmbLinkRTOS do it with one.
+
+**Decision.** The tiny profile may select `CONFIG_EMB_SCHED_TABLE`: threads are a fixed array indexed by priority, priorities are unique, the ready set is one bitmap word, selection is count-leading-zeros or a scan, and a wait queue is a bitmap of threads (so priority order is free and wake-highest is O(1)). Up to 16 threads including the idle slot. `CONFIG_EMB_IDLE_THREAD=n` removes the idle thread; the scheduler idles inline with interrupts enabled at the SPEC-002 preemption points. The public API and the conformance suite are unchanged within the tiny profile's documented restrictions (unique priorities, no round robin).
+
+**Alternatives.** One bitmap scheduler for every profile (simplest, costs a list per priority on the tiny targets); a second kernel (ChibiOS).
+
+**Consequences.** TCB target of 32 bytes on AVR (R-003 T2); wait queues of one or two bytes; one more implementation of the class interface to test, which the reference model already covers. KRN-SCH-042 and 043 record it.
+
+**Status.** Proposed (R-003).
+
+## ADR-037 CMSIS-RTOS2 and FreeRTOS-API adapters as optional layers
+
+**Context.** R-003 §5: the two reasons a team would still not switch are middleware written against another kernel API and the migration cost of existing code. Most vendor middleware targets CMSIS-RTOS2 or the FreeRTOS API; ESP-IDF demonstrates a FreeRTOS API served by another kernel.
+
+**Decision.** In M4, optional `compat/cmsis_rtos2/` and `compat/freertos/` layers over the native API, each documenting where semantics differ (inheritance, timer control, `FromISR` mapping to context classes). Adapters never influence native API design and are validated with the upstream validation suites where they exist. They are not part of the certified profile.
+
+**Alternatives.** Native API only (purer, slower adoption); make one of these the native API (inherits their semantic flaws, R-001 §5).
+
+**Consequences.** Existing middleware and applications run while the native API stays clean; two more test targets; a migration guide becomes a deliverable.
+
+**Status.** Proposed (R-003).

@@ -22,18 +22,21 @@ These need your decision. Each has a recommendation so the default path is clear
 
 **Q4. Default wait ordering.** Priority-then-FIFO (recommended) or pure FIFO by default?
 *Recommendation:* priority-then-FIFO; pure FIFO as a per-object option.
+*R-001 §4.1:* seven of nine kernels default to priority-then-FIFO; ThreadX's FIFO default is a documented source of inversion. Confirmed.
 
 **Q5. Mutex owner termination.** Fault (recommended default) or release with `EMB_EOWNERDEAD`?
 *Recommendation:* fault in checked builds, configurable `EOWNERDEAD` for release builds that need it.
+*R-001 §5:* only ThreadX, NuttX, and uC/OS-III handle owner death at all, and none informs the next owner. Confirmed; algorithm in ADR-028.
 
 **Q6. Thread cancellation in 1.0.** Cooperative cancellation (recommended) or none until later?
 *Recommendation:* include it; it is small once the wait protocol has wake results.
 
 **Q7. Notification width.** 32 bits everywhere, or 8 bits on tiny?
 *Recommendation:* configurable, default 32, tiny profile may select 8 or 16.
+*R-003 ADR-027:* binding objects to notification bits needs spare bits; `base` keeps 32 with at least 16 for the application, `tiny` may select 8 with at least 4 (KRN-NOTIF-006). Confirmed.
 
 **Q8. Time slicing per priority level (KRN-SCH-037).** Worth the configuration surface?
-*Recommendation:* yes; it is a small table and solves the common "round-robin for background only" need.
+*Recommendation (revised by R-003 §3.1):* no per-level table; one quantum and one threshold priority at or below which slicing applies (Zephyr `TIMESLICE_PRIORITY`). KRN-SCH-037 revised accordingly. Answered.
 
 ## C. Platform
 

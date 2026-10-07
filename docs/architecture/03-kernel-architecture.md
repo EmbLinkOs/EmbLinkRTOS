@@ -71,7 +71,10 @@ All of v0.1 §4 and §5 stand: highest effective priority wins, FIFO among equal
 Additions:
 
 **KRN-SCH-036** Priority count shall be configurable from 4 to 256; the ready bitmap shall be one word for up to the word width and two-level above that.
-**KRN-SCH-037** Round-robin quantum shall be configurable per priority level, not only globally, so that time slicing can be enabled for background levels only.
+**KRN-SCH-037** Time slicing shall apply only to threads at or below a configured threshold priority level (`CONFIG_EMB_TIMESLICE_PRIORITY`), with one configurable quantum, so that round robin can be enabled for background levels only without a per-level table (revised per R-003 §3.1; answers 08 Q8).
+**KRN-SCH-041** A thread preempted by a higher-priority thread shall be placed ahead of its equal-priority peers when it becomes eligible again, because its quantum is unspent; a thread that yields or exhausts its quantum shall be placed behind them.
+**KRN-SCH-042** The tiny profile may implement the fixed-priority class as a priority-indexed thread table with unique priorities and bitmap wait sets (ADR-036); the public API and the conformance suite are unchanged within the tiny profile's documented restrictions.
+**KRN-SCH-043** The idle thread shall be optional; when absent, the scheduler shall idle inline with interrupts enabled at the preemption points of SPEC-002.
 
 ### 2.2 Scheduling classes (PROPOSED)
 
@@ -95,11 +98,11 @@ The scheduler is organized as an ordered list of classes. At a decision point it
 **KRN-SCH-039** The four-state thread model shall be identical across classes.
 **KRN-SCH-040** When no optional class is configured, the class dispatch shall compile to a direct call into the fixed-priority implementation with zero overhead.
 
-### 2.3 Temporal protection (PROPOSED)
+### 2.3 Temporal protection (PROPOSED, revised per ADR-029)
 
-Fixed priority alone cannot stop a thread that runs longer than designed. v0.2 adds budgets without changing scheduling order.
+Fixed priority alone cannot stop a thread that runs longer than designed. v0.2 adds budgets without changing scheduling order among threads that are within budget. R-001 §1 and R-002 §5 showed two proven models beyond "capacity per period": the sporadic server (POSIX `SCHED_SPORADIC` in NuttX, seL4 MCS scheduling contexts) for threads, and the sliding-window share with idle-time sharing (QNX adaptive partitioning) for partitions. Both are adopted (ADR-029).
 
-A **budget** is attached to a thread or a partition: `(capacity, period, overrun_policy)`. The kernel charges execution time to the running thread's budget on every context switch and timer event. When capacity is exhausted before the period ends:
+A **thread budget** is a sporadic server `(capacity, period, overrun_policy)`. The kernel charges execution time to the running thread's budget on every context switch and timer event; each consumed slice is replenished one period after it started, through a bounded replenishment list (`CONFIG_EMB_BUDGET_REFILLS`, default 2; overflow merges entries). When capacity is exhausted before replenishment:
 
 | Overrun policy | Effect |
 |---|---|
@@ -108,6 +111,8 @@ A **budget** is attached to a thread or a partition: `(capacity, period, overrun
 | `SUSPEND` | Block with reason `BUDGET` until replenishment |
 | `FAULT` | Raise a partition fault |
 
+A **partition share** is `(share_percent, window, critical_capacity)` measured over a sliding window (default 100 ms, a ring of sub-windows). When total demand exceeds the CPU, a partition over its share is eligible only when no partition under its share has runnable threads; this is an eligibility filter in the class order next to TIME_TABLE. When the system is not overloaded, ordering is pure fixed priority, so a share costs nothing in the common case. A thread marked `EMB_THREAD_CRITICAL` (typically one woken by an interrupt) may exceed its partition's share up to `critical_capacity` per window; exhausting that is a partition fault. **Budget donation**, where a server thread runs on the budget of the client it serves across a Port, is FUTURE with Ports.
+
 **Deadline monitoring** is a lighter mechanism: a thread declares `period` and `relative_deadline`; the kernel records a deadline-miss event (trace plus optional notification) when a job completes late. It does not alter scheduling.
 
 **KRN-TP-001** Per-thread CPU time accounting shall be available as a compile-time option and shall be the basis of budgets and statistics.
@@ -115,6 +120,10 @@ A **budget** is attached to a thread or a partition: `(capacity, period, overrun
 **KRN-TP-003** Budget overrun policies NOTIFY, DEMOTE, SUSPEND, FAULT shall be supported; DEMOTE and SUSPEND shall be reversed exactly at replenishment.
 **KRN-TP-004** Deadline-miss detection shall be observable through trace and optionally through a notification.
 **KRN-TP-005** Budget enforcement shall never change the ordering among threads that are within budget.
+**KRN-TP-006** Thread budgets shall replenish consumed time one period after its consumption started, through a bounded replenishment list whose overflow merges entries and never grants more than `capacity` per `period`.
+**KRN-TP-007** Partition shares shall be enforced over a sliding window and only while total demand exceeds the CPU; unused share shall be available to other partitions.
+**KRN-TP-008** A critical thread may exceed its partition's share up to the partition's critical capacity per window; exhausting it shall be a partition fault.
+**KRN-TP-009** The `FAULT` overrun policy shall deliver the consumed time in the fault record.
 
 ### 2.4 Per-CPU state (LOCKED, extended)
 
@@ -134,6 +143,8 @@ cpu[n]:
 ## 3. Wait and wake protocol
 
 **PLANNED in v0.1; PROPOSED design here.** This is the most important internal contract in the kernel, because every blocking primitive is a thin layer over it.
+
+The protocol is realized by a three-state wait flag (`READY`, `INTEND_TO_BLOCK`, `BLOCKED`) with a per-thread wait generation and a superseded bit on in-flight timeouts (ADR-026), so that no interrupt-masked section spans the window between deciding to block and being blocked. R-001 §4.2 compares the alternatives used by other kernels.
 
 ### 3.1 Wait object
 
@@ -164,6 +175,8 @@ The protocol must be correct against the race between a wake, a timeout expiry, 
 **KRN-WAIT-005** The winning wake source shall set the wake result before making the thread READY.
 **KRN-WAIT-006** Removal from the wait queue and from the timeout structure shall be atomic with respect to each other, as seen by any other wake source.
 **KRN-WAIT-007** The protocol shall be expressed in the executable reference model and verified by randomized and, where practical, exhaustive state exploration before implementation (see 05 §4).
+**KRN-WAIT-008** The wait state shall be a three-state flag changed by compare-and-swap on cores that provide it and by a bounded critical section otherwise; no lock or masked section shall be held from the decision to block until the switch (ADR-026).
+**KRN-WAIT-009** Every wait shall carry a generation; a timeout, cancel, or destroy that observes a different generation shall do nothing. On SMP a timeout whose handler is running on another CPU shall be marked superseded and its cancellation retried.
 
 ### 3.5 Blocking entry sequence (normative skeleton)
 
@@ -193,6 +206,7 @@ block_on(object, reason, timeout):
 **KRN-TIM-011** Absolute-deadline variants shall exist for sleep and for every blocking operation (`*_until`), so that periodic work does not accumulate drift.
 **KRN-TIM-012** A high-resolution cycle counter API shall exist for measurement where hardware provides one; it is not the scheduling clock.
 **KRN-TIM-016** 64-bit time values shall be read and written under a critical section or a sequence lock; the kernel shall not depend on 64-bit atomic loads, stores, or read-modify-write operations, which the 32-bit targets do not provide (09 §6).
+**KRN-TIM-036** On tickless targets the architecture timer shall report its arming latency, measured at initialization or declared by the hardware description, and the kernel shall subtract it when programming deadlines so that sleeps and timeouts do not wake systematically late (R-003 §3.2; RIOT `adjust_set`). Pending amendment to SPEC-003 and `requirements/KRN-TIM.md`.
 
 ### 4.2 Timeout structure (PROPOSED default, ADR-010)
 
@@ -232,6 +246,10 @@ The timer subsystem exposes `next_deadline()`; the power core uses it. Both the 
 **KRN-SYNC-011** When a mutex owner terminates while owning mutexes, the behavior is a configuration choice: fault (default) or release-with-`EMB_EOWNERDEAD` delivered to the next owner.
 **KRN-SYNC-012** Priority ceiling protocol shall be available as a per-mutex option on the same object type, using the effective-priority mechanism.
 **KRN-SYNC-013** Recursive locking shall be a per-mutex creation option, disabled by default.
+**KRN-SYNC-014** Each thread shall keep an intrusive list of the mutexes it owns; the recomputation of KRN-SYNC-010 shall use it and shall run at unlock, at waiter timeout or cancel, and at waiter priority change, immediately and not deferred to the waiter's resumption (ADR-028).
+**KRN-SYNC-015** The inheritance walk shall detect a cycle that returns to the caller and shall report `EMB_EDEADLK` (kernel-reserved status range) in release builds and fault in checked builds.
+**KRN-SYNC-016** Mutexes may be unlocked in any order; there is no LIFO requirement.
+**KRN-SYNC-017** A ceiling mutex declared in the system description shall receive its ceiling from the generator as the highest base priority among its declared users; locking it shall raise the effective priority to the ceiling in O(1) and, when every user is declared, shall never need a wait queue (ADR-030).
 
 ### 5.3 Condition variables
 
@@ -250,6 +268,12 @@ A per-thread 32-bit (configurable) bit set.
 **KRN-NOTIF-001** Each thread shall own a notification bit set that can be set from ISR context without blocking.
 **KRN-NOTIF-002** Only the owning thread shall wait on its notifications.
 **KRN-NOTIF-003** Notification set and wait shall be O(1) and allocation free.
+
+**Binding (ADR-027).** Any waitable object may be bound to one `(thread, bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition is met, a stream reaches its trigger level), the kernel sets the bit. A thread waiting on several objects waits once on its notification mask, then performs the non-blocking operation on each signalled object and loops on `EMB_EBUSY` if another consumer was faster. This replaces queue sets, poll objects, and pend-multi with an O(1) mechanism that has no per-object poller lists and no global lock.
+
+**KRN-NOTIF-004** Every waitable kernel object shall support binding to one notification bit of one thread; the set shall be O(1) and shall happen on every transition to the ready condition.
+**KRN-NOTIF-005** Binding shall not change the object's own wait-queue semantics for threads blocked directly on it.
+**KRN-NOTIF-006** The `base` profile shall reserve at least 16 notification bits for application use after the kernel-reserved bits; the `tiny` profile may select 8 bits with at least 4 reserved for the application.
 
 ### 6.2 Work queues (PROPOSED)
 
@@ -287,6 +311,10 @@ Zero-copy is done through **buffer pools with ownership transfer**: fixed-size b
 A **Port** is a message endpoint usable across partition boundaries (with kernel copy or validated ownership transfer) and across core boundaries (via a transport: shared memory ring plus doorbell interrupt). Ports present the same send, receive, timeout, and wake semantics as queues. Intra-image ports degrade to queues.
 
 **KRN-IPC-008** Cross-partition and cross-core messaging shall use the same handle, timeout, and wake semantics as intra-image queues.
+
+**Leases (ADR-032, FUTURE with Ports).** A port message may carry a bounded number of lease descriptors `(base, length, rights)` over the client's memory. The server reads or writes leased memory only through kernel calls that validate the access against the client's regions; a lease is valid only while the client is blocked in that request and is revoked implicitly when the client resumes for any reason (reply, timeout, cancel, partition restart). Small messages are copied; large buffers are leased, never copied.
+
+**KRN-IPC-009** Cross-partition buffers larger than the configured copy threshold shall be transferred by lease, validated on every access, and revoked by the client's wake.
 
 ## 7. Kernel objects and capabilities
 
@@ -328,6 +356,8 @@ Public headers expose `EMB_<OBJECT>_STORAGE(name)` macros and `emb_<object>_stor
 **KRN-OBJ-001** Destroying an object with waiters is a kernel fault in checked builds unless the object was created with `ABORT_WAITERS`, in which case every waiter wakes with `DESTROYED`.
 **KRN-OBJ-002** After destruction, the object's generation shall be bumped so stale capabilities fail validation in profiles that check them.
 **KRN-OBJ-003** Object storage ownership belongs to whoever provided it; the kernel never frees caller storage.
+**KRN-OBJ-004** `emb_system_freeze()` shall, once called, make every create and destroy operation fail with `EMB_EPERM` (fault in checked builds) for the rest of the run; the isolated reference configuration shall call it at the end of initialization (uC/OS-III `OSSafetyCriticalStart`, R-003 §3.4).
+**KRN-OBJ-005** Thread and partition handles shall carry a generation in every profile that checks generations; a wait on a handle whose generation changed because of a restart shall complete with `EMB_ESTALE` (ADR-032).
 
 ## 8. Partitions
 
@@ -360,6 +390,7 @@ Properties:
 **KRN-PART-004** Partition restart shall not require system reboot and shall restore the partition's static data to its initial image.
 **KRN-PART-005** Fault policy shall be per partition and applied by a supervisor partition, not hard-coded in the kernel.
 **KRN-PART-006** Partition definitions shall be static, build-time data in 1.0; dynamic partition creation is FUTURE.
+**KRN-PART-007** In isolated profiles, the kernel state that describes a partition (its threads, objects, wait nodes, capability table) shall live in a kernel-owned sub-region of that partition's memory, sized by the generator and re-initialized on restart; a partition shall not be able to consume kernel memory outside it (ADR-033).
 
 ### 8.1 System call boundary (isolated profiles)
 
@@ -434,6 +465,8 @@ Decoded on the host by EmbDebug or by a standalone script using the build's debu
 Two reference configurations anchor footprint and semantics claims:
 
 **tiny / ATmega328P** (from v0.1 Appendix B, unchanged): 8 priorities, preemption on, FIFO, no time slicing, no dynamic memory, one partition, pointer capabilities, 32-bit time option, notifications on, work queue optional, logging minimal.
+
+The tiny configuration uses the table scheduler of ADR-036 (`CONFIG_EMB_SCHED_TABLE`): eight unique priorities, a one-byte ready set, wait queues as one-byte thread sets, and no idle thread. Its footprint targets are T1 and T2 of R-003 §4.
 
 **isolated / Cortex-M33 with MPU**: 32 priorities, 64-bit time, system work queue, software timers, 4 to 8 partitions, validated capabilities, supervisor partition, budgets on, full trace, crash record in retained SRAM.
 

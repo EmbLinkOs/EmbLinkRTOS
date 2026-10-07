@@ -5,6 +5,7 @@
 | [`architecture/`](architecture/README.md) | The v0.2 architecture baseline: vision, system and kernel architecture, platform, engineering system, decision records, roadmap, open questions, toolchain profile | You want to understand or change *what* EmbLinkRTOS is and *why* |
 | [`specs/`](specs/) | Detailed specifications, one per roadmap work item (`SPEC-NNN-*.md`): the design that implements a part of the architecture, with examples | You are about to implement or review a subsystem |
 | [`requirements/`](requirements/README.md) | Normative requirements, one file per identifier group, in a fixed format that tooling extracts into the traceability matrix | You are writing a test, checking coverage, or deciding whether a behavior is promised |
+| [`research/`](research/README.md) | Research records: mechanism comparison of eleven kernels, market and certification facts, differentiation decisions with measurable targets, per-kernel source notes | You want to know why a design choice was made relative to other systems, or what EmbLinkRTOS promises to beat and how that is measured |
 
 ## How the pieces relate
 
@@ -32,3 +33,11 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-003](specs/SPEC-003-time-timeouts-and-timers.md) | Time source, clock modes (periodic tick and tickless), timeout structure, sleep, software timers, time slicing hook, cycle counter, wall clock, per-architecture timer sources | 07 §3 item 3 | Accepted 2026-10-07 |
 
 Upcoming, in roadmap order: wait and wake protocol; synchronization; notifications and work queues; thread lifecycle; objects and capabilities; partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
+
+## Research records
+
+| Id | Title | Status |
+|---|---|---|
+| [R-001](research/R-001-rtos-mechanism-comparison.md) | RTOS mechanism comparison: scheduler, interrupts, time, waiting, inheritance, IPC, isolation, observability, quality across FreeRTOS, ThreadX, Zephyr, RTEMS, NuttX, ChibiOS, uC/OS-III, Hubris, Tock, Embassy, RIOT | Record, 2026-10-07 |
+| [R-002](research/R-002-market-certification-and-positioning.md) | Market share, measured performance in the public record, safety certification landscape, regulation (CRA, memory safety), scheduling ideas from QNX, seL4, RTIC, ThreadX | Record, 2026-10-07 |
+| [R-003](research/R-003-differentiation.md) | Differentiation: nine claims, complaint checklist, adopt/avoid/beat decisions, measurable targets T1 to T14, the benchmark harness, candidate ADR-026 to ADR-037 | Proposed, awaiting acceptance |
