@@ -361,7 +361,7 @@ Public headers expose `EMB_<OBJECT>_STORAGE(name)` macros and `emb_<object>_stor
 
 ## 8. Partitions
 
-**PROPOSED.** The partition replaces v0.1's FUTURE "userspace" with a concept that exists at every scale.
+**PROPOSED; specified in `docs/specs/SPEC-010-partitions-and-syscall-boundary.md`.** The partition replaces v0.1's FUTURE "userspace" with a concept that exists at every scale.
 
 ```
 partition:

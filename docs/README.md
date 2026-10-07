@@ -37,8 +37,9 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-007](specs/SPEC-007-inter-thread-communication.md) | Inter-thread communication: message queues (copy by value, direct copy and slot hand-off, send to front, ownership queues), pipes (chunked and SPSC lock-free paths, min_len reads, close and reset), buffer pools (O(1), checked-build ownership tracking), ports outline | 07 §3 item 6b | Accepted 2026-10-07 |
 | [SPEC-008](specs/SPEC-008-thread-lifecycle.md) | Thread lifecycle: attributes, init and start, exit path and reusability point, join and detach, suspend, cancellation with disable count, priorities, TLS slots, stacks, kernel threads, destroy, misuse, observability, tiny profile, model extension | 07 §3 item 7 | Accepted 2026-10-07; start, join, exit codes in the reference model |
 | [SPEC-009](specs/SPEC-009-objects-capabilities-and-storage.md) | Kernel objects, capabilities, and storage: object header, three handle models (POINTER, INDEXED, TABLE), capability entries and validation, rights per type, grant, derive, delete, revoke, renew, generated storage types from a target layout probe, init table, lifecycle and freeze, names and registry | 07 §3 item 8 | Accepted 2026-10-07 |
+| [SPEC-010](specs/SPEC-010-partitions-and-syscall-boundary.md) | Partitions and the syscall boundary: static partition description, memory layout with the kstore, protection hardware mapping and generator checks, cross-partition switch, trap stubs and generated marshallers with argument validation, fault capture and supervisor delivery, restart procedure, device capabilities with interrupt delivery, shared regions, accounting, M3 scope | 07 §3 item 9 | Accepted 2026-10-07 |
 
-Upcoming, in roadmap order: partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
+Upcoming, in roadmap order: architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
 
 ## Research records
 
