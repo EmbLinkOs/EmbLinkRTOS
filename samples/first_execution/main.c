@@ -16,6 +16,8 @@
 #if CONFIG_EMB_ARCH_NATIVE
 #include <emb_native.h>
 #define SWITCH_TARGET 2000000u
+#else
+#define REPORT_EVERY 10000u /* a progress line on the console (SIM-002: observable under QEMU) */
 #endif
 
 static uint32_t count_a; /* lock: written by A only, read after the run */
@@ -72,6 +74,14 @@ static void task_b(void *arg)
             emb_board_put_u32(ticks_seen);
             emb_board_puts("\n");
             emb_native_exit(0);
+        }
+#else
+        if ((count_b % REPORT_EVERY) == 0u) {
+            emb_board_puts("switches=");
+            emb_board_put_u32(count_a + count_b);
+            emb_board_puts(" ticks=");
+            emb_board_put_u32(ticks_seen);
+            emb_board_puts("\r\n");
         }
 #endif
         (void)emb_notify_set(thread_a, PING);

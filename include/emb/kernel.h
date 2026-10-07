@@ -62,8 +62,9 @@ typedef struct EMB_ALIGNED(sizeof(void *)) emb_init_entry {
 /* Registers @fn to run from emb_kernel_init(). The table is the bracketed section
  * emb_init_table that embld and GNU ld both provide (09 §7). MISRA Dev CS-12: rule
  * 20.7, `fn` is a token. */
-#define EMB_INIT_TABLE_ENTRY(fn) \
-    static const emb_init_entry_t fn##_init_entry_ EMB_USED EMB_SECTION("emb_init_table") = {fn}
+#define EMB_INIT_TABLE_ENTRY(fn)                                                   \
+    static EMB_TABLE_CONST emb_init_entry_t fn##_init_entry_ EMB_USED EMB_SECTION( \
+        EMB_TABLE_SECTION("emb_init_table")) = {fn}
 
 /* ---- EMB_CHECK --------------------------------------------------------------- */
 

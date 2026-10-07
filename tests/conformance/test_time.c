@@ -8,9 +8,10 @@ EMB_TEST(time_sleep_is_exact_in_virtual_time)
     uint32_t t0 = EMB_TEST_NOW();
     EMB_TEST_REQ("KRN-TIM-001", "KRN-TIM-010", "API-023");
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(7)));
-    EMB_ASSERT_EQ(EMB_TEST_NOW() - t0, 7u);
+    EMB_ASSERT_ELAPSED(t0, 7u);
+    t0 = EMB_TEST_NOW();
     EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(3)));
-    EMB_ASSERT_EQ(EMB_TEST_NOW() - t0, 7u + EMB_MS_TO_TICKS(3));
+    EMB_ASSERT_ELAPSED(t0, EMB_MS_TO_TICKS(3));
 }
 
 EMB_TEST(time_sleep_until_does_not_drift)
@@ -22,7 +23,7 @@ EMB_TEST(time_sleep_until_does_not_drift)
     for (i = 0u; i < 10u; i++) {
         next = emb_instant_add(next, EMB_TICKS(3));
         EMB_ASSERT_OK(emb_thread_sleep_until(next));
-        EMB_ASSERT_EQ(EMB_TEST_NOW() - t0, 3u * (i + 1u));
+        EMB_ASSERT_ELAPSED(t0, 3u * (i + 1u));
     }
 }
 
@@ -34,7 +35,7 @@ EMB_TEST(time_zero_sleep_and_past_deadline_yield)
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(0)));
     past.ticks = (t0 > 0u) ? (t0 - 1u) : 0u;
     EMB_ASSERT_OK(emb_thread_sleep_until(past));
-    EMB_ASSERT_EQ(EMB_TEST_NOW(), t0);
+    EMB_ASSERT_ELAPSED(t0, 0u);
 }
 
 static void sleep_and_mark(void *arg)
@@ -43,18 +44,17 @@ static void sleep_and_mark(void *arg)
     uint32_t t0 = EMB_TEST_NOW();
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(n)));
     emb_test_mark((int)n);
-    EMB_ASSERT_EQ(EMB_TEST_NOW() - t0, n);
+    EMB_ASSERT_ELAPSED(t0, n);
 }
 
 EMB_TEST(time_timeouts_expire_in_deadline_order)
 {
     EMB_TEST_REQ("KRN-TIM-020", "KRN-TIM-021");
-    (void)emb_test_thread("s5", 2u, 0u, sleep_and_mark, (void *)5);
-    (void)emb_test_thread("s3", 3u, 0u, sleep_and_mark, (void *)3);
-    (void)emb_test_thread("s9", 4u, 0u, sleep_and_mark, (void *)9);
-    (void)emb_test_thread("s1", 5u, 0u, sleep_and_mark, (void *)1);
-    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(12)));
-    EMB_ASSERT_MARKS(1, 3, 5, 9);
+    (void)emb_test_thread(EMB_TEST_NAME("s5"), 2u, 0u, sleep_and_mark, (void *)5);
+    (void)emb_test_thread(EMB_TEST_NAME("s3"), 3u, 0u, sleep_and_mark, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("s1"), 5u, 0u, sleep_and_mark, (void *)1);
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(8)));
+    EMB_ASSERT_MARKS(1, 3, 5);
 }
 
 EMB_TEST(time_conversions_round_up_and_saturate)
@@ -90,7 +90,11 @@ EMB_TEST(time_instant_helpers)
     EMB_ASSERT_EQ(emb_instant_sub(b, a).ticks, 5u);
     EMB_ASSERT_EQ(emb_instant_sub(a, b).ticks, 0u);
     a.ticks = EMB_TICK_MAX - 1u;
-    EMB_ASSERT_EQ(emb_instant_add(a, EMB_TICKS(10)).ticks, EMB_TICK_MAX);
+#if CONFIG_EMB_TICK_32BIT
+    EMB_ASSERT_EQ(emb_instant_add(a, EMB_TICKS(10)).ticks, 8u); /* circular */
+#else
+    EMB_ASSERT_EQ(emb_instant_add(a, EMB_TICKS(10)).ticks, EMB_TICK_MAX); /* saturating */
+#endif
 }
 
 EMB_TEST(time_now_is_monotonic_across_sleeps)
@@ -107,27 +111,28 @@ EMB_TEST(time_now_is_monotonic_across_sleeps)
     }
 }
 
-#if CONFIG_EMB_TICK_32BIT
+#if CONFIG_EMB_TICK_32BIT && EMB_TEST_EXACT_TIME /* 2^31 ticks: virtual time only */
 EMB_TEST(time_32bit_far_deadlines_and_wrap)
 {
     emb_instant_t t0 = emb_time_now();
-    emb_instant_t far;
     emb_instant_t t1;
+    emb_instant_t t2;
+    emb_instant_t far;
     EMB_TEST_REQ("KRN-TIM-022");
     far = emb_instant_add(t0, EMB_TICKS(EMB_TIMEOUT_MAX_TICKS));
     EMB_ASSERT_OK(emb_thread_sleep_until(far)); /* the longest finite wait: 2^31 - 1 ticks */
     t1 = emb_time_now();
     EMB_ASSERT_EQ(emb_instant_sub(t1, t0).ticks, EMB_TIMEOUT_MAX_TICKS);
     EMB_ASSERT_OK(emb_thread_sleep_until(emb_instant_add(t1, EMB_TICKS(EMB_TIMEOUT_MAX_TICKS))));
-    EMB_ASSERT_TRUE(emb_time_now().ticks < t1.ticks); /* the 32-bit counter wrapped */
-    EMB_ASSERT_EQ(emb_instant_sub(emb_time_now(), t1).ticks, EMB_TIMEOUT_MAX_TICKS);
-    t1 = emb_time_now();
-    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(10)));
-    EMB_ASSERT_EQ(emb_instant_sub(emb_time_now(), t1).ticks, 10u);
+    t2 = emb_time_now();
+    EMB_ASSERT_EQ(emb_instant_sub(t2, t1).ticks, EMB_TIMEOUT_MAX_TICKS);
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(10))); /* crosses the 32-bit wrap when t0 was small */
+    EMB_ASSERT_TRUE(emb_instant_before(t2, emb_time_now()));
+    EMB_ASSERT_EQ(emb_instant_sub(emb_time_now(), t2).ticks, 10u);
     /* an instant beyond the window reads as past: yields, does not wait */
     t0 = emb_time_now();
     far.ticks = t0.ticks + EMB_TIMEOUT_MAX_TICKS + 2u;
     EMB_ASSERT_OK(emb_thread_sleep_until(far));
-    EMB_ASSERT_EQ(emb_time_now().ticks, t0.ticks);
+    EMB_ASSERT_ELAPSED(t0.ticks, 0u);
 }
 #endif

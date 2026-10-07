@@ -1,0 +1,6 @@
+{
+  "_comment": "arduino_uno, tiny profile, checked build. Regression gate (TEST-011): the measured M1 baseline plus 10 percent; the R-003 targets (4096 text, 64 RAM, 32 TCB) apply to the release build.",
+  "kernel_text_max": 5900,
+  "kernel_ram_max": 96,
+  "tcb_max": 48
+}

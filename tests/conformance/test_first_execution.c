@@ -7,8 +7,12 @@
  */
 #include <emb_test.h>
 
-#define PING   EMB_NOTIFY_BIT(0)
+#define PING EMB_NOTIFY_BIT(0)
+#if EMB_TEST_EXACT_TIME
 #define ROUNDS 200000u
+#else
+#define ROUNDS 20000u /* real time under emulation */
+#endif
 
 static emb_thread_t ta;
 static emb_thread_t tb;
@@ -16,6 +20,8 @@ static uint32_t count_a;
 static uint32_t count_b;
 static uint32_t ticks_seen;
 static uint32_t stop_timer;
+static uint32_t timer_start;
+static uint32_t timer_late; /* wake-ups that found the next deadline already passed */
 
 static void task_a(void *arg)
 {
@@ -49,8 +55,12 @@ static void task_timer(void *arg)
 {
     emb_instant_t next = emb_time_now();
     (void)arg;
+    timer_start = (uint32_t)next.ticks;
     while (stop_timer == 0u) {
         next = emb_instant_add(next, EMB_TICKS(1));
+        if (!emb_instant_before(emb_time_now(), next)) {
+            timer_late++;
+        }
         EMB_ASSERT_OK(emb_thread_sleep_until(next));
         ticks_seen++;
     }
@@ -65,10 +75,11 @@ EMB_TEST(first_execution_sequence_repeats_reliably)
     count_b = 0u;
     ticks_seen = 0u;
     stop_timer = 0u;
-    emb_sched_lock(); /* both handles exist before either thread runs */
-    ta = emb_test_thread("A", 2u, 0u, task_a, NULL);
-    tb = emb_test_thread("B", 3u, 0u, task_b, NULL);
-    tt = emb_test_thread("T", 4u, 0u, task_timer, NULL);
+    timer_late = 0u;
+    emb_sched_lock(); /* every handle exists before any of the three runs */
+    ta = emb_test_thread(EMB_TEST_NAME("A"), 2u, 0u, task_a, NULL);
+    tb = emb_test_thread(EMB_TEST_NAME("B"), 3u, 0u, task_b, NULL);
+    tt = emb_test_thread(EMB_TEST_NAME("T"), 4u, 0u, task_timer, NULL);
     emb_sched_unlock();
     EMB_ASSERT_OK(emb_thread_join(ta, EMB_WAIT_FOREVER, NULL));
     EMB_ASSERT_OK(emb_thread_join(tb, EMB_WAIT_FOREVER, NULL));
@@ -76,7 +87,20 @@ EMB_TEST(first_execution_sequence_repeats_reliably)
     EMB_ASSERT_OK(emb_thread_join(tt, EMB_WAIT_FOREVER, NULL));
     EMB_ASSERT_EQ(count_a, ROUNDS);
     EMB_ASSERT_EQ(count_b, ROUNDS);
+#if EMB_TEST_EXACT_TIME
     EMB_ASSERT_EQ(EMB_TEST_NOW() - t0,
-                  ROUNDS / 100u + 1u); /* one tick per hundred rounds, plus the stop */
-    EMB_ASSERT_EQ(ticks_seen, EMB_TEST_NOW() - t0);
+                  ROUNDS / 100u + 1u);              /* one tick per hundred rounds, plus the stop */
+    EMB_ASSERT_EQ(ticks_seen, EMB_TEST_NOW() - t0); /* the timer thread saw every tick */
+#else
+    {
+        /* real time: the timer thread may start up to one tick after t0, and one tick may
+         * pass between its last wake and this read; it never counts more than elapsed */
+        uint32_t el = EMB_TEST_NOW() - t0;
+        emb_test_logf(EMB_TEST_STR("  ticks seen %lu, elapsed %lu, timer start +%lu, late %lu\n"),
+                      (unsigned long)ticks_seen, (unsigned long)el,
+                      (unsigned long)(timer_start - t0), (unsigned long)timer_late);
+        EMB_ASSERT_TRUE(el >= ROUNDS / 100u);
+        EMB_ASSERT_TRUE(ticks_seen <= el && ticks_seen + 2u >= el);
+    }
+#endif
 }

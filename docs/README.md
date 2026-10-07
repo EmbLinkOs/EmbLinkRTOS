@@ -46,6 +46,25 @@ A change that alters behavior touches all four in one pull request (05 §5).
 
 All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. M1 implementation (07 §2) follows, in dependency order: the coding standard (`CODING-STANDARD.md` in this directory, with the formatter and analyzer configuration at the repository root), the configuration and build system, the public headers, the kernel modules (SPEC-002 to 008), the native and AVR ports (SPEC-011 to 013), and the conformance suite, with the reference model as oracle.
 
+## Ports
+
+| Page | Content |
+|---|---|
+| `ports/native.md` | The native port as built in M1: gate, deterministic interrupts, virtual time, verification legs |
+| `ports/avr.md` | The ATmega328P port as built in M1: frame layout, switch and epilogue, timer, linking, measured footprint, skipped tests |
+| `specs/AMENDMENTS-M1.md` | Where the M1 code departs from or sharpens an accepted specification, to be folded into the specifications |
+
+## Tools
+
+| Tool | Purpose |
+|---|---|
+| `tools/kconfig/embconfig.py` | Configuration: Kconfig subset plus port manifests, emits `emb/config.h`, `config.cmake`, `config.json` (05 §2.1) |
+| `tools/storage/gen_storage.py` | Generates `emb/storage.h` from the layout probe (ADR-006) |
+| `tools/footprint/footprint.py` | Footprint report and regression gate from a link map (TEST-011) |
+| `tools/qemu/run_avr.py` | Runs an AVR test image under QEMU and reads its verdict from the serial output (SIM-002) |
+| `tools/model/` | The executable reference model (ADR-013) |
+| `scripts/check-banned.py` | The tree-wide check for constructs the coding standard bans |
+
 ## Research records
 
 | Id | Title | Status |

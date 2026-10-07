@@ -1,16 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* Test runner: main() starts the kernel, a runner thread executes every EMB_TEST. */
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <emb_board.h>
-#include <emb_native.h>
 #include <emb_test.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
 extern const emb_test_case_t __start_emb_test_table[]
     EMB_WEAK; /* NOLINT(bugprone-reserved-identifier) */
@@ -18,23 +10,23 @@ extern const emb_test_case_t __stop_emb_test_table[]
     EMB_WEAK; /* NOLINT(bugprone-reserved-identifier) */
 
 static unsigned failures;
+static unsigned skips;
 static unsigned current_failed;
-static const char *current_name;
-static const char *filter;
 
-void emb_test_logf(const char *fmt, ...)
+void emb_test_fail(unsigned line, const char *what_flash)
 {
-    va_list ap;
-    va_start(ap, fmt);
-    (void)vprintf(fmt, ap);
-    va_end(ap);
-    (void)printf("\n");
+    emb_test_logf(EMB_TEST_STR("  FAIL line %u: "), line);
+    emb_test_puts_flash(what_flash);
+    emb_test_puts_flash(EMB_TEST_STR("\n"));
+    current_failed = 1u;
 }
 
-void emb_test_fail(const char *file, int line, const char *what)
+void emb_test_skip(const char *why_flash)
 {
-    (void)printf("  FAIL %s:%d: %s\n", file, line, what);
-    current_failed = 1u;
+    emb_test_puts_flash(EMB_TEST_STR("  skip: "));
+    emb_test_puts_flash(why_flash);
+    emb_test_puts_flash(EMB_TEST_STR("\n"));
+    skips++;
 }
 
 void emb_test_note_reqs(const char *first, ...)
@@ -42,61 +34,27 @@ void emb_test_note_reqs(const char *first, ...)
     (void)first; /* collected statically by the traceability tool */
 }
 
-/* ---- fault expectation by fork (TEST-010) -------------------------------------- */
-
-static pid_t fork_child = -1;
-
-bool emb_test_fork_begin(void)
+void emb_test_check_elapsed(unsigned line, uint32_t elapsed, uint32_t expected)
 {
-    (void)fflush(NULL);
-    fork_child = fork();
-    if (fork_child == 0) {
-        alarm(5u); /* the misuse must fault before any switch; never hang */
-        return true;
+    /* exact in virtual time; a tick may pass during the test's own work in real time */
+    uint32_t slack = EMB_TEST_EXACT_TIME ? 0u : 1u;
+    if (elapsed < expected || elapsed > expected + slack) {
+        emb_test_logf(EMB_TEST_STR("  elapsed %lu, expected %lu"), (unsigned long)elapsed,
+                      (unsigned long)expected);
+        emb_test_fail(line, EMB_TEST_STR("elapsed ticks"));
     }
-    return false;
-}
-
-void emb_test_fork_child_no_fault(void)
-{
-    _exit(99);
-}
-
-void emb_test_fork_expect_fault(const char *file, int line, const char *what)
-{
-    int status = 0;
-    if (fork_child <= 0) {
-        emb_test_fail(file, line, "fork failed");
-        return;
-    }
-    (void)waitpid(fork_child, &status, 0);
-    fork_child = -1;
-#if CONFIG_EMB_CHECKED
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != EMB_NATIVE_EXIT_FAULT) {
-        (void)printf("  child exit status %d (signaled %d)\n",
-                     WIFEXITED(status) ? WEXITSTATUS(status) : -1,
-                     WIFSIGNALED(status) ? WTERMSIG(status) : 0);
-        emb_test_fail(file, line, what);
-    }
-#else
-    (void)what;
-    if (!WIFEXITED(status) || WEXITSTATUS(status) != 99) {
-        emb_test_fail(file, line, "release build: misuse must return a status, not fault");
-    }
-#endif
 }
 
 /* ---- marks ------------------------------------------------------------------------ */
 
-#define MARKS_MAX 128
-static int
-    marks[MARKS_MAX]; /* lock: pushed from any context; the runner reads when all are quiet */
+static int marks[EMB_TEST_MARKS_MAX]; /* lock: pushed from any context; the runner reads when all
+                                         are quiet */
 static unsigned marks_n;
 
 void emb_test_mark(int code)
 {
     emb_irq_key_t key = emb_irq_lock();
-    if (marks_n < (unsigned)MARKS_MAX) {
+    if (marks_n < (unsigned)EMB_TEST_MARKS_MAX) {
         marks[marks_n] = code;
         marks_n++;
     }
@@ -120,7 +78,7 @@ int emb_test_mark_at(unsigned i)
     return (i < marks_n) ? marks[i] : -1;
 }
 
-void emb_test_marks_check(const char *file, int line, const int *expected, size_t n)
+void emb_test_marks_check(unsigned line, const int *expected, size_t n)
 {
     size_t i;
     bool ok = marks_n == n;
@@ -128,17 +86,85 @@ void emb_test_marks_check(const char *file, int line, const int *expected, size_
         ok = marks[i] == expected[i];
     }
     if (!ok) {
-        (void)printf("  marks:   ");
+        emb_test_puts_flash(EMB_TEST_STR("  marks:"));
         for (i = 0u; i < marks_n; i++) {
-            (void)printf("%d ", marks[i]);
+            emb_test_logf(EMB_TEST_STR(" %d"), marks[i]);
         }
-        (void)printf("\n  expected:");
+        emb_test_puts_flash(EMB_TEST_STR("\n  expected:"));
         for (i = 0u; i < n; i++) {
-            (void)printf(" %d", expected[i]);
+            emb_test_logf(EMB_TEST_STR(" %d"), expected[i]);
         }
-        (void)printf("\n");
-        emb_test_fail(file, line, "mark sequence");
+        emb_test_puts_flash(EMB_TEST_STR("\n"));
+        emb_test_fail(line, EMB_TEST_STR("mark sequence"));
     }
+}
+
+/* ---- software interrupt slots ------------------------------------------------------- */
+
+typedef struct irq_slot {
+    emb_isr_fn_t fn;
+    void *arg;
+    uint8_t enabled;
+    uint8_t pending;
+} irq_slot_t;
+
+static irq_slot_t slots[EMB_TEST_IRQ_SLOTS]; /* lock: critical section */
+static unsigned raised_slot;
+
+static void dispatch(void)
+{
+    irq_slot_t *s = &slots[raised_slot];
+    if (s->fn != NULL) {
+        s->fn(s->arg);
+    }
+}
+
+void emb_test_irq_connect(unsigned slot, emb_isr_fn_t fn, void *arg)
+{
+    if (slot < (unsigned)EMB_TEST_IRQ_SLOTS) {
+        emb_irq_key_t key = emb_irq_lock();
+        slots[slot].fn = fn;
+        slots[slot].arg = arg;
+        slots[slot].enabled = 1u;
+        slots[slot].pending = 0u;
+        emb_irq_unlock(key);
+    }
+}
+
+void emb_test_irq_raise(unsigned slot)
+{
+    if (slot >= (unsigned)EMB_TEST_IRQ_SLOTS) {
+        return;
+    }
+    if (slots[slot].enabled == 0u) {
+        slots[slot].pending = 1u;
+        return;
+    }
+    raised_slot = slot;
+    emb_test_platform_irq_trigger();
+}
+
+void emb_test_irq_enable(unsigned slot)
+{
+    if (slot < (unsigned)EMB_TEST_IRQ_SLOTS) {
+        slots[slot].enabled = 1u;
+        if (slots[slot].pending != 0u) {
+            slots[slot].pending = 0u;
+            emb_test_irq_raise(slot);
+        }
+    }
+}
+
+void emb_test_irq_disable(unsigned slot)
+{
+    if (slot < (unsigned)EMB_TEST_IRQ_SLOTS) {
+        slots[slot].enabled = 0u;
+    }
+}
+
+bool emb_test_irq_is_enabled(unsigned slot)
+{
+    return slot < (unsigned)EMB_TEST_IRQ_SLOTS && slots[slot].enabled != 0u;
 }
 
 /* ---- helper threads ------------------------------------------------------------- */
@@ -161,7 +187,7 @@ emb_thread_t emb_test_thread(const char *name, uint8_t priority, uint8_t flags,
         }
     }
     if (i == (unsigned)EMB_TEST_MAX_THREADS) {
-        emb_test_fail(__FILE__, __LINE__, "helper thread pool exhausted");
+        emb_test_fail(__LINE__, EMB_TEST_STR("helper thread pool exhausted"));
         return h;
     }
     emb_thread_attr_default(&attr);
@@ -194,6 +220,17 @@ emb_status_t emb_test_thread_destroy(emb_thread_t h)
     return EMB_OK;
 }
 
+emb_thread_storage_t *emb_test_scratch_storage(void)
+{
+    return &pool_storage[EMB_TEST_MAX_THREADS - 1];
+}
+
+uint8_t *emb_test_scratch_stack(size_t *out_size)
+{
+    *out_size = sizeof(pool_stack[EMB_TEST_MAX_THREADS - 1]);
+    return pool_stack[EMB_TEST_MAX_THREADS - 1];
+}
+
 void emb_test_threads_reset(void)
 {
     unsigned i;
@@ -219,44 +256,42 @@ static void runner(void *arg)
     const emb_test_case_t *stop = __stop_emb_test_table;
     unsigned ran = 0u;
     (void)arg;
+    emb_test_platform_irq_bind(dispatch);
     for (; tc != NULL && tc < stop; tc++) {
-        if (filter != NULL && strstr(tc->name, filter) == NULL) {
-            continue;
-        }
-        current_name = tc->name;
+        emb_test_fn_t fn = (emb_test_fn_t)EMB_FLASH_READ_FNPTR(&tc->fn);
+        const char *name = (const char *)EMB_FLASH_READ_PTR(&tc->name);
         current_failed = 0u;
         emb_test_marks_clear();
-        (void)printf("TEST %s\n", tc->name);
-        (void)fflush(stdout);
-        tc->fn();
+        emb_test_puts_flash(EMB_TEST_STR("TEST "));
+        emb_test_puts_flash(name);
+        emb_test_puts_flash(EMB_TEST_STR("\n"));
+        fn();
         emb_test_threads_reset();
         ran++;
         if (current_failed != 0u) {
             failures++;
-            (void)printf("  -> FAILED\n");
+            emb_test_puts_flash(EMB_TEST_STR("  -> FAILED\n"));
         } else {
-            (void)printf("  -> ok\n");
+            emb_test_puts_flash(EMB_TEST_STR("  -> ok\n"));
         }
     }
-    (void)printf("%u tests, %u failed, %lu switches, virtual time %lu ticks\n", ran, failures,
-                 (unsigned long)emb_native_switch_count(), (unsigned long)emb_native_virtual_now());
-    emb_native_exit((failures != 0u) ? 1 : 0);
+    emb_test_logf(EMB_TEST_STR("%u tests, %u failed, %u skipped, %lu ticks\n"), ran, failures,
+                  skips, (unsigned long)EMB_TEST_NOW());
+    emb_test_exit((failures != 0u) ? 1 : 0);
 }
 
 static emb_thread_storage_t runner_storage;
-static EMB_ALIGNED(EMB_STACK_ALIGN) uint8_t runner_stack[EMB_TEST_STACK_SIZE];
+static EMB_ALIGNED(EMB_STACK_ALIGN) uint8_t runner_stack[EMB_TEST_RUNNER_STACK];
 
-int main(int argc, char **argv)
+int main(void)
 {
     emb_thread_attr_t attr;
     emb_thread_t h;
-    if (argc > 1) {
-        filter = argv[1];
-    }
     emb_board_init();
+    emb_test_platform_init();
     emb_kernel_init();
     emb_thread_attr_default(&attr);
-    attr.name = "runner";
+    attr.name = EMB_TEST_NAME("runner");
     attr.priority = EMB_TEST_RUNNER_PRIORITY;
     attr.stack = runner_stack;
     attr.stack_size = sizeof(runner_stack);

@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
+# AVR with avr-gcc run under QEMU (SIM-002), formatting, and the footprint gate (TEST-011).
+# The EmbCC legs join when the compiler is available to CI (09 §11).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [native-gcc, native-clang, native-release, native-tiny, native-asan, native-tsan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang python3-yaml
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+  avr:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [avr-uno, avr-uno-release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-avr avr-libc binutils-avr qemu-system-misc python3-yaml
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test under QEMU
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+      - name: Footprint
+        run: |
+          python3 -I tools/footprint/footprint.py \
+            build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
+            --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm avr-nm \
+            --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json \
+            --thresholds tools/footprint/thresholds-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: footprint-${{ matrix.preset }}
+          path: footprint-${{ matrix.preset }}.*
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-18 python3-yaml
+      - name: clang-format
+        run: |
+          find include kernel arch boards samples tests \( -name '*.c' -o -name '*.h' \) -print0 \
+            | xargs -0 clang-format-18 --dry-run -Werror
+      - name: Banned constructs
+        run: python3 -I scripts/check-banned.py
+      - name: Configuration tool self-check
+        run: |
+          python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
+            --conf boards/native/native/board.conf --conf configs/base.conf --print > /dev/null
+          python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/avr/arch.yaml \
+            --conf boards/arduino/arduino_uno/board.conf --conf configs/tiny.conf --print > /dev/null
+      - name: Reference model
+        run: |
+          pip install hypothesis
+          cd tools/model && python3 -m pytest -q

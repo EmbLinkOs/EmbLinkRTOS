@@ -217,12 +217,20 @@ static EMB_ALWAYS_INLINE void embk_irq_unlock(emb_irq_key_t key)
 EMB_NORETURN void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument,
                                    const char *where);
 
+/* The location recorded with a fault: the function name, or nothing where the strings
+ * would cost RAM (CONFIG_EMB_FAULT_WHERE=n on the tiny profile). */
+#if CONFIG_EMB_FAULT_WHERE
+#define EMBK_WHERE __func__
+#else
+#define EMBK_WHERE ((const char *)0)
+#endif
+
 /* A misuse: a fault in checked builds, the status in release builds. Used only in a
  * function returning emb_status_t. */
 #if CONFIG_EMB_CHECKED
-#define EMBK_MISUSE(fault_class, status, argument)                                    \
-    do {                                                                              \
-        embk_fault_raise((fault_class), (uint16_t)(-(status)), (argument), __func__); \
+#define EMBK_MISUSE(fault_class, status, argument)                                      \
+    do {                                                                                \
+        embk_fault_raise((fault_class), (uint16_t)(-(status)), (argument), EMBK_WHERE); \
     } while (0)
 #else
 #define EMBK_MISUSE(fault_class, status, argument) \
@@ -240,11 +248,11 @@ EMB_NORETURN void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t a
 
 /* Kernel invariants: checked builds only, never with side effects in the condition. */
 #if CONFIG_EMB_CHECKED
-#define EMBK_ASSERT(cond)                                                                   \
-    do {                                                                                    \
-        if (EMB_UNLIKELY(!(cond))) {                                                        \
-            embk_fault_raise(EMB_FAULT_KERNEL_INVARIANT, (uint16_t)__LINE__, 0u, __func__); \
-        }                                                                                   \
+#define EMBK_ASSERT(cond)                                                                     \
+    do {                                                                                      \
+        if (EMB_UNLIKELY(!(cond))) {                                                          \
+            embk_fault_raise(EMB_FAULT_KERNEL_INVARIANT, (uint16_t)__LINE__, 0u, EMBK_WHERE); \
+        }                                                                                     \
     } while (0)
 #else
 #define EMBK_ASSERT(cond) \

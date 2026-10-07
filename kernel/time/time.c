@@ -272,7 +272,11 @@ emb_timeout_t emb_timeout_from_duration(emb_duration_t d)
 emb_instant_t emb_instant_add(emb_instant_t t, emb_duration_t d)
 {
     emb_instant_t r;
+#if CONFIG_EMB_TICK_32BIT
+    r.ticks = t.ticks + d.ticks; /* the 32-bit instant space is circular (SPEC-003 §5.2) */
+#else
     r.ticks = (t.ticks > (EMB_TICK_MAX - d.ticks)) ? EMB_TICK_MAX : (t.ticks + d.ticks);
+#endif
     return r;
 }
 

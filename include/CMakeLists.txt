@@ -8,7 +8,8 @@ add_library(emb_api INTERFACE)
 target_include_directories(emb_api INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${EMB_GENERATED_DIR}/include"
-  "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include")
+  "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include"
+  "${EMB_BOARD_DIR}/include")
 
 # -- storage.h ---------------------------------------------------------------------
 set(EMB_STORAGE_HEADER "${EMB_GENERATED_DIR}/include/emb/storage.h")
@@ -17,7 +18,8 @@ target_include_directories(emb_storage_probe PRIVATE
   "${CMAKE_SOURCE_DIR}/kernel/include"
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${EMB_GENERATED_DIR}/include"
-  "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include")
+  "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include"
+  "${EMB_BOARD_DIR}/include")
 target_link_libraries(emb_storage_probe PRIVATE emb_flags)
 if(NOT CMAKE_NM)
   set(CMAKE_NM nm)

@@ -1,10 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* Semaphore conformance (SPEC-005 §4; KRN-SYNC-020 to 022, KRN-WAIT-001, 004, 012, 013). */
-#include <emb_native.h>
 #include <emb_test.h>
 
-#define IRQ_S 10u
+#define IRQ_S 2u /* software interrupt slot */
 
 static emb_sem_storage_t storage;
 static emb_sem_t sem;
@@ -41,9 +40,9 @@ EMB_TEST(sem_give_hands_off_to_highest_waiter)
 {
     EMB_TEST_REQ("KRN-WAIT-001", "KRN-WAIT-012", "KRN-SYNC-022");
     make(NULL);
-    (void)emb_test_thread("t2", 2u, 0u, taker, (void *)2);
-    (void)emb_test_thread("t4", 4u, 0u, taker, (void *)4);
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("t2"), 2u, 0u, taker, (void *)2);
+    (void)emb_test_thread(EMB_TEST_NAME("t4"), 4u, 0u, taker, (void *)4);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_EQ(emb_sem_count(sem), 0u); /* handed over, never counted */
     EMB_ASSERT_OK(emb_sem_give(sem));
@@ -60,8 +59,8 @@ EMB_TEST(sem_fifo_option_orders_by_arrival)
     emb_sem_attr_default(&attr);
     attr.flags = EMB_OBJ_FIFO;
     make(&attr);
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
-    (void)emb_test_thread("t4", 4u, 0u, taker, (void *)4);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("t4"), 4u, 0u, taker, (void *)4);
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_MARKS(3, 4);
@@ -74,16 +73,16 @@ EMB_TEST(sem_take_times_out_and_disarms)
     uint32_t t0 = EMB_TEST_NOW();
     EMB_TEST_REQ("KRN-WAIT-004", "KRN-WAIT-013");
     make(NULL);
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(20)));
     EMB_ASSERT_MARKS(53);
-    EMB_ASSERT_EQ(EMB_TEST_NOW() - t0, 20u);
+    EMB_ASSERT_ELAPSED(t0, 20u);
     EMB_ASSERT_OK(emb_sem_give(sem)); /* nobody waits any more: counted */
     EMB_ASSERT_EQ(emb_sem_count(sem), 1u);
     EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 
-EMB_ISR(isr_give)
+EMB_TEST_ISR(isr_give)
 {
     (void)emb_isr_arg_;
     emb_test_mark(100);
@@ -94,9 +93,9 @@ EMB_TEST(sem_give_from_isr_wakes_at_exit)
 {
     EMB_TEST_REQ("KRN-SYNC-022", "KRN-IRQ-010", "KRN-IRQ-033");
     make(NULL);
-    EMB_ASSERT_OK(emb_irq_connect(IRQ_S, isr_give, NULL));
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
-    emb_native_irq_raise(IRQ_S);
+    emb_test_irq_connect(IRQ_S, isr_give, NULL);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
+    emb_test_irq_raise(IRQ_S);
     emb_test_mark(1);
     EMB_ASSERT_MARKS(100, 3, 1);
     EMB_ASSERT_OK(emb_sem_destroy(sem));
@@ -142,7 +141,7 @@ EMB_TEST(sem_destroy_aborts_waiters_when_allowed)
     emb_sem_attr_default(&attr);
     attr.flags = EMB_OBJ_ABORT_WAITERS;
     make(&attr);
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
     EMB_ASSERT_OK(emb_sem_destroy(sem));
     EMB_ASSERT_MARKS(73); /* EMB_EDESTROYED */
 }
@@ -151,7 +150,7 @@ EMB_TEST(sem_destroy_with_waiters_is_misuse)
 {
     EMB_TEST_REQ("KRN-OBJ-001", "API-013");
     make(NULL);
-    (void)emb_test_thread("t3", 3u, 0u, taker, (void *)3);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
     EMB_ASSERT_MISUSE(emb_sem_destroy(sem), EMB_EBUSY);
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_MARKS(3);

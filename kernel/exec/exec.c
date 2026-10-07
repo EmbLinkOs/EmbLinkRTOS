@@ -32,10 +32,11 @@ static void run_init_table(void)
     if (e == NULL || stop == NULL) {
         return;
     }
-    /* bounded by the number of entries the linker placed */
+    /* bounded by the number of entries the linker placed; the table may live in flash */
     for (; e < stop; e++) {
-        if (e->fn != NULL) {
-            e->fn();
+        emb_init_fn_t fn = (emb_init_fn_t)EMB_FLASH_READ_FNPTR(&e->fn);
+        if (fn != NULL) {
+            fn();
         }
     }
 }
@@ -43,7 +44,7 @@ static void run_init_table(void)
 void emb_kernel_init(void)
 {
     if (embk_cpu.kernel_state != EMBK_KERNEL_UNINIT) {
-        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
     }
     emb_arch_init();
     embk_sched_init();
@@ -59,7 +60,7 @@ void emb_kernel_start(void)
     emb_irq_key_t key;
 
     if (embk_cpu.kernel_state != EMBK_KERNEL_INIT) {
-        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 1u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 1u, 0u, EMBK_WHERE);
     }
     key = embk_lock_sched();
     embk_time_start();
@@ -73,7 +74,8 @@ void emb_kernel_start(void)
     embk_cpu.reschedule_pending = 0u;
     embk_cpu.kernel_state = EMBK_KERNEL_RUNNING;
 #if CONFIG_EMB_CHECKED
-    embk_cpu.irq_lock_depth = 0u; /* the first thread is a fresh context; the idle record is 0 too */
+    embk_cpu.irq_lock_depth =
+        0u; /* the first thread is a fresh context; the idle record is 0 too */
 #endif
     EMBK_TRACE(EMB_TRACE_SWITCH, 0xFFu, embk_thread_index(first), 0u);
     (void)key; /* the launch restores the first thread's own interrupt state (P3) */
@@ -123,7 +125,7 @@ emb_irq_key_t emb_irq_lock(void)
 void emb_irq_unlock(emb_irq_key_t key)
 {
     if (embk_cpu.irq_lock_depth == 0u) {
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 1u, 1u, __func__); /* unlock without lock */
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 1u, 1u, EMBK_WHERE); /* unlock without lock */
     }
     embk_irq_unlock(key);
 }
@@ -135,13 +137,13 @@ void emb_sched_lock(void)
 {
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif
     }
     if (embk_cpu.sched_lock_depth == UINT8_MAX) {
-        embk_fault_raise(EMB_FAULT_API_ARGUMENT, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_ARGUMENT, 0u, 0u, EMBK_WHERE);
     }
     embk_cpu.sched_lock_depth++; /* single byte, thread context only: no critical section needed */
     EMBK_TRACE(EMB_TRACE_SCHED_LOCK, embk_cpu.sched_lock_depth, 0u, 0u);
@@ -152,14 +154,14 @@ void emb_sched_unlock(void)
     emb_irq_key_t key;
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif
     }
     if (embk_cpu.sched_lock_depth == 0u) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 2u, 0u, __func__); /* unlock without lock */
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 2u, 0u, EMBK_WHERE); /* unlock without lock */
 #else
         return;
 #endif
@@ -185,23 +187,21 @@ void embk_isr_enter(void)
     embk_cpu.irq_nesting_depth++;
 #if CONFIG_EMB_CHECKED
     if (embk_cpu.irq_nesting_depth > (uint8_t)CONFIG_EMB_IRQ_MAX_NESTING) {
-        embk_fault_raise(EMB_FAULT_IRQ_NESTING, embk_cpu.irq_nesting_depth, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_IRQ_NESTING, embk_cpu.irq_nesting_depth, 0u, EMBK_WHERE);
     }
 #endif
 }
 
 embk_thread_t *embk_isr_exit(void)
 {
+    embk_thread_t *next = NULL;
     EMBK_ASSERT(embk_cpu.irq_nesting_depth != 0u);
     embk_cpu.irq_nesting_depth--;
-    if (embk_cpu.irq_nesting_depth != 0u) {
-        return NULL; /* nested exit never switches (KRN-SCH-021) */
+    if (embk_cpu.irq_nesting_depth == 0u && embk_cpu.reschedule_pending != 0u &&
+        embk_cpu.sched_lock_depth == 0u && embk_cpu.kernel_state == EMBK_KERNEL_RUNNING) {
+        next = embk_sched_select(false); /* P1; a nested exit never switches (KRN-SCH-021) */
     }
-    if (embk_cpu.reschedule_pending != 0u && embk_cpu.sched_lock_depth == 0u &&
-        embk_cpu.kernel_state == EMBK_KERNEL_RUNNING) {
-        return embk_sched_select(false); /* P1 */
-    }
-    return NULL;
+    return (next != NULL) ? next : embk_cpu.current; /* the context to resume, never NULL */
 }
 
 /* ---- version and status names ---------------------------------------------------- */

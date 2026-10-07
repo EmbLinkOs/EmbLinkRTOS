@@ -226,7 +226,7 @@ void emb_thread_exit(int code)
     emb_irq_key_t key;
 
     if (!embk_in_thread() || embk_cpu.current == &embk_idle_thread) {
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
     }
     self = embk_cpu.current;
     key = embk_lock_sched();
@@ -429,6 +429,7 @@ emb_status_t emb_thread_cancel(emb_thread_t thread)
     t->tflags |= EMBK_THREAD_CANCEL_PENDING;
     delivered = embk_wait_cancel(t);
     EMBK_TRACE(EMB_TRACE_CANCEL, embk_thread_index(t), delivered, 0u);
+    (void)delivered; /* only the trace reports it */
     embk_sched_reschedule_if_needed();
     embk_unlock_sched(key);
     return EMB_OK;
@@ -543,7 +544,7 @@ void emb_thread_yield(void)
     emb_irq_key_t key;
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif

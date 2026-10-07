@@ -4,7 +4,13 @@
 # the target-specific flags (-mmcu, -Os) and EMB_TOOLCHAIN_EXTRA_WARNINGS.
 
 set(EMB_C_STANDARD_FLAGS -std=c11 -pedantic -ffreestanding -fno-common
-    -ffunction-sections -fdata-sections -fstack-usage)
+    -ffunction-sections -fdata-sections)
+# -fstack-usage feeds the stack-sizing methodology (KRN-MEM-009); avr-gcc cannot
+# compute it for naked functions (the context switch and the EMB_ISR vectors) and turns
+# that into an error, so the AVR port's stack figures come from the call graph instead.
+if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "avr")
+  list(APPEND EMB_C_STANDARD_FLAGS -fstack-usage)
+endif()
 
 set(EMB_WARNING_FLAGS
     -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wundef

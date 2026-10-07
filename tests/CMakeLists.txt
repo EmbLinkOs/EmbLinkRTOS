@@ -4,3 +4,4 @@
 # virtual-time mode and exits with 0 on success (SPEC-013 §11).
 add_subdirectory(framework)
 add_subdirectory(conformance)
+add_subdirectory(benchmarks)

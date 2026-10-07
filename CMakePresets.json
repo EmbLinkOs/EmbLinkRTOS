@@ -56,7 +56,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
-      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny", "EMB_BUILD_TESTS": "OFF" }
+      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny" }
     },
     {
       "name": "avr-uno-release",
@@ -64,7 +64,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno-release",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
-      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny", "EMB_CONF": "configs/release.conf", "EMB_BUILD_TESTS": "OFF" }
+      "cacheVariables": { "EMB_BOARD": "arduino_uno", "EMB_PROFILE": "tiny", "EMB_CONF": "configs/release.conf" }
     }
   ],
   "buildPresets": [
@@ -83,6 +83,8 @@
     { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } },
     { "name": "native-tiny", "configurePreset": "native-tiny", "output": { "outputOnFailure": true } },
     { "name": "native-asan", "configurePreset": "native-asan", "output": { "outputOnFailure": true } },
-    { "name": "native-tsan", "configurePreset": "native-tsan", "output": { "outputOnFailure": true } }
+    { "name": "native-tsan", "configurePreset": "native-tsan", "output": { "outputOnFailure": true } },
+    { "name": "avr-uno", "configurePreset": "avr-uno", "output": { "outputOnFailure": true } },
+    { "name": "avr-uno-release", "configurePreset": "avr-uno-release", "output": { "outputOnFailure": true } }
   ]
 }

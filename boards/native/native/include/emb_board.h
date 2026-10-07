@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#define EMB_HW_BOARD_NAME "native"
+
 void emb_board_init(void);
 void emb_board_led_toggle(void);
 void emb_board_puts(const char *s);

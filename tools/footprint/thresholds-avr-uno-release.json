@@ -1,0 +1,6 @@
+{
+  "_comment": "arduino_uno, tiny profile, release build. M1 baseline: kernel text 4577, static RAM 84, TCB 42 (R-003 targets 4096 / 64 / 32: not yet met, tracked in docs/ports/avr.md). Gate: baseline plus 10 percent.",
+  "kernel_text_max": 5035,
+  "kernel_ram_max": 93,
+  "tcb_max": 46
+}

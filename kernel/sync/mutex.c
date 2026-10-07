@@ -92,7 +92,7 @@ void embk_prio_propagate(embk_thread_t *t)
         if (depth >= (unsigned)CONFIG_EMB_PI_MAX_DEPTH) {
             EMBK_TRACE(EMB_TRACE_PI_DEPTH, embk_thread_index(t), depth, 0u);
 #if CONFIG_EMB_CHECKED
-            embk_fault_raise(EMB_FAULT_PI_DEPTH, (uint16_t)depth, 0u, __func__);
+            embk_fault_raise(EMB_FAULT_PI_DEPTH, (uint16_t)depth, 0u, EMBK_WHERE);
 #else
             return; /* inheritance truncated at the declared depth */
 #endif

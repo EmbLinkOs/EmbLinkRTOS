@@ -38,5 +38,6 @@ require EMB_SCHED_TABLE "SPEC-012 §2: the table scheduler is mandatory on the A
 require EMB_TICK_32BIT "SPEC-012 §2: 32-bit time is mandatory on the AVR port"
 require EMB_NOTIFY_BITS = 8 "SPEC-012 §2: 8-bit notifications are mandatory on the AVR port"
 require !EMB_IDLE_THREAD "SPEC-012 §2: the AVR port uses the inline idle context (ADR-036)"
+require !EMB_TICKLESS "the AVR port implements the periodic tick only in this milestone (SPEC-012 §7 tickless: later)"
 
 endif

@@ -63,7 +63,7 @@ void embk_isr_dispatch(emb_irq_t irq)
     if (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && irq_table[irq].fn != NULL) {
         irq_table[irq].fn(irq_table[irq].arg);
     } else {
-        embk_fault_raise(EMB_FAULT_SPURIOUS_IRQ, irq, 0u, __func__);
+        embk_fault_raise(EMB_FAULT_SPURIOUS_IRQ, irq, 0u, EMBK_WHERE);
     }
 }
 

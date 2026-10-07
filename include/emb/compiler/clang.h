@@ -46,4 +46,17 @@
 #define EMB_MEMCPY(d, s, n) __builtin_memcpy((d), (s), (n))
 #define EMB_MEMSET(d, c, n) __builtin_memset((d), (c), (n))
 
+#ifdef __AVR__
+/* Harvard core: const tables stay in program memory and are read with the LPM forms
+ * (SPEC-012 §8). Registration tables go to .progmem.<name>, which the board's linker
+ * script brackets with __start_<name>/__stop_<name>. */
+#include <avr/pgmspace.h>
+#define EMB_FLASH_CONST          const __attribute__((__progmem__))
+#define EMB_FLASH_READ_U8(p)     pgm_read_byte(p)
+#define EMB_FLASH_READ_U16(p)    pgm_read_word(p)
+#define EMB_FLASH_READ_PTR(p)    ((void *)pgm_read_word(p))
+#define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)pgm_read_word(pp))
+#define EMB_TABLE_SECTION(name)  ".progmem." name
+#endif
+
 #endif /* EMB_COMPILER_CLANG_H */

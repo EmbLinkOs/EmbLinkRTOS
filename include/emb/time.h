@@ -130,7 +130,8 @@ emb_instant_t emb_time_now(void);
 emb_timeout_t emb_timeout_from_duration(emb_duration_t d);
 
 /**
- * emb_instant_add() - @t plus @d, saturating at EMB_TICK_MAX.
+ * emb_instant_add() - @t plus @d: saturating at EMB_TICK_MAX; wrapping in the 32-bit profile,
+ *                     whose instant space is circular (SPEC-003 §5.2).
  *
  * @ctx      thread isr prekernel
  * @blocks   no

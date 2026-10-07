@@ -118,12 +118,20 @@ extern "C" {
 #ifndef EMB_IF_CONSTANT
 #define EMB_IF_CONSTANT(x, a, b) (b)
 #endif
+/* Tables that may live in flash on Harvard cores (SPEC-012 §8): declare with
+ * EMB_FLASH_CONST, place with EMB_TABLE_SECTION(name), read with EMB_FLASH_READ_*. The
+ * AVR GCC/Clang headers define the program-memory forms; everywhere else they are plain. */
 #ifndef EMB_FLASH_CONST
-#define EMB_FLASH_CONST       const
-#define EMB_FLASH_READ_U8(p)  (*(p))
-#define EMB_FLASH_READ_U16(p) (*(p))
-#define EMB_FLASH_READ_PTR(p) (*(p))
+#define EMB_FLASH_CONST          const
+#define EMB_FLASH_READ_U8(p)     (*(p))
+#define EMB_FLASH_READ_U16(p)    (*(p))
+#define EMB_FLASH_READ_PTR(p)    (*(p))
+#define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)(*(pp)))
+#define EMB_TABLE_SECTION(name)  name
 #endif
+/* A registration-table entry: placed by its section name alone, never by a
+ * program-memory attribute (which overrides the section on GCC for AVR). */
+#define EMB_TABLE_CONST const
 
 #ifdef __cplusplus
 #define EMB_STATIC_ASSERT(cond, msg) static_assert(cond, msg)

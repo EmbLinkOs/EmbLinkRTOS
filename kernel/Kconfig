@@ -278,6 +278,13 @@ config EMB_FAULT_ACTION
 	default "HALT" if EMB_FAULT_ACTION_HALT
 	default "REBOOT" if EMB_FAULT_ACTION_REBOOT
 
+config EMB_FAULT_WHERE
+	bool "Record the faulting function's name in the fault information"
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  The strings cost flash, and RAM on AVR (03 §10.2 crash record location).
+
 config EMB_FAULT_HALT_FOR_DEBUG
 	bool "Execute a breakpoint before the fault action (SPEC-011 §14)"
 	default y if EMB_CHECKED && !EMB_ARCH_AVR
