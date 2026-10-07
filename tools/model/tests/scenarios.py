@@ -235,3 +235,46 @@ MUTEX = [classic_inversion, nested_chain_timeout, deadlock_two_lockers, owner_de
          owner_death_no_waiter, ceiling_mutex, waiter_priority_change, cancel_waiter_disinherits,
          recursive_mutex, two_waiters_handoff]
 ALL = ALL + MUTEX
+
+
+# ---------------------------------------------------------------------------------------
+# SPEC-006: notifications and binding
+# ---------------------------------------------------------------------------------------
+from embmodel import NotifySet, NotifyWait  # noqa: E402
+
+
+def notify_set_in_window():
+    """The owner waits on bit 0 with a timeout; an ISR sets it at an arbitrary time."""
+    return Scenario(name="notify_set_in_window",
+                    threads={1: (2, (NotifyWait(0x1, timeout=5),))},
+                    isrs=((NotifySet(1, 0x1),),))
+
+
+def notify_level():
+    """Bits set before the wait persist (level semantics): the wait returns at once."""
+    return Scenario(name="notify_level",
+                    threads={1: (1, (Sleep(1), NotifyWait(0x3, timeout=2))),
+                             2: (2, (NotifySet(1, 0x2),))})
+
+
+def notify_all_two_sets():
+    """ALL mode across two separate sets from two sources; CLEAR consumes exactly the mask."""
+    return Scenario(name="notify_all_two_sets",
+                    threads={1: (1, (NotifyWait(0x3, all=True, timeout=6), NotifyWait(0x4, timeout=NO_WAIT))),
+                             2: (3, (Sleep(1), NotifySet(1, 0x1), NotifySet(1, 0x4)))},
+                    isrs=((NotifySet(1, 0x2),),))
+
+
+def bound_two_sems():
+    """SPEC-006 §3.3: one thread bound to two semaphores on bits 0 and 1 drains both with
+    EMB_NO_WAIT takes after each notification wait; gives arrive from an ISR and a thread."""
+    return Scenario(name="bound_two_sems",
+                    threads={1: (1, (NotifyWait(0x3, timeout=4), Take(0, NO_WAIT), Take(1, NO_WAIT),
+                                     NotifyWait(0x3, timeout=4), Take(0, NO_WAIT), Take(1, NO_WAIT))),
+                             2: (2, (Sleep(1), Give(1)))},
+                    sems={0: dict(count=0, binding=(1, 0)), 1: dict(count=0, binding=(1, 1))},
+                    isrs=((Give(0),),))
+
+
+NOTIFY = [notify_set_in_window, notify_level, notify_all_two_sets, bound_two_sems]
+ALL = ALL + NOTIFY

@@ -1,6 +1,6 @@
 # EmbLinkRTOS reference model
 
-The executable reference model of ADR-013: the semantic oracle the kernel is tested against. It covers the wait and wake protocol (SPEC-004), the mutex with priority inheritance, ceilings, recursion, hand-off, owner death and deadlock detection (SPEC-005 §2, §3), the per-CPU context state and preemption points they depend on (SPEC-002 §2, §6), the timeout structure (SPEC-003 §5), and the fixed-priority scheduler (03 §2.1 with KRN-SCH-041), in uniprocessor form.
+The executable reference model of ADR-013: the semantic oracle the kernel is tested against. It covers the wait and wake protocol (SPEC-004), the mutex with priority inheritance, ceilings, recursion, hand-off, owner death and deadlock detection (SPEC-005 §2, §3), notifications and the object-to-notification binding (SPEC-006 §2, §3), the per-CPU context state and preemption points they depend on (SPEC-002 §2, §6), the timeout structure (SPEC-003 §5), and the fixed-priority scheduler (03 §2.1 with KRN-SCH-041), in uniprocessor form.
 
 The model is written so that it can be read next to the specification: `embmodel/kernel.py` follows SPEC-004 §5 section by section, and `check_invariants()` is SPEC-004 §5.4 made executable. It is **not** kernel code and is never compiled into an image; divergence between the kernel and the model is a kernel bug unless the specification changes first (SPEC-004 §13).
 
@@ -8,9 +8,9 @@ The model is written so that it can be read next to the specification: `embmodel
 
 | Path | Contents |
 |---|---|
-| `embmodel/kernel.py` | State (`Thread`, `WaitQueue`, `Semaphore`, `Mutex`, `Kernel`), the static op types (`Take`, `Give`, `Lock`, `Unlock`, `Sleep`, `Yield`, `SetPrio`, `Suspend`, `Resume`, `Cancel`, `Destroy`, `SchedLock`, `SchedUnlock`, `Exit`), the wait protocol, effective priority with `effective()` and `propagate()`, interrupts and ticks, invariants |
+| `embmodel/kernel.py` | State (`Thread`, `WaitQueue`, `Semaphore`, `Mutex`, `Kernel`), the static op types (`Take`, `Give`, `Lock`, `Unlock`, `NotifySet`, `NotifyWait`, `Sleep`, `Yield`, `SetPrio`, `Suspend`, `Resume`, `Cancel`, `Destroy`, `SchedLock`, `SchedUnlock`, `Exit`), the wait protocol, effective priority with `effective()` and `propagate()`, interrupts and ticks, invariants |
 | `embmodel/explore.py` | Exhaustive depth-first exploration of every interleaving at section granularity; seeded random walks |
-| `tests/scenarios.py` | The scenario catalogue: the SPEC-004 §15 worked example and the wait-protocol scenarios (`ALL`), plus the SPEC-005 §15 mutex scenarios (`MUTEX`): classic inversion, nested chain with timeouts, deadlock in both orders, owner death with and without a waiter, ceiling, waiter priority change, cancellation of a waiter, recursion, two-waiter hand-off |
+| `tests/scenarios.py` | The scenario catalogue: the SPEC-004 §15 worked example and the wait-protocol scenarios (`ALL`), plus the SPEC-005 §15 mutex scenarios (`MUTEX`): classic inversion, nested chain with timeouts, deadlock in both orders, owner death with and without a waiter, ceiling, waiter priority change, cancellation of a waiter, recursion, two-waiter hand-off; plus the SPEC-006 §11 notification scenarios (`NOTIFY`): set in the window, level semantics, ALL across two sets, one thread bound to two semaphores |
 | `tests/test_scenarios.py` | Specific interleavings with expected results |
 | `tests/test_explore.py` | Exhaustive exploration of every scenario plus outcome properties |
 | `tests/test_random.py` | Random walks over generated scenarios; a `hypothesis` stateful test when installed |
@@ -35,4 +35,4 @@ After every action: invariants 1 to 6 of SPEC-004 §5.4 (queue membership matche
 
 ## Extending
 
-Work item 6 adds notification waits and the binding of ADR-027 over the same protocol; condition variables, event flags and barriers are added when their conformance tests are written (SPEC-005 §17.11); the SMP model adds a second CPU, the three lock domains as explicit locks, and the superseded in-flight timeout bit (SPEC-004 §8).
+Condition variables, event flags, barriers, and message queues are added when their conformance tests are written (SPEC-005 §17.11, SPEC-007); the SMP model adds a second CPU, the three lock domains as explicit locks, and the superseded in-flight timeout bit (SPEC-004 §8).

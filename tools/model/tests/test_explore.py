@@ -129,3 +129,48 @@ class MutexExhaustive(unittest.TestCase):
                     self.assertEqual(o["blocked"], ())
                     for mid, owner in o["mutex_owners"]:
                         self.assertIsNone(owner, f"mutex {mid} still owned at a terminal state")
+
+
+class NotifyExhaustive(unittest.TestCase):
+    """SPEC-006 §11 / KRN-NOTIF-008."""
+
+    def test_all_notify_scenarios_hold_invariants(self):
+        for make in S.NOTIFY:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                rep = explore(sc)
+                self.assertGreater(rep.terminals, 0, rep.summary())
+
+    def test_set_in_window_never_lost(self):
+        rep = explore(S.notify_set_in_window())
+        for outcome in rep.outcomes:
+            o = dict(outcome)
+            d = dict(o["threads"])
+            bits = dict(o["notify_bits"])[1]
+            if d[1][0][1] == Result.SATISFIED:
+                self.assertEqual(d[1][0][2], 0x1)
+                self.assertEqual(bits, 0)                 # CLEAR consumed it
+            else:
+                self.assertEqual(d[1][0][1], Result.TIMEOUT)
+                self.assertEqual(bits, 0x1, "a set after the timeout must leave the bit set (level)")
+
+    def test_all_mode_delivers_exactly_the_mask(self):
+        rep = explore(S.notify_all_two_sets())
+        for outcome in rep.outcomes:
+            d = dict(dict(outcome)["threads"])
+            first = d[1][0]
+            if first[1] == Result.SATISFIED:
+                self.assertEqual(first[2], 0x3)
+            # bit 2 is set by T2 after bit 0; it is never consumed by the ALL wait on 0x3
+            second = d[1][1]
+            self.assertIn(second[1], (Result.SATISFIED, Result.TIMEOUT))
+
+    def test_bound_thread_drains_every_unit_or_leaves_it_counted(self):
+        rep = explore(S.bound_two_sems())
+        for outcome in rep.outcomes:
+            o = dict(outcome)
+            d = dict(o["threads"])
+            sems = dict(o["sems"])
+            taken = sum(1 for (idx, r, _) in d[1] if r == Result.SATISFIED and idx in (1, 2, 4, 5))
+            # two units were given in total; each is either taken by the bound thread or still in a count
+            self.assertEqual(taken + sems[0] + sems[1], 2, outcome)

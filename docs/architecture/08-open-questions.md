@@ -27,6 +27,7 @@ These need your decision. Each has a recommendation so the default path is clear
 **Q5. Mutex owner termination.** Fault (recommended default) or release with `EMB_EOWNERDEAD`?
 *Recommendation:* fault in checked builds, configurable `EOWNERDEAD` for release builds that need it.
 *R-001 §5:* only ThreadX, NuttX, and uC/OS-III handle owner death at all, and none informs the next owner. Confirmed; algorithm in ADR-028.
+*Answered 2026-10-07 (SPEC-005 §3.6, KRN-SYNC-025):* `CONFIG_EMB_MUTEX_OWNER_DEATH` = `FAULT` (default) or `RELEASE` with `EMB_EOWNERDEAD` to the next owner; the inconsistent mark is cleared by the recovering owner's unlock.
 
 **Q6. Thread cancellation in 1.0.** Cooperative cancellation (recommended) or none until later?
 *Recommendation:* include it; it is small once the wait protocol has wake results.

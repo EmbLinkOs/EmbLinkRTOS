@@ -1,6 +1,6 @@
 # SPEC-005 - Synchronization: Mutexes, Semaphores, Event Flags, Condition Variables, Barriers, Spinlocks
 
-**Status:** Proposed 2026-10-07, with the defaults of §17 awaiting the owner's acceptance. Specification work item 5 of the roadmap (07 §3).
+**Status:** Accepted 2026-10-07 by the project owner, with the defaults of §17. Specification work item 5 of the roadmap (07 §3). Reference model: `tools/model/` (SPEC-005 §15).
 **Requirements:** `docs/requirements/KRN-SYNC.md` (KRN-SYNC-001 to 017 restated; new from 018).
 **Builds on:** SPEC-004 (every blocking primitive here is a thin layer over the wait protocol; hand-off, generations, cancellation, destroy, suspend overlay are inherited and not restated); SPEC-001 §4 to §6 (status codes, contexts, handles, storage, attributes); SPEC-002 §4 (critical sections, spinlocks), §5 (scheduler lock); SPEC-003 (timeouts); 03 §5; v0.1 §8; ADR-027 (notification binding), ADR-028 (inheritance algorithm), ADR-030 (compile-time ceilings), ADR-036 (tiny profile).
 **Research:** R-001 §5 is the column-by-column comparison this design is measured against: transitive inheritance, correct restore over several mutexes, disinheritance on timeout, owner-death handling, ceiling protocol, deadlock detection, with bounded masked sections. No small kernel in the comparison has all of them.
@@ -326,7 +326,7 @@ Inheritance walks cross objects, so the per-object lock domain of SPEC-004 §8 i
 
 Restated: KRN-SYNC-001 to 007 (v0.1 §8.6) and 008 to 017 (03 §5.2). New: KRN-SYNC-018 to 038, in `docs/requirements/KRN-SYNC.md`.
 
-## 17. Decisions proposed for acceptance
+## 17. Decisions taken at acceptance (2026-10-07)
 
 1. One mutex type with three protocols (`INHERIT` default, `CEILING`, `NONE`) and an optional `RECURSIVE` flag; no separate recursive-mutex type.
 2. Both raises and lowerings of inherited priority propagate transitively, immediately, in the operation that caused them; nothing is deferred to the waiter's resumption. Depth bound `CONFIG_EMB_PI_MAX_DEPTH = 8`.

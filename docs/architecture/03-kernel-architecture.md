@@ -257,7 +257,7 @@ Classic semantics: `wait(cv, mutex, timeout)` atomically releases and blocks; `s
 
 ## 6. Inter-thread communication
 
-### 6.1 Notifications (PROPOSED)
+### 6.1 Notifications (PROPOSED detail; specified in `docs/specs/SPEC-006-notifications-and-work-queues.md`)
 
 A per-thread 32-bit (configurable) bit set.
 
@@ -275,7 +275,7 @@ A per-thread 32-bit (configurable) bit set.
 **KRN-NOTIF-005** Binding shall not change the object's own wait-queue semantics for threads blocked directly on it.
 **KRN-NOTIF-006** The `base` profile shall reserve at least 16 notification bits for application use after the kernel-reserved bits; the `tiny` profile may select 8 bits with at least 4 reserved for the application.
 
-### 6.2 Work queues (PROPOSED)
+### 6.2 Work queues (PROPOSED detail; specified in SPEC-006)
 
 ```
 work_queue: thread + FIFO of intrusive work items

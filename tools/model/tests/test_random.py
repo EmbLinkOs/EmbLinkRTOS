@@ -3,12 +3,12 @@ over generated scenarios, and a hypothesis stateful test when hypothesis is inst
 import random
 import unittest
 
-from embmodel import (Cancel, Destroy, Give, Lock, Policy, Protocol, Resume, Scenario, SchedLock,
-                      SchedUnlock, SetPrio, Sleep, Suspend, Take, Unlock, Yield, FOREVER, NO_WAIT,
-                      random_walk)
+from embmodel import (Cancel, Destroy, Give, Lock, NotifySet, NotifyWait, Policy, Protocol, Resume,
+                      Scenario, SchedLock, SchedUnlock, SetPrio, Sleep, Suspend, Take, Unlock, Yield,
+                      FOREVER, NO_WAIT, random_walk)
 
 OPS = ["take", "give", "sleep", "yield", "setprio", "suspend", "resume", "cancel", "destroy", "schedpair",
-       "lockpair", "lockpair", "lock_nested"]
+       "lockpair", "lockpair", "lock_nested", "notify_wait", "notify_set"]
 
 
 def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) -> Scenario:
@@ -41,6 +41,11 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) ->
                 prog.append(Lock(m, rng.choice([NO_WAIT, 1, 3, FOREVER])))
                 prog.append(rng.choice([Yield(), Sleep(1), Give(rng.randrange(nsems))]))
                 prog.append(Unlock(m))
+            elif kind == "notify_wait":
+                prog.append(NotifyWait(rng.choice([0x1, 0x3, 0x6]), all=rng.random() < 0.3,
+                                       clear=rng.random() < 0.8, timeout=rng.choice([NO_WAIT, 1, 3, FOREVER])))
+            elif kind == "notify_set":
+                prog.append(NotifySet(rng.choice(tids), rng.choice([0x1, 0x2, 0x4, 0x7])))
             elif kind == "lock_nested":
                 a, b = rng.randrange(nmutexes), rng.randrange(nmutexes)
                 prog.append(Lock(a, rng.choice([2, FOREVER])))
@@ -52,7 +57,11 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) ->
         threads[tid] = (rng.randrange(1, 6), tuple(prog))
     sems = {s: dict(count=rng.randrange(0, 2), policy=rng.choice([Policy.PRIORITY_FIFO, Policy.FIFO]))
             for s in range(nsems)}
-    isrs = tuple((Give(rng.randrange(nsems)),) for _ in range(rng.randrange(0, 3)))
+    isrs = tuple((rng.choice([Give(rng.randrange(nsems)), NotifySet(rng.choice(tids), rng.choice([0x1, 0x2, 0x4]))]),)
+                 for _ in range(rng.randrange(0, 3)))
+    for s_ in sems.values():
+        if rng.random() < 0.3:
+            s_["binding"] = (rng.choice(tids), rng.randrange(3))
     mutexes = {}
     for m in range(nmutexes):
         proto = rng.choice([Protocol.INHERIT, Protocol.INHERIT, Protocol.CEILING, Protocol.NONE])

@@ -71,8 +71,10 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
    Between items 3 and 4 the research records `docs/research/R-001` (mechanism comparison of eleven kernels), `R-002` (market, performance, certification, regulation), and `R-003` (differentiation, ADR-026 to ADR-037, measurable targets T1 to T14, the benchmark harness) were produced. Items 4 to 9 implement the proposed decisions where they apply: item 4 ADR-026 and 027; item 5 ADR-028 and 030; item 6 ADR-027; item 7 ADR-032; item 8 ADR-032 and 033; item 9 ADR-029 and 033; item 14 ADR-034.
 
 4. Wait and wake protocol, including the wake race, modeled and explored exhaustively (03 §3). **Accepted 2026-10-07:** `docs/specs/SPEC-004-wait-and-wake-protocol.md`, `docs/requirements/KRN-WAIT.md`, and the first module of the reference model in `tools/model/` (SPEC-004 §13), explored exhaustively over the scenario catalogue.
-5. Mutex, semaphore, event, condition variable semantics and the inheritance algorithm (03 §5). **Proposed 2026-10-07:** `docs/specs/SPEC-005-synchronization.md` and `docs/requirements/KRN-SYNC.md`; the reference model gains the mutex with inheritance.
-6. Notifications and work queues (03 §6.1, §6.2).
+5. Mutex, semaphore, event, condition variable semantics and the inheritance algorithm (03 §5). **Accepted 2026-10-07:** `docs/specs/SPEC-005-synchronization.md`, `docs/requirements/KRN-SYNC.md`; the reference model has the mutex with inheritance, explored exhaustively.
+6. Notifications and work queues (03 §6.1, §6.2). **Accepted 2026-10-07:** `docs/specs/SPEC-006-notifications-and-work-queues.md`, `docs/requirements/KRN-NOTIF.md`, `docs/requirements/KRN-WQ.md`; notifications and binding in the reference model.
+
+   6b. Inter-thread communication: message queues, pipes and streams, buffer pools with ownership transfer, ports outline (03 §6.3 to §6.6). Added because M2 delivers message queues and the original list had no item for them.
 7. Thread lifecycle: start, suspend, join, detach, cancel, destroy (03 §1).
 8. Object, capability, and storage generation (03 §7).
 9. Partition model and syscall boundary, scoped to what M3 implements (03 §8).

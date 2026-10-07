@@ -92,6 +92,22 @@ class Unlock:
 
 
 @dataclass(frozen=True)
+class NotifySet:
+    """emb_notify_set(thread, bits): thread or ISR context (SPEC-006 §2)."""
+    tid: int
+    bits: int
+
+
+@dataclass(frozen=True)
+class NotifyWait:
+    """emb_notify_wait(mask, mode, timeout): ANY unless all=True; clear applies to satisfied bits."""
+    mask: int
+    all: bool = False
+    clear: bool = True
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
 class Sleep:
     ticks: Optional[int]
 
@@ -142,7 +158,7 @@ class Exit:
     pass
 
 
-ISR_SAFE_OPS = (Give, Resume)   # SPEC-001 §5.2: signal-type operations are `thread isr`
+ISR_SAFE_OPS = (Give, Resume, NotifySet)   # SPEC-001 §5.2: signal-type operations are `thread isr`
 
 
 # ----------------------------------------------------------------------------------------
@@ -168,6 +184,9 @@ class Thread:
     saved_gen: int = 0
     results: tuple = ()                       # ((op_index, Result, data), ...)
     notify_bits: int = 0
+    notify_mask: int = 0                      # mask of the NOTIFY wait in progress
+    notify_all: bool = False
+    notify_clear: bool = True
     owned: list = field(default_factory=list)  # mutex ids in acquisition order (KRN-SYNC-014)
 
     def key(self):
@@ -175,7 +194,8 @@ class Thread:
                 None if self.wait_reason is None else int(self.wait_reason), self.wait_queue,
                 None if self.wake_result is None else int(self.wake_result), self.wake_data,
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
-                self.saved_gen, self.results, self.notify_bits, tuple(self.owned))
+                self.saved_gen, self.results, self.notify_bits, self.notify_mask, self.notify_all,
+                self.notify_clear, tuple(self.owned))
 
 
 @dataclass
@@ -635,9 +655,42 @@ class Kernel:
             sem.handed += 1
             return
         sem.count += 1
-        if sem.binding is not None and sem.count == 1:
+        if sem.binding is not None and sem.count == 1:                    # ready transition (SPEC-004 §6.3)
             tid, bit = sem.binding
-            self.threads[tid].notify_bits |= (1 << bit)
+            self._notify_set(self.threads[tid], 1 << bit)
+
+    # ------------------------------------------------------------------ notifications (SPEC-006 §2)
+    @staticmethod
+    def _notify_satisfied(t: Thread) -> bool:
+        got = t.notify_bits & t.notify_mask
+        return (got == t.notify_mask) if t.notify_all else (got != 0)
+
+    def _notify_set(self, t: Thread, bits: int):
+        """emb_notify_set: OR the bits; hand over and wake the owner if its wait is now satisfied."""
+        t.notify_bits |= bits
+        self._event("notify_set", t.tid, bits)
+        q = self.queues[-(t.tid + 1)]
+        if t.wait_state != WaitState.READY and t.wait_reason == Reason.NOTIFY and t.wait_queue == q.qid \
+                and self._notify_satisfied(t):
+            got = t.notify_bits & t.notify_mask
+            if t.notify_clear:
+                t.notify_bits &= ~got
+            self.wake(t, Result.SATISFIED, got, q, handoff=True)
+
+    def _op_notify_wait(self, t: Thread, op: NotifyWait) -> bool:
+        q = self.queues[-(t.tid + 1)]
+        if t.pc == 0:
+            t.notify_mask, t.notify_all, t.notify_clear = op.mask, op.all, op.clear
+
+        def satisfied():
+            return self._notify_satisfied(t)
+
+        def consume():
+            got = t.notify_bits & t.notify_mask
+            if t.notify_clear:
+                t.notify_bits &= ~got
+            return got
+        return self._block_section(t, q, Reason.NOTIFY, op.timeout, satisfied, consume)
 
     # ------------------------------------------------------------------ mutex (SPEC-005 §3)
     def _acquire(self, t: Thread, m: Mutex) -> int:
@@ -796,6 +849,12 @@ class Kernel:
             self.reschedule_if_needed()
         elif isinstance(op, Sleep):
             self._op_sleep(t, op)
+        elif isinstance(op, NotifyWait):
+            self._op_notify_wait(t, op)
+        elif isinstance(op, NotifySet):
+            self._notify_set(self.threads[op.tid], op.bits)
+            self._advance(t)
+            self.reschedule_if_needed()
         elif isinstance(op, Give):
             self._op_give(op)
             self._advance(t)
@@ -856,6 +915,8 @@ class Kernel:
                 self._op_give(op)
             elif isinstance(op, Resume):
                 self._op_resume(op)
+            elif isinstance(op, NotifySet):
+                self._notify_set(self.threads[op.tid], op.bits)
         self.irq_nesting -= 1
         self._p1()
 
@@ -892,6 +953,8 @@ class Kernel:
             # SPEC-005 §2.1 / KRN-SYNC-018
             if not t.terminated and t.prio != self.effective(t):
                 raise ModelError(f"effective priority of thread {t.tid} is {t.prio}, expected {self.effective(t)}")
+            if t.wait_state == WaitState.BLOCKED and t.wait_reason == Reason.NOTIFY and self._notify_satisfied(t):
+                raise ModelError(f"thread {t.tid} is blocked on notifications that are already satisfied (KRN-NOTIF-008)")
             if len(set(t.owned)) != len(t.owned):
                 raise ModelError(f"thread {t.tid} owned list has duplicates: {t.owned}")
             for mid in t.owned:
@@ -969,4 +1032,5 @@ class Kernel:
         return (("threads", tuple((tid, t.results) for tid, t in sorted(self.threads.items()))),
                 ("sems", tuple((sid, s.count) for sid, s in sorted(self.sems.items()))),
                 ("blocked", tuple(tid for tid, t in sorted(self.threads.items()) if t.wait_state == WaitState.BLOCKED)),
-                ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))))
+                ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))),
+                ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))))
