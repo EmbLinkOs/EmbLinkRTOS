@@ -25,7 +25,7 @@ Object verbs are uniform: `init` (caller storage), `create` (where an allocator 
 
 ### 1.2 Status codes
 
-One enum, `emb_status_t`. `EMB_OK` is zero. Errors are negative and named `EMB_E<NAME>` with a fixed, documented set (`EMB_ETIMEDOUT`, `EMB_EINVAL`, `EMB_EPERM`, `EMB_EBUSY`, `EMB_ENOMEM`, `EMB_ECANCELED`, `EMB_EDESTROYED`, `EMB_EOWNERDEAD`, `EMB_ENOTSUP`, `EMB_EIO`, `EMB_EAGAIN`, `EMB_EFAULT`, `EMB_ENOENT`, `EMB_EEXIST`). Positive values are operation-specific counts. No `errno` global in the kernel API; the libc layer maps if needed.
+One type, `emb_status_t` (an `int`), with its values named by `enum emb_status_code`. `EMB_OK` is zero. Errors are negative with fixed, stable values from a closed kernel set of eighteen codes (`EMB_EPERM`, `EMB_EINVAL`, `EMB_EBUSY`, `EMB_ETIMEDOUT`, `EMB_ECANCELED`, `EMB_EDESTROYED`, `EMB_EOWNERDEAD`, `EMB_ENOMEM`, `EMB_ENOTSUP`, `EMB_EIO`, `EMB_EFAULT`, `EMB_ENOENT`, `EMB_EEXIST`, `EMB_ESTATE`, `EMB_EOVERFLOW`, `EMB_ESTALE`, `EMB_EINTR`) and reserved ranges for drivers and applications; SPEC-001 §4 is authoritative. Positive values are operation-specific counts. No `errno` global and no per-thread error state in the kernel API; the POSIX layer maps codes to errno.
 
 ### 1.3 ISR-safety convention (ADR-003)
 
@@ -103,7 +103,7 @@ EmbLinkRTOS/
   tools/                  emb cli, decoders (log, trace, crash), reference model, hil runner
   tests/                  conformance/ kernel/ arch/ drivers/ stress/ fuzz/ hil/ benchmarks/
   samples/
-  docs/                   architecture/ requirements/ api/ boards/ ports/ adr/
+  docs/                   architecture/ specs/ requirements/ api/ boards/ ports/
   cmake/  scripts/  ci/
   SECURITY.md  LICENSE  CONTRIBUTING.md  CODEOWNERS
 ```

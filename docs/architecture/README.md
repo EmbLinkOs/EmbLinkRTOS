@@ -39,7 +39,7 @@ SIM  simulation  API  API conventions        BLD  build        TEST verification
 REL  release     SUP  support levels
 ```
 
-Requirements will move into `docs/requirements/` as structured files once the open questions are answered; the architecture documents will then cite them rather than restate them.
+Requirements move into `docs/requirements/` as structured files group by group, as each specification work item lands; the format guide and group index are in [`docs/requirements/README.md`](../requirements/README.md), and the first migrated group is `API`. Detailed designs live in `docs/specs/`. The architecture documents cite requirements rather than restate them once a group has moved.
 
 ## Phase
 
