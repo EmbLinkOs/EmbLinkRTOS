@@ -15,6 +15,7 @@ This directory is the architecture baseline for EmbLinkRTOS. It supersedes the v
 | 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-025 with alternatives and consequences; ADR-004, ADR-024, and ADR-025 are accepted, the rest await review |
 | 07 | [Roadmap](07-roadmap.md) | 1.0 boundary, milestones M0 to M6+, specification work order, risks |
 | 08 | [Open questions](08-open-questions.md) | Decisions awaiting the project owner, each with a recommendation |
+| 09 | [EmbCC toolchain profile](09-embcc-toolchain-profile.md) | Verified EmbCC capabilities and limits per target, and the kernel rules that follow from them |
 
 ## Status markers
 

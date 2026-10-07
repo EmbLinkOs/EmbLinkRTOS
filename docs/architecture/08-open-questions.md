@@ -66,10 +66,13 @@ This is the highest-impact platform decision. Own schema costs generator work up
 ## E. EmbLink ecosystem
 
 **Q18. EmbCC status today.** Which C standard features and attributes does it support for Cortex-M and RISC-V? Does it emit DWARF suitable for the debug descriptor consumer? When is AVR support planned? The answers set the compiler portability layer's shape and the M1 compiler for AVR.
+*Answered 2026-10-07 from the EmbCC repository; see document 09.* EmbCC already targets AVR (ATmega328P), Cortex-M0+ through M33, and RISC-V 32 and 64, compiles C17 plus GNU extensions, emits DWARF 4 (empty on AVR today), and builds FreeRTOS's ports unmodified. The design rules that follow from its limits are in 09 §§3 to 7.
 
 **Q19. EmbDebug and EmbFlash status.** Do they exist in usable form for M3 HIL, or does the HIL runner start on OpenOCD, pyOCD, or probe-rs?
+*Partly answered 2026-10-07.* EmbDebug is `embdbg` in the EmbCC repository: a DWARF reader, symbolizer, crash-report analyzer, and GDB remote protocol client for QEMU and OpenOCD, covering ARM M-profile and RISC-V but not AVR. The HIL runner therefore starts on OpenOCD or pyOCD stubs with `embdbg` as the client. **EmbFlash was not found in the EmbCC repository**; does it exist elsewhere, or does flashing start on OpenOCD, pyOCD, and `avrdude`?
 
 **Q20. EmbBuild.** Does it exist? If not, CMake is the only build until it does, which the architecture already assumes.
+*Answered 2026-10-07.* EmbBuild exists as a typed-manifest format (`.ebm`) and walker on EmbLinkOS, with a host reference walker in the EmbCC repository. CMake stays the reference build and gains a manifest emitter (BLD-006).
 
 ---
 

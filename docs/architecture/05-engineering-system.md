@@ -53,6 +53,8 @@ Every public function carries structured annotations (in the header comment, par
 
 C11 is the minimum (`_Static_assert`, `_Alignas`, anonymous unions, `_Atomic` where the toolchain provides it; the portability layer wraps atomics). C17 preferred. Freestanding; no dependence on hosted libc in the kernel. C++17 for optional wrappers, with exceptions and RTTI off by default and a documented policy for static constructors.
 
+EmbCC compiles a single dialect, C17 plus GNU extensions, and ignores `-std=` (09 §3), so the C11 floor is enforced by the GCC and Clang legs of the matrix with `-std=c11 -pedantic`. Compiler thread-local storage is banned tree-wide (KRN-THR-014). C++ wrappers are built and tested with GCC and Clang on the embedded targets and with EmbCC on the native target, since EmbCC does not yet compile C++ for 32-bit and 8-bit targets.
+
 ### 1.6 Coding standard
 
 A written standard covering: undefined-behavior policy, integer and conversion rules, `volatile` for registers only and never for synchronization, no variable-length arrays, no recursion in kernel paths, fixed-width types at ABI boundaries, bounded loops on real-time paths, and MISRA C:2023 orientation with recorded deviations. Enforced by clang-format, clang-tidy, cppcheck, and EmbCC diagnostics in CI.
@@ -81,7 +83,8 @@ hardware description + Kconfig + sources
 **BLD-002** Compiler-specific attributes and builtins shall be isolated in `include/emb/compiler/` with one header per compiler.
 **BLD-003** The build shall emit a build manifest (source revision, configuration hash, toolchain identity, hardware description hash) embedded in the image and in the SBOM.
 **BLD-004** Builds shall be reproducible given the pinned toolchain container; CI shall verify by double build.
-**BLD-005** The `emb` command-line tool shall wrap configure, build, flash, debug, trace, and test with per-board defaults, using EmbFlash and EmbDebug when present and third-party tools otherwise.
+**BLD-005** The `emb` command-line tool shall wrap configure, build, flash, debug, trace, and test with per-board defaults, using EmbFlash and `embdbg` when present and third-party tools otherwise.
+**BLD-006** The reference build shall be able to emit an EmbBuild manifest (`.ebm`: name, kind, inputs, args, output per target, with derived header closures) so that EmbLinkRTOS builds under EmbBuild on EmbLinkOS (09 §9).
 
 ## 3. Repository layout (PLANNED, refined)
 

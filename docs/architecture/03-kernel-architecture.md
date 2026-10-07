@@ -47,6 +47,7 @@ A thread blocked with reason `SUSPEND` that also had an object wait pending resu
 **KRN-THR-011** Thread cancellation shall be cooperative: a cancel request is delivered as a wake result at the next blocking call or explicit cancellation point; threads are never asynchronously killed.
 **KRN-THR-012** Join shall be supported for joinable threads; a detached thread's object storage becomes reusable immediately on termination according to its storage policy.
 **KRN-THR-013** Thread-local storage slots shall be available as a compile-time option with a fixed per-thread slot count.
+**KRN-THR-014** The kernel, ports, and drivers shall not use compiler thread-local storage (`_Thread_local`, `__thread`); EmbCC compiles it to one shared instance on embedded targets (09 §3). Kernel TLS slots are the only per-thread storage mechanism.
 
 ### 1.2 Execution contexts (LOCKED)
 
@@ -191,6 +192,7 @@ block_on(object, reason, timeout):
 **KRN-TIM-010** Public time types shall be distinct: `emb_instant_t` (absolute), `emb_duration_t` (relative), `emb_timeout_t` (relative or sentinel `EMB_NO_WAIT` / `EMB_WAIT_FOREVER`). Mixing them is a compile error where the language allows.
 **KRN-TIM-011** Absolute-deadline variants shall exist for sleep and for every blocking operation (`*_until`), so that periodic work does not accumulate drift.
 **KRN-TIM-012** A high-resolution cycle counter API shall exist for measurement where hardware provides one; it is not the scheduling clock.
+**KRN-TIM-016** 64-bit time values shall be read and written under a critical section or a sequence lock; the kernel shall not depend on 64-bit atomic loads, stores, or read-modify-write operations, which the 32-bit targets do not provide (09 §6).
 
 ### 4.2 Timeout structure (PROPOSED default, ADR-010)
 

@@ -56,8 +56,9 @@ boards/<vendor>/<board>.yaml
 **HW-001** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **HW-002** The hardware model shall be validated against a published schema before generation; validation errors shall name the file and node.
 **HW-003** Generated files shall be reproducible and never edited by hand.
-**HW-004** Importers for CMSIS-SVD and DeviceTree source shall exist to bootstrap SoC and board descriptions.
+**HW-004** Importers for CMSIS-SVD and DeviceTree source shall exist to bootstrap SoC and board descriptions; the SVD importer builds on EmbCC's `embsvd` parser (09 §9).
 **HW-005** The normalized model shall be exported in a stable JSON form for tooling.
+**HW-006** From the same region model, the generator shall emit both a GNU ld linker script and an `embld` option set (`-Ttext`, `-Tdata`, `--rom-limit`), because `embld` accepts linker scripts on ARM and RISC-V but not on AVR (09 §7); the two outputs shall be tested for agreement.
 
 ## 2. Device model
 
@@ -260,7 +261,7 @@ Three complementary layers, all in CI:
 | Layer | Tool | Purpose |
 |---|---|---|
 | Native port | `arch/native` | Kernel semantics, sanitizers, fuzzing, reference-model differential tests; runs in seconds |
-| Instruction-level emulation | Renode (preferred for MCU peripheral models), QEMU | Real arch port code, real interrupt controllers, multi-node and multicore scenarios without hardware |
+| Instruction-level emulation | Renode (preferred for MCU peripheral models), QEMU (including EmbCC's own harness boards: `lm3s6965evb`, `mps2-an386`, `mps2-an500`, `mps2-an505`, micro:bit, RISC-V `virt`, AVR) | Real arch port code, real interrupt controllers, multi-node and multicore scenarios without hardware |
 | Hardware-in-the-loop | Real boards through EmbFlash and third-party probes | Timing truth, peripherals, power |
 
 **SIM-001** The native port shall pass the full kernel conformance suite.

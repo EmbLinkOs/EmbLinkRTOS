@@ -28,7 +28,7 @@ Exit: every LOCKED and PROPOSED item in 02 and 03 has requirement identifiers, a
 
 ### M1 - First execution on two ports (native + AVR)
 
-Deliverables: `arch/native` and `arch/avr`; kernel init; idle; thread create and start; fixed-priority scheduler with FIFO; context switch; interrupt entry and exit with reschedule-on-exit; tick and tickless timer hook; scheduler lock; conformance suite skeleton running on both; CI with build matrix for GCC and Clang (EmbCC when AVR support lands); footprint tracking.
+Deliverables: `arch/native` and `arch/avr`; kernel init; idle; thread create and start; fixed-priority scheduler with FIFO; context switch; interrupt entry and exit with reschedule-on-exit; tick and tickless timer hook; scheduler lock; conformance suite skeleton running on both; CI with a build matrix of EmbCC, GCC, and Clang on both ports (EmbCC already targets the ATmega328P and the x86-64 host, see 09); footprint tracking.
 
 Exit: the v0.1 §41.3 sequence runs for millions of switches on ATmega328P and on the native port; both pass the same tests; measured switch latency on AVR published with metadata.
 
@@ -91,4 +91,4 @@ Only then does M1 implementation begin.
 | Isolation complexity delays M3 | Partitions scoped to static tables and MPU only; dynamic creation and MMU are FUTURE |
 | Reference model drifts from kernel | Differential tests in CI; semantic changes must touch both in one change |
 | Single-developer bandwidth | Specification order front-loads the parts that are expensive to change; tooling and tests are where external help is used, per v0.1 §1.2 |
-| EmbCC AVR support schedule | GCC is the M1 AVR compiler; EmbCC joins when ready without blocking |
+| EmbCC gaps on embedded targets: no C++, single-instance thread-local storage, no 64-bit atomics on 32-bit targets, no linker scripts on AVR, `const` data in RAM on AVR, Armv8-M stack-limit and TrustZone support unverified or absent | Document 09 lists each gap with the kernel rule that avoids it and the EmbCC issue that would close it; GCC and Clang stay in the matrix so no gap blocks a milestone |
