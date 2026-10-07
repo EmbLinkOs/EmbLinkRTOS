@@ -22,32 +22,32 @@ typedef struct irq_mask {
 
 /* Indexed by vector number; data-space addresses of the mask registers. */
 static EMB_FLASH_CONST irq_mask_t irq_masks[EMB_ARCH_IRQ_COUNT] = {
-    {0u, 0u},       /* 0 RESET */
-    {0x3Du, 0u},    /* 1 INT0: EIMSK */
-    {0x3Du, 1u},    /* 2 INT1 */
-    {0x68u, 0u},    /* 3 PCINT0: PCICR */
-    {0x68u, 1u},    /* 4 PCINT1 */
-    {0x68u, 2u},    /* 5 PCINT2 */
-    {0x60u, 6u},    /* 6 WDT: WDTCSR.WDIE */
-    {0x70u, 1u},    /* 7 TIMER2_COMPA: TIMSK2 */
-    {0x70u, 2u},    /* 8 TIMER2_COMPB */
-    {0x70u, 0u},    /* 9 TIMER2_OVF */
-    {0x6Fu, 5u},    /* 10 TIMER1_CAPT: TIMSK1 */
-    {0x6Fu, 1u},    /* 11 TIMER1_COMPA */
-    {0x6Fu, 2u},    /* 12 TIMER1_COMPB */
-    {0x6Fu, 0u},    /* 13 TIMER1_OVF */
-    {0x6Eu, 1u},    /* 14 TIMER0_COMPA: TIMSK0 */
-    {0x6Eu, 2u},    /* 15 TIMER0_COMPB */
-    {0x6Eu, 0u},    /* 16 TIMER0_OVF */
-    {0x4Cu, 7u},    /* 17 SPI_STC: SPCR.SPIE */
-    {0xC1u, 7u},    /* 18 USART_RX: UCSR0B.RXCIE0 */
-    {0xC1u, 5u},    /* 19 USART_UDRE: UDRIE0 */
-    {0xC1u, 6u},    /* 20 USART_TX: TXCIE0 */
-    {0x7Au, 3u},    /* 21 ADC: ADCSRA.ADIE */
-    {0x3Fu, 3u},    /* 22 EE_READY: EECR.EERIE */
-    {0x50u, 3u},    /* 23 ANALOG_COMP: ACSR.ACIE */
-    {0xBCu, 0u},    /* 24 TWI: TWCR.TWIE */
-    {0x57u, 7u},    /* 25 SPM_READY: SPMCSR.SPMIE */
+    {0u, 0u},    /* 0 RESET */
+    {0x3Du, 0u}, /* 1 INT0: EIMSK */
+    {0x3Du, 1u}, /* 2 INT1 */
+    {0x68u, 0u}, /* 3 PCINT0: PCICR */
+    {0x68u, 1u}, /* 4 PCINT1 */
+    {0x68u, 2u}, /* 5 PCINT2 */
+    {0x60u, 6u}, /* 6 WDT: WDTCSR.WDIE */
+    {0x70u, 1u}, /* 7 TIMER2_COMPA: TIMSK2 */
+    {0x70u, 2u}, /* 8 TIMER2_COMPB */
+    {0x70u, 0u}, /* 9 TIMER2_OVF */
+    {0x6Fu, 5u}, /* 10 TIMER1_CAPT: TIMSK1 */
+    {0x6Fu, 1u}, /* 11 TIMER1_COMPA */
+    {0x6Fu, 2u}, /* 12 TIMER1_COMPB */
+    {0x6Fu, 0u}, /* 13 TIMER1_OVF */
+    {0x6Eu, 1u}, /* 14 TIMER0_COMPA: TIMSK0 */
+    {0x6Eu, 2u}, /* 15 TIMER0_COMPB */
+    {0x6Eu, 0u}, /* 16 TIMER0_OVF */
+    {0x4Cu, 7u}, /* 17 SPI_STC: SPCR.SPIE */
+    {0xC1u, 7u}, /* 18 USART_RX: UCSR0B.RXCIE0 */
+    {0xC1u, 5u}, /* 19 USART_UDRE: UDRIE0 */
+    {0xC1u, 6u}, /* 20 USART_TX: TXCIE0 */
+    {0x7Au, 3u}, /* 21 ADC: ADCSRA.ADIE */
+    {0x3Fu, 3u}, /* 22 EE_READY: EECR.EERIE */
+    {0x50u, 3u}, /* 23 ANALOG_COMP: ACSR.ACIE */
+    {0xBCu, 0u}, /* 24 TWI: TWCR.TWIE */
+    {0x57u, 7u}, /* 25 SPM_READY: SPMCSR.SPMIE */
 };
 
 static volatile uint8_t *mask_reg(emb_irq_t irq, uint8_t *out_bit)
@@ -87,7 +87,7 @@ emb_status_t emb_arch_irq_disable(emb_irq_t irq)
         return (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT) ? EMB_ENOTSUP : EMB_EINVAL;
     }
     key = emb_arch_irq_lock();
-    *reg &= (uint8_t)~(uint8_t)(1u << bit);
+    *reg &= (uint8_t) ~(uint8_t)(1u << bit);
     emb_arch_irq_unlock(key);
     return EMB_OK;
 }
@@ -174,7 +174,8 @@ emb_status_t emb_arch_timer_init(void)
 
 void emb_arch_timer_start_periodic(uint32_t hz)
 {
-    uint32_t counts = ((uint32_t)CONFIG_EMB_AVR_F_CPU / (uint32_t)CONFIG_EMB_AVR_TIMER1_PRESCALER) / hz;
+    uint32_t counts =
+        ((uint32_t)CONFIG_EMB_AVR_F_CPU / (uint32_t)CONFIG_EMB_AVR_TIMER1_PRESCALER) / hz;
     uint8_t cs;
     if (counts == 0u) {
         counts = 1u;

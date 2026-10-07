@@ -15,11 +15,12 @@ struct embk_thread *embn_avr_current;
 /* Frame bytes from the saved stack pointer upward: r31 .. r2, r1, SREG, r0, PC hi, PC lo. */
 #define FRAME_BYTES 35u
 
-void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size, emb_thread_entry_t entry,
-                           void *arg, bool privileged)
+void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size,
+                           emb_thread_entry_t entry, void *arg, bool privileged)
 {
     uint8_t *sp = (uint8_t *)stack_base + stack_size - 1u; /* the first free byte is the top */
-    uint16_t launch = (uint16_t)(uintptr_t)&embk_thread_launch; /* MISRA Dev CS-12: 11.1, the one site */
+    uint16_t launch =
+        (uint16_t)(uintptr_t)&embk_thread_launch; /* MISRA Dev CS-12: 11.1, the one site */
     uint16_t a_entry = (uint16_t)(uintptr_t)entry;
     uint16_t a_arg = (uint16_t)(uintptr_t)arg;
     unsigned r;
@@ -59,18 +60,19 @@ void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size
 EMB_NAKED void emb_arch_switch_to(embk_thread_t *next)
 {
     (void)next;
-    __asm__ __volatile__("push r0\n\t"
-                         "in r0, __SREG__\n\t"
-                         "cli\n\t"
-                         "push r0\n\t"
-                         "push r1\n\t"
-                         "clr r1\n\t"
-                         "push r2\n\tpush r3\n\tpush r4\n\tpush r5\n\tpush r6\n\tpush r7\n\tpush r8\n\tpush r9\n\t"
-                         "push r10\n\tpush r11\n\tpush r12\n\tpush r13\n\tpush r14\n\tpush r15\n\tpush r16\n\t"
-                         "push r17\n\tpush r18\n\tpush r19\n\tpush r20\n\tpush r21\n\tpush r22\n\tpush r23\n\t"
-                         "push r24\n\tpush r25\n\tpush r26\n\tpush r27\n\tpush r28\n\tpush r29\n\tpush r30\n\t"
-                         "push r31\n\t" EMBN_AVR_EXCHANGE EMBN_AVR_RESTORE ::
-                             : "memory");
+    __asm__ __volatile__(
+        "push r0\n\t"
+        "in r0, __SREG__\n\t"
+        "cli\n\t"
+        "push r0\n\t"
+        "push r1\n\t"
+        "clr r1\n\t"
+        "push r2\n\tpush r3\n\tpush r4\n\tpush r5\n\tpush r6\n\tpush r7\n\tpush r8\n\tpush r9\n\t"
+        "push r10\n\tpush r11\n\tpush r12\n\tpush r13\n\tpush r14\n\tpush r15\n\tpush r16\n\t"
+        "push r17\n\tpush r18\n\tpush r19\n\tpush r20\n\tpush r21\n\tpush r22\n\tpush r23\n\t"
+        "push r24\n\tpush r25\n\tpush r26\n\tpush r27\n\tpush r28\n\tpush r29\n\tpush r30\n\t"
+        "push r31\n\t" EMBN_AVR_EXCHANGE EMBN_AVR_RESTORE ::
+            : "memory");
 }
 
 /* The exiting thread's last switch: no save (SPEC-008 §5 step 5 is immediate on this port). */

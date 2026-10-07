@@ -1,14 +1,14 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* arduino_uno board init: USART0 console at 115200 8N1, PB5 as output (SPEC-012 §11). */
+#include <avr/io.h>
 #include <emb_board.h>
 #include <hw_config.h>
 
-#include <avr/io.h>
-
 void emb_board_init(void)
 {
-    uint16_t ubrr = (uint16_t)(((EMB_HW_F_CPU / 8UL) / EMB_HW_CONSOLE_BAUD) - 1UL); /* double speed */
+    uint16_t ubrr =
+        (uint16_t)(((EMB_HW_F_CPU / 8UL) / EMB_HW_CONSOLE_BAUD) - 1UL); /* double speed */
     UCSR0A = (uint8_t)(1u << U2X0);
     UBRR0H = (uint8_t)(ubrr >> 8);
     UBRR0L = (uint8_t)(ubrr & 0xFFu);

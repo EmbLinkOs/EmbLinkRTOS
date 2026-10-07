@@ -327,5 +327,5 @@ EMB_TEST(thread_stack_info_reports_size)
     size_t hw = 1u;
     EMB_TEST_REQ("KRN-MEM-009");
     EMB_ASSERT_OK(emb_thread_stack_info(emb_thread_self(), &size, &hw));
-    EMB_ASSERT_EQ(size, EMB_TEST_STACK_SIZE);
+    EMB_ASSERT_EQ(size, EMB_TEST_RUNNER_STACK); /* the runner's own stack */
 }

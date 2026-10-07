@@ -34,7 +34,7 @@ The manifest budgets 37 bytes per context (`stack.context_frame`), two more than
 
 ## Interrupts and critical sections
 
-- `emb_arch_irq_lock()`: `in r, SREG; cli`; the key is the saved SREG. `unlock`: `out SREG, key`. Both always-inline with a `"memory"` clobber.
+- `emb_arch_irq_lock()`: `in r, SREG; cli`; the key is the saved SREG. `unlock`: `sbrc key, 7; sei` (the I bit is all that matters across a call, and `sei` makes QEMU service a pending interrupt at the unlock as the hardware does; amendment A14). Both always-inline with a `"memory"` clobber.
 - Kernel-aware handlers run with I clear (no nesting); `CONFIG_EMB_AVR_ISR_STACK_RESERVE` (64 bytes) is the per-thread reserve for the 35-byte frame plus the handler's C frame.
 - The mask table (`arch/avr/avr_port.c`) maps each of the 26 vectors to its interrupt-enable register and bit; `emb_irq_set_level` is a no-op (vector order is the priority), `emb_irq_pend` is `EMB_ENOTSUP`, and `emb_irq_clear_pending` covers the external, pin-change and timer flags.
 
@@ -54,8 +54,8 @@ Measured with `tools/footprint/footprint.py` from the link map; the kernel total
 
 | build | kernel text | kernel static RAM | thread control block | R-003 target |
 |---|---:|---:|---:|---|
-| checked | 5364 | 85 | 43 | — |
-| release | 4577 | 84 | 42 | 4096 / 64 / 32 (T1, T2) |
+| checked | 5396 | 85 | 43 | — |
+| release | 4609 | 84 | 42 | 4096 / 64 / 32 (T1, T2) |
 
 The targets are not yet met. Candidates recorded for the footprint work: the idle context's full control block (43 bytes of the 85), the 64-bit conversion helpers linked for `EMB_MS()` at run time, the per-call context checks, and the control-block fields that the tiny profile does not need (`stack_size`, `exit_code` separate from `wake_data`, the object header padding). The CI gate (`tools/footprint/thresholds-avr-uno*.json`) is the baseline plus 10 percent until the targets are reached.
 

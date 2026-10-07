@@ -39,8 +39,8 @@
 #define EMB_VECTOR_TWI          24
 #define EMB_VECTOR_SPM_READY    25
 
-#define EMB_HW_SRAM_BASE 0x0100u
-#define EMB_HW_SRAM_SIZE 2048u
+#define EMB_HW_SRAM_BASE      0x0100u
+#define EMB_HW_SRAM_SIZE      2048u
 #define EMB_HW_FLASH_APP_SIZE 32256u
 
 #define EMB_HW_CONSOLE_BAUD 115200UL
