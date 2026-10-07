@@ -1,6 +1,6 @@
 # SPEC-002 - Interrupt, Exception, and Critical-Section Model
 
-**Status:** Draft for review. Specification work item 2 of the roadmap (07 §3).
+**Status:** Accepted 2026-10-07 by the project owner, with the defaults of §15. Specification work item 2 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/KRN-IRQ.md` (KRN-IRQ-001 to KRN-IRQ-036; v0.1 identifiers restated, new ones from 017).
 **Builds on:** SPEC-001 (contexts, misuse behavior, annotations); 03 §1.2, §2.4 (per-CPU state), §10 (faults); v0.1 §3.7, §6, §4.5.
 **Toolchain constraints applied:** document 09 §5 and §8 (naked functions, `.S` trap entry on RISC-V, `signal` handlers on AVR, PRIMASK and BASEPRI vocabulary on Cortex-M).
@@ -316,9 +316,9 @@ Each raises a kernel fault with the class from SPEC-001 §5.3 and the location, 
 
 The per-CPU context state machine of §2 and the preemption-point rules of §6 are the first module of the executable reference model (ADR-013): a small state machine with operations `irq_enter`, `irq_exit`, `irq_lock`, `irq_unlock`, `sched_lock`, `sched_unlock`, `make_ready`, `block`, `yield`, and an oracle that says whether a switch may occur after each operation. Work item 4 (wait and wake protocol) builds on it. The model is written when work item 4 starts, so that both are explored together.
 
-## 15. Open points for review
+## 15. Decisions taken at acceptance (2026-10-07)
 
-1. Timer interrupt at the highest kernel-aware level by default (chosen for timeout jitter), versus the lowest (FreeRTOS's habit, simpler reasoning about tick preemption). Recommendation: highest.
-2. `EMB_ISR_RAW` on AVR saves a full context when the handler calls nothing: accepted cost, or should AVR offer only `EMB_ISR` to remove the undetectable-misuse case? Recommendation: keep both; the raw form is what makes short AVR handlers affordable.
-3. RISC-V nesting as an option versus always off in 1.0. Recommendation: option, off by default, enabled for CLIC-equipped parts.
-4. Whether `emb_irq_set_level()` is allowed at runtime from thread context or only pre-kernel. Recommendation: both, since drivers suspend and resume devices at runtime.
+1. The timer interrupt runs at the highest kernel-aware level by default; the level is configurable per board.
+2. AVR keeps both `EMB_ISR` (full-context, may call the kernel) and `EMB_ISR_RAW` (plain `signal` handler, may not); the undetectable-misuse case on AVR is documented.
+3. RISC-V kernel-aware interrupt nesting is a configuration option, off by default, enabled for CLIC-equipped parts.
+4. `emb_irq_set_level()` is allowed from thread context at runtime as well as pre-kernel.

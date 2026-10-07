@@ -188,7 +188,7 @@ block_on(object, reason, timeout):
 ### 4.1 Representation (PROPOSED)
 
 **KRN-TIM-008** Kernel monotonic time shall be a 64-bit tick count in the `base` and larger profiles; the `tiny` profile may select a 32-bit count with wrap-safe comparison.
-**KRN-TIM-009** The tick unit shall be a configuration constant (nanoseconds per tick); in tickless mode it is the hardware timer's native resolution.
+**KRN-TIM-009** The tick unit shall be the configuration constant `CONFIG_EMB_TICK_NS`; in tickless mode the achievable resolution is bounded by the hardware timer period, and the unit of the API stays the configured one (SPEC-003 §4).
 **KRN-TIM-010** Public time types shall be distinct: `emb_instant_t` (absolute), `emb_duration_t` (relative), `emb_timeout_t` (relative or sentinel `EMB_NO_WAIT` / `EMB_WAIT_FOREVER`). Mixing them is a compile error where the language allows.
 **KRN-TIM-011** Absolute-deadline variants shall exist for sleep and for every blocking operation (`*_until`), so that periodic work does not accumulate drift.
 **KRN-TIM-012** A high-resolution cycle counter API shall exist for measurement where hardware provides one; it is not the scheduling clock.
@@ -196,7 +196,7 @@ block_on(object, reason, timeout):
 
 ### 4.2 Timeout structure (PROPOSED default, ADR-010)
 
-Default is a sorted intrusive delta list: O(n) insert, O(1) expiry check, zero memory beyond the intrusive node. The interface permits a timing wheel for targets with hundreds of timers. The decision per profile is made by measurement, not opinion.
+Default is a sorted intrusive list ordered by absolute deadline, wrap-safe in the 32-bit profile: O(n) insert, O(1) removal, O(1) expiry check, zero memory beyond the intrusive node. The interface permits a timing wheel for targets with hundreds of timers. The decision per profile is made by measurement, not opinion.
 
 ### 4.3 Software timers (PROPOSED)
 

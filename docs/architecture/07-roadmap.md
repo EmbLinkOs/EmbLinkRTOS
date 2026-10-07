@@ -65,8 +65,8 @@ SMP on the RP2350 (global structure first, ADR-012); AMP ports, with the RP2350 
 Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and, where applicable, reference-model code.
 
 1. API conventions, status codes, time types, context classes (05 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-001-api-conventions.md` and `docs/requirements/API.md` (API-001 to API-032).
-2. Interrupt, exception, and critical-section specification, including the kernel-independent interrupt class. **Drafted 2026-10-07:** `docs/specs/SPEC-002-interrupts-and-critical-sections.md` and `docs/requirements/KRN-IRQ.md`, awaiting review.
-3. Time source, timeout, and software timer specification (03 §4).
+2. Interrupt, exception, and critical-section specification, including the kernel-independent interrupt class. **Accepted 2026-10-07:** `docs/specs/SPEC-002-interrupts-and-critical-sections.md` and `docs/requirements/KRN-IRQ.md`.
+3. Time source, timeout, and software timer specification (03 §4). **Drafted 2026-10-07:** `docs/specs/SPEC-003-time-timeouts-and-timers.md` and `docs/requirements/KRN-TIM.md`, awaiting review.
 4. Wait and wake protocol, including the wake race, modeled and explored exhaustively (03 §3).
 5. Mutex, semaphore, event, condition variable semantics and the inheritance algorithm (03 §5).
 6. Notifications and work queues (03 §6.1, §6.2).

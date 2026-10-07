@@ -112,11 +112,11 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Status.** Proposed.
 
-## ADR-010 Timeout structure: sorted intrusive delta list as default, wheel behind the same interface
+## ADR-010 Timeout structure: sorted intrusive deadline list as default, wheel behind the same interface
 
 **Context.** Open in v0.1.
 
-**Decision.** Default is a sorted intrusive list (O(n) insert, O(1) expiry, no extra memory). The timeout interface allows a hierarchical timing wheel per profile when measurements on a target with many timers justify it.
+**Decision.** Default is a doubly linked intrusive list ordered by absolute deadline (O(n) insert, O(1) removal and expiry check, no extra memory); the 32-bit tick profile compares deadlines wrap-safely instead of storing deltas. The timeout interface allows a hierarchical timing wheel per profile when measurements on a target with many timers justify it.
 
 **Alternatives.** Wheel everywhere (memory on tiny targets); heap (allocation or fixed array, less cache friendly for small n).
 
