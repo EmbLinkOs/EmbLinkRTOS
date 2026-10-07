@@ -42,7 +42,7 @@ Rules:
 | KRN-RQ, KRN-TCB | Ready queues and thread control block | pending | v0.1 §5 |
 | KRN-IRQ | Interrupts, exceptions, critical sections, scheduler lock, preemption points | [`KRN-IRQ.md`](KRN-IRQ.md) | Complete; Accepted 2026-10-07 (work item 2). v0.1 identifiers restated |
 | KRN-MM | Memory ordering | pending | 03 §1.3 |
-| KRN-TIM | Kernel clock, clock modes, timeouts, sleep, software timers, cycle counter, wall clock | [`KRN-TIM.md`](KRN-TIM.md) | Complete; draft for review (work item 3). v0.1 and 03 §4 identifiers restated |
+| KRN-TIM | Kernel clock, clock modes, timeouts, sleep, software timers, cycle counter, wall clock | [`KRN-TIM.md`](KRN-TIM.md) | Complete; Accepted 2026-10-07 (work item 3). v0.1 and 03 §4 identifiers restated |
 | KRN-WAIT | Wait and wake protocol | pending | 03 §3 (work item 4) |
 | KRN-SYNC | Synchronization | pending | 03 §5, v0.1 §8 (work item 5) |
 | KRN-NOTIF, KRN-WQ | Notifications and work queues | pending | 03 §6 (work item 6) |

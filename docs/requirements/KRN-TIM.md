@@ -121,132 +121,132 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 ### KRN-TIM-017  Two clock modes, one semantics
 **Statement.** The kernel shall support a periodic-tick mode and a tickless mode selected at configuration time. Every time, timeout, sleep, and timer requirement shall hold identically in both modes, and the conformance suite shall run in both.
 **Rationale.** A mode that changes behavior is a fork in disguise.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: conformance suite in both modes on native and on an emulated Cortex-M.
 **Trace.** SPEC-003 §4
 
 ### KRN-TIM-018  Next-deadline computation
 **Statement.** In tickless mode the kernel shall program the timer source for the earliest of: the earliest armed timeout, the earliest software timer, the running thread's quantum expiry when time slicing applies, the next budget replenishment when temporal protection is enabled, and `now` plus the port's maximum interval. The computation shall be O(1) given the ordered timeout structure.
 **Rationale.** Missing an input means a late wake; an expensive computation means it cannot run on every change.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: each input is the earliest in turn and the observed wake matches; Analysis: no loop over all timers in the reprogram path.
 **Trace.** SPEC-003 §4.2
 
 ### KRN-TIM-019  Clock update on wake
 **Statement.** In tickless mode, on any interrupt that ends idle, the kernel shall update the clock from the hardware counter and process expired deadlines before any scheduling decision is made.
 **Rationale.** A wake from a non-timer interrupt must still see correct time and wake threads whose timeouts have passed.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: a GPIO-class interrupt wakes the idle core after a timeout deadline has passed; the timed-out thread runs before the interrupt's own woken thread when its priority is higher.
 **Trace.** SPEC-003 §4.2, §4.3
 
 ### KRN-TIM-020  Architecture timer contract
 **Statement.** Each port shall implement `emb_arch_timer_init`, `emb_arch_timer_now_raw`, `emb_arch_timer_set_deadline_raw`, `emb_arch_timer_cancel`, `emb_arch_timer_hz`, and `emb_arch_timer_max_ticks`, and its timer ISR shall call `embk_time_timer_isr`; tickless ports shall call `embk_time_on_wake` at the outermost exit of any interrupt that ended idle. Raw-to-tick conversion shall be exact when the periods divide, and otherwise documented with a bounded, non-accumulating error.
 **Rationale.** One contract for every timer source keeps the kernel's time code portable (KRN-IRQ-015 for timers).
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: port conformance for the timer contract on each architecture; Analysis: configuration-time divisibility check.
 **Trace.** SPEC-003 §4.3
 
 ### KRN-TIM-021  Timeout structure
 **Statement.** Armed timeouts and timers shall be kept in an intrusive structure with O(1) removal, O(1) access to the earliest deadline, and expiry in deadline order with arming order as the tie-break. The default shall be a doubly linked list ordered by absolute deadline; an alternative structure may be selected per profile behind the same interface only on the basis of measurements.
 **Rationale.** ADR-010; intrusive nodes satisfy KRN-TCB-007 and KRN-RQ-004.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: ordering and tie-break tests; Demonstration: insertion cost measured versus armed count per reference board.
 **Trace.** SPEC-003 §5.1; ADR-010
 
 ### KRN-TIM-022  32-bit profile timeout range
 **Statement.** In the 32-bit tick profile, a finite timeout shall be clamped to `2^31 - 1` ticks and a `_until` deadline more than `2^31 - 1` ticks in the future shall be rejected with `EMB_EOVERFLOW`; deadline comparisons shall use signed wrap-safe differences.
 **Rationale.** This is the condition under which wrap-safe comparison is correct (KRN-TIM-003).
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: boundary tests at `2^31 - 1` and `2^31` in the 32-bit profile.
 **Trace.** SPEC-003 §5.2
 
 ### KRN-TIM-023  Deadline computation
 **Statement.** Arming with a duration shall compute the deadline as `now + duration` saturating at `EMB_TICK_MAX`, where a saturated deadline is forever; a deadline at or before `now` shall take the `EMB_NO_WAIT` path.
 **Rationale.** API-024 at the kernel boundary.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: saturation and past-deadline cases for every blocking primitive.
 **Trace.** SPEC-003 §5.2; API-024
 
 ### KRN-TIM-024  Sleep semantics
 **Statement.** `emb_thread_sleep` and `emb_thread_sleep_until` shall block the caller with wait reason `SLEEP` until the deadline, returning `EMB_OK` on expiry or `EMB_ECANCELED` if canceled. A zero duration or a past deadline shall behave exactly as `emb_thread_yield`.
 **Rationale.** Sleep is a wait with no object; zero sleep as yield is the common expectation and gives equal-priority threads a turn.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: conformance tests for sleep, sleep_until, zero sleep ordering among equal-priority threads, and cancellation.
 **Trace.** SPEC-003 §6; KRN-THR-009; KRN-SCH-008
 
 ### KRN-TIM-025  Software timer API
 **Statement.** The kernel shall provide `emb_timer_init`, `emb_timer_destroy`, `emb_timer_start`, `emb_timer_start_at`, `emb_timer_start_periodic`, `emb_timer_stop`, `emb_timer_stop_sync`, `emb_timer_restart`, `emb_timer_is_running`, `emb_timer_remaining`, and `emb_timer_get_counts` with the context classes and bounds of SPEC-003 §7.2. Start, stop, restart, and the queries shall be ISR-safe; `stop_sync` shall be thread-only and blocking with a timeout.
 **Rationale.** Timers are driven from ISRs as often as from threads; teardown needs a synchronous stop.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: API conformance including each function from ISR context where allowed.
 **Trace.** SPEC-003 §7.2
 
 ### KRN-TIM-026  Expiry processing
 **Statement.** At expiry, a work-queue timer shall submit its embedded work item to its configured queue in O(1) without calling application code; an `ISR_CONTEXT` timer shall call its callback directly in the expiry path. Expiry shall never run a work-queue callback in interrupt context.
 **Rationale.** KRN-TIM-013 and 014 at the mechanism level; the expiry path must stay bounded regardless of callback behavior.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: callback context tests; Analysis: expiry path `@time` and stack usage.
 **Trace.** SPEC-003 §7.3, §7.4
 
 ### KRN-TIM-027  Periodic re-arm and overrun accounting
 **Statement.** A periodic timer shall be re-armed from its previous deadline before its callback is run; whole periods already past at expiry shall be skipped and counted as overruns; an expiry whose work item is still queued from the previous expiry shall coalesce and count as an overrun. Expiry and overrun counts shall be readable and a trace point shall record each overrun.
 **Rationale.** No drift (KRN-TIM-015), no unbounded backlog, and visibility when the system cannot keep up.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: overload and sleep-past-several-periods scenarios on native; counts and trace match the model.
 **Trace.** SPEC-003 §7.4
 
 ### KRN-TIM-028  Timer lifecycle
 **Statement.** Destroying a timer whose callback is pending or running shall be misuse: a kernel fault in checked builds and `EMB_EBUSY` in release builds. `emb_timer_stop` shall report whether the callback was idle, pending, or running; `emb_timer_stop_sync` from the timer's own callback shall be misuse.
 **Rationale.** Use-after-destroy in a work queue is otherwise undetectable.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: misuse suite for timers in both build kinds.
 **Trace.** SPEC-003 §7.5; KRN-OBJ-001
 
 ### KRN-TIM-029  Time slicing quantum as a deadline
 **Statement.** When time slicing is enabled for the running thread's priority level, the kernel shall track its quantum expiry as a per-CPU deadline included in the next-deadline computation, and at expiry shall move the thread to the tail of its class only if another READY thread exists at the same effective priority.
 **Rationale.** Round-robin without a timer object per thread, and v0.1 §5.8's rule that an uncontested quantum does not rotate.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: round-robin ordering tests in both clock modes; uncontested quantum does not cause a switch.
 **Trace.** SPEC-003 §8; KRN-SCH-007, KRN-SCH-026, KRN-SCH-037
 
 ### KRN-TIM-030  Cycle counter API
 **Statement.** The kernel shall provide `emb_cycles_now`, `emb_cycles_hz`, and `emb_cycles_to_ns`, O(1) and callable from any context, with a resolution of at least 1 MHz where the hardware allows, sourced per architecture as documented.
 **Rationale.** Benchmarks and critical-section statistics need a cheap fine-grained counter (KRN-RT-004 to 006).
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: monotonic within a non-sleeping interval; frequency matches the documented source within tolerance on HIL.
 **Trace.** SPEC-003 §9
 
 ### KRN-TIM-031  Wall clock is an offset
 **Statement.** When `CONFIG_EMB_WALLCLOCK` is enabled, wall-clock time shall be the kernel monotonic clock plus an offset; setting or adjusting it shall change the offset only and shall not move any timeout, timer, or deadline. No kernel path shall read the wall clock.
 **Rationale.** KRN-TIM-002 made concrete.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: pending deadlines unchanged across set and adjust; Analysis: no reference to wall-clock symbols from `kernel/` time paths.
 **Trace.** SPEC-003 §10
 
 ### KRN-TIM-032  Clock read mechanism
 **Statement.** `emb_time_now` shall read a multi-word clock with a sequence lock on architectures whose word is at least 32 bits, and with a critical section on AVR; it shall be O(1), callable from any context, and shall never mask interrupts on the sequence-lock architectures.
 **Rationale.** Refines KRN-TIM-016 into the two concrete mechanisms EmbCC's atomic support allows (09 §6).
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: clock read torture test under continuous timer updates on each architecture; Analysis: no masking instruction in the sequence-lock read path.
 **Trace.** SPEC-003 §3.1; KRN-TIM-016
 
 ### KRN-TIM-033  Bounded timer interrupt
 **Statement.** The timer interrupt body shall be bounded to updating the clock, expiring due deadlines, charging the quantum, setting the reschedule flag, and reprogramming the next deadline, and shall emit the trace points `tick`, `timeout_expire`, and `timer_expire` when tracing is enabled.
 **Rationale.** KRN-IRQ-031 at the time subsystem's side.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Analysis: handler stack usage and cycle budget; Demonstration: timer jitter benchmark.
 **Trace.** SPEC-003 §4.1, §5.3; KRN-IRQ-031
 
 ### KRN-TIM-034  Port time documentation
 **Statement.** Each architecture port's documentation shall state its timer source, counter width, frequency and the exact tick values it supports, maximum interval, tickless capability and the sleep states in which the counter runs, wake latency from each state, and cycle counter source.
 **Rationale.** Tickless and power decisions depend on facts only the port knows.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Inspection: `docs/ports/<arch>.md` time section against this list.
 **Trace.** SPEC-003 §11, §13
 
 ### KRN-TIM-035  Checked-build detection for time
 **Statement.** Checked builds shall detect and raise a kernel fault for arming an already armed timeout node, a blocking call from an `ISR_CONTEXT` timer callback, destroying a timer with a pending or running callback, and `emb_timer_stop_sync` from the timer's own callback; a `_until` deadline out of the 32-bit profile's range shall return `EMB_EOVERFLOW` in both build kinds.
 **Rationale.** These are the time-related misuses that corrupt state silently in release builds.
-**Status.** Proposed
+**Status.** Accepted 2026-10-07
 **Verification.** Test: `tests/conformance/misuse/time/` on the native port in both build kinds.
 **Trace.** SPEC-003 §12; API-015

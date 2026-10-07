@@ -1,6 +1,6 @@
 # SPEC-003 - Time Source, Timeouts, and Software Timers
 
-**Status:** Draft for review. Specification work item 3 of the roadmap (07 §3).
+**Status:** Accepted 2026-10-07 by the project owner, with the defaults of §15. Specification work item 3 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/KRN-TIM.md` (KRN-TIM-001 to 016 restated; new from 017).
 **Builds on:** SPEC-001 §7 (time types, conversions, blocking bounds); SPEC-002 (timer interrupt level, critical sections, preemption points); 03 §4; v0.1 §7; ADR-010, ADR-017, ADR-019.
 **Toolchain constraints applied:** 09 §6 (no 64-bit atomics on 32-bit targets; byte atomics only on AVR), 09 §7 (division by constant is a library call on AVR).
@@ -281,9 +281,9 @@ The macros and rules of SPEC-001 §7.3 apply. In addition:
 
 The timeout structure, the expiry ordering, periodic re-arm with overrun counting, and the next-deadline computation are modeled alongside the wait protocol in work item 4. The model exposes `advance_to(deadline)` and `fire_timer()` operations and an oracle for the set and order of expired nodes; differential tests then compare the native port's behavior against it under randomized arm, disarm, start, stop, and advance sequences.
 
-## 15. Open points for review
+## 15. Decisions taken at acceptance (2026-10-07)
 
-1. Zero-duration sleep behaves as yield (as in Zephyr). The alternative is to return immediately without yielding. Recommendation: yield.
-2. Cortex-M tickless default source: a SoC 32-bit timer declared in the hardware description, with `SysTick` as the fallback. Recommendation: SoC timer, because `SysTick` stops in deep sleep and has 24 bits.
-3. The 32-bit profile's maximum finite timeout of `2^31 - 1` ticks (24.8 days at 1 ms), with longer `_until` deadlines rejected as `EMB_EOVERFLOW`. Recommendation: accept; applications needing longer waits chain them.
-4. `emb_timer_stop_sync` in 1.0 versus deferring it. Recommendation: include; without it there is no correct way to destroy a timer with a running callback.
+1. A zero-duration sleep or a past deadline behaves exactly as `emb_thread_yield()`.
+2. Cortex-M tickless uses a SoC 32-bit timer declared in the hardware description; `SysTick` is the fallback only.
+3. The 32-bit tick profile caps a finite timeout at `2^31 - 1` ticks and rejects longer `_until` deadlines with `EMB_EOVERFLOW`.
+4. `emb_timer_stop_sync` is part of 1.0.
