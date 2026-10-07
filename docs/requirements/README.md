@@ -48,7 +48,8 @@ Rules:
 | KRN-NOTIF | Notifications and binding | [`KRN-NOTIF.md`](KRN-NOTIF.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.1 identifiers restated |
 | KRN-WQ | Work queues and delayed work | [`KRN-WQ.md`](KRN-WQ.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.2 identifiers restated |
 | KRN-IPC | Inter-thread communication | [`KRN-IPC.md`](KRN-IPC.md) | Complete; Accepted 2026-10-07 (work item 6b). v0.1 §9.4 and 03 §6.5, §6.6 identifiers restated |
-| KRN-OBJ, KRN-CAP | Objects and capabilities | pending | 03 §7 (work item 8) |
+| KRN-OBJ | Objects, lifecycle, storage | [`KRN-OBJ.md`](KRN-OBJ.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.4 identifiers restated |
+| KRN-CAP | Handles and capabilities | [`KRN-CAP.md`](KRN-CAP.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.2 identifiers restated |
 | KRN-PART | Partitions | pending | 03 §8 (work item 9) |
 | KRN-MEM | Memory | pending | 03 §9, v0.1 §11 |
 | KRN-TP | Temporal protection | pending | 03 §2.3 |

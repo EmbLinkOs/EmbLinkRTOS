@@ -76,7 +76,7 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 
    6b. Inter-thread communication: message queues, pipes and streams, buffer pools with ownership transfer, ports outline (03 §6.3 to §6.6). Added because M2 delivers message queues and the original list had no item for them. **Accepted 2026-10-07:** `docs/specs/SPEC-007-inter-thread-communication.md`, `docs/requirements/KRN-IPC.md`.
 7. Thread lifecycle: start, suspend, join, detach, cancel, destroy (03 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-008-thread-lifecycle.md`, `docs/requirements/KRN-THR.md`; start, join, and exit codes in the reference model.
-8. Object, capability, and storage generation (03 §7).
+8. Object, capability, and storage generation (03 §7). **Accepted 2026-10-07:** `docs/specs/SPEC-009-objects-capabilities-and-storage.md`, `docs/requirements/KRN-OBJ.md`, `docs/requirements/KRN-CAP.md`.
 9. Partition model and syscall boundary, scoped to what M3 implements (03 §8).
 10. Architecture-port contract in enough detail to implement native and AVR (02, 04 §9).
 11. ATmega328P startup, interrupt, timer, and context-frame specification.

@@ -318,7 +318,7 @@ A **Port** is a message endpoint usable across partition boundaries (with kernel
 
 ## 7. Kernel objects and capabilities
 
-### 7.1 Object model (LOCKED concept, PROPOSED detail)
+### 7.1 Object model (LOCKED concept; detail specified in `docs/specs/SPEC-009-objects-capabilities-and-storage.md`)
 
 ```
 kernel_object header (present in every object):
@@ -336,7 +336,7 @@ The public handle is a capability: `(object reference, rights)`. Its representat
 | Profile | Representation | Validation |
 |---|---|---|
 | tiny | pointer | none (type tag in checked builds) |
-| base | pointer plus generation in a tagged word | generation check on use (optional) |
+| base | pointer (default), or a registry index plus 16-bit slot generation with `CONFIG_EMB_HANDLE_MODEL=INDEXED` (SPEC-009 §3; tagged pointers were rejected because no address bits are portably free) | type and lifecycle in checked builds; generation check with INDEXED |
 | isolated, multicore | index into the calling partition's capability table | table lookup, type check, rights check, generation check at the syscall boundary |
 
 Rights are object-type specific bit masks (for example for a queue: `SEND`, `RECEIVE`, `DESTROY`, `GRANT`). A capability may be **derived** with fewer rights and **granted** to another partition through a port or at image build time. Revocation is by generation bump on the object.
