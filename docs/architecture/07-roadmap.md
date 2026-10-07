@@ -78,9 +78,9 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 7. Thread lifecycle: start, suspend, join, detach, cancel, destroy (03 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-008-thread-lifecycle.md`, `docs/requirements/KRN-THR.md`; start, join, and exit codes in the reference model.
 8. Object, capability, and storage generation (03 §7). **Accepted 2026-10-07:** `docs/specs/SPEC-009-objects-capabilities-and-storage.md`, `docs/requirements/KRN-OBJ.md`, `docs/requirements/KRN-CAP.md`.
 9. Partition model and syscall boundary, scoped to what M3 implements (03 §8). **Accepted 2026-10-07:** `docs/specs/SPEC-010-partitions-and-syscall-boundary.md`, `docs/requirements/KRN-PART.md`.
-10. Architecture-port contract in enough detail to implement native and AVR (02, 04 §9).
-11. ATmega328P startup, interrupt, timer, and context-frame specification.
-12. Native port design: host gate, virtual time, interrupt injection.
+10. Architecture-port contract in enough detail to implement native and AVR (02, 04 §9). **Accepted 2026-10-07:** `docs/specs/SPEC-011-architecture-port-contract.md`, `docs/requirements/PORT.md`.
+11. ATmega328P startup, interrupt, timer, and context-frame specification. **Accepted 2026-10-07:** `docs/specs/SPEC-012-atmega328p-port.md`, `docs/requirements/ARCH-AVR.md`.
+12. Native port design: host gate, virtual time, interrupt injection. **Accepted 2026-10-07:** `docs/specs/SPEC-013-native-port.md`, `docs/requirements/SIM.md`.
 13. Hardware description schema v0 and generator outputs (04 §1).
 14. Observability formats: log record, trace event set, crash record, debug descriptor (04 §7).
 

@@ -61,8 +61,9 @@ Rules:
 | BOOT | Boot, images, update | pending | 04 §5 |
 | SEC | Security | pending | 04 §6, v0.1 §17 |
 | OBS | Observability | pending | 04 §7 (work item 14) |
-| SIM | Simulation | pending | 04 §9 |
-| PORT | Portability and ABI | pending | v0.1 §21.5, 02 |
+| SIM | Simulation and the native port | [`SIM.md`](SIM.md) | Complete; Accepted 2026-10-07 (work item 12). 04 §9 identifiers restated |
+| PORT | Compiler portability (PORT-ABI) and the architecture port contract (PORT) | [`PORT.md`](PORT.md) | Complete; Accepted 2026-10-07 (work item 10). v0.1 §21.5 identifiers restated |
+| ARCH-AVR | ATmega328P port | [`ARCH-AVR.md`](ARCH-AVR.md) | Complete; Accepted 2026-10-07 (work item 11). New group |
 | BLD | Configuration and build | pending | 05 §2 |
 | TEST | Verification | pending | 05 §4, v0.1 §28 |
 | REL, SUP | Release and support | pending | 05 §7, §8 |
