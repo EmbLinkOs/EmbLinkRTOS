@@ -119,7 +119,7 @@ Eight-byte atomics on 32-bit targets, and anything wider than one byte on AVR, a
 | EMBX | EmbLinkOS's native, capability-carrying executable format, written by `embld --embx --cap NAME` from the same linked layout as the ELF | Design input for partitions: the per-partition manifest of granted capabilities (03 §8) should use EmbLinkOS's capability vocabulary where the concepts coincide, so tooling can be shared; MCU boot images stay MCUboot-compatible (ADR-008) |
 | QEMU harnesses | `lm3s6965evb`, `mps2-an386`, `mps2-an500`, `mps2-an505`, micro:bit (Armv6-M), RISC-V `virt`, AVR, MIPS `malta`, with semihosting exit | Added to the CI emulation layer alongside Renode (SIM-002) |
 
-EmbFlash does not exist in the EmbCC repository; its status is still open (Q19).
+EmbFlash is not developed yet (confirmed by the project owner, 2026-10-07). Until it exists, flashing uses OpenOCD or pyOCD for Cortex-M and RISC-V debug probes, `picotool` or UF2 drag-and-drop for the RP2350, and `avrdude` for the Arduino Uno class board. The `emb` CLI (BLD-005) puts them behind one `emb flash` command, so EmbFlash can replace them later without changing anyone's workflow or the HIL runner.
 
 ## 10. Gaps to track in EmbCC
 

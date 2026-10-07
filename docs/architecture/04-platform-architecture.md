@@ -262,7 +262,7 @@ Three complementary layers, all in CI:
 |---|---|---|
 | Native port | `arch/native` | Kernel semantics, sanitizers, fuzzing, reference-model differential tests; runs in seconds |
 | Instruction-level emulation | Renode (preferred for MCU peripheral models), QEMU (including EmbCC's own harness boards: `lm3s6965evb`, `mps2-an386`, `mps2-an500`, `mps2-an505`, micro:bit, RISC-V `virt`, AVR) | Real arch port code, real interrupt controllers, multi-node and multicore scenarios without hardware |
-| Hardware-in-the-loop | Real boards through EmbFlash and third-party probes | Timing truth, peripherals, power |
+| Hardware-in-the-loop | Real boards through third-party probes and flashers (OpenOCD, pyOCD, `picotool`, `avrdude`) behind the `emb` CLI; EmbFlash replaces them behind the same command once it exists | Timing truth, peripherals, power |
 
 **SIM-001** The native port shall pass the full kernel conformance suite.
 **SIM-002** Each supported architecture shall have at least one emulated target in CI.
