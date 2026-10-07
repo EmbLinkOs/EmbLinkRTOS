@@ -36,11 +36,11 @@ Rules:
 
 | Group | Scope | File | Migration status |
 |---|---|---|---|
-| API | Public API conventions, status codes, time types, context classes | [`API.md`](API.md) | Complete (specification work item 1) |
+| API | Public API conventions, status codes, time types, context classes | [`API.md`](API.md) | Complete; Accepted 2026-10-07 (work item 1) |
 | KRN-THR | Threads | pending | In `docs/architecture/03-kernel-architecture.md` §1 and v0.1 §3 |
 | KRN-SCH | Scheduler | pending | 03 §2, v0.1 §4 |
 | KRN-RQ, KRN-TCB | Ready queues and thread control block | pending | v0.1 §5 |
-| KRN-IRQ | Interrupts and critical sections | pending | v0.1 §3.7, §6 (specification work item 2) |
+| KRN-IRQ | Interrupts, exceptions, critical sections, scheduler lock, preemption points | [`KRN-IRQ.md`](KRN-IRQ.md) | Complete; draft for review (work item 2). v0.1 identifiers restated |
 | KRN-MM | Memory ordering | pending | 03 §1.3 |
 | KRN-TIM | Time and timers | pending | 03 §4, v0.1 §7 (work item 3) |
 | KRN-WAIT | Wait and wake protocol | pending | 03 §3 (work item 4) |

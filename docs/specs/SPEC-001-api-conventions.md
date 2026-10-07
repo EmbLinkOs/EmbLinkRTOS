@@ -1,6 +1,6 @@
 # SPEC-001 - Public API Conventions
 
-**Status:** Draft for review. Specification work item 1 of the roadmap (07 §3).
+**Status:** Accepted 2026-10-07 by the project owner, with the defaults of §14. Specification work item 1 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/API.md` (API-001 to API-032). This document is the design; the requirement file is the normative, testable statement of it.
 **Decided by:** ADR-002 (namespaces, status enum, typed time), ADR-003 (single API with context classes), ADR-006 (generated storage types), ADR-014 (handles are capabilities), ADR-023 (C11 minimum, freestanding).
 **Toolchain constraints applied:** document 09 (EmbCC: one C17 dialect, int-sized enums, struct-by-value inlining limits, no `_Thread_local`).
@@ -457,9 +457,9 @@ int main(void)
 
 `EMB_CHECK(expr)` is a checked-build helper that faults on a non-`EMB_OK` status and is the expression's value in release builds.
 
-## 14. Open points for review
+## 14. Decisions taken at acceptance (2026-10-07)
 
-1. `emb_status_t` as `int` versus a fixed `int32_t`: `int` chosen for the natural return register and AVR economy; confirm.
-2. Structs for the three time types: type safety chosen over scalar typedefs despite EmbCC's inliner limit; confirm, or choose scalar typedefs with analyzer-enforced distinctness.
-3. `EMB_ETIMEDOUT` for a `NO_WAIT` miss, instead of a separate would-block code: one code for one outcome; confirm.
-4. Whether `emb_status_name()` is in the base profile by default (costs a string table) or opt-in.
+1. `emb_status_t` is `int`: the natural return register on every ABI and 16 bits on AVR. Not `int32_t`.
+2. The three time types are structs over `emb_tick_t`. Type safety wins over EmbCC's inliner limit; all constructors and free helpers are macros, and the kernel converts to `emb_tick_t` once at the API boundary.
+3. `EMB_ETIMEDOUT` is the single code for an unsatisfied wait, including `EMB_NO_WAIT`. No would-block code exists.
+4. `emb_status_name()` is enabled by default (`CONFIG_EMB_STATUS_NAMES=y`) in the base, isolated, multicore, and native profiles, and disabled by default in the tiny profile.

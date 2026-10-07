@@ -27,6 +27,7 @@ A change that alters behavior touches all four in one pull request (05 §5).
 
 | Id | Title | Roadmap item | Status |
 |---|---|---|---|
-| [SPEC-001](specs/SPEC-001-api-conventions.md) | Public API conventions: namespaces, status codes, time types, context classes, handles, headers, annotations | 07 §3 item 1 | Draft for review |
+| [SPEC-001](specs/SPEC-001-api-conventions.md) | Public API conventions: namespaces, status codes, time types, context classes, handles, headers, annotations | 07 §3 item 1 | Accepted 2026-10-07 |
+| [SPEC-002](specs/SPEC-002-interrupts-and-critical-sections.md) | Interrupt, exception, and critical-section model: contexts, interrupt classes, preemption points, reschedule on exit, critical sections, scheduler lock, nesting and stacks, IRQ management, faults, latency metrics, per-architecture mapping | 07 §3 item 2 | Draft for review |
 
-Upcoming, in roadmap order: interrupts and critical sections; time and timers; wait and wake protocol; synchronization; notifications and work queues; thread lifecycle; objects and capabilities; partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
+Upcoming, in roadmap order: time and timers; wait and wake protocol; synchronization; notifications and work queues; thread lifecycle; objects and capabilities; partitions; architecture-port contract; ATmega328P port; native port; hardware description schema; observability formats.
