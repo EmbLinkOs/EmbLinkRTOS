@@ -208,3 +208,119 @@ class OrderAndScheduling(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MutexInheritance(unittest.TestCase):
+    """SPEC-005: specific interleavings."""
+
+    def test_classic_inversion_boosts_owner(self):
+        from embmodel import OWNERDEAD_FLAG
+        k = build(S.classic_inversion())
+        # Highest first: T3 sleeps (3 sections), T2 sleeps (3 sections) -> T1 runs and locks M0.
+        run(k, *[("run",)] * 6)
+        run(k, ("run",))                                   # T1 Lock(0): uncontended
+        self.assertEqual(k.mutexes[0].owner, 1)
+        self.assertEqual(k.threads[1].prio, 1)
+        run(k, ("tick",))                                  # T3 and T2 wake; T3 runs
+        self.assertEqual(k.current, 3)
+        run(k, ("run",))                                   # T3 finishes its sleep op
+        run(k, ("run",))                                   # T3 Lock(0) section 1: enqueue + raise T1 to 3
+        self.assertEqual(k.threads[1].prio, 3)
+        run(k, ("run",), ("run",))                         # T3 sections 2, 3: blocks -> T1 (eff 3) runs, not T2
+        self.assertEqual(k.current, 1)
+        run(k, ("run",), ("run",), ("run",))               # T1 yields twice (still highest), then Unlock(0)
+        self.assertEqual(k.mutexes[0].owner, 3)            # hand-off
+        self.assertEqual(k.threads[1].prio, 1)             # boost gone
+        self.assertEqual(k.current, 3)
+        run(k, ("run",))
+        self.assertEqual(k.threads[3].results[-1][1:], (Result.SATISFIED, 0))
+
+    def test_nested_chain_raise_and_timeout_lowering(self):
+        k = build(S.nested_chain_timeout())
+        run(k, *[("run",)] * 6)                            # T3 sleeps 2, T2 sleeps 1
+        run(k, ("run",))                                   # T1 Lock(1)
+        run(k, ("run",), ("run",), ("run",))               # T1 Sleep(3) -> idle
+        run(k, ("tick",))                                  # T2 wakes
+        run(k, ("run",), ("run",))                         # T2 finishes sleep, Lock(0) uncontended
+        run(k, ("run",))                                   # T2 Lock(1, 2) section 1: T1 raised to 2
+        self.assertEqual(k.threads[1].prio, 2)
+        run(k, ("run",), ("run",))                         # T2 blocks on M1
+        run(k, ("tick",))                                  # T3 wakes
+        run(k, ("run",))                                   # T3 finishes sleep
+        run(k, ("run",))                                   # T3 Lock(0, 2) section 1: T2 -> 3, and transitively T1 -> 3
+        self.assertEqual(k.threads[2].prio, 3)
+        self.assertEqual(k.threads[1].prio, 3)
+        run(k, ("run",), ("run",))                         # T3 blocks -> idle (T1 sleeping)
+        self.assertIsNone(k.current)
+        run(k, ("tick",))                                  # now 3: T1's sleep ends, T2's 2-tick timeout on M1 fires too? T2 armed at 1 -> 3; T3 armed at 2 -> 4
+        # at tick 3: T1 wakes (deadline 3) and T2's wait on M1 times out (deadline 3): T2 lowered chain -> T1 back to 1? T3 still waits on M0 owned by T2, so T2 stays 3; T1 no longer has a waiter -> 1
+        self.assertEqual(k.threads[1].prio, 1)
+        self.assertEqual(k.threads[2].prio, 3)
+        self.assertEqual(k.threads[2].wake_result, Result.TIMEOUT)
+
+    def test_deadlock_detected(self):
+        k = build(S.deadlock_two_lockers())
+        run(k, ("run",))                                   # T1 Lock(0)
+        run(k, ("run",), ("run",), ("run",))               # T1 Sleep(1) -> T2 runs
+        run(k, ("run",))                                   # T2 Lock(1)
+        run(k, ("run",))                                   # T2 Lock(0) section 1: blocks on T1's mutex? T1 is sleeping, not waiting -> no cycle; T1 raised to 1? T2 prio 1 <= T1 prio 2: no change
+        run(k, ("run",), ("run",))                         # T2 blocks
+        run(k, ("tick",))                                  # T1 wakes
+        run(k, ("run",))                                   # T1 finishes sleep
+        run(k, ("run",))                                   # T1 Lock(1): owner T2 waits on M0 owned by T1 -> cycle
+        self.assertEqual(k.threads[1].results[-1][1], Result.DEADLOCK)
+        self.assertEqual(k.mutexes[1].owner, 2)
+        self.assertEqual(k.threads[2].wait_state, WaitState.BLOCKED)
+
+    def test_owner_death_hands_over_with_flag(self):
+        from embmodel import OWNERDEAD_FLAG
+        k = build(S.owner_death_with_waiter())
+        run(k, ("run",))                                   # T1 Lock(0)
+        run(k, ("run",))                                   # T1 Yield (still highest)
+        run(k, ("run",))                                   # T1 Exit while owning -> hand-off? T2 not waiting yet -> inconsistent
+        self.assertTrue(k.mutexes[0].inconsistent)
+        run(k, ("run",))                                   # T2 Lock(0): OWNERDEAD flag
+        self.assertEqual(k.threads[2].results[-1], (0, Result.SATISFIED, OWNERDEAD_FLAG))
+        run(k, ("run",))                                   # T2 Unlock: clears the mark
+        self.assertFalse(k.mutexes[0].inconsistent)
+        run(k, ("run",))                                   # T2 exits -> T3
+        run(k, ("run",))
+        self.assertEqual(k.threads[3].results[-1], (0, Result.SATISFIED, 0))
+
+    def test_ceiling_lock_raises_and_unlock_restores(self):
+        k = build(S.ceiling_mutex())
+        run(k, ("run",), ("run",), ("run",))               # T2 sleeps 1 -> T1 runs
+        run(k, ("run",))                                   # T1 Lock(0): ceiling 3
+        self.assertEqual(k.threads[1].prio, 3)
+        run(k, ("tick",))                                  # T2 wakes at prio 2: does not preempt
+        self.assertEqual(k.current, 1)
+        run(k, ("run",))                                   # T1 Yield: still highest
+        self.assertEqual(k.current, 1)
+        run(k, ("run",))                                   # T1 Unlock: back to 1 -> T2 preempts
+        self.assertEqual(k.threads[1].prio, 1)
+        self.assertEqual(k.current, 2)
+
+    def test_waiter_priority_change_propagates_both_ways(self):
+        k = build(S.waiter_priority_change())
+        run(k, *[("run",)] * 6)                            # T4 sleeps 2, T3 sleeps 1
+        run(k, ("run",))                                   # T1 Lock(0)
+        run(k, ("run",), ("run",), ("run",))               # T1 Sleep(4) -> idle
+        run(k, ("tick",), ("run",))                        # T3 wakes, finishes sleep
+        run(k, ("run",), ("run",), ("run",))               # T3 Lock(0): T1 -> 3, T3 blocks
+        self.assertEqual(k.threads[1].prio, 3)
+        run(k, ("tick",), ("run",))                        # T4 wakes, finishes sleep
+        run(k, ("run",))                                   # SetPrio(3, 2): T1 lowered to 2
+        self.assertEqual(k.threads[3].prio, 2)
+        self.assertEqual(k.threads[1].prio, 2)
+        run(k, ("run",))                                   # SetPrio(3, 4): T1 raised to 4
+        self.assertEqual(k.threads[1].prio, 4)
+
+    def test_recursive_mutex(self):
+        k = build(S.recursive_mutex())
+        run(k, ("run",), ("run",))                         # T1 locks twice
+        self.assertEqual(k.mutexes[0].count, 2)
+        run(k, ("run",))                                   # T1 Yield (still highest)
+        run(k, ("run",))                                   # first unlock: still owned
+        self.assertEqual(k.mutexes[0].owner, 1)
+        run(k, ("run",))                                   # second unlock: free
+        self.assertIsNone(k.mutexes[0].owner)

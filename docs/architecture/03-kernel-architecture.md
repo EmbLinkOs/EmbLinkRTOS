@@ -238,7 +238,7 @@ The timer subsystem exposes `next_deadline()`; the power core uses it. Both the 
 | Reader-writer lock | FUTURE | none | Writer preference, inheritance to writer only |
 | Atomics and barriers | yes | yes | Wrapped compiler builtins |
 
-### 5.2 Mutex semantics (PROPOSED details)
+### 5.2 Mutex semantics (PROPOSED details; full specification in `docs/specs/SPEC-005-synchronization.md`, requirements in `docs/requirements/KRN-SYNC.md`)
 
 **KRN-SYNC-008** Unlock by a non-owner shall be a kernel fault in checked builds and `EMB_EPERM` in release builds.
 **KRN-SYNC-009** Priority inheritance shall be transitive through chains of mutexes with a configurable maximum depth; exceeding it is a kernel fault in checked builds.

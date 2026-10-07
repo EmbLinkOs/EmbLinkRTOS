@@ -44,7 +44,7 @@ Rules:
 | KRN-MM | Memory ordering | pending | 03 §1.3 |
 | KRN-TIM | Kernel clock, clock modes, timeouts, sleep, software timers, cycle counter, wall clock | [`KRN-TIM.md`](KRN-TIM.md) | Complete; Accepted 2026-10-07 (work item 3). v0.1 and 03 §4 identifiers restated |
 | KRN-WAIT | Wait and wake protocol | [`KRN-WAIT.md`](KRN-WAIT.md) | Complete; Accepted 2026-10-07 (work item 4). 03 §3 identifiers restated; reference model `tools/model/` |
-| KRN-SYNC | Synchronization | pending | 03 §5, v0.1 §8 (work item 5) |
+| KRN-SYNC | Synchronization | [`KRN-SYNC.md`](KRN-SYNC.md) | Complete; Proposed 2026-10-07 (work item 5). v0.1 §8.6 and 03 §5.2 identifiers restated |
 | KRN-NOTIF, KRN-WQ | Notifications and work queues | pending | 03 §6 (work item 6) |
 | KRN-IPC | Inter-thread communication | pending | 03 §6, v0.1 §9 |
 | KRN-OBJ, KRN-CAP | Objects and capabilities | pending | 03 §7 (work item 8) |

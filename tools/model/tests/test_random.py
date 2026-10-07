@@ -3,13 +3,15 @@ over generated scenarios, and a hypothesis stateful test when hypothesis is inst
 import random
 import unittest
 
-from embmodel import (Cancel, Destroy, Give, Policy, Resume, Scenario, SchedLock, SchedUnlock,
-                      SetPrio, Sleep, Suspend, Take, Yield, FOREVER, NO_WAIT, random_walk)
+from embmodel import (Cancel, Destroy, Give, Lock, Policy, Protocol, Resume, Scenario, SchedLock,
+                      SchedUnlock, SetPrio, Sleep, Suspend, Take, Unlock, Yield, FOREVER, NO_WAIT,
+                      random_walk)
 
-OPS = ["take", "give", "sleep", "yield", "setprio", "suspend", "resume", "cancel", "destroy", "schedpair"]
+OPS = ["take", "give", "sleep", "yield", "setprio", "suspend", "resume", "cancel", "destroy", "schedpair",
+       "lockpair", "lockpair", "lock_nested"]
 
 
-def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4) -> Scenario:
+def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4, nmutexes=2) -> Scenario:
     tids = list(range(1, nthreads + 1))
     threads = {}
     for tid in tids:
@@ -34,13 +36,29 @@ def gen_scenario(rng: random.Random, nthreads=4, nsems=2, nops=4) -> Scenario:
                 prog.append(Cancel(rng.choice(tids)))
             elif kind == "destroy":
                 prog.append(Destroy(rng.randrange(nsems)))
+            elif kind == "lockpair":
+                m = rng.randrange(nmutexes)
+                prog.append(Lock(m, rng.choice([NO_WAIT, 1, 3, FOREVER])))
+                prog.append(rng.choice([Yield(), Sleep(1), Give(rng.randrange(nsems))]))
+                prog.append(Unlock(m))
+            elif kind == "lock_nested":
+                a, b = rng.randrange(nmutexes), rng.randrange(nmutexes)
+                prog.append(Lock(a, rng.choice([2, FOREVER])))
+                prog.append(Lock(b, rng.choice([2, FOREVER])))
+                prog.append(Unlock(b))
+                prog.append(Unlock(a))
             else:
                 prog.append(SchedLock()); prog.append(Give(rng.randrange(nsems))); prog.append(SchedUnlock())
         threads[tid] = (rng.randrange(1, 6), tuple(prog))
     sems = {s: dict(count=rng.randrange(0, 2), policy=rng.choice([Policy.PRIORITY_FIFO, Policy.FIFO]))
             for s in range(nsems)}
     isrs = tuple((Give(rng.randrange(nsems)),) for _ in range(rng.randrange(0, 3)))
-    return Scenario(name=f"random", threads=threads, sems=sems, isrs=isrs)
+    mutexes = {}
+    for m in range(nmutexes):
+        proto = rng.choice([Protocol.INHERIT, Protocol.INHERIT, Protocol.CEILING, Protocol.NONE])
+        mutexes[m] = dict(protocol=proto, ceiling=5 if proto == Protocol.CEILING else 0,
+                          recursive=rng.random() < 0.3)
+    return Scenario(name="random", threads=threads, sems=sems, mutexes=mutexes, isrs=isrs)
 
 
 class RandomWalks(unittest.TestCase):

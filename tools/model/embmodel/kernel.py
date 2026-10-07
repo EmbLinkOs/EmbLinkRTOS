@@ -1,8 +1,9 @@
 """Kernel state and operations of the reference model.
 
-Specification references are given as SPEC-004 §n unless another document is named.
-The model is deliberately literal: each `_take_*`, `_wake`, `_wake_timeout` function
-is the pseudocode of SPEC-004 §5 with the sections made explicit through `pc`.
+Specification references are given as SPEC-004 §n (wait protocol) and SPEC-005 §n
+(synchronization) unless another document is named. The model is deliberately literal:
+`_block_section`, `wake`, `wake_timeout`, `_op_lock`, `_op_unlock`, `recompute`, and
+`propagate` are the pseudocode of the specifications with the sections made explicit.
 """
 from __future__ import annotations
 
@@ -18,12 +19,18 @@ class WaitState(IntEnum):
     BLOCKED = 2
 
 
-class Result(IntEnum):          # SPEC-004 §2.3 (INTERRUPTED and BUDGET are reserved)
+class Result(IntEnum):
+    """Wait results (SPEC-004 §2.3) plus the non-wait outcomes a lock can produce (SPEC-005 §3.1)."""
     SATISFIED = 0
     TIMEOUT = 1
     CANCELED = 2
     DESTROYED = 3
     STALE = 4
+    DEADLOCK = 10        # EMB_EDEADLK: self-relock of a non-recursive mutex, or a detected cycle
+    EPERM = 11           # EMB_EPERM: unlock by a non-owner, ceiling violation (release-build outcome)
+
+
+OWNERDEAD_FLAG = 2       # hand-off word flag: the previous owner died (EMB_EOWNERDEAD)
 
 
 class Reason(IntEnum):          # 03 §1.1
@@ -41,9 +48,17 @@ class Policy(IntEnum):          # SPEC-004 §3 and §11
     BITMAP = 2                  # tiny profile: unique priorities, one bit per thread
 
 
+class Protocol(IntEnum):        # SPEC-005 §3
+    INHERIT = 0
+    CEILING = 1
+    NONE = 2
+
+
 FOREVER = None                  # EMB_WAIT_FOREVER
 NO_WAIT = 0                     # EMB_NO_WAIT
 CANCELABLE = frozenset({Reason.SLEEP, Reason.OBJECT, Reason.JOIN, Reason.NOTIFY})   # KRN-WAIT-015
+PI_MAX_DEPTH = 8                # CONFIG_EMB_PI_MAX_DEPTH default
+MUTEX_QID_BASE = 100            # queue ids: semaphores 0..99, mutexes 100.., thread pseudo-queues negative
 
 
 class ModelError(AssertionError):
@@ -56,20 +71,28 @@ class ModelError(AssertionError):
 
 @dataclass(frozen=True)
 class Take:
-    """emb_sem_take(sem, timeout): the canonical blocking primitive over the protocol."""
     sem: int
     timeout: Optional[int] = FOREVER
 
 
 @dataclass(frozen=True)
 class Give:
-    """emb_sem_give(sem): thread or ISR context (@ctx thread isr)."""
     sem: int
 
 
 @dataclass(frozen=True)
+class Lock:
+    mutex: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class Unlock:
+    mutex: int
+
+
+@dataclass(frozen=True)
 class Sleep:
-    """emb_thread_sleep(ticks): the protocol on the thread's pseudo-queue, reason SLEEP."""
     ticks: Optional[int]
 
 
@@ -101,7 +124,6 @@ class Cancel:
 
 @dataclass(frozen=True)
 class Destroy:
-    """emb_sem_destroy on an object created with ABORT_WAITERS (ADR-020)."""
     sem: int
 
 
@@ -130,28 +152,30 @@ ISR_SAFE_OPS = (Give, Resume)   # SPEC-001 §5.2: signal-type operations are `th
 @dataclass
 class Thread:
     tid: int
-    prio: int
+    prio: int                                 # effective priority (SPEC-005 §2)
+    base_prio: int = 0
     wait_state: WaitState = WaitState.READY
     wait_gen: int = 0
     wait_reason: Optional[Reason] = None
-    wait_queue: Optional[int] = None         # queue id, or None
+    wait_queue: Optional[int] = None
     wake_result: Optional[Result] = None
     wake_data: int = 0
     suspended: bool = False
     cancel_pending: bool = False
     terminated: bool = False
     op_index: int = 0
-    pc: int = 0                               # section counter inside the current op
-    saved_gen: int = 0                        # generation captured in section 1
+    pc: int = 0
+    saved_gen: int = 0
     results: tuple = ()                       # ((op_index, Result, data), ...)
     notify_bits: int = 0
+    owned: list = field(default_factory=list)  # mutex ids in acquisition order (KRN-SYNC-014)
 
     def key(self):
-        return (self.tid, self.prio, int(self.wait_state), self.wait_gen,
+        return (self.tid, self.prio, self.base_prio, int(self.wait_state), self.wait_gen,
                 None if self.wait_reason is None else int(self.wait_reason), self.wait_queue,
                 None if self.wake_result is None else int(self.wake_result), self.wake_data,
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
-                self.saved_gen, self.results, self.notify_bits)
+                self.saved_gen, self.results, self.notify_bits, tuple(self.owned))
 
 
 @dataclass
@@ -169,13 +193,13 @@ class Semaphore:
     sid: int
     count: int
     qid: int
-    initial: int = 0          # units present at creation
+    initial: int = 0
     destroyed: bool = False
     gen: int = 0
-    gives: int = 0            # units given in total
-    handed: int = 0           # units handed to a blocked waiter (§6.1)
-    immediate: int = 0        # units taken in section 1 without blocking
-    binding: Optional[tuple] = None   # (tid, bit) notification binding (ADR-027 hook)
+    gives: int = 0
+    handed: int = 0
+    immediate: int = 0
+    binding: Optional[tuple] = None
 
     def key(self):
         return (self.sid, self.count, self.qid, self.initial, self.destroyed, self.gen, self.gives,
@@ -183,32 +207,59 @@ class Semaphore:
 
 
 @dataclass
+class Mutex:
+    mid: int
+    qid: int
+    protocol: Protocol = Protocol.INHERIT
+    ceiling: int = 0
+    recursive: bool = False
+    owner: Optional[int] = None
+    count: int = 0
+    inconsistent: bool = False
+
+    def key(self):
+        return (self.mid, self.qid, int(self.protocol), self.ceiling, self.recursive, self.owner,
+                self.count, self.inconsistent)
+
+
+@dataclass
 class Scenario:
     """Static description of a test configuration."""
-    threads: dict                     # tid -> (prio, program tuple)
+    threads: dict                              # tid -> (prio, program tuple)
     sems: dict = field(default_factory=dict)   # sid -> dict(count=, policy=, binding=)
-    isrs: tuple = ()                  # tuple of op tuples; each ISR fires at most once
+    mutexes: dict = field(default_factory=dict)  # mid -> dict(protocol=, ceiling=, recursive=)
+    isrs: tuple = ()
+    owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     name: str = ""
 
 
 def build(sc: Scenario) -> "Kernel":
-    k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs))
+    k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs),
+               owner_death=sc.owner_death)
     for tid, (prio, _) in sc.threads.items():
-        k.threads[tid] = Thread(tid=tid, prio=prio)
-        k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)   # pseudo-queue for SLEEP
+        k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio)
+        k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)
+    bitmap = any(cfg.get("policy") == Policy.BITMAP for cfg in sc.sems.values())
     for sid, cfg in sc.sems.items():
-        pol = cfg.get("policy", Policy.PRIORITY_FIFO)
-        k.queues[sid] = WaitQueue(qid=sid, policy=pol)
+        if sid >= MUTEX_QID_BASE:
+            raise ModelError("semaphore ids must be below 100")
+        k.queues[sid] = WaitQueue(qid=sid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
         k.sems[sid] = Semaphore(sid=sid, count=cfg.get("count", 0), initial=cfg.get("count", 0), qid=sid,
                                 binding=cfg.get("binding"))
-    if any(q.policy == Policy.BITMAP for q in k.queues.values()):
+    for mid, cfg in sc.mutexes.items():
+        qid = MUTEX_QID_BASE + mid
+        k.queues[qid] = WaitQueue(qid=qid, policy=Policy.BITMAP if bitmap else Policy.PRIORITY_FIFO)
+        k.mutexes[mid] = Mutex(mid=mid, qid=qid, protocol=cfg.get("protocol", Protocol.INHERIT),
+                               ceiling=cfg.get("ceiling", 0), recursive=cfg.get("recursive", False))
+        k.qid_mutex[qid] = mid
+    if bitmap:
         prios = [t.prio for t in k.threads.values()]
         if len(set(prios)) != len(prios):
             raise ModelError("BITMAP wait queues require unique priorities (ADR-036)")
     for t in k.threads.values():
         k._make_ready(t, preempted=False)
     k.reschedule_pending = False
-    k.dispatch()                                   # P3: kernel start
+    k.dispatch()
     return k
 
 
@@ -216,37 +267,45 @@ def build(sc: Scenario) -> "Kernel":
 class Kernel:
     programs: dict
     isr_bodies: tuple = ()
+    owner_death: str = "release"
     threads: dict = field(default_factory=dict)
     queues: dict = field(default_factory=dict)
     sems: dict = field(default_factory=dict)
-    ready: dict = field(default_factory=dict)      # prio -> [tid...], head first
+    mutexes: dict = field(default_factory=dict)
+    qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
+    ready: dict = field(default_factory=dict)
     current: Optional[int] = None
     now: int = 0
-    irq_nesting: int = 0                           # SPEC-002 §2 irq_nesting_depth
+    irq_nesting: int = 0
     sched_lock_depth: int = 0
     reschedule_pending: bool = False
-    timeouts: list = field(default_factory=list)   # [(deadline, seq, tid, gen)] sorted
+    timeouts: list = field(default_factory=list)
     seq: int = 0
-    dequeued: frozenset = frozenset()              # {(tid, gen)}: at most one dequeue per generation
+    dequeued: frozenset = frozenset()
     stale_timeouts: int = 0
     isr_fired: frozenset = frozenset()
-    trace: list = field(default_factory=list)      # not part of the state key
+    pi_depth_max: int = 0
+    trace: list = field(default_factory=list)
 
     # ------------------------------------------------------------------ state identity
     def key(self):
         return (tuple(t.key() for _, t in sorted(self.threads.items())),
                 tuple(q.key() for _, q in sorted(self.queues.items())),
                 tuple(s.key() for _, s in sorted(self.sems.items())),
+                tuple(m.key() for _, m in sorted(self.mutexes.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.dequeued,
-                self.stale_timeouts, self.isr_fired)
+                self.stale_timeouts, self.isr_fired, self.pi_depth_max)
 
     def clone(self) -> "Kernel":
         k = copy.copy(self)
         k.threads = {i: copy.copy(t) for i, t in self.threads.items()}
+        for t in k.threads.values():
+            t.owned = list(t.owned)
         k.queues = {i: WaitQueue(q.qid, q.policy, list(q.waiters)) for i, q in self.queues.items()}
         k.sems = {i: copy.copy(s) for i, s in self.sems.items()}
+        k.mutexes = {i: copy.copy(m) for i, m in self.mutexes.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -259,7 +318,7 @@ class Kernel:
     def _event(self, *ev):
         self.trace.append(ev)
 
-    # ------------------------------------------------------------------ helpers
+    # ------------------------------------------------------------------ scheduler helpers
     def runnable(self, t: Thread) -> bool:
         return t.wait_state != WaitState.BLOCKED and not t.suspended and not t.terminated
 
@@ -267,16 +326,14 @@ class Kernel:
         return any(tid in v for v in self.ready.values())
 
     def _make_ready(self, t: Thread, preempted: bool):
-        """Insert into the ready structure. A preempted thread goes ahead of its peers
-        (KRN-SCH-041); a woken, yielding, or newly started thread goes behind them."""
         lst = self.ready.setdefault(t.prio, [])
         if preempted:
-            lst.insert(0, t.tid)
+            lst.insert(0, t.tid)                 # KRN-SCH-041
         else:
             lst.append(t.tid)
         cur = self.threads.get(self.current) if self.current is not None else None
         if cur is None or t.prio > cur.prio:
-            self.reschedule_pending = True      # SPEC-002 §6.2 step 2
+            self.reschedule_pending = True
 
     def _remove_ready(self, tid: int):
         for v in self.ready.values():
@@ -291,8 +348,6 @@ class Kernel:
         return None
 
     def dispatch(self):
-        """Select the next thread (P1, P2, P3 of SPEC-002 §6). The current thread, when
-        still runnable and preempted, is placed ahead of its equal-priority peers."""
         cur = self.threads.get(self.current) if self.current is not None else None
         best_tid = self._best_ready()
         if cur is not None and self.runnable(cur):
@@ -301,29 +356,36 @@ class Kernel:
                 return
             self._make_ready(cur, preempted=True)
         if best_tid is None:
-            self.current = None             # idle
+            self.current = None
         else:
             self.ready[self.threads[best_tid].prio].pop(0)
             self.current = best_tid
         self.reschedule_pending = False
         self._event("switch", self.current)
 
-    def reschedule_if_needed(self):          # P2, SPEC-002 §6.3
+    def reschedule_if_needed(self):
         if self.reschedule_pending and self.sched_lock_depth == 0:
             self.dispatch()
 
+    def _check_preempt_current(self):
+        best = self._best_ready()
+        cur = self.threads.get(self.current) if self.current is not None else None
+        if cur is not None and best is not None and self.threads[best].prio > cur.prio:
+            self.reschedule_pending = True
+
     # ------------------------------------------------------------------ wait queues
-    def _enqueue(self, q: WaitQueue, t: Thread):
+    def _insert_by_prio(self, q: WaitQueue, t: Thread):
         s = self._next_seq()
-        if q.policy == Policy.FIFO:
-            q.waiters.append((t.tid, s))
-            return
-        # PRIORITY_FIFO and BITMAP: highest effective priority first, FIFO among equals.
-        # Insert from the tail: a new waiter is most often not higher than the existing ones.
         i = len(q.waiters)
         while i > 0 and self.threads[q.waiters[i - 1][0]].prio < t.prio:
             i -= 1
         q.waiters.insert(i, (t.tid, s))
+
+    def _enqueue(self, q: WaitQueue, t: Thread):
+        if q.policy == Policy.FIFO:
+            q.waiters.append((t.tid, self._next_seq()))
+        else:
+            self._insert_by_prio(q, t)
 
     def _dequeue(self, q: WaitQueue, t: Thread):
         for i, (tid, _) in enumerate(q.waiters):
@@ -335,26 +397,87 @@ class Kernel:
     def wait_first(self, q: WaitQueue) -> Optional[Thread]:
         return self.threads[q.waiters[0][0]] if q.waiters else None
 
-    def wait_requeue(self, t: Thread):                                   # §6.4
+    def _queue_mutex(self, qid: Optional[int]) -> Optional[Mutex]:
+        if qid is None or qid not in self.qid_mutex:
+            return None
+        return self.mutexes[self.qid_mutex[qid]]
+
+    def wait_requeue(self, t: Thread):                                   # SPEC-004 §6.4
         if t.wait_queue is None:
             return
         q = self.queues[t.wait_queue]
         if q.policy == Policy.FIFO:
             return
         self._dequeue(q, t)
-        # keep the original sequence so FIFO-among-equals is preserved for a re-sorted thread
-        s = self._next_seq()
-        i = len(q.waiters)
-        while i > 0 and self.threads[q.waiters[i - 1][0]].prio < t.prio:
-            i -= 1
-        q.waiters.insert(i, (t.tid, s))
+        self._insert_by_prio(q, t)
         self._event("wait_requeue", t.tid, t.prio)
+
+    # ------------------------------------------------------------------ effective priority (SPEC-005 §2)
+    def effective(self, t: Thread) -> int:
+        eff = t.base_prio
+        for mid in t.owned:
+            m = self.mutexes[mid]
+            if m.protocol == Protocol.CEILING:
+                eff = max(eff, m.ceiling)
+            elif m.protocol == Protocol.INHERIT:
+                w = self.wait_first(self.queues[m.qid])
+                if w is not None:
+                    eff = max(eff, w.prio)
+        return eff
+
+    def _set_eff_prio(self, t: Thread, new: int) -> bool:
+        """Apply a new effective priority (SPEC-005 §2.1). Returns True when it changed."""
+        if new == t.prio:
+            return False
+        old = t.prio
+        if self.in_ready(t.tid):
+            self._remove_ready(t.tid)
+            t.prio = new
+            self._make_ready(t, preempted=False)
+        else:
+            t.prio = new
+            if self.current == t.tid:
+                self._check_preempt_current()
+        if t.wait_queue is not None:
+            self.wait_requeue(t)                                         # KRN-WAIT-003
+        self._event("prio_change", t.tid, old, new)
+        return True
+
+    def propagate(self, t: Thread):
+        """SPEC-005 §2.2: recompute along the owner chain, both directions, bounded depth."""
+        depth = 0
+        while True:
+            if not self._set_eff_prio(t, self.effective(t)):
+                return
+            m = self._queue_mutex(t.wait_queue)
+            if m is None or m.protocol != Protocol.INHERIT or m.owner is None:
+                return
+            depth += 1
+            self.pi_depth_max = max(self.pi_depth_max, depth)
+            if depth > PI_MAX_DEPTH:
+                raise ModelError(f"inheritance depth {depth} exceeds CONFIG_EMB_PI_MAX_DEPTH (KRN-SYNC-009)")
+            t = self.threads[m.owner]
+
+    def _chain_reaches(self, start: Optional[int], target: int) -> bool:
+        """Follow owner -> mutex it waits on -> owner ...; True if `target` is on the chain (SPEC-005 §3.5)."""
+        depth = 0
+        tid = start
+        while tid is not None:
+            if tid == target:
+                return True
+            m = self._queue_mutex(self.threads[tid].wait_queue)
+            if m is None or m.protocol != Protocol.INHERIT:
+                return False
+            depth += 1
+            if depth > PI_MAX_DEPTH:
+                return False
+            tid = m.owner
+        return False
 
     # ------------------------------------------------------------------ timeouts (SPEC-003 §5)
     def timeout_arm(self, t: Thread, deadline: int, gen: int):
-        for d, _, tid, _ in self.timeouts:
-            if tid == t.tid:
-                raise ModelError(f"thread {t.tid} already has an armed timeout (SPEC-004 §16.9)")
+        if any(n[2] == t.tid for n in self.timeouts):
+            raise ModelError(f"thread {t.tid} already has an armed timeout (SPEC-004 §16.9)")
         self.timeouts.append((deadline, self._next_seq(), t.tid, gen))
         self.timeouts.sort()
 
@@ -364,15 +487,14 @@ class Kernel:
     def timeout_armed(self, tid: int) -> bool:
         return any(n[2] == tid for n in self.timeouts)
 
-    # ------------------------------------------------------------------ wake (§5.2)
-    def wake(self, t: Thread, result: Result, data: int = 0, q: Optional[WaitQueue] = None) -> bool:
-        """Called with the object lock held (one section). Returns False when `t` no
-        longer waits on `q`."""
+    # ------------------------------------------------------------------ wake (SPEC-004 §5.2)
+    def wake(self, t: Thread, result: Result, data: int = 0, q: Optional[WaitQueue] = None,
+             handoff: bool = False) -> bool:
         if q is None or t.wait_queue != q.qid:
             return False
         self._dequeue(q, t)
         t.wait_queue = None
-        t.wake_result = result                      # result before READY (KRN-WAIT-005)
+        t.wake_result = result
         t.wake_data = data
         pair = (t.tid, t.wait_gen)
         if pair in self.dequeued:
@@ -380,19 +502,23 @@ class Kernel:
         self.dequeued = self.dequeued | {pair}
         t.wait_gen += 1
         if t.wait_state == WaitState.INTEND_TO_BLOCK:
-            t.wait_state = WaitState.READY          # the thread is still running; it sees READY at commit
+            t.wait_state = WaitState.READY
             self._event("wake", t.tid, int(result), "intend")
-            return True
-        if t.wait_state != WaitState.BLOCKED:
+        elif t.wait_state == WaitState.BLOCKED:
+            t.wait_state = WaitState.READY
+            self.timeout_disarm(t)
+            if not t.suspended:
+                self._make_ready(t, preempted=False)
+            self._event("wake", t.tid, int(result), "blocked")
+        else:
             raise ModelError(f"wake of thread {t.tid} in state {t.wait_state}")
-        t.wait_state = WaitState.READY
-        self.timeout_disarm(t)
-        if not t.suspended:
-            self._make_ready(t, preempted=False)
-        self._event("wake", t.tid, int(result), "blocked")
+        # SPEC-005 §3.3 / KRN-SYNC-022: a waiter left a mutex queue for a reason other than hand-off
+        m = self._queue_mutex(q.qid)
+        if not handoff and m is not None and m.protocol == Protocol.INHERIT and m.owner is not None:
+            self.propagate(self.threads[m.owner])
         return True
 
-    def wake_timeout(self, tid: int, gen: int):                          # §5.3
+    def wake_timeout(self, tid: int, gen: int):
         t = self.threads[tid]
         if t.wait_gen != gen or t.wait_queue is None:
             self.stale_timeouts += 1
@@ -400,14 +526,14 @@ class Kernel:
             return
         self.wake(t, Result.TIMEOUT, 0, self.queues[t.wait_queue])
 
-    def wake_all(self, q: WaitQueue, result: Result, data: int = 0) -> int:   # §6.7, KRN-WAIT-013
+    def wake_all(self, q: WaitQueue, result: Result, data: int = 0) -> int:
         n = 0
         while q.waiters:
             self.wake(self.threads[q.waiters[0][0]], result, data, q)
             n += 1
         return n
 
-    # ------------------------------------------------------------------ blocking (§5.1)
+    # ------------------------------------------------------------------ blocking (SPEC-004 §5.1)
     def _current_thread(self) -> Thread:
         return self.threads[self.current]
 
@@ -425,22 +551,32 @@ class Kernel:
         t.pc = 0
 
     def _block_section(self, t: Thread, q: WaitQueue, reason: Reason, timeout: Optional[int],
-                       satisfied, consume) -> bool:
-        """Sections 1 to 3 of SPEC-004 §5.1 driven by `t.pc`. Returns True when the op is
-        complete (result recorded) and False when the thread yielded between sections or
-        blocked."""
-        if t.pc == 0:                                                   # section 1
-            if t.cancel_pending:                                        # KRN-WAIT-015
+                       satisfied, consume, pre_nowait=None, pre_block=None, on_enqueue=None) -> bool:
+        """Sections 1 to 3 of SPEC-004 §5.1 driven by `t.pc`. `pre_nowait` runs before the
+        EMB_NO_WAIT check and `pre_block` after it; either may return a Result to finish with
+        (SPEC-005 §3.2: self-relock, then cycle detection). `on_enqueue` runs after the enqueue
+        inside section 1 (the inheritance walk). Returns True when the op completed."""
+        if t.pc == 0:
+            if t.cancel_pending:
                 t.cancel_pending = False
                 self._finish(t, Result.CANCELED)
                 return True
             if satisfied():
-                data = consume()
-                self._finish(t, Result.SATISFIED, data)
+                self._finish(t, Result.SATISFIED, consume())
                 return True
-            if timeout == NO_WAIT:                                      # API-024: no queue, no timer, no yield
+            if pre_nowait is not None:
+                r = pre_nowait()
+                if r is not None:
+                    self._finish(t, r)
+                    return True
+            if timeout == NO_WAIT:
                 self._finish(t, Result.TIMEOUT)
                 return True
+            if pre_block is not None:
+                r = pre_block()
+                if r is not None:
+                    self._finish(t, r)
+                    return True
             if self.irq_nesting > 0 or self.sched_lock_depth > 0:
                 raise ModelError("blocking with a nonzero timeout from ISR or under the scheduler lock (SPEC-001 §5.3)")
             if t.wait_state != WaitState.READY:
@@ -450,55 +586,44 @@ class Kernel:
             t.wait_queue = q.qid
             self._enqueue(q, t)
             t.wait_state = WaitState.INTEND_TO_BLOCK
+            if on_enqueue is not None:
+                on_enqueue()
             t.pc = 1
             self._event("wait_begin", t.tid, q.qid, int(reason))
-            return False                                                # window
-        if t.pc == 1:                                                   # section 2
+            return False
+        if t.pc == 1:
             if timeout is not FOREVER:
                 self.timeout_arm(t, self.now + timeout, t.saved_gen)
             t.pc = 2
             return False
-        if t.pc == 2:                                                   # section 3
+        if t.pc == 2:
             if t.wait_state == WaitState.INTEND_TO_BLOCK:
                 t.wait_state = WaitState.BLOCKED
                 t.pc = 3
-                self.dispatch()                                         # P2: switch away
+                self.dispatch()
                 return False
-            # a waker won in the window
             self.timeout_disarm(t)
             t.pc = 3
-            # fall through: the result is available now
-        # pc == 3: after the wake (or immediately when the waker won in the window)
         if t.wait_state != WaitState.READY or t.wake_result is None:
             raise ModelError(f"thread {t.tid} resumed without a result")
         self._finish(t, t.wake_result, t.wake_data)
         return True
 
-    # ------------------------------------------------------------------ operations
+    # ------------------------------------------------------------------ semaphore (SPEC-005 §4)
     def _op_take(self, t: Thread, op: Take) -> bool:
         sem = self.sems[op.sem]
-        if sem.destroyed and t.pc == 0:                                  # new take on a destroyed object: stale handle
+        if sem.destroyed and t.pc == 0:
             self._finish(t, Result.STALE)
             return True
         q = self.queues[sem.qid]
-
-        def satisfied():
-            return sem.count > 0
 
         def consume():
             sem.count -= 1
             sem.immediate += 1
             return 1
-        return self._block_section(t, q, Reason.OBJECT, op.timeout, satisfied, consume)
+        return self._block_section(t, q, Reason.OBJECT, op.timeout, lambda: sem.count > 0, consume)
 
-    def _op_sleep(self, t: Thread, op: Sleep) -> bool:
-        if op.ticks == 0 and t.pc == 0:                                 # SPEC-003 §15.1: sleep(0) is yield
-            self._op_yield(t)
-            return True
-        q = self.queues[-(t.tid + 1)]
-        return self._block_section(t, q, Reason.SLEEP, op.ticks, lambda: False, lambda: 0)
-
-    def _op_give(self, t_or_none: Optional[Thread], op: Give):
+    def _op_give(self, op: Give):
         sem = self.sems[op.sem]
         if sem.destroyed:
             return
@@ -506,13 +631,108 @@ class Kernel:
         sem.gives += 1
         w = self.wait_first(q)
         if w is not None:
-            self.wake(w, Result.SATISFIED, 1, q)                        # hand-off, count unchanged (§6.1)
+            self.wake(w, Result.SATISFIED, 1, q, handoff=True)
             sem.handed += 1
-            return                                                      # transition consumed: no binding bit
+            return
         sem.count += 1
-        if sem.binding is not None and sem.count == 1:                  # ready transition (§6.3)
+        if sem.binding is not None and sem.count == 1:
             tid, bit = sem.binding
             self.threads[tid].notify_bits |= (1 << bit)
+
+    # ------------------------------------------------------------------ mutex (SPEC-005 §3)
+    def _acquire(self, t: Thread, m: Mutex) -> int:
+        m.owner = t.tid
+        m.count = 1
+        t.owned.append(m.mid)
+        self.propagate(t)                                                 # ceiling raise, if any
+        self._event("mutex_lock", t.tid, m.mid)
+        return OWNERDEAD_FLAG if m.inconsistent else 0
+
+    def _op_lock(self, t: Thread, op: Lock) -> bool:
+        m = self.mutexes[op.mutex]
+        q = self.queues[m.qid]
+
+        def satisfied():
+            return m.owner is None or (m.owner == t.tid and m.recursive)
+
+        def consume():
+            if m.owner == t.tid:
+                m.count += 1                                              # recursive re-entry
+                return 0
+            if m.protocol == Protocol.CEILING and t.base_prio > m.ceiling:
+                return None                                               # handled by pre check below
+            return self._acquire(t, m)
+
+        def pre_nowait():
+            if m.owner == t.tid:
+                return Result.DEADLOCK                                    # non-recursive self-relock
+            return None
+
+        def pre_block():
+            if m.protocol == Protocol.INHERIT and self._chain_reaches(m.owner, t.tid):
+                return Result.DEADLOCK                                    # SPEC-005 §3.5
+            return None
+
+        def on_enqueue():
+            if m.protocol == Protocol.INHERIT:
+                self.propagate(self.threads[m.owner])                     # raise the owner's chain
+
+        if t.pc == 0 and m.owner is None and m.protocol == Protocol.CEILING and t.base_prio > m.ceiling:
+            self._finish(t, Result.EPERM)                                  # ceiling violation (release build)
+            return True
+        return self._block_section(t, q, Reason.OBJECT, op.timeout, satisfied, consume,
+                                   pre_nowait, pre_block, on_enqueue)
+
+    def _release(self, t: Thread, m: Mutex, dead: bool):
+        """Give `m` up on behalf of `t`: hand-off to the highest waiter or free it (SPEC-005 §3.3, §3.6)."""
+        t.owned.remove(m.mid)
+        q = self.queues[m.qid]
+        w = self.wait_first(q)
+        if w is not None:
+            m.owner = w.tid
+            m.count = 1
+            w.owned.append(m.mid)
+            flag = OWNERDEAD_FLAG if (dead or m.inconsistent) else 0
+            self.wake(w, Result.SATISFIED, flag, q, handoff=True)
+            self._event("mutex_unlock", t.tid, m.mid, w.tid)
+            if not dead:
+                m.inconsistent = False
+            self.propagate(w)                                             # inherit from the remaining waiters
+        else:
+            m.owner = None
+            m.count = 0
+            m.inconsistent = dead                                         # RELEASE policy without a waiter
+            self._event("mutex_unlock", t.tid, m.mid, None)
+        if not t.terminated:
+            self.propagate(t)                                             # KRN-SYNC-010 over the still-owned list
+
+    def _op_unlock(self, t: Thread, op: Unlock):
+        m = self.mutexes[op.mutex]
+        if m.owner != t.tid:
+            t.results = t.results + ((t.op_index, Result.EPERM, 0),)      # KRN-SYNC-008 (release build)
+            return
+        if m.count > 1:
+            m.count -= 1
+            return
+        self._release(t, m, dead=False)
+
+    def _exit(self, t: Thread):
+        if t.owned:
+            if self.owner_death == "fault":
+                raise ModelError(f"thread {t.tid} exits owning mutexes {t.owned} (CONFIG_EMB_MUTEX_OWNER_DEATH=FAULT)")
+            for mid in list(t.owned):                                     # acquisition order
+                self._release(t, self.mutexes[mid], dead=True)
+        t.terminated = True
+        self.current = None
+        self.dispatch()
+
+    # ------------------------------------------------------------------ other operations
+    def _op_sleep(self, t: Thread, op: Sleep) -> bool:
+        if op.ticks == 0 and t.pc == 0:
+            self._op_yield(t)
+            return True
+        q = self.queues[-(t.tid + 1)]
+        return self._block_section(t, q, Reason.SLEEP, op.ticks, lambda: False, lambda: 0)
 
     def _op_yield(self, t: Thread):
         self._make_ready(t, preempted=False)
@@ -522,23 +742,14 @@ class Kernel:
 
     def _op_setprio(self, op: SetPrio):
         t = self.threads[op.tid]
-        if self.in_ready(t.tid):
-            self._remove_ready(t.tid)
-            t.prio = op.prio
-            self._make_ready(t, preempted=False)
-        else:
-            t.prio = op.prio
-        self.wait_requeue(t)                                            # KRN-WAIT-003
-        best = self._best_ready()
-        cur = self.threads.get(self.current) if self.current is not None else None
-        if cur is not None and best is not None and self.threads[best].prio > cur.prio:
-            self.reschedule_pending = True
+        t.base_prio = op.prio
+        self.propagate(t)                                                 # SPEC-005 §10
 
     def _op_suspend(self, op: Suspend):
         t = self.threads[op.tid]
         if t.terminated or t.suspended:
             return
-        t.suspended = True                                              # overlay (§6.5)
+        t.suspended = True
         if self.in_ready(t.tid):
             self._remove_ready(t.tid)
         if self.current == t.tid:
@@ -549,12 +760,10 @@ class Kernel:
         if not t.suspended:
             return
         t.suspended = False
-        # A thread suspended while in INTEND_TO_BLOCK (preempted inside the window) is still
-        # executing its block path and is runnable; only BLOCKED threads stay off the ready structure.
         if t.wait_state != WaitState.BLOCKED and not t.terminated and self.current != t.tid:
             self._make_ready(t, preempted=False)
 
-    def _op_cancel(self, op: Cancel):                                    # §6.6
+    def _op_cancel(self, op: Cancel):
         t = self.threads[op.tid]
         if t.terminated:
             return
@@ -563,17 +772,15 @@ class Kernel:
             return
         t.cancel_pending = True
 
-    def _op_destroy(self, op: Destroy):                                  # §6.7
+    def _op_destroy(self, op: Destroy):
         sem = self.sems[op.sem]
         if sem.destroyed:
             return
-        q = self.queues[sem.qid]
-        self.wake_all(q, Result.DESTROYED)
+        self.wake_all(self.queues[sem.qid], Result.DESTROYED)
         sem.destroyed = True
         sem.gen += 1
 
     def step_thread(self) -> bool:
-        """Run the current thread for one section. Returns False when idle."""
         if self.current is None:
             return False
         t = self._current_thread()
@@ -581,10 +788,16 @@ class Kernel:
         op = prog[t.op_index] if t.op_index < len(prog) else Exit()
         if isinstance(op, Take):
             self._op_take(t, op)
+        elif isinstance(op, Lock):
+            self._op_lock(t, op)
+        elif isinstance(op, Unlock):
+            self._op_unlock(t, op)
+            self._advance(t)
+            self.reschedule_if_needed()
         elif isinstance(op, Sleep):
             self._op_sleep(t, op)
         elif isinstance(op, Give):
-            self._op_give(t, op)
+            self._op_give(op)
             self._advance(t)
             self.reschedule_if_needed()
         elif isinstance(op, Yield):
@@ -625,16 +838,13 @@ class Kernel:
         elif isinstance(op, Exit):
             if self.sched_lock_depth:
                 raise ModelError("thread exit with the scheduler locked")
-            t.terminated = True
-            self.current = None
-            self.dispatch()
+            self._exit(t)
         else:
             raise ModelError(f"unknown op {op!r}")
         return True
 
     # ------------------------------------------------------------------ interrupts and time
     def fire_isr(self, index: int):
-        """Run ISR body `index` atomically (kernel-aware interrupt, SPEC-002 §3), then P1."""
         if index in self.isr_fired:
             raise ModelError("ISR already fired")
         self.isr_fired = self.isr_fired | {index}
@@ -643,14 +853,13 @@ class Kernel:
             if not isinstance(op, ISR_SAFE_OPS):
                 raise ModelError(f"{op!r} is not ISR-safe (SPEC-001 §5.2)")
             if isinstance(op, Give):
-                self._op_give(None, op)
+                self._op_give(op)
             elif isinstance(op, Resume):
                 self._op_resume(op)
         self.irq_nesting -= 1
         self._p1()
 
     def tick(self):
-        """Advance the clock by one tick and expire due timeouts (SPEC-003 §5.3), then P1."""
         self.now += 1
         self.irq_nesting += 1
         while self.timeouts and self.timeouts[0][0] <= self.now:
@@ -659,20 +868,19 @@ class Kernel:
         self.irq_nesting -= 1
         self._p1()
 
-    def _p1(self):                                                       # SPEC-002 §6.1 P1
+    def _p1(self):
         if self.irq_nesting == 0 and self.reschedule_pending and self.sched_lock_depth == 0:
             self.dispatch()
 
-    # ------------------------------------------------------------------ invariants (§5.4)
+    # ------------------------------------------------------------------ invariants
     def check_invariants(self):
         for t in self.threads.values():
             membership = [q.qid for q in self.queues.values() if any(tid == t.tid for tid, _ in q.waiters)]
             if t.wait_state != WaitState.READY:
                 if t.wait_queue is None or membership != [t.wait_queue]:
                     raise ModelError(f"invariant 1: thread {t.tid} state {t.wait_state} queues {membership}")
-            else:
-                if membership or t.wait_queue is not None:
-                    raise ModelError(f"invariant 1: READY thread {t.tid} still in {membership}")
+            elif membership or t.wait_queue is not None:
+                raise ModelError(f"invariant 1: READY thread {t.tid} still in {membership}")
             ready_count = sum(v.count(t.tid) for v in self.ready.values())
             if ready_count > 1:
                 raise ModelError(f"thread {t.tid} twice in the ready structure")
@@ -681,6 +889,14 @@ class Kernel:
                 raise ModelError(f"invariant 5: thread {t.tid} ready={ready_count} runnable={self.runnable(t)} current={self.current}")
             if self.timeout_armed(t.tid) and t.wait_state == WaitState.READY and t.pc != 2:
                 raise ModelError(f"thread {t.tid} has an armed timeout while READY outside the window")
+            # SPEC-005 §2.1 / KRN-SYNC-018
+            if not t.terminated and t.prio != self.effective(t):
+                raise ModelError(f"effective priority of thread {t.tid} is {t.prio}, expected {self.effective(t)}")
+            if len(set(t.owned)) != len(t.owned):
+                raise ModelError(f"thread {t.tid} owned list has duplicates: {t.owned}")
+            for mid in t.owned:
+                if self.mutexes[mid].owner != t.tid:
+                    raise ModelError(f"thread {t.tid} lists mutex {mid} but its owner is {self.mutexes[mid].owner}")
         for q in self.queues.values():
             if q.policy == Policy.FIFO:
                 continue
@@ -691,18 +907,39 @@ class Kernel:
         for s in self.sems.values():
             if s.initial + s.gives != s.count + s.handed + s.immediate:
                 raise ModelError(f"unit conservation violated on semaphore {s.sid}: {s}")
+        for m in self.mutexes.values():
+            q = self.queues[m.qid]
+            if (m.owner is None) != (m.count == 0):
+                raise ModelError(f"mutex {m.mid}: owner {m.owner} count {m.count}")
+            if m.owner is not None:
+                o = self.threads[m.owner]
+                if m.mid not in o.owned:
+                    raise ModelError(f"mutex {m.mid} owner {m.owner} does not list it")
+                if any(tid == m.owner for tid, _ in q.waiters):
+                    raise ModelError(f"mutex {m.mid}: owner {m.owner} is in its own queue")
+                if m.protocol == Protocol.INHERIT:
+                    for tid, _ in q.waiters:
+                        if o.prio < self.threads[tid].prio:
+                            raise ModelError(f"mutex {m.mid}: owner {m.owner} prio {o.prio} below waiter {tid} prio {self.threads[tid].prio}")
+                if m.protocol == Protocol.CEILING and o.prio < m.ceiling:
+                    raise ModelError(f"mutex {m.mid}: owner {m.owner} below ceiling {m.ceiling}")
+            elif q.waiters:
+                raise ModelError(f"mutex {m.mid} is free but has waiters {q.waiters}")
         if self.current is not None and not self.runnable(self._current_thread()):
             raise ModelError(f"current thread {self.current} is not runnable")
         if self.irq_nesting != 0:
             raise ModelError("irq_nesting nonzero between steps")
 
     def check_terminal(self):
-        """Properties that must hold when no action is enabled."""
         for t in self.threads.values():
             if t.wait_state == WaitState.READY and not t.suspended and not t.terminated:
                 raise ModelError(f"terminal state with runnable thread {t.tid} not dispatched")
             if t.wait_state == WaitState.BLOCKED and self.timeout_armed(t.tid):
                 raise ModelError(f"terminal state with an armed timeout for {t.tid}")
+            m = self._queue_mutex(t.wait_queue)
+            if t.wait_state == WaitState.BLOCKED and m is not None and m.protocol == Protocol.INHERIT \
+                    and self._chain_reaches(m.owner, t.tid):
+                raise ModelError(f"terminal state with an undetected deadlock involving thread {t.tid}")
 
     # ------------------------------------------------------------------ enabled actions
     def enabled(self) -> list:
@@ -728,6 +965,8 @@ class Kernel:
         self.check_invariants()
 
     def outcome(self) -> tuple:
-        """Hashable summary of a terminal state: every thread's results and every semaphore's count."""
+        """Hashable summary of a terminal state."""
         return (("threads", tuple((tid, t.results) for tid, t in sorted(self.threads.items()))),
-                ("sems", tuple((sid, s.count) for sid, s in sorted(self.sems.items()))))
+                ("sems", tuple((sid, s.count) for sid, s in sorted(self.sems.items()))),
+                ("blocked", tuple(tid for tid, t in sorted(self.threads.items()) if t.wait_state == WaitState.BLOCKED)),
+                ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))))

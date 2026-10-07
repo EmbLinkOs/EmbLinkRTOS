@@ -130,3 +130,108 @@ ALL = [worked_example, give_in_window, two_gives_three_takers, cancel_variants, 
        suspend_while_waiting,
        destroy_with_waiters, requeue_on_priority_change, give_under_sched_lock, preempted_goes_ahead,
        no_wait_path, sleep_and_cancel, binding_hook, bitmap_queue]
+
+
+# ---------------------------------------------------------------------------------------
+# SPEC-005: mutexes and priority inheritance
+# ---------------------------------------------------------------------------------------
+from embmodel import Lock, Unlock, Protocol  # noqa: E402
+
+
+def classic_inversion():
+    """v0.1 §8.3: L (prio 1) owns M0; H (prio 3) wakes and blocks on M0; M (prio 2) is runnable.
+    With inheritance L runs at 3 until it unlocks, so M never runs while H waits."""
+    return Scenario(name="classic_inversion",
+                    threads={1: (1, (Lock(0), Yield(), Yield(), Unlock(0))),
+                             2: (2, (Sleep(1), Yield(), Yield())),
+                             3: (3, (Sleep(1), Lock(0), Unlock(0)))},
+                    mutexes={0: {}})
+
+
+def nested_chain_timeout():
+    """H waits for A held by M, M waits for B held by L (v0.1 §8.3 nested donation); both waits
+    have timeouts, so the chain is raised to 3 and lowered again in every order."""
+    return Scenario(name="nested_chain_timeout",
+                    threads={1: (1, (Lock(1), Sleep(3), Unlock(1))),
+                             2: (2, (Sleep(1), Lock(0), Lock(1, 2), Unlock(0))),
+                             3: (3, (Sleep(2), Lock(0, 2)))},
+                    mutexes={0: {}, 1: {}})
+
+
+def deadlock_two_lockers():
+    """T1 locks A then B; T2 locks B then A. One of them must receive EMB_EDEADLK; no terminal
+    state may hold an undetected cycle."""
+    return Scenario(name="deadlock_two_lockers",
+                    threads={1: (2, (Lock(0), Sleep(1), Lock(1), Unlock(1), Unlock(0))),
+                             2: (1, (Lock(1), Lock(0), Unlock(0), Unlock(1)))},
+                    mutexes={0: {}, 1: {}})
+
+
+def owner_death_with_waiter():
+    """T1 locks M and exits while T2 waits: T2's lock returns with the OWNERDEAD flag and T2
+    owns the mutex; after T2 unlocks, T3 locks cleanly."""
+    return Scenario(name="owner_death_with_waiter",
+                    threads={1: (3, (Lock(0), Yield())),
+                             2: (2, (Lock(0), Unlock(0))),
+                             3: (1, (Lock(0), Unlock(0)))},
+                    mutexes={0: {}})
+
+
+def owner_death_no_waiter():
+    """T1 locks M and exits with nobody waiting: the mutex is marked inconsistent; the next
+    lock returns OWNERDEAD, its unlock clears the mark, the lock after that is clean."""
+    return Scenario(name="owner_death_no_waiter",
+                    threads={1: (3, (Lock(0),)),
+                             2: (2, (Lock(0), Unlock(0))),
+                             3: (1, (Lock(0), Unlock(0)))},
+                    mutexes={0: {}})
+
+
+def ceiling_mutex():
+    """T1 (prio 1) locks a ceiling-3 mutex: it runs at 3 until unlock, so T2 (prio 2), woken
+    by its sleep meanwhile, cannot preempt it."""
+    return Scenario(name="ceiling_mutex",
+                    threads={1: (1, (Lock(0), Yield(), Unlock(0))),
+                             2: (2, (Sleep(1), Yield()))},
+                    mutexes={0: dict(protocol=Protocol.CEILING, ceiling=3)})
+
+
+def waiter_priority_change():
+    """L owns M; H waits on it; T4 lowers then raises H's base priority: L's effective priority
+    must follow in the same operation (KRN-SYNC-019, 032)."""
+    return Scenario(name="waiter_priority_change",
+                    threads={1: (1, (Lock(0), Sleep(4), Unlock(0))),
+                             3: (3, (Sleep(1), Lock(0), Unlock(0))),
+                             4: (5, (Sleep(2), SetPrio(3, 2), SetPrio(3, 4)))},
+                    mutexes={0: {}})
+
+
+def cancel_waiter_disinherits():
+    return Scenario(name="cancel_waiter_disinherits",
+                    threads={1: (1, (Lock(0), Sleep(3), Unlock(0))),
+                             3: (3, (Sleep(1), Lock(0), Unlock(0))),
+                             4: (5, (Sleep(2), Cancel(3)))},
+                    mutexes={0: {}})
+
+
+def recursive_mutex():
+    return Scenario(name="recursive_mutex",
+                    threads={1: (2, (Lock(0), Lock(0), Yield(), Unlock(0), Unlock(0))),
+                             2: (1, (Lock(0), Unlock(0)))},
+                    mutexes={0: dict(recursive=True)})
+
+
+def two_waiters_handoff():
+    """Two waiters of different priority; the unlock hands the mutex to the higher one, which
+    then inherits nothing further; the second gets it on the next unlock (KRN-SYNC-021)."""
+    return Scenario(name="two_waiters_handoff",
+                    threads={1: (1, (Lock(0), Sleep(2), Unlock(0))),
+                             2: (2, (Sleep(1), Lock(0), Unlock(0))),
+                             3: (3, (Sleep(1), Lock(0), Unlock(0)))},
+                    mutexes={0: {}})
+
+
+MUTEX = [classic_inversion, nested_chain_timeout, deadlock_two_lockers, owner_death_with_waiter,
+         owner_death_no_waiter, ceiling_mutex, waiter_priority_change, cancel_waiter_disinherits,
+         recursive_mutex, two_waiters_handoff]
+ALL = ALL + MUTEX

@@ -82,3 +82,50 @@ class Exhaustive(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MutexExhaustive(unittest.TestCase):
+    """SPEC-005 §15 / KRN-SYNC-038: every mutex scenario explored exhaustively."""
+
+    def test_all_mutex_scenarios_hold_invariants(self):
+        for make in S.MUTEX:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                rep = explore(sc)
+                self.assertGreater(rep.terminals, 0, rep.summary())
+
+    def test_deadlock_always_detected_never_silent(self):
+        rep = explore(S.deadlock_two_lockers())
+        saw_deadlock = False
+        for outcome in rep.outcomes:
+            o = dict(outcome)
+            d = dict(o["threads"])
+            results = [r for res in d.values() for _, r, _ in res]
+            if Result.DEADLOCK in results:
+                saw_deadlock = True
+            self.assertEqual(o["blocked"], (), "a terminal state must not leave a thread blocked")
+        self.assertTrue(saw_deadlock)
+
+    def test_owner_death_outcomes(self):
+        from embmodel import OWNERDEAD_FLAG
+        for make in (S.owner_death_with_waiter, S.owner_death_no_waiter):
+            rep = explore(make())
+            with self.subTest(scenario=make.__name__):
+                for outcome in rep.outcomes:
+                    o = dict(outcome)
+                    d = dict(o["threads"])
+                    # exactly one of T2, T3 learns about the owner's death; every mutex ends free
+                    flags = [data for tid in (2, 3) for (_, r, data) in d[tid] if r == Result.SATISFIED]
+                    self.assertEqual(flags.count(OWNERDEAD_FLAG), 1, outcome)
+                    self.assertEqual(dict(o["mutex_owners"])[0], None)
+
+    def test_inversion_scenarios_end_clean(self):
+        for make in (S.classic_inversion, S.nested_chain_timeout, S.waiter_priority_change,
+                     S.cancel_waiter_disinherits, S.two_waiters_handoff, S.ceiling_mutex, S.recursive_mutex):
+            rep = explore(make())
+            with self.subTest(scenario=make.__name__):
+                for outcome in rep.outcomes:
+                    o = dict(outcome)
+                    self.assertEqual(o["blocked"], ())
+                    for mid, owner in o["mutex_owners"]:
+                        self.assertIsNone(owner, f"mutex {mid} still owned at a terminal state")
