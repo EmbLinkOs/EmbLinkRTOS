@@ -18,17 +18,14 @@
 
 embk_cpu_t embk_cpu; /* lock: the critical section */
 
-/* The initialization table is the bracketed section emb_init_table (09 §7); weak so
- * that an image without EMB_*_DEFINE objects links. */
-extern const emb_init_entry_t __start_emb_init_table[]
-    EMB_WEAK; /* NOLINT(bugprone-reserved-identifier): linker-provided */
-extern const emb_init_entry_t __stop_emb_init_table[]
-    EMB_WEAK; /* NOLINT(bugprone-reserved-identifier): linker-provided */
+/* The initialization table is the bracketed section emb_init_table (09 §7); the bounds
+ * are linker-provided and may be absent when no EMB_*_DEFINE object exists. */
+EMB_TABLE_BOUNDS(const emb_init_entry_t, emb_init_table);
 
 static void run_init_table(void)
 {
-    const emb_init_entry_t *e = __start_emb_init_table;
-    const emb_init_entry_t *stop = __stop_emb_init_table;
+    const emb_init_entry_t *e = EMB_TABLE_START(emb_init_table);
+    const emb_init_entry_t *stop = EMB_TABLE_STOP(emb_init_table);
     if (e == NULL || stop == NULL) {
         return;
     }

@@ -9,7 +9,9 @@
  * list, recorded here: EMB_FALLTHROUGH (CODING-STANDARD CS-7.3), EMB_TRAP,
  * EMB_IS_CONSTANT and EMB_IF_CONSTANT (compile-time time conversions, SPEC-001 §7.3),
  * EMB_MEMCPY and EMB_MEMSET (freestanding builtins, CS-1.2), EMB_FLASH_CONST and
- * EMB_FLASH_READ_* (SPEC-012 §8, defined by the AVR port header, no-ops elsewhere).
+ * EMB_FLASH_READ_* (SPEC-012 §8, defined by the AVR port header, no-ops elsewhere),
+ * EMB_TABLE_BOUNDS, EMB_TABLE_START and EMB_TABLE_STOP (registration tables, 09 §7),
+ * EMB_LAYOUT_MARKER (the storage probe, SPEC-009; no fallback).
  */
 #ifndef EMB_COMPILER_H
 #define EMB_COMPILER_H
@@ -25,6 +27,11 @@
 #include <emb/compiler/gcc.h>
 #else
 #include <emb/compiler/generic.h>
+#endif
+
+/* The object format, where it changes how sections are named and bounded. */
+#if defined(__APPLE__) && defined(__MACH__)
+#include <emb/compiler/macho.h>
 #endif
 
 #ifdef __cplusplus
@@ -127,11 +134,27 @@ extern "C" {
 #define EMB_FLASH_READ_U16(p)    (*(p))
 #define EMB_FLASH_READ_PTR(p)    (*(p))
 #define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)(*(pp)))
-#define EMB_TABLE_SECTION(name)  name
+#endif
+#ifndef EMB_TABLE_SECTION
+#define EMB_TABLE_SECTION(name) name
 #endif
 /* A registration-table entry: placed by its section name alone, never by a
  * program-memory attribute (which overrides the section on GCC for AVR). */
 #define EMB_TABLE_CONST const
+
+/* The bounds of a bracketed registration table (09 §7): declare once per file with
+ * EMB_TABLE_BOUNDS, read with EMB_TABLE_START and EMB_TABLE_STOP. The fallback is the
+ * ELF convention: GNU ld, lld, and embld define __start_<name> and __stop_<name> for a
+ * section whose name is a C identifier, and the embedded linker scripts define the
+ * same names by hand; weak so that an image with an empty table links. Mach-O differs
+ * (<emb/compiler/macho.h>). */
+#ifndef EMB_TABLE_BOUNDS
+#define EMB_TABLE_BOUNDS(type, name)       \
+    extern type __start_##name[] EMB_WEAK; \
+    extern type __stop_##name[] EMB_WEAK
+#define EMB_TABLE_START(name) __start_##name
+#define EMB_TABLE_STOP(name)  __stop_##name
+#endif
 
 #ifdef __cplusplus
 #define EMB_STATIC_ASSERT(cond, msg) static_assert(cond, msg)

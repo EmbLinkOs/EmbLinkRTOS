@@ -2,7 +2,7 @@
 # Copyright 2026 Junior Deogracias
 # The public API: an interface target with the include paths, plus the generated
 # <emb/storage.h> (SPEC-001 §6.2, SPEC-009): a probe object compiled against the real
-# kernel layout is inspected with nm, so the storage sizes are measured, never guessed.
+# kernel layout carries text markers with the sizes, so they are measured, never guessed.
 
 add_library(emb_api INTERFACE)
 target_include_directories(emb_api INTERFACE
@@ -21,13 +21,10 @@ target_include_directories(emb_storage_probe PRIVATE
   "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include"
   "${EMB_BOARD_DIR}/include")
 target_link_libraries(emb_storage_probe PRIVATE emb_flags)
-if(NOT CMAKE_NM)
-  set(CMAKE_NM nm)
-endif()
 add_custom_command(
   OUTPUT "${EMB_STORAGE_HEADER}"
   COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/storage/gen_storage.py"
-          --nm "${CMAKE_NM}" --out "${EMB_STORAGE_HEADER}" $<TARGET_OBJECTS:emb_storage_probe>
+          --out "${EMB_STORAGE_HEADER}" $<TARGET_OBJECTS:emb_storage_probe>
   DEPENDS emb_storage_probe $<TARGET_OBJECTS:emb_storage_probe> "${CMAKE_SOURCE_DIR}/tools/storage/gen_storage.py"
   COMMENT "generating emb/storage.h from the layout probe"
   VERBATIM)

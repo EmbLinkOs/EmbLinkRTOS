@@ -4,10 +4,7 @@
 #include <emb_board.h>
 #include <emb_test.h>
 
-extern const emb_test_case_t __start_emb_test_table[]
-    EMB_WEAK; /* NOLINT(bugprone-reserved-identifier) */
-extern const emb_test_case_t __stop_emb_test_table[]
-    EMB_WEAK; /* NOLINT(bugprone-reserved-identifier) */
+EMB_TABLE_BOUNDS(const emb_test_case_t, emb_test_table);
 
 static unsigned failures;
 static unsigned skips;
@@ -257,8 +254,8 @@ void emb_test_threads_reset(void)
 
 static void runner(void *arg)
 {
-    const emb_test_case_t *tc = __start_emb_test_table;
-    const emb_test_case_t *stop = __stop_emb_test_table;
+    const emb_test_case_t *tc = EMB_TABLE_START(emb_test_table);
+    const emb_test_case_t *stop = EMB_TABLE_STOP(emb_test_table);
     unsigned ran = 0u;
     (void)arg;
     emb_test_platform_irq_bind(dispatch);

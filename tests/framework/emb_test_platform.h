@@ -23,6 +23,7 @@ extern "C" {
 #define EMB_TEST_MAX_THREADS  3   /* the suites need at most three helpers at once */
 #define EMB_TEST_MARKS_MAX    32
 #define EMB_TEST_ISR(name)    static void name(void *emb_isr_arg_)
+#define EMB_TEST_PRINTF       /* the format is a flash pointer, not a checkable literal */
 #elif CONFIG_EMB_ARCH_NATIVE
 #define EMB_TEST_STR(s)       (s)
 #define EMB_TEST_HAS_FORK     1
@@ -32,6 +33,7 @@ extern "C" {
 #define EMB_TEST_MAX_THREADS  8
 #define EMB_TEST_MARKS_MAX    128
 #define EMB_TEST_ISR(name)    EMB_ISR(name)
+#define EMB_TEST_PRINTF       EMB_PRINTF_LIKE(1, 2)
 #else /* the 32-bit embedded ports: Cortex-M, RISC-V (platform_target.c) */
 #define EMB_TEST_STR(s)       (s)
 #define EMB_TEST_HAS_FORK     0
@@ -41,6 +43,7 @@ extern "C" {
 #define EMB_TEST_MAX_THREADS  8
 #define EMB_TEST_MARKS_MAX    128
 #define EMB_TEST_ISR(name)    EMB_ISR(name)
+#define EMB_TEST_PRINTF       /* own formatter in platform_target.c: not checked yet */
 #endif
 
 /* Object names: kept only where the kernel keeps them (CONFIG_EMB_OBJ_NAMES), so the
@@ -52,7 +55,7 @@ extern "C" {
 #endif
 
 /* Formatted output; the format string is a flash string on Harvard ports. */
-void emb_test_logf(const char *fmt_flash, ...);
+void emb_test_logf(const char *fmt_flash, ...) EMB_TEST_PRINTF;
 void emb_test_puts_flash(const char *s_flash);
 void emb_test_puts(const char *s);
 

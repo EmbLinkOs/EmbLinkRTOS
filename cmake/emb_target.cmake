@@ -8,7 +8,12 @@
 function(emb_add_executable name)
   add_executable(${name} ${ARGN})
   target_link_libraries(${name} PRIVATE emb_board emb_kernel emb_arch emb_api emb_flags)
-  target_link_options(${name} PRIVATE "-Wl,-Map=$<TARGET_FILE:${name}>.map")
+  if(APPLE)
+    # Apple ld64 spells the map option differently from GNU ld
+    target_link_options(${name} PRIVATE "-Wl,-map,$<TARGET_FILE:${name}>.map")
+  else()
+    target_link_options(${name} PRIVATE "-Wl,-Map=$<TARGET_FILE:${name}>.map")
+  endif()
   if(EMB_BOARD_LINKER_SCRIPT)
     set_property(TARGET ${name} APPEND PROPERTY LINK_DEPENDS "${EMB_BOARD_LINKER_SCRIPT}")
   endif()
