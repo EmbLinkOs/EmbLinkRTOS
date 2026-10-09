@@ -61,6 +61,35 @@ jobs:
           name: footprint-${{ matrix.preset }}
           path: footprint-${{ matrix.preset }}.*
 
+  riscv:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [rv32-virt, rv32-virt-release, rv32-virt-tiny]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test under QEMU
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+      - name: Footprint report
+        run: |
+          python3 -I tools/footprint/footprint.py \
+            build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
+            --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm riscv64-unknown-elf-nm \
+            --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: footprint-${{ matrix.preset }}
+          path: footprint-${{ matrix.preset }}.*
+
   avr:
     runs-on: ubuntu-24.04
     strategy:

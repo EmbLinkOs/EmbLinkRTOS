@@ -36,7 +36,7 @@ Deliverables: `arch/native` and `arch/avr`; kernel init; idle; thread create and
 
 Exit: the v0.1 §41.3 sequence runs for millions of switches on ATmega328P and on the native port; both pass the same tests; measured switch latency on AVR published with metadata.
 
-**Target order (ADR-038, 2026-10-09).** Cortex-M and RISC-V come first; AVR is a secondary target. The Cortex-M port (Armv7-M and Armv7E-M with lazy FPU stacking) runs the conformance suite under QEMU on `mps2-an385` and `mps2-an386`, ahead of M3's STM32F4 boards; see `docs/ports/cortex_m.md`. The RISC-V port follows on QEMU `virt`. The AVR hardware latency measurement moves behind the Cortex-M one.
+**Target order (ADR-038, 2026-10-09).** Cortex-M and RISC-V come first; AVR is a secondary target. The Cortex-M port (Armv7-M and Armv7E-M with lazy FPU stacking) runs the conformance suite under QEMU on `mps2-an385` and `mps2-an386`, ahead of M3's STM32F4 boards; see `docs/ports/cortex_m.md`. The RISC-V port (RV32IMAC, machine mode) runs the same suite under QEMU `virt`; see `docs/ports/riscv.md`. The AVR hardware latency measurement moves behind the Cortex-M one.
 
 ### M2 - Blocking kernel
 

@@ -5,7 +5,9 @@
 
 The board supplies the machine arguments that precede the image path (EMB_BOARD_QEMU_ARGS
 in board.cmake): for example "-M arduino-uno -bios", "-M mps2-an385 -semihosting-config
-enable=on,target=native -kernel", "-M virt -bios none -kernel". The image prints its
+enable=on,target=native -kernel", "-M virt -bios none -kernel". Boards add
+`-icount shift=N,sleep=off` so that virtual time follows executed instructions: the timing
+tests then do not depend on host load. The image prints its
 results on the board console; the run ends when the test framework's summary line
 ("<n> tests, <m> failed") and the marker EMB_TEST_END have appeared, when the emulator
 exits, or at the timeout. Exit status: 0 when the summary reports no failure, 1 on

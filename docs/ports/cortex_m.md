@@ -46,7 +46,7 @@ Static RAM includes the idle thread's 256-byte stack and control block. R-003 T4
 
 ## Verified
 
-Under QEMU 8.2, on `mps2-an385` (Cortex-M3) and `mps2-an386` (Cortex-M4F, checked, release and tiny): the nine conformance suites, plus `test_fpu` on the M4F. `test_fpu` checks that s16-s31 survive a blocking switch and that a float computation preempted by a float-using thread at every tick gives the bit-identical result. Disabling the PendSV FP save makes both tests fail. The first-execution sample ran 2.5 million switches in 15 seconds on the M4F. The fork-based misuse tests are skipped, as on AVR.
+Under QEMU 8.2, on `mps2-an385` (Cortex-M3) and `mps2-an386` (Cortex-M4F, checked, release and tiny): the nine conformance suites, plus `test_fpu` on the M4F. `test_fpu` checks that s16-s31 survive a blocking switch and that a float computation preempted by a float-using thread at every tick gives the bit-identical result. Disabling the PendSV FP save makes both tests fail. The first-execution sample ran 2.5 million switches in 15 seconds on the M4F. The fork-based misuse tests are skipped, as on AVR. QEMU runs with `-icount`, so virtual time follows executed instructions and the timing tests do not depend on host load; without it, a stalled host made overdue timer interrupts fire back to back and a 3-tick sleep observed 5 ticks.
 
 ## Next
 

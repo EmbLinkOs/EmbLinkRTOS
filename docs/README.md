@@ -51,6 +51,7 @@ All fourteen specification work items of the roadmap (plus 6b) are written and a
 | Page | Content |
 |---|---|
 | `ports/native.md` | The native port as built in M1: gate, deterministic interrupts, virtual time, verification legs |
+| `ports/riscv.md` | The RISC-V port: RV32 machine mode, one frame for switch and trap, CLINT timer and software interrupt, QEMU `virt` board |
 | `ports/cortex_m.md` | The Cortex-M port: PendSV switching, BASEPRI critical sections, lazy FPU context, SysTick, faults, the MPS2 boards under QEMU |
 | `ports/avr.md` | The ATmega328P port as built in M1: frame layout, switch and epilogue, timer, linking, measured footprint, skipped tests |
 | `specs/AMENDMENTS-M1.md` | Where the M1 code departs from or sharpens an accepted specification, to be folded into the specifications |

@@ -5,4 +5,4 @@ set(EMB_BOARD_ARCH cortex_m)
 set(EMB_BOARD_VARIANT armv7em)
 set(EMB_BOARD_DEFAULT_PROFILE base)
 set(EMB_BOARD_C_FLAGS -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
-set(EMB_BOARD_QEMU_ARGS -M mps2-an386 -semihosting-config enable=on,target=native -kernel)
+set(EMB_BOARD_QEMU_ARGS -M mps2-an386 -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel) # ~31 MIPS, deterministic time

@@ -149,6 +149,38 @@
         "EMB_BOARD": "mps2_an386",
         "EMB_PROFILE": "tiny"
       }
+    },
+    {
+      "name": "rv32-virt",
+      "displayName": "RV32IMAC (QEMU virt), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt"
+      }
+    },
+    {
+      "name": "rv32-virt-release",
+      "displayName": "RV32IMAC (QEMU virt), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "displayName": "RV32IMAC (QEMU virt), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt",
+        "EMB_PROFILE": "tiny"
+      }
     }
   ],
   "buildPresets": [
@@ -203,6 +235,18 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny"
+    },
+    {
+      "name": "rv32-virt",
+      "configurePreset": "rv32-virt"
+    },
+    {
+      "name": "rv32-virt-release",
+      "configurePreset": "rv32-virt-release"
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "configurePreset": "rv32-virt-tiny"
     }
   ],
   "testPresets": [
@@ -293,6 +337,27 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt",
+      "configurePreset": "rv32-virt",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt-release",
+      "configurePreset": "rv32-virt-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "configurePreset": "rv32-virt-tiny",
       "output": {
         "outputOnFailure": true
       }
