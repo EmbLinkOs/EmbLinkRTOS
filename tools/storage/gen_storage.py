@@ -49,8 +49,8 @@ def main(argv):
                   f"#define EMB_{up}_STORAGE_ALIGN {align}u",
                   f"typedef union emb_{name}_storage {{",
                   f"    emb_max_align_t align_;",
-                  f"    unsigned char bytes_[EMB_{up}_STORAGE_SIZE];",
-                  f"}} EMB_ALIGNED(EMB_{up}_STORAGE_ALIGN) emb_{name}_storage_t;", ""]
+                  f"    unsigned char bytes_[EMB_{up}_STORAGE_SIZE] EMB_ALIGNED(EMB_{up}_STORAGE_ALIGN);",
+                  f"}} emb_{name}_storage_t;", ""]
     lines += ["#ifdef __cplusplus", "}", "#endif", "", "#endif /* EMB_STORAGE_H */", ""]
     text = "\n".join(lines)
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
