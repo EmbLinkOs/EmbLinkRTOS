@@ -1,0 +1,6 @@
+{
+  "_comment": "arduino_uno, tiny profile, checked build, samples/first_execution (mutex linked). Baseline after the M1 footprint pass: kernel text 4654, static RAM 68, TCB 35. Gate: baseline plus 10 percent. The R-003 targets are gated on the avr-uno-t1 preset.",
+  "kernel_text_max": 5119,
+  "kernel_ram_max": 75,
+  "tcb_max": 38
+}

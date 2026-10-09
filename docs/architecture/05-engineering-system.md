@@ -25,7 +25,7 @@ Object verbs are uniform: `init` (caller storage), `create` (where an allocator 
 
 ### 1.2 Status codes
 
-One enum, `emb_status_t`. `EMB_OK` is zero. Errors are negative and named `EMB_E<NAME>` with a fixed, documented set (`EMB_ETIMEDOUT`, `EMB_EINVAL`, `EMB_EPERM`, `EMB_EBUSY`, `EMB_ENOMEM`, `EMB_ECANCELED`, `EMB_EDESTROYED`, `EMB_EOWNERDEAD`, `EMB_ENOTSUP`, `EMB_EIO`, `EMB_EAGAIN`, `EMB_EFAULT`, `EMB_ENOENT`, `EMB_EEXIST`). Positive values are operation-specific counts. No `errno` global in the kernel API; the libc layer maps if needed.
+One type, `emb_status_t` (an `int`), with its values named by `enum emb_status_code`. `EMB_OK` is zero. Errors are negative with fixed, stable values from a closed kernel set of eighteen codes (`EMB_EPERM`, `EMB_EINVAL`, `EMB_EBUSY`, `EMB_ETIMEDOUT`, `EMB_ECANCELED`, `EMB_EDESTROYED`, `EMB_EOWNERDEAD`, `EMB_ENOMEM`, `EMB_ENOTSUP`, `EMB_EIO`, `EMB_EFAULT`, `EMB_ENOENT`, `EMB_EEXIST`, `EMB_ESTATE`, `EMB_EOVERFLOW`, `EMB_ESTALE`, `EMB_EINTR`) and reserved ranges for drivers and applications; SPEC-001 §4 is authoritative. Positive values are operation-specific counts. No `errno` global and no per-thread error state in the kernel API; the POSIX layer maps codes to errno.
 
 ### 1.3 ISR-safety convention (ADR-003)
 
@@ -53,9 +53,11 @@ Every public function carries structured annotations (in the header comment, par
 
 C11 is the minimum (`_Static_assert`, `_Alignas`, anonymous unions, `_Atomic` where the toolchain provides it; the portability layer wraps atomics). C17 preferred. Freestanding; no dependence on hosted libc in the kernel. C++17 for optional wrappers, with exceptions and RTTI off by default and a documented policy for static constructors.
 
+EmbCC compiles a single dialect, C17 plus GNU extensions, and ignores `-std=` (09 §3), so the C11 floor is enforced by the GCC and Clang legs of the matrix with `-std=c11 -pedantic`. Compiler thread-local storage is banned tree-wide (KRN-THR-014). C++ wrappers are built and tested with GCC and Clang on the embedded targets and with EmbCC on the native target, since EmbCC does not yet compile C++ for 32-bit and 8-bit targets.
+
 ### 1.6 Coding standard
 
-A written standard covering: undefined-behavior policy, integer and conversion rules, `volatile` for registers only and never for synchronization, no variable-length arrays, no recursion in kernel paths, fixed-width types at ABI boundaries, bounded loops on real-time paths, and MISRA C:2023 orientation with recorded deviations. Enforced by clang-format, clang-tidy, cppcheck, and EmbCC diagnostics in CI.
+`docs/CODING-STANDARD.md` (rules `CS-x.y`, with `.clang-format`, `.clang-tidy`, and `.editorconfig` at the repository root) covers: undefined-behavior policy, integer and conversion rules, `volatile` for registers only and never for synchronization, no variable-length arrays, no recursion in kernel paths, fixed-width types at ABI boundaries, bounded loops on real-time paths, and MISRA C:2023 orientation with recorded deviations. Enforced by clang-format, clang-tidy, cppcheck, and EmbCC diagnostics in CI.
 
 ## 2. Configuration and build (ADR-005)
 
@@ -81,7 +83,10 @@ hardware description + Kconfig + sources
 **BLD-002** Compiler-specific attributes and builtins shall be isolated in `include/emb/compiler/` with one header per compiler.
 **BLD-003** The build shall emit a build manifest (source revision, configuration hash, toolchain identity, hardware description hash) embedded in the image and in the SBOM.
 **BLD-004** Builds shall be reproducible given the pinned toolchain container; CI shall verify by double build.
-**BLD-005** The `emb` command-line tool shall wrap configure, build, flash, debug, trace, and test with per-board defaults, using EmbFlash and EmbDebug when present and third-party tools otherwise.
+**BLD-005** The `emb` command-line tool shall wrap configure, build, flash, debug, trace, and test with per-board defaults, using EmbFlash and `embdbg` when present and third-party tools otherwise.
+**BLD-006** The reference build shall be able to emit an EmbBuild manifest (`.ebm`: name, kind, inputs, args, output per target, with derived header closures) so that EmbLinkRTOS builds under EmbBuild on EmbLinkOS (09 §9).
+**BLD-007** The generator shall emit a configuration consistency check that fails the build when a required configuration symbol is missing, when the configuration version does not match the kernel version, or when a profile constraint is violated (ADR-035; ChibiOS `chchecks.h`).
+**BLD-008** A profile marked `safety` shall reject option combinations that remove checks, run timer callbacks in interrupt context, permit object creation after `emb_system_freeze()`, or disable stack protection (ADR-035; ThreadX `TX_SAFETY_CRITICAL`).
 
 ## 3. Repository layout (PLANNED, refined)
 
@@ -95,12 +100,12 @@ EmbLinkRTOS/
   boards/                 <vendor>/<board>/    board description yaml, board init
   drivers/                <class>/             class API + implementations
   subsys/                 power/ logging/ tracing/ security/ storage/ net/ usb/ ...
-  compatibility/          cmsis_rtos2/ posix/ cxx/
+  compatibility/          cmsis_rtos2/ freertos/ posix/ cxx/   (ADR-037 adapters, M4)
   hw/                     schemas, importers, generator
-  tools/                  emb cli, decoders (log, trace, crash), reference model, hil runner
+  tools/                  emb cli, decoders (log, trace, crash), model/ (reference model, ADR-013), hil runner
   tests/                  conformance/ kernel/ arch/ drivers/ stress/ fuzz/ hil/ benchmarks/
   samples/
-  docs/                   architecture/ requirements/ api/ boards/ ports/ adr/
+  docs/                   architecture/ specs/ requirements/ api/ boards/ ports/
   cmake/  scripts/  ci/
   SECURITY.md  LICENSE  CONTRIBUTING.md  CODEOWNERS
 ```
@@ -142,10 +147,13 @@ The wake-race protocol and inheritance recomputation are additionally explored e
 **TEST-009** The requirement-to-test traceability matrix shall be generated from test annotations and shall fail CI on uncovered normative requirements.
 **TEST-010** Kernel misuse paths (ISR blocking, non-owner unlock, destroy with waiters, stale capability) shall have tests in checked and release configurations.
 **TEST-011** Footprint (flash and RAM) per profile and reference board shall be tracked per commit with regression thresholds.
+**TEST-012** A cross-RTOS benchmark harness shall run the same operations on the same board, compiler, and options for EmbLinkRTOS, FreeRTOS, Zephyr, and ThreadX, with at least 10,000 samples per operation and the metadata of §4.4, and its raw data shall be published with every release (R-003 §6).
 
 ### 4.4 Benchmarks
 
 Metrics from v0.1 §29 stand. Each benchmark result is stored as raw samples plus a metadata record (board, SoC revision, clock, compiler and version, flags, LTO, configuration hash, enabled features, timer source, instrumentation method, interrupt load, cache and FPU state). Published numbers include distributions and worst observed values. The HIL runner produces this automatically.
+
+The cross-RTOS harness (TEST-012, R-003 §6) is part of this: `tests/benchmarks/` holds one adapter per kernel, competitor configurations are published and reviewed for fairness, and a regression against the previous release's baseline fails the release (OBS-012). Vendor numbers are never quoted as comparisons; only harness results are.
 
 ## 5. Quality gates
 

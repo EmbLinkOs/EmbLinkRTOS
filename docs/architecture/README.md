@@ -12,9 +12,10 @@ This directory is the architecture baseline for EmbLinkRTOS. It supersedes the v
 | 03 | [Kernel architecture](03-kernel-architecture.md) | Execution model, scheduling classes and budgets, wait protocol, time, synchronization, IPC, objects and capabilities, partitions, memory, faults |
 | 04 | [Platform architecture](04-platform-architecture.md) | Hardware description pipeline, device and driver model, power, boot and update, security, observability, multicore, simulation, middleware |
 | 05 | [Engineering system](05-engineering-system.md) | API conventions, configuration and build, repository layout, verification, quality gates, traceability, release, support, documentation |
-| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-025 with alternatives and consequences; ADR-004, ADR-024, and ADR-025 are accepted, the rest await review |
+| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-037 with alternatives and consequences; ADR-004, ADR-024, ADR-025, and ADR-026 to ADR-037 (from the research records in `../research/`, R-003) are accepted; the rest await review |
 | 07 | [Roadmap](07-roadmap.md) | 1.0 boundary, milestones M0 to M6+, specification work order, risks |
 | 08 | [Open questions](08-open-questions.md) | Decisions awaiting the project owner, each with a recommendation |
+| 09 | [EmbCC toolchain profile](09-embcc-toolchain-profile.md) | Verified EmbCC capabilities and limits per target, and the kernel rules that follow from them |
 
 ## Status markers
 
@@ -38,7 +39,7 @@ SIM  simulation  API  API conventions        BLD  build        TEST verification
 REL  release     SUP  support levels
 ```
 
-Requirements will move into `docs/requirements/` as structured files once the open questions are answered; the architecture documents will then cite them rather than restate them.
+Requirements move into `docs/requirements/` as structured files group by group, as each specification work item lands; the format guide and group index are in [`docs/requirements/README.md`](../requirements/README.md), and the first migrated group is `API`. Detailed designs live in `docs/specs/`. The architecture documents cite requirements rather than restate them once a group has moved.
 
 ## Phase
 

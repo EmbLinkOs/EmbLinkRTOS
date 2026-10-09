@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Native port options (SPEC-013).
+
+if EMB_ARCH_NATIVE
+
+menu "Native port"
+
+config EMB_NATIVE_INVARIANTS
+	bool "Run the kernel invariant checker after every operation"
+	default EMB_CHECKED
+	help
+	  SPEC-013 §8: calls the checked-build invariant functions after every kernel
+	  operation; the primary oracle in asynchronous interrupt mode.
+
+config EMB_NATIVE_MAX_IRQS
+	int "Number of simulated interrupt sources"
+	default 32
+	range 1 1024
+
+config EMB_NATIVE_HOST_STACK
+	int "Host stack size per simulated thread, bytes"
+	default 262144
+	range 65536 16777216
+	help
+	  SPEC-013 §4: host stacks are unrelated to the configured thread stack sizes.
+
+endmenu
+
+endif

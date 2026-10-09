@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.hypothesis/
+
+# Editors and OS
+*.swp
+.DS_Store
+
+# Build trees
+build/

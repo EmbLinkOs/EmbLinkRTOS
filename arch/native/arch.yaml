@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Port manifest, SPEC-013 §2 (format: SPEC-011 §2).
+arch: native
+variants: [posix, win32]
+word_bits: host
+endian: host
+stack: { align: 16, growth: down, min_thread: 0, context_frame: 0 }
+features:
+  irq_nesting: true
+  zero_latency_irqs: []
+  cas: [posix, win32]
+  interrupt_stack: true
+  hw_stack_limit: []
+  mpu: software
+  fpu_lazy: []
+  cycle_counter: [posix, win32]
+  tickless: true
+  smp: false
+  syscall_trap: simulated
+  fault_entry: true
+tcb_extension_bytes: host

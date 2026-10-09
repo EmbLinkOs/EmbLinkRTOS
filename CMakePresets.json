@@ -1,0 +1,366 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "native-gcc",
+      "displayName": "native, GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-gcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base"
+      }
+    },
+    {
+      "name": "native-clang",
+      "displayName": "native, Clang, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base"
+      }
+    },
+    {
+      "name": "native-release",
+      "displayName": "native, GCC, base profile, release build kind",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "native-tiny",
+      "displayName": "native, GCC, tiny profile (table scheduler, 32-bit time)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
+      "name": "native-asan",
+      "displayName": "native, Clang, AddressSanitizer + UBSan",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-asan",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-sanitizers.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base"
+      }
+    },
+    {
+      "name": "native-tsan",
+      "displayName": "native, Clang, ThreadSanitizer",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-tsan",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-tsan.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base"
+      }
+    },
+    {
+      "name": "avr-uno",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
+      "name": "avr-uno-release",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, release (footprint reference)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "avr-uno-t1",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, release, the R-003 T1 feature set (footprint gate)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-t1",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_CONF": "configs/footprint-t1.conf"
+      }
+    },
+    {
+      "name": "cm3-an385",
+      "displayName": "Cortex-M3 (QEMU mps2-an385), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm3-an385",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an385"
+      }
+    },
+    {
+      "name": "cm4-an386",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386"
+      }
+    },
+    {
+      "name": "cm4-an386-release",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
+      "name": "rv32-virt",
+      "displayName": "RV32IMAC (QEMU virt), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt"
+      }
+    },
+    {
+      "name": "rv32-virt-release",
+      "displayName": "RV32IMAC (QEMU virt), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "displayName": "RV32IMAC (QEMU virt), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt",
+        "EMB_PROFILE": "tiny"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "native-gcc",
+      "configurePreset": "native-gcc"
+    },
+    {
+      "name": "native-clang",
+      "configurePreset": "native-clang"
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release"
+    },
+    {
+      "name": "native-tiny",
+      "configurePreset": "native-tiny"
+    },
+    {
+      "name": "native-asan",
+      "configurePreset": "native-asan"
+    },
+    {
+      "name": "native-tsan",
+      "configurePreset": "native-tsan"
+    },
+    {
+      "name": "avr-uno",
+      "configurePreset": "avr-uno"
+    },
+    {
+      "name": "avr-uno-release",
+      "configurePreset": "avr-uno-release"
+    },
+    {
+      "name": "avr-uno-t1",
+      "configurePreset": "avr-uno-t1"
+    },
+    {
+      "name": "cm3-an385",
+      "configurePreset": "cm3-an385"
+    },
+    {
+      "name": "cm4-an386",
+      "configurePreset": "cm4-an386"
+    },
+    {
+      "name": "cm4-an386-release",
+      "configurePreset": "cm4-an386-release"
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "configurePreset": "cm4-an386-tiny"
+    },
+    {
+      "name": "rv32-virt",
+      "configurePreset": "rv32-virt"
+    },
+    {
+      "name": "rv32-virt-release",
+      "configurePreset": "rv32-virt-release"
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "configurePreset": "rv32-virt-tiny"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "native-gcc",
+      "configurePreset": "native-gcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-clang",
+      "configurePreset": "native-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-tiny",
+      "configurePreset": "native-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-asan",
+      "configurePreset": "native-asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-tsan",
+      "configurePreset": "native-tsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno",
+      "configurePreset": "avr-uno",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-release",
+      "configurePreset": "avr-uno-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-t1",
+      "configurePreset": "avr-uno-t1",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm3-an385",
+      "configurePreset": "cm3-an385",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386",
+      "configurePreset": "cm4-an386",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386-release",
+      "configurePreset": "cm4-an386-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "configurePreset": "cm4-an386-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt",
+      "configurePreset": "rv32-virt",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt-release",
+      "configurePreset": "rv32-virt-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt-tiny",
+      "configurePreset": "rv32-virt-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

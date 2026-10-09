@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Port manifest for RISC-V (format: SPEC-011 §2): RV32 in machine mode. Variant rv32imac
+# (no FPU). PMP partitions and the RV32F/D context come later (07 §2, M5).
+arch: riscv
+variants: [rv32imac]
+word_bits: 32
+endian: little
+# one 128-byte frame: mepc, ra, t0-t2, s0-s1, a0-a7, s2-s11, t3-t6, mstatus, padding
+stack: { align: 16, growth: down, min_thread: 256, context_frame: 128 }
+features:
+  irq_nesting: false
+  zero_latency_irqs: []
+  cas: [rv32imac]
+  interrupt_stack: true
+  hw_stack_limit: []
+  mpu: none
+  fpu_lazy: []
+  cycle_counter: [rv32imac]
+  tickless: true
+  smp: false
+  syscall_trap: none
+  fault_entry: true
+  priority_bits: none
+tcb_extension_bytes: 0

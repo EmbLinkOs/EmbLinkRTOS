@@ -2,9 +2,9 @@
 
 A deterministic real-time kernel at the center of a complete embedded software platform, scaling from 8-bit microcontrollers with 2 KB of RAM to isolated, multicore 32-bit systems with one kernel source, one set of semantics, and one tool pipeline.
 
-**Current phase: architecture.** There is no kernel code yet, on purpose. The semantics, invariants, isolation model, hardware pipeline, and verification strategy are being fixed first so the implementation does not have to be rebuilt around them later.
+**Current phase: Milestone 1 delivered; Cortex-M and RISC-V are the first embedded targets (ADR-038).** The kernel runs on the native port, on Cortex-M3 and Cortex-M4F, on RV32IMAC, and on the ATmega328P, all but native under QEMU, passing the same conformance suite everywhere; see `docs/architecture/07-roadmap.md` for the exact status. The architecture (`docs/architecture/`), fifteen accepted specifications (`docs/specs/`), 356 requirements with verification methods (`docs/requirements/`), three research records comparing eleven other kernels (`docs/research/`), and an executable reference model that explores the kernel's protocols exhaustively (`tools/model/`) fix the semantics before the first source file, so the implementation never has to be rebuilt around them.
 
-Start with [`docs/architecture/README.md`](docs/architecture/README.md).
+Start with [`docs/README.md`](docs/README.md).
 
 ## What makes it different
 

@@ -73,18 +73,24 @@ EmbLinkRTOS is not:
 
 | System | Learn from it | Avoid |
 |---|---|---|
-| FreeRTOS | Tiny footprint, task notifications, ubiquity, simplicity of porting | Thin semantics specification; MPU support bolted on; `FromISR` API duplication; weak observability |
-| Zephyr | DeviceTree plus Kconfig hardware-as-data pipeline, driver model, native simulation, userspace memory domains, huge board catalog | Weight and complexity on tiny targets; configuration surface is hard to reason about; build system coupling |
-| Eclipse ThreadX | Safety certifications, event chaining, small deterministic kernel, picokernel design | Closed-world driver ecosystem; limited isolation model |
-| NuttX | POSIX breadth, filesystem and driver maturity | POSIX as the core model is heavy for small targets |
-| RTEMS | Rigor, space heritage, SMP scheduler research, qualification data packages | Build and configuration ergonomics |
+| FreeRTOS | Tiny footprint, task notifications, ubiquity, simplicity of porting, stream buffers | Thin semantics specification; non-transitive inheritance and no owner-death handling; MPU support bolted on; `FromISR` API duplication; asynchronous timer control; weak observability |
+| Zephyr | DeviceTree plus Kconfig hardware-as-data pipeline, driver model, native simulation, userspace memory domains, dictionary logging, transitive inheritance, huge board catalog | Weight and complexity on tiny targets; configuration surface is hard to reason about; Devicetree macro layer; global scheduler lock on SMP; build system coupling |
+| Eclipse ThreadX | Safety certifications, event chaining, small deterministic kernel, picokernel design, inlined trace, separable validation layer, safety option gate | FIFO waiters by default; non-transitive inheritance; timer wheel drift; public struct layout is the ABI; limited isolation model; no tests or certificates in the repository |
+| NuttX | POSIX breadth, filesystem and driver maturity, `SCHED_SPORADIC`, critical-section monitor with caller address, exhaustive crash dump, returned-frame context switch | POSIX as the core model is heavy for small targets; single-level inheritance; unvalidated user pointers in protected mode; most paths run with interrupts masked |
+| RTEMS | Rigor, space heritage, SMP scheduler research, priority aggregation that gets every inheritance case right, wait-flag state machine, deadlock detection, qualification data packages | Footprint; tick-only timing; no isolation; build and configuration ergonomics |
+| ChibiOS RT and NIL | One API over two kernels at two footprints; context-class suffix contract with a runtime state checker; low-latency fake-frame interrupt exit; transitive inheritance; configuration completeness checks | Two kernels instead of one; LIFO unlock order; timer callbacks only in interrupt context; licence tiering |
+| uC/OS-III | Task-built-in semaphore and queue; transitive inheritance with correct multi-mutex restore; safety-critical start freeze; debugger size and configuration exports | Out-parameter error style; every critical section masks interrupts, including list walks |
+| RIOT | Timer clock tree with boot-time overhead calibration; thread flags composing IPC and timers into one wait | No inheritance by default; 32-bit time with user-visible wrap rules |
 | seL4 | Capabilities as the universal access model; formal semantics as the spec; proof-driven confidence | Not aimed at MCU-class memory; no small-target story |
 | Hubris (Oxide) | Every driver in an isolated task; supervisor restarts faulted tasks; tiny syscall surface; static everything | Rust-only; single fixed task set per image |
 | Tock | Process isolation on MPU MCUs; capsule model for trusted drivers; grant-based memory | Rust-only; dynamic app loading adds complexity |
-| Embassy | Async as the natural MCU programming model; no-stack tasks; excellent HAL ergonomics | Not a general RTOS; cooperative executor, no priority isolation without multiple executors |
+| Embassy | Async as the natural MCU programming model; no-stack tasks; idempotent lock-free wake; one-alarm multiplexing; lagged-aware broadcast; excellent HAL ergonomics | Not a general RTOS; cooperative executor, no priority isolation without multiple executors |
+| QNX, seL4 MCS | Adaptive partitioning with idle-time sharing and critical budgets; scheduling contexts, passive servers, timeout faults | Not MCU-class |
 | ARINC 653 systems (PikeOS, VxWorks 653) | Time and space partitioning as the certification primitive | Static schedules as the only model |
 
 The synthesis EmbLinkRTOS aims for: FreeRTOS-class footprint on the smallest targets, Zephyr-class hardware pipeline, seL4-style capabilities, Hubris-style isolation and supervision on MPU targets, ARINC-style time partitioning as an option, Embassy-style asynchronous driver model underneath synchronous APIs, and evidence discipline from the safety world. All in one source tree, all compiling down to what each target can afford.
+
+The mechanism-level comparison behind this table is `docs/research/R-001-rtos-mechanism-comparison.md`; the market, performance, and certification facts are `R-002`; the nine claims that define the positioning, each with a measurable target and a way for a user to check it, are `R-003` §1 and §4. The short form: semantics you can test, the fastest small kernel on the same board shown by a public harness, one kernel from 2 KB to isolated multicore, synchronization that is correct in every case the others get wrong, isolation designed in, time done right, observability out of the box, hardware as data without macro layers, and evidence as a by-product of development.
 
 ## 6. Definition of success
 

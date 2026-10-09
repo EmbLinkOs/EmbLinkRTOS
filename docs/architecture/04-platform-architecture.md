@@ -14,7 +14,7 @@ Hardware is described in a **project-owned, schema-validated YAML** model with t
 
 The model borrows what works from DeviceTree (the `compatible` string binding a node to a driver, hierarchical buses, phandles as references) and from CMSIS-SVD (register-level detail for tooling) without adopting their syntax. **Importers** exist for CMSIS-SVD (peripheral instances, IRQ numbers, memory map) and for DeviceTree source (to bootstrap from Zephyr or Linux board files), so that authors curate rather than transcribe.
 
-### 1.2 Model
+### 1.2 Model (specified in detail in `docs/specs/SPEC-014-hardware-description-schema.md`)
 
 ```
 soc/<vendor>/<family>/<part>.yaml
@@ -56,8 +56,9 @@ boards/<vendor>/<board>.yaml
 **HW-001** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **HW-002** The hardware model shall be validated against a published schema before generation; validation errors shall name the file and node.
 **HW-003** Generated files shall be reproducible and never edited by hand.
-**HW-004** Importers for CMSIS-SVD and DeviceTree source shall exist to bootstrap SoC and board descriptions.
+**HW-004** Importers for CMSIS-SVD and DeviceTree source shall exist to bootstrap SoC and board descriptions; the SVD importer builds on EmbCC's `embsvd` parser (09 §9).
 **HW-005** The normalized model shall be exported in a stable JSON form for tooling.
+**HW-006** From the same region model, the generator shall emit both a GNU ld linker script and an `embld` option set (`-Ttext`, `-Tdata`, `--rom-limit`), because `embld` accepts linker scripts on ARM and RISC-V but not on AVR (09 §7); the two outputs shall be tested for agreement.
 
 ## 2. Device model
 
@@ -200,6 +201,8 @@ Out of scope for the kernel: invasive silicon attacks; these are mitigated by So
 
 ## 7. Observability
 
+Formats and tools are specified in `docs/specs/SPEC-015-observability-formats.md`.
+
 ### 7.1 Deferred-format logging (ADR-009)
 
 Log calls do not format on target. The format string and metadata (level, file, line, argument types) are placed in a non-loaded ELF section and replaced by a 16- or 32-bit identifier. The target emits identifier plus raw arguments. The host decoder (EmbDebug or a standalone tool using the ELF) reconstructs the text. Typical savings are an order of magnitude in flash and bandwidth, and logging becomes cheap enough to leave on in production.
@@ -233,6 +236,13 @@ The image exports a versioned, read-only descriptor: struct offsets for TCB fiel
 
 Per thread: CPU time, switch count, stack high-water, deadline misses, budget overruns. Per CPU: utilization, idle residency, max critical section, interrupt counts. Per object: contention counts. All optional, all compile-out.
 
+**Worst-case monitors (ADR-034).** Beyond averages, the kernel records, when enabled, the longest interrupt-masked interval, the longest scheduler-locked interval, the longest ISR per vector, and the longest uninterrupted run per thread, each with the program counter of the code that opened the interval. A configurable threshold per category raises a trace event, a notification to a supervisor, or a fault. These monitors make the latency bounds of SPEC-002 and the targets of R-003 §4 self-checking in the field (NuttX critmonitor, R-001 §8).
+
+**OBS-009** Worst-case interrupt-masked and scheduler-locked intervals shall be recorded per CPU and per thread with the address of the opener, as a compile-time option.
+**OBS-010** Thresholds per monitored category shall be configurable to trace, notify, or fault.
+**OBS-011** Monitor state shall be exported through the debug descriptor and the statistics API.
+**OBS-012** Benchmark results of a release shall be compared with the previous release's baseline on the same board and configuration; a regression beyond the configured threshold shall fail the release.
+
 ## 8. Multicore
 
 ### 8.1 SMP (FUTURE, constraints LOCKED)
@@ -260,8 +270,8 @@ Three complementary layers, all in CI:
 | Layer | Tool | Purpose |
 |---|---|---|
 | Native port | `arch/native` | Kernel semantics, sanitizers, fuzzing, reference-model differential tests; runs in seconds |
-| Instruction-level emulation | Renode (preferred for MCU peripheral models), QEMU | Real arch port code, real interrupt controllers, multi-node and multicore scenarios without hardware |
-| Hardware-in-the-loop | Real boards through EmbFlash and third-party probes | Timing truth, peripherals, power |
+| Instruction-level emulation | Renode (preferred for MCU peripheral models), QEMU (including EmbCC's own harness boards: `lm3s6965evb`, `mps2-an386`, `mps2-an500`, `mps2-an505`, micro:bit, RISC-V `virt`, AVR) | Real arch port code, real interrupt controllers, multi-node and multicore scenarios without hardware |
+| Hardware-in-the-loop | Real boards through third-party probes and flashers (OpenOCD, pyOCD, `picotool`, `avrdude`) behind the `emb` CLI; EmbFlash replaces them behind the same command once it exists | Timing truth, peripherals, power |
 
 **SIM-001** The native port shall pass the full kernel conformance suite.
 **SIM-002** Each supported architecture shall have at least one emulated target in CI.

@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# AVR port options (SPEC-012). The tiny defaults are mandatory on this port (§2, §14).
+
+if EMB_ARCH_AVR
+
+menu "AVR port"
+
+config EMB_AVR_MCU
+	string "Device name for the compiler (-mmcu)"
+	default "atmega328p"
+
+config EMB_AVR_F_CPU
+	int "CPU clock in Hz"
+	default 16000000
+	range 1000000 20000000
+	help
+	  From the board description (SPEC-012 §11). 16 MHz on the Arduino Uno.
+
+config EMB_AVR_ISR_STACK_RESERVE
+	int "Per-thread interrupt stack reserve, bytes"
+	default 64
+	range 40 255
+	help
+	  SPEC-002 §7.2, SPEC-012 §5: the 37-byte EMB_ISR frame plus the largest
+	  kernel-aware handler's C frame. Added to every thread stack budget.
+
+config EMB_AVR_TIMER1_PRESCALER
+	int "Timer1 prescaler for the periodic tick"
+	default 64
+	range 1 1024
+	help
+	  SPEC-012 §7: prescaler 64 with OCR1A = 249 gives an exact 1 ms tick at 16 MHz.
+
+endmenu
+
+require EMB_SCHED_TABLE "SPEC-012 §2: the table scheduler is mandatory on the AVR port"
+require EMB_TICK_32BIT "SPEC-012 §2: 32-bit time is mandatory on the AVR port"
+require EMB_NOTIFY_BITS = 8 "SPEC-012 §2: 8-bit notifications are mandatory on the AVR port"
+require !EMB_IDLE_THREAD "SPEC-012 §2: the AVR port uses the inline idle context (ADR-036)"
+require !EMB_TICKLESS "the AVR port implements the periodic tick only in this milestone (SPEC-012 §7 tickless: later)"
+
+endif

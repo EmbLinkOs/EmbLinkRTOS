@@ -22,18 +22,23 @@ These need your decision. Each has a recommendation so the default path is clear
 
 **Q4. Default wait ordering.** Priority-then-FIFO (recommended) or pure FIFO by default?
 *Recommendation:* priority-then-FIFO; pure FIFO as a per-object option.
+*R-001 §4.1:* seven of nine kernels default to priority-then-FIFO; ThreadX's FIFO default is a documented source of inversion. Confirmed.
 
 **Q5. Mutex owner termination.** Fault (recommended default) or release with `EMB_EOWNERDEAD`?
 *Recommendation:* fault in checked builds, configurable `EOWNERDEAD` for release builds that need it.
+*R-001 §5:* only ThreadX, NuttX, and uC/OS-III handle owner death at all, and none informs the next owner. Confirmed; algorithm in ADR-028.
+*Answered 2026-10-07 (SPEC-005 §3.6, KRN-SYNC-025):* `CONFIG_EMB_MUTEX_OWNER_DEATH` = `FAULT` (default) or `RELEASE` with `EMB_EOWNERDEAD` to the next owner; the inconsistent mark is cleared by the recovering owner's unlock.
 
 **Q6. Thread cancellation in 1.0.** Cooperative cancellation (recommended) or none until later?
 *Recommendation:* include it; it is small once the wait protocol has wake results.
+*Answered 2026-10-07 (SPEC-008 §7, KRN-THR-021):* cooperative cancellation with a per-thread disable count is in 1.0; there is no asynchronous terminate.
 
 **Q7. Notification width.** 32 bits everywhere, or 8 bits on tiny?
 *Recommendation:* configurable, default 32, tiny profile may select 8 or 16.
+*R-003 ADR-027:* binding objects to notification bits needs spare bits; `base` keeps 32 with at least 16 for the application, `tiny` may select 8 with at least 4 (KRN-NOTIF-006). Confirmed.
 
 **Q8. Time slicing per priority level (KRN-SCH-037).** Worth the configuration surface?
-*Recommendation:* yes; it is a small table and solves the common "round-robin for background only" need.
+*Recommendation (revised by R-003 §3.1):* no per-level table; one quantum and one threshold priority at or below which slicing applies (Zephyr `TIMESLICE_PRIORITY`). KRN-SCH-037 revised accordingly. Answered.
 
 ## C. Platform
 
@@ -57,6 +62,7 @@ This is the highest-impact platform decision. Own schema costs generator work up
 
 **Q15. Reference model language.** Python (fast to write, readable to non-C reviewers) or C on the host (closer to kernel, reusable in differential tests without a bridge)?
 *Recommendation:* Python for the model and TLA+ or exhaustive Python exploration for the wake race; the differential test bridge is a small JSON protocol.
+*Answered 2026-10-07 (SPEC-004 §16.6):* Python 3 with exhaustive section-granularity exploration in `tools/model/` and `hypothesis` for randomized runs; the bridge is a trace replay.
 
 **Q16. Documentation toolchain.** Sphinx with a requirements extension (mature traceability tooling) or MkDocs plus project scripts (simpler)?
 *Recommendation:* Sphinx; traceability is the point.
@@ -66,10 +72,13 @@ This is the highest-impact platform decision. Own schema costs generator work up
 ## E. EmbLink ecosystem
 
 **Q18. EmbCC status today.** Which C standard features and attributes does it support for Cortex-M and RISC-V? Does it emit DWARF suitable for the debug descriptor consumer? When is AVR support planned? The answers set the compiler portability layer's shape and the M1 compiler for AVR.
+*Answered 2026-10-07 from the EmbCC repository; see document 09.* EmbCC already targets AVR (ATmega328P), Cortex-M0+ through M33, and RISC-V 32 and 64, compiles C17 plus GNU extensions, emits DWARF 4 (empty on AVR today), and builds FreeRTOS's ports unmodified. The design rules that follow from its limits are in 09 §§3 to 7.
 
 **Q19. EmbDebug and EmbFlash status.** Do they exist in usable form for M3 HIL, or does the HIL runner start on OpenOCD, pyOCD, or probe-rs?
+*Partly answered 2026-10-07.* EmbDebug is `embdbg` in the EmbCC repository: a DWARF reader, symbolizer, crash-report analyzer, and GDB remote protocol client for QEMU and OpenOCD, covering ARM M-profile and RISC-V but not AVR. The HIL runner therefore starts on OpenOCD or pyOCD stubs with `embdbg` as the client. *Completed 2026-10-07:* EmbFlash is not developed yet. Flashing starts on OpenOCD, pyOCD, `picotool`, and `avrdude` behind the `emb flash` command, and EmbFlash slots in behind the same command when it exists.
 
 **Q20. EmbBuild.** Does it exist? If not, CMake is the only build until it does, which the architecture already assumes.
+*Answered 2026-10-07.* EmbBuild exists as a typed-manifest format (`.ebm`) and walker on EmbLinkOS, with a host reference walker in the EmbCC repository. CMake stays the reference build and gains a manifest emitter (BLD-006).
 
 ---
 

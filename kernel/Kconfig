@@ -1,0 +1,308 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Kernel options. Defaults follow the reference profiles of 03 §11 and the per-specification
+# values; a symbol's help names the specification that defines its meaning.
+
+menu "Kernel"
+
+choice EMB_PROFILE_CHOICE
+	prompt "Reference profile (02 §7, 03 §11)"
+	default EMB_PROFILE_BASE
+
+config EMB_PROFILE_TINY
+	bool "tiny: table scheduler, 32-bit time, 8-bit notifications, no idle thread"
+
+config EMB_PROFILE_BASE
+	bool "base: bitmap scheduler, 64-bit time, 32-bit notifications"
+
+endchoice
+
+config EMB_PROFILE
+	string
+	default "tiny" if EMB_PROFILE_TINY
+	default "base" if EMB_PROFILE_BASE
+
+config EMB_CHECKED
+	bool "Checked build: misuse faults, invariant checks, stack guards"
+	default y
+	help
+	  SPEC-001 §5.3. A release build returns status codes where a checked build faults.
+
+menu "Scheduler"
+
+config EMB_SCHED_TABLE
+	bool "Table scheduler: one thread per priority, one-word ready set (ADR-036)"
+	default y if EMB_PROFILE_TINY
+	default n
+
+config EMB_PRIORITY_COUNT
+	int "Number of priority levels including idle level 0"
+	default 8 if EMB_PROFILE_TINY
+	default 32
+	range 2 EMB_ARCH_WORD_BITS if EMB_SCHED_TABLE
+	range 2 256
+	help
+	  KRN-SCH-036: application priorities are 1 .. EMB_PRIORITY_COUNT - 1; 0 is idle.
+	  With the table scheduler the count is bounded by the architecture word width.
+
+config EMB_TIME_SLICING
+	bool "Round-robin time slicing among equal priorities (KRN-SCH-037)"
+	default n
+
+config EMB_TIMESLICE_TICKS
+	int "Default quantum in ticks"
+	depends on EMB_TIME_SLICING
+	default 10
+	range 1 65535
+
+config EMB_IDLE_THREAD
+	bool "Dedicated idle thread (off: inline idle context, ADR-036)"
+	default n if EMB_PROFILE_TINY
+	default y
+
+config EMB_IDLE_STACK_SIZE
+	int "Idle thread stack size, bytes"
+	depends on EMB_IDLE_THREAD
+	default 256
+	range EMB_ARCH_STACK_MIN 65536
+
+endmenu
+
+menu "Time"
+
+config EMB_TICK_NS
+	int "Tick length in nanoseconds"
+	default 1000000
+	range 1000 100000000
+	help
+	  SPEC-003 §3. Default 1 ms.
+
+config EMB_TICK_32BIT
+	bool "32-bit tick counter (tiny profile)"
+	default y if EMB_PROFILE_TINY
+	default n
+	help
+	  SPEC-003 §3, §5.2: finite timeouts are capped at 2^31 - 1 ticks.
+
+config EMB_TICKLESS
+	bool "Tickless clock: program the timer for the next deadline only"
+	depends on EMB_ARCH_HAS_TICKLESS
+	default y if EMB_ARCH_NATIVE
+	default n
+	help
+	  SPEC-003 §4.2. Periodic tick otherwise.
+
+endmenu
+
+menu "Threads"
+
+config EMB_STACK_CHECK
+	bool "Guard-word check at every switch-out (KRN-MEM-010)"
+	default EMB_CHECKED
+
+config EMB_STACK_STATS
+	bool "Stack fill and high-water statistics (KRN-MEM-009)"
+	default n
+
+config EMB_TLS_SLOTS
+	int "Thread-local storage slots per thread (SPEC-008 §9)"
+	default 0
+	range 0 16
+
+config EMB_THREAD_LIST
+	bool "Keep the all-threads list for emb_thread_foreach and the debug descriptor"
+	default n if EMB_PROFILE_TINY
+	default y
+
+config EMB_OBJ_NAMES
+	bool "Keep object name pointers"
+	default n if EMB_PROFILE_TINY
+	default y
+
+config EMB_STATUS_NAMES
+	bool "Compile emb_status_name()"
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  SPEC-001 §14 decision 4.
+
+endmenu
+
+menu "Synchronization"
+
+config EMB_NOTIFY
+	bool "Thread notifications (SPEC-006 §2)"
+	default y
+
+config EMB_NOTIFY_BITS
+	int "Notification word width: 8, 16, or 32"
+	depends on EMB_NOTIFY
+	default 8 if EMB_PROFILE_TINY
+	default 32
+	range 8 32
+
+config EMB_SEM
+	bool "Counting semaphores (SPEC-005 §4)"
+	default y
+
+config EMB_SEM_COUNT_BITS
+	int "Semaphore count width: 8, 16, or 32"
+	depends on EMB_SEM
+	default 8 if EMB_PROFILE_TINY
+	default 32
+	range 8 32
+
+config EMB_MUTEX
+	bool "Mutexes (SPEC-005 §3)"
+	default y
+
+config EMB_MUTEX_INHERIT
+	bool "Priority inheritance protocol"
+	depends on EMB_MUTEX
+	default y
+
+config EMB_PI_MAX_DEPTH
+	int "Maximum inheritance chain depth (SPEC-005 §2.2)"
+	depends on EMB_MUTEX_INHERIT
+	default 8
+	range 1 32
+
+config EMB_PI_HOP_SECTIONS
+	bool "Release the critical section between inheritance hops"
+	depends on EMB_MUTEX_INHERIT
+	default n if EMB_ARCH_AVR
+	default y
+
+choice EMB_MUTEX_OWNER_DEATH_CHOICE
+	prompt "Owner death policy (SPEC-005 §3.6)"
+	depends on EMB_MUTEX
+	default EMB_MUTEX_OWNER_DEATH_FAULT
+
+config EMB_MUTEX_OWNER_DEATH_FAULT
+	bool "FAULT: a thread exiting with owned mutexes is a fault in checked builds"
+
+config EMB_MUTEX_OWNER_DEATH_RELEASE
+	bool "RELEASE: hand over or mark inconsistent, EMB_EOWNERDEAD to the next locker"
+
+endchoice
+
+config EMB_MUTEX_OWNER_DEATH
+	string
+	default "FAULT" if EMB_MUTEX_OWNER_DEATH_FAULT
+	default "RELEASE" if EMB_MUTEX_OWNER_DEATH_RELEASE
+	default "FAULT"
+
+config EMB_MUTEX_CEILING_STATIC_ONLY
+	bool "Ceiling mutexes without a wait queue (every user declared, SPEC-005 §3.4)"
+	depends on EMB_MUTEX
+	default y if EMB_PROFILE_TINY
+	default n
+
+endmenu
+
+menu "Objects"
+
+choice EMB_HANDLE_MODEL_CHOICE
+	prompt "Handle model (SPEC-009, ADR-014)"
+	default EMB_HANDLE_MODEL_POINTER
+
+config EMB_HANDLE_MODEL_POINTER
+	bool "POINTER: the handle word is the object address"
+
+endchoice
+
+config EMB_HANDLE_MODEL
+	string
+	default "POINTER" if EMB_HANDLE_MODEL_POINTER
+
+endmenu
+
+menu "Interrupts"
+
+config EMB_IRQ_ZERO_LATENCY
+	bool "Kernel-independent interrupt class (SPEC-002 §3.2)"
+	depends on EMB_ARCH_HAS_ZERO_LATENCY_IRQS
+	default n
+
+config EMB_IRQ_KERNEL_LEVEL
+	int "Highest generic interrupt level that may call the kernel (SPEC-002 §8.1)"
+	default 0
+	range 0 255
+
+config EMB_IRQ_NESTING
+	bool "Allow kernel-aware interrupts to nest (SPEC-002 §7.1)"
+	depends on EMB_ARCH_HAS_IRQ_NESTING
+	default y
+
+config EMB_IRQ_MAX_NESTING
+	int "Nesting depth the interrupt stack is sized for"
+	default 4 if EMB_IRQ_NESTING
+	default 1
+	range 1 64
+
+config EMB_IRQ_LOCK_STATS
+	bool "Measure critical-section durations with the cycle counter"
+	depends on EMB_ARCH_HAS_CYCLE_COUNTER
+	default n
+
+config EMB_IRQ_DYNAMIC
+	bool "Runtime emb_irq_connect() with a RAM handler table"
+	default n if EMB_ARCH_AVR
+	default y
+
+config EMB_ISR_STACK_SIZE
+	int "Dedicated interrupt stack size, bytes"
+	depends on EMB_ARCH_HAS_INTERRUPT_STACK
+	default 1024
+	range 256 1048576
+
+endmenu
+
+menu "Faults"
+
+choice EMB_FAULT_ACTION_CHOICE
+	prompt "Action after a kernel fault is recorded (03 §10)"
+	default EMB_FAULT_ACTION_REBOOT if EMB_ARCH_AVR
+	default EMB_FAULT_ACTION_HALT
+
+config EMB_FAULT_ACTION_HALT
+	bool "HALT: stop with interrupts masked"
+
+config EMB_FAULT_ACTION_REBOOT
+	bool "REBOOT: reset through the architecture's reset path"
+
+endchoice
+
+config EMB_FAULT_ACTION
+	string
+	default "HALT" if EMB_FAULT_ACTION_HALT
+	default "REBOOT" if EMB_FAULT_ACTION_REBOOT
+
+config EMB_FAULT_WHERE
+	bool "Record the faulting function's name in the fault information"
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  The strings cost flash, and RAM on AVR (03 §10.2 crash record location).
+
+config EMB_FAULT_HALT_FOR_DEBUG
+	bool "Execute a breakpoint before the fault action (SPEC-011 §14)"
+	default y if EMB_CHECKED && !EMB_ARCH_AVR
+	default n
+
+endmenu
+
+menu "Observability"
+
+config EMB_TRACE
+	bool "Kernel trace points (SPEC-015)"
+	default y if EMB_ARCH_NATIVE
+	default n
+
+endmenu
+
+endmenu
+
+require EMB_NOTIFY_BITS = 8 || EMB_NOTIFY_BITS = 16 || EMB_NOTIFY_BITS = 32 "EMB_NOTIFY_BITS must be 8, 16, or 32"
+require EMB_SEM_COUNT_BITS = 8 || EMB_SEM_COUNT_BITS = 16 || EMB_SEM_COUNT_BITS = 32 "EMB_SEM_COUNT_BITS must be 8, 16, or 32"
+require !EMB_SCHED_TABLE || EMB_PRIORITY_COUNT <= EMB_ARCH_WORD_BITS "the table scheduler needs EMB_PRIORITY_COUNT <= EMB_ARCH_WORD_BITS (ADR-036)"
