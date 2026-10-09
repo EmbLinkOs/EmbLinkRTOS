@@ -148,5 +148,5 @@ jobs:
             --conf boards/arduino/arduino_uno/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: Reference model
         run: |
-          pip install hypothesis
+          pip install hypothesis pytest
           cd tools/model && python3 -m pytest -q
