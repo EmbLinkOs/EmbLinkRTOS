@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# RISC-V port options (docs/ports/riscv.md). Board values come from board.conf.
+
+if EMB_ARCH_RISCV
+
+menu "RISC-V port"
+
+config EMB_RV_MTIME_HZ
+	int "Frequency of the machine timer (mtime) in Hz"
+	default 10000000
+	range 32768 1000000000
+
+config EMB_RV_CLINT_BASE
+	hex "Base address of the CLINT (msip, mtimecmp, mtime)"
+	default 0x02000000
+
+config EMB_RV_IRQ_COUNT
+	int "Interrupt numbers: 0 is the machine software interrupt, 1.. the PLIC sources"
+	default 8
+	range 1 1024
+
+endmenu
+
+require EMB_IRQ_DYNAMIC "the RISC-V port binds handlers with emb_irq_connect() (docs/ports/riscv.md)"
+require !EMB_TICKLESS "the RISC-V port implements the periodic machine-timer tick only in this milestone"
+
+endif

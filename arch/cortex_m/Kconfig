@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Cortex-M port options (docs/ports/cortex_m.md). Board values come from board.conf.
+
+if EMB_ARCH_CORTEX_M
+
+menu "Cortex-M port"
+
+config EMB_CM_CPU_HZ
+	int "Processor clock in Hz (SysTick runs on it)"
+	default 25000000
+	range 1000000 1000000000
+
+config EMB_CM_IRQ_COUNT
+	int "External interrupt lines in the vector table"
+	default 32
+	range 1 128
+
+config EMB_CM_KERNEL_BASEPRI
+	int "BASEPRI value of the kernel's critical section"
+	default 32
+	range 16 128
+	help
+	  Interrupts with a priority byte below this value are zero-latency: never masked
+	  by the kernel and not allowed to call it (SPEC-002 §3). 32 is priority level 1
+	  on a part with 3 priority bits.
+
+config EMB_CM_IRQ_PRIORITY
+	int "Default priority byte of a kernel-aware interrupt"
+	default 128
+	range 32 224
+
+endmenu
+
+require EMB_IRQ_DYNAMIC "the Cortex-M port binds handlers with emb_irq_connect() (docs/ports/cortex_m.md)"
+require !EMB_TICKLESS "the Cortex-M port implements the periodic SysTick tick only in this milestone"
+require EMB_CM_IRQ_PRIORITY >= EMB_CM_KERNEL_BASEPRI "a kernel-aware interrupt must be masked by the kernel's BASEPRI"
+
+endif

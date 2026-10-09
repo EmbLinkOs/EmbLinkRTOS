@@ -29,7 +29,9 @@ static EMB_NORETURN void act(const emb_fault_info_t *info)
 #endif
 }
 
-void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument, const char *where)
+static EMB_NORETURN void raise_info(uint8_t fault_class, uint16_t code, uint8_t argument,
+                                    const char *where, uintptr_t address, uintptr_t pc,
+                                    uintptr_t sp)
 {
     emb_fault_info_t info;
     (void)emb_arch_irq_lock(); /* never unmasked again: the fault path does not return */
@@ -42,15 +44,25 @@ void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument, cons
                             ? embk_thread_index(embk_cpu.current)
                             : 0xFFu;
     info.context = emb_context();
-    info.address = 0u;
-    info.pc = 0u;
-    info.sp = 0u;
+    info.address = address;
+    info.pc = pc;
+    info.sp = sp;
     info.where = where;
     EMBK_TRACE(EMB_TRACE_FAULT, fault_class, code, 0u);
     if (fault_hook != NULL) {
         fault_hook(&info);
     }
     act(&info);
+}
+
+void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument, const char *where)
+{
+    raise_info(fault_class, code, argument, where, 0u, 0u, 0u);
+}
+
+void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr_t sp)
+{
+    raise_info(EMB_FAULT_HARDWARE, code, 0u, "architecture fault", address, pc, sp);
 }
 
 void emb_fault(uint8_t fault_class, uint16_t code, const char *where)

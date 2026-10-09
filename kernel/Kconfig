@@ -247,8 +247,8 @@ config EMB_IRQ_LOCK_STATS
 
 config EMB_IRQ_DYNAMIC
 	bool "Runtime emb_irq_connect() with a RAM handler table"
-	default y if EMB_ARCH_NATIVE
-	default n
+	default n if EMB_ARCH_AVR
+	default y
 
 config EMB_ISR_STACK_SIZE
 	int "Dedicated interrupt stack size, bytes"

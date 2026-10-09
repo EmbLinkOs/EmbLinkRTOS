@@ -33,8 +33,9 @@ add_library(emb_flags INTERFACE)
 target_compile_options(emb_flags INTERFACE
   $<$<COMPILE_LANGUAGE:C>:${EMB_C_STANDARD_FLAGS}>
   $<$<COMPILE_LANGUAGE:C>:${EMB_WARNING_FLAGS}>
-  ${EMB_TOOLCHAIN_C_FLAGS})
+  ${EMB_TOOLCHAIN_C_FLAGS}
+  ${EMB_BOARD_C_FLAGS})   # the board's CPU, FPU and ABI flags (board.cmake)
 target_compile_definitions(emb_flags INTERFACE ${EMB_TOOLCHAIN_DEFINES})
 target_include_directories(emb_flags INTERFACE
   "${EMB_GENERATED_DIR}/include")
-target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS})
+target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_C_FLAGS})

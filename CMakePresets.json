@@ -107,6 +107,48 @@
         "EMB_PROFILE": "tiny",
         "EMB_CONF": "configs/footprint-t1.conf"
       }
+    },
+    {
+      "name": "cm3-an385",
+      "displayName": "Cortex-M3 (QEMU mps2-an385), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm3-an385",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an385"
+      }
+    },
+    {
+      "name": "cm4-an386",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386"
+      }
+    },
+    {
+      "name": "cm4-an386-release",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386",
+        "EMB_PROFILE": "tiny"
+      }
     }
   ],
   "buildPresets": [
@@ -145,6 +187,22 @@
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1"
+    },
+    {
+      "name": "cm3-an385",
+      "configurePreset": "cm3-an385"
+    },
+    {
+      "name": "cm4-an386",
+      "configurePreset": "cm4-an386"
+    },
+    {
+      "name": "cm4-an386-release",
+      "configurePreset": "cm4-an386-release"
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "configurePreset": "cm4-an386-tiny"
     }
   ],
   "testPresets": [
@@ -207,6 +265,34 @@
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm3-an385",
+      "configurePreset": "cm3-an385",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386",
+      "configurePreset": "cm4-an386",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386-release",
+      "configurePreset": "cm4-an386-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386-tiny",
+      "configurePreset": "cm4-an386-tiny",
       "output": {
         "outputOnFailure": true
       }

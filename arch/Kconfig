@@ -20,6 +20,12 @@ config EMB_ARCH_NATIVE
 config EMB_ARCH_AVR
 	bool
 
+config EMB_ARCH_CORTEX_M
+	bool
+
+config EMB_ARCH_RISCV
+	bool
+
 config EMB_ARCH_WORD_BITS
 	int
 	help
@@ -76,5 +82,7 @@ config EMB_ARCH_TCB_EXTENSION
 
 source "native/Kconfig"
 source "avr/Kconfig"
+source "cortex_m/Kconfig"
+source "riscv/Kconfig"
 
 endmenu

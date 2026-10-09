@@ -51,6 +51,7 @@ All fourteen specification work items of the roadmap (plus 6b) are written and a
 | Page | Content |
 |---|---|
 | `ports/native.md` | The native port as built in M1: gate, deterministic interrupts, virtual time, verification legs |
+| `ports/cortex_m.md` | The Cortex-M port: PendSV switching, BASEPRI critical sections, lazy FPU context, SysTick, faults, the MPS2 boards under QEMU |
 | `ports/avr.md` | The ATmega328P port as built in M1: frame layout, switch and epilogue, timer, linking, measured footprint, skipped tests |
 | `specs/AMENDMENTS-M1.md` | Where the M1 code departs from or sharpens an accepted specification, to be folded into the specifications |
 
@@ -61,7 +62,7 @@ All fourteen specification work items of the roadmap (plus 6b) are written and a
 | `tools/kconfig/embconfig.py` | Configuration: Kconfig subset plus port manifests, emits `emb/config.h`, `config.cmake`, `config.json` (05 §2.1) |
 | `tools/storage/gen_storage.py` | Generates `emb/storage.h` from the layout probe (ADR-006) |
 | `tools/footprint/footprint.py` | Footprint report and regression gate from a link map (TEST-011) |
-| `tools/qemu/run_avr.py` | Runs an AVR test image under QEMU and reads its verdict from the serial output (SIM-002) |
+| `tools/qemu/run_qemu.py` | Runs a test image under the board's QEMU machine (AVR, Cortex-M, RISC-V) and reads its verdict from the console (SIM-002) |
 | `tools/model/` | The executable reference model (ADR-013) and `bridge.py`, the differential bridge that replays the kernel's trace through it (TEST-008; the runner is `tests/differential/`) |
 | `scripts/check-banned.py` | The tree-wide check for constructs the coding standard bans |
 

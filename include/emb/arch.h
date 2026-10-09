@@ -99,6 +99,10 @@ EMB_NORETURN void embk_thread_launch(emb_thread_entry_t entry,
                                      void *arg); /* every initial frame enters here;
                                                     entry == NULL runs the idle loop */
 EMB_NORETURN void embk_idle_loop(void);          /* the idle context's body */
+/* An architecture fault entry (SPEC-002 §9): @code is the port's cause (exception number
+ * or mcause), @address the faulting address where known, @pc and @sp the faulting
+ * context's. Records EMB_FAULT_HARDWARE and takes the configured action. */
+EMB_NORETURN void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr_t sp);
 
 #ifdef __cplusplus
 }

@@ -2,8 +2,10 @@
 # Copyright 2026 Junior Deogracias
 if(CONFIG_EMB_ARCH STREQUAL "avr")
   set(_platform platform_avr.c)
-else()
+elseif(CONFIG_EMB_ARCH STREQUAL "native")
   set(_platform platform_native.c)
+else()
+  set(_platform platform_target.c)
 endif()
 add_library(emb_test STATIC emb_test.c ${_platform})
 target_include_directories(emb_test PUBLIC .)

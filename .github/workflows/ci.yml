@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 # Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
+# Cortex-M with arm-none-eabi-gcc and RISC-V with riscv64-unknown-elf-gcc run under QEMU,
 # AVR with avr-gcc run under QEMU (SIM-002), formatting, and the footprint gate (TEST-011).
+# Target order: Cortex-M and RISC-V first, AVR secondary (ADR-038).
 # The EmbCC legs join when the compiler is available to CI (09 §11).
 name: ci
 
@@ -29,6 +31,35 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+  cortex_m:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test under QEMU
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+      - name: Footprint report
+        run: |
+          python3 -I tools/footprint/footprint.py \
+            build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
+            --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm arm-none-eabi-nm \
+            --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: footprint-${{ matrix.preset }}
+          path: footprint-${{ matrix.preset }}.*
 
   avr:
     runs-on: ubuntu-24.04

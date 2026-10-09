@@ -23,11 +23,20 @@ extern "C" {
 #define EMB_TEST_MAX_THREADS  3   /* the suites need at most three helpers at once */
 #define EMB_TEST_MARKS_MAX    32
 #define EMB_TEST_ISR(name)    static void name(void *emb_isr_arg_)
-#else
+#elif CONFIG_EMB_ARCH_NATIVE
 #define EMB_TEST_STR(s)       (s)
 #define EMB_TEST_HAS_FORK     1
 #define EMB_TEST_EXACT_TIME   1 /* virtual time (SPEC-013 §6) */
 #define EMB_TEST_STACK_SIZE   4096
+#define EMB_TEST_RUNNER_STACK 4096
+#define EMB_TEST_MAX_THREADS  8
+#define EMB_TEST_MARKS_MAX    128
+#define EMB_TEST_ISR(name)    EMB_ISR(name)
+#else /* the 32-bit embedded ports: Cortex-M, RISC-V (platform_target.c) */
+#define EMB_TEST_STR(s)       (s)
+#define EMB_TEST_HAS_FORK     0
+#define EMB_TEST_EXACT_TIME   0 /* real time under QEMU and on the board */
+#define EMB_TEST_STACK_SIZE   2048
 #define EMB_TEST_RUNNER_STACK 4096
 #define EMB_TEST_MAX_THREADS  8
 #define EMB_TEST_MARKS_MAX    128

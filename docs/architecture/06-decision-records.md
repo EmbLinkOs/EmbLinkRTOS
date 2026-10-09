@@ -447,3 +447,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Existing middleware and applications run while the native API stays clean; two more test targets; a migration guide becomes a deliverable.
 
 **Status.** Accepted 2026-10-07 (proposed by R-003).
+
+## ADR-038 Target order: Cortex-M and RISC-V first, AVR secondary
+
+**Context.** M1 brought up the kernel on the native port and the ATmega328P, following ADR-025's choice of a cheap first board. The project's first users and the EmbCC toolchain work both point at 32-bit parts: Cortex-M (STM32F4, RP2350) and RISC-V (RP2350 Hazard3, RV32 in emulation). The maintainer decided on 2026-10-09 that AVR is not the first target.
+
+**Decision.** Cortex-M and RISC-V are the first embedded targets. Their ports are brought up under QEMU now (`mps2-an385`, `mps2-an386`, RISC-V `virt`), with the conformance suite as the gate, ahead of the STM32F4 and RP2350 boards of M3. The AVR port stays in the tree and in CI as a secondary target that proves the tiny profile; no M3 or M4 deliverable waits on it, and AVR-only work (tickless Timer1, a hardware latency run) is scheduled after the 32-bit targets. EmbCC integration follows the same order: Cortex-M and RISC-V legs first.
+
+**Alternatives.** Keep AVR first (smallest part, but not where users and the toolchain are); drop AVR (loses the tiny-profile evidence of R-003 T1 and T2, which already pass).
+
+**Consequences.** The M1 exit criterion's AVR hardware measurement moves behind the Cortex-M one; the EmbCC gap list of document 09 §10 is read Cortex-M and RISC-V first; the 32-bit ports share one test platform (`tests/framework/platform_target.c`) and one emulator runner (`tools/qemu/run_qemu.py`).
+
+**Status.** Accepted 2026-10-09 (maintainer decision).
