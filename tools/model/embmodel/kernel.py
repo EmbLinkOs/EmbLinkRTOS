@@ -195,6 +195,7 @@ class Thread:
     op_index: int = 0
     pc: int = 0
     saved_gen: int = 0
+    deadline: Optional[int] = None            # absolute, fixed when the call is made (SPEC-003 §5.2)
     results: tuple = ()                       # ((op_index, Result, data), ...)
     notify_bits: int = 0
     notify_mask: int = 0                      # mask of the NOTIFY wait in progress
@@ -210,7 +211,7 @@ class Thread:
                 None if self.wait_reason is None else int(self.wait_reason), self.wait_queue,
                 None if self.wake_result is None else int(self.wake_result), self.wake_data,
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
-                self.saved_gen, self.results, self.notify_bits, self.notify_mask, self.notify_all,
+                self.saved_gen, self.deadline, self.results, self.notify_bits, self.notify_mask, self.notify_all,
                 self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner)
 
 
@@ -587,13 +588,15 @@ class Kernel:
         return self.threads[self.current]
 
     def _finish(self, t: Thread, result: Result, data: int = 0):
+        prog = self.programs[t.tid]
+        op = prog[t.op_index] if t.op_index < len(prog) else Exit()
         t.results = t.results + ((t.op_index, result, data),)
         t.op_index += 1
         t.pc = 0
         t.wait_reason = None
         t.wake_result = None
         t.wake_data = 0
-        self._event("wait_end", t.tid, int(result))
+        self._event("wait_end", t.tid, int(result), type(op).__name__)
 
     def _advance(self, t: Thread):
         t.op_index += 1
@@ -631,6 +634,7 @@ class Kernel:
             if t.wait_state != WaitState.READY:
                 raise ModelError(f"block while wait_state is {t.wait_state} (invariant)")
             t.saved_gen = t.wait_gen
+            t.deadline = None if timeout is FOREVER else self.now + timeout   # fixed at the call
             t.wait_reason = reason
             t.wait_queue = q.qid
             self._enqueue(q, t)
@@ -641,8 +645,10 @@ class Kernel:
             self._event("wait_begin", t.tid, q.qid, int(reason))
             return False
         if t.pc == 1:
-            if timeout is not FOREVER:
-                self.timeout_arm(t, self.now + timeout, t.saved_gen)
+            if t.deadline is not None:
+                self.timeout_arm(t, t.deadline, t.saved_gen)
+                if t.deadline <= self.now:
+                    self._expire_due()        # already due: the timer fires at once (SPEC-003 §4.2)
             t.pc = 2
             return False
         if t.pc == 2:
@@ -1005,6 +1011,10 @@ class Kernel:
 
     def tick(self):
         self.now += 1
+        self._expire_due()
+
+    def _expire_due(self):
+        """The timer interrupt: every deadline at or before now, in deadline order."""
         self.irq_nesting += 1
         while self.timeouts and self.timeouts[0][0] <= self.now:
             _, _, tid, gen = self.timeouts.pop(0)

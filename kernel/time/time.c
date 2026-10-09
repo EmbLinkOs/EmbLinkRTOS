@@ -248,8 +248,9 @@ static void expire(emb_tick_t now)
 }
 
 #if CONFIG_EMB_TICKLESS
-/* Re-base the clock from the free-running counter (§4.1); lock held. */
-static void update(void)
+/* Re-base the clock from the free-running counter (§4.1); lock held. Returns the ticks
+ * that passed. */
+static emb_arch_timer_raw_t update(void)
 {
     emb_arch_timer_raw_t raw = emb_arch_timer_now_raw();
     emb_arch_timer_raw_t d = raw - ts.last_raw;
@@ -260,6 +261,7 @@ static void update(void)
         ts.last_raw += n * ts.raw_per_tick;
         clock_write_end();
     }
+    return n;
 }
 #endif
 
@@ -318,11 +320,14 @@ void embk_time_timer_isr(void)
 {
     emb_irq_key_t key = embk_lock_timeout();
 #if CONFIG_EMB_TICKLESS
-    update();
+    if (update() != 0u) {
+        EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
+    }
 #else
     clock_write_begin();
     ts.ticks++;
     clock_write_end();
+    EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
 #endif
     expire(ts.ticks);
     embk_time_program();
@@ -333,7 +338,7 @@ void embk_time_on_wake(void)
 {
 #if CONFIG_EMB_TICKLESS
     emb_irq_key_t key = embk_lock_timeout();
-    update();
+    (void)update();
     expire(ts.ticks);
     embk_time_program();
     embk_unlock_timeout(key);

@@ -230,16 +230,21 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
     emb_status_t st;
 
     EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    if (m == NULL) {
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(embk_cpu.current), 0u, EMB_EINVAL);
+        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    }
     EMBK_REQUIRE_CAN_BLOCK(nowait ? 0u : 1u);
     self = embk_cpu.current;
     key = embk_lock_object(m);
     if (embk_thread_take_cancel_locked(self)) {
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_ECANCELED);
         embk_unlock_object(m, key);
         return EMB_ECANCELED;
     }
     if (m->owner == NULL) {
         if (m->protocol == EMB_MUTEX_CEILING && self->base_prio > m->ceiling) {
+            EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EPERM);
             embk_unlock_object(m, key);
             EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EPERM, 1u); /* ceiling violation (§3.4) */
         }
@@ -250,28 +255,33 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
             (void)embk_prio_recompute(self); /* raise to the ceiling at once */
         }
         st = ((m->obj.flags & EMBK_MUTEX_INCONSISTENT) != 0u) ? EMB_EOWNERDEAD : EMB_OK;
-        embk_unlock_object(m, key);
         EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, st);
+        embk_unlock_object(m, key);
         return st;
     }
     if (m->owner == self) {
         if ((m->obj.flags & EMB_MUTEX_RECURSIVE) != 0u) {
             if (m->count == UINT8_MAX) {
+                EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EOVERFLOW);
                 embk_unlock_object(m, key);
                 return EMB_EOVERFLOW;
             }
             m->count++;
+            EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_OK);
             embk_unlock_object(m, key);
             return EMB_OK;
         }
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EDEADLK);
         embk_unlock_object(m, key);
         EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* self-deadlock */
     }
     if (nowait) {
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_ETIMEDOUT);
         embk_unlock_object(m, key);
         return EMB_ETIMEDOUT;
     }
     if (m->protocol == EMB_MUTEX_INHERIT && chain_reaches(m->owner, self)) {
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EDEADLK);
         embk_unlock_object(m, key);
         EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* KRN-SYNC-015 */
     }

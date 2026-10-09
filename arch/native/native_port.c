@@ -116,6 +116,7 @@ static struct embn_state {
     uint64_t period_raw;
     uint64_t switches;
     void (*idle_hook)(void);
+    bool (*deadline_filter)(uint64_t deadline_raw, uint64_t now_raw);
 } g;
 
 static void port_switch(embk_thread_t *next);
@@ -410,7 +411,8 @@ void emb_arch_idle(void)
     if (g.pending_count != 0u) {
         return;
     }
-    if (g.deadline_set != 0u) {
+    if (g.deadline_set != 0u &&
+        (g.deadline_filter == NULL || g.deadline_filter(g.deadline_raw, g.now_raw))) {
         if (g.deadline_raw > g.now_raw) {
             g.now_raw = g.deadline_raw; /* time jumps to the next deadline */
         }
@@ -435,6 +437,20 @@ void emb_native_set_idle_hook(void (*hook)(void))
 uint64_t emb_native_virtual_now(void)
 {
     return g.now_raw;
+}
+
+void emb_native_set_deadline_filter(bool (*filter)(uint64_t deadline_raw, uint64_t now_raw))
+{
+    g.deadline_filter = filter;
+}
+
+void emb_native_tick(void)
+{
+    g.now_raw += 1u; /* raw units are ticks (emb_arch_timer_hz) */
+    if (g.deadline_set != 0u && g.deadline_raw <= g.now_raw) {
+        g.deadline_set = 0u;
+    }
+    emb_native_irq_raise(EMB_NATIVE_IRQ_TIMER);
 }
 
 uint64_t emb_native_switch_count(void)

@@ -105,21 +105,26 @@ static emb_status_t take_common(embk_sem_t *s, emb_tick_t deadline, bool nowait)
     embk_wait_result_t r;
     uintptr_t data;
     EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    if (s == NULL) {
+        EMBK_TRACE(EMB_TRACE_SEM_TAKE, embk_thread_index(embk_cpu.current), 0u, EMB_EINVAL);
+        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    }
     EMBK_REQUIRE_CAN_BLOCK(nowait ? 0u : 1u);
     self = embk_cpu.current;
     key = embk_lock_object(s);
     if (embk_thread_take_cancel_locked(self)) {
+        EMBK_TRACE(EMB_TRACE_SEM_TAKE, embk_thread_index(self), s, EMB_ECANCELED);
         embk_unlock_object(s, key);
         return EMB_ECANCELED;
     }
     if (s->count > 0u) {
         s->count--;
-        embk_unlock_object(s, key);
         EMBK_TRACE(EMB_TRACE_SEM_TAKE, embk_thread_index(self), s, EMB_OK);
+        embk_unlock_object(s, key);
         return EMB_OK;
     }
     if (nowait) {
+        EMBK_TRACE(EMB_TRACE_SEM_TAKE, embk_thread_index(self), s, EMB_ETIMEDOUT);
         embk_unlock_object(s, key);
         return EMB_ETIMEDOUT;
     }
@@ -182,7 +187,7 @@ emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_
     embk_sem_t *s = sem_from_handle(sem);
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE_THREAD();
+    EMBK_REQUIRE_NOT_ISR(); /* bindings are set up before the kernel runs too (A18) */
     EMBK_REQUIRE(s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 2u);
     EMBK_REQUIRE(bit != 0u && (bit & (emb_notify_bits_t)(bit - 1u)) == 0u &&

@@ -289,34 +289,48 @@ emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *ou
     emb_tick_t deadline;
 
     EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    if (t == NULL) {
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(embk_cpu.current), 0xFFu, EMB_EINVAL);
+        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    }
     self = embk_cpu.current;
-    EMBK_REQUIRE(t != self, EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u);
+    if (t == self) {
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t),
+                   EMB_EDEADLK);
+        EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u);
+    }
     EMBK_REQUIRE_CAN_BLOCK(timeout.ticks);
     key = embk_lock_sched();
     if ((t->tflags & (EMBK_THREAD_DETACHED | EMBK_THREAD_KERNEL)) != 0u) {
+        emb_status_t st = ((t->tflags & EMBK_THREAD_KERNEL) != 0u) ? EMB_EPERM : EMB_EINVAL;
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t), st);
         embk_unlock_sched(key);
-        return ((t->tflags & EMBK_THREAD_KERNEL) != 0u) ? EMB_EPERM : EMB_EINVAL;
+        return st;
     }
     if (embk_thread_take_cancel_locked(self)) {
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t),
+                   EMB_ECANCELED);
         embk_unlock_sched(key);
         return EMB_ECANCELED;
     }
     if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
         int code = (int)(intptr_t)t->wake_data;
         t->tflags |= EMBK_THREAD_JOINED;
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t), EMB_OK);
         embk_unlock_sched(key);
         if (out_code != NULL) {
             *out_code = code;
         }
-        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t), EMB_OK);
         return EMB_OK;
     }
     if (!embk_wait_queue_is_empty(&t->join_q)) {
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t), EMB_EBUSY);
         embk_unlock_sched(key);
         return EMB_EBUSY; /* one joiner */
     }
     if (EMB_TIMEOUT_IS_NO_WAIT(timeout)) {
+        EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t),
+                   EMB_ETIMEDOUT);
         embk_unlock_sched(key);
         return EMB_ETIMEDOUT;
     }

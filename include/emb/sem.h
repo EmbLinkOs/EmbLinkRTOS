@@ -142,7 +142,7 @@ emb_sem_count_t emb_sem_count(emb_sem_t sem);
 /**
  * emb_sem_bind_notify() - Set @bit in @thread when the count goes from 0 to 1 (ADR-027).
  *
- * @ctx      thread
+ * @ctx      prekernel thread
  * @blocks   no
  * @time     O(1)
  * @owns     none

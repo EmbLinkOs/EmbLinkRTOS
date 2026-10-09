@@ -10,6 +10,8 @@
 #include <emb/compiler.h>
 #include <emb/types.h>
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +35,15 @@ void emb_native_set_idle_hook(void (*hook)(void));
 
 /* The virtual clock in raw units (ticks). */
 uint64_t emb_native_virtual_now(void);
+
+/* A harness may refuse the idle-time jump to a programmed deadline: when the filter
+ * returns false the port treats the run as having no deadline (the idle hook runs, or the
+ * run ends), which is how the differential runner keeps a "sleep forever" asleep. */
+void emb_native_set_deadline_filter(bool (*filter)(uint64_t deadline_raw, uint64_t now_raw));
+
+/* Advance virtual time by one tick and raise the timer interrupt (delivered at the next
+ * gate crossing when called with interrupts masked). */
+void emb_native_tick(void);
 
 /* Number of host-level context switches performed so far. */
 uint64_t emb_native_switch_count(void);

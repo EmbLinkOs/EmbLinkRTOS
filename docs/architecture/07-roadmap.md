@@ -38,6 +38,8 @@ Exit: the v0.1 §41.3 sequence runs for millions of switches on ATmega328P and o
 
 ### M2 - Blocking kernel
 
+**Status 2026-10-07: in progress.** Delivered with M1: the wait protocol, timeouts and wraparound, sleep and `sleep_until`, mutexes with inheritance and ceilings, semaphores, notifications, the object storage generation, the pointer capability form, the checked-build fault paths. Delivered since: the differential bridge (`tools/model/bridge.py` with `tests/differential/diff_runner`), which replays the kernel's trace through the reference model for every scenario of the catalogue under seeded schedules of interrupts and ticks, in CI on every native preset (TEST-008); its first campaign found and fixed three kernel defects (`tools/model/README.md`). Open: event flags, condition variables, work queues, software timers, message queues, the tagged capability form, property-based misuse tests.
+
 Deliverables: wait protocol; timeouts and wraparound; sleep and `sleep_until`; mutex with inheritance; semaphores; event flags; condition variables; notifications; work queues; software timers; message queues; object storage generation; capability layer in pointer and tagged forms; differential tests against the reference model; property-based misuse tests; checked-build fault paths.
 
 Exit: all kernel requirement groups covered in the traceability matrix; differential test campaign clean; priority inheritance nested and contention tests pass on both ports.

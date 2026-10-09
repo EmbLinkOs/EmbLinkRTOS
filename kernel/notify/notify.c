@@ -49,6 +49,9 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
 
 void embk_notify_set_locked(embk_thread_t *t, emb_notify_bits_t bits)
 {
+    if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
+        return; /* dropped: a terminated thread has no notification word (SPEC-008 §5) */
+    }
     t->notify_bits |= bits;
     EMBK_TRACE(EMB_TRACE_NOTIFY_SET, embk_thread_index(t), bits, 0u);
     if (t->wait_queue == &t->self_q && t->wait_reason == EMB_WAIT_REASON_NOTIFY && satisfied(t)) {
@@ -72,6 +75,7 @@ static emb_status_t wait_common(emb_notify_bits_t mask, uint8_t mode, emb_tick_t
     self = embk_cpu.current;
     key = embk_lock_object(self);
     if (embk_thread_take_cancel_locked(self)) {
+        EMBK_TRACE(EMB_TRACE_NOTIFY_WAIT, embk_thread_index(self), EMB_ECANCELED, 0u);
         embk_unlock_object(self, key);
         return EMB_ECANCELED;
     }
@@ -79,14 +83,15 @@ static emb_status_t wait_common(emb_notify_bits_t mask, uint8_t mode, emb_tick_t
     embk_thread_set_notify_mode(self, mode);
     if (satisfied(self)) {
         emb_notify_bits_t got = consume(self);
+        EMBK_TRACE(EMB_TRACE_NOTIFY_WAIT, embk_thread_index(self), EMB_OK, got);
         embk_unlock_object(self, key);
         if (out_bits != NULL) {
             *out_bits = got;
         }
-        EMBK_TRACE(EMB_TRACE_NOTIFY_WAIT, embk_thread_index(self), EMB_OK, got);
         return EMB_OK;
     }
     if (nowait) {
+        EMBK_TRACE(EMB_TRACE_NOTIFY_WAIT, embk_thread_index(self), EMB_ETIMEDOUT, 0u);
         embk_unlock_object(self, key);
         return EMB_ETIMEDOUT;
     }

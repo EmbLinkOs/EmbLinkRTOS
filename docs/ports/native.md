@@ -18,6 +18,10 @@ Host stacks are 256 KB (`CONFIG_EMB_NATIVE_HOST_STACK`) and unrelated to the con
 
 Virtual time is a raw counter in tick units (`emb_arch_timer_hz()` is the tick rate). It advances only in `emb_arch_idle()`: with pending interrupts they are delivered; otherwise the counter jumps to the programmed deadline and the timer interrupt is raised; with no deadline and nothing pending the run is finished or deadlocked and the port reports it and exits with status 3 (SIM-005) unless `emb_native_set_idle_hook()` installed a hook. Timeout tests therefore run in microseconds of wall time with exact tick arithmetic (`EMB_TEST_EXACT_TIME`). Wall-clock mode is not implemented in M1.
 
+## Harness facilities
+
+`emb_native_set_idle_hook(hook)` runs the hook when nothing is runnable, nothing is pending and no deadline is programmed (instead of the deadlock exit); `emb_native_set_deadline_filter(filter)` lets a harness refuse the idle-time jump to a deadline (the differential runner keeps a "sleep forever" asleep that way); `emb_native_tick()` advances virtual time by one tick and raises the timer interrupt, pending if called with interrupts masked; `emb_native_irq_raise(irq)` raises a software interrupt. The differential runner (`tests/differential/`) uses all four to execute the reference model's scenarios under a chosen schedule (`tools/model/README.md`).
+
 ## Faults and exits
 
 A kernel fault prints its class, code, argument, thread and location to stderr and ends the process with status 2 (`EMB_NATIVE_EXIT_FAULT`); the test framework's fault expectations fork the process and check that status (TEST-010). `emb_native_exit(code)` ends a run with the given status.

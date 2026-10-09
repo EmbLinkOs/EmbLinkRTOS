@@ -62,7 +62,7 @@ All fourteen specification work items of the roadmap (plus 6b) are written and a
 | `tools/storage/gen_storage.py` | Generates `emb/storage.h` from the layout probe (ADR-006) |
 | `tools/footprint/footprint.py` | Footprint report and regression gate from a link map (TEST-011) |
 | `tools/qemu/run_avr.py` | Runs an AVR test image under QEMU and reads its verdict from the serial output (SIM-002) |
-| `tools/model/` | The executable reference model (ADR-013) |
+| `tools/model/` | The executable reference model (ADR-013) and `bridge.py`, the differential bridge that replays the kernel's trace through it (TEST-008; the runner is `tests/differential/`) |
 | `scripts/check-banned.py` | The tree-wide check for constructs the coding standard bans |
 
 ## Research records
