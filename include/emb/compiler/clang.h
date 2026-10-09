@@ -61,8 +61,12 @@
 
 /* Writes "->EMB_PROBE <name> <size> <align>" into the object file as plain text: the
  * "i" constraints require compile-time constants, %c prints them as bare decimals on
- * every target (no '$' or '#'). Read by tools/storage/gen_storage.py. */
-#define EMB_LAYOUT_MARKER(name, size, align) \
-    __asm__ __volatile__("\n.ascii \"->EMB_PROBE " #name " %c0 %c1\"\n" : : "i"(size), "i"(align))
+ * every target (no '$' or '#'). The text sits in the code section, so .p2align 2 puts
+ * the next instruction back on a 4-byte boundary (Thumb, ARM, and RISC-V refuse odd
+ * offsets). Read by tools/storage/gen_storage.py. */
+#define EMB_LAYOUT_MARKER(name, size, align)                                        \
+    __asm__ __volatile__("\n.ascii \"->EMB_PROBE " #name " %c0 %c1\"\n.p2align 2\n" \
+                         :                                                          \
+                         : "i"(size), "i"(align))
 
 #endif /* EMB_COMPILER_CLANG_H */
