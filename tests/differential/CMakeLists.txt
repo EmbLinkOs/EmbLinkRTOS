@@ -14,5 +14,9 @@ if(CONFIG_EMB_ARCH_NATIVE AND CONFIG_EMB_TRACE AND CONFIG_EMB_SEM AND CONFIG_EMB
              COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/model/bridge.py"
                      --runner "$<TARGET_FILE:diff_runner>" --regressions)
     set_tests_properties(differential_timer_regressions PROPERTIES TIMEOUT 600)
+    add_test(NAME differential_evidence
+             COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/model/check_evidence.py"
+                     --runner "$<TARGET_FILE:diff_runner>")
+    set_tests_properties(differential_evidence PROPERTIES TIMEOUT 600)
   endif()
 endif()
