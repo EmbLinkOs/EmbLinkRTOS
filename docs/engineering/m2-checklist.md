@@ -24,13 +24,14 @@ Items 5–8 can be developed independently once their common prerequisites are s
 
 ## M2-01: Reproducible failure capture first
 
-The [2026-10-14 investigation](m2-01-investigation.md) archives the seed-3 reproduction on all three native presets and a two-sleeper reduction. Seed 5 passed on the current builds; its historical finding remains open. The evidence identifies a timer-delivery limitation in the current model, but no behavior fix or automated regression has been merged. The checklist remains open until those steps and the historical case are resolved.
+The [initial investigation](m2-01-investigation.md) archives the seed-3 reproduction and a two-sleeper reduction. The [timer-delivery correction](m2-01-timer-correction.md) adds model/live regressions and records 11,200 agreeing deep-campaign runs on checked, release, tiny and periodic native builds. The historical seed-5 input and general automatic capture/minimization remain open; M2-01 is not complete.
 
-- [ ] Capture `suspend_while_waiting` from the unfiltered 40-schedule campaign with seed 3, and `cancel_waiter_disinherits` with seed 5, as documented in `tools/model/README.md`.
-- [ ] Archive runner/model source identity, profile/check/owner-death settings, encoded scenario, exact IRQ/tick placement, complete trace, operation results and final states.
-- [ ] Replay the captured schedule exactly; do not assume `--only` preserves an unfiltered random schedule.
-- [ ] Minimize each reproduction and classify it as kernel defect, model defect, bridge/search limitation or genuinely unsupported case with evidence.
-- [ ] Preserve a regression case for the diagnosis/fix and rerun the affected campaign. Keep unresolved outcomes open; the passing six-schedule campaign does not close them.
+- [x] Capture `suspend_while_waiting` from the unfiltered 40-schedule campaign with seed 3.
+- [ ] Recover/capture and classify the historical `cancel_waiter_disinherits` seed-5 input; the current documented campaign passes without reproducing it.
+- [x] Archive observed runner/model source identity, profile/check/owner-death settings, encoded scenarios, exact IRQ/tick placement, complete traces, operation results and final states.
+- [x] Replay the captured schedules exactly; do not assume `--only` preserves an unfiltered random schedule.
+- [x] Reduce and classify the reproduced seed-3 timing gap, preserve regressions and rerun affected campaigns.
+- [ ] Add general automatic failure-bundle capture/minimization. Keep unresolved outcomes open; passing campaigns do not replace the historical reproduction.
 
 This work may change evidence/replay tooling before kernel code, but its investigation and design still belong in a reviewed coding session. No failure is pre-classified as “just the bridge.”
 

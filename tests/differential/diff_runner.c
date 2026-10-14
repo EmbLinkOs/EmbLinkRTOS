@@ -29,6 +29,10 @@
 #include <emb_native.h>
 #include <string.h>
 
+#if !CONFIG_EMB_TICKLESS
+#include <embk/time.h>
+#endif
+
 #define MAX_THREADS  8u
 #define MAX_OPS      16u
 #define MAX_SEMS     4u
@@ -610,13 +614,13 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
         return;
     }
     dumped = 1u;
-    (void)printf("config profile=%s owner_death=%s checked=%d\n", CONFIG_EMB_PROFILE,
+    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d\n", CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
 #else
                  "release",
 #endif
-                 (int)CONFIG_EMB_CHECKED);
+                 (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -671,7 +675,23 @@ static void idle_hook(void)
 
 static bool deadline_filter(uint64_t deadline_raw, uint64_t now_raw)
 {
+#if !CONFIG_EMB_TICKLESS
+    emb_tick_t next = 0u;
+    emb_irq_key_t key = embk_lock_timeout();
+    bool armed = embk_timeout_next(&next);
+    emb_instant_t deadline = {.ticks = next};
+    emb_instant_t now;
+    embk_unlock_timeout(key);
+    (void)deadline_raw;
+    (void)now_raw;
+    now = emb_time_now();
+    /* A periodic timer keeps rearming after all finite waits end. Stop virtual idle
+     * ticking at that point so the same verdict/leftover-ISR policy can run in both modes. */
+    return armed && (emb_instant_before(deadline, now) ||
+                     (next - now.ticks) < (emb_tick_t)(FOREVER_SLEEP_TICKS / 2u));
+#else
     return (deadline_raw - now_raw) < (uint64_t)(FOREVER_SLEEP_TICKS / 2u);
+#endif
 }
 
 /* ---- construction ---------------------------------------------------------------------- */

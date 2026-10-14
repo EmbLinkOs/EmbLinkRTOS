@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "source_sha": "ca0ed3f50662efc30bd905d80f20eac52b7aee9c",
+  "date_utc": "2026-10-14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "tools": {
+    "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+    "cmake": "cmake version 3.31.10",
+    "ninja": "1.13.0.git.kitware.jobserver-pipe-1"
+  },
+  "kernel_source_changed": false,
+  "model_tests": {
+    "passed": 53,
+    "failed": 0,
+    "skipped": 0
+  },
+  "source_sha256": {
+    "tools/model/bridge.py": "e9caacbc6f6ab32f4559379db9ab59bc4f7beb88f06b1b8591c8b84835735b56",
+    "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+    "tools/model/tests/test_timer_delivery.py": "6f5e3c7b996144ca742c416fea3ceec761a54745affa1d1658f03a8891688c0b",
+    "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+    "configs/native-periodic.conf": "da76aab71a401f1534c6b89ca103ccf51aad968e403e083e40d38c2a6cda652f"
+  },
+  "presets": [
+    {
+      "preset": "native-gcc",
+      "runner_sha256": "e887bb54eb01eda973c6e1dd69246856db5ccc27c8dae3704640d650f82e3295",
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "exit_code": 0
+      },
+      "campaigns": [
+        {
+          "seed": 3,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        },
+        {
+          "seed": 5,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        }
+      ],
+      "regressions": [
+        {
+          "scenario": "due_sleep_arm",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "due_sleep_no_later_tick",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "suspend_while_waiting",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "cancel_waiter_disinherits",
+          "outcome": "agrees"
+        }
+      ],
+      "config": {
+        "profile": "base",
+        "owner_death": "fault",
+        "checked": "1",
+        "tickless": "1"
+      },
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-release",
+      "runner_sha256": "697b5e806adeda47b110cc82571ad94aaa7d3609c0def96c29d5a5210fc8ea14",
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "exit_code": 0
+      },
+      "campaigns": [
+        {
+          "seed": 3,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        },
+        {
+          "seed": 5,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        }
+      ],
+      "regressions": [
+        {
+          "scenario": "due_sleep_arm",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "due_sleep_no_later_tick",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "suspend_while_waiting",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "cancel_waiter_disinherits",
+          "outcome": "agrees"
+        }
+      ],
+      "config": {
+        "profile": "base",
+        "owner_death": "release",
+        "checked": "0",
+        "tickless": "1"
+      },
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-tiny",
+      "runner_sha256": "5a568a9d6feb2d64f6aa479580fa4ead7be60387de30d0b1f95a127a0db86d43",
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "exit_code": 0
+      },
+      "campaigns": [
+        {
+          "seed": 3,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        },
+        {
+          "seed": 5,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        }
+      ],
+      "regressions": [
+        {
+          "scenario": "due_sleep_arm",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "due_sleep_no_later_tick",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "suspend_while_waiting",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "cancel_waiter_disinherits",
+          "outcome": "agrees"
+        }
+      ],
+      "config": {
+        "profile": "tiny",
+        "owner_death": "fault",
+        "checked": "1",
+        "tickless": "1"
+      },
+      "exclusions": [
+        {
+          "scenario": "preempted_goes_ahead",
+          "reason": "shared priorities need the base profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-periodic",
+      "runner_sha256": "ad57639c0db3e8fe1a4d623789b95d954095ae774777f0dc207f3bb8c4ea6715",
+      "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e",
+      "ctest": {
+        "passed": 11,
+        "failed": 0,
+        "exit_code": 0
+      },
+      "campaigns": [
+        {
+          "seed": 3,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        },
+        {
+          "seed": 5,
+          "runs_per_scenario": 40,
+          "executed": 1400,
+          "agreed": 1400,
+          "divergences": 0,
+          "skipped_scenarios": 1,
+          "exit_code": 0
+        }
+      ],
+      "regressions": [
+        {
+          "scenario": "due_sleep_arm",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "due_sleep_no_later_tick",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "suspend_while_waiting",
+          "outcome": "agrees"
+        },
+        {
+          "scenario": "cancel_waiter_disinherits",
+          "outcome": "agrees"
+        }
+      ],
+      "config": {
+        "profile": "base",
+        "owner_death": "fault",
+        "checked": "1",
+        "tickless": "0"
+      },
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    }
+  ]
+}

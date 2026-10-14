@@ -9,12 +9,15 @@ The configuration pipeline resolves Kconfig defaults seeded by a port manifest, 
 | `native-gcc` | GCC, checked base configuration |
 | `native-release` | GCC, release checks/behavior |
 | `native-tiny` | Tiny thread-table configuration and narrower time/notification choices |
+| `native-periodic` | GCC, checked base with a periodic clock for timer/wait validation |
 | `native-clang` | Clang compiler coverage; requires Clang |
 | `native-asan` / `native-tsan` | Sanitizer configurations; require supported compiler runtimes |
 
 Use the same preset name for configure, build and CTest. A tiny result does not verify base-only features; a release result does not exercise checked-build faults. Embedded presets additionally require their cross-compiler, libc and emulator; do not interpret a build with no registered tests as conformance.
 
 Onboarding validated the first three GCC presets in this cloud machine. Clang/sanitizer and embedded toolchains are not installed here. CI definitions describe a broader matrix, whose successful outcomes must be recorded separately.
+
+The later [timer-delivery validation](../engineering/m2-01-timer-correction.md) also exercised `native-periodic` and added exact timer-boundary regressions to every applicable native CTest build. Its recorded outcomes distinguish periodic and tickless runs.
 
 ## Add diagnostic options without changing the reference preset
 

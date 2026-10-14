@@ -18,6 +18,7 @@ bug unless the specification changes first.
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import os
 import random
 import subprocess
@@ -156,10 +157,15 @@ def run_kernel(runner: str, sc: Scenario, schedule: list) -> Run:
         args += ["--schedule", ",".join(f"{kind}{idx}@{at}" if kind == "isr" else f"tick@{at}"
                                         for kind, idx, at in schedule)]
     p = subprocess.run(args, capture_output=True, text=True, timeout=60)
+    return parse_run(p.stdout, p.stderr, p.returncode)
+
+
+def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
+    """Read the runner's complete output, including archived traces, without executing it."""
     r = Run()
-    r.exit_code, r.stdout, r.stderr = p.returncode, p.stdout, p.stderr
+    r.exit_code, r.stdout, r.stderr = exit_code, stdout, stderr
     raw_events = []
-    for line in p.stdout.splitlines():
+    for line in stdout.splitlines():
         f = line.split()
         if not f:
             continue
@@ -530,13 +536,24 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
     """The model's static configuration follows the runner's build."""
     if config.get("profile") == "tiny":
         sems = {sid: dict(cfg, policy=Policy.BITMAP) for sid, cfg in sc.sems.items()}
-        sc = Scenario(threads=sc.threads, sems=sems, mutexes=sc.mutexes, isrs=sc.isrs,
-                      owner_death=sc.owner_death, inactive=sc.inactive, name=sc.name)
-    od = config.get("owner_death", "release")
-    if od != sc.owner_death:
-        sc = Scenario(threads=sc.threads, sems=sc.sems, mutexes=sc.mutexes, isrs=sc.isrs,
-                      owner_death=od, inactive=sc.inactive, name=sc.name)
-    return sc
+        sc = replace(sc, sems=sems)
+    # Historical native captures predate the clock-mode field and used tickless builds.
+    return replace(sc, owner_death=config.get("owner_death", "release"),
+                   tickless=config.get("tickless", "1") == "1")
+
+
+def timer_regressions() -> list:
+    """Exact native placements from M2-01; independent of catalogue RNG consumption."""
+    return [
+        (Scenario(name="due_sleep_arm", threads={1: (1, (Sleep(1),)), 2: (3, (Sleep(2),))}),
+         [("tick", 0, 10), ("tick", 0, 13)]),
+        (Scenario(name="due_sleep_no_later_tick", threads={1: (1, (Sleep(1),))}),
+         [("tick", 0, 4)]),
+        (catalogue.suspend_while_waiting(),
+         [("tick", 0, 1), ("tick", 0, 22), ("tick", 0, 24), ("isr", 0, 29)]),
+        # This is the related canceled-lock/owner-fault trace, not the historical seed-5 case.
+        (catalogue.cancel_waiter_disinherits(), [("tick", 0, 12), ("tick", 0, 15)]),
+    ]
 
 
 def main() -> int:
@@ -544,12 +561,16 @@ def main() -> int:
     ap.add_argument("--runner", required=True, help="path to the diff_runner executable")
     ap.add_argument("--runs", type=int, default=6, help="schedules per scenario (default 6)")
     ap.add_argument("--seed", type=int, default=1)
-    ap.add_argument("--only", help="run the scenarios whose name contains this text")
+    selection = ap.add_mutually_exclusive_group()
+    selection.add_argument("--only", help="run the scenarios whose name contains this text")
+    selection.add_argument("--regressions", action="store_true",
+                           help="run the four exact M2-01 timer-boundary inputs instead of a seeded campaign")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
-    scenarios = [f() for f in catalogue.ALL]
+    exact = {sc.name: (sc, placements) for sc, placements in timer_regressions()} if args.regressions else {}
+    scenarios = [sc for sc, _ in exact.values()] if args.regressions else [f() for f in catalogue.ALL]
     if args.only:
         scenarios = [s for s in scenarios if args.only in s.name]
     probe = run_kernel(args.runner, scenarios[0], [])
@@ -558,8 +579,10 @@ def main() -> int:
         print(probe.stdout[-2000:], probe.stderr[-2000:], file=sys.stderr)
         return 2
     config = probe.config
+    description = (f"{len(scenarios)} exact timer-boundary regressions" if args.regressions else
+                   f"{len(scenarios)} scenarios, {args.runs} runs each, seed {args.seed}")
     print(f"bridge: runner profile={config.get('profile')} owner_death={config.get('owner_death')} "
-          f"checked={config.get('checked')}; {len(scenarios)} scenarios, {args.runs} runs each, seed {args.seed}")
+          f"checked={config.get('checked')} tickless={config.get('tickless', '1')}; {description}")
 
     total = passed = skipped = 0
     failures = []
@@ -571,7 +594,8 @@ def main() -> int:
                 print(f"  skip {sc0.name}: {why}")
             continue
         sc = adapt(sc0, config)
-        for sched in schedules(sc, args.runs, rng):
+        placements = [exact[sc.name][1]] if args.regressions else schedules(sc, args.runs, rng)
+        for sched in placements:
             total += 1
             run = run_kernel(args.runner, sc, sched)
             try:
