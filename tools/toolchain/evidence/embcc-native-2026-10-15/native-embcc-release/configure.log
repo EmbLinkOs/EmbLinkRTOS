@@ -1,0 +1,12 @@
+Preset CMake variables:
+
+  CMAKE_TOOLCHAIN_FILE:FILEPATH="/workspace/EmbLinkRTOS/cmake/toolchains/embcc-native-mixed.cmake"
+  EMB_BOARD="native"
+  EMB_CONF="configs/release.conf"
+  EMB_PROFILE="base"
+
+-- Mixed native build: kernel=/workspace/EmbCC/embcc (EmbCC 1.0.0-m2.complete (the Emb toolchain's C and C++ compiler, for embedded systems and operating systems)); host=/usr/bin/gcc
+-- EmbLinkRTOS 0.2.0: board native (native/posix), profile base, checked=0, config 6ccc350a0ff20041, compiler GNU 14.2.0
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/EmbLinkRTOS/build/native-embcc-release

@@ -483,3 +483,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Manuals/search/reference can be used before further kernel development. A generated design record or source annotation is not executed evidence; the full requirement-to-case/profile matrix remains separate. Missing header tags, argument documentation and unresolved IDs stay visible for later work. Publishing depends on repository Pages settings and a successful reviewed deployment; no live URL or remote CI success is inferred from a local build.
 
 **Status.** Accepted documentation tooling decision 2026-10-14, implementing the project owner's instruction to set up the documentation pipeline before further kernel coding.
+
+## ADR-041 Experimental EmbCC kernel with a GCC Linux host
+
+**Context.** The EmbCC storage-marker correction enables actual kernel compilation, but EmbCC's own Linux runtime lacks pthread headers. Selecting glibc headers and a host linker passes a small pthread program while the complete native port fails on an unsupported `__mode__(__word__)` attribute in `sys/types.h`. The freestanding kernel does not need those hosted headers.
+
+**Decision.** Offer explicit experimental Linux x86-64 presets compiling the kernel and storage/layout probes with EmbCC `x86_64-elf`, and the POSIX port, board, samples and test harness with host GCC. GCC links against the real host runtime with `-no-pie`. Named CMake targets select the kernel compiler through a fail-closed launcher. Both compilers must agree on a maintained layout inventory before the kernel archive builds; conformance and differential execution supplement layout checks. Record the kernel compiler separately from CMake's host compiler identity.
+
+**Alternatives.** Wait for complete EmbCC/glibc compatibility (blocks kernel execution unnecessarily); inject declarations or remove system-header attributes (hides ABI assumptions); silently switch compilers by source filename (obscures evidence and failure modes).
+
+**Consequences.** The RTOS can exercise an actual EmbCC-built kernel on Linux without modifying compiler or kernel algorithms. This is a mixed build, not all-EmbCC host qualification, a supported release or a pinned compiler CI leg. Other hosts, PIE/LTO and embedded runtime combinations need separate evidence. Extend the layout inventory when boundary types change. See the [native integration report](../engineering/embcc-native-linux.md) for commands, results and remaining scope.
+
+**Status.** Experimental implementation proposed for review, 2026-10-15, following the project owner's instruction to continue the compiler integration. Merge accepts this scoped build option; broader toolchain qualification remains separate.
