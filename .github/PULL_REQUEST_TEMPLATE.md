@@ -14,4 +14,3 @@ List commands/configurations and their results, including skipped, failed or unr
 - [ ] Kernel semantics changes update the reference model and conformance evidence in the same PR. Explain N/A for other changes.
 - [ ] User-visible changes have an Unreleased changelog entry, or Validation explains why none is needed.
 - [ ] Required checks pass, review conversations are resolved, and known failures are disclosed before merge.
-

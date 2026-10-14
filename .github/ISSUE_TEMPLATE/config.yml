@@ -8,4 +8,3 @@ contact_links:
   - name: Private security reporting
     url: https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/SECURITY.md
     about: Follow this policy instead of opening a public vulnerability report.
-

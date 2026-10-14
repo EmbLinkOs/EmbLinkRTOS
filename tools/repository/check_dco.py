@@ -58,4 +58,3 @@ if __name__ == "__main__":
     except (ValueError, subprocess.CalledProcessError) as error:
         print(f"DCO check failed: {error}", file=sys.stderr)
         sys.exit(1)
-

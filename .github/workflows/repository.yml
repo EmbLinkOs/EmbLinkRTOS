@@ -25,4 +25,3 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python3 tools/repository/check_dco.py --base "$BASE_SHA" --head "$HEAD_SHA"
-

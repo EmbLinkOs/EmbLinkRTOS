@@ -78,4 +78,3 @@ For each new public API: complete annotations and parameter/lifetime docs, gener
 - [ ] Update STATUS, Unreleased changelog and tutorials, then record the M2 exit review and remaining M3a hardware/release work.
 
 Barriers, pipes, buffer pools and INDEXED handles have separate feature gates unless the reference application's agreed scope requires them. TABLE capabilities, partitions/restart, budgets, SMP/AMP and a full driver platform remain later gates. Completing M2 is not a 1.0 release or hardware-support qualification; use the [release checklist](releases.md) when that stage is reached.
-

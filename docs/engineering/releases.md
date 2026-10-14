@@ -50,4 +50,3 @@ git push origin vX.Y.Z
 ```
 
 Use the actual version, SHA and notes file; never generate a maintainer signing key or bypass verification merely to make these commands run. Record evidence that was not executed as unrun/blocked, then complete it before advertising the corresponding guarantee.
-

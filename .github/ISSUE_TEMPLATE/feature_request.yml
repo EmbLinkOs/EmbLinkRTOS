@@ -39,4 +39,3 @@ body:
     attributes:
       label: Alternatives and tradeoffs
       description: Include a simpler application-level approach and costs such as memory, copying or interrupt masking where relevant.
-

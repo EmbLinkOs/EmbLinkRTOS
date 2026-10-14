@@ -74,4 +74,3 @@ body:
     attributes:
       label: Logs and artifacts
       description: Attach relevant logs and configuration; remove credentials and private data.
-

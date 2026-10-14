@@ -67,4 +67,3 @@ During preparation, the API exposed an existing `Ruleset 1` with an empty branch
 ## Before merging
 
 Confirm the three checks ran on the current PR revision, read case-level skips/known limits, resolve feedback and update the Unreleased changelog for user-visible changes. Passing the minimum checks does not override a relevant unimplemented release gate or known semantic failure. Keep the source SHA and workflow artifacts with any validation claim. Publishing the updated docs is a separate reviewed manual operation after merge.
-
