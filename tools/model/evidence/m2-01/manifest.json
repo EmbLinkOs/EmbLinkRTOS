@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "date_utc": "2026-10-14",
+  "source_sha": "4021959379d679c07a3c97eb43a06b7271a48ea2",
+  "scope": "Native evidence capture; kernel, model and bridge sources unchanged",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "tools": {
+    "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+    "cmake": "cmake version 3.31.10",
+    "ninja": "1.13.0.git.kitware.jobserver-pipe-1"
+  },
+  "source_sha256": {
+    "tools/model/bridge.py": "fa88a3df5c40e05c3eb9ffc4eea4eb8f22eccefd0a6b1b262bf976a13e6511d4",
+    "tools/model/embmodel/kernel.py": "5e885fae1740b7f25792e8e9d2032018c7c51957bb87a76e0a2964d6685e5c00",
+    "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb",
+    "tests/differential/diff_runner.c": "9ae71b6a3c7981482349dc5c8a0c10abd97438746a7ba7b6ab82affb32ee89a0"
+  },
+  "campaigns": [
+    {
+      "preset": "native-gcc",
+      "seed": 3,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1399,
+      "divergences": 1,
+      "skipped_scenarios": 1,
+      "exit_code": 1,
+      "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-gcc",
+      "seed": 5,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1400,
+      "divergences": 0,
+      "skipped_scenarios": 1,
+      "exit_code": 0,
+      "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-release",
+      "seed": 3,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1399,
+      "divergences": 1,
+      "skipped_scenarios": 1,
+      "exit_code": 1,
+      "runner_sha256": "c56311e1b21db5415e7b944aed552975a5e8b6d4141e36da3e349b33248cc1cc",
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-release",
+      "seed": 5,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1400,
+      "divergences": 0,
+      "skipped_scenarios": 1,
+      "exit_code": 0,
+      "runner_sha256": "c56311e1b21db5415e7b944aed552975a5e8b6d4141e36da3e349b33248cc1cc",
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-tiny",
+      "seed": 3,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1399,
+      "divergences": 1,
+      "skipped_scenarios": 1,
+      "exit_code": 1,
+      "runner_sha256": "3b74fb1f7efbe55841dff2437ca56e3c04aa81317752b6f94f8e5c056ecb979e",
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "exclusions": [
+        {
+          "scenario": "preempted_goes_ahead",
+          "reason": "shared priorities need the base profile"
+        }
+      ]
+    },
+    {
+      "preset": "native-tiny",
+      "seed": 5,
+      "runs_per_scenario": 40,
+      "executed": 1400,
+      "agreed": 1400,
+      "divergences": 0,
+      "skipped_scenarios": 1,
+      "exit_code": 0,
+      "runner_sha256": "3b74fb1f7efbe55841dff2437ca56e3c04aa81317752b6f94f8e5c056ecb979e",
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "exclusions": [
+        {
+          "scenario": "preempted_goes_ahead",
+          "reason": "shared priorities need the base profile"
+        }
+      ]
+    }
+  ]
+}

@@ -24,6 +24,8 @@ Items 5–8 can be developed independently once their common prerequisites are s
 
 ## M2-01: Reproducible failure capture first
 
+The [2026-10-14 investigation](m2-01-investigation.md) archives the seed-3 reproduction on all three native presets and a two-sleeper reduction. Seed 5 passed on the current builds; its historical finding remains open. The evidence identifies a timer-delivery limitation in the current model, but no behavior fix or automated regression has been merged. The checklist remains open until those steps and the historical case are resolved.
+
 - [ ] Capture `suspend_while_waiting` from the unfiltered 40-schedule campaign with seed 3, and `cancel_waiter_disinherits` with seed 5, as documented in `tools/model/README.md`.
 - [ ] Archive runner/model source identity, profile/check/owner-death settings, encoded scenario, exact IRQ/tick placement, complete trace, operation results and final states.
 - [ ] Replay the captured schedule exactly; do not assume `--only` preserves an unfiltered random schedule.

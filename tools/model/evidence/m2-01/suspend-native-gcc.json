@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "source_sha": "4021959379d679c07a3c97eb43a06b7271a48ea2",
+  "preset": "native-gcc",
+  "discovery": {
+    "kind": "unfiltered campaign",
+    "seed": 3,
+    "runs_per_scenario": 40
+  },
+  "scenario": "suspend_while_waiting",
+  "encoded_scenario": "T1=1:take 0 3|T2=3:sleep 1;suspend 1;sleep 1;resume 1|S0=0|I0:give 0",
+  "schedule": [
+    [
+      "tick",
+      0,
+      1
+    ],
+    [
+      "tick",
+      0,
+      22
+    ],
+    [
+      "tick",
+      0,
+      24
+    ],
+    [
+      "isr",
+      0,
+      29
+    ]
+  ],
+  "runner_args": [
+    "T1=1:take 0 3|T2=3:sleep 1;suspend 1;sleep 1;resume 1|S0=0|I0:give 0",
+    "--schedule",
+    "tick@1,tick@22,tick@24,isr0@29"
+  ],
+  "config": {
+    "profile": "base",
+    "owner_death": "fault",
+    "checked": "1"
+  },
+  "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
+  "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+  "exit_code": 0,
+  "events_lost": 0,
+  "stdout": "thread 1 index 0\nthread 2 index 1\nconfig profile=base owner_death=fault checked=1\nev 2 2 0 0 1 0\nev 2 2 0 1 3 0\nev 3 2 0 0 0 0\nev 3 2 0 1 0 0\nev 1 0 0 255 1 0\nev 29 1 1 1 0 0\nev 30 0 1 1 2 0\nev 6 0 1 1 3 94319775988432\nev 8 0 1 1 2 0\nev 1 0 1 1 0 0\nev 6 0 1 0 4 94319775985848\nev 8 0 1 0 4 0\nev 1 0 1 0 254 0\nev 27 0 1 0 0 0\nev 29 1 2 2 0 0\nev 9 1 2 1 0 0\nev 7 1 2 1 1 0\nev 14 1 2 1 0 0\nev 1 0 2 254 1 0\nev 22 0 2 0 0 0\nev 30 0 2 1 3 0\nev 6 0 2 1 3 94319775988432\nev 29 1 3 3 0 0\nev 8 0 3 1 3 0\nev 29 1 4 4 0 0\nev 9 1 4 1 0 0\nev 7 1 4 1 1 0\nev 9 1 4 0 0 0\nev 7 1 4 0 1 0\nev 1000 1 0 0 0 0\nev 19 1 4 255 94319775985832 1\nev 23 0 4 0 0 0\nev 4 0 4 1 0 0\nev 1 0 4 1 0 0\nev 18 0 4 0 94319775985832 18446744073709551612\nev 4 0 4 0 0 0\nev 1 0 4 0 254 0\nev 28 0 4 0 0 0\nev 27 0 4 0 0 0\nres 1 0 -4 0\nstate 1 4 0\nres 2 0 0 0\nres 2 1 0 0\nres 2 2 0 0\nres 2 3 0 0\nstate 2 4 0\nsem 0 1\nend done 0 0\n",
+  "stderr": "",
+  "bridge_error": "no model action produces kernel event #11 ('tick', 4); matched 11/20 events, path so far (('skip-tick',), ('run',), ('run',), ('run',), ('run',), ('run',), ('run',), ('tick',), ('run',), ('run',), ('run',), ('tick',))",
+  "canonical_events": [
+    [
+      "switch",
+      2
+    ],
+    [
+      "tick",
+      1
+    ],
+    [
+      "wait_begin",
+      2,
+      2,
+      [
+        "q",
+        94319775988432
+      ]
+    ],
+    [
+      "switch",
+      1
+    ],
+    [
+      "wait_begin",
+      1,
+      3,
+      [
+        "q",
+        94319775985848
+      ]
+    ],
+    [
+      "switch",
+      null
+    ],
+    [
+      "tick",
+      2
+    ],
+    [
+      "wake",
+      2,
+      1
+    ],
+    [
+      "switch",
+      2
+    ],
+    [
+      "wait_begin",
+      2,
+      2,
+      [
+        "q",
+        94319775988432
+      ]
+    ],
+    [
+      "tick",
+      3
+    ],
+    [
+      "tick",
+      4
+    ],
+    [
+      "wake",
+      2,
+      1
+    ],
+    [
+      "wake",
+      1,
+      1
+    ],
+    [
+      "isr",
+      0
+    ],
+    [
+      "thread_exit",
+      2,
+      0
+    ],
+    [
+      "switch",
+      1
+    ],
+    [
+      "wait_end",
+      1,
+      1
+    ],
+    [
+      "thread_exit",
+      1,
+      0
+    ],
+    [
+      "switch",
+      null
+    ]
+  ]
+}
