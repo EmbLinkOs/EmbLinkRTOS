@@ -7,11 +7,11 @@ Every scenario of the catalogue (tests/scenarios.py) is run on the native port b
 differential runner (tests/differential/diff_runner.c) under a schedule of interrupt raises
 and ticks; the runner prints the kernel's trace and every operation's result. The bridge
 replays that trace through the model: at each step it applies the one enabled model action
-(run a section, fire an ISR, tick) whose events match the next kernel events, so the kernel's
+(run a section, fire an ISR, tick or deliver an already-due timer) whose events match the next kernel events, so the kernel's
 interleaving is followed exactly at section granularity, with the model's invariants checked
 after every action. A kernel event no model action can produce, a model event the kernel did
-not produce, or a different outcome at the end is a divergence, and a divergence is a kernel
-bug unless the specification changes first.
+not produce, or a different outcome at the end is a divergence requiring diagnosis against
+the specifications. Execution and evidence failures are recorded separately.
 
     python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner
 """
@@ -20,6 +20,8 @@ from __future__ import annotations
 import argparse
 from dataclasses import replace
 import os
+import math
+from pathlib import Path
 import random
 import subprocess
 import sys
@@ -57,7 +59,10 @@ REASON_SUSPEND_K = 2
 
 
 class Divergence(Exception):
-    pass
+    def __init__(self, message, kind="model", signature=None):
+        super().__init__(message)
+        self.kind = kind
+        self.signature = signature if signature is not None else [kind, message]
 
 
 def fault_result(fault_class, code):
@@ -149,15 +154,41 @@ class Run:
         self.exit_code = 0
         self.stdout = ""
         self.stderr = ""
+        self.execution_error = None
 
 
-def run_kernel(runner: str, sc: Scenario, schedule: list) -> Run:
-    args = [runner, encode_scenario(sc)]
+def runner_args(sc: Scenario, schedule: list) -> list:
+    args = [encode_scenario(sc)]
     if schedule:
         args += ["--schedule", ",".join(f"{kind}{idx}@{at}" if kind == "isr" else f"tick@{at}"
                                         for kind, idx, at in schedule)]
-    p = subprocess.run(args, capture_output=True, text=True, timeout=60)
-    return parse_run(p.stdout, p.stderr, p.returncode)
+    return args
+
+
+def execution_run(stdout, stderr, exit_code, execution_error=None) -> Run:
+    """Preserve raw output even when transport or trace parsing fails."""
+    try:
+        run = parse_run(stdout, stderr, exit_code)
+    except (ValueError, IndexError, KeyError) as error:
+        run = Run()
+        run.stdout, run.stderr, run.exit_code = stdout, stderr, exit_code
+        execution_error = execution_error or dict(kind="malformed_trace", detail=str(error))
+    run.execution_error = execution_error
+    return run
+
+
+def run_kernel(runner: str, sc: Scenario, schedule: list, timeout: float = 60) -> Run:
+    def decoded(output):
+        return output.decode("utf-8", errors="backslashreplace") if isinstance(output, bytes) else (output or "")
+    try:
+        p = subprocess.run([runner, *runner_args(sc, schedule)], capture_output=True, text=True,
+                           encoding="utf-8", errors="backslashreplace", timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        return execution_run(decoded(error.stdout), decoded(error.stderr), None,
+                             dict(kind="runner_timeout", detail=f"runner exceeded {timeout:g} seconds", timeout=timeout))
+    except OSError as error:
+        return execution_run("", "", None, dict(kind="runner_launch", detail=str(error), errno=error.errno))
+    return execution_run(p.stdout, p.stderr, p.returncode)
 
 
 def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
@@ -358,7 +389,7 @@ class Replay:
             k, pos, qmap, mmap, path, last_ticks = stack.pop()
             self.steps += 1
             if self.steps > self.max_steps:
-                raise Divergence("replay step budget exceeded")
+                raise Divergence("replay step budget exceeded", "replay_budget", ["replay_budget", self.max_steps])
             if pos > best[0]:
                 best = (pos, path)
             if pos == len(kev):
@@ -446,9 +477,15 @@ class Replay:
                 stack.append(c)
         pos, path = best
         nxt = kev[pos] if pos < len(kev) else "<end>"
+        signature = list(nxt) if isinstance(nxt, tuple) else [nxt]
+        if signature[0] == "wait_begin":
+            signature = signature[:3]         # omit the process-specific queue address
+        elif signature[0] == "mutex_unlock":
+            signature = [signature[0], signature[1], signature[3]]
         note = f"; last model refusal: {last_error}" if last_error else ""
         raise Divergence(f"no model action produces kernel event #{pos} {nxt}; "
-                         f"matched {pos}/{len(kev)} events, path so far {path}{note}")
+                         f"matched {pos}/{len(kev)} events, path so far {path}{note}",
+                         "trace_mismatch", ["trace_mismatch", *signature])
 
     def finish(self, k, path):
         """The kernel reached the end of its run: the model's state must agree."""
@@ -502,6 +539,33 @@ class Replay:
 
 
 # ---- schedules ---------------------------------------------------------------------------------
+
+def check_run(sc: Scenario, run: Run, expected_config=None, max_steps=20000):
+    """Shared campaign/replay/reduction verdict; infrastructure failures stay distinct."""
+    if run.execution_error:
+        error = run.execution_error
+        detail = error.get("timeout") if error["kind"] == "runner_timeout" else \
+                 error.get("errno") if error["kind"] == "runner_launch" else error["detail"]
+        raise Divergence(error["detail"], error["kind"], [error["kind"], detail])
+    if run.exit_code not in (0, 2):
+        raise Divergence(f"runner exit code {run.exit_code}: {run.stderr.strip()[-500:]}",
+                         "runner_exit", ["runner_exit", run.exit_code])
+    if not run.config or (expected_config is not None and run.config != expected_config):
+        raise Divergence(f"runner configuration missing or changed: {run.config}",
+                         "runner_config", ["runner_config", run.config])
+    if run.events_lost:
+        raise Divergence(f"{run.events_lost} events lost (buffer too small)",
+                         "event_loss", ["event_loss", run.events_lost])
+    try:
+        replay = Replay(sc, run)
+        replay.max_steps = max_steps
+        kernel, path = replay.replay()
+    except (ValueError, IndexError, KeyError) as error:
+        raise Divergence(f"malformed trace: {error}", "malformed_trace", ["malformed_trace", str(error)]) from None
+    except ModelError as error:
+        raise Divergence(f"model configuration refused: {error}", "model_configuration",
+                         ["model_configuration", str(error)]) from None
+    return kernel, path, replay
 
 def schedules(sc: Scenario, runs: int, rng: random.Random, horizon: int = 40) -> list:
     """The natural run (ISRs at idle time), then seeded placements of ISRs and ticks."""
@@ -559,6 +623,11 @@ def timer_regressions() -> list:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--runner", required=True, help="path to the diff_runner executable")
+    ap.add_argument("--capture-dir", type=Path,
+                    default=Path(__file__).resolve().parents[2]/"build/differential-failures",
+                    help="save every failure here (default: build/differential-failures)")
+    ap.add_argument("--timeout", type=float, default=60, help="runner timeout in seconds (default 60)")
+    ap.add_argument("--replay-steps", type=int, default=20000, help="model replay search budget (default 20000)")
     ap.add_argument("--runs", type=int, default=6, help="schedules per scenario (default 6)")
     ap.add_argument("--seed", type=int, default=1)
     selection = ap.add_mutually_exclusive_group()
@@ -567,16 +636,35 @@ def main() -> int:
                            help="run the four exact M2-01 timer-boundary inputs instead of a seeded campaign")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
+    if args.runs < 1 or not math.isfinite(args.timeout) or args.timeout <= 0 or args.replay_steps < 1:
+        ap.error("runs, timeout and replay-steps must be positive")
+    from evidence import capture_failure, identity
+    campaign_identity = identity(args.runner)
+    capture_errors = []
+    def save_failure(sc, sched, run, error, discovery, config=None):
+        try:
+            path = capture_failure(args.capture_dir, sc, sched, run, error, args.runner,
+                                   discovery, config, args.timeout, args.replay_steps,
+                                   fingerprint=campaign_identity)
+            print(f"bridge: saved failure {path}")
+        except (OSError, ValueError, TypeError) as capture_error:
+            capture_errors.append(str(capture_error))
+            print(f"bridge: failure capture failed: {capture_error}", file=sys.stderr)
 
     rng = random.Random(args.seed)
     exact = {sc.name: (sc, placements) for sc, placements in timer_regressions()} if args.regressions else {}
     scenarios = [sc for sc, _ in exact.values()] if args.regressions else [f() for f in catalogue.ALL]
     if args.only:
         scenarios = [s for s in scenarios if args.only in s.name]
-    probe = run_kernel(args.runner, scenarios[0], [])
-    if not probe.config:
-        print("bridge: the runner printed no configuration line", file=sys.stderr)
-        print(probe.stdout[-2000:], probe.stderr[-2000:], file=sys.stderr)
+    if not scenarios:
+        ap.error("no scenarios matched --only")
+    probe = run_kernel(args.runner, scenarios[0], [], args.timeout)
+    try:
+        if probe.execution_error or probe.exit_code not in (0, 2) or not probe.config:
+            check_run(scenarios[0], probe, max_steps=args.replay_steps)
+    except Divergence as error:
+        print(f"bridge: configuration probe failed: {error}", file=sys.stderr)
+        save_failure(scenarios[0], [], probe, error, dict(phase="probe"))
         return 2
     config = probe.config
     description = (f"{len(scenarios)} exact timer-boundary regressions" if args.regressions else
@@ -595,29 +683,32 @@ def main() -> int:
             continue
         sc = adapt(sc0, config)
         placements = [exact[sc.name][1]] if args.regressions else schedules(sc, args.runs, rng)
-        for sched in placements:
+        for schedule_index, sched in enumerate(placements):
             total += 1
-            run = run_kernel(args.runner, sc, sched)
+            run = run_kernel(args.runner, sc, sched, args.timeout)
             try:
-                if run.exit_code not in (0, 2):
-                    raise Divergence(f"runner exit code {run.exit_code}: {run.stderr.strip()[-500:]}")
-                if run.events_lost:
-                    raise Divergence(f"{run.events_lost} events lost (buffer too small)")
-                rp = Replay(sc, run)
-                _k, path = rp.replay()
+                _k, path, rp = check_run(sc, run, config, args.replay_steps)
                 passed += 1
                 if args.verbose:
                     print(f"  ok   {sc.name} schedule={sched} steps={len(path)} events={len(rp.kevents)}")
             except Divergence as e:
                 failures.append((sc.name, sched, str(e)))
                 print(f"  FAIL {sc.name} schedule={sched}: {e}")
-                if args.verbose:
-                    for ev in kernel_canonical(run):
-                        print("       ", ev)
+                save_failure(sc, sched, run, e,
+                             dict(phase="regressions" if args.regressions else "campaign",
+                                  seed=args.seed, runs=args.runs, only=args.only,
+                                  schedule_index=schedule_index, catalogue_index=total), config)
+                if args.verbose and run.events:
+                    try:
+                        for ev in kernel_canonical(run):
+                            print("       ", ev)
+                    except (KeyError, IndexError, ValueError):
+                        print("        malformed events; full raw output is in the failure bundle")
     print(f"bridge: {passed}/{total} runs agree with the model, {skipped} scenarios skipped on this build, "
           f"{len(failures)} divergences")
-    return 1 if failures else 0
+    return 2 if capture_errors else (1 if failures else 0)
 
 
 if __name__ == "__main__":
+    sys.modules["bridge"] = sys.modules[__name__]  # evidence imports the same verdict types
     sys.exit(main())

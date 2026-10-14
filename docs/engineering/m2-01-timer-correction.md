@@ -59,4 +59,4 @@ python3 -m unittest tests.test_timer_delivery.ArchivedReplays -v
 
 ## Remaining M2-01 scope
 
-The reproduced seed-3/model timing defect has a correction and automated regressions. Recovering and classifying the historical seed-5 input, and general automatic failure-bundle capture/minimization, remain open. A related cancellation trace agreeing after this correction does not establish that the historical input had the same cause. Continue that work before marking all of M2-01 complete.
+The reproduced seed-3/model timing defect has a correction and automated regressions. The subsequent [evidence workflow](differential-evidence.md) implements general automatic bundles and bounded schedule reduction. Recovering and classifying the historical seed-5 input remains open. A related cancellation trace agreeing after this correction does not establish that the historical input had the same cause. Continue that work before marking all of M2-01 complete.

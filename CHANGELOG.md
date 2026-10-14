@@ -12,6 +12,7 @@ User-visible changes are recorded here. There are no released versions or releas
 - Stable CI merge checks, authored-commit DCO checking and a reviewable `main` branch ruleset policy.
 - M2-01 native deep-campaign evidence, exact replay inputs and the original timeout-arm diagnosis, with separate corrected-source outcomes.
 - Exact native timer-boundary regression checks and a periodic-clock native preset in CI.
+- Automatic differential failure bundles, exact offline/live replay, bounded confirmed schedule reduction, a native evidence workflow check and CI retention of default failure bundles.
 
 ### Fixed
 

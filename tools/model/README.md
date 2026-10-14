@@ -64,7 +64,7 @@ Condition variables, event flags, barriers, and message queues are added when th
 
 ## Evidence scope and deeper-campaign triage
 
-The model suite (53 tests after the timer correction), six-schedule bridge campaign and exact timer regressions are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
+The model/tooling suite (67 tests after the evidence workflow), six-schedule bridge campaign, exact timer regressions and evidence workflow check are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
 
 The historical seed-5 finding remains open. Original failure inputs/traces/identities are in `evidence/m2-01/`; corrected-source outcomes are in `evidence/m2-01-correction/`. The full diagnostic campaigns start from the repository root with the built native runner:
 
@@ -73,4 +73,13 @@ python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/di
 python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 5 --verbose
 ```
 
-These are diagnostic campaign commands, not promised passing checks. Preserve the full campaign seed/configuration: filtering with `--only` can change which random schedules are generated and is not necessarily a reproduction of an unfiltered campaign. A historical seed and scenario name alone do not substitute for the failing encoded input, exact IRQ/tick schedule, trace, source/build IDs and runner/model versions. The current bridge does not produce a complete archival evidence bundle automatically; adding that capture/minimization workflow is an M2 deliverable. Classify each reproduction as kernel defect, model defect, bridge limitation or unsupported case before changing the release gate, and retain a regression case when resolved.
+These are diagnostic campaign commands, not promised passing checks. Preserve the full campaign seed/configuration: filtering with `--only` can change which random schedules are generated and is not necessarily a reproduction of an unfiltered campaign. A historical seed and scenario name alone do not substitute for exact input, placement, output and identities. The bridge now saves failures automatically under `build/differential-failures/`; see the [evidence workflow](../../docs/engineering/differential-evidence.md) for format, identity checks, signatures and reduction limits. Classify reproductions before changing the release gate, and retain regressions when resolved.
+
+```sh
+# Replace case.json with the filename printed after a captured failure.
+python3 -I tools/model/evidence.py replay build/differential-failures/case.json
+python3 -I tools/model/evidence.py replay build/differential-failures/case.json --runner build/native-gcc/tests/differential/diff_runner
+python3 -I tools/model/evidence.py reduce build/differential-failures/case.json --runner build/native-gcc/tests/differential/diff_runner --output build/reduced.json
+```
+
+`--capture-dir`, `--timeout` and `--replay-steps` configure capture and execution. Reduction preserves the original and refuses an existing output, changed/flaky baseline or mixed source/build capture. It confirms accepted deletions twice and reports exhausted budgets separately from a schedule where no single entry could be deleted. CTest's `differential_evidence` checks this using controlled search-limit inputs; native CI uploads default failure bundles when jobs fail. Current bundle format version 1 is distinct from the older manual M2-01 JSON archives, whose regression tests remain unchanged.
