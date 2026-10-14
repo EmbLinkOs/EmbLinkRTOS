@@ -6,7 +6,7 @@
 
 ## 1. What EmbCC is
 
-EmbCC is a C and C++ compiler written in C99 with its own preprocessor, per-target assemblers, linker (`embld`), archiver (`embar`), SVD tool (`embsvd`), and debugger (`embdbg`). One process preprocesses, compiles, assembles, and links. It runs on macOS and Linux and self-hosts. Its primary target is EmbLinkOS on x86-64; the embedded targets are bare-metal C targets with EmbCC's compiler runtime (`librt.a`) and no C library. (`README.md`, `docs/internals/status.md`)
+EmbCC is a C and C++ compiler written in C99 with its own preprocessor, per-target assemblers, linker (`embld`), archiver (`embar`), SVD tool (`embsvd`), debugger (`embdbg`) and additional firmware tools. It targets embedded systems and hosted/bare-metal operating-system programs; one compiler handles each supported target. Runtime, C-library and supported C++ runtime builds exist upstream, including a separate AVR library. They must be built/installed for the selected target; their availability does not introduce a libc dependency into the RTOS kernel. (`README.md`, `docs/manual/targets.md`, `docs/manual/getting-started.md`)
 
 ## 2. Targets that matter to EmbLinkRTOS
 
