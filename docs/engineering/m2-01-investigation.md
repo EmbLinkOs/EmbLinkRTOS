@@ -17,7 +17,7 @@ Each campaign used the complete catalogue, 40 schedules per scenario and the rec
 | native-tiny | 3 | 1399 / 1400 | 1: suspend_while_waiting | 1 |
 | native-tiny | 5 | 1400 / 1400 | 0 | 1 |
 
-The excluded scenario is the catalogue's explicit bitmap-queue case on base and its explicit FIFO-queue case on tiny. These exclusions predate this investigation. Total executed: 8,400 runs, with three divergences representing the same seed-3 case on three builds. The seed-3 campaigns returned 1; seed 5 returned 0.
+Base excludes `bitmap_queue` because it requires the tiny profile; tiny excludes `preempted_goes_ahead` because it uses shared priorities. These exclusions predate this investigation. Total executed: 8,400 runs, with three divergences representing the same seed-3 case on three builds. The seed-3 campaigns returned 1; seed 5 returned 0.
 
 The [evidence directory](https://github.com/EmbLinkOs/EmbLinkRTOS/tree/main/tools/model/evidence/m2-01) contains campaign logs, generated configurations, a manifest, six primary replay JSON files and one related cancellation/fault capture. Each replay records source SHA, encoded scenario, exact placements, effective runner settings, runner/configuration SHA-256, exit status, lost-event count, complete stdout/stderr, canonical events and the bridge diagnostic. Source-file hashes and compiler/build/Python versions are in `manifest.json`. Native pointer addresses can differ between executions; they are retained in the original traces and mapped by the bridge rather than compared byte for byte.
 

@@ -27,7 +27,13 @@
       "skipped_scenarios": 1,
       "exit_code": 1,
       "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
-      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec"
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
     },
     {
       "preset": "native-gcc",
@@ -39,7 +45,13 @@
       "skipped_scenarios": 1,
       "exit_code": 0,
       "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
-      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec"
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
     },
     {
       "preset": "native-release",
@@ -51,7 +63,13 @@
       "skipped_scenarios": 1,
       "exit_code": 1,
       "runner_sha256": "c56311e1b21db5415e7b944aed552975a5e8b6d4141e36da3e349b33248cc1cc",
-      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce"
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
     },
     {
       "preset": "native-release",
@@ -63,7 +81,13 @@
       "skipped_scenarios": 1,
       "exit_code": 0,
       "runner_sha256": "c56311e1b21db5415e7b944aed552975a5e8b6d4141e36da3e349b33248cc1cc",
-      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce"
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "exclusions": [
+        {
+          "scenario": "bitmap_queue",
+          "reason": "BITMAP queues need the tiny profile"
+        }
+      ]
     },
     {
       "preset": "native-tiny",
@@ -75,7 +99,13 @@
       "skipped_scenarios": 1,
       "exit_code": 1,
       "runner_sha256": "3b74fb1f7efbe55841dff2437ca56e3c04aa81317752b6f94f8e5c056ecb979e",
-      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d"
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "exclusions": [
+        {
+          "scenario": "preempted_goes_ahead",
+          "reason": "shared priorities need the base profile"
+        }
+      ]
     },
     {
       "preset": "native-tiny",
@@ -87,7 +117,13 @@
       "skipped_scenarios": 1,
       "exit_code": 0,
       "runner_sha256": "3b74fb1f7efbe55841dff2437ca56e3c04aa81317752b6f94f8e5c056ecb979e",
-      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d"
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "exclusions": [
+        {
+          "scenario": "preempted_goes_ahead",
+          "reason": "shared priorities need the base profile"
+        }
+      ]
     }
   ]
 }
