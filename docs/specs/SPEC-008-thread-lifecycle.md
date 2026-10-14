@@ -1,5 +1,7 @@
 # SPEC-008 - Thread Lifecycle
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §16. Specification work item 7 of the roadmap (07 §3). Reference model: `tools/model/` (§15).
 **Requirements:** `docs/requirements/KRN-THR.md` (KRN-THR-001 to 008 from v0.1 §3.3 and 009 to 014 from 03 §1.1 restated; new from 015).
 **Builds on:** 03 §1 (states and wait reasons), §2.1 (priorities), §9.3 (stacks); SPEC-004 (START, SUSPEND, JOIN, SLEEP, NOTIFY are wait reasons over one protocol; suspend overlay §6.5; cancellation §6.6); SPEC-005 §2, §10 (base and effective priority; owner death); SPEC-001 §6, §12 (attributes, storage, entry points); SPEC-002 §7 (interrupt stacks); ADR-029 (`CRITICAL` attribute, budgets), ADR-032 (handle generations), ADR-033 (partition-local storage), ADR-036 (table scheduler).
@@ -72,7 +74,7 @@ Every function that takes `t` validates the handle per SPEC-001 §5.3 and, in is
 
 - `init` fills in the control block, builds the initial context frame through the architecture contract (`emb_arch_context_init`, SPEC-011) so that the first dispatch enters `entry(arg)` with a return address that leads to `emb_thread_exit(0)` (KRN-THR-005), fills the stack with `EMB_STACK_FILL` when `CONFIG_EMB_STACK_STATS` or a checked build is configured, assigns the stable index, sets `base_prio = eff_prio = priority`, and leaves the thread BLOCKED with reason `START` (KRN-THR-009). Nothing is allocated (KRN-THR-007).
 - `start` is a wake with reason `START` (SPEC-004 §5.2): the thread becomes READY behind its peers; before `emb_kernel_start()` the wake is recorded and performed at P3. `start` of a thread that is not `INACTIVE` is `EMB_ESTATE`.
-- `EMB_THREAD_DEFINE` objects are initialized from the generated init table before `main()` and started at `emb_kernel_start()` unless defined with `EMB_THREAD_NO_AUTOSTART`.
+- `EMB_THREAD_DEFINE` objects are initialized from the generated init table during `emb_kernel_init()`, before scheduler start and started at `emb_kernel_start()` unless defined with `EMB_THREAD_NO_AUTOSTART`.
 - Isolated profiles: a thread belongs to `attr.partition` or the caller's partition; an unprivileged partition may create threads only in itself, only from storage inside its own region (ADR-033), and only before `emb_system_freeze()` (KRN-OBJ-004).
 
 ## 5. Termination
@@ -84,7 +86,7 @@ The exit path, in thread context with interrupts enabled except where noted:
 1. `cancel_disable` is implied: a cancel request can no longer be delivered.
 2. Owned mutexes are released per `CONFIG_EMB_MUTEX_OWNER_DEATH` (SPEC-005 §3.6); in checked builds, owned pool blocks are a lifecycle fault (SPEC-007 §4.3).
 3. Statistics are finalized (CPU time, switches, stack high-water) and the `thread_exit(code)` trace event is emitted.
-4. In one critical section: the exit code is stored; the joiner, if blocked, is woken with the code handed over (SPEC-004 §6.1); the thread's own pending timeout, notification bits, TLS slots, and binding references are discarded; the state becomes `TERMINATED`; the thread is removed from the ready structure; `embk_sched_reschedule_if_needed()` performs the final switch (P2).
+4. In one critical section: the exit code is stored in `wake_data` (no waker writes it after termination, A16); the joiner, if blocked, is woken with the code handed over (SPEC-004 §6.1); the thread's own pending timeout, notification bits, TLS slots, and binding references are discarded; the state becomes `TERMINATED`; the thread is removed from the ready structure; `embk_sched_reschedule_if_needed()` performs the final switch (P2).
 5. The object becomes **reusable** when the architecture confirms the switch-out has completed (`emb_arch_switch_out_done`, SPEC-011): on uniprocessor this is the moment the next thread runs; on SMP the reusability flag is set by the switching code after the old stack is no longer in use, and `join`/`destroy` on another CPU wait for it. A joinable object is reusable after `join` returns; a detached one at step 5. Reusable means the owner may `destroy` it or re-`init` the storage; the kernel frees nothing (KRN-OBJ-003).
 
 The exiting thread's stack is in use until step 5. Interrupts taken between steps 4 and 5 run on the interrupt stack where one exists (SPEC-002 §7) and on the dying stack otherwise, which is why reusability is published only after the switch.

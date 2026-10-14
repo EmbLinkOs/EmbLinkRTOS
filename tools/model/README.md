@@ -13,7 +13,7 @@ The model is written so that it can be read next to the specification: `embmodel
 | `tests/scenarios.py` | The scenario catalogue: the SPEC-004 §15 worked example and the wait-protocol scenarios (`ALL`), plus the SPEC-005 §15 mutex scenarios (`MUTEX`): classic inversion, nested chain with timeouts, deadlock in both orders, owner death with and without a waiter, ceiling, waiter priority change, cancellation of a waiter, recursion, two-waiter hand-off; plus the SPEC-006 §11 notification scenarios (`NOTIFY`): set in the window, level semantics, ALL across two sets, one thread bound to two semaphores; plus the SPEC-008 §15 lifecycle scenarios (`JOIN`): join before and after exit, join with timeout, second joiner refused, canceled joiner, start of an inactive thread, exit while owning a mutex with a joiner |
 | `tests/test_scenarios.py` | Specific interleavings with expected results |
 | `tests/test_explore.py` | Exhaustive exploration of every scenario plus outcome properties |
-| `tests/test_random.py` | Random walks over generated scenarios; a `hypothesis` stateful test when installed |
+| `tests/test_random.py` | Random walks over generated scenarios; a Hypothesis-generated scenario/seed campaign when installed |
 
 ## Granularity
 
@@ -27,7 +27,7 @@ python3 -m unittest discover -v
 python3 -c "from embmodel import explore; from tests import scenarios as S; print(explore(S.worked_example()).summary())"
 ```
 
-Only the standard library is required; `pip install hypothesis` enables the stateful randomized test. The exhaustive tests take a few seconds.
+Only the standard library is required; `pip install hypothesis` enables the randomized scenario/seed test. The exhaustive tests take a few seconds.
 
 ## Differential bridge (TEST-008, SPEC-004 §13)
 
@@ -53,3 +53,16 @@ After every action: invariants 1 to 6 of SPEC-004 §5.4 (queue membership matche
 ## Extending
 
 Condition variables, event flags, barriers, and message queues are added when their conformance tests are written (SPEC-005 §17.11, SPEC-007); the SMP model adds a second CPU, the three lock domains as explicit locks, and the superseded in-flight timeout bit (SPEC-004 §8).
+
+## Evidence scope and deeper-campaign triage
+
+The 44-test suite and six-schedule bridge campaign are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
+
+The two deeper-campaign cases described above remain unresolved; they are not automatically expected failures or confirmed kernel bugs. The documented investigation starts from the repository root with the built native runner:
+
+```sh
+python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 3 --verbose
+python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 5 --verbose
+```
+
+These are diagnostic campaign commands, not promised passing checks. Preserve the full campaign seed/configuration: filtering with `--only` can change which random schedules are generated and is not necessarily a reproduction of an unfiltered campaign. A historical seed and scenario name alone do not substitute for the failing encoded input, exact IRQ/tick schedule, trace, source/build IDs and runner/model versions. The current bridge does not produce a complete archival evidence bundle automatically; adding that capture/minimization workflow is an M2 deliverable. Classify each reproduction as kernel defect, model defect, bridge limitation or unsupported case before changing the release gate, and retain a regression case when resolved.

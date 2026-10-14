@@ -6,6 +6,8 @@ KRN-IRQ-001 to 003 and 010 to 016 originate in the v0.1 specification (§3.7 and
 
 ---
 
+## Requirements
+
 ### KRN-IRQ-001  No blocking in interrupt context
 **Statement.** Interrupt context shall not perform blocking operations.
 **Rationale.** An ISR has no thread to block; blocking there corrupts the scheduler's model of who is running.

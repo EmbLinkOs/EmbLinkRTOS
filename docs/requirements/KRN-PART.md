@@ -1,10 +1,14 @@
 # KRN-PART - Partitions and the System Call Boundary
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-PART`. Design: `docs/specs/SPEC-010-partitions-and-syscall-boundary.md`. Related groups: KRN-CAP (tables, rights), KRN-OBJ (generations, freeze), KRN-THR (threads of a partition), KRN-NOTIF (`K_FAULT`, IRQ delivery), KRN-TP (shares), KRN-MEM (regions), FLT (fault records), HW (generator outputs), SEC.
 
 KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` §8 (007 added by ADR-033). All are restated here as the authoritative copy. New requirements start at 008.
 
 ---
+
+## Requirements
 
 ### KRN-PART-001  Every thread has one partition
 **Statement.** Every thread shall belong to exactly one partition.
@@ -41,8 +45,8 @@ KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` �
 **Verification.** Analysis: the kernel's fault path only records and notifies; Test: replacing the reference supervisor changes the behavior.
 **Trace.** SPEC-010 §6
 
-### KRN-PART-006  Static partitions in 1.0
-**Statement.** Partition definitions shall be static, build-time data in 1.0; dynamic partition creation is FUTURE.
+### KRN-PART-006  Static partitions in the first isolated release
+**Statement.** Partition definitions shall be static, build-time data in the first isolated release; dynamic partition creation is FUTURE.
 **Rationale.** Static tables are auditable and need no kernel allocator.
 **Status.** Accepted 2026-10-07
 **Verification.** Analysis: no runtime partition creation API exists.
@@ -92,14 +96,14 @@ KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` �
 
 ### KRN-PART-013  Argument validation
 **Statement.** Marshallers shall validate handles through capability lookup with the annotated right, pointer arguments against the caller's regions with the needed access and bounded length, attribute structs by copy before validation, names by copy into kstore buffers, scalars by range, and callback pointers against executable regions; every failure shall be a status to the caller.
-**Rationale.** No time-of-check to time-of-use window; no unvalidated user pointer (R-001 §7, NuttX).
+**Rationale.** Attribute snapshots avoid top-level field races; buffer lifetime, nested pointers and safe copies additionally require KRN-PART-025. No unvalidated user pointer (R-001 §7, NuttX).
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `part/validate_*` matrix; fuzzing of the boundary with random arguments never faults the kernel.
 **Trace.** SPEC-010 §5.4; KRN-CAP-002
 
 ### KRN-PART-014  Privileged code never traps
-**Statement.** Privileged code shall call kernel implementations directly; an `SVC` or `ecall` from privileged code shall be a kernel fault in checked builds and `EMB_ENOTSUP` in release builds.
-**Rationale.** One calling convention per privilege level; no nested syscall state.
+**Statement.** Privileged code shall call kernel implementations directly; an ordinary API-entry `SVC` or `ecall` from privileged code shall be a kernel fault in checked builds and `EMB_ENOTSUP` in release builds.
+**Rationale.** One ordinary calling convention per privilege level; the authenticated internal syscall-return trap is a separate exception (SPEC-010 §5.2, KRN-PART-026).
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `misuse/svc_from_privileged`.
 **Trace.** SPEC-010 §5.1, §12
@@ -112,7 +116,7 @@ KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` �
 **Trace.** SPEC-010 §6
 
 ### KRN-PART-016  Restart procedure
-**Statement.** Restart shall, in order: stop every thread of the partition without delivering results, flush other partitions' waiters on its objects and threads with `STALE`, release mutexes it owns outside itself with owner-death semantics; bump its generations; reset its devices; re-copy `.data`, zero `.bss`, re-initialize the kstore, objects, and capability table from the generated tables; start its autostart threads and count the restart.
+**Statement.** Restart shall, in order: stop every thread of the partition without delivering results, flush other partitions' waiters on its objects and threads with `STALE`, release mutexes it owns outside itself with owner-death semantics; bump its generations; quiesce its asynchronous device/DMA requests before memory reuse, reset exclusively owned devices without disturbing shared clients, and preserve authoritative incremented generations; re-copy `.data`, zero `.bss`, re-initialize the kstore, objects, and capability table from the generated tables; start its autostart threads and count the restart.
 **Rationale.** A defined, auditable sequence that leaves no dangling reference.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `part/restart_*` for each step's observable effect; model scenario `partition_restart` (M3).
@@ -166,3 +170,31 @@ KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` �
 **Status.** Accepted 2026-10-07
 **Verification.** M3 exit review against this list.
 **Trace.** SPEC-010 §15; 07 §2 M3
+
+### KRN-PART-024  DMA confinement and quiescence
+**Statement.** An untrusted partition shall not directly program a DMA-capable device unless independent hardware constrains all addresses/descriptors it can use. Otherwise a trusted driver shall validate and own DMA requests. Before partition memory is reset or reused, all asynchronous producers shall be quiesced within a declared deadline or recovery shall escalate. Shared devices shall use per-client cancellation rather than an unrelated global reset.
+**Rationale.** CPU protection does not generally constrain bus masters; restart must not leave writes into reused memory.
+**Status.** Proposed 2026-10-14; unimplemented.
+**Verification.** Planned physical-board negative DMA access tests; fault injection during transfers/restart; stalled-device escalation and shared-client continuity cases.
+**Trace.** SPEC-010 §7, §8, §17; KRN-PART-003, 004
+
+### KRN-PART-025  Blocking syscall buffer lifetime
+**Statement.** Marshallers shall check address/length arithmetic without overflow and complete-region permissions, snapshot security-relevant descriptors, and keep mappings, object references and permitted buffer ownership valid until completion or bounded cancellation. Completion shall reject a changed caller incarnation; restart shall remove every in-flight reference to memory it will reuse.
+**Rationale.** Entry-time pointer validation alone cannot protect a blocking call or a restarted partition.
+**Status.** Proposed 2026-10-14; unimplemented.
+**Verification.** Planned range-overflow/hole/permission tests; mutate descriptors after entry; restart/cancel while remote sends or DMA reference user buffers; safe-copy fault recovery tests.
+**Trace.** SPEC-010 §5.4, §17; SPEC-007 §2
+
+### KRN-PART-026  Authenticated syscall return and object construction
+**Statement.** Ordinary user entry and internal privileged syscall return shall be validated as distinct paths. A user shall not forge privileged return state or overwrite arbitrary kstore bytes through object initialization; construction shall be restricted to a kernel-authorized typed slot.
+**Rationale.** Protected storage and stacks are ineffective if marshalling permits authority bypass.
+**Status.** Proposed 2026-10-14; unimplemented.
+**Verification.** Planned forged syscall number/frame/stack tests, nested entry tests, out-of-slot/overlapping init requests and fuzz campaigns.
+**Trace.** SPEC-010 §3, §5.2, §17; KRN-PART-011, 013
+
+### KRN-PART-027  Restart progress and evidence
+**Statement.** Restart shall declare stop/quiescence and protected-step bounds, preserve incremented incarnation state across image restoration, and complete remote waits with their specified outcomes. A claimed unrelated-partition response-time guarantee shall include priority, locks, bus interference and device stopping; a missed stop deadline shall escalate safely.
+**Rationale.** Preemptible steps alone do not establish progress or freedom from interference.
+**Status.** Proposed 2026-10-14; unimplemented.
+**Verification.** Planned fault/restart campaigns with remote lock owners/waiters, stale handles, DMA and unrelated workload; generation-exhaustion tests; archived physical latency analysis and samples.
+**Trace.** SPEC-010 §7, §17; KRN-PART-004, 016; KRN-CAP-013

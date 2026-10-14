@@ -1,5 +1,7 @@
 # SPEC-012 - ATmega328P Port (`arch/avr`) and the `arduino_uno` Board
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §14. Specification work item 11 of the roadmap (07 §3). First hardware target of M1 (ADR-001, alongside the native port).
 **Requirements:** `docs/requirements/ARCH-AVR.md` (new group, from 001).
 **Builds on:** SPEC-011 (the contract this port implements), SPEC-002 §6.2, §7.2, §13 (AVR rows), SPEC-003 §13 (Timer1), SPEC-004 §11, §12 (table scheduler, no compare-and-swap), SPEC-008 §10 (stacks), 03 §11 (tiny reference configuration), 09 §2, §5, §7, §8 (EmbCC on AVR: `const` in RAM, no linker scripts, no DWARF, `signal`/`interrupt` attributes, full AVR5 inline-asm vocabulary); R-003 §4 targets T1 and T2.
@@ -43,7 +45,7 @@ Configuration consequences: the isolated profile, the zero-latency class, SMP, a
 - Boot is the toolchain's `.S` sequence (09 §8): `SPH:SPL` set to `RAMEND`, `r1` cleared, `.data` copied from flash, `.bss` zeroed, then `main()`. Optiboot jumps to address 0 after its timeout, so the image is linked at `0x0000` with `--rom-limit 32256` (EmbCC) or the equivalent `MEMORY` length (avr-gcc), leaving the bootloader section alone.
 - `emb_arch_early_init()`: `cli`; nothing else (no vector relocation on this part; `IVSEL` stays 0).
 - `emb_arch_init()`: Timer1 configured per §7, sleep mode select left to `emb_arch_idle`, watchdog left to the board or the software watchdog service (FLT-004).
-- `emb_arch_kernel_start(first_sp)`: loads `SP` from the first thread's frame and runs the restore sequence of §4 ending in `ret`; the pre-kernel stack (top of SRAM) becomes the inline idle context's stack (`CONFIG_EMB_IDLE_THREAD=n`, SPEC-008 §10) or the idle thread's stack when one is configured.
+- `emb_arch_kernel_start(first, idle)`: saves the pre-kernel context in the idle control block and loads `SP` from the first thread's frame and runs the restore sequence of §4 ending in `ret`; the pre-kernel stack (top of SRAM) becomes the inline idle context's stack (`CONFIG_EMB_IDLE_THREAD=n`, SPEC-008 §10) or the idle thread's stack when one is configured.
 
 ## 4. Context frame and switch
 
@@ -58,23 +60,23 @@ higher addresses
   r0
   SREG                         (saved through r0: in r0, SREG)
   r1                           (always 0 for compiled code)
-  r2 .. r31                    (r24:r25 carry the entry argument in the initial frame)
+  r2 .. r31                    (r24:r25 carry the entry pointer; r22:r23 carry its argument in the initial frame)
 lower addresses  <- saved SP (points to the free byte below r31)
 ```
 
-37 bytes per saved context (2 return address, 32 registers, 1 `SREG`, 2 for the exit address in the initial frame counted once in `stack.min_thread`). `EMB_ISR` saves exactly this frame in its prologue, so an interrupt epilogue that decides to switch only stores `SP` into the outgoing TCB and loads the incoming one: the ISR frame *is* the context frame.
+35 bytes per saved frame (2-byte return address, 32 registers, 1 `SREG`); the manifest budgets 37 bytes including the return address of the call into the switch routine. There is no separate exit address in the initial frame (A6). `EMB_ISR` saves this 35-byte frame in its prologue, so an interrupt epilogue that decides to switch only stores `SP` into the outgoing TCB and loads the incoming one: the ISR frame *is* the context frame.
 
 ### 4.2 Initial frame
 
-`emb_arch_context_init(stack_base, size, entry, arg, exit_fn, privileged)` (privilege ignored) writes, from the top of the stack: `exit_fn` (low, high) so that `entry` returns into it (KRN-THR-005); `entry` (low, high) as the launch return address; `r0 = 0`; `SREG = 0x80` (I set); `r1 = 0`; `r2..r23 = 0`; `r24:r25 = arg`; `r26..r31 = 0`; returns the saved `SP`. Launch is the normal restore (§4.3), whose final `out SREG` enables interrupts; the AVR core executes the following instruction (`ret`) before taking any pending interrupt, so the launch is atomic. A test verifies this with an interrupt pending at launch.
+`emb_arch_context_init(t, stack_base, size, entry, arg, privileged)` (privilege ignored) writes the 35-byte frame with the return address of `embk_thread_launch`, `r0 = 0`, `SREG = 0x80`, `r1 = 0`, `r24:r25 = entry`, `r22:r23 = arg`, and the remaining saved registers zero; it stores SP in `t->arch.sp`. The launch hook calls the entry and then `emb_thread_exit(0)` (A4, A6). Launch uses the normal restore (§4.3): the actual tail is `out SREG, r0; pop r0; ret`. The intervening pop means a claim that the one-instruction enable delay guarantees no IRQ before `ret` is unsupported. Validate any pending-interrupt entry during this tail against a coherent incoming frame, current-thread identity and kernel context on physical hardware; emulator behavior alone does not close that obligation (A27).
 
 ### 4.3 Switch routine
 
-`emb_arch_switch_to(next)` is a `naked` function (09 §5): push `r0`; `in r0, SREG`; `cli`; push `r0`; push `r1`; `clr r1`; push `r2..r31`; store `SP` into `current->arch.sp`; load `SP` from `next->arch.sp`; set `current`; pop `r31..r2`; pop `r1`; pop `r0`; `out SREG, r0`; pop `r0`; `ret`. Interrupts are masked from the `cli` until the `out SREG` of the incoming thread restores its own `I` bit (an incoming thread saved by an `EMB_ISR` has `I` clear in its saved `SREG`? No: the ISR prologue saves `SREG` *as the interrupted code had it*, with `I` set, because the hardware clears `I` only in the live register; the saved copy is read from `SREG` after entry, so the port explicitly sets bit 7 in the saved byte). The whole routine is the masked section; its length is fixed (about 70 cycles at 16 MHz, about 4.4 µs) and is the port's contribution to the T7 budget on this target.
+`emb_arch_switch_to(next)` is a `naked` function (09 §5): push `r0`; `in r0, SREG`; `cli`; push `r0`; push `r1`; `clr r1`; push `r2..r31`; store `SP` into `current->arch.sp`; load `SP` from `next->arch.sp`; set `current`; pop `r31..r2`; pop `r1`; pop `r0`; `out SREG, r0`; pop `r0`; `ret`. Interrupts are masked from the `cli` until the `out SREG` of the incoming thread restores its own `I` bit (an incoming thread saved by an `EMB_ISR` has `I` clear in its saved `SREG`? No: the ISR prologue saves `SREG` *as the interrupted code had it*, with `I` set, because the hardware clears `I` only in the live register; the saved copy is read from `SREG` after entry, so the port explicitly sets bit 7 in the saved byte). The whole routine is the masked section; its length is fixed (a cycle count still requiring disassembly accounting and hardware measurement; pushes and pops are multi-cycle instructions, so counting roughly 70 instructions is not a 70-cycle measurement) and is the port's contribution to the T7 budget on this target.
 
 ### 4.4 Interrupt prologue and epilogue
 
-`EMB_ISR(vector)` expands to a `naked` `__vector_n` whose body is: the frame push of §4.3 with `I` forced set in the saved `SREG` (interrupts are off in the live register for the handler's duration, SPEC-002 §7.1: no nesting), `irq_nesting_depth++`, a call to the C body `embk_isr_<vector>()`, then `embk_isr_exit()`, which decrements the depth and, when `reschedule_pending && sched_lock_depth == 0`, performs the SP exchange of §4.3 (the frame is already on the stack); then the restore sequence ending in `reti`. `EMB_ISR_RAW(vector)` is `__attribute__((signal))` on both compilers: the compiler saves only what the body clobbers, the handler may not call the kernel (SPEC-002 §3), and it runs with interrupts off.
+`EMB_ISR(vector)` expands to a `naked` `__vector_n` whose body is: the frame push of §4.3 with `I` forced set in the saved `SREG` (interrupts are off in the live register for the handler's duration, SPEC-002 §7.1: no nesting), `irq_nesting_depth++`, a call to the C body `embk_isr_<vector>()`, then `embk_isr_exit()`, which decrements the depth and, when `reschedule_pending && sched_lock_depth == 0`, performs the SP exchange of §4.3 (the frame is already on the stack); then the restore sequence ending in `ret`, restoring the resumed context's own I bit rather than unconditionally setting it (A7). `EMB_ISR_RAW(vector)` is `__attribute__((signal))` on both compilers: the compiler saves only what the body clobbers, the handler may not call the kernel (SPEC-002 §3), and it runs with interrupts off.
 
 ### 4.5 Timer interrupt
 
@@ -86,7 +88,7 @@ The Timer1 compare vector is an `EMB_ISR` whose body calls `embk_time_timer_isr(
 - `emb_arch_in_isr()`: the kernel's `irq_nesting_depth` (there is no hardware indicator).
 - Vector numbers and names come from the SoC description (`soc/microchip/atmega/atmega328p.yaml`); `EMB_ISR(TIMER1_COMPA)` resolves to `__vector_11` through the generated `hw_config.h`. Unused vectors keep the toolchain's weak default, which the port overrides with a handler that records a `spurious_irq` fault.
 - `emb_arch_irq_enable/disable(irq)` set or clear the peripheral's mask bit through a generated table of `(register, bit)` pairs; `set_level` is a no-op (one level; vector order is the hardware priority and the documentation says so); `clear_pending` writes the flag bit; `pend_soft` is unsupported (`EMB_ENOTSUP`).
-- The per-thread interrupt reserve `CONFIG_EMB_AVR_ISR_STACK_RESERVE` defaults to 64 bytes: the 37-byte frame plus the largest kernel-aware handler's C frame measured with `-fstack-usage` (the port's `docs/ports/avr.md` lists it per release).
+- The per-thread interrupt reserve `CONFIG_EMB_AVR_ISR_STACK_RESERVE` defaults to 64 bytes: the 35-byte frame plus call/context reserve and the largest kernel-aware handler C frame from supported stack reports and disassembly/call-graph accounting (the port's `docs/ports/avr.md` lists it per release).
 
 ## 6. Scheduler and wait protocol on this port
 
@@ -107,9 +109,9 @@ The tiny defaults make the kernel's hot paths bit operations: the ready set and 
 
 ## 8. Memory
 
-- SRAM budget for the tiny reference configuration (R-003 T1, T2): kernel static RAM at most 64 bytes; TCB at most 32 bytes (saved `SP` 2, state and priority 2, wait state and generation 2, wait queue pointer 2, wake result and data 3, notification bits 1, timeout deadline 4, timeout links 4, owned list 2, flags 1, base priority 1); eight threads with 128-byte stacks use 1 KB; about 700 bytes remain for the application. The footprint test of the tiny configuration enforces these numbers from the map file.
-- **`const` in RAM under EmbCC** (09 §2, gap 3): every `const` table costs SRAM. The portability layer offers `EMB_FLASH_CONST` and `EMB_FLASH_READ_U8/U16/PTR` (`PROGMEM` and `pgm_read_*` on avr-gcc, plain `const` and direct reads on EmbCC); kernel tables that are large (vector name table, status names) are compiled out on tiny; small ones (the interrupt mask table, init table) are accepted and counted. The footprint budget is stated for both compilers.
-- **No linker script under EmbCC** (09 §7): the generator emits the `embld` option set (`-Ttext=0x0 -Tdata=0x800100 --rom-limit=32256 --gc-sections`) and a GNU ld `MEMORY`/`SECTIONS` script for avr-gcc from the same region model (HW-006); the init table and other registries use bracketed sections, which both linkers provide.
+- The tiny T1 reference feature set targets 64 bytes of kernel static RAM and 32 bytes per TCB; its recorded AVR map subtotals are in the port page. TCB size comes from the layout probe, not a hand-added field list. Port/board/runtime RAM, every configured thread and interrupt reserve, inline idle state, alignment and application buffers must also fit the 2 KB SRAM. The kernel-subtotal gate does not establish how much application RAM remains or that any chosen stack sizes are sufficient.
+- **`const` in RAM under EmbCC** (09 §2, gap 3): every `const` table costs SRAM. The portability layer offers `EMB_FLASH_CONST` and `EMB_FLASH_READ_U8/U16/PTR` (`PROGMEM` and `pgm_read_*` on avr-gcc, plain `const` and direct reads on EmbCC); kernel tables that are large (vector name table, status names) are compiled out on tiny; small ones (the interrupt mask table, init table) are accepted and counted. The recorded footprint gate is avr-gcc only; EmbCC RTOS execution/footprint is unverified.
+- **No linker script under EmbCC** (09 §7): the generator emits the `embld` option set (`-Ttext=0x0 -Tdata=0x800100 --rom-limit=32256 --gc-sections`) and a GNU ld `MEMORY`/`SECTIONS` script for avr-gcc from the same region model (HW-006); M1 avr-gcc uses a hand-derived board linker script; registration entries use `EMB_TABLE_CONST` (plain const with `.progmem.<name>`) and flash-read accessors, because its progmem attribute overrides an explicit section name (A8). Generated linker inputs and the EmbCC RTOS path remain planned.
 - Stack checking: guard words at each thread stack's limit checked at every switch-out (`CONFIG_EMB_STACK_CHECK`, default on in checked builds); the inline idle context's stack is the pre-kernel stack and gets the same guard. There is no hardware limit and no MPU.
 - Retained region: `.noinit` SRAM survives a watchdog or external reset (not a power cycle); the small crash record (`EMB_CRASH_RECORD_SMALL`: magic, reason, thread index, `SP`, return address, uptime, checksum) lives there (FLT-001 on this target).
 
@@ -149,7 +151,7 @@ Board init configures `USART0` for the console and `PB5` as output; nothing else
 | kernel text, tiny configuration, EmbCC `-Os` and avr-gcc `-Os` | <= 4 KB | R-003 T1 |
 | kernel static RAM | <= 64 bytes | R-003 T2 |
 | TCB | <= 32 bytes | R-003 T2, §8 |
-| context switch (P2, `emb_arch_switch_to`) | <= 80 cycles (5 µs) | §4.3 |
+| context switch (P2, `emb_arch_switch_to`) | establish a physical-board baseline including multi-cycle frame instructions; historical 80-cycle target is withdrawn pending analysis | §4.3, ADR-039 |
 | interrupt to thread (Timer1 compare to the woken thread's first instruction) | <= 300 cycles (19 µs) | SPEC-002 §10 |
 | longest masked section in kernel paths | <= 150 cycles | R-003 T7 |
 
@@ -157,8 +159,8 @@ Targets become baselines after the first HIL measurement (OBS-012).
 
 ## 14. Decisions taken at acceptance (2026-10-07)
 
-1. One 37-byte frame layout for the switch, the interrupt epilogue, and the initial frame; the `EMB_ISR` frame is the context frame, so an interrupt-exit switch is an `SP` exchange.
-2. Launch and switch end in `out SREG` then `ret`, relying on the documented one-instruction interrupt delay; a test with a pending interrupt verifies it.
+1. One 35-byte saved frame (37-byte call/context reserve) for the switch, the interrupt epilogue, and the initial frame; the `EMB_ISR` frame is the context frame, so an interrupt-exit switch is an `SP` exchange.
+2. Launch, switch and ISR restore end in `out SREG; pop r0; ret`, preserving the incoming I bit. Validate pending IRQ behavior during that complete tail on physical hardware; do not infer an atomic `out; ret` pair (A7, A27).
 3. Periodic 1 ms tick on Timer1 CTC with prescaler 64 is the default; tickless uses prescaler 256 with 16 µs resolution and a 1.048 s `MAX_INTERVAL`; deep sleep modes are unsupported until a tick-loss policy exists.
 4. Tiny defaults are mandatory on this port: table scheduler, 32-bit time, 8-bit notifications, no system work queue, no idle thread, 7 application priorities.
 5. `EMB_FLASH_CONST` and its accessors are the portability answer to `const` in RAM; large kernel tables are compiled out on tiny.

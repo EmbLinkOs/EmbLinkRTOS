@@ -2,9 +2,9 @@
 
 Thank you for your interest. This page explains what kind of contributions are useful right now, the legal terms, and the process.
 
-## Current phase: Milestone 1, first execution
+## Current phase: M2, completing the blocking kernel
 
-The architecture is accepted (`docs/architecture/`, `docs/specs/`, `docs/requirements/`) and the code of Milestone 1 of the [roadmap](docs/architecture/07-roadmap.md) is being written: the configuration and build system, the public headers, the kernel core, the native and AVR ports, and the conformance suite. Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements; a change to kernel semantics updates the specification, the reference model (`tools/model/`), and the conformance suite in the same pull request.
+The architecture is accepted (`docs/architecture/`, `docs/specs/`, `docs/requirements/`) and the M1 kernel/ports are implemented and M2 remains incomplete. [Project status](docs/STATUS.md) distinguishes working code from target designs; the [roadmap](docs/architecture/07-roadmap.md) defines the next gates. The original implementation order was: the configuration and build system, the public headers, the kernel core, the native and AVR ports, and the conformance suite. Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements; a change to kernel semantics updates the specification, the reference model (`tools/model/`), and the conformance suite in the same pull request.
 
 Valuable contributions now:
 
@@ -41,7 +41,7 @@ Hardware descriptions, scripts, and other files use the same two lines in their 
 
 1. Open an issue first for anything beyond a small fix, so the approach can be agreed before work starts. Architecture changes need an ADR.
 2. Branch from `main`, keep each pull request to one logical change, and write commit messages that explain why, not only what.
-3. Code changes must pass the quality gates in `docs/architecture/05-engineering-system.md` §5: build matrix, conformance suite, static analysis, coverage, footprint thresholds, traceability, and documentation for any touched public API.
+3. Code changes must pass existing CI and add evidence appropriate to the changed contract. The complete target quality gates are described in `docs/architecture/05-engineering-system.md` §5: build matrix, conformance suite, static analysis, coverage, footprint thresholds, traceability, and documentation for any touched public API. Some gates remain unimplemented (STATUS.md); their absence is recorded as an evidence gap, not represented as a passing check.
 4. A kernel semantics change must update the executable reference model and the conformance suite in the same pull request.
 5. Reviews are by the owners listed in `.github/CODEOWNERS`.
 

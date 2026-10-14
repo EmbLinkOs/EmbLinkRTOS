@@ -1,5 +1,7 @@
 # SPEC-002 - Interrupt, Exception, and Critical-Section Model
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner, with the defaults of §15. Specification work item 2 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/KRN-IRQ.md` (KRN-IRQ-001 to KRN-IRQ-036; v0.1 identifiers restated, new ones from 017).
 **Builds on:** SPEC-001 (contexts, misuse behavior, annotations); 03 §1.2, §2.4 (per-CPU state), §10 (faults); v0.1 §3.7, §6, §4.5.
@@ -93,7 +95,7 @@ CONFIG_EMB_IRQ_DYNAMIC         bool   runtime `emb_irq_connect()`; otherwise the
 ### 4.1 Primitives
 
 ```c
-typedef unsigned int emb_irq_key_t;             /* the architecture's saved mask state */
+/* emb_irq_key_t is supplied by the port: uint8_t on AVR, unsigned int elsewhere. */
 
 emb_irq_key_t emb_irq_lock(void);               /* @ctx thread isr prekernel  @blocks no  @time O(1) */
 void          emb_irq_unlock(emb_irq_key_t key); /* @ctx thread isr prekernel  @blocks no  @time O(1) */
@@ -116,7 +118,7 @@ The primitives are `static inline __attribute__((always_inline))` wrappers over 
 ### 4.2 Rules inside a critical section
 
 - Bounded and short: the kernel's own critical sections have a per-architecture cycle budget (§10) that is measured, not assumed.
-- No blocking, no thread-only API, no scheduler lock operations that would reschedule, no loops whose bound depends on data (KRN-RT-002, KRN-IRQ-014).
+- No blocking, no thread-only API, no scheduler lock operations that would reschedule, no loops without declared admitted-resource bounds; complete kernel costs include scans, inheritance hooks and expiry batches (KRN-RT-002, KRN-IRQ-014; timing-and-evidence).
 - An ISR-safe kernel call made inside a critical section preserves the caller's mask: the kernel never unmasks interrupts behind a caller's back (KRN-IRQ-033). Kernel internals therefore use the same key-based primitive and restore what they found.
 - A critical section never spans a preemption point. If a thread blocks while a critical section it opened is still active, that is misuse (SPEC-001 §5.3) and a fault in checked builds.
 
@@ -157,10 +159,10 @@ unsigned emb_sched_lock_depth(void);  /* @ctx thread isr  @blocks no */
 | Point | Condition |
 |---|---|
 | **P1** Outermost exit of a kernel-aware interrupt to thread context | `reschedule_pending` and `sched_lock_depth == 0` |
-| **P2** Inside a thread-context kernel operation that changes schedulability: block, wake, yield, priority change, budget action, thread exit, `emb_sched_unlock()` reaching depth 0 | not inside a critical section and `sched_lock_depth == 0` |
+| **P2** Inside a thread-context kernel operation that changes schedulability: block, wake, yield, priority change, budget action, thread exit, `emb_sched_unlock()` reaching depth 0 | no caller-owned critical section and `sched_lock_depth == 0`; port switch restores the selected context's kernel mask |
 | **P3** Kernel start | the first thread is launched |
 
-Nowhere else. In particular: never inside a nested interrupt (KRN-SCH-021, KRN-IRQ-013), never inside a critical section, never at a tick that has not changed any thread's state (KRN-SCH-004). Application code that makes no kernel call is preempted only through P1.
+Nowhere else. In particular: never inside a nested interrupt (KRN-SCH-021, KRN-IRQ-013), never while a caller-owned critical section is active, never at a tick that has not changed any thread's state (KRN-SCH-004). Application code that makes no kernel call is preempted only through P1.
 
 ### 6.2 How an ISR causes a switch
 
@@ -172,12 +174,12 @@ Nowhere else. In particular: never inside a nested interrupt (KRN-SCH-021, KRN-I
 |---|---|
 | Cortex-M | `emb_arch_reschedule_pend()` sets `PendSV`. PendSV is configured at the lowest exception priority, so it runs exactly when every other exception has returned: the hardware provides the outermost-exit check. Kernel-aware handlers are plain C functions (09 §8); the PendSV handler is `naked` and switches `PSP` between thread stacks. |
 | RISC-V | The trap entry (a `.S` file, 09 §8) saves caller-saved registers on the interrupt stack, increments `irq_nesting_depth`, dispatches in C, and at depth 1 on the way out checks `reschedule_pending`; if set it saves the callee-saved registers into the interrupted thread's context, selects, restores, and `mret`s into the next thread. `emb_arch_reschedule_pend()` sets the flag only; on cores with a software interrupt (`MSIP`) the kernel may also use it to force a trap from thread context. |
-| AVR | No hardware nesting or pend mechanism. Kernel-aware ISRs are declared with `EMB_ISR(vector)`, which expands to a `naked` vector that saves the full register file on the interrupted thread's stack, calls the C body, then calls the epilogue; the epilogue performs the switch when pending, else restores the same context and `reti`s. Handlers that never call the kernel use `EMB_ISR_RAW(vector)`, an ordinary `signal` handler that saves only what the compiler needs (09 §8). |
+| AVR | No hardware nesting or pend mechanism. Kernel-aware ISRs are declared with `EMB_ISR(vector)`, which expands to a `naked` vector that saves the full register file on the interrupted thread's stack, calls the C body, then calls the epilogue; the epilogue receives the context to resume from `embk_isr_exit()` (never NULL), exchanges SP, and restores that context's SREG before `ret`; `reti` would incorrectly force interrupts on inside a resumed critical section (A5, A7). Handlers that never call the kernel use `EMB_ISR_RAW(vector)`, an ordinary `signal` handler that saves only what the compiler needs (09 §8). |
 | native | The simulator stops the running host thread at a safe point, runs the handler on an interrupt context, and applies P1 on return. |
 
 ### 6.3 Thread-context switches (P2)
 
-A thread-context kernel operation that changes schedulability ends with `embk_sched_reschedule_if_needed()`, which, when not locked and not in a critical section, calls `emb_arch_switch_to(next)`. On Cortex-M this too is done by pending PendSV and letting it run at return from the SVC or at the next instruction boundary with interrupts enabled, so there is exactly one switch path per architecture; on RISC-V and AVR it is a direct call into the switch routine.
+The public preemption contract excludes caller-owned critical sections. Internally M1 selects and calls the port with its own kernel critical section held; the port restores the incoming context's mask, and checked builds save/restore per-context lock depth (A10). A thread-context kernel operation that changes schedulability ends with `embk_sched_reschedule_if_needed()`, which, when not locked and not in a critical section, calls `emb_arch_switch_to(next)`. On Cortex-M this too is done by pending PendSV and letting it run at return from the SVC or at the next instruction boundary with interrupts enabled, so there is exactly one switch path per architecture; on RISC-V and AVR it is a direct call into the switch routine.
 
 ## 7. Nesting and stacks
 
@@ -295,6 +297,8 @@ The system timer (tick or tickless comparator) is a kernel-aware interrupt. Its 
 | Interrupt stack overflow | fill-pattern check at outermost exit; `MSPLIM` where available |
 | Kernel call from an `EMB_ISR_RAW` handler | context check on architectures that can distinguish; documented as undetectable on AVR |
 | Critical section longer than the declared budget | `CONFIG_EMB_IRQ_LOCK_STATS` with a configured threshold |
+
+`CONFIG_EMB_FAULT_WHERE` selects whether the function-name location is included; tiny defaults it off because strings cost AVR SRAM (A11). The full retained crash record is planned; M1 reports through its fault/board path.
 
 Each raises a kernel fault with the class from SPEC-001 §5.3 and the location, recorded in the crash record.
 

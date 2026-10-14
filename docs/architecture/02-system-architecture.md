@@ -145,12 +145,12 @@ Work queue callbacks and software timer callbacks run in thread context (on a ke
 | Profile | Typical target | Partitions | Capabilities | Classes | Trace | Notes |
 |---|---|---|---|---|---|---|
 | **tiny** | ATmega328P, Cortex-M0+ with 4 to 8 KB RAM | 1 | pointer | FP + IDLE | off or minimal | 8 or 16 priority levels, 32-bit time option |
-| **base** | Cortex-M3/M4/M33, RISC-V RV32IMAC, 32 to 256 KB RAM | 1 | pointer with generation check | FP + IDLE | logging + light trace | 64-bit time, work queues, software timers |
+| **base** | Cortex-M3/M4/M33, RISC-V RV32IMAC, 32 to 256 KB RAM | 1 | POINTER by default; INDEXED planned | FP + IDLE | logging + light trace | 64-bit time, work queues, software timers |
 | **isolated** | Cortex-M with MPU, RISC-V with PMP, Cortex-M33 with TrustZone | N | table-indexed, validated | FP + IDLE (+ budgets) | full | Syscall boundary, supervisor partition |
 | **multicore** | Dual Cortex-M7/M4, RP2350, SMP RISC-V | N | validated | FP + IDLE, optional DEADLINE / TIME_TABLE | full | SMP or AMP or both |
 | **native** | Host process (Linux, macOS, Windows) | N (simulated) | validated | all | full | Virtual time, fault injection, sanitizers |
 
-Every profile passes the same conformance suite. Profile-specific tests add coverage; they never replace it.
+Each implemented profile must run the applicable common conformance cases. Profile-specific cases add coverage; unsupported cases are reported as skipped with reasons. The isolated and multicore profiles in this table are target designs, not implemented configurations; native is an architecture port and currently runs base and tiny configurations. See [Project status](../STATUS.md).
 
 ## 8. The native architecture port
 

@@ -1,6 +1,6 @@
 # 03 - Kernel Architecture
 
-**Status:** v0.1 LOCKED sections are summarized, not repeated. New material is PROPOSED unless marked otherwise. Requirement identifiers continue v0.1 numbering within existing groups and start fresh in new groups.
+**Status:** Target kernel architecture; implemented scope and evidence are in [Project status](../STATUS.md). v0.1 LOCKED sections are summarized, not repeated. New material is PROPOSED unless marked otherwise. Requirement identifiers continue v0.1 numbering within existing groups and start fresh in new groups.
 
 ---
 
@@ -111,7 +111,7 @@ A **thread budget** is a sporadic server `(capacity, period, overrun_policy)`. T
 | `SUSPEND` | Block with reason `BUDGET` until replenishment |
 | `FAULT` | Raise a partition fault |
 
-A **partition share** is `(share_percent, window, critical_capacity)` measured over a sliding window (default 100 ms, a ring of sub-windows). When total demand exceeds the CPU, a partition over its share is eligible only when no partition under its share has runnable threads; this is an eligibility filter in the class order next to TIME_TABLE. When the system is not overloaded, ordering is pure fixed priority, so a share costs nothing in the common case. A thread marked `EMB_THREAD_CRITICAL` (typically one woken by an interrupt) may exceed its partition's share up to `critical_capacity` per window; exhausting that is a partition fault. **Budget donation**, where a server thread runs on the budget of the client it serves across a Port, is FUTURE with Ports.
+A **partition share** is `(share_percent, window, critical_capacity)` measured over a sliding window (default 100 ms, a ring of sub-windows). When total demand exceeds the CPU, a partition over its share is eligible only when no partition under its share has runnable threads; this is an eligibility filter in the class order next to TIME_TABLE. When the system is not overloaded, ordering is pure fixed priority; configured accounting still has overhead. Zero overhead is required only when accounting/shares compile out entirely. A thread marked `EMB_THREAD_CRITICAL` (typically one woken by an interrupt) may exceed its partition's share up to `critical_capacity` per window; exhausting that is a partition fault. **Budget donation**, where a server thread runs on the budget of the client it serves across a Port, is FUTURE with Ports.
 
 **Deadline monitoring** is a lighter mechanism: a thread declares `period` and `relative_deadline`; the kernel records a deadline-miss event (trace plus optional notification) when a job completes late. It does not alter scheduling.
 
@@ -155,7 +155,7 @@ wait_queue:
   owner            optional (mutex), for inheritance
 ```
 
-Each blocked thread records: `wait_object`, `wait_reason`, `deadline` (or none), `wake_result`, `wait_node`, `timeout_node`.
+Each wait has a reason, queue reference, deadline (or none), result/hand-off and timeout storage. M1 derives the object from the queue flags (no `wait_object` field), packs the wake result in `obj.flags`, and replaces list nodes with bitmaps on tiny (A10, A15, A16).
 
 ### 3.2 Wake results
 
@@ -169,7 +169,7 @@ Each blocked thread records: `wait_object`, `wait_reason`, `deadline` (or none),
 
 ### 3.4 The wake race
 
-The protocol must be correct against the race between a wake, a timeout expiry, and a cancel arriving at the same time on different CPUs or from nested interrupts.
+The target protocol must be correct against the race between a wake, a timeout expiry, and a cancel arriving at the same time on different CPUs or from nested interrupts.
 
 **KRN-WAIT-004** Exactly one wake source shall win for a given blocked thread; the losers shall observe that the thread is no longer waiting and shall not modify it.
 **KRN-WAIT-005** The winning wake source shall set the wake result before making the thread READY.
@@ -180,21 +180,7 @@ The protocol must be correct against the race between a wake, a timeout expiry, 
 
 ### 3.5 Blocking entry sequence (normative skeleton)
 
-```
-block_on(object, reason, timeout):
-  enter critical
-    if condition already satisfied: leave critical; return SATISFIED
-    if timeout == NO_WAIT:          leave critical; return TIMEOUT
-    if in ISR or scheduler locked:  kernel fault (checked) / EMB_EINVAL (release)
-    thread.wait = (object, reason)
-    enqueue wait_node by policy
-    if finite timeout: arm timeout_node at now + timeout
-    thread.state = BLOCKED
-    request reschedule
-  leave critical                      -- switch happens here
-  -- resumes after wake --
-  return thread.wake_result
-```
+The normative sequence is SPEC-004 §5: capture the deadline at call entry; check/enqueue and mark INTEND_TO_BLOCK in the object section; release it; arm the timeout in the timeout section; release it; commit or observe an early wake in the scheduler section. M1 derives the object from the wait queue and omits the timeout-node generation on UP. The result is handed over before READY. The architecture must not reduce this to a single masked check/enqueue/switch sequence. Full section bounds include hooks and propagation, not just list operations (A10, A15, A21, A25).
 
 ## 4. Time
 
@@ -210,7 +196,7 @@ block_on(object, reason, timeout):
 
 ### 4.2 Timeout structure (PROPOSED default, ADR-010)
 
-Default is a sorted intrusive list ordered by absolute deadline, wrap-safe in the 32-bit profile: O(n) insert, O(1) removal, O(1) expiry check, zero memory beyond the intrusive node. The interface permits a timing wheel for targets with hundreds of timers. The decision per profile is made by measurement, not opinion.
+Default is a sorted intrusive list ordered by absolute deadline, wrap-safe in the 32-bit profile: O(n) insert, O(1) removal on base (bounded list removal on tiny), O(1) expiry check, zero memory beyond the intrusive node. The interface permits a timing wheel for targets with hundreds of timers. The decision per profile is made by measurement, not opinion.
 
 ### 4.3 Software timers (PROPOSED)
 
@@ -226,7 +212,7 @@ The timer subsystem exposes `next_deadline()`; the power core uses it. Both the 
 
 ### 5.1 Primitive set
 
-| Primitive | 1.0 | ISR-safe operations | Notes |
+| Primitive | Target design | ISR-safe operations | Notes |
 |---|---|---|---|
 | Mutex | yes | none | Ownership, priority inheritance, optional recursion, optional ceiling |
 | Binary and counting semaphore | yes | give | |
@@ -249,7 +235,7 @@ The timer subsystem exposes `next_deadline()`; the power core uses it. Both the 
 **KRN-SYNC-014** Each thread shall keep an intrusive list of the mutexes it owns; the recomputation of KRN-SYNC-010 shall use it and shall run at unlock, at waiter timeout or cancel, and at waiter priority change, immediately and not deferred to the waiter's resumption (ADR-028).
 **KRN-SYNC-015** The inheritance walk shall detect a cycle that returns to the caller and shall report `EMB_EDEADLK` (kernel-reserved status range) in release builds and fault in checked builds.
 **KRN-SYNC-016** Mutexes may be unlocked in any order; there is no LIFO requirement.
-**KRN-SYNC-017** A ceiling mutex declared in the system description shall receive its ceiling from the generator as the highest base priority among its declared users; locking it shall raise the effective priority to the ceiling in O(1) and, when every user is declared, shall never need a wait queue (ADR-030).
+**KRN-SYNC-017** A ceiling mutex declared in the system description shall receive its ceiling from the generator as the highest base priority among its declared users; locking shall raise effective priority to the ceiling; removing its wait queue requires a proved UP execution model that forbids blocking, yielding, suspension and budget-induced ineligibility while held, validates users/priorities and nested-lock order, and guarantees no contention (SPEC-005 §3.4). M1 retains queues and scans owned mutexes (ADR-030).
 
 ### 5.3 Condition variables
 
@@ -269,7 +255,7 @@ A per-thread 32-bit (configurable) bit set.
 **KRN-NOTIF-002** Only the owning thread shall wait on its notifications.
 **KRN-NOTIF-003** Notification set and wait shall be O(1) and allocation free.
 
-**Binding (ADR-027).** Any waitable object may be bound to one `(thread, bit)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition is met, a stream reaches its trigger level), the kernel sets the bit. A thread waiting on several objects waits once on its notification mask, then performs the operation with `EMB_NO_WAIT` on each signalled object and loops on `EMB_ETIMEDOUT` if another consumer was faster (SPEC-001 §4). This replaces queue sets, poll objects, and pend-multi with an O(1) mechanism that has no per-object poller lists and no global lock.
+**Binding (ADR-027).** Any waitable object may be bound to one `(thread, one-bit mask)` pair with `emb_<object>_bind_notify()`. Whenever the object becomes ready for its bound operation (a queue gains a message, a semaphore becomes available, an event condition is met, a stream reaches its trigger level), the kernel sets the bit. A thread waiting on several objects waits once on its notification mask, then performs the operation with `EMB_NO_WAIT` on each signalled object and loops on `EMB_ETIMEDOUT` if another consumer was faster (SPEC-001 §4). This replaces queue sets, poll objects, and pend-multi with an O(1) mechanism that has no per-object poller lists and no global lock.
 
 **KRN-NOTIF-004** Every waitable kernel object shall support binding to one notification bit of one thread; the set shall be O(1) and shall happen on every transition to the ready condition.
 **KRN-NOTIF-005** Binding shall not change the object's own wait-queue semantics for threads blocked directly on it.
@@ -339,7 +325,7 @@ The public handle is a capability: `(object reference, rights)`. Its representat
 | base | pointer (default), or a registry index plus 16-bit slot generation with `CONFIG_EMB_HANDLE_MODEL=INDEXED` (SPEC-009 §3; tagged pointers were rejected because no address bits are portably free) | type and lifecycle in checked builds; generation check with INDEXED |
 | isolated, multicore | index into the calling partition's capability table | table lookup, type check, rights check, generation check at the syscall boundary |
 
-Rights are object-type specific bit masks (for example for a queue: `SEND`, `RECEIVE`, `DESTROY`, `GRANT`). A capability may be **derived** with fewer rights and **granted** to another partition through a port or at image build time. Revocation is by generation bump on the object.
+Rights are object-type specific bit masks (for example for a queue: `SEND`, `RECEIVE`, `DESTROY`, `GRANT`). A capability may be **derived** with fewer rights and **granted** to another partition through a port or at image build time. Revocation is by generation bump on the object; persistence, exhaustion, in-flight lifetime and trusted renewal rules are specified in SPEC-009 §13.
 
 **KRN-CAP-001** Every public handle shall be a capability whose representation is selected by profile without changing API signatures.
 **KRN-CAP-002** In isolated profiles, every kernel entry from an unprivileged partition shall validate the capability's type, rights, and generation before use.
@@ -380,7 +366,7 @@ Properties:
 
 - The **kernel partition** is always present and privileged. In `tiny` and `base` profiles it is the only partition, and the type compiles to nothing.
 - On MPU or PMP hardware, an unprivileged partition's regions become protection regions at context switch. Region count is bounded by hardware and checked at build time.
-- A partition **restart** terminates its threads, releases its owned kernel objects according to their policies, re-initializes its data and bss from the image, and restarts its entry thread. Drivers it held are reset through their device lifecycle.
+- A partition **restart** stops its threads, resolves remote waits and owned locks, preserves bumped generations, quiesces asynchronous devices/DMA before resetting memory, restores its objects/data and starts entry threads. Only exclusive devices are reset; shared drivers cancel per-client work. SPEC-010 §7/§17 defines progress and escalation obligations.
 - The **supervisor** is an ordinary privileged partition (usually tiny) that receives fault notifications and applies policy. This is the Hubris pattern and keeps policy out of the kernel.
 - Drivers may live in the kernel partition (default) or in their own unprivileged partition with MMIO regions and IRQ delivery granted as capabilities. The request/completion driver model (04 §3) makes both placements use the same driver source.
 
@@ -389,7 +375,7 @@ Properties:
 **KRN-PART-003** On protection hardware, memory access of an unprivileged partition shall be limited to its regions; violations shall be partition faults.
 **KRN-PART-004** Partition restart shall not require system reboot and shall restore the partition's static data to its initial image.
 **KRN-PART-005** Fault policy shall be per partition and applied by a supervisor partition, not hard-coded in the kernel.
-**KRN-PART-006** Partition definitions shall be static, build-time data in 1.0; dynamic partition creation is FUTURE.
+**KRN-PART-006** Partition definitions shall be static, build-time data in the first isolated release; dynamic partition creation is FUTURE.
 **KRN-PART-007** In isolated profiles, the kernel state that describes a partition (its threads, objects, wait nodes, capability table) shall live in a kernel-owned sub-region of that partition's memory, sized by the generator and re-initialized on restart; a partition shall not be able to consume kernel memory outside it (ADR-033).
 
 ### 8.1 System call boundary (isolated profiles)
@@ -397,7 +383,7 @@ Properties:
 - Unprivileged partitions enter the kernel through an architecture trap (`SVC`, `ecall`).
 - The public API is identical for privileged and unprivileged callers; the header selects a direct call or a trap stub per partition privilege at build time.
 - Argument validation: capabilities validated per §7.2; user pointers checked against the caller's regions; lengths bounded.
-- Kernel stacks per CPU for trap handling; user stacks are never trusted.
+- Per-CPU exception stacks handle trap entry/exit; blocking syscalls run in privileged thread mode on per-thread kernel stacks in the kstore (SPEC-010 §5.2). User frames and stack ranges are validated and never trusted.
 
 ## 9. Memory
 
@@ -470,4 +456,4 @@ The tiny configuration uses the table scheduler of ADR-036 (`CONFIG_EMB_SCHED_TA
 
 **isolated / Cortex-M33 with MPU**: 32 priorities, 64-bit time, system work queue, software timers, 4 to 8 partitions, validated capabilities, supervisor partition, budgets on, full trace, crash record in retained SRAM.
 
-Both must pass the identical conformance suite.
+Both reference designs must run their applicable common conformance cases and report restrictions/skips explicitly. The isolated configuration is not implemented; its evidence is a later release gate.

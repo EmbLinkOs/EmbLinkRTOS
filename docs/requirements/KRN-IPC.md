@@ -6,6 +6,8 @@ KRN-IPC-001 to 005 originate in the v0.1 specification (§9.4); KRN-IPC-006 to 0
 
 ---
 
+## Requirements
+
 ### KRN-IPC-001  Common wait mechanism
 **Statement.** IPC primitives that block shall use the common wait mechanism.
 **Rationale.** One protocol (SPEC-004) under every primitive.

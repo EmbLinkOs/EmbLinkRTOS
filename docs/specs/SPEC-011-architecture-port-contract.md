@@ -1,5 +1,7 @@
 # SPEC-011 - Architecture Port Contract
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §17. Specification work item 10 of the roadmap (07 §3), in enough detail to implement the native and AVR ports (M1) and to constrain the Cortex-M (M3) and RISC-V (M5) ports.
 **Requirements:** `docs/requirements/PORT.md` (v0.1 §21 identifiers restated where they exist; new from the first free number).
 **Builds on:** 02 §2 (what the port owns and must never do), §5 (dependency rules), §8 (native port); SPEC-002 (critical sections, preemption points, nesting, stacks, faults, per-architecture mapping), SPEC-003 §4 and §13 (timer contract and sources), SPEC-004 §12 (compare-and-set availability), SPEC-008 §4, §5, §10 (context init, switch-out completion, stacks), SPEC-010 §4, §5 (protection and trap hooks); 09 (EmbCC: inline assembly vocabulary, `naked` functions, startup forms, linking, atomics, debug-info limits); ADR-001, ADR-011.
@@ -50,10 +52,11 @@ The kernel's configuration derives `EMB_ARCH_HAS_*` macros from the manifest; a 
 
 ```c
 typedef uintptr_t emb_arch_sp_t;                   /* saved stack pointer of a switched-out thread */
-typedef unsigned int emb_irq_key_t;                 /* SPEC-002 §4.1 */
+/* emb_irq_key_t is port-defined: uint8_t on AVR, unsigned int elsewhere (A9). */
 typedef struct emb_arch_tcb {                       /* embedded in every TCB; size from the manifest */
     emb_arch_sp_t sp;                               /* the only field the kernel reads: for the debug descriptor */
-    unsigned char ext[EMB_ARCH_TCB_EXTENSION];      /* port-private (native: host thread handle, gate state) */
+    /* present only when the extension is nonzero; alignment is port-defined */
+    EMB_ALIGNED(EMB_ARCH_TCB_EXTENSION_ALIGN) unsigned char ext[EMB_ARCH_TCB_EXTENSION];      /* port-private (native: host thread handle, gate state) */
 } emb_arch_tcb_t;
 typedef uint32_t emb_cycle_t;                       /* cycle counter width is 32 bits on every 1.0 port */
 ```
@@ -66,21 +69,22 @@ The thread's register context lives **on its own stack**; the TCB holds only the
 |---|---|---|
 | `void emb_arch_early_init(void)` | SoC startup, before `main()` | vector table base, FPU enable and lazy stacking, stack limit registers for the pre-kernel stack, cache enable where the SoC asks, trap vector (`mtvec`) |
 | `void emb_arch_init(void)` | `emb_kernel_init()` | interrupt stack installation, priority grouping, PendSV and SVC priorities (SPEC-002 §13), timer source selection, cycle counter start |
-| `void emb_arch_kernel_start(emb_arch_sp_t first_sp) __attribute__((noreturn))` | `emb_kernel_start()` at P3 | switches from the pre-kernel stack to the first thread's context and never returns; afterwards the pre-kernel stack is the interrupt stack (ports with `interrupt_stack`) or the idle thread's stack (AVR), per SPEC-008 §10 |
+| `EMB_NORETURN void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)` | `emb_kernel_start()` at P3 | switches from the pre-kernel stack to the first thread's context and never returns; afterwards the pre-kernel stack is the interrupt stack (ports with `interrupt_stack`) or the idle thread's stack (AVR), per SPEC-008 §10 |
 
 Startup forms per target follow 09 §8: C `Reset_Handler` on Cortex-M, a `.S` entry on RISC-V and AVR; the SoC layer owns clocks and memory setup and calls `emb_arch_early_init` before touching anything interrupt-related.
 
 ## 5. Context
 
 ```c
-emb_arch_sp_t emb_arch_context_init(void *stack_base, size_t stack_size, emb_thread_entry_t entry, void *arg,
-                                    void (*exit_fn)(int), bool privileged);
-void          emb_arch_switch_to(emb_thread_t next);        /* P2: save current, restore next; returns when current runs again */
+void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size,
+                           emb_thread_entry_t entry, void *arg, bool privileged);
+void          emb_arch_switch_to(embk_thread_t *next);        /* P2: save current, restore next; returns when current runs again */
 void          emb_arch_reschedule_pend(void);               /* P1 request: PendSV, flag, or soft interrupt (SPEC-002 §6.2) */
-bool          emb_arch_switch_out_done(emb_thread_t t);     /* SMP: has the old stack been released (SPEC-008 §5 step 5)? UP: always true */
+EMB_NORETURN void emb_arch_switch_final(embk_thread_t *next); /* final switch without saving dying context */
+bool          emb_arch_switch_out_done(const embk_thread_t *t);     /* SMP: has the old stack been released (SPEC-008 §5 step 5)? UP: port reports actual completion, including deferred PendSV */
 ```
 
-- `context_init` builds the initial frame so that the first dispatch enters `entry(arg)` with `exit_fn(0)` as its return path (KRN-THR-005); `privileged` selects the privilege bit in the frame on isolated ports and is ignored elsewhere. The frame size is `stack.context_frame` from the manifest (plus the FPU frame when the thread touches the FPU on lazy-stacking ports); SPEC-008 §10 adds it to the stack budget.
+- `context_init` builds the initial frame so that the first dispatch enters `embk_thread_launch(entry, arg)`, which initializes the fresh context, calls `entry(arg)`, and exits with code 0 (KRN-THR-005); `privileged` selects the privilege bit in the frame on isolated ports and is ignored elsewhere. The frame size is `stack.context_frame` from the manifest (plus the FPU frame when the thread touches the FPU on lazy-stacking ports); SPEC-008 §10 adds it to the stack budget.
 - `switch_to` saves the callee-saved registers of the running thread on its stack, stores the stack pointer in its `emb_arch_tcb_t`, loads the next thread's pointer, restores, and resumes it. On Cortex-M it is implemented by pending PendSV and letting it run at the next instruction boundary with interrupts enabled, so that P1 and P2 share one switch path (SPEC-002 §6.3); on RISC-V and AVR it is a direct call into the `naked` switch routine; native: the gate (SPEC-013).
 - The port decides the FPU strategy per variant: lazy stacking on Cortex-M (`FPCCR.LSPEN`), and on RISC-V with hardware float (not in 1.0, soft float only, 09 §2) a dirty-bit check in the switch. The kernel never saves FPU state itself.
 - The switch is a full barrier (KRN-MM-002): the port guarantees it with the instructions its memory model needs (`dsb; isb` on ARM, `fence` on RISC-V, nothing extra on AVR).
@@ -92,11 +96,11 @@ emb_irq_key_t emb_arch_irq_lock(void);                      /* SPEC-002 §4.1 ta
 void          emb_arch_irq_unlock(emb_irq_key_t key);
 bool          emb_arch_irq_locked(void);
 bool          emb_arch_in_isr(void);                        /* IPSR, mcause-derived flag, or the kernel's depth counter (AVR) */
-void          emb_arch_irq_enable(emb_irq_t irq);          /* controller operations for architecture-standard controllers */
-void          emb_arch_irq_disable(emb_irq_t irq);
-void          emb_arch_irq_set_level(emb_irq_t irq, uint8_t generic_level);   /* generic numbering of SPEC-002 §8 */
-void          emb_arch_irq_clear_pending(emb_irq_t irq);
-void          emb_arch_irq_pend_soft(emb_irq_t irq);
+emb_status_t  emb_arch_irq_enable(emb_irq_t irq);          /* controller operations for architecture-standard controllers */
+emb_status_t  emb_arch_irq_disable(emb_irq_t irq);
+emb_status_t  emb_arch_irq_set_level(emb_irq_t irq, uint8_t generic_level);   /* generic numbering of SPEC-002 §8 */
+emb_status_t  emb_arch_irq_clear_pending(emb_irq_t irq);
+emb_status_t  emb_arch_irq_pend_soft(emb_irq_t irq);
 bool          emb_arch_irq_is_enabled(emb_irq_t irq);
 ```
 
@@ -123,17 +127,17 @@ emb_cycle_t          emb_arch_cycles(void);                              /* DWT_
 uint32_t             emb_arch_cycles_hz(void);
 ```
 
-The port's timer interrupt calls `embk_time_timer_isr()` (SPEC-003 §4); the sources per architecture are SPEC-003 §13. The port measures its own arming latency at `timer_init` by programming a deadline and reading the counter when it fires, unless the hardware description declares it; the kernel subtracts it (KRN-TIM-036).
+The port's timer interrupt calls `embk_time_timer_isr()` (SPEC-003 §4); the sources per architecture are SPEC-003 §13. The target contract calibrates or declares arming latency and accounts for resolution/uncertainty (KRN-TIM-036). M1 ports can return zero through this hook; that is not evidence of measured zero latency, and embedded tickless accuracy remains unvalidated.
 
 ## 8. Atomics, barriers, compare-and-swap
 
-Kernel atomics are C11 atomics through the portability layer (SPEC-005 §9, 09 §6); the port provides nothing hand-written for them. The port's manifest states `features.cas`; the wait protocol selects the compare-and-set or the critical-section implementation of its state transitions from it (SPEC-004 §12). `emb_arch_mb()`, `emb_arch_rmb()`, `emb_arch_wmb()` are the port's barriers, used by the kernel only where the C11 fences are insufficient for device memory (never on the 1.0 targets; present for the port that will need them).
+The target atomic API is C11 atomics through the portability layer (SPEC-005 §9, 09 §6); the port provides nothing hand-written for them. The port's manifest states `features.cas`; the future concurrent wait protocol selects CAS or a supported lock implementation; current UP transitions are serialized by critical sections (SPEC-004 §12). `emb_arch_mb()`, `emb_arch_rmb()`, `emb_arch_wmb()` are the port's barriers, used by the kernel only where the C11 fences are insufficient for device memory (never on the 1.0 targets; present for the port that will need them).
 
 ## 9. Idle and power
 
 ```c
 void emb_arch_idle(void);                   /* enable interrupts and wait for one, atomically */
-void emb_arch_sleep(emb_power_state_t s);   /* enter the SoC-mapped state; the power core calls it (04 §4) */
+void emb_arch_sleep(emb_power_state_t s);   /* planned; absent from the current contract */   /* enter the SoC-mapped state; the power core calls it (04 §4) */
 ```
 
 `emb_arch_idle` must not lose a wake-up between enabling interrupts and waiting: `wfi` on ARM and RISC-V wakes on a pending interrupt even while masked, so the port masks, checks nothing, executes `wfi`, then unmasks; AVR uses `sei; sleep`, which the hardware guarantees to be atomic. The idle thread (or the inline idle of ADR-036) calls it when the power core is disabled (PWR-004).
@@ -143,10 +147,10 @@ void emb_arch_sleep(emb_power_state_t s);   /* enter the SoC-mapped state; the p
 | Item | Port provides |
 |---|---|
 | `EMB_ARCH_STACK_ALIGN`, `EMB_ARCH_STACK_MIN`, growth | from the manifest; `EMB_THREAD_STACK()` uses them (SPEC-008 §10) |
-| `bool emb_arch_stack_check(emb_thread_t t)` | at switch-out when `CONFIG_EMB_STACK_CHECK`: guard words at the limit, or the hardware limit register's fault having fired |
+| `bool emb_arch_stack_check(const embk_thread_t *t)` | at switch-out when `CONFIG_EMB_STACK_CHECK`: guard words at the limit, or the hardware limit register's fault having fired |
 | `void emb_arch_stack_limit_set(void *limit)` | Armv8-M `PSPLIM` for the incoming thread; PMP stack entry on RISC-V; no-op elsewhere |
 | interrupt stack fill and check | SPEC-002 §7.2 |
-| `-fstack-usage` and call-graph support | all three compilers (09 §7); the port's `docs/ports/<arch>.md` states the handler frame sizes and the context frame |
+| `-fstack-usage` and call-graph support | supported compiler reports plus disassembly/call-graph accounting where naked functions cannot be reported (09 §7); the port's `docs/ports/<arch>.md` states the handler frame sizes and the context frame |
 
 ## 11. Faults
 
@@ -168,17 +172,19 @@ void emb_arch_syscall_enter(void);                                    /* SVC / e
 void emb_arch_syscall_return(uintptr_t status) __attribute__((noreturn));
 ```
 
-`emb_arch_region_set_t` is the generator's output per partition in the port's encoding (`RBAR`/`RASR` pairs on Armv7-M, `RBAR`/`RLAR` on Armv8-M, `pmpaddr`/`pmpcfg` on RISC-V); the kernel treats it as opaque. The generator consults the manifest's `mpu` model for the constraints it enforces (SPEC-010 §4.3). Ports without protection hardware do not provide these functions and the configuration refuses the isolated profile.
+`emb_arch_region_set_t` is the generator's output per partition in the port's encoding (`RBAR`/`RASR` pairs on Armv7-M, `RBAR`/`RLAR` on Armv8-M, `pmpaddr`/`pmpcfg` on RISC-V); the kernel treats it as opaque. The generator consults the manifest's `mpu` model for the constraints it enforces (SPEC-010 §4.3). These are planned hooks, absent from the current `include/emb/arch.h`; MPU/PMP isolation is not implemented. Ports without protection hardware do not provide these functions and the configuration refuses the isolated profile.
 
 ## 13. SMP (FUTURE, names fixed)
 
-`emb_arch_cpu_id()`, `emb_arch_cpu_count()`, `emb_arch_cpu_start(cpu, entry, sp)`, `emb_arch_ipi_send(cpu)`, `emb_arch_ipi_ack()`, and per-CPU state access `emb_arch_percpu()` are reserved; spinlocks are C11 atomics over `emb_arch_irq_lock` (SPEC-002 §4.3). The RP2350 runs two images (AMP) in 1.0, not SMP.
+`emb_arch_cpu_id()`, `emb_arch_cpu_count()`, `emb_arch_cpu_start(cpu, entry, sp)`, `emb_arch_ipi_send(cpu)`, `emb_arch_ipi_ack()`, and per-CPU state access `emb_arch_percpu()` are reserved; spinlocks are C11 atomics over `emb_arch_irq_lock` (SPEC-002 §4.3). RP2350 AMP and SMP both remain later gates; neither is required for the first 1.0 release (ADR-039).
 
 ## 14. Debug and trace hooks
 
 - The port contributes to the debug descriptor (ADR-011): the context frame layout (register offsets from the saved stack pointer), the `emb_arch_tcb_t` layout, the fault record register layout, the interrupt stack bounds, and the port name and variant.
 - `emb_arch_breakpoint()` (`bkpt`, `ebreak`, `break` on AVR via the debugWIRE convention, a host trap on native) is what `EMB_CHECK` and kernel faults use to stop under a debugger when `CONFIG_EMB_FAULT_HALT_FOR_DEBUG` is set.
 - `emb_arch_trace_timestamp()` is `emb_arch_cycles()` unless the port has a better trace clock.
+- The current fault API uses `emb_arch_fault_halt` and `emb_arch_reset`; retained crash records and the descriptor are planned.
+
 - On AVR, EmbCC emits no DWARF for functions, variables, or lines (09 §7); the AVR port's descriptor therefore carries everything a debugger needs that would otherwise come from debug info, and the port documentation says that symbolic debugging of AVR images uses GCC builds.
 
 ## 15. Toolchain rules for port code
@@ -223,7 +229,7 @@ A port is complete when it ships:
 2. The port's properties are a manifest the generator and the configuration read; a kernel feature the port cannot support is refused at configuration time.
 3. One switch path per architecture: PendSV on Cortex-M for both P1 and P2, direct `naked` routine on AVR and RISC-V, the gate on native.
 4. Architecture-standard interrupt controllers are driven by the port; platform controllers are SoC devices behind the same entry points.
-5. Kernel atomics are C11 atomics through the portability layer; the manifest's `cas` flag selects the wait protocol's transition implementation.
+5. The target atomic API is C11 atomics through the portability layer; the manifest's `cas` flag selects the wait protocol's transition implementation.
 6. The port measures its timer arming latency at init unless the hardware description declares it.
 7. `emb_arch_idle` is the atomic enable-and-wait; the power core's deeper states go through `emb_arch_sleep`.
 8. Protection region sets are generator output in the port's encoding and opaque to the kernel.

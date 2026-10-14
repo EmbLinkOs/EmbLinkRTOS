@@ -1,0 +1,24 @@
+# Normative requirement sources
+
+```{toctree}
+:maxdepth: 1
+
+API
+ARCH-AVR
+HW
+KRN-CAP
+KRN-IPC
+KRN-IRQ
+KRN-NOTIF
+KRN-OBJ
+KRN-PART
+KRN-SYNC
+KRN-THR
+KRN-TIM
+KRN-WAIT
+KRN-WQ
+OBS
+PORT
+README
+SIM
+```

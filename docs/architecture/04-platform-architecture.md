@@ -1,6 +1,6 @@
 # 04 - Platform Architecture
 
-**Status:** PROPOSED unless marked. This document turns the v0.1 PLANNED and FUTURE platform sections into concrete designs.
+**Status:** Target platform architecture, PROPOSED unless marked. Most platform services below are unimplemented; see [Project status](../STATUS.md) and the revised delivery gates (ADR-039). This document turns the v0.1 PLANNED and FUTURE platform sections into concrete designs.
 
 ---
 

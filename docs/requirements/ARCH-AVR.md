@@ -1,10 +1,14 @@
 # ARCH-AVR - ATmega328P Port
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `ARCH-AVR`. Design: `docs/specs/SPEC-012-atmega328p-port.md`. Related groups: PORT (the contract), KRN-IRQ, KRN-TIM, KRN-SCH (table scheduler), KRN-MEM, FLT, SIM, TEST.
 
 New group; numbering starts at 001.
 
 ---
+
+## Requirements
 
 ### ARCH-AVR-001  Manifest and tiny defaults
 **Statement.** The AVR port shall declare 8-bit words, 16-bit pointers, byte stack alignment, a 37-byte context frame, no nesting, no zero-latency class, no compare-and-swap, no interrupt stack, no protection, no fault entry, and tickless limited to idle modes; the tiny defaults (table scheduler, 32-bit time, 8-bit notifications, no system work queue, no idle thread) shall be mandatory on it.
@@ -14,21 +18,21 @@ New group; numbering starts at 001.
 **Trace.** SPEC-012 §2
 
 ### ARCH-AVR-002  One frame layout
-**Statement.** The thread-context switch, the interrupt epilogue switch, and the initial frame shall use the single 37-byte layout of SPEC-012 §4.1 (return address, `r0`, `SREG`, `r1`, `r2..r31`), so that an interrupt-exit switch is an exchange of stack pointers.
+**Statement.** The thread-context switch, the interrupt epilogue switch, and the initial frame shall use the single 35-byte frame layout (37-byte call/context reserve) of SPEC-012 §4.1 (return address, `r0`, `SREG`, `r1`, `r2..r31`), so that an interrupt-exit switch is an exchange of stack pointers.
 **Rationale.** One switch path (PORT-004) and the cheapest possible P1 on a core without an interrupt stack.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `arch/avr/frame_layout`, `arch/avr/switch_from_isr_and_thread_interoperate`.
 **Trace.** SPEC-012 §4
 
 ### ARCH-AVR-003  Atomic launch and switch tail
-**Statement.** The switch and launch sequences shall end in `out SREG` followed by `ret`, and the port shall verify with a test that an interrupt pending at that point is taken only after the `ret`.
-**Rationale.** The documented one-instruction interrupt delay is relied upon; it must be demonstrated, not assumed.
+**Statement.** The switch and launch sequences shall restore the incoming SREG and r0 before `ret`; M1 uses `out SREG; pop r0; ret`. A physical pending-interrupt test shall establish coherent context throughout that tail; a one-instruction enable delay shall not be used to claim the intervening pop is absent or the return necessarily precedes IRQ entry (A27).
+**Rationale.** The actual restore tail and pending IRQ entry must be validated together; the historical out/ret-only description did not match the assembly.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `arch/avr/launch_with_pending_interrupt`.
 **Trace.** SPEC-012 §4.2, §4.3
 
 ### ARCH-AVR-004  Interrupt prologue, epilogue, and reserve
-**Statement.** `EMB_ISR` shall save the full frame with `I` forced set in the saved `SREG`, run the body with interrupts masked, and switch at exit when a reschedule is pending and the scheduler is unlocked; `EMB_ISR_RAW` shall be a `signal` handler that may not call the kernel; every thread stack shall include `CONFIG_EMB_AVR_ISR_STACK_RESERVE` (default 64 bytes), documented per release from `-fstack-usage`.
+**Statement.** `EMB_ISR` shall save the full frame with `I` forced set in the saved `SREG`, run the body with interrupts masked, and switch at exit when a reschedule is pending and the scheduler is unlocked; `EMB_ISR_RAW` shall be a `signal` handler that may not call the kernel; every thread stack shall include `CONFIG_EMB_AVR_ISR_STACK_RESERVE` (default 64 bytes), documented per release from supported compiler stack reports plus call-graph/disassembly accounting of naked routines; avr-gcc cannot report those routines with `-fstack-usage`.
 **Rationale.** SPEC-002 §6.2, §7.2 on this core.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `arch/avr/isr_frame`, `arch/avr/isr_reserve_check`; documentation review.

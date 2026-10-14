@@ -6,6 +6,8 @@ SIM-001 to 003 originate in `docs/architecture/04-platform-architecture.md` §9 
 
 ---
 
+## Requirements
+
 ### SIM-001  Native port passes the conformance suite
 **Statement.** The native port shall pass the full kernel conformance suite.
 **Rationale.** It is a real port, not a mock (02 §8).

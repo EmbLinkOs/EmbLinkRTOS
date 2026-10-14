@@ -1,8 +1,12 @@
 # API - Public API Conventions
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-002, ADR-003, ADR-006, ADR-014, ADR-023. API-001 to API-005 originate in `docs/architecture/05-engineering-system.md` §1.4 and are restated here as the authoritative copy.
 
 ---
+
+## Requirements
 
 ### API-001  Return type discipline
 **Statement.** Every public function shall return `emb_status_t`, or a value type whose every value is documented, or `void` only when the function cannot fail. No public function shall report an error through a global or thread-local variable.
@@ -54,8 +58,8 @@ Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-00
 **Trace.** SPEC-001 §3
 
 ### API-008  Parameter order
-**Statement.** Public function parameters shall appear in the order: object handle, input parameters, output parameters (pointer parameters named with the prefix `out_`), then the timeout or deadline.
-**Rationale.** A fixed order removes a class of call-site mistakes and lets the annotation checker locate the timeout mechanically (API-002).
+**Statement.** Public function parameters shall appear in the order: object handle, input parameters, timeout/deadline where applicable, then output parameters named with the prefix `out_`; functions without outputs place the timeout last. The existing per-function prototype is authoritative (A26).
+**Rationale.** A fixed order removes a class of call-site mistakes and lets the annotation checker identify the typed timeout and explicit argument relationships mechanically (API-002).
 **Status.** Accepted 2026-10-07
 **Verification.** Analysis: `tools/apidoc` checks parameter order and `out_` naming.
 **Trace.** SPEC-001 §3
@@ -159,14 +163,14 @@ Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-00
 **Trace.** SPEC-001 §7.1, §7.3; KRN-TIM-010
 
 ### API-023  Time conversion rules
-**Statement.** The tick length shall be the configuration constant `CONFIG_EMB_TICK_NS`. Conversion from a duration to ticks shall round up; conversion from ticks to a duration shall be exact. A constant conversion that overflows `emb_tick_t` shall be a compile-time error; a runtime conversion shall saturate and the saturation shall be detectable by the caller.
+**Statement.** The tick length shall be the configuration constant `CONFIG_EMB_TICK_NS`. Conversion from a duration to ticks shall round up; conversion from ticks to a duration shall be exact. Unit conversions shall saturate for constants and runtime values, with caller-detectable saturation. No generic compile-time overflow diagnostic is promised; raw `EMB_TICKS` requires a representable input (A1).
 **Rationale.** A wait must never be shorter than requested, and silent truncation is the overflow class KRN-TIM-007 forbids.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `tests/api/time/` conversion vectors including boundary and saturation cases in the 64-bit and 32-bit tick profiles.
 **Trace.** SPEC-001 §7.2, §7.3; KRN-TIM-007
 
 ### API-024  Blocking time bounds
-**Statement.** A blocking call with timeout `t` shall return no earlier than `t` after its start as measured on the kernel clock, and, absent satisfaction, no later than `t` plus one tick (or one timer resolution in tickless configurations) plus the scheduling latency of the caller's priority. `EMB_NO_WAIT` shall never block or yield. A `_until` deadline already in the past shall behave as `EMB_NO_WAIT`.
+**Statement.** Satisfaction, cancellation or destruction may complete a blocking call before its timeout. For an unsatisfied wait, expiry shall make the waiter eligible to return a timeout result; actual return shall include dispatch delay, suspension/eligibility and any mandatory mutex reacquisition. A finite return-time bound shall be claimed only under documented workload/resource assumptions. `EMB_NO_WAIT` shall never block or yield. A past `_until` wait shall use the nonblocking path; sleep with a zero duration or past deadline shall yield with `EMB_OK` (SPEC-003 §6).
 **Rationale.** These are the timing promises applications build periodic and watchdog logic on; they must be stated to be measured (KRN-RT-001).
 **Status.** Accepted 2026-10-07
 **Verification.** Test: timeout accuracy tests on the native port with virtual time; Demonstration: HIL latency benchmarks record the bound per board.

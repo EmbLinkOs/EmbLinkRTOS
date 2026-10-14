@@ -1,10 +1,14 @@
 # KRN-NOTIF - Notifications and Notification Binding
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-NOTIF`. Design: `docs/specs/SPEC-006-notifications-and-work-queues.md` §2, §3. Related groups: KRN-WAIT (a notification wait is a wait with reason NOTIFY), KRN-SYNC (semaphores and events as bound objects), KRN-IPC (queues and pipes as bound objects), KRN-WQ (work queues run on a kernel bit), KRN-CAP (the NOTIFY and BIND rights).
 
 KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` §6.1 (004 to 006 added by ADR-027). All are restated here as the authoritative copy. New requirements start at 007.
 
 ---
+
+## Requirements
 
 ### KRN-NOTIF-001  Per-thread bits, ISR-settable
 **Statement.** Each thread shall own a notification bit set that can be set from ISR context without blocking.
@@ -82,3 +86,10 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 **Status.** Accepted 2026-10-07
 **Verification.** Test: trace decoder reconstructs every set of the conformance run.
 **Trace.** SPEC-006 §7; OBS-005
+
+### KRN-NOTIF-012  Binding mask and initial readiness
+**Statement.** Public binding operations shall take one nonzero application-bit mask, reject zero, multiple bits, and kernel bits, and preserve the object's existing readiness. A caller shall bind before producers start or check and drain existing readiness before its first notification wait; edge-driven consumers shall drain their selected sources before waiting again.
+**Rationale.** Matches the M1 semaphore API and prevents confusing a bit index with a mask or waiting for an edge that already occurred.
+**Status.** Proposed 2026-10-14; mask validation is implemented for semaphore binding, broader lifecycle validation is pending.
+**Verification.** Existing `tests/conformance/test_sem.c` binding cases; planned initial-ready, multi-item drain, and invalid-mask cases mapped individually in the traceability matrix.
+**Trace.** SPEC-006 §3; A18; A23

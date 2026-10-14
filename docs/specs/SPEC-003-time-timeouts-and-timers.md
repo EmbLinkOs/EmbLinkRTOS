@@ -1,5 +1,7 @@
 # SPEC-003 - Time Source, Timeouts, and Software Timers
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner, with the defaults of §15. Specification work item 3 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/KRN-TIM.md` (KRN-TIM-001 to 016 restated; new from 017).
 **Builds on:** SPEC-001 §7 (time types, conversions, blocking bounds); SPEC-002 (timer interrupt level, critical sections, preemption points); 03 §4; v0.1 §7; ADR-010, ADR-017, ADR-019.
@@ -44,10 +46,16 @@ EmbCC refuses 8-byte atomics on 32-bit targets (09 §6), and on AVR only byte ac
 
 | Mechanism | Where | How |
 |---|---|---|
-| **Sequence lock** | Cortex-M, RISC-V, native | The writer (timer path) increments a sequence word, writes both halves, increments again; the reader loops until it sees an even, unchanged sequence. No masking; ISR-safe; bounded by the number of timer updates during the read, which is at most one in practice |
+| **Sequence lock** | Cortex-M, RISC-V, native | The writer increments a sequence word, writes the clock, and increments again; a reader accepts an even, unchanged sequence. Writer serialization, memory ordering, and reader progress must be established per port; see §3.2 |
 | **Critical section** | AVR | `in SREG; cli; read 4 bytes; out SREG`. A few cycles, and interrupts are already short on this core |
 
-Both are O(1) and `@ctx thread isr prekernel`. In tickless mode the reader adds the elapsed hardware count since the last clock update, converted to ticks (§4.2), so `emb_time_now()` has hardware resolution without an interrupt per tick.
+Both expose `@ctx thread isr prekernel`; a strict O(1) claim for the sequence-lock form requires a demonstrated retry bound, not an assumed typical case. In tickless mode the reader adds the elapsed hardware count since the last clock update, converted to ticks (§4.2), so `emb_time_now()` has hardware resolution without an interrupt per tick.
+
+### 3.2 Reader progress and memory ordering
+
+An ISR reader must never interrupt a writer while the sequence is odd and then spin waiting for that same writer. All writers must exclude every kernel-aware reader that could preempt them, or the port must use a supported non-spinning read mechanism. Kernel-independent handlers may not read the kernel clock. Changing timer priority alone is not proof: tickless writes can also occur in thread context.
+
+For the current UP implementation, clock writes execute with the timeout lock domain held, masking kernel-aware readers. The native gate serializes execution. Future SMP needs a C-memory-model-safe implementation with explicit ordering of the sequence and payload accesses; compiler barriers and a sequence counter alone do not establish freedom from C data races. Port validation must interrupt at writer boundaries, test nested ISR reads, and report retry limits. This is a validation obligation, not a claim that asynchronous or SMP clock access has passed.
 
 ## 4. Clock modes
 
@@ -103,7 +111,7 @@ Conversion between raw counts and ticks is exact when one period divides the oth
 
 | Profile | Default | Reason |
 |---|---|---|
-| tiny (ATmega328P) | periodic tick, 1 ms, Timer1 compare | Simplest, 16-bit counter limits tickless gains; tickless available as an option |
+| tiny (ATmega328P) | periodic tick, 1 ms, Timer1 compare | Simplest, 16-bit counter limits tickless gains; tickless is a target design, refused by the current AVR manifest |
 | base | tickless when the SoC has a 32-bit timer that runs in sleep; else periodic | Power |
 | isolated, multicore | tickless | Power, deadline precision |
 | native | tickless over a virtual clock | Deterministic tests: the clock jumps to the next deadline when all simulated CPUs idle |
@@ -112,7 +120,7 @@ Conversion between raw counts and ticks is exact when one period divides the oth
 
 ### 5.1 Node and structure
 
-Every thread control block carries one intrusive `timeout_node`; every software timer carries one. The default structure (ADR-010) is a **doubly linked intrusive list ordered by absolute deadline**:
+Every thread control block carries one intrusive timeout node; software timers will carry one when implemented. Base uses a doubly linked intrusive deadline list. Tiny uses a singly linked list bounded by the configured thread table: `next == NULL` means unarmed and the tail points to itself (A15). Its removal is O(armed nodes), not O(1). The current UP node omits a wait generation because removal and wait completion occur under the same critical section; future SMP adds an in-flight generation and superseded cancellation protocol. Base costs are:
 
 | Operation | Cost | Notes |
 |---|---|---|
@@ -121,12 +129,14 @@ Every thread control block carries one intrusive `timeout_node`; every software 
 | peek next deadline | O(1) | head |
 | expire at `now` | O(k) for k expired | pops from the head while `deadline <= now` |
 
+Insertion and expiry costs must include wake hooks, inheritance propagation, ready-set scans, and all nodes due together, as described in [Timing and evidence](../engineering/timing-and-evidence.md).
+
 The interface (`embk_timeout_arm`, `embk_timeout_disarm`, `embk_timeout_next`, `embk_timeout_expire`) hides the structure; a hierarchical timing wheel is a drop-in alternative for a profile whose measurements show the list walk on the critical path (KRN-TIM-021). On SMP the structure is per CPU (FUTURE; the interface already takes the CPU).
 
 ### 5.2 Deadlines and wrap
 
 - A deadline is an `emb_instant_t`. Arming with a duration computes `now + duration` saturating at `EMB_TICK_MAX`; a saturated deadline is treated as forever.
-- **32-bit profile:** comparisons use the signed difference `(int32_t)(a - b)`, which is correct as long as every armed deadline is within `2^31 - 1` ticks of `now`. `EMB_TIMEOUT()` and the arming path therefore clamp a finite timeout to `EMB_TIMEOUT_MAX_TICKS = 2^31 - 1` (about 24.8 days at 1 ms), and a `_until` deadline further away than that is rejected with `EMB_EOVERFLOW` (KRN-TIM-022). The 64-bit profile has no such limit in practice (584 years at 1 ns).
+- **32-bit profile:** comparisons use the signed difference `(int32_t)(a - b)`, which is correct as long as every armed deadline is within `2^31 - 1` ticks of `now`. `EMB_TIMEOUT()` and the arming path therefore clamp a finite timeout to `EMB_TIMEOUT_MAX_TICKS = 2^31 - 1` (about 24.8 days at 1 ms), and an absolute value outside that half-range is indistinguishable from a past instant and takes the past-deadline path; `EMB_EOVERFLOW` is not reachable from that comparison (KRN-TIM-022, A2). Callers must keep absolute deadlines within the half-range. Instant addition wraps in this profile. The 64-bit profile has no such limit in practice (584 years at 1 ns).
 - A deadline at or before `now` is the `EMB_NO_WAIT` path (API-024).
 
 ### 5.3 Expiry
@@ -261,7 +271,7 @@ The macros and rules of SPEC-001 §7.3 apply. In addition:
 | Condition | Detection |
 |---|---|
 | Arming a timeout node that is already armed | node state check in `embk_timeout_arm` |
-| `_until` deadline beyond the 32-bit profile range | range check, `EMB_EOVERFLOW` in both build kinds |
+| 32-bit absolute deadline outside the half-range | cannot distinguish it from a past instant; caller constraint, not an overflow diagnostic |
 | Blocking call from an `ISR_CONTEXT` timer callback | context check at the blocking entry |
 | `emb_timer_destroy` with a pending or running callback | state check |
 | `emb_timer_stop_sync` from the timer's own callback | identity check against the running work item |
@@ -285,5 +295,9 @@ The timeout structure, the expiry ordering, periodic re-arm with overrun countin
 
 1. A zero-duration sleep or a past deadline behaves exactly as `emb_thread_yield()`.
 2. Cortex-M tickless uses a SoC 32-bit timer declared in the hardware description; `SysTick` is the fallback only.
-3. The 32-bit tick profile caps a finite timeout at `2^31 - 1` ticks and rejects longer `_until` deadlines with `EMB_EOVERFLOW`.
+3. The 32-bit tick profile caps finite timeouts at `2^31 - 1` ticks; absolute deadlines must remain within that half-range because out-of-range future instants alias past instants (A2).
 4. `emb_timer_stop_sync` is part of 1.0.
+
+## 16. Pending timer implementation constraints
+
+Software timers remain unimplemented. Periodic catch-up must compute missed periods with checked arithmetic rather than loop once per missed period; the §7.4 loop expresses semantics, not an acceptable unbounded ISR algorithm. State the maximum number of due callbacks and any deferred batch policy, preserving expiry order. Arming-overhead compensation must define clock resolution, calibration uncertainty, and already-due deadlines; no accuracy guarantee exists until measured on hardware. `stop_sync` and delayed-work cancellation need tests for pending, running, resubmitted, and timed-out callbacks.

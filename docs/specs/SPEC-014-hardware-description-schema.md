@@ -1,5 +1,7 @@
 # SPEC-014 - Hardware Description Schema v0 and the Generator
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §13. Specification work item 13 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/HW.md` (HW-001 to 006 restated; new from 007).
 **Builds on:** 04 §1 (pipeline, model, outputs; ADR-004 LOCKED), §2 (device instances, init order), 03 §9.1 (regions); SPEC-009 §4.1, §5 (capability tables, storage probe), SPEC-010 §2 to §4 (partition description and constraints), SPEC-011 §2 (port manifest), SPEC-012 §11 (a board file), SPEC-005 §3.4 (static ceilings), SPEC-002 §8 (generic interrupt levels), 09 §7, §9 (`embld` outputs, `embsvd`); HW-006.
@@ -14,7 +16,7 @@
 | **SoC description** | `soc/<vendor>/<family>/<part>.yaml`: everything the silicon fixes |
 | **Board description** | `boards/<vendor>/<board>.yaml`: everything the PCB fixes |
 | **System description** | `<app>/system.yaml`: everything the product fixes: profile, configuration, partitions, threads, objects, ceilings, shares, images |
-| **Schema** | JSON Schema (draft 2020-12) files in `hw/schemas/` that validate the three description kinds; `schema_version: 0` until 1.0 |
+| **Schema** | JSON Schema (draft 2020-12) files in `hw/schemas/` that validate the three description kinds; `schema_version: 0` until the hardware schema is independently released stable |
 | **Generator** | `hw/gen/` (`emb-hwgen`, Python 3): validates, resolves, checks, and emits the outputs of §6 deterministically |
 | **Importer** | `hw/import/`: produces curated-draft descriptions from CMSIS-SVD (`embsvd` extension) and DeviceTree source |
 | **Compatible** | A `vendor,device` string binding a node to a driver, as in DeviceTree |
@@ -100,15 +102,17 @@ devices:
   - { name: audio_dac, compatible: "cirrus,cs43l22", bus: i2c1, address: 0x4A, reset: PD4 }
 console: { device: usart2, baud: 115200 }
 flash_partitions:
-  - { name: bootloader, base: 0x08000000, size: 32K }
-  - { name: slot0, base: 0x08008000, size: 480K }
-  - { name: slot1, base: 0x08080000, size: 480K }
-  - { name: storage, base: 0x080F8000, size: 32K }
+  - { name: bootloader, base: 0x08000000, size: 128K }
+  - { name: slot0, base: 0x08020000, size: 384K }
+  - { name: slot1, base: 0x08080000, size: 384K }
+  - { name: storage, base: 0x080E0000, size: 128K }
 leds: [ { name: green, gpio: PD12 }, { name: orange, gpio: PD13 }, { name: red, gpio: PD14 }, { name: blue, gpio: PD15 } ]
 buttons: [ { name: user, gpio: PA0, active: high } ]
 debug_probe: { openocd: "board/stm32f4discovery.cfg", pyocd_target: stm32f407vgtx }
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000, CONFIG_EMB_CONSOLE: usart2 }
 ```
+
+The illustrative flash layout uses STM32F407 erase-sector boundaries: independent updates/storage must not share an erase unit. A nonoverlapping byte range alone is insufficient. Generation validates actual erase geometry and update trailer/alignment requirements before advertising A/B support.
 
 Pins are `P<port><pin>.af<n>` for alternate functions or `P<port><pin>` for GPIO; the generator checks each against the SoC's GPIO ports and against other assignments (no pin twice).
 
@@ -159,7 +163,7 @@ Two generated artifacts come from other tools in the same pipeline: `<emb/storag
 
 ## 7. Validation beyond the schema
 
-The generator refuses the build, naming file and node (HW-002), on: unresolved reference; duplicate name within a section; overlapping memory regions or flash partitions; a region or partition not aligned as its attributes or the protection hardware require; an IRQ number used twice or above `interrupts.count`; a pin assigned twice or to a function the SoC's GPIO does not offer; a clock DAG cycle or a bus above `max_hz`; a device dependency cycle; a partition constraint violation (SPEC-010 §4.3); a ceiling mutex whose user is not a declared thread; a port manifest mismatch (`arch` says MPU but the port lacks `mpu`); an errata entry whose revision is not in the SoC's list; a `safety` profile with an uncurated node.
+The generator refuses the build, naming file and node (HW-002), on: unresolved reference; duplicate name within a section; overlapping memory regions or flash partitions, independently writable flash partitions sharing erase units or violating write/update alignment; a region or partition not aligned as its attributes or the protection hardware require; an IRQ number used twice or above `interrupts.count`; a pin assigned twice or to a function the SoC's GPIO does not offer; a clock DAG cycle or a bus above `max_hz`; a device dependency cycle; a partition constraint violation (SPEC-010 §4.3); a ceiling mutex whose user is not a declared thread; a port manifest mismatch (`arch` says MPU but the port lacks `mpu`); an errata entry whose revision is not in the SoC's list; a `safety` profile with an uncurated node.
 
 ## 8. Importers
 
@@ -173,13 +177,15 @@ Outputs are sorted by name, carry no timestamps, and embed the generator version
 
 ## 10. Versioning and migration
 
-`schema_version: 0` is unstable until 1.0: breaking changes ship with `emb-hwgen migrate` that rewrites descriptions in place and reports what it could not migrate. From 1.0 the schema follows the API versioning policy (SPEC-001 §11): additive changes within a major, a migration tool across majors.
+`schema_version: 0` remains unstable until its own stable schema release: breaking changes ship with `emb-hwgen migrate` that rewrites descriptions in place and reports what it could not migrate. From the stable schema release it follows the API versioning policy (SPEC-001 §11): additive changes within a major, a migration tool across majors.
 
-## 11. Worked flow: a new board on a supported SoC
+## 11. Target flow: a new board on a supported SoC
 
-1. `emb board new --soc st/stm32f4/stm32f407 --from-dts nucleo_f446re.dts` produces `boards/st/nucleo_f446re.yaml` with provenance and `todo` markers.
+These CLI/importer/generator operations are planned. The example uses the same F407 SoC; moving from F407 to F446 is a different SoC description even when drivers can be shared.
+
+1. `emb board new --soc st/stm32f4/stm32f407 --from-dts custom_f407.dts` produces `boards/custom/custom_f407.yaml` with provenance and `todo` markers.
 2. The author fixes the oscillator, console, and LED, marks nodes curated, and commits.
-3. `emb build -b nucleo_f446re` regenerates everything; `build_report.md` shows the region budget; no C is written (01 §6 success criterion).
+3. `emb build -b custom_f407` regenerates everything; `build_report.md` shows the region budget; no C is written (01 §6 success criterion).
 
 ## 12. Profiles and the tiny target
 
@@ -193,4 +199,4 @@ The tiny profile uses the same pipeline: the ATmega328P SoC file is 60 lines, th
 4. Semantic validation (§7) is part of the generator and fails the build naming file and node; the `safety` profile attribute refuses uncurated nodes.
 5. The SVD importer is an output mode of EmbCC's `embsvd`; the DeviceTree importer flattens with `dtc`; both produce one-shot drafts and diffs, never overwrites.
 6. `hw.json` is the only artifact downstream tools consume.
-7. Schema v0 is unstable until 1.0 with a migration tool; thereafter it follows the API versioning policy.
+7. Schema v0 is unstable until its own stable release with a migration tool; thereafter it follows the API versioning policy.

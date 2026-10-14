@@ -1,5 +1,7 @@
 # SPEC-006 - Notifications, Notification Binding, and Work Queues
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §12. Specification work item 6 of the roadmap (07 §3). Reference model: `tools/model/` (§11).
 **Requirements:** `docs/requirements/KRN-NOTIF.md` (KRN-NOTIF-001 to 006 restated; new from 007) and `docs/requirements/KRN-WQ.md` (KRN-WQ-001 to 004 restated; new from 005).
 **Builds on:** SPEC-004 (the wait protocol; a notification wait is a wait with reason `NOTIFY` on the thread's own pseudo-queue), SPEC-003 §7 (software timers run their callbacks as work items; delayed work is a timer), SPEC-005 (semaphores and events are the first bound objects), SPEC-001 §5 (context classes), 03 §6.1, §6.2; ADR-019, ADR-027, ADR-029 (the `NOTIFY` budget policy uses a reserved bit).
@@ -14,7 +16,7 @@
 | **Notification bits** | A per-thread word of `CONFIG_EMB_NOTIFY_BITS` bits (8, 16, or 32; default 32, tiny 8). Any context may set bits; only the owning thread waits on them |
 | **Application bits** | The low `EMB_NOTIFY_APP_BITS` bits, free for the application and for bindings |
 | **Kernel bits** | The high `EMB_NOTIFY_KERNEL_BITS` bits, used by the kernel for work queues, supervisor fault delivery, and budget overrun notices |
-| **Binding** | The link from a waitable object to one `(thread, application bit)` pair: when the object becomes ready for its bound operation, the kernel sets the bit (ADR-027) |
+| **Binding** | The link from a waitable object to one `(thread, one-bit application mask)` pair: when the object becomes ready for its bound operation, the kernel sets the bit (ADR-027) |
 | **Work item** | An intrusive, caller-owned record with a handler, run in thread context by a work queue, in FIFO order |
 | **Work queue** | A thread plus a FIFO of work items; the system work queue exists in `base` and above |
 | **Delayed work** | A work item with an embedded software timer; the timer's expiry submits the item |
@@ -62,7 +64,7 @@ EMB_ISR(DMA1_Stream5) { ...; (void)emb_notify_set(g_rx_thread, RX_DONE); }
 /* thread */
 for (;;) {
     emb_notify_bits_t got;
-    if (emb_notify_wait(RX_DONE | RX_ERROR, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_MS(100), &got) == EMB_ETIMEDOUT)
+    if (emb_notify_wait(RX_DONE | RX_ERROR, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_TIMEOUT(EMB_MS(100)), &got) == EMB_ETIMEDOUT)
         recover();
     else if (got & RX_ERROR) ...
 }
@@ -75,27 +77,27 @@ for (;;) {
 Every waitable object type whose readiness is a state (semaphore count, event bits, queue occupancy, pipe fill, port request) offers:
 
 ```c
-emb_status_t emb_<obj>_bind_notify(emb_<obj>_t obj, emb_thread_t t, uint8_t bit);   /* @ctx thread; bit < EMB_NOTIFY_APP_BITS */
+emb_status_t emb_<obj>_bind_notify(emb_<obj>_t obj, emb_thread_t t, emb_notify_bits_t bit);   /* @ctx prekernel thread; one nonzero application bit */
 emb_status_t emb_<obj>_unbind_notify(emb_<obj>_t obj);                             /* @ctx thread */
 ```
 
-`bind` fails with `EMB_EEXIST` when the object is already bound (unbind first), `EMB_EINVAL` for a kernel bit, `EMB_EPERM` in isolated profiles when the caller lacks the object's `BIND` right or the thread's `NOTIFY` right. The binding is stored in the object: one thread reference and one bit index.
+`bind` fails with `EMB_EEXIST` when the object is already bound (unbind first), `EMB_EINVAL` for a kernel bit, `EMB_EPERM` in isolated profiles when the caller lacks the object's `BIND` right or the thread's `NOTIFY` right. The binding is stored in the object: one thread reference and one nonzero single-bit mask within `EMB_NOTIFY_APP_MASK`. Public callers pass `UINT32_C(1) << index`, not the index; the model scenario encoding may use an index internally. M1 implements only semaphore binding; unbind and other object bindings remain planned.
 
 ### 3.2 Semantics
 
 - The object signals its binding on every transition to **ready for the bound operation** that is not consumed by a hand-off to a direct waiter (SPEC-004 §6.3, KRN-SYNC-035). Per object type: semaphore count 0 to 1; event bits changed and nonzero after direct waiters were served; message queue empty to non-empty (receive side); pipe fill crossing the read trigger level; port request arrival.
-- Signalling is `emb_notify_set(binding.thread, 1 << binding.bit)` from inside the object's critical section: O(1), ISR-safe, no list.
-- The bound thread waits on its mask, then performs the operation with `EMB_NO_WAIT` on each object whose bit is set and treats `EMB_ETIMEDOUT` as "another consumer was faster", clearing nothing it did not consume (the bit was already cleared by the `CLEAR` wait; the next transition sets it again). Edge semantics plus re-check give **no lost wakeups and at most one spurious pass per transition** (KRN-NOTIF-008).
+- Signalling is `emb_notify_set(binding.thread, binding.bit)` from inside the object's critical section: O(1), ISR-safe, no list.
+- Binding does not signal an object that is already ready. Setup must bind before producers start or drain/recheck existing readiness before the first wait. Edge notifications require draining the selected source until not ready; consuming only one item can leave ready data without another edge. The bound thread waits on its mask, then performs the operation with `EMB_NO_WAIT` on each object whose bit is set and treats `EMB_ETIMEDOUT` as "another consumer was faster", clearing nothing it did not consume (the bit was already cleared by the `CLEAR` wait; the next transition sets it again). Edge semantics plus re-check give **no lost ready transition and at most one spurious pass per transition under the bind/check/drain protocol** (KRN-NOTIF-008).
 - Direct waiters on the object are unaffected (KRN-NOTIF-005): they are served first, by hand-off, and such a transition sets no bit.
 - One binding per object in 1.0 (§12.3); a second consumer of the same object uses a direct wait.
-- Destroying a bound object does not touch the thread's bits; destroying the bound thread leaves a dangling binding, which the kernel detects by generation in profiles that check generations and ignores otherwise (the set targets a dead thread and is dropped). Rebinding after thread restart is the application's job.
+- Destroying a bound object does not touch the thread's bits; a notification to a terminated target is dropped in M1, but its storage must remain valid while a binding references it. Pointer mode cannot safely detect freed or reused storage; it is not a stale-reference security mechanism. Planned unbind must precede reuse, and generation-checked profiles must reject a changed target incarnation. Rebinding after thread restart is the application's job.
 
 ### 3.3 Worked pattern: one thread, three sources
 
 ```c
-emb_sem_bind_notify(g_adc_done, self, 0);
-emb_msgq_bind_notify(g_cmd_queue, self, 1);
-emb_event_bind_notify(g_errors, self, 2);
+emb_sem_bind_notify(g_adc_done, self, UINT32_C(1) << 0);
+emb_msgq_bind_notify(g_cmd_queue, self, UINT32_C(1) << 1);
+emb_event_bind_notify(g_errors, self, UINT32_C(1) << 2);
 for (;;) {
     emb_notify_bits_t got;
     emb_notify_wait(0x7, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_WAIT_FOREVER, &got);
@@ -199,7 +201,7 @@ Trace events: `notify_set(target, bits, woke)`, `notify_wait(thread, mask, mode,
 
 ## 8. Tiny profile
 
-`CONFIG_EMB_NOTIFY_BITS=8` (4 application bits, 4 kernel bits of which `K_WORK` is used only when a work queue is configured). `CONFIG_EMB_SYSTEM_WORKQ=n` by default: timers then run in `ISR_CONTEXT` (SPEC-003 §7.3, ADR-019 consequence). Bindings are available (one thread reference and a bit index per object). A table-scheduler build stores a binding's thread as its table index.
+`CONFIG_EMB_NOTIFY_BITS=8` (4 application bits, 4 kernel bits of which `K_WORK` is used only when a work queue is configured). `CONFIG_EMB_SYSTEM_WORKQ=n` by default: timers then run in `ISR_CONTEXT` (SPEC-003 §7.3, ADR-019 consequence). Bindings are available (one thread reference and a one-bit mask per object). A table-scheduler build stores a binding's thread as its table index.
 
 ## 9. Per-architecture summary
 

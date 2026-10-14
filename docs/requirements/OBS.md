@@ -6,6 +6,8 @@ OBS-001 to 012 originate in `docs/architecture/04-platform-architecture.md` §7 
 
 ---
 
+## Requirements
+
 ### OBS-001  Deferred-format logging
 **Statement.** Logging shall support deferred formatting with string interning in a non-loaded section, decodable from the ELF.
 **Rationale.** ADR-009: logging cheap enough to leave on in production.

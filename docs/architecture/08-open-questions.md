@@ -1,6 +1,6 @@
 # 08 - Open Questions for Review
 
-These need your decision. Each has a recommendation so the default path is clear if you agree. Answering them converts the PROPOSED items in 02 to 06 into LOCKED.
+This is the historical owner-decision ledger. Answered entries remain for provenance; unanswered recommendations are working defaults, not evidence of implementation or a request to reapprove accepted work. ADR-039 records the 2026-10-14 documentation revision; STATUS.md and the roadmap describe current scope. The remaining operational input is the physical HIL inventory. Q16 is now decided by the documentation tooling setup.
 
 **Decided on 2026-10-06:** Q2 (licence), Q9 (hardware description), Q10 (first Cortex-M target). See ADR-004, ADR-024, ADR-025. The remaining questions keep their recommendations as the working default until answered.
 
@@ -65,7 +65,7 @@ This is the highest-impact platform decision. Own schema costs generator work up
 *Answered 2026-10-07 (SPEC-004 §16.6):* Python 3 with exhaustive section-granularity exploration in `tools/model/` and `hypothesis` for randomized runs; the bridge is a trace replay.
 
 **Q16. Documentation toolchain.** Sphinx with a requirements extension (mature traceability tooling) or MkDocs plus project scripts (simpler)?
-*Recommendation:* Sphinx; traceability is the point.
+*Decided 2026-10-14:* Sphinx with MyST Markdown, Doxygen/Breathe for current C API, Sphinx Needs for the design catalog, and Furo for presentation. `tools/docs/` builds the site and independent metadata exports; the executed requirement/test evidence matrix remains an M2 deliverable (ADR-040).
 
 **Q17. CI hardware.** Which boards will be physically available for HIL in M1 to M3? This determines the HIL runner's first targets.
 
@@ -82,4 +82,4 @@ This is the highest-impact platform decision. Own schema costs generator work up
 
 ---
 
-When you answer, the next step is to update the status markers in 02 to 06, open `docs/requirements/` with one file per identifier group, and begin specification work item 1 (API conventions) from the roadmap.
+Specification work items 1 to 14 and 6b already exist. Next work follows the revised M2/M3a gates: finish the included kernel, implement evidence generation, and validate the primary physical board. Update a decision only when it changes; do not restart the completed specification phase.

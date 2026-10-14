@@ -1,5 +1,7 @@
 # SPEC-009 - Kernel Objects, Capabilities, and Storage Generation
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §12. Specification work item 8 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/KRN-OBJ.md` (KRN-OBJ-001 to 005 restated; new from 006) and `docs/requirements/KRN-CAP.md` (KRN-CAP-001 to 005 restated; new from 006).
 **Builds on:** 03 §7 (object model, capabilities, storage, lifecycle), §8.1 (syscall boundary); SPEC-001 §5.3 (misuse), §6 (handles, storage, attributes, `_DEFINE`); SPEC-004 §6.7 (flush), SPEC-006 §3 (binding slot), SPEC-008 §8 (thread destroy); 02 §7 (profiles); ADR-006, ADR-011, ADR-014, ADR-020, ADR-032, ADR-033, ADR-035; 09 §7 (bracketed sections in `embld` and GNU ld; no linker scripts on AVR).
@@ -17,7 +19,7 @@
 | **Rights** | Object-type-specific bits (§4.3) plus the universal `DESTROY` and `GRANT` |
 | **Generation** | A counter bumped when an object is destroyed, re-initialized, or its owning partition restarts; stale references fail with `EMB_ESTALE` where generations are checked |
 | **Storage type** | The generated `emb_<obj>_storage_t` with exact size and alignment (ADR-006) |
-| **Init table** | The bracketed section that `_DEFINE` macros populate so static objects are constructed before `main()` |
+| **Init table** | The bracketed section that `_DEFINE` macros populate so static objects are constructed during `emb_kernel_init()`, before scheduler start |
 | **Freeze** | `emb_system_freeze()`: no object creation or destruction afterwards (KRN-OBJ-004) |
 
 ## 2. Object header
@@ -36,7 +38,7 @@ typedef struct embk_obj {
 } embk_obj_t;
 ```
 
-Fields compile out with their options; the tiny profile's header is one byte (`lifecycle`) in release builds and two in checked builds. `lifecycle` is the field every operation checks first after the handle itself: `EMBK_UNINIT` is `EMB_EINVAL` (misuse), `EMBK_DESTROYING` is `EMB_ESTATE`.
+This is the target logical header. The M1 C header has three bytes (`type`, `state`, `flags`) plus an optional name pointer, with no generation, registry or common binding field. There is no padding byte in the header; per-type state bits carry the thread wake result and notification mode (A16). Future optional fields must be measured with the layout probe rather than inferred from this sketch. `lifecycle` is the field every operation checks first after the handle itself: `EMBK_UNINIT` is `EMB_EINVAL` (misuse), `EMBK_DESTROYING` is `EMB_ESTATE`.
 
 ## 3. Handle models
 
@@ -56,7 +58,7 @@ Why no tagged pointer: the base-profile idea of "pointer plus generation bits" (
 
 ### 3.2 `INDEXED`
 
-One global registry `embk_obj_registry[CONFIG_EMB_OBJ_MAX]` of `{object pointer, slot generation}` (four or eight bytes per slot). `init` claims a free slot from an intrusive free list in O(1) and writes the pointer; `destroy` bumps the slot generation and frees the slot. A handle is `slot | (slot_gen << 16)`; use checks `slot < MAX`, `registry[slot].gen == slot_gen`, the object's `type_tag`, and `lifecycle`. The registry lives in kernel RAM; its size is a visible configuration number. Objects created by `_DEFINE` take slots at construction, before `main()`.
+One global registry `embk_obj_registry[CONFIG_EMB_OBJ_MAX]` of `{object pointer, slot generation}` (four or eight bytes per slot). `init` claims a free slot from an intrusive free list in O(1) and writes the pointer; `destroy` bumps the slot generation and frees the slot. A handle is `slot | (slot_gen << 16)`; use checks `slot < MAX`, `registry[slot].gen == slot_gen`, the object's `type_tag`, and `lifecycle`. The registry lives in kernel RAM; its size is a visible configuration number. Objects created by `_DEFINE` take slots at construction, during `emb_kernel_init()`, before scheduler start.
 
 ### 3.3 `TABLE` (capabilities)
 
@@ -83,7 +85,7 @@ A handle is `index | (slot_gen << 16)`. Validation (`embk_cap_lookup(partition, 
 - **Grant.** `emb_cap_grant(emb_partition_t to, emb_handle_t cap, uint8_t rights, emb_handle_t *out)` copies an entry into another partition's table with `rights ⊆ own rights`; requires `GRANT` on `cap` and `GRANT_TO` on the partition capability for `to`. Returns the new index in the target's table, which the granter then communicates through a port message or a shared configuration (FUTURE: ports carry capabilities in messages).
 - **Derive.** `emb_cap_derive(cap, rights, *out)`: a second entry in the caller's own table with fewer rights, for handing to a less trusted component in the same partition (KRN-CAP-003). Keeping `GRANT` in a derived capability requires `GRANT`.
 - **Delete.** `emb_cap_delete(cap)` frees the caller's entry (slot generation bump).
-- **Revoke.** `emb_cap_revoke(cap)` by a holder with `DESTROY` bumps the **object's** generation: every capability to that object everywhere fails from then on (`EMB_ESTALE`), including the revoker's own; the object stays alive and the owner re-creates a fresh capability with `emb_cap_renew(cap_with_DESTROY)`. Revocation is coarse by design (03 §7.2): per-entry revocation would need back-pointers from objects to tables.
+- **Revoke.** `emb_cap_revoke(cap)` by a holder with `DESTROY` bumps the **object's** generation: every capability to that object everywhere fails from then on (`EMB_ESTALE`), including the revoker's own; the object stays alive and trusted recovery authority may recreate the owner capability through `renew` under §13. A stale capability alone cannot authorize renewal. Revocation is coarse by design (03 §7.2): per-entry revocation would need back-pointers from objects to tables.
 
 ### 4.2 Rights
 
@@ -103,7 +105,7 @@ A handle is `index | (slot_gen << 16)`. Validation (`embk_cap_lookup(partition, 
 | partition | `RESTART`, `SUSPEND`, `GRANT_TO`, `OBSERVE` | |
 | port (FUTURE) | `SEND`, `RECEIVE`, `BIND` | |
 
-Rights fit in eight bits per type; `DESTROY` and `GRANT` occupy the top two bits of every type's mask. Each operation's `@req` annotation (SPEC-001 §9) names the right it needs, and the generated syscall stubs derive their checks from it (SPEC-010).
+Rights fit in eight bits per type; `DESTROY` and `GRANT` occupy the top two bits of every type's mask. Each operation's planned `@right` metadata (SPEC-001 §9) names the right each handle parameter needs; `@req` carries requirement identifiers, and the generated syscall stubs derive their checks from it (SPEC-010).
 
 ### 4.3 In the pointer models
 
@@ -113,20 +115,20 @@ With `POINTER` and `INDEXED` there are no rights: every holder has all of them. 
 
 ### 5.1 Mechanism
 
-1. The build compiles `kernel/layout/probe.c` **for the target** with the final configuration; the file defines, for every object type, `const char embk_size_<type>[sizeof(struct embk_<type>)]` and an alignment probe.
-2. `tools/gen_storage` reads the symbol sizes from the probe object with the toolchain's object reader (`nm`, `embnm`) and emits `<emb/storage.h>`: `EMB_<OBJ>_STORAGE_SIZE`, `EMB_<OBJ>_STORAGE_ALIGN`, and the `emb_<obj>_storage_t` unions of SPEC-001 §6.2.
+1. The build compiles `kernel/object/storage_probe.c` **for the target** with the final configuration; the file defines, for every object type, `const char embk_size_<type>[sizeof(struct embk_<type>)]` and an alignment probe.
+2. `tools/storage/gen_storage.py` reads the symbol sizes from the probe object with the toolchain's object reader (`nm`, `embnm`) and emits `<emb/storage.h>`: `EMB_<OBJ>_STORAGE_SIZE`, `EMB_<OBJ>_STORAGE_ALIGN`, and the `emb_<obj>_storage_t` unions of SPEC-001 §6.2.
 3. Every kernel source file that defines an object type contains `_Static_assert(sizeof(struct embk_<type>) <= EMB_<OBJ>_STORAGE_SIZE && _Alignof(...) <= EMB_<OBJ>_STORAGE_ALIGN)`, so a stale header cannot link a wrong size.
 4. The configuration hash is embedded in the header; a mismatch between the hash in `<emb/storage.h>` and the kernel's configuration is a build error (BLD-007).
 
-Two passes over the compiler are the price; CMake handles them as one target with a dependency. Sizes are reproducible from configuration and toolchain (BLD-004 reproducibility).
+Two passes over the compiler are the price; CMake handles them as one target with a dependency. The generated union applies `EMB_ALIGNED(EMB_<OBJ>_STORAGE_ALIGN)` to its byte member; the generic maximum-alignment member alone is insufficient on native where a TCB needs 16-byte alignment (A20). Sizes are reproducible from configuration and toolchain (BLD-004 reproducibility).
 
 ### 5.2 `_DEFINE` and the init table
 
-`EMB_<OBJ>_DEFINE(name, attr...)` expands to the storage, the handle variable, a constant attribute struct, and an entry `{init_fn, &storage, &attr, &handle}` in the bracketed section `.emb_init_table`, which `embld` and GNU ld both provide on every target (09 §7; no linker script is needed on AVR). Kernel start walks the table in link order and calls each `init` before `main()`; thread entries are also started at `emb_kernel_start()` unless marked `EMB_THREAD_NO_AUTOSTART` (SPEC-008 §4). Entries from different translation units have no defined relative order; an object that depends on another at init time (a timer on a work queue) must be initialized in code or by the `EMB_INIT_AFTER(other)` attribute, which the generator honours by ordering the table it emits for system-described objects.
+`EMB_<OBJ>_DEFINE(name, attr...)` expands to the storage, the handle variable, a constant attribute struct, and an entry `{init_fn, &storage, &attr, &handle}` in the bracketed section `.emb_init_table`, which `embld` and GNU ld both provide on every target (09 §7; no linker script is needed on AVR). `emb_kernel_init()` walks the bracketed table in link order and calls each init wrapper before scheduler start; thread entries are also started at `emb_kernel_start()` unless marked `EMB_THREAD_NO_AUTOSTART` (SPEC-008 §4). Entries from different translation units have no defined relative order; an object that depends on another at init time (a timer on a work queue) must be initialized in code or by the `EMB_INIT_AFTER(other)` attribute, which the generator honours by ordering the table it emits for system-described objects.
 
 ### 5.3 Objects in flash
 
-Objects whose state never changes could live in flash; 1.0 does not support it (§12.5): kernel objects carry mutable headers, and a const-initializer form would expose the layout the storage type exists to hide. The init-table mechanism costs one function call per object at boot and keeps the layout private.
+Objects whose state never changes could live in flash; 1.0 does not support it (§12.5): kernel objects carry mutable headers, and a const-initializer form would expose the layout the storage type exists to hide. The init-table mechanism costs one init wrapper per entry during `emb_kernel_init()` and keeps the layout private.
 
 ## 6. Lifecycle
 
@@ -183,6 +185,14 @@ Capability checks are static validation with no concurrency; they are tested by 
 2. Rights are eight bits per type with `DESTROY` and `GRANT` universal; in the pointer models the capability functions exist and are trivial or `EMB_ENOTSUP`.
 3. Revocation is by object generation (coarse); `renew` re-creates the owner's capability.
 4. Storage sizes are generated from a target-compiled layout probe read with the toolchain's object reader, checked by static assertions, and stamped with the configuration hash.
-5. Objects live in RAM and are constructed from the bracketed init table before `main()`; flash-resident objects are not supported in 1.0.
+5. Objects live in RAM and are constructed from the bracketed init table during `emb_kernel_init()`, before scheduler start; flash-resident objects are not supported in 1.0.
 6. Double `init` is `EMB_EEXIST`; destroy passes through `DESTROYING`; freeze blocks every create, destroy, and capability change but not partition restart.
 7. Type tags are small integers mapped to names by the debug descriptor.
+
+## 13. Capability authority and incarnation constraints
+
+TABLE handles name entries in a calling partition's table. Deriving a reduced entry in that same table is useful API discipline, but cannot isolate a less-trusted component that can access the other entries/handles in the same partition. A distinct hardware-protected partition is required for that security boundary. POINTER and INDEXED models provide no rights enforcement; source compatibility does not imply equal security guarantees.
+
+Slot/object incarnation state must not be reset to the image defaults during destroy/re-init or partition restart. Before any 16-bit or narrower counter wraps to a value that could match a retained stale reference, refuse reuse/revocation with a defined exhaustion status or use a reviewed reclamation/epoch scheme that proves no stale reference survives. Widening a counter reduces likelihood but does not establish that proof. Revocation and lookup serialize with object lifetime; an in-flight operation needs a pinned reference or explicit cancellation protocol rather than only an entry-time generation check.
+
+`renew` is a controlled recovery operation: a stale capability does not regain authority merely because it once carried DESTROY. Validate current ownership and a trusted recovery authority outside the revoked generation. Freeze permits only the trusted restart/regrant path specified in SPEC-010, never arbitrary user-side capability mutation. The generator and recovery code must preserve rights subsets. These checks are unimplemented and required before TABLE support is released.

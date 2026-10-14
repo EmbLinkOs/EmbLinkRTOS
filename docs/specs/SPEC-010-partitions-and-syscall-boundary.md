@@ -1,5 +1,7 @@
 # SPEC-010 - Partitions and the System Call Boundary
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §16. Specification work item 9 of the roadmap (07 §3), scoped to what M3 implements (§15).
 **Requirements:** `docs/requirements/KRN-PART.md` (KRN-PART-001 to 007 restated; new from 008).
 **Builds on:** 03 §8 (partition model), §8.1 (syscall boundary), §9.1 (regions), §10 (faults); SPEC-009 (capability tables, generations, freeze); SPEC-008 (threads, exit, restart interplay); SPEC-006 (`K_FAULT` bit, IRQ delivery as notification); SPEC-005 §3.6 (owner death); SPEC-002 §9 (fault entry), §7 (stacks); SPEC-001 §5.3 (unprivileged callers always get a status); 04 §1.3 (`partitions.c`, `regions.ld`), §2, §3 (devices and drivers), §6 (security); ADR-015, ADR-029, ADR-032, ADR-033, ADR-035; 09 §7 (linker outputs per target).
@@ -21,7 +23,7 @@
 | **Syscall boundary** | The trap (`SVC`, `ecall`) through which an unprivileged thread calls the kernel, where every argument is validated |
 | **Device capability** | The right to a device: its MMIO region becomes accessible to the partition and its interrupts are delivered to it as notifications |
 
-Everything here is static, build-time data in 1.0 (KRN-PART-006); the generator (SPEC-014) emits it from the system description.
+Everything here is static, build-time data in the first isolated release (KRN-PART-006); the generator (SPEC-014) emits it from the system description.
 
 ## 2. Partition definition
 
@@ -67,7 +69,7 @@ Each partition's RAM is one block carved from the referenced region:
 +------------------+
 ```
 
-- The **kstore** is sized by the generator from the declared threads and objects plus the `cap_table_size` (KRN-PART-007); its size appears in the generated report so that kernel memory per partition is a visible number. A partition cannot allocate kernel memory outside it: `init` of an object by an unprivileged partition must name storage inside its kstore, which the generated `_DEFINE` tables do automatically.
+- The **kstore** is sized by the generator from the declared threads and objects plus the `cap_table_size` (KRN-PART-007); its size appears in the generated report so that kernel memory per partition is a visible number. A partition cannot allocate kernel memory outside it: initial object construction is performed by trusted generated tables inside its kstore. A future user init request cannot authorize arbitrary kernel-owned storage: it must name an object slot allocated to that operation by the kernel, with checked type, size, alignment and overlap. This marshalling rule is unimplemented; the user cannot directly access or overwrite kstore bytes.
 - Code lives in a per-partition flash section (`.partition.<name>.text` and `.rodata`), so that a code region can be granted execute permission without exposing other partitions' code. Shared library code (the C runtime, `libemb` stubs) is linked into every partition's section that uses it, or into a read-only common region every partition may execute; the generator chooses the common region when more than one partition uses a symbol and the hardware has a spare region (§4.3).
 - `.data` initial values live in flash next to the code and are copied at start and at restart (KRN-PART-004).
 - Kernel-partition memory is ordinary kernel RAM; the kernel partition has no kstore of its own.
@@ -112,35 +114,35 @@ The public API header is the same for every caller (SPEC-001). A translation uni
 ### 5.2 Mechanism (Cortex-M)
 
 1. The stub loads the syscall number into `r12`, the first four arguments in `r0`..`r3`, further arguments on the caller's stack as the AAPCS already does, and executes `svc #0`.
-2. The `SVC` handler runs on the per-CPU exception stack (`MSP`). It records the caller's `PSP`, checks that the caller was unprivileged (an `SVC` from privileged code is a kernel fault in checked builds: privileged code never traps), checks `r12 < EMB_SYSCALL_COUNT`, switches `PSP` to the thread's **kernel stack** in the kstore (`CONFIG_EMB_KSTACK_SIZE`, default 512 bytes), builds an exception frame that returns into `embk_syscall_dispatch(nr, args, user_frame)` in **privileged thread mode**, and returns from the exception.
+2. The `SVC` handler runs on the per-CPU exception stack (`MSP`). It records the caller's `PSP`, validates the user exception frame and saved syscall state, and checks that ordinary API entry originated unprivileged (the internal privileged `svc #1` return is a separate authenticated path, not an ordinary API entry), checks `r12 < EMB_SYSCALL_COUNT`, switches `PSP` to the thread's **kernel stack** in the kstore (`CONFIG_EMB_KSTACK_SIZE`, default 512 bytes), builds an exception frame that returns into `embk_syscall_dispatch(nr, args, user_frame)` in **privileged thread mode**, and returns from the exception.
 3. `embk_syscall_dispatch` runs with interrupts enabled at the thread's priority: it calls the generated marshaller for `nr`, which validates every argument (§5.4) and calls the implementation. Blocking happens here, in thread mode, through the ordinary wait protocol; the kernel stack holds the thread's kernel context while blocked.
 4. On return the marshaller writes out-parameters through validated pointers, places the status in the user frame's `r0`, and executes `svc #1` (`SYSCALL_RETURN`): the handler restores `PSP` to the user stack, clears privilege, and returns into the instruction after the original `svc`.
 
-RISC-V: `ecall` from U-mode traps to M-mode; the trap entry does the same stack switch and returns with `mret` into the dispatcher in M-mode on the thread's kernel stack; the return path is a second `ecall`-free `mret` with `MPP=U`. The per-CPU trap stack is used only inside the trap entry and exit. There is no S-mode on the targets of 1.0.
+RISC-V: `ecall` from U-mode traps to M-mode; the trap entry does the same stack switch and returns with `mret` into the dispatcher in M-mode on the thread's kernel stack; the return path is a second `ecall`-free `mret` with `MPP=U`. The per-CPU trap stack is used only inside the trap entry and exit. The first MCU isolation designs use U/M mode, not S-mode; the baseline 1.0 does not include this protected RISC-V port.
 
 Why a per-thread kernel stack rather than running syscalls on the exception stack: a syscall may block (SPEC-001 §5: thread-only functions block), and an exception context cannot. Zephyr's privileged stacks and FreeRTOS's per-task syscall stacks solve the same problem (R-001 §7); the kstore is where ours live, so their memory is accounted to the partition.
 
 ### 5.3 Syscall table generation
 
-`tools/gen_syscalls` reads the API annotations of SPEC-001 §9 (`@ctx`, `@req`, argument kinds from the prototype: handle, pointer-in, pointer-out, length, scalar, attribute struct) and emits:
+`tools/gen_syscalls` reads the API annotations of SPEC-001 §9 (`@ctx`, `@req` requirement IDs, `@right` per-handle rights and explicit `@arg` kinds: handle, pointer-in, pointer-out, length, scalar, attribute struct) and emits:
 
 - the stubs (`embsys_*`), one per public function that is callable from thread context;
-- the marshallers (`embk_sys_*`), one per function, with the validation of §5.4 derived from the argument kinds and the right named by `@req`;
+- the marshallers (`embk_sys_*`), one per function, with the validation of §5.4 derived from the argument kinds and the right named by `@right`;
 - `embk_syscall_table[EMB_SYSCALL_COUNT]` and the numbering header; numbers are stable within a release line and listed in the ABI document (SPEC-001 §11).
 
-Pre-kernel-only functions and ISR-only entry points get no stub. The generator refuses a prototype whose argument kinds it cannot classify, which is the review gate for new API (NuttX's CSV and Zephyr's markers, with the classification made explicit, R-001 §7).
+Pre-kernel-only functions and ISR-only entry points get no stub. C prototypes alone cannot identify length relationships, ownership or capability rights. The planned generator requires explicit machine-readable mappings and refuses missing or ambiguous metadata. It refuses a prototype whose argument kinds it cannot classify, which is the review gate for new API (NuttX's CSV and Zephyr's markers, with the classification made explicit, R-001 §7).
 
 ### 5.4 Argument validation
 
 | Argument kind | Check |
 |---|---|
-| handle | `embk_cap_lookup(caller partition, handle, type, right from @req)` (SPEC-009 §3.3); failures are statuses, never faults (KRN-CAP-002) |
+| handle | `embk_cap_lookup(caller partition, handle, type, right from @right)` (SPEC-009 §3.3); failures are statuses, never faults (KRN-CAP-002) |
 | pointer in, with length | the range `[ptr, ptr+len)` lies within the caller's readable regions; `len` bounded by the function's documented maximum |
 | pointer out, with length | same, writable; the kernel writes through it only after the operation, never reads it |
-| attribute struct | copied into a kernel-stack buffer of the known size after a readable check; the implementation sees the copy, so a concurrent change by another thread of the partition cannot race the validation (no time-of-check to time-of-use) |
+| attribute struct | copied into a kernel-stack buffer of the known size after a readable check; the implementation sees the copy, so top-level fields cannot change after validation; nested pointers/buffers need their own snapshot and lifetime rules |
 | name pointer in an attribute | copied into the object's name buffer in the kstore (`CONFIG_EMB_OBJ_NAME_LEN`, default 16, truncated) rather than kept by pointer |
 | scalar, enumeration | range-checked as the public function documents |
-| timeout | any value is valid |
+| timeout | validate representation and distinguish sentinels; clamp finite durations and obey the 32-bit absolute half-range contract |
 | callback or entry pointer (thread entry, timer callback) | must lie within the partition's executable regions; the kernel calls it only in that partition's threads |
 
 A failed check returns `EMB_EPERM` (rights, access) or `EMB_EINVAL` (range) to the caller. No check faults the kernel: an unprivileged partition cannot crash the system through the API (SPEC-001 §5.3 isolated profiles).
@@ -179,12 +181,12 @@ The reference supervisor (`subsys/supervisor/`, enabled by `CONFIG_EMB_SUPERVISO
 `emb_partition_restart(p)` runs in the caller's thread context, in this order, at a safe point (on uniprocessor none of `p`'s threads is running; on SMP each running thread of `p` is stopped by IPI at its next kernel entry or preemption point before step 1 proceeds):
 
 1. **Stop.** Every thread of `p`: removed from the ready structure or from its wait queue (dequeued with no result delivered: the thread never returns to user mode), its timeout disarmed, its `FAULTED` flag cleared. Threads of other partitions waiting *on* `p`'s objects or threads (join, port requests, bound notifications) are flushed with `STALE` (ADR-032, KRN-OBJ-005). Mutexes outside `p` owned by `p`'s threads are released with owner-death semantics to their waiters regardless of `CONFIG_EMB_MUTEX_OWNER_DEATH`, because the owner is certainly gone (SPEC-005 §3.6).
-2. **Generations.** The partition's generation and the generations of all its threads and objects are bumped; every capability to them held elsewhere is now stale until re-granted by the build-time table (step 5) or by a new grant.
-3. **Devices.** Each device granted to `p` is reset through its lifecycle (04 §2.2: `READY` to `UNINIT` to `READY`), its interrupts masked and pending notifications discarded.
-4. **Memory.** `.data` is re-copied from the image, `.bss` zeroed, stacks re-filled, the kstore re-initialized: TCBs rebuilt from the generated descriptors, objects re-`init`ed from the generated table, the capability table rebuilt from the generated initial table. The system freeze flag does not block this path (KRN-OBJ-004).
+2. **Generations.** The partition's generation and the generations of all its threads and objects are bumped; every capability to them held elsewhere is now stale until explicitly re-granted by the trusted supervisor or generated recovery protocol. Rebuilding the restarted partition's own table does not silently refresh capabilities held by other partitions.
+3. **Devices.** Before memory reuse, stop/cancel all requests and quiesce DMA and interrupt producers, with a bounded completion deadline and escalation if they cannot be stopped. Reset only exclusively owned devices; shared devices require a trusted per-client cancellation protocol and must not be globally reset. Each exclusively owned device granted to `p` is reset through its lifecycle (04 §2.2: `READY` to `UNINIT` to `READY`), its interrupts masked and pending notifications discarded.
+4. **Memory.** Keep authoritative object/slot incarnation counters outside the reset image or explicitly restore their incremented values; copying initial tables must never reset generations. `.data` is re-copied from the image, `.bss` zeroed, stacks re-filled, the kstore re-initialized: TCBs rebuilt from the generated descriptors, objects re-`init`ed from the generated table, the capability table rebuilt from the generated initial table. The system freeze flag does not block this path (KRN-OBJ-004).
 5. **Start.** The partition's `autostart` threads are started; `restart_count` increments; the `partition_restart` trace event is emitted; partitions holding `OBSERVE` are notified.
 
-Restart never requires a system reboot and touches no memory outside `p`'s regions and the kernel's own tables (KRN-PART-004). Its duration is dominated by the `.data` copy and is published per reference board (R-003 T12); other partitions keep their latency guarantees during it because the restart runs at the restarting thread's priority and is preemptible between steps.
+Restart never requires a system reboot and touches no memory outside `p`'s regions and the kernel's own tables (KRN-PART-004). Its duration is dominated by the `.data` copy and is published per reference board (R-003 T12); preserving another partition's latency requires a measured response-time analysis of restart priority, protected sections, memory/bus contention, device quiescence and cross-partition locks. Preemptibility between steps alone is insufficient. SMP stop acknowledgements need a deadline and escalation for a thread that never reaches a legal stop point.
 
 ## 8. Devices in partitions
 
@@ -192,7 +194,7 @@ A device capability (`access`, `irq` rights) gives a partition:
 
 - an MPU or PMP region over the device's MMIO range (§4.2), so the driver code in the partition touches registers directly;
 - interrupt delivery as a notification: the kernel's handler for a granted interrupt masks the interrupt line and sets the bound application bit on the partition's designated thread; the thread services the device and calls `emb_irq_ack(irq)` (requires `irq`) to unmask (Hubris's scheme: the thread names the interrupt by its own bit, no ownership lookup on the hot path, R-001 §7);
-- DMA: only when the device's DMA capability is also granted; DMA buffers must lie in a region marked `DMA` that the partition may access, and the generator places them there (KRN-MEM-008).
+- DMA: CPU MPU/PMP permissions do not generally restrict a DMA bus master. An untrusted partition must not receive raw DMA control unless hardware independently constrains every accessible address and descriptor. Otherwise a trusted driver validates addresses, lengths, directions and ownership, controls descriptors, and waits for device quiescence before releasing buffers. A `DMA` region attribute describes placement/cache needs, not isolation enforcement. Direct MMIO grants for DMA-capable peripherals require the same review (KRN-MEM-008).
 
 Interrupt-to-thread latency for a partition driver is the kernel handler plus a notification wake (R-003 T6 class); the documentation states it, and drivers with hard latency needs stay in the kernel partition. The same driver source serves both placements (04 §3.1).
 
@@ -239,7 +241,7 @@ Trace events: `partition_fault(p, thread, class, code, pc)`, `partition_restart(
 
 ## 15. M3 scope
 
-Implemented in M3 on the STM32F407 Discovery, NUCLEO-F446RE (Armv7-M MPU) and RP2350 (Armv8-M MPU): static partitions with kstores, generated layout and MPU tables with the generator checks, cross-partition switch with region reprogramming, the syscall boundary with generated stubs and marshallers, fault capture and delivery, the reference supervisor, restart, device capabilities with interrupt delivery as notifications, shared regions. Deferred: RISC-V PMP (M5), ports and leases, budget donation, TrustZone secure partitions (04 §6.2: the secure side is a PSA-style manager, not a partition), the read-only kernel page fast path.
+Targeted for the independent M3b gate on a supported MPU board, then extended to the STM32F407 Discovery, NUCLEO-F446RE (Armv7-M MPU) and RP2350 (Armv8-M MPU): static partitions with kstores, generated layout and MPU tables with the generator checks, cross-partition switch with region reprogramming, the syscall boundary with generated stubs and marshallers, fault capture and delivery, the reference supervisor, restart, device capabilities with interrupt delivery as notifications, shared regions. Deferred: RISC-V PMP (M5), ports and leases, budget donation, TrustZone secure partitions (04 §6.2: the secure side is a PSA-style manager, not a partition), the read-only kernel page fast path.
 
 ## 16. Decisions taken at acceptance (2026-10-07)
 
@@ -253,3 +255,15 @@ Implemented in M3 on the STM32F407 Discovery, NUCLEO-F446RE (Armv7-M MPU) and RP
 8. Restart order: stop, generations, devices, memory, start; mutexes owned outside the partition are released with owner-death semantics unconditionally; minimum restart delay 5 ms and a restart limit are the reference supervisor's job.
 9. Interrupts granted to a partition are delivered as notification bits with explicit `emb_irq_ack`; the read-only kernel page for trap-free `emb_time_now()` is FUTURE.
 10. The reference supervisor ships as `subsys/supervisor/` and is replaceable.
+
+## 17. Isolation acceptance campaign (pending implementation)
+
+The first isolated configuration uses a small static partition set on one physical MPU board, trusted DMA mediation, POINTER-free TABLE entry and the minimal supervisor. It must meet KRN-PART-024 to 027 and the capability generation requirements before being labeled fault-contained.
+
+Validate range arithmetic without `ptr + len` overflow; require the entire requested range to be covered with the required permissions and reject holes/overlaps that broaden access. Snapshot attribute fields and their length/descriptor relationships before validation. Pin permitted buffer mappings and ownership for the duration of a blocking call or copy through bounded kernel storage; revalidate the caller incarnation and writable output before completion. A restarting/canceled partition cannot leave a queued pointer into reset memory. Memory permission validation does not prove a buffer's contents are immutable; callers must not race their own in-flight buffers, and the kernel must not use mutable contents to make unchecked security decisions.
+
+Authenticate syscall entry and internal return independently, including exception-frame origin, stack range/alignment, saved syscall state and privilege return. User-supplied register contents or syscall numbers must not forge a privileged return frame. Validate output pointers and protected object-slot construction. A fault caused during a user-memory copy must become a bounded caller error or partition fault, never uncontrolled kernel failure; write down the port's safe-copy recovery mechanism before implementing the boundary.
+
+Inject faults while holding cross-partition locks, with remote waiters, pending DMA, notifications, queue send/receive buffers and callbacks. Restart must either complete within its supported limits or escalate safely. Verify all remote waits finish with the specified stale/owner-death result, old capabilities and bindings fail, devices are quiescent before reuse, and unrelated shared devices keep operating. Test generation exhaustion explicitly: no live stale handle may become valid again after wrap. Freeze prevents ordinary capability changes but a trusted recovery path must regrant the intended initial graph, preserving reduced rights and avoiding stale authority.
+
+Model-check the software lifecycle and run negative syscall/fuzz tests natively, then exercise actual privilege transitions, out-of-region loads/stores, DMA restrictions, stack guards and restart on physical hardware. These complement rather than replace the ordinary conformance suite. The native gate cannot demonstrate hardware memory confinement. Archive faults, schedules, raw traces, generation state and response-time evidence for unrelated partitions.
