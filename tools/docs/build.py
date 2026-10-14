@@ -18,6 +18,24 @@ from bootstrap import BINARY, VERSION
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 FIELDS = ("Statement", "Rationale", "Status", "Verification", "Trace")
+
+
+def validate_api_annotations(records):
+    """Reject incomplete declaration documentation without inferring behavior evidence."""
+    failures = []
+    for record in records:
+        missing = []
+        for key, label in (("missing_tags", "contract tags"),
+                           ("missing_parameters", "parameter descriptions"),
+                           ("unresolved_requirement_ids", "requirement IDs")):
+            if record[key]:
+                missing.append(f"{label}: {', '.join(record[key])}")
+        if missing:
+            failures.append(record["function"] + " (" + "; ".join(missing) + ")")
+    if failures:
+        raise ValueError("Incomplete API documentation:\n" + "\n".join(failures))
+
+
 def project_version():
     text = (ROOT / "include/emb/version.h").read_text()
     parts = []
@@ -27,6 +45,23 @@ def project_version():
             raise ValueError(f"Missing EMB_VERSION_{name} in version header")
         parts.append(value[1])
     return ".".join(parts) + "-dev"
+
+
+def contract_tags(block):
+    """Read contract fields, including comment continuations reflowed by clang-format."""
+    clean = re.sub(r"^\s*\* ?", "", block, flags=re.M)
+    tags = {}
+    active = None
+    for line in clean.splitlines():
+        tag = re.match(r"^[ \t]*@(ctx|blocks|time|owns|config|req|since|stable)(?:[ \t]+([^\n]*))?$", line)
+        if tag:
+            active = tag[1]
+            tags[active] = (tag[2] or "").strip()
+        elif not line.strip() or line.lstrip().startswith("@"):
+            active = None
+        elif active is not None:
+            tags[active] += " " + line.strip()
+    return tags
 
 
 def prepare_headers(output):
@@ -40,7 +75,7 @@ def prepare_headers(output):
         text = re.sub(r"@(\w+):", lambda m: f"@param {m[1]}", text)
         lines = []
         for line in text.splitlines():
-            tag = re.match(r"\s*\*\s*@([\w-]+)\s", line)
+            tag = re.match(r"\s*\*\s*@([\w-]+)(?:\s|$)", line)
             if not tag or tag[1] not in contracts:
                 line = re.sub(r"@([A-Za-z_][\w-]*)", lambda m: m[0] if m[1] in standard else rf"\p {m[1]}", line)
             lines.append(line)
@@ -133,7 +168,7 @@ def generate_api(source, output):
 
 Doxygen extracts declarations and comments from the current public headers; Breathe renders them here. Planned APIs mentioned in specifications are not fabricated. Feature-gated declarations are shown for documentation; availability still depends on each API's configuration contract. Generated storage sizes are configuration-dependent and are not fixed ABI promises.
 
-The JSON annotation audit lists existing tags, missing tags and references to unmigrated requirement groups. Header links are declaration-level trace references, not executed-test evidence. We leave kernel headers unchanged during documentation setup.
+The JSON annotation audit lists contract tags, parameter descriptions and unresolved requirement IDs. The strict build rejects omissions and unresolved IDs. Header links are declaration-level design references, not proof that the complete linked requirement is implemented or tested. Human review is still needed for semantic accuracy.
 
 Download: {download}`Annotation audit <../../_exports/api-annotations.json>`.
 
@@ -150,7 +185,7 @@ audit
             clean = re.sub(r"^\s*\* ?", "", block, flags=re.M)
             name = re.search(r"\b(emb_[A-Za-z0-9_]+)\(\)", clean)
             if name:
-                metadata[name[1]] = dict(re.findall(r"^[ \t]*@(ctx|blocks|time|owns|config|req|since|stable)[ \t]*([^\n]*)", clean, re.M))
+                metadata[name[1]] = contract_tags(block)
     for compound in ET.parse(xml / "index.xml").getroot().findall("compound"):
         if compound.attrib["kind"] != "file":
             continue
@@ -168,8 +203,9 @@ audit
     known_ids = {r["id"] for r in requirement_catalog()}
     for record in records:
         record["unresolved_requirement_ids"] = sorted(set(re.findall(r"\b[A-Z][A-Z0-9-]*-\d+\b", record["tags"].get("req", ""))) - known_ids)
-    audit = "# API documentation audit\n\nThis is documentation metadata, not test coverage or proof of semantic accuracy. Missing parameters refer to extracted parameter descriptions; inline references alone are not complete parameter documentation. Some unresolved IDs belong to architecture groups not yet migrated into structured requirement files. Review them individually.\n\n"
+    audit = "# API documentation audit\n\nThis is documentation metadata, not test coverage or proof of semantic accuracy. Missing parameters refer to extracted parameter descriptions; inline references alone are not complete parameter documentation. Every declared requirement ID must resolve in the normative catalog. Related requirements may describe a broader target than the current implementation.\n\n"
     audit += f"{len(records)} extracted functions; {sum(not r['missing_tags'] for r in records)} have all eight contract tags.\n\n"
+    audit += f"Functions missing parameter descriptions: {sum(bool(r['missing_parameters']) for r in records)}. Functions with unresolved requirement IDs: {sum(bool(r['unresolved_requirement_ids']) for r in records)}.\n\n"
     audit += "| Function | Header | Missing tags | Missing parameter descriptions | Unresolved requirement IDs |\n|---|---|---|---|---|\n"
     for record in records:
         if any(record[key] for key in ("missing_tags", "missing_parameters", "unresolved_requirement_ids")):
@@ -179,6 +215,7 @@ audit
     if not records:
         raise ValueError("Doxygen extracted no API functions")
     (output / "catalog/api-annotations.json").write_text(json.dumps(records, indent=2, sort_keys=True) + "\n")
+    validate_api_annotations(records)
     return records
 
 

@@ -48,14 +48,16 @@ typedef void (*emb_fault_hook_t)(const emb_fault_info_t *info);
 
 /**
  * emb_fault_set_hook() - Register the function called on every kernel fault.
- * @hook: May run in any context and must be ISR-safe; NULL removes the hook.
+ * @hook: May run in any context with interrupts masked; NULL removes the hook.
+ *        Must be bounded and ISR-safe. Copy any required info during the call:
+ *        its pointer refers to a temporary record, not retained crash storage.
  *
  * @ctx      prekernel thread
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      FLT-002
+ * @req      API-017
  * @since    0.2
  * @stable   yes
  */
@@ -69,10 +71,10 @@ void emb_fault_set_hook(emb_fault_hook_t hook);
  *
  * @ctx      thread isr prekernel
  * @blocks   no
- * @time     O(1) plus the hook
+ * @time     O(1) preparation plus trace/hook and the non-returning port action
  * @owns     none
  * @config
- * @req      FLT-001
+ * @req      API-015 API-017
  * @since    0.2
  * @stable   yes
  */

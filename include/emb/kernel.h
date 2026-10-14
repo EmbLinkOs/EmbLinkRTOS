@@ -27,7 +27,7 @@ extern "C" {
  * @time     O(init table)
  * @owns     none
  * @config
- * @req      KRN-THR-015
+ * @req      KRN-OBJ-009 KRN-THR-007
  * @since    0.2
  * @stable   yes
  */
@@ -45,7 +45,7 @@ void emb_kernel_init(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SCH-001
+ * @req      KRN-IRQ-023 KRN-THR-016
  * @since    0.2
  * @stable   yes
  */
@@ -89,7 +89,7 @@ typedef struct EMB_ALIGNED(sizeof(void *)) emb_init_entry {
  * @time     O(1)
  * @owns     none
  * @config   CONFIG_EMB_CHECKED
- * @req      API-016
+ * @req      API-015 API-017
  * @since    0.2
  * @stable   yes
  *

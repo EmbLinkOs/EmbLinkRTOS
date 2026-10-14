@@ -26,7 +26,7 @@ enum emb_context_kind {
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-012 KRN-IRQ-012
+ * @req      API-014 KRN-IRQ-034
  * @since    0.2
  * @stable   yes
  *
@@ -43,7 +43,7 @@ emb_context_t emb_context(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-012
+ * @req      API-014 KRN-IRQ-002
  * @since    0.2
  * @stable   yes
  */

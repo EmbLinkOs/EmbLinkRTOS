@@ -31,7 +31,7 @@ typedef void (*emb_isr_fn_t)(void *arg);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-IRQ-001 KRN-IRQ-002 KRN-IRQ-033
+ * @req      KRN-IRQ-018 KRN-IRQ-033
  * @since    0.2
  * @stable   yes
  *
@@ -39,6 +39,19 @@ typedef void (*emb_isr_fn_t)(void *arg);
  */
 #if CONFIG_EMB_CHECKED
 emb_irq_key_t emb_irq_lock(void);
+/**
+ * emb_irq_unlock() - Restore the previous mask state in a checked build.
+ * @key: The value from the matching emb_irq_lock(); unlock in reverse order.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_CHECKED
+ * @req      KRN-IRQ-018 KRN-IRQ-033
+ * @since    0.2
+ * @stable   yes
+ */
 void emb_irq_unlock(emb_irq_key_t key);
 #else
 static EMB_ALWAYS_INLINE emb_irq_key_t emb_irq_lock(void)
@@ -55,7 +68,7 @@ static EMB_ALWAYS_INLINE emb_irq_key_t emb_irq_lock(void)
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-IRQ-001 KRN-IRQ-002
+ * @req      KRN-IRQ-018 KRN-IRQ-033
  * @since    0.2
  * @stable   yes
  */
@@ -73,7 +86,7 @@ static EMB_ALWAYS_INLINE void emb_irq_unlock(emb_irq_key_t key)
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-IRQ-002
+ * @req      KRN-IRQ-018
  * @since    0.2
  * @stable   yes
  */
@@ -105,17 +118,103 @@ unsigned emb_irq_nesting_depth(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-IRQ-020
+ * @req      KRN-IRQ-029
  * @since    0.2
  * @stable   yes
  *
  * Return: EMB_OK; EMB_EINVAL for an unknown number.
  */
 emb_status_t emb_irq_enable(emb_irq_t irq);
+/**
+ * emb_irq_disable() - Mask one interrupt at the controller.
+ * @irq: Interrupt number from the port/SoC table.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-IRQ-029
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: EMB_OK; EMB_EINVAL for an unknown number; port-specific unsupported
+ * operations may return EMB_ENOTSUP. This does not clear a pending interrupt.
+ */
 emb_status_t emb_irq_disable(emb_irq_t irq);
+/**
+ * emb_irq_is_enabled() - Read one controller enable state.
+ * @irq: Interrupt number from the port/SoC table.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-IRQ-029
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: true when enabled, false when disabled or the number is unknown.
+ */
 bool emb_irq_is_enabled(emb_irq_t irq);
+/**
+ * emb_irq_set_level() - Set a generic interrupt priority.
+ * @irq: Interrupt number from the port/SoC table.
+ * @level: Port priority value; see the current mapping limitation below.
+ *
+ * @ctx      thread prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-IRQ-028 KRN-IRQ-029
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: EMB_OK; EMB_EINVAL for an invalid number on validating ports.
+ * The target convention is larger = more urgent (KRN-IRQ-028), but the current
+ * Cortex-M port maps 0 to the most urgent kernel-aware level and clamps larger
+ * values toward lower urgency. Native, AVR and current RV32 accept a known
+ * number but ignore level. This API does not yet implement generic priority
+ * numbering consistently; do not infer hardware preemption from native tests.
+ */
 emb_status_t emb_irq_set_level(emb_irq_t irq, uint8_t level);
+/**
+ * emb_irq_pend() - Request delivery of a kernel-aware interrupt.
+ * @irq: Interrupt number supported by the port.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-IRQ-029
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: EMB_OK; EMB_EINVAL for an unknown number; EMB_ENOTSUP for a
+ * controller/vector that cannot be software-pended. Delivery follows the
+ * current mask and enable state. A kernel-independent ISR must use the
+ * port primitive emb_arch_irq_pend_soft(), not this public kernel API.
+ */
 emb_status_t emb_irq_pend(emb_irq_t irq);
+/**
+ * emb_irq_clear_pending() - Clear one controller pending state.
+ * @irq: Interrupt number supported by the port.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-IRQ-029
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: EMB_OK; EMB_EINVAL for an unknown number; EMB_ENOTSUP where
+ * clearing is unsupported. A level source may pend again until acknowledged.
+ */
 emb_status_t emb_irq_clear_pending(emb_irq_t irq);
 
 #if CONFIG_EMB_IRQ_DYNAMIC
@@ -130,7 +229,7 @@ emb_status_t emb_irq_clear_pending(emb_irq_t irq);
  * @time     O(1)
  * @owns     none
  * @config   CONFIG_EMB_IRQ_DYNAMIC
- * @req      KRN-IRQ-021
+ * @req      KRN-IRQ-029
  * @since    0.2
  * @stable   yes
  *

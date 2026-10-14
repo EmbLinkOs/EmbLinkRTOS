@@ -61,13 +61,44 @@ typedef struct emb_timeout {
 #define EMB_INSTANT_(x)  ((emb_instant_t){.ticks = (emb_tick_t)(x)})
 #endif
 
-/* Saturating unsigned multiply used by the unit conversions. */
+/**
+ * emb_mul_sat_u64() - Multiply unsigned values with saturation.
+ * @a: First unsigned factor.
+ * @b: Second unsigned factor.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      API-023
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: a * b, or UINT64_MAX when the mathematical product overflows.
+ * This conversion helper is also used by the public duration macros.
+ */
 static EMB_INLINE uint64_t emb_mul_sat_u64(uint64_t a, uint64_t b)
 {
     return (b != 0u && a > (UINT64_MAX / b)) ? UINT64_MAX : (a * b);
 }
 
-/* Nanoseconds to ticks, rounding up, saturating at EMB_TICK_MAX (SPEC-001 §7.3). */
+/**
+ * emb_ns_to_ticks() - Convert nanoseconds to ticks, rounding up.
+ * @ns: Unsigned nanosecond duration; zero converts to zero.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      API-023 KRN-TIM-007
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: ceil(ns / CONFIG_EMB_TICK_NS), saturated to EMB_TICK_MAX.
+ * The addition needed for rounding is itself checked for overflow.
+ */
 static EMB_INLINE emb_tick_t emb_ns_to_ticks(uint64_t ns)
 {
     uint64_t t;
@@ -105,11 +136,12 @@ static EMB_INLINE emb_tick_t emb_ns_to_ticks(uint64_t ns)
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-TIM-001 KRN-TIM-016
+ * @req      KRN-TIM-001 KRN-TIM-032
  * @since    0.2
  * @stable   yes
  *
- * Return: the current instant; zero before kernel start, never moving backward.
+ * Return: the current instant; zero before kernel start, wrapping with the
+ *         configured tick width. Use emb_instant_before() for 32-bit ordering.
  */
 emb_instant_t emb_time_now(void);
 
@@ -123,22 +155,26 @@ emb_instant_t emb_time_now(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-022 KRN-TIM-022
+ * @req      API-023 KRN-TIM-022
  * @since    0.2
  * @stable   yes
  */
 emb_timeout_t emb_timeout_from_duration(emb_duration_t d);
 
 /**
- * emb_instant_add() - @t plus @d: saturating at EMB_TICK_MAX; wrapping in the 32-bit profile,
- *                     whose instant space is circular (SPEC-003 §5.2).
+ * emb_instant_add() - Add a duration to a kernel-clock instant.
+ * @t: Kernel-clock instant to advance.
+ * @d: Duration to add; scheduling comparisons still require the 32-bit half-range window.
+ *
+ * Saturates at EMB_TICK_MAX in the 64-bit profile; wraps in the 32-bit profile,
+ * whose instant space is circular (SPEC-003 §5.2).
  *
  * @ctx      thread isr prekernel
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-021
+ * @req      API-022 API-023 KRN-TIM-022
  * @since    0.2
  * @stable   yes
  */
@@ -146,13 +182,15 @@ emb_instant_t emb_instant_add(emb_instant_t t, emb_duration_t d);
 
 /**
  * emb_instant_sub() - @later minus @earlier, zero when @later is not after @earlier.
+ * @later: Candidate later instant, within the 32-bit comparison window if applicable.
+ * @earlier: Reference instant on the same kernel clock.
  *
  * @ctx      thread isr prekernel
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-021
+ * @req      API-022 KRN-TIM-003
  * @since    0.2
  * @stable   yes
  */
@@ -160,13 +198,15 @@ emb_duration_t emb_instant_sub(emb_instant_t later, emb_instant_t earlier);
 
 /**
  * emb_instant_before() - Is @a before @b? Wrap-safe in the 32-bit profile.
+ * @a: First instant on the kernel clock.
+ * @b: Second instant; 32-bit ordering requires separation less than half the counter range.
  *
  * @ctx      thread isr prekernel
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-021 KRN-TIM-022
+ * @req      API-022 KRN-TIM-003 KRN-TIM-022
  * @since    0.2
  * @stable   yes
  */
@@ -174,27 +214,30 @@ bool emb_instant_before(emb_instant_t a, emb_instant_t b);
 
 /**
  * emb_duration_to_ns() - Exact ticks-to-nanoseconds conversion, saturating.
+ * @d: Duration in kernel ticks; multiplication saturates to UINT64_MAX.
  *
  * @ctx      thread isr prekernel
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-021
+ * @req      API-023
  * @since    0.2
  * @stable   yes
  */
 uint64_t emb_duration_to_ns(emb_duration_t d);
 
 /**
- * emb_duration_is_saturated() - Did a conversion into @d overflow the tick type?
+ * emb_duration_is_saturated() - Does @d hold the saturated tick value?
+ * @d: Duration to inspect; true means ticks == EMB_TICK_MAX, including an explicitly supplied
+ * maximum.
  *
  * @ctx      thread isr prekernel
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-021
+ * @req      API-023
  * @since    0.2
  * @stable   yes
  */

@@ -33,6 +33,8 @@ Name limits in the generated build report when that tool exists and in benchmark
 
 Some bounds are currently structural rather than enforced admission limits. A finite data structure does not by itself provide a useful published latency bound. Record the maximum admitted size and reject configurations outside a claimed scope. A timeout budget must include the sum of wake hooks, not just node removal. Depth truncation is a limitation of inheritance correctness as well as timing.
 
+In current header annotations, `waiters` counts queued threads on the affected object, `timeouts` counts armed timeout nodes, `owned` counts mutexes in an affected thread's owned list, and `PI work` includes the owned-list scans and waiter requeues along the visited inheritance chain. `stack` is the configured stack byte count and `threads` the registry count. These variables describe work rather than cycles. Include port switch/interrupt costs, tiny table scans and synchronous trace/callback work in a complete call-path bound; a fast-path annotation does not include the execution time of a higher-priority application that runs before the caller resumes.
+
 ## Hardware campaign
 
 Use the primary Cortex-M board chosen in the roadmap. Measure switch, IRQ-to-thread latency, masking intervals, timer accuracy and copy/lock paths with matching compiler, options, feature set, FPU state and clock settings. Confirm cycle-counter instrumentation against GPIO/probe observation where possible. Account for timer and instrumentation overhead.

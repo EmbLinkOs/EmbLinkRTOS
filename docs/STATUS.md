@@ -1,6 +1,6 @@
 # Project status and evidence
 
-**Reviewed:** 2026-10-14 against baseline `f0f3afb473a61ebf02a47a9106cf9690f98ece2e` and the documentation reconciliation in ADR-039. This inventory is maintained manually until evidence tooling exists. It is not a generated support matrix.
+**Reviewed:** 2026-10-14 against implementation baseline `f0f3afb473a61ebf02a47a9106cf9690f98ece2e`, the documentation foundation merged in `eea5b5d`, and the subsequent user-guide/API-comment review. This inventory is maintained manually until evidence tooling exists. It is not a generated support matrix.
 
 This page is the authoritative inventory of implementation and available evidence. Specifications define target contracts; their acceptance dates do not mean that all described APIs exist. The [roadmap](architecture/07-roadmap.md) determines release eligibility. [Timing and evidence](engineering/timing-and-evidence.md) defines how a claim becomes substantiated. Port pages explain implementation details and historical measurements.
 
@@ -17,7 +17,7 @@ This page is the authoritative inventory of implementation and available evidenc
 | Embedded ports | ATmega328P; Cortex-M3/M4F; RV32IMAC machine mode | QEMU jobs defined in CI; no real-board timing or peripheral/HIL validation recorded here |
 | Configuration/build | Kconfig subset, port manifests, CMake/Ninja, layout probe, footprint tool | GCC/Clang native CI jobs; cross-GCC QEMU jobs; EmbCC toolchain files exist but RTOS execution is not qualified |
 | Observability | M1 trace sink and fault reporting | CTF rings/metadata, deferred log decoder, retained crash records, debug descriptor and worst-case monitors remain planned |
-| Documentation | Sphinx/MyST manuals, Doxygen/Breathe C API, Sphinx Needs design catalog, JSON/CSV downloads and annotation audit | Strict local HTML build; source-preservation and catalog-integrity checks; CI/opt-in Pages workflow configured, remote deployment not verified |
+| Documentation | Sphinx/MyST manuals and native tutorials, Doxygen/Breathe C API, Sphinx Needs design catalog, JSON/CSV downloads and annotation audit | Strict local HTML build, complete extracted function annotations, source-preservation and catalog-integrity checks; CI/opt-in Pages workflow configured; publication reported by maintainer, remote deployment not independently verified here |
 | Semantic model | UP scheduler/wait/mutex/notification/lifecycle scenarios, exhaustive section-level exploration and randomized walks | Scenario-scoped exploration, not a proof of all C execution, arbitrary programs, SMP or hardware protection |
 
 ## Specified but unimplemented
@@ -38,7 +38,9 @@ The reference model passed 44 pytest tests with Hypothesis installed. The banned
 
 Generated requirement coverage, coverage percentages, clang-tidy/cppcheck gates, include-boundary checks, double-build reproducibility, fuzzing and HIL are not currently CI gates. The roadmap must deliver them for the released scope rather than assume the engineering-system target description is already enforced.
 
-The separate documentation toolchain is installed in `.venv-docs` with a checksummed Doxygen 1.15.0 binary under `build/tools/`. Its local HTML build extracts 361 design requirements and 82 current API functions. Seventy functions have all eight contract tags; the audit records remaining tag/parameter omissions and unmigrated requirement references. This is extraction/documentation evidence, not API semantic compliance or test coverage. The documentation integrity suite checks malformed/duplicate/empty catalogs and keeps design acceptance separate from execution evidence.
+The separate documentation toolchain is installed in `.venv-docs` with a checksummed Doxygen 1.15.0 binary under `build/tools/`. Its local HTML build extracts 361 design requirements and 82 current API functions. All extracted functions have eight contract tags and parameter descriptions; their declared requirement IDs resolve in the normative catalog. The strict build rejects omissions and unresolved IDs. This is extraction/documentation evidence, not API semantic compliance or test coverage. A related requirement can describe more than the implemented subset. The documentation integrity suite checks malformed/duplicate/empty catalogs, annotation omissions and wrapped contract fields, and keeps design acceptance separate from execution evidence.
+
+The user-guide pass also configured native/base with stack statistics and two TLS slots in a separate `native-inspect` build; all ten CTest targets passed. Both complete tutorial programs were compiled with strict C11 warnings and run with the documented expected output and zero exit status against checked base, release, tiny and this diagnostic configuration. The diagnostic callback fragment compiled as C11, and all three fragments compiled as C++17 against native/base headers. These are local tutorial/configuration checks; they add no physical-board or universal API-coverage claim.
 
 ## Known limits and unresolved evidence
 
@@ -47,6 +49,8 @@ The separate documentation toolchain is installed in `.venv-docs` with a checksu
 - Deep differential campaigns have two unresolved replay cases described in `tools/model/README.md`. They are unclassified failures until the diagnosis and reproductions establish whether the bridge, model, or kernel is responsible. Passing the six-schedule CI campaign does not close them.
 - AVR launch/restore uses `out SREG; pop r0; ret`; pending IRQ coherence during that tail remains a physical validation obligation (A27), not a verified atomic out/ret pair.
 - Embedded fault-expectation cases that require host `fork` are skipped. A passing emulator job does not establish those misuse paths on hardware.
+- `emb_irq_set_level()` does not yet implement KRN-IRQ-028's generic priority convention consistently: Cortex-M maps zero to the most urgent kernel-aware level and larger values toward lower urgency; native, AVR and current RV32 ignore the requested level. Header comments and the debugging guide disclose this implementation gap; no priority-programming code was changed during documentation work.
+- Tiny uses its current base-priority table slot as `emb_thread_index()`, so reprioritization changes that diagnostic index. KRN-THR-025's stable-index target is not met across that operation. Generic fault records also leave `api_id` at zero; retained crash records and full API attribution remain incomplete.
 - Planned isolation must meet SPEC-010's DMA, pointer lifetime, generation and restart obligations before fault containment is claimed. CPU protection alone is insufficient.
 
 ## Updating this page

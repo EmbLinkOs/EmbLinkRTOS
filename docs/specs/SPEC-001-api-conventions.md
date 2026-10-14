@@ -364,7 +364,7 @@ Tag grammar (one tag per line, order free, every tag mandatory unless marked opt
 |---|---|---|
 | `@ctx` | subset of `thread isr prekernel` | Contexts the function may be called from (§5.2) |
 | `@blocks` | `no` or `timeout` | `timeout`: may block, bounded by the trailing timeout or deadline parameter; `no`: never blocks |
-| `@time` | `O(1)`, `O(log N)`, `O(N)` with `N` one of `priorities`, `waiters`, `timeouts`, `items`, `len`, `regions`, `caps`; free text after the bound | Timing class per configuration; a function with more than one phase lists each |
+| `@time` | Big-O expressions over `priorities`, `waiters`, `timeouts`, `items`, `len`, `regions`, `caps`, `owned`, `threads`, `stack`, `depth` or `PI work`; free text after the bound | Timing class per configuration; a function with more than one phase lists each; PI work includes scans/requeues along the visited chain as defined in the timing/evidence guide |
 | `@owns` | `none`, `takes:<param>`, `gives:<param>`, `borrows:<param>` | Ownership transfer of a buffer or object across the call |
 | `@config` | zero or more `CONFIG_EMB_*` | Symbols that must be enabled for the function to exist |
 | `@req` | one or more requirement identifiers | Traceability (05 §6); never a capability-right name |
@@ -374,7 +374,7 @@ Tag grammar (one tag per line, order free, every tag mandatory unless marked opt
 | `@stable` | `yes`, `experimental`, `deprecated:<version>` | Stability promise (§11) |
 | `@isr-note` (optional) | free text | What differs when called from an ISR, for `thread isr` functions |
 
-The planned documentation gate rejects a function lacking a mandatory tag; it is not implemented in current CI. Future syscall generation requires explicit `@right` and `@arg` metadata; current headers do not supply it and are not ready for generated security checks. The JSON form is one object per function with the tag names as keys and parsed values; its schema lives in `tools/apidoc/schema.json` once the tool exists.
+The current `tools/docs/build.py` documentation gate rejects an extracted function lacking one of the eight current contract tags, a parameter description or a resolvable requirement ID. It preserves fields wrapped by the comment formatter. This is a presence/reference check, not a full grammar validator or proof that the values match implementation. The broader `tools/apidoc` schema and semantic checks remain planned. Future syscall generation requires explicit `@right` and `@arg` metadata; current headers do not supply it and are not ready for generated security checks. The current JSON audit is one record per extracted function with a `tags` map, missing-field lists and evidence kept at `not evaluated`; it is distinct from the future schema.
 
 ## 10. Compiler portability layer
 

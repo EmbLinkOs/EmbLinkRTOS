@@ -54,10 +54,10 @@ typedef uint32_t emb_notify_bits_t;
  *
  * @ctx      thread isr
  * @blocks   no
- * @time     O(1)
+ * @time     O(1) bit update, plus profile-specific timeout removal and scheduling
  * @owns     none
  * @config   CONFIG_EMB_NOTIFY
- * @req      KRN-NOTIF-001 KRN-NOTIF-002 KRN-NOTIF-003
+ * @req      KRN-NOTIF-001 KRN-NOTIF-007 KRN-NOTIF-008
  * @since    0.2
  * @stable   yes
  *
@@ -70,15 +70,15 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits);
  * emb_notify_wait() - Wait until the caller's word satisfies @mask in @mode.
  * @mask:     Bits of interest; zero is EMB_EINVAL.
  * @mode:     EMB_NOTIFY_ANY or EMB_NOTIFY_ALL, optionally | EMB_NOTIFY_CLEAR.
- * @timeout:  How long to wait.
+ * @timeout: How long to wait.
  * @out_bits: Receives word & mask on EMB_OK; may be NULL.
  *
  * @ctx      thread
  * @blocks   timeout
- * @time     O(1)
+ * @time     O(1) bit test; O(timeouts) finite timeout arm
  * @owns     none
  * @config   CONFIG_EMB_NOTIFY
- * @req      KRN-NOTIF-001 KRN-NOTIF-003
+ * @req      KRN-NOTIF-002 KRN-NOTIF-008
  * @since    0.2
  * @stable   yes
  *
@@ -89,13 +89,17 @@ emb_status_t emb_notify_wait(emb_notify_bits_t mask, uint8_t mode, emb_timeout_t
 
 /**
  * emb_notify_wait_until() - Absolute-deadline form of emb_notify_wait().
+ * @mask: Nonzero bits of interest; application code uses EMB_NOTIFY_APP_MASK bits.
+ * @mode: EMB_NOTIFY_ANY or EMB_NOTIFY_ALL, optionally ORed with EMB_NOTIFY_CLEAR.
+ * @deadline: Kernel-clock deadline; past means no wait, subject to 32-bit half-range limits.
+ * @out_bits: Receives the satisfied masked bits only on EMB_OK; may be NULL.
  *
  * @ctx      thread
  * @blocks   timeout
- * @time     O(1)
+ * @time     O(1) bit test; O(timeouts) finite timeout arm
  * @owns     none
  * @config   CONFIG_EMB_NOTIFY
- * @req      KRN-NOTIF-001 API-024
+ * @req      KRN-NOTIF-002 KRN-NOTIF-008 KRN-TIM-011 API-024
  * @since    0.2
  * @stable   yes
  */
@@ -118,6 +122,8 @@ emb_notify_bits_t emb_notify_get(void);
 
 /**
  * emb_notify_clear() - Clear @bits in the caller's word.
+ * @bits: Bits to clear from the caller word; zero is a no-op. Applications use application bits
+ * only.
  *
  * @ctx      thread
  * @blocks   no
