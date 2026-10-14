@@ -26,7 +26,7 @@ Every commit must carry a `Signed-off-by` line certifying the [Developer Certifi
 Signed-off-by: Your Name <your.email@example.com>
 ```
 
-Add it with `git commit -s`. Pull requests with unsigned commits are not merged.
+Add it with `git commit -s`. The Repository policy check requires a matching author trailer on every non-merge commit in the change. GitHub-generated merge commits are excluded; authored conflict-resolution changes belong in a separate signed-off commit. DCO certification is distinct from cryptographic signing.
 
 Every source file starts with an SPDX header:
 
@@ -44,6 +44,10 @@ Hardware descriptions, scripts, and other files use the same two lines in their 
 3. Code changes must pass existing CI and add evidence appropriate to the changed contract. The complete target quality gates are described in `docs/architecture/05-engineering-system.md` §5: build matrix, conformance suite, static analysis, coverage, footprint thresholds, traceability, and documentation for any touched public API. Some gates remain unimplemented (STATUS.md); their absence is recorded as an evidence gap, not represented as a passing check.
 4. A kernel semantics change must update the executable reference model and the conformance suite in the same pull request.
 5. Reviews are by the owners listed in `.github/CODEOWNERS`.
+
+Use the bug/feature issue forms and PR checklist. The required GitHub check names are **CI merge gate**, **Documentation build**, and **Repository policy**; the first aggregates the full existing compiler/port matrix plus lint/model/configuration jobs. See [Repository workflow](docs/engineering/repository-workflow.md) for DCO checks, limitations and activation of the `main` ruleset. A policy file alone does not enable branch protection.
+
+User-visible changes update [CHANGELOG.md](CHANGELOG.md) under Unreleased. The [ordered M2 checklist](docs/engineering/m2-checklist.md) starts with known failures and contract gaps before new primitives. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
 
 ## Hardware data and licences
 

@@ -159,6 +159,8 @@ The cross-RTOS harness (TEST-012, R-003 §6) is part of this: `tests/benchmarks/
 
 A change merges only when: build matrix green; conformance suite green on native and emulated targets; static analysis clean or deviations recorded; coverage not regressed on kernel; footprint within thresholds; traceability matrix complete for touched requirements; documentation updated for touched public API; and, for kernel semantics changes, the reference model updated in the same change.
 
+The currently configured subset and exact stable check names are documented in [Repository workflow](../engineering/repository-workflow.md). Main branch enforcement is a separate GitHub ruleset setting, not a consequence of checking policy JSON into source. Coverage, full static analysis, semantic traceability and hardware/release evidence remain target gates until their artifacts exist.
+
 ## 6. Requirements and traceability
 
 Identifier groups (v0.1 plus v0.2 additions):
@@ -187,6 +189,8 @@ Source archive, signed tags, SBOM, build manifests for reference configurations,
 
 **REL-001** Every release shall be signed, reproducible, and accompanied by an SBOM and conformance evidence.
 **REL-002** Support windows and end-of-life dates shall be published per release line.
+
+The operational [release checklist](../engineering/releases.md) implements this process, and the root changelog records Unreleased user-visible work until a real scoped release is validated. No release is created by documentation setup.
 
 ## 8. Support levels (LOCKED from v0.1, applied per axis)
 

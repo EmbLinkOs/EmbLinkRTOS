@@ -6,4 +6,7 @@
 documentation
 documentation-references
 timing-and-evidence
+repository-workflow
+releases
+m2-checklist
 ```

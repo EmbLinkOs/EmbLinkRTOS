@@ -16,7 +16,7 @@ Include what you can of: affected component and version or commit, a description
 
 ## Supported versions
 
-EmbLinkRTOS is in its architecture phase and has no released versions. The support and long-term support policy that will apply from 1.0 is described in `docs/architecture/05-engineering-system.md` §7. From the first release, each release line will state its security support window here.
+EmbLinkRTOS has an implemented M1 kernel subset and is completing M2, but has no released versions or declared security-supported release lines. The support policy is described in `docs/architecture/05-engineering-system.md` §7 and the release checklist in `docs/engineering/releases.md`. Each actual release line will state its concrete support window and end-of-life date here; no standing LTS cadence or unstaffed maintenance guarantee is implied.
 
 ## Scope
 

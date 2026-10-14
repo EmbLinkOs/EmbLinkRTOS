@@ -26,6 +26,8 @@ Native simulation and AVR (ATmega328P) first, then Cortex-M (Armv6-M to Armv8-M 
 
 Apache-2.0 (see `LICENSE` and `NOTICE`). Contributions are welcome under the Developer Certificate of Origin; see `CONTRIBUTING.md`. Security reports: see `SECURITY.md`.
 
+Development process: [required checks and branch rules](docs/engineering/repository-workflow.md), [ordered M2 work](docs/engineering/m2-checklist.md), [release checklist](docs/engineering/releases.md), and [changelog](CHANGELOG.md). The current version is development; there is no supported release yet.
+
 ## Part of the EmbLink platform
 
 EmbLinkRTOS integrates with EmbCC, EmbBuild, EmbDebug, EmbFlash, and EmbStudio while remaining fully usable with third-party compilers, debuggers, probes, and build systems.
