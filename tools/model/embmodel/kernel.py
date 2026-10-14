@@ -269,11 +269,12 @@ class Scenario:
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
     name: str = ""
+    tickless: bool = True                      # already-due compares request a timer interrupt
 
 
 def build(sc: Scenario) -> "Kernel":
     k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs),
-               owner_death=sc.owner_death)
+               owner_death=sc.owner_death, tickless=sc.tickless)
     for tid, (prio, _) in sc.threads.items():
         k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio, inactive=(tid in sc.inactive))
         k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)        # SLEEP / NOTIFY / START
@@ -314,6 +315,7 @@ class Kernel:
     programs: dict
     isr_bodies: tuple = ()
     owner_death: str = "release"
+    tickless: bool = True
     threads: dict = field(default_factory=dict)
     queues: dict = field(default_factory=dict)
     sems: dict = field(default_factory=dict)
@@ -326,6 +328,7 @@ class Kernel:
     sched_lock_depth: int = 0
     reschedule_pending: bool = False
     timeouts: list = field(default_factory=list)
+    timer_pending: bool = False
     seq: int = 0
     dequeued: frozenset = frozenset()
     stale_timeouts: int = 0
@@ -341,7 +344,7 @@ class Kernel:
                 tuple(m.key() for _, m in sorted(self.mutexes.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
-                self.reschedule_pending, tuple(self.timeouts), self.dequeued,
+                self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
                 self.stale_timeouts, self.isr_fired, self.pi_depth_max)
 
     def clone(self) -> "Kernel":
@@ -647,8 +650,11 @@ class Kernel:
         if t.pc == 1:
             if t.deadline is not None:
                 self.timeout_arm(t, t.deadline, t.saved_gen)
-                if t.deadline <= self.now:
-                    self._expire_due()        # already due: the timer fires at once (SPEC-003 §4.2)
+                if self.tickless and t.deadline <= self.now:
+                    # Programming an already-due compare requests an interrupt; the timeout
+                    # lock still masks delivery (SPEC-002 §6, SPEC-003 §4.2). A raw-clock tick
+                    # during this section can precede that delivery in the runner's trace.
+                    self.timer_pending = True
             t.pc = 2
             return False
         if t.pc == 2:
@@ -1015,6 +1021,7 @@ class Kernel:
 
     def _expire_due(self):
         """The timer interrupt: every deadline at or before now, in deadline order."""
+        self.timer_pending = False
         self.irq_nesting += 1
         while self.timeouts and self.timeouts[0][0] <= self.now:
             _, _, tid, gen = self.timeouts.pop(0)
@@ -1094,6 +1101,8 @@ class Kernel:
             raise ModelError("irq_nesting nonzero between steps")
 
     def check_terminal(self):
+        if self.timer_pending:
+            raise ModelError("terminal state with a pending timer interrupt")
         for t in self.threads.values():
             if t.wait_state == WaitState.READY and not t.suspended and not t.terminated:
                 raise ModelError(f"terminal state with runnable thread {t.tid} not dispatched")
@@ -1106,6 +1115,10 @@ class Kernel:
 
     # ------------------------------------------------------------------ enabled actions
     def enabled(self) -> list:
+        if self.timer_pending:
+            # Deliver before another thread section. A tick may represent counter advancement
+            # while the arming section was masked, followed by delivery at that later instant.
+            return [("timer",), ("tick",)]
         acts = []
         if self.current is not None:
             acts.append(("run",))
@@ -1117,12 +1130,16 @@ class Kernel:
         return acts
 
     def apply(self, act):
+        if self.timer_pending and act[0] not in ("timer", "tick"):
+            raise ModelError("pending timer interrupt must be delivered before another section")
         if act[0] == "run":
             self.step_thread()
         elif act[0] == "isr":
             self.fire_isr(act[1])
         elif act[0] == "tick":
             self.tick()
+        elif act[0] == "timer" and self.timer_pending:
+            self._expire_due()                # already due: no extra clock tick is required
         else:
             raise ModelError(f"unknown action {act}")
         self.check_invariants()

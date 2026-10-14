@@ -29,6 +29,15 @@
       }
     },
     {
+      "name": "native-periodic",
+      "displayName": "native, GCC, base profile, checked, periodic clock",
+      "inherits": "native-gcc",
+      "binaryDir": "${sourceDir}/build/native-periodic",
+      "cacheVariables": {
+        "EMB_CONF": "configs/native-periodic.conf"
+      }
+    },
+    {
       "name": "native-release",
       "displayName": "native, GCC, base profile, release build kind",
       "generator": "Ninja",
@@ -185,6 +194,10 @@
   ],
   "buildPresets": [
     {
+      "name": "native-periodic",
+      "configurePreset": "native-periodic"
+    },
+    {
       "name": "native-gcc",
       "configurePreset": "native-gcc"
     },
@@ -250,6 +263,13 @@
     }
   ],
   "testPresets": [
+    {
+      "name": "native-periodic",
+      "configurePreset": "native-periodic",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
     {
       "name": "native-gcc",
       "configurePreset": "native-gcc",
