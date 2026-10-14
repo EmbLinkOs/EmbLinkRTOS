@@ -1,0 +1,10 @@
+[1/47] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+FAILED: [code=1] include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+/workspace/EmbCC/embcc -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -I/workspace/EmbLinkRTOS/kernel/include -I/workspace/EmbLinkRTOS/include -I/workspace/EmbLinkRTOS/build/embcc-review-native-static/generated/include -I/workspace/EmbLinkRTOS/arch/native/include -I/workspace/EmbLinkRTOS/boards/native/native/include -std=c11 -pedantic -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstack-usage -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wvla -Wcast-align -Wcast-qual -Wdouble-promotion -Wformat=2 -Wswitch-default -Wimplicit-fallthrough -Wnull-dereference -Wredundant-decls -Wnested-externs -Werror -pthread -g -O1 -o include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o -c /workspace/EmbLinkRTOS/kernel/object/storage_probe.c
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: /workspace/EmbLinkRTOS/kernel/object/storage_probe.c:16: error: #error: "the compiler header does not define EMB_LAYOUT_MARKER: storage.h cannot be generated"
+  #error "the compiler header does not define EMB_LAYOUT_MARKER: storage.h cannot be generated"
+ninja: build stopped: subcommand failed.

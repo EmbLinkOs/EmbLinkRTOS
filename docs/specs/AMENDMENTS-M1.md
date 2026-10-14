@@ -2,6 +2,8 @@
 
 Implementation found the points below where the code departs from, or sharpens, an accepted specification. The affected specifications now include the contract corrections from this table (reconciliation 2026-10-14); this page retains the historical audit trail and implementation locations. The status page identifies unimplemented target designs. New documentation corrections A23 to A28 are recorded below (05 §6: a semantics change updates the specification, the model, and the suite together).
 
+Compiler restrictions in this historical record, including A20's typedef-alignment premise, refer to the then-reviewed EmbCC snapshot. The [current capability review](../engineering/embcc-capability-review.md) supersedes those compiler premises; the storage-member alignment correction itself remains necessary.
+
 | # | Specification | Amendment | Where in the code |
 |---|---|---|---|
 | A1 | SPEC-001 §7.3 | Compile-time detection of a constant that overflows the tick type is not provided by the `EMB_MS()` family: it needs a compiler-specific construct, and the generic forms must stay valid C11 and C++17. Saturation applies to constants as to runtime values; `emb_duration_is_saturated()` reports it. | `include/emb/time.h` |

@@ -1,0 +1,278 @@
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cpp/cpp.o src/cpp/cpp.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/class.o src/cxx/class.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/vtable.o src/cxx/vtable.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/template.o src/cxx/template.c
+src/cpp/cpp.c: In function ‘fallthrough_comment’:
+src/cpp/cpp.c:1492:9: warning: suggest braces around empty body in an ‘if’ statement [-Wempty-body]
+ 1492 |         ;
+      |         ^
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/consteval.o src/cxx/consteval.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/traits.o src/cxx/traits.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/concepts.o src/cxx/concepts.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/coro.o src/cxx/coro.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/access.o src/cxx/access.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/mangle.o src/cxx/mangle.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/cxx/emit.o src/cxx/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/sema.o src/sema/sema.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/type.o src/sema/type.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/ldfloat.o src/sema/ldfloat.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/w128.o src/sema/w128.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/uninit.o src/sema/uninit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/sema/format.o src/sema/format.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/ir/irgen.o src/ir/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/ir/irprint.o src/ir/irprint.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/ir/irparse.o src/ir/irparse.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/opt.o src/opt/opt.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/alias.o src/opt/alias.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/attrs.o src/opt/attrs.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/cfg.o src/opt/cfg.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/cfgclean.o src/opt/cfgclean.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/copyprop.o src/opt/copyprop.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/dce.o src/opt/dce.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/divmagic.o src/opt/divmagic.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/dse.o src/opt/dse.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/fold.o src/opt/fold.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/gcse.o src/opt/gcse.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/guardjump.o src/opt/guardjump.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/idiom.o src/opt/idiom.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/ifconv.o src/opt/ifconv.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/immfold.o src/opt/immfold.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/inline.o src/opt/inline.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/ivsr.o src/opt/ivsr.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/joincopies.o src/opt/joincopies.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/latch.o src/opt/latch.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/licm.o src/opt/licm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/loadcse.o src/opt/loadcse.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/lvn.o src/opt/lvn.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/mem2reg.o src/opt/mem2reg.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/memfwd.o src/opt/memfwd.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/pre.o src/opt/pre.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/rangecheck.o src/opt/rangecheck.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/reassoc.o src/opt/reassoc.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/rotate.o src/opt/rotate.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/sccp.o src/opt/sccp.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/sink.o src/opt/sink.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/splitloops.o src/opt/splitloops.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/sroa.o src/opt/sroa.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/tailmerge.o src/opt/tailmerge.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/swthread.o src/opt/swthread.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/tailrec.o src/opt/tailrec.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/unroll.o src/opt/unroll.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/util.o src/opt/util.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/vectorize.o src/opt/vectorize.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/verify.o src/opt/verify.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/opt/x86loadop.o src/opt/x86loadop.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/debug/dwarf.o src/debug/dwarf.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/debug/eh.o src/debug/eh.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/elf/write.o src/elf/write.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/macho/write.o src/macho/write.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/coff/write.o src/coff/write.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/target.o src/arch/target.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/backends.o src/arch/backends.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/regalloc.o src/arch/regalloc.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch/options.o src/arch/loongarch/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/options.o src/arch/xtensa/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc/options.o src/arch/ppc/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/options.o src/arch/rx/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc/options.o src/arch/sparc/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/options.o src/arch/coldfire/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips/options.o src/arch/mips/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/options.o src/arch/tricore/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/options.o src/arch/thumb/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv/options.o src/arch/riscv/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/options.o src/arch/avr/options.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/code.o src/arch/code.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/predef.o src/arch/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/irgen.o src/arch/x86_64/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/codegen.o src/arch/x86_64/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/emit.o src/arch/x86_64/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/topasm.o src/arch/x86_64/topasm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/as.o src/arch/x86_64/as.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/disasm.o src/arch/x86_64/disasm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/predef.o src/arch/x86_64/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/x86_64/predef_cxx.o src/arch/x86_64/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/irgen.o src/arch/aarch64/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/codegen.o src/arch/aarch64/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/emit.o src/arch/aarch64/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/asm.o src/arch/aarch64/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/predef.o src/arch/aarch64/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/aarch64/predef_cxx.o src/arch/aarch64/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/emit.o src/arch/thumb/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/a32.o src/arch/thumb/a32.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/attrs.o src/arch/thumb/attrs.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/irgen.o src/arch/thumb/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/codegen.o src/arch/thumb/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/v6m.o src/arch/thumb/v6m.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/asm.o src/arch/thumb/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/predef.o src/arch/thumb/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumb/predef_cxx.o src/arch/thumb/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv8m/predef.o src/arch/thumbv8m/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv8m/predef_cxx.o src/arch/thumbv8m/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv6m/predef.o src/arch/thumbv6m/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv6m/predef_cxx.o src/arch/thumbv6m/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv8mbase/predef.o src/arch/thumbv8mbase/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/thumbv8mbase/predef_cxx.o src/arch/thumbv8mbase/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/armv7a/predef.o src/arch/armv7a/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/armv7a/predef_cxx.o src/arch/armv7a/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv/emit.o src/arch/riscv/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv/codegen.o src/arch/riscv/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv/irgen.o src/arch/riscv/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv/asm.o src/arch/riscv/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv32/predef.o src/arch/riscv32/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv32/predef_cxx.o src/arch/riscv32/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv64/predef.o src/arch/riscv64/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/riscv64/predef_cxx.o src/arch/riscv64/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips/emit.o src/arch/mips/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips/codegen.o src/arch/mips/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips/irgen.o src/arch/mips/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips/asm.o src/arch/mips/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips32/predef.o src/arch/mips32/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips32/predef_cxx.o src/arch/mips32/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips32eb/predef.o src/arch/mips32eb/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips32eb/predef_cxx.o src/arch/mips32eb/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips64/predef.o src/arch/mips64/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips64/predef_cxx.o src/arch/mips64/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips64eb/predef.o src/arch/mips64eb/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/mips64eb/predef_cxx.o src/arch/mips64eb/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch/emit.o src/arch/loongarch/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch/codegen.o src/arch/loongarch/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch/irgen.o src/arch/loongarch/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch/asm.o src/arch/loongarch/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch64/predef.o src/arch/loongarch64/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/loongarch64/predef_cxx.o src/arch/loongarch64/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/emit.o src/arch/tricore/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/codegen.o src/arch/tricore/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/irgen.o src/arch/tricore/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/asm.o src/arch/tricore/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/predef.o src/arch/tricore/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/tricore/predef_cxx.o src/arch/tricore/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/emit.o src/arch/xtensa/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/codegen.o src/arch/xtensa/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/irgen.o src/arch/xtensa/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/asm.o src/arch/xtensa/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/predef.o src/arch/xtensa/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/xtensa/predef_cxx.o src/arch/xtensa/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc/emit.o src/arch/ppc/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc/codegen.o src/arch/ppc/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc/irgen.o src/arch/ppc/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc/asm.o src/arch/ppc/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc32/predef.o src/arch/ppc32/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/ppc32/predef_cxx.o src/arch/ppc32/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/emit.o src/arch/rx/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/codegen.o src/arch/rx/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/irgen.o src/arch/rx/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/asm.o src/arch/rx/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/rx/predef.o src/arch/rx/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc/emit.o src/arch/sparc/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc/codegen.o src/arch/sparc/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc/irgen.o src/arch/sparc/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc/asm.o src/arch/sparc/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc32/predef.o src/arch/sparc32/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/sparc32/predef_cxx.o src/arch/sparc32/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/emit.o src/arch/coldfire/emit.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/codegen.o src/arch/coldfire/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/irgen.o src/arch/coldfire/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/asm.o src/arch/coldfire/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/predef.o src/arch/coldfire/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/coldfire/predef_cxx.o src/arch/coldfire/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/emit.o src/arch/avr/emit.c
+src/arch/coldfire/asm.c: In function ‘cfasm_symform’:
+src/arch/coldfire/asm.c:1686:58: warning: ‘snprintf’ output may be truncated before the last format character [-Wformat-truncation=]
+ 1686 |             snprintf(f->encode, sizeof f->encode, "\003%s", text);
+      |                                                          ^
+src/arch/coldfire/asm.c:1686:13: note: ‘snprintf’ output between 2 and 129 bytes into a destination of size 128
+ 1686 |             snprintf(f->encode, sizeof f->encode, "\003%s", text);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/codegen.o src/arch/avr/codegen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/asm.o src/arch/avr/asm.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/irgen.o src/arch/avr/irgen.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/predef.o src/arch/avr/predef.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -c -o build/arch/avr/predef_cxx.o src/arch/avr/predef_cxx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -DEMBDBG_NO_MAIN -Wno-unused-function -c -o build/embdbg_core.o tools/embdbg/embdbg.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -DEMBDBG_NO_MAIN -Wno-unused-function -o embld \
+    tools/embld/embld.c tools/embld/doctor.c src/link/link.c \
+    src/driver/util.c src/driver/diag.c src/driver/explain.c \
+    src/embx/embx.c tools/embdbg/embdbg.c src/platform/platform_common.c src/platform/platform_posix.c src/platform/process_spawn.c \
+    src/arch/x86_64/disasm.c src/arch/riscv/emit.c src/arch/avr/emit.c \
+    src/arch/mips/emit.c src/arch/loongarch/emit.c src/arch/thumb/a32.c src/arch/tricore/emit.c src/arch/xtensa/emit.c src/arch/ppc/emit.c src/arch/rx/emit.c src/arch/sparc/emit.c src/arch/code.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -o embdbg tools/embdbg/embdbg.c tools/embdbg/remote.c \
+    src/arch/x86_64/disasm.c
+tools/embdbg/embdbg.c: In function ‘fb_label’:
+tools/embdbg/embdbg.c:269:37: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                     ^~
+tools/embdbg/embdbg.c:269:35: note: directive argument in the range [0, 2147483647]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                   ^~~~~
+tools/embdbg/embdbg.c:269:9: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tools/embdbg/embdbg.c:274:33: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                                 ^~
+tools/embdbg/embdbg.c:274:31: note: directive argument in the range [0, 2147483647]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                               ^~~~~
+tools/embdbg/embdbg.c:274:5: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tools/embdbg/embdbg.c: In function ‘fb_label’:
+tools/embdbg/embdbg.c:269:37: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                     ^~
+tools/embdbg/embdbg.c:269:35: note: directive argument in the range [0, 2147483647]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                   ^~~~~
+tools/embdbg/embdbg.c:269:9: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tools/embdbg/embdbg.c:274:33: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                                 ^~
+tools/embdbg/embdbg.c:274:31: note: directive argument in the range [0, 2147483647]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                               ^~~~~
+tools/embdbg/embdbg.c:274:5: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -o embsvd tools/embsvd/embsvd.c tools/embsvd/svd.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -o embread tools/embread/embread.c src/embx/embx.c
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -O2 -o embsim tools/embsim/main.c tools/embsim/run.c tools/embsim/bus.c tools/embsim/boards.c tools/embsim/loader.c tools/embsim/semihost.c tools/embsim/trace.c tools/embsim/cortexm.c tools/embsim/cortexm-thumb.c tools/embsim/cortexm-fpu.c tools/embsim/scs.c tools/embsim/systick.c tools/embsim/dwt.c tools/embsim/uart-pl011.c tools/embsim/uart-cmsdk.c tools/embsim/uart-nrf51.c tools/embsim/riscv.c tools/embsim/riscv-fpu.c tools/embsim/clint.c tools/embsim/uart-16550.c tools/embsim/sifive-test.c tools/embsim/virt-rom.c tools/embsim/avr.c tools/embsim/avr-io.c tools/embsim/avr-usart.c tools/embsim/avr-timer16.c tools/embsim/gdb.c tools/embsim/svd-map.c tools/embsvd/svd.c tools/embsim/stm32-rcc.c tools/embsim/stm32-gpio.c tools/embsim/stm32-usart.c tools/embsim/stm32-tim.c tools/embsim/image.c tools/embsim/analysis.c tools/embsim/coverage.c tools/embsim/profile.c tools/embsim/stack.c tools/embsim/fault.c tools/embsim/disasm.c tools/embsim/record.c tools/embsim/net-posix.c -lm
+cc -std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g -o embcc build/platform/platform_common.o build/platform/platform_posix.o build/platform/process_spawn.o build/driver/main.o build/driver/util.o build/driver/diag.o build/driver/remark.o build/driver/inspect.o build/driver/asmout.o build/driver/iface.o build/driver/explain.o build/driver/paths.o build/link/link.o build/as/gas.o build/embx/embx.o build/lex/lex.o build/cpp/cpp.o build/parse/parse.o build/cxx/cxx.o build/cxx/tok.o build/cxx/type.o build/cxx/scope.o build/cxx/parse.o build/cxx/expr.o build/cxx/class.o build/cxx/vtable.o build/cxx/template.o build/cxx/consteval.o build/cxx/traits.o build/cxx/concepts.o build/cxx/coro.o build/cxx/access.o build/cxx/mangle.o build/cxx/emit.o build/sema/sema.o build/sema/type.o build/sema/ldfloat.o build/sema/w128.o build/sema/uninit.o build/sema/format.o build/ir/irgen.o build/ir/irprint.o build/ir/irparse.o build/opt/opt.o build/opt/alias.o build/opt/attrs.o build/opt/cfg.o build/opt/cfgclean.o build/opt/copyprop.o build/opt/dce.o build/opt/divmagic.o build/opt/dse.o build/opt/fold.o build/opt/gcse.o build/opt/guardjump.o build/opt/idiom.o build/opt/ifconv.o build/opt/immfold.o build/opt/inline.o build/opt/ivsr.o build/opt/joincopies.o build/opt/latch.o build/opt/licm.o build/opt/loadcse.o build/opt/lvn.o build/opt/mem2reg.o build/opt/memfwd.o build/opt/pre.o build/opt/rangecheck.o build/opt/reassoc.o build/opt/rotate.o build/opt/sccp.o build/opt/sink.o build/opt/splitloops.o build/opt/sroa.o build/opt/swthread.o build/opt/tailmerge.o build/opt/tailrec.o build/opt/unroll.o build/opt/util.o build/opt/vectorize.o build/opt/verify.o build/opt/x86loadop.o build/debug/dwarf.o build/debug/eh.o build/elf/write.o build/macho/write.o build/coff/write.o build/arch/target.o build/arch/backends.o build/arch/regalloc.o build/arch/loongarch/options.o build/arch/xtensa/options.o build/arch/ppc/options.o build/arch/rx/options.o build/arch/sparc/options.o build/arch/coldfire/options.o build/arch/mips/options.o build/arch/tricore/options.o build/arch/thumb/options.o build/arch/riscv/options.o build/arch/avr/options.o build/arch/code.o build/arch/predef.o build/arch/x86_64/irgen.o build/arch/x86_64/codegen.o build/arch/x86_64/emit.o build/arch/x86_64/topasm.o build/arch/x86_64/as.o build/arch/x86_64/disasm.o build/arch/x86_64/predef.o build/arch/x86_64/predef_cxx.o build/arch/aarch64/irgen.o build/arch/aarch64/codegen.o build/arch/aarch64/emit.o build/arch/aarch64/asm.o build/arch/aarch64/predef.o build/arch/aarch64/predef_cxx.o build/arch/thumb/emit.o build/arch/thumb/a32.o build/arch/thumb/attrs.o build/arch/thumb/irgen.o build/arch/thumb/codegen.o build/arch/thumb/v6m.o build/arch/thumb/asm.o build/arch/thumb/predef.o build/arch/thumb/predef_cxx.o build/arch/thumbv8m/predef.o build/arch/thumbv8m/predef_cxx.o build/arch/thumbv6m/predef.o build/arch/thumbv6m/predef_cxx.o build/arch/thumbv8mbase/predef.o build/arch/thumbv8mbase/predef_cxx.o build/arch/armv7a/predef.o build/arch/armv7a/predef_cxx.o build/arch/riscv/emit.o build/arch/riscv/codegen.o build/arch/riscv/irgen.o build/arch/riscv/asm.o build/arch/riscv32/predef.o build/arch/riscv32/predef_cxx.o build/arch/riscv64/predef.o build/arch/riscv64/predef_cxx.o build/arch/mips/emit.o build/arch/mips/codegen.o build/arch/mips/irgen.o build/arch/mips/asm.o build/arch/mips32/predef.o build/arch/mips32/predef_cxx.o build/arch/mips32eb/predef.o build/arch/mips32eb/predef_cxx.o build/arch/mips64/predef.o build/arch/mips64/predef_cxx.o build/arch/mips64eb/predef.o build/arch/mips64eb/predef_cxx.o build/arch/loongarch/emit.o build/arch/loongarch/codegen.o build/arch/loongarch/irgen.o build/arch/loongarch/asm.o build/arch/loongarch64/predef.o build/arch/loongarch64/predef_cxx.o build/arch/tricore/emit.o build/arch/tricore/codegen.o build/arch/tricore/irgen.o build/arch/tricore/asm.o build/arch/tricore/predef.o build/arch/tricore/predef_cxx.o build/arch/xtensa/emit.o build/arch/xtensa/codegen.o build/arch/xtensa/irgen.o build/arch/xtensa/asm.o build/arch/xtensa/predef.o build/arch/xtensa/predef_cxx.o build/arch/ppc/emit.o build/arch/ppc/codegen.o build/arch/ppc/irgen.o build/arch/ppc/asm.o build/arch/ppc32/predef.o build/arch/ppc32/predef_cxx.o build/arch/rx/emit.o build/arch/rx/codegen.o build/arch/rx/irgen.o build/arch/rx/asm.o build/arch/rx/predef.o build/arch/sparc/emit.o build/arch/sparc/codegen.o build/arch/sparc/irgen.o build/arch/sparc/asm.o build/arch/sparc32/predef.o build/arch/sparc32/predef_cxx.o build/arch/coldfire/emit.o build/arch/coldfire/codegen.o build/arch/coldfire/irgen.o build/arch/coldfire/asm.o build/arch/coldfire/predef.o build/arch/coldfire/predef_cxx.o build/arch/avr/emit.o build/arch/avr/codegen.o build/arch/avr/asm.o build/arch/avr/irgen.o build/arch/avr/predef.o build/arch/avr/predef_cxx.o build/embdbg_core.o
+tools/embdbg/embdbg.c: In function ‘fb_label’:
+tools/embdbg/embdbg.c:269:37: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                     ^~
+tools/embdbg/embdbg.c:269:35: note: directive argument in the range [0, 2147483647]
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |                                   ^~~~~
+tools/embdbg/embdbg.c:269:9: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  269 |         snprintf(buf, sizeof buf, "x%d", n);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tools/embdbg/embdbg.c:274:33: warning: ‘%d’ directive output may be truncated writing between 1 and 10 bytes into a region of size 7 [-Wformat-truncation=]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                                 ^~
+tools/embdbg/embdbg.c:274:31: note: directive argument in the range [0, 2147483647]
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |                               ^~~~~
+tools/embdbg/embdbg.c:274:5: note: ‘snprintf’ output between 3 and 12 bytes into a destination of size 8
+  274 |     snprintf(buf, sizeof buf, "r%d", n);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tools/embsim/riscv-fpu.c:29:12: warning: conflicting types for built-in function ‘expf’; expected ‘float(float)’ [-Wbuiltin-declaration-mismatch]
+   29 | static u64 expf(int d, u64 a) { return (a >> mbits(d)) & emask(d); }
+      |            ^~~~
+tools/embsim/riscv-fpu.c:19:1: note: ‘expf’ is declared in header ‘<math.h>’
+   18 | #include "riscv.h"
+  +++ |+#include <math.h>
+   19 |
+tools/embsim/gdb.c: In function ‘session.constprop’:
+tools/embsim/gdb.c:543:52: warning: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size 223 [-Wformat-truncation=]
+  543 |                  "embsim: unknown monitor command '%s' (monitor help)\n", cmd);
+      |                                                    ^~                     ~~~
+In function ‘monitor’,
+    inlined from ‘session.constprop’ at tools/embsim/gdb.c:847:17:
+tools/embsim/gdb.c:542:9: note: ‘snprintf’ output between 51 and 306 bytes into a destination of size 256
+  542 |         snprintf(line, sizeof line,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+  543 |                  "embsim: unknown monitor command '%s' (monitor help)\n", cmd);
+      |                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

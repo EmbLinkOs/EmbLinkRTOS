@@ -1,0 +1,722 @@
+{
+  "binary_sha256": {
+    "embcc": "89f389d375b0e35305e0a2d71ea9fe2035b3a2859f32cf8576e9939692214331",
+    "embdbg": "90617ea32859421f7f25004d4f763653d84dca47b5851e4aa71f9719c415a967",
+    "embld": "0e12bac48d8f6d6d1c4c45db42d2b1469b543d1ee27ac62b87b0ead3951c1126",
+    "embsim": "def692754f7555bf3a2831f26937009772c432fb70ec6f853226706028628116",
+    "embsvd": "95e82306b832f9235430397b260a0f58f1aa55b44222efa3a62e2e520df9b681"
+  },
+  "bootstrap": {
+    "command": [
+      "make",
+      "-j4",
+      "CFLAGS=-std=c99 -D_POSIX_C_SOURCE=200809L -Wall -Wextra -g",
+      "embcc",
+      "embld",
+      "embdbg",
+      "embsvd",
+      "embread",
+      "embsim"
+    ],
+    "default_make": "Failed on missing readlink declaration; subsequent strict POSIX bootstrap failed on format-truncation and empty-body warnings. Local override retains warnings, omits Werror; not a warning-clean host-bootstrap claim.",
+    "exit_code": 0
+  },
+  "checks": [
+    {
+      "description": "MSPLIM/PSPLIM compile on Mainline; refused on ARMv7-M",
+      "legacy_item": 1,
+      "outcome": "pass",
+      "scope": "compile/refusal; hardware unrun"
+    },
+    {
+      "description": "AVR GNU linker script lays out .data at 0x800100 and executes fixture",
+      "legacy_item": 2,
+      "outcome": "pass",
+      "scope": "EmbSim AVR; no physical/QEMU observation"
+    },
+    {
+      "description": "AVR __flash objects use .progmem.data and fixture reads values correctly",
+      "legacy_item": 3,
+      "outcome": "pass",
+      "scope": "EmbSim AVR; RTOS wrappers unchanged"
+    },
+    {
+      "description": "AVR DWARF carries function/global/line info readable by EmbDBG",
+      "legacy_item": 4,
+      "outcome": "pass",
+      "scope": "object inspection; live debugging unrun"
+    },
+    {
+      "description": "EmbDBG AVR register table has 32 byte regs, SREG, SP and byte-address PC",
+      "legacy_item": 5,
+      "outcome": "pass",
+      "scope": "executed host layout check; remote session unrun"
+    },
+    {
+      "description": "1-/2-byte RMW executes expected values on RV32 and AVR",
+      "legacy_item": 6,
+      "outcome": "pass",
+      "scope": "EmbSim; no interrupt-race/SMP/DMA proof"
+    },
+    {
+      "description": "CMSE entry symbols emitted for both profiles; FPU combination refused",
+      "legacy_item": 7,
+      "outcome": "pass",
+      "scope": "compile/refusal; security crossings unrun locally"
+    },
+    {
+      "description": "Cortex-M23 selection emits ARMv8-M Baseline attributes",
+      "legacy_item": 8,
+      "outcome": "pass",
+      "scope": "object inspection; M23 hardware unrun"
+    },
+    {
+      "description": "Nested SVD clusters/arrays: JSON addresses match independent reference and compiled header offsets",
+      "legacy_item": 9,
+      "outcome": "pass",
+      "scope": "tool/layout check; RTOS YAML importer unimplemented"
+    },
+    {
+      "description": "C++17 template wrapper compiles for Cortex-M/RV32; AVR refused",
+      "legacy_item": 10,
+      "outcome": "pass",
+      "scope": "compile/refusal; complete RTOS wrapper/runtime suite unrun"
+    }
+  ],
+  "commands": [
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv8m.main-none-eabi",
+        "-O2",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim-thumbv8m.main-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv7m-none-eabi",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/bad.o"
+      ],
+      "exit_code": 1,
+      "stderr": "embcc: /workspace/EmbLinkRTOS/build/embcc-capability-review/splim.c:1: error: \"msplim\" is not an ARMv7-M special register\n  void set(unsigned x){__asm__ volatile(\"msr msplim, %0\"::\"r\"(x));__asm__ volatile(\"msr psplim, %0\"::\"r\"(x));}\n",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/harness/avr/boot.S",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/harness/avr/io.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/lib/rt/avr.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/golden/avr-ldscript/prog.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/prog-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embld",
+        "-T",
+        "/workspace/EmbCC/tests/golden/avr-ldscript/m328p.ld",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/prog-avr.o",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-script.elf"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "-SW",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-script.elf"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "There are 7 section headers, starting at offset 0xb00:\n\nSection Headers:\n  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al\n  [ 0]                   NULL            00000000 000000 000000 00      0   0  0\n  [ 1] .text             PROGBITS        00000000 000094 0007b0 00  AX  0   0 16\n  [ 2] .data             PROGBITS        00800100 000844 00006c 00  WA  0   0 16\n  [ 3] .bss              NOBITS          0080016c 0008b0 000022 00  WA  0   0  1\n  [ 4] .symtab           SYMTAB          00000000 0008b0 000150 10      5   1  8\n  [ 5] .strtab           STRTAB          00000000 000a00 0000ce 00      0   0  1\n  [ 6] .shstrtab         STRTAB          00000000 000ace 00002c 00      0   0  1\nKey to Flags:\n  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),\n  L (link order), O (extra OS processing required), G (group), T (TLS),\n  C (compressed), x (unknown), o (OS specific), E (exclude),\n  D (mbind), p (processor specific)\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embsim",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-script.elf",
+        "--board",
+        "uno",
+        "--until",
+        "==END==",
+        "--max-insns",
+        "2000000"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "zero one two three \n140 12 300000 13 24 -12 abcdefghijklmno\n==END=="
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/golden/avr-flash/prog.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/prog-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "-SW",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/prog-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "There are 10 section headers, starting at offset 0x7bc:\n\nSection Headers:\n  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al\n  [ 0]                   NULL            00000000 000000 000000 00      0   0  0\n  [ 1] .text             PROGBITS        00000000 000040 000336 00  AX  0   0 16\n  [ 2] .rodata           PROGBITS        00000000 000380 00000a 00   A  0   0 16\n  [ 3] .data             PROGBITS        00000000 00038a 000002 00  WA  0   0  1\n  [ 4] .progmem.data     PROGBITS        00000000 00038c 00004e 00   A  0   0  1\n  [ 5] .rela.text        RELA            00000000 0003e0 0001e0 0c   I  7   1  8\n  [ 6] .rela.progmem.data RELA            00000000 0005c0 000018 0c   I  7   4  8\n  [ 7] .symtab           SYMTAB          00000000 0005d8 000130 10      8  10  8\n  [ 8] .strtab           STRTAB          00000000 000708 000056 00      0   0  1\n  [ 9] .shstrtab         STRTAB          00000000 00075e 00005b 00      0   0  1\nKey to Flags:\n  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),\n  L (link order), O (extra OS processing required), G (group), T (TLS),\n  C (compressed), x (unknown), o (OS specific), E (exclude),\n  D (mbind), p (processor specific)\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embld",
+        "-e",
+        "__vectors",
+        "-Ttext",
+        "0x0",
+        "-Tdata",
+        "0x100",
+        "--rom-limit",
+        "32768",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/prog-avr.o",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-flash.elf"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embsim",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-flash.elf",
+        "--board",
+        "uno",
+        "--until",
+        "==END==",
+        "--max-insns",
+        "2000000"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "flash ok\n29071 2147283647 126 232 \n16909060 84281096 -5 \none zero\n==END=="
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-g",
+        "-O0",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/debug.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/debug-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "--debug-dump=info",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/debug-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "Contents of the .debug_info section:\n\n  Compilation Unit @ offset 0:\n   Length:        0xa6 (32-bit)\n   Version:       4\n   Abbrev Offset: 0\n   Pointer Size:  4\n <0><b>: Abbrev Number: 1 (DW_TAG_compile_unit)\n    <c>   DW_AT_producer    : EmbCC\n    <12>   DW_AT_language    : 12\t(ANSI C99)\n    <14>   DW_AT_name        : /workspace/EmbLinkRTOS/build/embcc-capability-review/debug.c\n    <51>   DW_AT_comp_dir    : .\n    <53>   DW_AT_low_pc      : 0\n    <57>   DW_AT_high_pc     : 0x4e\n    <5b>   DW_AT_stmt_list   : 0\n <1><5f>: Abbrev Number: 7 (DW_TAG_base_type)\n    <60>   DW_AT_name        : int\n    <64>   DW_AT_encoding    : 5\t(signed)\n    <65>   DW_AT_byte_size   : 2\n <1><66>: Abbrev Number: 5 (DW_TAG_variable)\n    <67>   DW_AT_name        : observed\n    <70>   DW_AT_type        : <0x5f>\n    <74>   DW_AT_location    : 5 byte block: 3 0 0 80 0 \t(DW_OP_addr: 800000)\n <1><7a>: Abbrev Number: 10 (DW_TAG_subprogram)\n    <7b>   DW_AT_name        : increment\n    <85>   DW_AT_type        : <0x5f>\n    <89>   DW_AT_low_pc      : 0\n    <8d>   DW_AT_high_pc     : 0x4e\n    <91>   DW_AT_frame_base  : 2 byte block: 8c 0 \t(DW_OP_breg28 (r28): 0)\n <2><94>: Abbrev Number: 3 (DW_TAG_formal_parameter)\n    <95>   DW_AT_name        : x\n    <97>   DW_AT_type        : <0x5f>\n    <9b>   DW_AT_location    : 2 byte block: 91 1 \t(DW_OP_fbreg: 1)\n <2><9e>: Abbrev Number: 5 (DW_TAG_variable)\n    <9f>   DW_AT_name        : y\n    <a1>   DW_AT_type        : <0x5f>\n    <a5>   DW_AT_location    : 2 byte block: 91 3 \t(DW_OP_fbreg: 3)\n <2><a8>: Abbrev Number: 0\n <1><a9>: Abbrev Number: 0\n\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embdbg",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/debug-avr.o",
+        "funcs"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "FUNCTION                 ADDR       SIZE\nincrement                0x0        78\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embdbg",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/debug-avr.o",
+        "lines"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "ADDRESS      FILE                 LINE\n0x0          /workspace/EmbLinkRTOS/build/embcc-capability-review/debug.c 2\n0x1a         /workspace/EmbLinkRTOS/build/embcc-capability-review/debug.c 2\n0x4e                              (end)\n"
+    },
+    {
+      "args": [
+        "gcc",
+        "-std=c99",
+        "-D_POSIX_C_SOURCE=200809L",
+        "-I",
+        "/workspace/EmbCC",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/rsp-layout.c",
+        "/workspace/EmbCC/tools/embdbg/remote.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/rsp-layout"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/rsp-layout"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=riscv32-unknown-elf",
+        "-O2",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-riscv32-unknown-elf.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=riscv32-unknown-elf",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/harness/riscv/boot.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-riscv32-unknown-elf.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=riscv32-unknown-elf",
+        "-O2",
+        "-c",
+        "/workspace/EmbCC/tests/harness/riscv/io.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-riscv32-unknown-elf.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embld",
+        "-e",
+        "_start",
+        "-Ttext",
+        "0x80000000",
+        "-Tstack",
+        "0x80800000",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-riscv32-unknown-elf.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-riscv32-unknown-elf.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-riscv32-unknown-elf.o",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-virt.elf"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embsim",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-virt.elf",
+        "--board",
+        "virt",
+        "--until",
+        "==END==",
+        "--max-insns",
+        "2000000"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "ATOMIC OK\n==END=="
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-O2",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-avr.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embld",
+        "-e",
+        "__vectors",
+        "-Ttext",
+        "0x0",
+        "-Tdata",
+        "0x100",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/boot-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/io-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/avr-avr.o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-avr.o",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-uno.elf"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embsim",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/small-atomic-uno.elf",
+        "--board",
+        "uno",
+        "--until",
+        "==END==",
+        "--max-insns",
+        "2000000"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "ATOMIC OK\n==END=="
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv8m.main-none-eabi",
+        "-O2",
+        "-mcmse",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse-thumbv8m.main-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "-sW",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse-thumbv8m.main-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "\nSymbol table '.symtab' contains 6 entries:\n   Num:    Value  Size Type    Bind   Vis      Ndx Name\n     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND \n     1: 00000000     0 FILE    LOCAL  DEFAULT  ABS cmse.c\n     2: 00000000     0 SECTION LOCAL  DEFAULT    1 .text\n     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    1 $t\n     4: 00000001    16 FUNC    GLOBAL DEFAULT    1 secure_add\n     5: 00000001    16 FUNC    GLOBAL DEFAULT    1 __acle_se_secure_add\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv8m.base-none-eabi",
+        "-O2",
+        "-mcmse",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse-thumbv8m.base-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "-sW",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse-thumbv8m.base-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "\nSymbol table '.symtab' contains 6 entries:\n   Num:    Value  Size Type    Bind   Vis      Ndx Name\n     0: 00000000     0 NOTYPE  LOCAL  DEFAULT  UND \n     1: 00000000     0 FILE    LOCAL  DEFAULT  ABS cmse.c\n     2: 00000000     0 SECTION LOCAL  DEFAULT    1 .text\n     3: 00000000     0 NOTYPE  LOCAL  DEFAULT    1 $t\n     4: 00000001    16 FUNC    GLOBAL DEFAULT    1 secure_add\n     5: 00000001    16 FUNC    GLOBAL DEFAULT    1 __acle_se_secure_add\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv8m.main-none-eabihf",
+        "-mcmse",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/cmse.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/bad.o"
+      ],
+      "exit_code": 1,
+      "stderr": "embcc: <embcc>: error: -mcmse with an FPU (-mfpu=, -mfloat-abi=softfp or hard, or an -eabihf triple) is not supported: EmbCC does not clear the floating-point registers a cmse_nonsecure_entry function must clear; build the Secure side with -mfloat-abi=soft\n",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv8m.base-none-eabi",
+        "-O2",
+        "-mcpu=cortex-m23",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim-thumbv8m.base-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "readelf",
+        "-A",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/splim-thumbv8m.base-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "Attribute Section: aeabi\nFile Attributes\n  Tag_conformance: \"2.09\"\n  Tag_CPU_name: \"8-M.BASE\"\n  Tag_CPU_arch: v8-M.baseline\n  Tag_CPU_arch_profile: Microcontroller\n  Tag_ARM_ISA_use: No\n  Tag_THUMB_ISA_use: Yes\n  Tag_ABI_PCS_R9_use: V6\n  Tag_ABI_PCS_GOT_use: direct\n  Tag_ABI_PCS_wchar_t: 4\n  Tag_ABI_FP_denormal: Needed\n  Tag_ABI_FP_exceptions: Unused\n  Tag_ABI_FP_number_model: IEEE 754\n  Tag_ABI_align_needed: 8-byte\n  Tag_ABI_align_preserved: 8-byte, except leaf SP\n  Tag_ABI_enum_size: int\n  Tag_ABI_VFP_args: AAPCS\n  Tag_CPU_unaligned_access: None\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embsvd",
+        "/workspace/EmbCC/tests/golden/svd-clusters/features.svd",
+        "--no-cmsis",
+        "--header",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/features.h",
+        "--json",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/features.json"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "python3",
+        "/workspace/EmbCC/tests/golden/svd-clusters/jsoncheck.py",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/features.json",
+        "features.h",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/regs.txt",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/asserts.c"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "6 peripherals, 236 registers\n"
+    },
+    {
+      "args": [
+        "python3",
+        "/workspace/EmbCC/tests/golden/svd-clusters/svdref.py",
+        "/workspace/EmbCC/tests/golden/svd-clusters/features.svd"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "DMA 0x40001000 32 CTRL\nDMA 0x40001004 32 CLEAR\nDMA 0x40001004 32 STATUS\nDMA 0x40001100 32 SRC\nDMA 0x40001104 32 DST\nDMA 0x40001108 16 CNT\nDMA 0x4000110c 32 CFG\nDMA 0x40001120 32 SRC\nDMA 0x40001124 32 DST\nDMA 0x40001128 16 CNT\nDMA 0x4000112c 32 CFG\nDMA 0x40001140 32 SRC\nDMA 0x40001144 32 DST\nDMA 0x40001148 16 CNT\nDMA 0x4000114c 32 CFG\nDMA 0x40001160 32 SRC\nDMA 0x40001164 32 DST\nDMA 0x40001168 16 CNT\nDMA 0x4000116c 32 CFG\nDMA 0x40001200 32 DATA[0]\nDMA 0x40001204 32 DATA[1]\nDMA 0x40001208 32 DATA[2]\nDMA 0x4000120c 32 DATA[3]\nDMA 0x40001210 32 PRIO[0]\nDMA 0x40001218 32 PRIO[1]\nDMA 0x40001220 32 PRIO[2]\nDMA 0x40001230 32 GPIOA_CTRL\nDMA 0x40001234 32 GPIOB_CTRL\nDMA 0x40001238 32 GPIOC_CTRL\nDMA 0x40001240 32 IRQ8\nDMA 0x40001244 32 IRQ9\nDMA 0x40001248 32 IRQ10\nDMA 0x4000124c 32 IRQ11\nDMA 0x40001250 32 IRQ12\nDMA 0x40001254 32 IRQ13\nDMA 0x40001258 32 IRQ14\nDMA 0x4000125c 32 IRQ15\nDMA 0x40001260 16 MODEA\nDMA 0x40001262 16 MODEB\nDMA 0x40001264 16 MODEC\nDMA 0x40001266 16 MODED\nDMA 0x40001270 32 CTRL2\nDMA 0x40001280 32 DATAX\nNET 0x40002000 32 ID\nNET 0x40002100 32 CFG\nNET 0x40002110 32 HEAD\nNET 0x40002114 32 TAIL\nNET 0x40002118 32 ADDR\nNET 0x4000211c 16 LEN\nNET 0x4000211e 16 FLAGS\nNET 0x40002120 32 ADDR\nNET 0x40002124 16 LEN\nNET 0x40002126 16 FLAGS\nNET 0x40002130 32 HEAD\nNET 0x40002134 32 TAIL\nNET 0x40002138 32 ADDR\nNET 0x4000213c 16 LEN\nNET 0x4000213e 16 FLAGS\nNET 0x40002140 32 ADDR\nNET 0x40002144 16 LEN\nNET 0x40002146 16 FLAGS\nNET 0x40002150 32 HEAD\nNET 0x40002154 32 TAIL\nNET 0x40002158 32 ADDR\nNET 0x4000215c 16 LEN\nNET 0x4000215e 16 FLAGS\nNET 0x40002160 32 ADDR\nNET 0x40002164 16 LEN\nNET 0x40002166 16 FLAGS\nNET 0x40002170 32 HEAD\nNET 0x40002174 32 TAIL\nNET 0x40002178 32 ADDR\nNET 0x4000217c 16 LEN\nNET 0x4000217e 16 FLAGS\nNET 0x40002180 32 ADDR\nNET 0x40002184 16 LEN\nNET 0x40002186 16 FLAGS\nNET 0x40002190 16 RX\nNET 0x40002192 16 TX\nNET 0x40002200 32 CFG\nNET 0x40002210 32 HEAD\nNET 0x40002214 32 TAIL\nNET 0x40002218 32 ADDR\nNET 0x4000221c 16 LEN\nNET 0x4000221e 16 FLAGS\nNET 0x40002220 32 ADDR\nNET 0x40002224 16 LEN\nNET 0x40002226 16 FLAGS\nNET 0x40002230 32 HEAD\nNET 0x40002234 32 TAIL\nNET 0x40002238 32 ADDR\nNET 0x4000223c 16 LEN\nNET 0x4000223e 16 FLAGS\nNET 0x40002240 32 ADDR\nNET 0x40002244 16 LEN\nNET 0x40002246 16 FLAGS\nNET 0x40002250 32 HEAD\nNET 0x40002254 32 TAIL\nNET 0x40002258 32 ADDR\nNET 0x4000225c 16 LEN\nNET 0x4000225e 16 FLAGS\nNET 0x40002260 32 ADDR\nNET 0x40002264 16 LEN\nNET 0x40002266 16 FLAGS\nNET 0x40002270 32 HEAD\nNET 0x40002274 32 TAIL\nNET 0x40002278 32 ADDR\nNET 0x4000227c 16 LEN\nNET 0x4000227e 16 FLAGS\nNET 0x40002280 32 ADDR\nNET 0x40002284 16 LEN\nNET 0x40002286 16 FLAGS\nNET 0x40002290 16 RX\nNET 0x40002292 16 TX\nNET 0x40002400 32 EN\nNET 0x40002404 32 LVL\nNET 0x40002410 32 EN\nNET 0x40002414 32 LVL\nNET 0x40002500 32 EN\nNET 0x40002504 32 LVL\nNET 0x40002600 32 REGA\nNET 0x40002600 32 X\nNET 0x40002604 32 REGB\nNET 0x40002604 32 Y\nNET 0x40002608 32 Z\nNET 0x40002610 32 AFTER\nNET2 0x40003000 32 ID\nNET2 0x40003100 32 CFG\nNET2 0x40003110 32 HEAD\nNET2 0x40003114 32 TAIL\nNET2 0x40003118 32 ADDR\nNET2 0x4000311c 16 LEN\nNET2 0x4000311e 16 FLAGS\nNET2 0x40003120 32 ADDR\nNET2 0x40003124 16 LEN\nNET2 0x40003126 16 FLAGS\nNET2 0x40003130 32 HEAD\nNET2 0x40003134 32 TAIL\nNET2 0x40003138 32 ADDR\nNET2 0x4000313c 16 LEN\nNET2 0x4000313e 16 FLAGS\nNET2 0x40003140 32 ADDR\nNET2 0x40003144 16 LEN\nNET2 0x40003146 16 FLAGS\nNET2 0x40003150 32 HEAD\nNET2 0x40003154 32 TAIL\nNET2 0x40003158 32 ADDR\nNET2 0x4000315c 16 LEN\nNET2 0x4000315e 16 FLAGS\nNET2 0x40003160 32 ADDR\nNET2 0x40003164 16 LEN\nNET2 0x40003166 16 FLAGS\nNET2 0x40003170 32 HEAD\nNET2 0x40003174 32 TAIL\nNET2 0x40003178 32 ADDR\nNET2 0x4000317c 16 LEN\nNET2 0x4000317e 16 FLAGS\nNET2 0x40003180 32 ADDR\nNET2 0x40003184 16 LEN\nNET2 0x40003186 16 FLAGS\nNET2 0x40003190 16 RX\nNET2 0x40003192 16 TX\nNET2 0x40003200 32 CFG\nNET2 0x40003210 32 HEAD\nNET2 0x40003214 32 TAIL\nNET2 0x40003218 32 ADDR\nNET2 0x4000321c 16 LEN\nNET2 0x4000321e 16 FLAGS\nNET2 0x40003220 32 ADDR\nNET2 0x40003224 16 LEN\nNET2 0x40003226 16 FLAGS\nNET2 0x40003230 32 HEAD\nNET2 0x40003234 32 TAIL\nNET2 0x40003238 32 ADDR\nNET2 0x4000323c 16 LEN\nNET2 0x4000323e 16 FLAGS\nNET2 0x40003240 32 ADDR\nNET2 0x40003244 16 LEN\nNET2 0x40003246 16 FLAGS\nNET2 0x40003250 32 HEAD\nNET2 0x40003254 32 TAIL\nNET2 0x40003258 32 ADDR\nNET2 0x4000325c 16 LEN\nNET2 0x4000325e 16 FLAGS\nNET2 0x40003260 32 ADDR\nNET2 0x40003264 16 LEN\nNET2 0x40003266 16 FLAGS\nNET2 0x40003270 32 HEAD\nNET2 0x40003274 32 TAIL\nNET2 0x40003278 32 ADDR\nNET2 0x4000327c 16 LEN\nNET2 0x4000327e 16 FLAGS\nNET2 0x40003280 32 ADDR\nNET2 0x40003284 16 LEN\nNET2 0x40003286 16 FLAGS\nNET2 0x40003290 16 RX\nNET2 0x40003292 16 TX\nNET2 0x40003400 32 EN\nNET2 0x40003404 32 LVL\nNET2 0x40003410 32 EN\nNET2 0x40003414 32 LVL\nNET2 0x40003500 32 EN\nNET2 0x40003504 32 LVL\nNET2 0x40003600 32 REGA\nNET2 0x40003600 32 X\nNET2 0x40003604 32 REGB\nNET2 0x40003604 32 Y\nNET2 0x40003608 32 Z\nNET2 0x40003610 32 AFTER\nTIMER0 0x40004000 32 LOAD\nTIMER0 0x40004004 32 VAL\nTIMER0 0x40004010 32 VALUE\nTIMER0 0x40004014 32 VALUE\nTIMER0 0x40004018 32 VALUE\nTIMER0 0x4000401c 32 VALUE\nTIMER0 0x40004020 32 COPY\nTIMER0 0x40004030 32 EN\nTIMER0 0x40004034 32 LVL\nTIMER1 0x40004400 32 LOAD\nTIMER1 0x40004404 32 VAL\nTIMER1 0x40004410 32 VALUE\nTIMER1 0x40004414 32 VALUE\nTIMER1 0x40004418 32 VALUE\nTIMER1 0x4000441c 32 VALUE\nTIMER1 0x40004420 32 COPY\nTIMER1 0x40004430 32 EN\nTIMER1 0x40004434 32 LVL\nTIMER2 0x40004800 32 LOAD\nTIMER2 0x40004804 32 VAL\nTIMER2 0x40004810 32 VALUE\nTIMER2 0x40004814 32 VALUE\nTIMER2 0x40004818 32 VALUE\nTIMER2 0x4000481c 32 VALUE\nTIMER2 0x40004820 32 COPY\nTIMER2 0x40004830 32 EN\nTIMER2 0x40004834 32 LVL\n"
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv7em-none-eabi",
+        "-O2",
+        "-I",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/asserts.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/asserts-thumbv7em-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv7em-none-eabi",
+        "-O2",
+        "-I",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review",
+        "-c",
+        "/workspace/EmbCC/tests/golden/svd-clusters/layout.c",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/layout-thumbv7em-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=thumbv7m-none-eabi",
+        "-O2",
+        "-std=c++17",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/wrapper.cc",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/wrapper-thumbv7m-none-eabi.o"
+      ],
+      "exit_code": 0,
+      "stderr": "embcc: warning: -std=c++17 sets the standard macros but is not enforced; EmbCC parses C++20 and will accept newer constructs\n",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=riscv32-unknown-elf",
+        "-O2",
+        "-std=c++17",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/wrapper.cc",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/wrapper-riscv32-unknown-elf.o"
+      ],
+      "exit_code": 0,
+      "stderr": "embcc: warning: -std=c++17 sets the standard macros but is not enforced; EmbCC parses C++20 and will accept newer constructs\n",
+      "stdout": ""
+    },
+    {
+      "args": [
+        "/workspace/EmbCC/embcc",
+        "--target=avr",
+        "-fno-exceptions",
+        "-c",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/wrapper.cc",
+        "-o",
+        "/workspace/EmbLinkRTOS/build/embcc-capability-review/bad.o"
+      ],
+      "exit_code": 1,
+      "stderr": "embcc: error: C++ is not yet supported for avr: the C++ lowering assumes a 32-bit int and 4-byte pointers (integral promotions, member pointers, RTTI), and this target's are 16 bits\n",
+      "stdout": ""
+    }
+  ],
+  "complete": true,
+  "embcc_sha": "a3c3ef4c81f9de977b8741ed16072cadca921788",
+  "fixtures_sha256": {
+    "lib/rt/avr.c": "55a0810f062b5171da4fa865f6af77235244bc691d3fb40c1eca8f3d7def7493",
+    "tests/golden/avr-flash/prog.c": "c32b6138eaf945ac1103eea7c04d91d6bfa2a2d34ecffe70b0ada4bda88fbf0e",
+    "tests/golden/avr-ldscript/m328p.ld": "1128f5717abbce9b6a14b2c1d41fe1590e8fef1cdd8a47be8fa8ea1e0768835a",
+    "tests/golden/avr-ldscript/prog.c": "a8f881cb078ae045d5a7111a444d1270294898d32d51412f2d18314d8c290a0a",
+    "tests/golden/svd-clusters/features.svd": "6f75ba90657ccd0fb3d4e25cc9e8ba548bfa26162cee5f98cb92e08b4323ec25",
+    "tests/golden/svd-clusters/jsoncheck.py": "d87bee4f99b4ed876cca72cb1f2ae7e09908a4bc3e398b8e5a53915198b25cea",
+    "tests/golden/svd-clusters/layout.c": "cd659f2237113bfa87454bad7741f205e4ea57bdf1db2d485685c7835d70f90c",
+    "tests/golden/svd-clusters/svdref.py": "786befb7fd3940227a18d4dc0f4ae87e53e7617abbcb23343982e96f19e076cb",
+    "tests/harness/avr/boot.S": "8bcd4dd0a8e987a997163380dae9ac8fd945f2d115e3c652867f0c58c47721fc",
+    "tests/harness/avr/io.c": "5ec321781f958a8c630be523d3dd65402278eb3683c15e5b6ba1712d344b39fe",
+    "tests/harness/riscv/boot.c": "51ce6da0cfd6c2e33d1264a15cd171d6de61c41e4e45894510510d55c21b8478",
+    "tests/harness/riscv/io.c": "5048de4c95930af392a311806a279363c07a273427d5184fff6ddae98b17665d",
+    "tools/embdbg/remote.c": "efe66e2d91f930325a85fb68b41a2e9a8baaa1a36c93d0079af98c525ba6bb46",
+    "tools/embdbg/remote.h": "0258e696c462b6f289660e39c63f592f33c632ddc2f5950a320b020207cb975b"
+  },
+  "log_normalization": "Readable .log files strip trailing whitespace; raw-build-logs.json retains original text, with original SHA256 per entry in raw_logs_sha256.",
+  "predefined_macros": [],
+  "raw_logs_sha256": {
+    "embcc-build.log": "f7ec38ad145796e61b4359bd5b37d0f70b5902fe11d05341882024ae859919e6",
+    "embcc-rtos-configure.log": "54124f5282f072f9b64d5c9e847e7b52e63792f9c67cd4398aece676355bb313",
+    "embcc-rtos-static-build.log": "5314d68a132de095a37ff703350d6bba7f8d1842b3eb448c5cbb44edca9f7df4",
+    "embcc-rtos-static-configure.log": "451954206bef2bb771c74ec3dc40d4b3303868fb02024deb80a0b5f1e25bbd18"
+  },
+  "retained_logs_sha256": {
+    "embcc-build.log": "04d4453a987f7f2364933c4b8d509aa0f5d82bb8efab9f0359ef96f7bde7be51",
+    "embcc-rtos-configure.log": "e84219490d539e8f50cc64fd7bd62c166539ae692710a675969773a2f7a27998",
+    "embcc-rtos-static-build.log": "d665c04efe7cfda4d8ea4e6ef30c2e29044e6602a90d9431fa106e7c8bd19c90",
+    "embcc-rtos-static-configure.log": "058b5ff98a86b99ae21ccbe5b63f06953e131e77b80ebb74d05e3e53c017a61e"
+  },
+  "rtos_sha": "2e59c2a37b36c90e5f15892fb258c8a2e21be306",
+  "source_sha256": {
+    "asserts.c": "43ae3943d33d5e2249ed7444b0c40340a39a50a56c94cb4b10b52c4313ffd307",
+    "cmse.c": "67f2040c3c3ca3022e2b29664d7267c4001edb8323067a83e27f40710721f90d",
+    "debug.c": "cfad7ce9c2f6df939cf000840f0eae2b82141833f4d86b4a326cd42010c700a5",
+    "rsp-layout.c": "2685609e80d629f1531fd950bdced5bcdc79d74ad9263701908d0ead0f95b16b",
+    "small-atomic.c": "988d21cbf6fc944d4a8a9956bc7c3b9483eb72c4d802e3ab1a9ae6c5826407f6",
+    "splim.c": "b98fd4e6272432e210d65b5668a98ccd36d74c4e40fcd0569f3ea52088f9c505",
+    "wrapper.cc": "a251d1c37f0bded0f8a23ec0cd5b71486ae3aead6898e6b563126cf6fb9b82b2"
+  },
+  "tool_versions": {
+    "embcc": "EmbCC 1.0.0-m2.complete (the Emb toolchain's C and C++ compiler, for embedded systems and operating systems)",
+    "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  }
+}

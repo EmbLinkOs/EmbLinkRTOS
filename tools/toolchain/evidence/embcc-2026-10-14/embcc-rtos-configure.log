@@ -1,0 +1,35 @@
+-- The C compiler identification is unknown
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - failed
+-- Check for working C compiler: /workspace/EmbCC/embcc
+-- Check for working C compiler: /workspace/EmbCC/embcc - broken
+CMake Error at .venv/lib/python3.12/site-packages/cmake/data/share/cmake-3.31/Modules/CMakeTestCCompiler.cmake:67 (message):
+  The C compiler
+
+    "/workspace/EmbCC/embcc"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: '/workspace/EmbLinkRTOS/build/embcc-review-native/CMakeFiles/CMakeScratch/TryCompile-LxffHd'
+
+    Run Build Command(s): /workspace/EmbLinkRTOS/.venv/bin/ninja -v cmTC_3b055
+    [1/2] /workspace/EmbCC/embcc    -o CMakeFiles/cmTC_3b055.dir/testCCompiler.c.o -c /workspace/EmbLinkRTOS/build/embcc-review-native/CMakeFiles/CMakeScratch/TryCompile-LxffHd/testCCompiler.c
+    [2/2] : && /workspace/EmbCC/embcc   CMakeFiles/cmTC_3b055.dir/testCCompiler.c.o -o cmTC_3b055   && :
+    FAILED: [code=1] cmTC_3b055
+    : && /workspace/EmbCC/embcc   CMakeFiles/cmTC_3b055.dir/testCCompiler.c.o -o cmTC_3b055   && :
+    embcc: error: no crt1.o for x86_64-linux-gnu -- the target's library is not built or not installed
+    embcc: --print-search-dirs says where it looked
+    ninja: build stopped: subcommand failed.
+
+
+
+
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:9 (project)
+
+
+-- Configuring incomplete, errors occurred!

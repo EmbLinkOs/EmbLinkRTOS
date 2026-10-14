@@ -53,7 +53,7 @@ Every public function carries structured annotations (in the header comment, par
 
 C11 is the minimum (`_Static_assert`, `_Alignas`, anonymous unions, `_Atomic` where the toolchain provides it; the portability layer wraps atomics). C17 preferred. Freestanding; no dependence on hosted libc in the kernel. C++17 for optional wrappers, with exceptions and RTTI off by default and a documented policy for static constructors.
 
-EmbCC compiles a single dialect, C17 plus GNU extensions, and ignores `-std=` (09 §3), so the C11 floor is enforced by the GCC and Clang legs of the matrix with `-std=c11 -pedantic`. Compiler thread-local storage is banned tree-wide (KRN-THR-014). C++ wrappers are built and tested with GCC and Clang on the embedded targets and with EmbCC on the native target, since EmbCC does not yet compile C++ for 32-bit and 8-bit targets.
+EmbCC compiles a single C dialect, C17 plus GNU extensions, so GCC/Clang with `-std=c11 -pedantic` enforce the C11 floor (09 §3). Compiler TLS remains banned (KRN-THR-014). EmbCC now implements Cortex-M/32-bit ARM and RV32 C++ with `-fno-exceptions`; AVR C++ remains refused. The wrapper/compiler matrix is a target: current EmbCC RTOS CI and full wrapper/runtime qualification remain incomplete. See the [capability/integration review](../engineering/embcc-capability-review.md).
 
 ### 1.6 Coding standard
 

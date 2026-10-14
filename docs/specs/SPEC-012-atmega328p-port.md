@@ -4,7 +4,7 @@
 
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §14. Specification work item 11 of the roadmap (07 §3). First hardware target of M1 (ADR-001, alongside the native port).
 **Requirements:** `docs/requirements/ARCH-AVR.md` (new group, from 001).
-**Builds on:** SPEC-011 (the contract this port implements), SPEC-002 §6.2, §7.2, §13 (AVR rows), SPEC-003 §13 (Timer1), SPEC-004 §11, §12 (table scheduler, no compare-and-swap), SPEC-008 §10 (stacks), 03 §11 (tiny reference configuration), 09 §2, §5, §7, §8 (EmbCC on AVR: `const` in RAM, no linker scripts, no DWARF, `signal`/`interrupt` attributes, full AVR5 inline-asm vocabulary); R-003 §4 targets T1 and T2.
+**Builds on:** SPEC-011, SPEC-002 §6.2, §7.2, §13, SPEC-003 §13, SPEC-004 §11, §12, SPEC-008 §10, 03 §11, and the refreshed document 09 (EmbCC AVR script/program-memory/DWARF/atomic capabilities and their RTOS integration limits); R-003 §4 targets T1 and T2. Compiler premises in §8/§10 were refreshed on 2026-10-14; this does not qualify the current EmbCC port or change the accepted kernel protocols.
 **Hardware:** ATmega328P: AVR5 core (AVRe+), 16 MHz on the Uno, 32 KB flash (Optiboot occupies the top 512 bytes), 2 KB SRAM at `0x0100..0x08FF`, 1 KB EEPROM, 26 interrupt vectors, Timer0 (8-bit), Timer1 (16-bit), Timer2 (8-bit), USART0, SPI, TWI, ADC, watchdog, six sleep modes. No MPU, no fault exceptions, no cycle counter.
 
 ---
@@ -110,8 +110,8 @@ The tiny defaults make the kernel's hot paths bit operations: the ready set and 
 ## 8. Memory
 
 - The tiny T1 reference feature set targets 64 bytes of kernel static RAM and 32 bytes per TCB; its recorded AVR map subtotals are in the port page. TCB size comes from the layout probe, not a hand-added field list. Port/board/runtime RAM, every configured thread and interrupt reserve, inline idle state, alignment and application buffers must also fit the 2 KB SRAM. The kernel-subtotal gate does not establish how much application RAM remains or that any chosen stack sizes are sufficient.
-- **`const` in RAM under EmbCC** (09 §2, gap 3): every `const` table costs SRAM. The portability layer offers `EMB_FLASH_CONST` and `EMB_FLASH_READ_U8/U16/PTR` (`PROGMEM` and `pgm_read_*` on avr-gcc, plain `const` and direct reads on EmbCC); kernel tables that are large (vector name table, status names) are compiled out on tiny; small ones (the interrupt mask table, init table) are accepted and counted. The recorded footprint gate is avr-gcc only; EmbCC RTOS execution/footprint is unverified.
-- **No linker script under EmbCC** (09 §7): the generator emits the `embld` option set (`-Ttext=0x0 -Tdata=0x800100 --rom-limit=32256 --gc-sections`) and a GNU ld `MEMORY`/`SECTIONS` script for avr-gcc from the same region model (HW-006); M1 avr-gcc uses a hand-derived board linker script; registration entries use `EMB_TABLE_CONST` (plain const with `.progmem.<name>`) and flash-read accessors, because its progmem attribute overrides an explicit section name (A8). Generated linker inputs and the EmbCC RTOS path remain planned.
+- **Program-memory support is available upstream** (09 §2, item 3): EmbCC implements `__flash` and avr-libc-compatible `progmem`; generic `const` still costs SRAM. Current RTOS `EMB_FLASH_CONST`/read macros select flash access under GCC but fall back to generic const/direct reads under EmbCC. Wire that portability boundary explicitly before claiming flash savings. Large optional tables remain compiled out on tiny. The recorded RTOS footprint gate is avr-gcc only; focused upstream-fixture EmbSim runs do not qualify RTOS memory use.
+- **AVR linker scripts are now supported by EmbCC** (09 §7, item 2). HW-006 retains a GNU ld script plus a compatibility option set from one region model; the latter is no longer required by a compiler restriction. M1 avr-gcc uses a hand-derived board script; its registration entries use `EMB_TABLE_CONST` and flash accessors (A8). Generated linker inputs and current EmbCC RTOS registration/link qualification remain planned.
 - Stack checking: guard words at each thread stack's limit checked at every switch-out (`CONFIG_EMB_STACK_CHECK`, default on in checked builds); the inline idle context's stack is the pre-kernel stack and gets the same guard. There is no hardware limit and no MPU.
 - Retained region: `.noinit` SRAM survives a watchdog or external reset (not a power cycle); the small crash record (`EMB_CRASH_RECORD_SMALL`: magic, reason, thread index, `SP`, return address, uptime, checksum) lives there (FLT-001 on this target).
 
@@ -121,7 +121,7 @@ There is no fault entry: an illegal memory access is silent, a stack overflow is
 
 ## 10. Debug and tooling
 
-- EmbCC emits no DWARF on AVR (09 §7, gap 4) and `embdbg` has no AVR register layout (gap 5): symbolic debugging uses the avr-gcc build with `avr-gdb` and `simavr` or QEMU's gdb stub; the EmbCC build is verified by the same conformance suite and by the debug descriptor, which on this port carries the TCB layout, frame layout, and table addresses explicitly (SPEC-011 §14).
+- EmbCC now emits AVR DWARF and EmbDBG has the remote register layout (09 §7, items 4/5). The local review reads function/global/line records and checks register offsets; it does not execute a remote RTOS session. AVR has no `.debug_frame`, EmbDBG's backtrace stops at frame 0, and `-g` can enlarge code. The same RTOS conformance suite and planned debug descriptor must qualify any adopted compiler path; that EmbCC gate has not passed here.
 - Flashing: `avrdude -c arduino -p m328p -P <port> -b 115200` behind `emb flash` (BLD-005); no EmbFlash yet (09 §9).
 - Emulation: QEMU `arduino-uno` machine (EmbCC's AVR harness, 09 §9) runs the kernel conformance suite in CI; timing results from it are never published (SIM-003).
 - Trace: the tiny profile's trace is off by default; the plain-text log backend over USART0 at 115200 is the diagnostic channel (ADR-009 fallback, 09 §7).
@@ -163,8 +163,8 @@ Targets become baselines after the first HIL measurement (OBS-012).
 2. Launch, switch and ISR restore end in `out SREG; pop r0; ret`, preserving the incoming I bit. Validate pending IRQ behavior during that complete tail on physical hardware; do not infer an atomic `out; ret` pair (A7, A27).
 3. Periodic 1 ms tick on Timer1 CTC with prescaler 64 is the default; tickless uses prescaler 256 with 16 µs resolution and a 1.048 s `MAX_INTERVAL`; deep sleep modes are unsupported until a tick-loss policy exists.
 4. Tiny defaults are mandatory on this port: table scheduler, 32-bit time, 8-bit notifications, no system work queue, no idle thread, 7 application priorities.
-5. `EMB_FLASH_CONST` and its accessors are the portability answer to `const` in RAM; large kernel tables are compiled out on tiny.
-6. The generator emits both the `embld` option set and a GNU ld script for this board from one region model.
+5. `EMB_FLASH_CONST` and its accessors are the portability boundary; large kernel tables are compiled out on tiny. Current upstream program-memory capability does not wire the EmbCC RTOS macros automatically (§8).
+6. The generator targets both the compatibility `embld` option set and a GNU ld script from one region model; it remains unimplemented. The earlier missing-AVR-script compiler premise is obsolete (§8).
 7. The small crash record lives in `.noinit` and the default fault action is a watchdog reset; the software watchdog service is on in checked builds.
-8. Symbolic debugging uses the avr-gcc build until EmbCC emits DWARF on AVR; the EmbCC build is verified by conformance and by the descriptor.
+8. At acceptance, symbolic debugging used avr-gcc pending EmbCC DWARF. That compiler gap is now closed; current EmbCC RTOS conformance/debug integration and the descriptor remain unqualified (§10).
 9. Hard timing on this port is measured with a logic analyzer on a GPIO; the Timer1-based cycle counter is for coarse statistics.

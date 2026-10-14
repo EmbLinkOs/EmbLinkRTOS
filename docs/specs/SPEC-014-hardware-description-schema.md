@@ -167,7 +167,7 @@ The generator refuses the build, naming file and node (HW-002), on: unresolved r
 
 ## 8. Importers
 
-- **SVD.** `embsvd --emit-emb-yaml` (an output mode added to EmbCC's parser, 09 §9, HW-004) produces a SoC draft: peripherals with base, size, and IRQ numbers, the memory map, the NVIC parameters, and `imported_from` provenance; `compatible` strings are filled from a vendor mapping table (`hw/import/compat/<vendor>.yaml`) where known and marked `todo` otherwise; clocks, DMA request maps, flash geometry, power states, and errata are not in SVD and start as `todo` sections. The author curates and sets `curated: true` per node.
+- **SVD.** EmbCC's parser now exports nested clusters/arrays and structured `embsvd --json` (09 §9). The RTOS `--emit-emb-yaml` mode/adapter remains a planned HW-004 deliverable: it must turn that input into a SoC draft with peripheral base/size/IRQ, memory map, NVIC parameters and `imported_from` provenance. `compatible` strings come from a vendor mapping table (`hw/import/compat/<vendor>.yaml`) where known, else `todo`; clocks, DMA maps, flash geometry, power and errata remain curated `todo` fields. JSON export alone does not implement the RTOS schema or its provenance/curation rules.
 - **DeviceTree.** `emb-dtsimport` (Python, using `dtc` to flatten) reads a Zephyr or Linux board `.dts` and produces a board draft: pins from pinctrl nodes, devices with `compatible`, bus and address, console from `chosen`, flash partitions, LEDs and buttons; SoC-level `.dtsi` content is used only to resolve references, never to replace the SVD-derived SoC file.
 - Imports are one-shot drafts: re-import produces a diff for the author, never an overwrite of curated nodes.
 
