@@ -1,0 +1,5 @@
+set(CMAKE_C_COMPILER "/workspace/EmbCC/embcc")
+set(CMAKE_C_FLAGS "--target=thumbv7em-none-eabihf")
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(CMAKE_SYSTEM_NAME Generic)
+set(EMB_TOOLCHAIN_C_FLAGS -O1 -g )

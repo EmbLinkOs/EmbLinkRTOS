@@ -1,0 +1,41 @@
+[1/47] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[2/47] generating emb/storage.h from the layout probe
+[3/47] Building C object arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+FAILED: [code=1] arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+/workspace/EmbCC/embcc -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -I/workspace/EmbLinkRTOS/arch/native/include -I/workspace/EmbLinkRTOS/include -I/workspace/EmbLinkRTOS/build/embcc-review-native-static/generated/include -I/workspace/EmbLinkRTOS/boards/native/native/include -std=c11 -pedantic -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstack-usage -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wvla -Wcast-align -Wcast-qual -Wdouble-promotion -Wformat=2 -Wswitch-default -Wimplicit-fallthrough -Wnull-dereference -Wredundant-decls -Wnested-externs -Werror -pthread -g -O1 -o arch/native/CMakeFiles/emb_arch.dir/native_port.c.o -c /workspace/EmbLinkRTOS/arch/native/native_port.c
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: /workspace/EmbLinkRTOS/arch/native/native_port.c:20: error: cannot find include file "pthread.h"
+  #include <pthread.h>
+[4/47] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[5/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[6/47] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[7/47] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[8/47] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+ninja: build stopped: subcommand failed.

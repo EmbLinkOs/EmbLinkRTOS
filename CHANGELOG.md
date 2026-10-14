@@ -18,6 +18,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Fixed
 
+- EmbCC now emits storage-layout probe markers without an injected header; generation and kernel-archive compilation pass on eight configurations. Full Linux-native compilation advances to the separate missing-POSIX-header boundary.
 - The reference model now delivers already-due tickless timers between sections without requiring another tick; the archived seed-3 trace and reduced cases agree. The periodic differential harness now stops idle ticking when finite waits end. Kernel/architecture implementations are unchanged; the historical seed-5 finding remains open.
 
 ### Changed

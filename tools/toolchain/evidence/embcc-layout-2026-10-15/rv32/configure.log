@@ -1,0 +1,13 @@
+-- The C compiler identification is unknown
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /workspace/EmbCC/embcc - skipped
+-- Found Python3: /workspace/EmbLinkRTOS/.venv/bin/python3.12 (found suitable version "3.12.14", minimum required is "3.9") found components: Interpreter
+-- The ASM compiler identification is unknown
+-- Found assembler: /workspace/EmbCC/embcc
+-- Warning: Did not find file Compiler/-ASM
+-- no emulator for riscv32_virt: test images are built without ctest entries
+-- EmbLinkRTOS 0.2.0: board riscv32_virt (riscv/rv32imac), profile base, checked=1, config 367dc0209f529a99, compiler
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32

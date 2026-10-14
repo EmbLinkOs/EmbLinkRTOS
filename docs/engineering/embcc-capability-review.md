@@ -6,6 +6,8 @@ The [toolchain profile](../architecture/09-embcc-toolchain-profile.md) records c
 
 ## Closure matrix
 
+This page preserves the 2026-10-14 investigation and its recorded failures. The subsequent [layout-marker correction](embcc-layout-marker.md), dated 2026-10-15, supplies the missing macro and verifies storage/kernel-archive compilation on eight configurations. The full Linux-native attempt now stops later at unavailable `pthread.h`; the original evidence below retains its baseline and outcomes.
+
 “Implemented upstream” means the current manuals, implementation and regression fixtures support the named capability. Local check outcomes state what was executed here; object inspection and simulator runs are not hardware qualification. The [evidence archive](https://github.com/EmbLinkOs/EmbLinkRTOS/tree/main/tools/toolchain/evidence/embcc-2026-10-14) preserves commands, outputs, identities and probe inputs.
 
 | Original item | Current upstream capability | Local check and remaining scope |
