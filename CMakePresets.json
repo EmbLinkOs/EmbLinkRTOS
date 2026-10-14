@@ -190,6 +190,34 @@
         "EMB_BOARD": "riscv32_virt",
         "EMB_PROFILE": "tiny"
       }
+    },
+    {
+      "name": "native-embcc",
+      "displayName": "experimental, EmbCC kernel / GCC Linux host",
+      "inherits": "native-gcc",
+      "binaryDir": "${sourceDir}/build/native-embcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/embcc-native-mixed.cmake"
+    },
+    {
+      "name": "native-embcc-release",
+      "displayName": "experimental, EmbCC kernel / GCC Linux host-release",
+      "inherits": "native-release",
+      "binaryDir": "${sourceDir}/build/native-embcc-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/embcc-native-mixed.cmake"
+    },
+    {
+      "name": "native-embcc-tiny",
+      "displayName": "experimental, EmbCC kernel / GCC Linux host-tiny",
+      "inherits": "native-tiny",
+      "binaryDir": "${sourceDir}/build/native-embcc-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/embcc-native-mixed.cmake"
+    },
+    {
+      "name": "native-embcc-periodic",
+      "displayName": "experimental, EmbCC kernel / GCC Linux host-periodic",
+      "inherits": "native-periodic",
+      "binaryDir": "${sourceDir}/build/native-embcc-periodic",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/embcc-native-mixed.cmake"
     }
   ],
   "buildPresets": [
@@ -260,6 +288,22 @@
     {
       "name": "rv32-virt-tiny",
       "configurePreset": "rv32-virt-tiny"
+    },
+    {
+      "name": "native-embcc",
+      "configurePreset": "native-embcc"
+    },
+    {
+      "name": "native-embcc-release",
+      "configurePreset": "native-embcc-release"
+    },
+    {
+      "name": "native-embcc-tiny",
+      "configurePreset": "native-embcc-tiny"
+    },
+    {
+      "name": "native-embcc-periodic",
+      "configurePreset": "native-embcc-periodic"
     }
   ],
   "testPresets": [
@@ -378,6 +422,34 @@
     {
       "name": "rv32-virt-tiny",
       "configurePreset": "rv32-virt-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-embcc",
+      "configurePreset": "native-embcc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-embcc-release",
+      "configurePreset": "native-embcc-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-embcc-tiny",
+      "configurePreset": "native-embcc-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-embcc-periodic",
+      "configurePreset": "native-embcc-periodic",
       "output": {
         "outputOnFailure": true
       }

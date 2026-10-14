@@ -21,6 +21,7 @@ target_include_directories(emb_storage_probe PRIVATE
   "${CMAKE_SOURCE_DIR}/arch/${CONFIG_EMB_ARCH}/include"
   "${EMB_BOARD_DIR}/include")
 target_link_libraries(emb_storage_probe PRIVATE emb_flags)
+emb_use_kernel_compiler(emb_storage_probe)
 add_custom_command(
   OUTPUT "${EMB_STORAGE_HEADER}"
   COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/storage/gen_storage.py"

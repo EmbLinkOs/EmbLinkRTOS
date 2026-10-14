@@ -100,7 +100,8 @@ def identity(runner):
         except (OSError, subprocess.CalledProcessError):
             return None
     sources = [ROOT/"tools/model/bridge.py", ROOT/"tools/model/evidence.py",
-               ROOT/"tools/model/tests/scenarios.py", ROOT/"tests/differential/diff_runner.c"]
+               ROOT/"tools/model/tests/scenarios.py", ROOT/"tests/differential/diff_runner.c",
+               ROOT/"tools/toolchain/kernel_compile.py", ROOT/"tools/toolchain/native_abi.c"]
     sources += sorted((ROOT/"tools/model/embmodel").glob("*.py"))
     tree = hashlib.sha256()
     for folder in ("kernel", "arch", "boards", "include", "configs", "cmake"):
@@ -121,8 +122,9 @@ def identity(runner):
         # Read build metadata; never execute compiler/command paths found in a capture/cache.
         cache = directory/"CMakeCache.txt"
         cache_text = cache.read_text() if cache.is_file() else ""
-        values = dict(re.findall(r"^(CMAKE_(?:C_COMPILER|CACHE_(?:MAJOR|MINOR|PATCH)_VERSION)):[^=]+=(.*)$",
-                                 cache_text, re.M))
+        metadata = (r"CMAKE_(?:C_COMPILER|CACHE_(?:MAJOR|MINOR|PATCH)_VERSION)"
+                    r"|EMB_KERNEL_COMPILER(?:_VERSION|_SHA256)?")
+        values = dict(re.findall(rf"^({metadata}):[^=]+=(.*)$", cache_text, re.M))
         compiler_versions = []
         for compiler in sorted((directory/"CMakeFiles").glob("*/CMakeCCompiler.cmake")):
             compiler_versions += re.findall(r'set\(CMAKE_C_COMPILER_VERSION "([^"]+)"\)', compiler.read_text())
