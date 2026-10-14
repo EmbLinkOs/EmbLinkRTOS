@@ -1,0 +1,239 @@
+{
+  "additional_cli_checks": [
+    "missing runner probe captured and replayed offline",
+    "unwritable capture destination returns 2 and preserves existing file"
+  ],
+  "model_tests": {
+    "failed": 0,
+    "passed": 66,
+    "skipped": 0
+  },
+  "presets": [
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 3,
+          "skipped_scenarios": 1
+        },
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 5,
+          "skipped_scenarios": 1
+        }
+      ],
+      "configuration_archive": "tools/model/evidence/m2-01-correction/native-gcc-config.json",
+      "ctest": {
+        "failed": 0,
+        "passed": 12
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-gcc/generated/config.json",
+          "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec"
+        },
+        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+        "runner_sha256": "e887bb54eb01eda973c6e1dd69246856db5ccc27c8dae3704640d650f82e3295",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": true
+      },
+      "preset": "native-gcc"
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 3,
+          "skipped_scenarios": 1
+        },
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 5,
+          "skipped_scenarios": 1
+        }
+      ],
+      "configuration_archive": "tools/model/evidence/m2-01-correction/native-release-config.json",
+      "ctest": {
+        "failed": 0,
+        "passed": 12
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-release/generated/config.json",
+          "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce"
+        },
+        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+        "runner_sha256": "697b5e806adeda47b110cc82571ad94aaa7d3609c0def96c29d5a5210fc8ea14",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": true
+      },
+      "preset": "native-release"
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 3,
+          "skipped_scenarios": 1
+        },
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 5,
+          "skipped_scenarios": 1
+        }
+      ],
+      "configuration_archive": "tools/model/evidence/m2-01-correction/native-tiny-config.json",
+      "ctest": {
+        "failed": 0,
+        "passed": 12
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-tiny/generated/config.json",
+          "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d"
+        },
+        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+        "runner_sha256": "5a568a9d6feb2d64f6aa479580fa4ead7be60387de30d0b1f95a127a0db86d43",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": true
+      },
+      "preset": "native-tiny"
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 3,
+          "skipped_scenarios": 1
+        },
+        {
+          "agreed": 1400,
+          "divergences": 0,
+          "executed": 1400,
+          "runs": 40,
+          "seed": 5,
+          "skipped_scenarios": 1
+        }
+      ],
+      "configuration_archive": "tools/model/evidence/m2-01-correction/native-periodic-config.json",
+      "ctest": {
+        "failed": 0,
+        "passed": 12
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-periodic/generated/config.json",
+          "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e"
+        },
+        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+        "runner_sha256": "ad57639c0db3e8fe1a4d623789b95d954095ae774777f0dc207f3bb8c4ea6715",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": true
+      },
+      "preset": "native-periodic"
+    }
+  ],
+  "scope": "Differential evidence tooling; controlled search-budget failures are workflow tests, not kernel defects",
+  "source_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f"
+}

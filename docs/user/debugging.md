@@ -17,6 +17,8 @@ Replace `test_thread` with `test_mutex`, `test_notify` or the affected area. `-R
 
 Record the revision, preset, generated `build/native-gcc/.config`, compiler version, executable, command and complete output with a reproduction. The generated JSON contains configuration origins. Reproduce in release when the difference concerns misuse: checked builds raise faults, while applicable release paths return status codes. Handle expected wait results explicitly instead of wrapping every operation in `EMB_CHECK`. That macro faults on non-OK only in checked builds; in release it evaluates to its argument, so explicitly handle failures there. Use `(void)EMB_CHECK(status)` when checking an already-computed status and intentionally discarding its value, to avoid an unused-value warning in release.
 
+For a differential bridge failure, use the path printed after `saved failure`. The [evidence workflow](../engineering/differential-evidence.md) explains offline/live replay and bounded schedule reduction; its bundles preserve the scenario, placements, output and identities automatically.
+
 An available GDB can run a native executable directly:
 
 ```sh
