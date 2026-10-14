@@ -109,7 +109,7 @@ Keep the historical finding open. Recover its original schedule/build if availab
 
 ## Follow-up work identified by this investigation
 
-Items 1–3 below are addressed by the [timer-delivery correction](m2-01-timer-correction.md). The historical seed-5 input and general capture/minimization tooling remain open.
+Items 1–3 below are addressed by the [timer-delivery correction](m2-01-timer-correction.md), and the general capture/schedule-reduction work is implemented by the [evidence workflow](differential-evidence.md). The [bounded follow-up](m2-01-seed5-triage.md) checks broader campaigns and the report's originating source. The historical seed-5 input/cause remains unconfirmed.
 
 1. Represent timer request and delivery at critical-section boundaries explicitly. Preserve deadlines fixed at the call, deadline-order expiry, wait-generation invariants and P1 scheduling. An already-due arm must eventually deliver a timer interrupt even without another injected tick.
 2. Add regression checks for the two-sleeper ordering and original suspension case, plus already-due arming with no later tick, wake-in-window races and ordinary future deadlines. Keep periodic and tickless applicability explicit.
