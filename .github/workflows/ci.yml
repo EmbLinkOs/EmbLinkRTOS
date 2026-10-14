@@ -12,6 +12,13 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   native:
     runs-on: ubuntu-24.04
@@ -30,7 +37,7 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
 
   cortex_m:
     runs-on: ubuntu-24.04
@@ -49,7 +56,7 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -78,7 +85,7 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -113,7 +120,7 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
       - name: Footprint
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -150,3 +157,26 @@ jobs:
         run: |
           pip install hypothesis pytest
           cd tools/model && python3 -m pytest -q
+
+  merge_gate:
+    name: CI merge gate
+    if: ${{ always() }}
+    needs: [native, cortex_m, riscv, avr, lint]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every matrix and lint job to succeed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          results = json.loads(os.environ['NEEDS_JSON'])
+          failed = {name: job['result'] for name, job in results.items()
+                    if job['result'] != 'success'}
+          if not results or failed:
+              print('CI merge gate failed:', failed or 'no dependency results')
+              sys.exit(1)
+          print('CI merge gate: every required matrix and lint job succeeded')
+          PY

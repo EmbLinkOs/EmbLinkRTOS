@@ -31,6 +31,8 @@ Continue native and emulator regression testing. Preserve AVR as the tiny-profil
 
 ### M2 - Finish the blocking kernel and its evidence
 
+The [ordered M2 checklist](../engineering/m2-checklist.md) sequences the known-failure investigations, contract/lifecycle decisions, primitives and evidence review into scoped implementation work. Checklist items are plans, not executed requirement evidence.
+
 Open work: event flags, condition variables, work queues, software timers, message queues; defined binding teardown/lifetime; applicable object lifecycle/freeze behavior; misuse/property campaigns; generated traceability for the implemented core. Pipes, pools, barriers and INDEXED handles have separate feature gates if not needed by the reference application. TABLE handles belong to M3b.
 
 Extend model scenarios and conformance with each primitive, including timeout/cancel/destroy races, ownership conservation and boundary resource counts. Diagnose/minimize the deep replay cases before declaring a campaign clean. Reconcile public annotations with actual complexity and implement the complete resource-bound inventory.

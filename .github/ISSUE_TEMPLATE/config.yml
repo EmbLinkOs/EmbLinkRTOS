@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+blank_issues_enabled: false
+contact_links:
+  - name: User documentation
+    url: https://emblinkos.github.io/EmbLinkRTOS/
+    about: Current user tutorials, API reference and design documents.
+  - name: Private security reporting
+    url: https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/SECURITY.md
+    about: Follow this policy instead of opening a public vulnerability report.
+

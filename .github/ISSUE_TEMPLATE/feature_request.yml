@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+name: Feature request
+description: Propose a scoped capability, contract change or tooling improvement.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read [Project status](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/docs/STATUS.md) and the [M2 work order](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/docs/engineering/m2-checklist.md) first. A specification can describe a feature that has not been implemented.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Explain the application need and the current limitation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed result
+      description: Describe observable behavior, intended users/targets, and a small first delivery.
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Related design and scope
+      description: Link existing requirements, specifications, roadmap items or an ADR. Mention APIs, contexts, ownership or compatibility affected; do not invent requirement IDs.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Acceptance evidence
+      description: What tests, model scenarios, analysis or board demonstration would show the proposal works?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs
+      description: Include a simpler application-level approach and costs such as memory, copying or interrupt masking where relevant.
+
