@@ -8,6 +8,8 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 
 ---
 
+## Requirements
+
 ### KRN-NOTIF-001  Per-thread bits, ISR-settable
 **Statement.** Each thread shall own a notification bit set that can be set from ISR context without blocking.
 **Rationale.** The cheapest completion path from an interrupt to a thread (R-001 §6).

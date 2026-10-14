@@ -6,6 +6,8 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 
 ---
 
+## Requirements
+
 ### HW-001  Single source for hardware facts
 **Statement.** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **Rationale.** No hand-written board C for things the description knows (01 §6).

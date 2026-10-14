@@ -8,6 +8,8 @@ PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restate
 
 ---
 
+## Requirements
+
 ### PORT-ABI-001  No EmbCC-specific extension in the public API
 **Statement.** The public kernel API shall not require an EmbCC-specific language extension.
 **Rationale.** GCC and Clang builds are first-class (ADR-023).

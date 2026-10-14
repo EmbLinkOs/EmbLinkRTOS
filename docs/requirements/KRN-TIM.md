@@ -8,6 +8,8 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 
 ---
 
+## Requirements
+
 ### KRN-TIM-001  Monotonic kernel time
 **Statement.** Kernel time used for scheduling and timeouts shall be monotonic.
 **Rationale.** A clock that moves backward makes deadlines meaningless.

@@ -1,0 +1,5 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright 2026 Junior Deogracias */
+.content { max-width: 72rem; }
+table.needs_table { font-size: 0.85rem; }
+.admonition.note { border-left-color: #2873a8; }

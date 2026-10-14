@@ -10,4 +10,4 @@ __pycache__/
 # Build trees
 build/
 .venv/
-.venv/
+.venv-docs/

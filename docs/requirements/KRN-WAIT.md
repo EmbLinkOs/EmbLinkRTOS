@@ -8,6 +8,8 @@ KRN-WAIT-001 to 009 originate in `docs/architecture/03-kernel-architecture.md` ย
 
 ---
 
+## Requirements
+
 ### KRN-WAIT-001  Default wake order
 **Statement.** Default wake order shall be highest effective priority first, FIFO among equal priority.
 **Rationale.** Priority order is what every real-time analysis assumes; FIFO among equals gives bounded waiting. ThreadX's FIFO default is a documented source of unexpected inversion (R-001 ยง4.1).

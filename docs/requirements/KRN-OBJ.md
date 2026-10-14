@@ -8,6 +8,8 @@ KRN-OBJ-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 
 ---
 
+## Requirements
+
 ### KRN-OBJ-001  Destroy with waiters
 **Statement.** Destroying an object with waiters is a kernel fault in checked builds unless the object was created with `ABORT_WAITERS`, in which case every waiter wakes with `DESTROYED`.
 **Rationale.** ADR-020: lifecycle bugs are caught; deliberate teardown is explicit.

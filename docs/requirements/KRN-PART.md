@@ -8,6 +8,8 @@ KRN-PART-001 to 007 originate in `docs/architecture/03-kernel-architecture.md` Â
 
 ---
 
+## Requirements
+
 ### KRN-PART-001  Every thread has one partition
 **Statement.** Every thread shall belong to exactly one partition.
 **Rationale.** The partition is the unit of accounting, rights, and containment.

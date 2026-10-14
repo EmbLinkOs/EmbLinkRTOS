@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+PROJECT_NAME = EmbLinkRTOS
+PROJECT_NUMBER = $(EMB_DOCS_VERSION)
+OUTPUT_DIRECTORY = "$(EMB_DOCS_BUILD)/doxygen"
+INPUT = "$(EMB_DOCS_BUILD)/doxygen-input"
+FILE_PATTERNS = *.h
+RECURSIVE = NO
+EXCLUDE_PATTERNS = */arch.h */compiler.h
+EXTRACT_ALL = YES
+EXTRACT_STATIC = NO
+GENERATE_HTML = NO
+GENERATE_LATEX = NO
+GENERATE_XML = YES
+XML_PROGRAMLISTING = NO
+QUIET = YES
+WARN_IF_UNDOCUMENTED = NO
+WARN_IF_INCOMPLETE_DOC = NO
+WARN_AS_ERROR = FAIL_ON_WARNINGS
+HAVE_DOT = NO
+ENABLE_PREPROCESSING = YES
+MACRO_EXPANSION = YES
+EXPAND_ONLY_PREDEF = YES
+PREDEFINED = "EMB_DECLARE_HANDLE(name)=struct name { uintptr_t raw; }" \
+             "EMB_ALIGNED(n)=" \
+             EMB_NORETURN= EMB_INLINE=inline EMB_ALWAYS_INLINE=inline \
+             CONFIG_EMB_SEM=1 CONFIG_EMB_MUTEX=1 CONFIG_EMB_NOTIFY=1 \
+             CONFIG_EMB_IRQ_DYNAMIC=1 CONFIG_EMB_TLS_SLOTS=1 CONFIG_EMB_THREAD_LIST=1 \
+             CONFIG_EMB_STACK_STATS=1 CONFIG_EMB_STATUS_NAMES=1 CONFIG_EMB_TRACE=1
+ALIASES = "ctx=Context:" "blocks=Blocking:" "time=Timing:" "owns=Ownership:" \
+          "config=Configuration:" "req=Requirements:" "since=Since:" "stable=Stability:" \
+          "isr-note=ISR note:"

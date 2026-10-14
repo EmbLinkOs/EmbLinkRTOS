@@ -17,11 +17,12 @@ This page is the authoritative inventory of implementation and available evidenc
 | Embedded ports | ATmega328P; Cortex-M3/M4F; RV32IMAC machine mode | QEMU jobs defined in CI; no real-board timing or peripheral/HIL validation recorded here |
 | Configuration/build | Kconfig subset, port manifests, CMake/Ninja, layout probe, footprint tool | GCC/Clang native CI jobs; cross-GCC QEMU jobs; EmbCC toolchain files exist but RTOS execution is not qualified |
 | Observability | M1 trace sink and fault reporting | CTF rings/metadata, deferred log decoder, retained crash records, debug descriptor and worst-case monitors remain planned |
+| Documentation | Sphinx/MyST manuals, Doxygen/Breathe C API, Sphinx Needs design catalog, JSON/CSV downloads and annotation audit | Strict local HTML build; source-preservation and catalog-integrity checks; CI/opt-in Pages workflow configured, remote deployment not verified |
 | Semantic model | UP scheduler/wait/mutex/notification/lifecycle scenarios, exhaustive section-level exploration and randomized walks | Scenario-scoped exploration, not a proof of all C execution, arbitrary programs, SMP or hardware protection |
 
 ## Specified but unimplemented
 
-Event flags, condition variables, barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; generated traceability/coverage reports and support matrix; fuzz/HIL campaigns; SMP/AMP ports and transports.
+Event flags, condition variables, barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; executed-case requirement traceability/coverage reports and support matrix; fuzz/HIL campaigns; SMP/AMP ports and transports.
 
 An API or path named in a design or a requirement's verification field may be a planned deliverable. Check this inventory and the filesystem before treating it as available.
 
@@ -36,6 +37,8 @@ The reference model passed 44 pytest tests with Hypothesis installed. The banned
 `.github/workflows/ci.yml` defines native GCC/Clang, release/tiny, ASan/UBSan and TSan jobs; Cortex-M, RV32 and AVR cross-GCC/QEMU jobs; formatting, banned-construct and configuration checks; model tests; and AVR footprint gates. A job definition is not a successful run. Link immutable run results and artifacts before advertising a target/version as supported or validated.
 
 Generated requirement coverage, coverage percentages, clang-tidy/cppcheck gates, include-boundary checks, double-build reproducibility, fuzzing and HIL are not currently CI gates. The roadmap must deliver them for the released scope rather than assume the engineering-system target description is already enforced.
+
+The separate documentation toolchain is installed in `.venv-docs` with a checksummed Doxygen 1.15.0 binary under `build/tools/`. Its local HTML build extracts 361 design requirements and 82 current API functions. Seventy functions have all eight contract tags; the audit records remaining tag/parameter omissions and unmigrated requirement references. This is extraction/documentation evidence, not API semantic compliance or test coverage. The documentation integrity suite checks malformed/duplicate/empty catalogs and keeps design acceptance separate from execution evidence.
 
 ## Known limits and unresolved evidence
 

@@ -3,9 +3,13 @@
 | Directory | Contents | Read when |
 |---|---|---|
 | [`architecture/`](architecture/README.md) | The v0.2 architecture baseline: vision, system and kernel architecture, platform, engineering system, decision records, roadmap, open questions, toolchain profile | You want to understand or change *what* EmbLinkRTOS is and *why* |
-| [`specs/`](specs/) | Detailed specifications, one per roadmap work item (`SPEC-NNN-*.md`): the design that implements a part of the architecture, with examples | You are about to implement or review a subsystem |
+| [`specs/`](specs/index.md) | Detailed specifications, one per roadmap work item (`SPEC-NNN-*.md`): the design that implements a part of the architecture, with examples | You are about to implement or review a subsystem |
 | [`requirements/`](requirements/README.md) | Normative requirements, one file per identifier group, in a fixed format that tooling extracts into the traceability matrix | You are writing a test, checking coverage, or deciding whether a behavior is promised |
 | [`research/`](research/README.md) | Research records: mechanism comparison of eleven kernels, market and certification facts, differentiation decisions with measurable targets, per-kernel source notes | You want to know why a design choice was made relative to other systems, or what EmbLinkRTOS promises to beat and how that is measured |
+
+## Documentation site and user guide
+
+[User guide](user/index.md), [site contents](index.md), [documentation build instructions](engineering/documentation.md), and [upstream RTOS tooling references](engineering/documentation-references.md). The strict Sphinx build renders existing Markdown, extracts the current C API through Doxygen/Breathe, and creates a Sphinx Needs design catalog with JSON/CSV downloads. Run `.venv-docs/bin/python tools/docs/build.py` after installing the pinned documentation tools. Generated output lives under ignored `build/docs/`. Publishing through the manual Pages job is opt-in; this repository does not assume a live site.
 
 ## Current implementation and development
 

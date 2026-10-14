@@ -29,3 +29,16 @@ Apache-2.0 (see `LICENSE` and `NOTICE`). Contributions are welcome under the Dev
 ## Part of the EmbLink platform
 
 EmbLinkRTOS integrates with EmbCC, EmbBuild, EmbDebug, EmbFlash, and EmbStudio while remaining fully usable with third-party compilers, debuggers, probes, and build systems.
+
+## Build the documentation
+
+The Sphinx site includes the user guide, current C API, architecture/specifications and a generated design-requirement catalog. See [documentation setup](docs/engineering/documentation.md) for the pinned tools and optional publishing workflow.
+
+```sh
+python3 -m venv .venv-docs
+.venv-docs/bin/python -m pip install -r docs/requirements.txt
+python3 tools/docs/bootstrap.py
+.venv-docs/bin/python tools/docs/build.py
+```
+
+Open `build/docs/html/index.html`. Kernel compilation is not required for the documentation build; extraction is not test-coverage evidence.

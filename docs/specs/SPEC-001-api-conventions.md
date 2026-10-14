@@ -334,7 +334,7 @@ Rules for every public header:
 
 ## 9. Machine-readable contract annotations
 
-Each public function carries a documentation comment whose tagged lines are parsed by `tools/apidoc/` into `api.json`, consumed by the reference manual generator, the static-analysis rules (clang-tidy checks and EmbCC diagnostics for context misuse), and the conformance-suite generator (API-003).
+The target contract gives each function structured tags. Current `tools/docs/build.py` extracts them into `catalog/api-annotations.json` and renders an omission audit alongside the Doxygen/Breathe reference. It does not yet enforce complete header compliance or drive static analysis, conformance generation or syscalls. The richer `tools/apidoc/` contract/schema remains planned (API-003).
 
 ```c
 /**

@@ -8,6 +8,8 @@ KRN-CAP-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 
 ---
 
+## Requirements
+
 ### KRN-CAP-001  One handle type, profile-selected representation
 **Statement.** Every public handle shall be a capability whose representation is selected by profile without changing API signatures.
 **Rationale.** ADR-014: one API from tiny to isolated.

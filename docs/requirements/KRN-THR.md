@@ -6,6 +6,8 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 
 ---
 
+## Requirements
+
 ### KRN-THR-001  One RUNNING thread per processor
 **Statement.** At most one thread shall be in the RUNNING state on each online logical processor.
 **Rationale.** Definition of the scheduler's invariant.

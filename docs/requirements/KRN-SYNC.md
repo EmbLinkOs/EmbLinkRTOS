@@ -8,6 +8,8 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 
 ---
 
+## Requirements
+
 ### KRN-SYNC-001  Common wait mechanism
 **Statement.** Blocking synchronization shall use the common kernel wait mechanism.
 **Rationale.** One protocol under every primitive (SPEC-004) means one set of race rules, one model, one set of tests.

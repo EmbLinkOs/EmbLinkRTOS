@@ -194,6 +194,8 @@ Experimental, Supported, Validated, LTS-qualified, declared independently for ea
 
 ## 9. Documentation
 
+The current site uses Sphinx, MyST, Doxygen/Breathe, Sphinx Needs and Furo (ADR-040). `tools/docs/build.py` validates the design catalog and builds with warnings as errors; `.github/workflows/docs.yml` builds artifacts and offers opt-in manual Pages deployment. Authored pages and generated reference pages share navigation/search, while evidence status stays independent. [Building documentation](../engineering/documentation.md) gives installation, commands, omissions and publication limits.
+
 Docs-as-code. Architecture (these documents), requirements, API reference generated from annotated headers, one generated page per board and per architecture port, porting guides for architecture and SoC, user guide per profile, and the decision log. API pages state parameters, status values, context class, blocking class, timing class, ownership, lifecycle constraints, and configuration dependencies, all sourced from the header annotations.
 
 ## 10. Licence and governance (LOCKED, ADR-024)

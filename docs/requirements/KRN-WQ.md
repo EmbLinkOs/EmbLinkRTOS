@@ -6,6 +6,8 @@ KRN-WQ-001 to 004 originate in `docs/architecture/03-kernel-architecture.md` §6
 
 ---
 
+## Requirements
+
 ### KRN-WQ-001  Intrusive, static, ISR-safe submit
 **Statement.** Work items shall be intrusive and statically allocatable; submission shall be ISR-safe and O(1).
 **Rationale.** A bottom half is submitted from interrupts; it must cost one push and one bit set.

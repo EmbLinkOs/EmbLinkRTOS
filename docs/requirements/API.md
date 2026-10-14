@@ -6,6 +6,8 @@ Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-00
 
 ---
 
+## Requirements
+
 ### API-001  Return type discipline
 **Statement.** Every public function shall return `emb_status_t`, or a value type whose every value is documented, or `void` only when the function cannot fail. No public function shall report an error through a global or thread-local variable.
 **Rationale.** One error-reporting path keeps call sites uniform and works from ISRs and across partitions; EmbCC compiles thread-local storage to a single instance on embedded targets, which rules out `errno`-style state (09 §3).

@@ -471,3 +471,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Current support claims are narrower and testable. The roadmap preserves deferred work explicitly. Timing costs include owned-lock scans, wake hooks and batches; static ceiling optimization requires proved progress assumptions. DMA, restart, generation lifetime and syscall pointer validation must pass dedicated isolation review before containment is claimed. Requirement evidence records execution and scope rather than identifier presence. APIs/formats stabilize only when included in a released supported scope.
 
 **Status.** Accepted documentation revision 2026-10-14, following the project owner's instruction to apply the documentation review. Implementation and verification of new constraints remain pending.
+
+## ADR-040 Sphinx manuals with extracted API and a separate design catalog
+
+**Context.** Markdown designs exist but there is no repeatable user-documentation site, extracted reference, requirement catalog or publication workflow. Upstream Zephyr/NuttX/RTEMS use Sphinx, and RIOT demonstrates pinned Doxygen extraction. Q16 recommended Sphinx.
+
+**Decision.** Use Sphinx/MyST to preserve authored Markdown, Doxygen/Breathe for the current public C API, Sphinx Needs for normative design records/declared links, and Furo for the site. Pin Python dependencies and the Doxygen archive/checksum. Stage normalization and generated artifacts inside ignored build directories without changing public headers. Strict builds and catalog-integrity tests run locally and in configured CI; Pages deployment is explicitly manual and opt-in. Export requirement JSON/CSV and the API annotation omission audit.
+
+**Alternatives.** MkDocs (simpler basic Markdown publishing, additional integration needed for this API/requirements direction); Doxygen alone (good reference, weaker authored-manual organization); manual copies of API/requirements (drift).
+
+**Consequences.** Manuals/search/reference can be used before further kernel development. A generated design record or source annotation is not executed evidence; the full requirement-to-case/profile matrix remains separate. Missing header tags, argument documentation and unresolved IDs stay visible for later work. Publishing depends on repository Pages settings and a successful reviewed deployment; no live URL or remote CI success is inferred from a local build.
+
+**Status.** Accepted documentation tooling decision 2026-10-14, implementing the project owner's instruction to set up the documentation pipeline before further kernel coding.

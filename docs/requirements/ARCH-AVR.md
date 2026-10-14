@@ -8,6 +8,8 @@ New group; numbering starts at 001.
 
 ---
 
+## Requirements
+
 ### ARCH-AVR-001  Manifest and tiny defaults
 **Statement.** The AVR port shall declare 8-bit words, 16-bit pointers, byte stack alignment, a 37-byte context frame, no nesting, no zero-latency class, no compare-and-swap, no interrupt stack, no protection, no fault entry, and tickless limited to idle modes; the tiny defaults (table scheduler, 32-bit time, 8-bit notifications, no system work queue, no idle thread) shall be mandatory on it.
 **Rationale.** SPEC-012 §2; ADR-036.
