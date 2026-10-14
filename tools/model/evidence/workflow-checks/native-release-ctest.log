@@ -4,7 +4,7 @@ Test project /workspace/EmbLinkRTOS/build/native-release
       Start  2: test_sched
  2/12 Test  #2: test_sched .......................   Passed    0.00 sec
       Start  3: test_irq
- 3/12 Test  #3: test_irq .........................   Passed    0.00 sec
+ 3/12 Test  #3: test_irq .........................   Passed    0.01 sec
       Start  4: test_thread
  4/12 Test  #4: test_thread ......................   Passed    0.01 sec
       Start  5: test_time
@@ -12,18 +12,18 @@ Test project /workspace/EmbLinkRTOS/build/native-release
       Start  6: test_notify
  6/12 Test  #6: test_notify ......................   Passed    0.00 sec
       Start  7: test_sem
- 7/12 Test  #7: test_sem .........................   Passed    0.01 sec
+ 7/12 Test  #7: test_sem .........................   Passed    0.00 sec
       Start  8: test_mutex
- 8/12 Test  #8: test_mutex .......................   Passed    0.01 sec
+ 8/12 Test  #8: test_mutex .......................   Passed    0.03 sec
       Start  9: test_first_execution
- 9/12 Test  #9: test_first_execution .............   Passed    6.24 sec
+ 9/12 Test  #9: test_first_execution .............   Passed    5.95 sec
       Start 10: differential_bridge
-10/12 Test #10: differential_bridge ..............   Passed    1.93 sec
+10/12 Test #10: differential_bridge ..............   Passed    1.58 sec
       Start 11: differential_timer_regressions
-11/12 Test #11: differential_timer_regressions ...   Passed    0.31 sec
+11/12 Test #11: differential_timer_regressions ...   Passed    0.23 sec
       Start 12: differential_evidence
-12/12 Test #12: differential_evidence ............   Passed    1.79 sec
+12/12 Test #12: differential_evidence ............   Passed    1.96 sec
 
 100% tests passed, 0 tests failed out of 12
 
-Total Test time (real) =  10.33 sec
+Total Test time (real) =   9.80 sec

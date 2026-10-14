@@ -64,7 +64,7 @@ Condition variables, event flags, barriers, and message queues are added when th
 
 ## Evidence scope and deeper-campaign triage
 
-The model/tooling suite (66 tests after the evidence workflow), six-schedule bridge campaign, exact timer regressions and evidence workflow check are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
+The model/tooling suite (67 tests after the evidence workflow), six-schedule bridge campaign, exact timer regressions and evidence workflow check are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
 
 The historical seed-5 finding remains open. Original failure inputs/traces/identities are in `evidence/m2-01/`; corrected-source outcomes are in `evidence/m2-01-correction/`. The full diagnostic campaigns start from the repository root with the built native runner:
 

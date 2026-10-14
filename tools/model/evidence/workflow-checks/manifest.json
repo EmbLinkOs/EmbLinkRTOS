@@ -5,7 +5,7 @@
   ],
   "model_tests": {
     "failed": 0,
-    "passed": 66,
+    "passed": 67,
     "skipped": 0
   },
   "presets": [
@@ -44,9 +44,10 @@
             "14.2.0"
           ],
           "config_path": "/workspace/EmbLinkRTOS/build/native-gcc/generated/config.json",
-          "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec"
+          "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+          "configuration_values_sha256": "cacaa968c935066dfcdfb4d5d9c82f10962aa4f76c7dd4f0795f1767054bb570"
         },
-        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "git_sha": "8d7bca4cfc7c2d667dd9c1d7f33cd72322db982f",
         "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
         "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
         "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
@@ -58,7 +59,7 @@
           "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
           "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
           "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
-          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
           "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
         },
         "tracked_dirty": true
@@ -100,9 +101,10 @@
             "14.2.0"
           ],
           "config_path": "/workspace/EmbLinkRTOS/build/native-release/generated/config.json",
-          "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce"
+          "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+          "configuration_values_sha256": "c1052c5251bc6be26d80c39968d91af07c092dea0d427183b067886649aa758f"
         },
-        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "git_sha": "8d7bca4cfc7c2d667dd9c1d7f33cd72322db982f",
         "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
         "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
         "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
@@ -114,7 +116,7 @@
           "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
           "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
           "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
-          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
           "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
         },
         "tracked_dirty": true
@@ -156,9 +158,10 @@
             "14.2.0"
           ],
           "config_path": "/workspace/EmbLinkRTOS/build/native-tiny/generated/config.json",
-          "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d"
+          "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+          "configuration_values_sha256": "8cc6502ebbcfeaa77f4dc67e6ff40d004a4909ecae812d1fa6471d4876dc91f5"
         },
-        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "git_sha": "8d7bca4cfc7c2d667dd9c1d7f33cd72322db982f",
         "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
         "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
         "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
@@ -170,7 +173,7 @@
           "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
           "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
           "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
-          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
           "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
         },
         "tracked_dirty": true
@@ -212,9 +215,10 @@
             "14.2.0"
           ],
           "config_path": "/workspace/EmbLinkRTOS/build/native-periodic/generated/config.json",
-          "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e"
+          "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e",
+          "configuration_values_sha256": "164694c177d6e5b72a0151acc6c1e8f84a7772bea5642a7fd9df77aabdc17901"
         },
-        "git_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f",
+        "git_sha": "8d7bca4cfc7c2d667dd9c1d7f33cd72322db982f",
         "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
         "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
         "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
@@ -226,7 +230,7 @@
           "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
           "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
           "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
-          "tools/model/evidence.py": "ac90f13042c271c9bd1b2a7b85dd28f400d9e8e920660d75b43109c1832cf3f8",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
           "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
         },
         "tracked_dirty": true
@@ -235,5 +239,5 @@
     }
   ],
   "scope": "Differential evidence tooling; controlled search-budget failures are workflow tests, not kernel defects",
-  "source_sha": "be713d50e0c1fcd404f317b299e9e362641d4f0f"
+  "source_sha": "8d7bca4cfc7c2d667dd9c1d7f33cd72322db982f"
 }
