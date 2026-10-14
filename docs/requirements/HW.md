@@ -44,8 +44,8 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 **Trace.** SPEC-014 §6, §9
 
 ### HW-006  Two linker outputs from one region model
-**Statement.** From the same region model, the generator shall emit both a GNU ld linker script and an `embld` option set (`-Ttext`, `-Tdata`, `--rom-limit`), because `embld` accepts linker scripts on ARM and RISC-V but not on AVR (09 §7); the two outputs shall be tested for agreement.
-**Rationale.** EmbCC on AVR must link the same layout as avr-gcc.
+**Statement.** From the same region model, the generator shall emit both a GNU ld linker script and an `embld` option set (`-Ttext`, `-Tdata`, `--rom-limit`); the two outputs shall be tested for agreement.
+**Rationale.** Preserve a common layout with the legacy AVR option-set path. EmbCC now supports AVR scripts (09 §7, reviewed 2026-10-14); the existing two-output contract is retained, not justified by a current compiler limitation. Removing that compatibility output requires a separate reviewed amendment; the generator remains unimplemented.
 **Status.** Accepted 2026-10-07
 **Verification.** Generator test comparing the memory maps produced by both outputs for the Uno board.
 **Trace.** SPEC-014 §6; SPEC-012 §8

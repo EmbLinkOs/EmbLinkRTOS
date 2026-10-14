@@ -36,7 +36,7 @@ Format strings use a printf subset (`%d %i %u %x %X %c %s %p %lld %llu %f` and w
 
 ### 2.2 Interning (ADR-009)
 
-Each call site defines a `static const` metadata object (format string, level, module id, file, line, argument type signature) in the section `.emb_log` placed in a `NOLOAD` output section in a dummy memory region (`LOG_STRINGS`) by the generated linker script; the object's **address is the identifier** (09 §7, as `defmt` does), so nothing is in flash and no identifier table is needed. On a target without a linker script (AVR under EmbCC) the plain-text backend is used and metadata objects are not emitted (SPEC-012 §10).
+Each call site targets a `static const` metadata object (format string, level, module id, file, line, argument type signature) in `.emb_log`, placed in a `NOLOAD` dummy region (`LOG_STRINGS`) by the planned generated script; its **address is the identifier** (09 §7), avoiding loaded format strings and an identifier table. EmbCC now accepts AVR linker scripts. The tiny plain-text backend remains a footprint/design choice, rather than a missing-script requirement; deferred metadata/linker/debugger integration is not implemented or qualified by that compiler capability (SPEC-012 §10).
 
 ### 2.3 Record format
 

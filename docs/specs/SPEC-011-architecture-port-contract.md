@@ -185,7 +185,7 @@ void emb_arch_syscall_return(uintptr_t status) __attribute__((noreturn));
 - `emb_arch_trace_timestamp()` is `emb_arch_cycles()` unless the port has a better trace clock.
 - The current fault API uses `emb_arch_fault_halt` and `emb_arch_reset`; retained crash records and the descriptor are planned.
 
-- On AVR, EmbCC emits no DWARF for functions, variables, or lines (09 §7); the AVR port's descriptor therefore carries everything a debugger needs that would otherwise come from debug info, and the port documentation says that symbolic debugging of AVR images uses GCC builds.
+- EmbCC now emits AVR function/global/line DWARF and has an AVR remote register layout (09 §7 and §10). The descriptor remains a target for RTOS context/thread awareness independent of compiler debug info. Current EmbCC RTOS debugging is unqualified; no AVR `.debug_frame` is emitted and EmbDBG unwinding stops at frame 0. GCC debugging remains a useful reference.
 
 ## 15. Toolchain rules for port code
 
@@ -196,8 +196,8 @@ From 09 §5 and §7, binding on every port so that one source serves EmbCC, GCC,
 3. Critical-section primitives are `static inline __attribute__((always_inline))` with a `"memory"` clobber (SPEC-002 §4.1).
 4. No LTO, no `-fPIC`, no `-fstack-protector`, no `-fshort-enums`; attribute fields are fixed-width integers.
 5. Vector tables are `const` arrays with `used`; on AVR the 26 `jmp` entries are the toolchain's and the port supplies `__vector_n` bodies.
-6. Linker inputs come from the generator (HW-006): a GNU ld script on ARM and RISC-V, an `embld` option set on AVR; bracketed sections are the registration mechanism everywhere.
-7. Instruction vocabulary gaps (`clrex`, `ldrd/strd`, byte exclusives, `lr/sc` in inline asm) are avoided by using C11 atomics and `.S` files; the port's documentation lists any gap it had to work around (09 §10).
+6. Linker inputs target the generator (HW-006): GNU ld scripts, now also accepted by EmbCC on AVR, plus the retained AVR compatibility option set; bracketed sections remain the registration mechanism. Generated inputs are not yet implemented.
+7. Use C11 atomic protocols and `.S` files at the existing portability boundary. Verify each core's required instruction vocabulary rather than retaining obsolete compiler gaps: Cortex-M `clrex`, `ldrd/strd` and subword exclusives are now documented upstream; RISC-V inline-atomic vocabulary remains restricted (09 §5).
 
 ## 16. Port deliverables and conformance
 

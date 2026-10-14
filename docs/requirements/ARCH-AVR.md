@@ -67,8 +67,8 @@ New group; numbering starts at 001.
 **Trace.** SPEC-012 §8, §9; FLT-001, FLT-004
 
 ### ARCH-AVR-009  Debug and emulation path
-**Statement.** Symbolic debugging shall use the avr-gcc build until EmbCC emits DWARF on AVR; the EmbCC build shall be verified by the conformance suite under QEMU and on the `arduino_uno` board, and timing from emulation shall never be published.
-**Rationale.** 09 §7 gap 4, §9; SIM-002, SIM-003.
+**Statement.** Symbolic debugging shall use the qualified avr-gcc reference build until the EmbCC RTOS debugging path is qualified; the EmbCC build shall be verified by the conformance suite under QEMU and on the `arduino_uno` board, and timing from emulation shall never be published.
+**Rationale.** EmbCC's AVR DWARF and remote layout are now implemented (09 §7/§9, reviewed 2026-10-14), but tool capability does not replace RTOS target/session qualification (SIM-002, SIM-003). The original acceptance date below is design status, not evidence that those runs passed.
 **Status.** Accepted 2026-10-07
 **Verification.** CI: QEMU AVR run of the conformance suite on both compilers; HIL run on the Uno.
 **Trace.** SPEC-012 §10, §12

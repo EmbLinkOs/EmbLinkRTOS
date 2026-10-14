@@ -3,9 +3,10 @@
 /*
  * Compiler portability layer for EmbCC (SPEC-001 §10; constraints from document 09).
  * EmbCC accepts the GCC attribute set listed in 09 §4 and the builtins named there.
- * It refuses `aligned` on typedefs (SPEC-001 §8 already applies alignment to objects
- * only), `cleanup`, constructor priorities, and __builtin_debugtrap; none are used.
- * The predefined macro __EMBCC__ is assumed; verified when the compiler joins CI.
+ * Current EmbCC supports typedef alignment and constructor priorities; the RTOS
+ * keeps object/member alignment and generated initialization tables as policy.
+ * The predefined macro __EMBCC__ was observed in the 2026-10-14 capability probes.
+ * Full RTOS qualification and the missing EMB_LAYOUT_MARKER remain separate work.
  */
 #ifndef EMB_COMPILER_EMBCC_H
 #define EMB_COMPILER_EMBCC_H

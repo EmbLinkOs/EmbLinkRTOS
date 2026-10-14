@@ -14,6 +14,7 @@ User-visible changes are recorded here. There are no released versions or releas
 - Exact native timer-boundary regression checks and a periodic-clock native preset in CI.
 - Automatic differential failure bundles, exact offline/live replay, bounded confirmed schedule reduction, a native evidence workflow check and CI retention of default failure bundles.
 - Bounded historical seed-5 triage evidence and M2-02 contract proposals for review before kernel implementation.
+- Pinned EmbCC ten-item capability review, scoped local compiler/tool/EmbSim evidence and current RTOS integration findings.
 
 ### Fixed
 
@@ -23,6 +24,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - Reconciled design contracts, current implementation limits, timing/evidence obligations and the staged first-release scope.
 - Clarified API parameter/storage lifetimes, wait outcomes, configuration and current interrupt-priority/thread-index limitations.
+- Refreshed obsolete EmbCC limitations in compiler/AVR/debug/linker/SVD/C++ documentation while retaining incomplete RTOS compiler qualification and existing kernel policies.
 - CI test commands reject zero registered tests instead of accepting an empty run.
 - Official GitHub Actions are pinned to reviewed Node 24 release commits, replacing deprecated Node 20 action versions.
 

@@ -67,4 +67,4 @@ Tests needing fork-based fault expectation (`EMB_ASSERT_FAULTS`, `EMB_ASSERT_MIS
 ## Toolchain notes
 
 - avr-gcc cannot compute `-fstack-usage` for naked functions and errors out, so the flag is dropped for AVR builds; stack figures come from the call graph.
-- EmbCC: untested in M1 (`cmake/toolchains/embcc-avr.cmake` exists); SPEC-012 §8 and §10 list what changes under it (`const` in RAM, no linker script, no DWARF).
+- EmbCC: full RTOS execution remains unqualified (`cmake/toolchains/embcc-avr.cmake` exists). AVR scripts, program-memory support, DWARF, remote register layout and masking atomics are now implemented upstream; [focused fixture/probe checks](../engineering/embcc-capability-review.md) passed at their stated scope. RTOS layout-marker, flash-macro/registration and linking integration still need a joint coding/validation session. SPEC-012 §8/§10 retain these distinctions.
