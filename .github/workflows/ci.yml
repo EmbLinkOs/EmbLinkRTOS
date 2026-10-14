@@ -27,7 +27,7 @@ jobs:
       matrix:
         preset: [native-gcc, native-clang, native-release, native-tiny, native-asan, native-tsan]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         run: |
           sudo apt-get update
@@ -46,7 +46,7 @@ jobs:
       matrix:
         preset: [cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         run: |
           sudo apt-get update
@@ -63,7 +63,7 @@ jobs:
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm arm-none-eabi-nm \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: footprint-${{ matrix.preset }}
           path: footprint-${{ matrix.preset }}.*
@@ -75,7 +75,7 @@ jobs:
       matrix:
         preset: [rv32-virt, rv32-virt-release, rv32-virt-tiny]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         run: |
           sudo apt-get update
@@ -92,7 +92,7 @@ jobs:
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm riscv64-unknown-elf-nm \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: footprint-${{ matrix.preset }}
           path: footprint-${{ matrix.preset }}.*
@@ -110,7 +110,7 @@ jobs:
           - preset: avr-uno-t1
             sample: footprint_t1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         run: |
           sudo apt-get update
@@ -128,7 +128,7 @@ jobs:
             --elf build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf --nm avr-nm \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json \
             --thresholds tools/footprint/thresholds-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: footprint-${{ matrix.preset }}
           path: footprint-${{ matrix.preset }}.*
@@ -136,7 +136,7 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         run: |
           sudo apt-get update

@@ -14,6 +14,8 @@ The CI merge gate depends on the entire existing matrix: six native presets, fou
 
 The documentation publishing `deploy` job is manual and **not** a merge requirement. Normal PRs must build the docs but do not publish a website. Workflows run on every PR and main push without path filters, so a required check is not silently absent for documentation-only changes. The repository does not use a merge queue; enabling one later requires `merge_group` triggers and equivalent checks first.
 
+Official checkout, Python setup and artifact/Pages actions are pinned to full reviewed release commit SHAs, with version comments. They use the supported Node 24 runtime on GitHub-hosted Ubuntu 24.04; update pins by checking the official release/runtime compatibility and rerunning the affected workflows. Pinning these actions does not pin every compiler/package or establish release reproducibility.
+
 These checks do not yet enforce complete statement/branch coverage, semantic requirement traceability, clang-tidy/cppcheck, reproducibility, SBOM generation, fuzzing or HIL. Those remain delivery/release gates with explicit evidence obligations. The presence of a workflow or ruleset file is not proof that a remote run passed or that GitHub settings are active.
 
 ## DCO certification

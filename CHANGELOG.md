@@ -16,6 +16,7 @@ User-visible changes are recorded here. There are no released versions or releas
 - Reconciled design contracts, current implementation limits, timing/evidence obligations and the staged first-release scope.
 - Clarified API parameter/storage lifetimes, wait outcomes, configuration and current interrupt-priority/thread-index limitations.
 - CI test commands reject zero registered tests instead of accepting an empty run.
+- Official GitHub Actions are pinned to reviewed Node 24 release commits, replacing deprecated Node 20 action versions.
 
 ### Known limits
 
