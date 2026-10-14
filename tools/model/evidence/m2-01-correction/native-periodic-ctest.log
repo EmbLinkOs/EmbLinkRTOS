@@ -1,0 +1,27 @@
+Test project /workspace/EmbLinkRTOS/build/native-periodic
+      Start  1: test_smoke
+ 1/11 Test  #1: test_smoke .......................   Passed    0.00 sec
+      Start  2: test_sched
+ 2/11 Test  #2: test_sched .......................   Passed    0.00 sec
+      Start  3: test_irq
+ 3/11 Test  #3: test_irq .........................   Passed    0.00 sec
+      Start  4: test_thread
+ 4/11 Test  #4: test_thread ......................   Passed    0.01 sec
+      Start  5: test_time
+ 5/11 Test  #5: test_time ........................   Passed    0.00 sec
+      Start  6: test_notify
+ 6/11 Test  #6: test_notify ......................   Passed    0.00 sec
+      Start  7: test_sem
+ 7/11 Test  #7: test_sem .........................   Passed    0.00 sec
+      Start  8: test_mutex
+ 8/11 Test  #8: test_mutex .......................   Passed    0.01 sec
+      Start  9: test_first_execution
+ 9/11 Test  #9: test_first_execution .............   Passed    5.10 sec
+      Start 10: differential_bridge
+10/11 Test #10: differential_bridge ..............   Passed    0.98 sec
+      Start 11: differential_timer_regressions
+11/11 Test #11: differential_timer_regressions ...   Passed    0.10 sec
+
+100% tests passed, 0 tests failed out of 11
+
+Total Test time (real) =   6.23 sec

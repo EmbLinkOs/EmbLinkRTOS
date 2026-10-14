@@ -17,7 +17,7 @@ The model is written so that it can be read next to the specification: `embmodel
 
 ## Granularity
 
-A kernel operation is a sequence of *sections* (SPEC-004 §5.1): code executed inside one lock domain. The model makes a section atomic and lets an interrupt (`isr` action), the timer (`tick` action), or nothing (`run` action) happen between sections. That is exactly the real system's atomicity on a uniprocessor, so every interleaving the explorer visits is one the hardware can produce, and no interleaving the hardware can produce is missed at that granularity.
+A kernel operation is a sequence of *sections* (SPEC-004 §5.1): code executed inside one lock domain. The model makes a section atomic and places interrupt (`isr`), advancing timer (`tick`), already-due timer delivery (`timer`) and thread (`run`) actions at section boundaries. An already-due tickless arm requests delivery; `timer` expires it without advancing time, or `tick` represents counter advancement during the masked arming section before delivery. Pending timer delivery precedes another thread section, matching the native port's timer-first IRQ ordering. `Scenario(tickless=False)` uses periodic expiry on the next tick. Exploration covers the enabled actions of the supplied finite scenarios; it does not prove arbitrary IRQ priorities, all programs or hardware behavior.
 
 ## Running
 
@@ -42,9 +42,17 @@ The runner (`tests/differential/diff_runner.c`, native port only) builds the sce
 
 The shared event vocabulary is `switch`, `wait_begin`, `wake`, `wait_end`, `notify_set`, `mutex_unlock`, `thread_exit`, `thread_start`, `tick`, `isr`; kernel events the model does not express (timeout arming, scheduler lock depth, priority changes, idle) are dropped, and the model's `mutex_lock`, `notify_dropped` and `stale_timeout` likewise. Queue and mutex addresses in the kernel's trace are mapped to the model's ids as they are first seen. The schedules are the natural run (interrupts at idle time), each interrupt as early as possible, then seeded random placements of interrupts and up to three explicit ticks; `--runs` and `--seed` choose how many. The runner reports its build (profile, owner-death policy, checked), and the bridge adapts the scenario (bitmap queues on the tiny profile, the owner-death policy) or skips what the build cannot express (shared priorities on the tiny profile, bitmap queues on the base profile). `ctest` runs the bridge as `differential_bridge` on every native preset; CI runs it per commit (05 §7).
 
-Divergence is a kernel bug unless the specification changes first. The first campaign found three in the kernel: a notification set through a semaphore binding reached a terminated thread, a recursive re-lock left no trace, and the generated object storage was aligned to 8 where the control block needs 16 (all fixed in the same change). It found one in the model, against the specification: a relative timeout became a deadline at section 2 instead of at the call (SPEC-003 §5.2), which differs when a tick lands between the two; the model now fixes the deadline at the call and expires an already-due deadline when it is armed, as the kernel's timer programming does.
+Divergences require diagnosis against the specification. The first campaign found three in the kernel: a notification set through a semaphore binding reached a terminated thread, a recursive re-lock left no trace, and the generated object storage was aligned to 8 where the control block needs 16 (all fixed in the same change). It found one in the model, against the specification: a relative timeout became a deadline at section 2 instead of at the call (SPEC-003 §5.2), which differs when a tick lands between the two. The model fixes the deadline at the call; the later timer-delivery correction represents an already-due compare as a pending interrupt instead of expiring it inside the arming section.
 
-Known open item: historical deep campaigns reported `suspend_while_waiting` with seed 3 and `cancel_waiter_disinherits` with seed 5. The [2026-10-14 investigation](../../docs/engineering/m2-01-investigation.md) reproduced seed 3 on checked, release and tiny and reduced it to two sleepers and two ticks. It identifies a model timer-delivery limitation when arming an already-due deadline; no behavior correction has been applied. Seed 5 passed on all three current builds, so its historical finding remains open without the original schedule/build. The CI campaign (6 schedules, seed 1) is clean on every native preset; it does not resolve the deeper findings.
+Historical deep campaigns reported `suspend_while_waiting` with seed 3 and `cancel_waiter_disinherits` with seed 5. The [initial investigation](../../docs/engineering/m2-01-investigation.md) reproduced seed 3 and reduced it to two sleepers and two ticks. The [timer-delivery correction](../../docs/engineering/m2-01-timer-correction.md) fixes that model timing gap: all seven archived traces agree, and the checked/release/tiny/periodic native builds passed both 40-schedule campaigns (11,200 total runs, zero divergences). The historical seed-5 input remains unavailable and unclassified; passing its current campaign does not establish the historical cause.
+
+Four exact timer-boundary inputs run separately from the unchanged seeded campaign:
+
+```sh
+python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --regressions --verbose
+```
+
+CTest registers this as `differential_timer_regressions` on applicable native builds. `native-periodic` is a configure/build/test preset and a native CI job. The runner reports its clock mode; the bridge uses it when adapting the model. `bridge.parse_run()` also replays recorded output without running a binary, exercised by `tests/test_timer_delivery.py` against the original failure captures.
 
 ## What is checked
 
@@ -56,9 +64,9 @@ Condition variables, event flags, barriers, and message queues are added when th
 
 ## Evidence scope and deeper-campaign triage
 
-The 44-test suite and six-schedule bridge campaign are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
+The model suite (53 tests after the timer correction), six-schedule bridge campaign and exact timer regressions are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
 
-The two deeper-campaign findings described above remain open; they are not automatically expected failures or confirmed kernel bugs. Archived seed-3 inputs, complete traces, configurations and identities are in `evidence/m2-01/`; the investigation page provides exact replays and the diagnosis. The full diagnostic campaigns start from the repository root with the built native runner:
+The historical seed-5 finding remains open. Original failure inputs/traces/identities are in `evidence/m2-01/`; corrected-source outcomes are in `evidence/m2-01-correction/`. The full diagnostic campaigns start from the repository root with the built native runner:
 
 ```sh
 python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 3 --verbose

@@ -2,6 +2,8 @@
 
 **Evidence date:** 2026-10-14. **Source:** `4021959379d679c07a3c97eb43a06b7271a48ea2`. **Outcome:** the seed-3 failure is reproduced and reduced; the historical seed-5 failure remains unconfirmed. Kernel, model, bridge and CI behavior are unchanged by this investigation.
 
+This page preserves the pre-correction investigation. The [timer-delivery correction](m2-01-timer-correction.md) records the subsequent model change and passing regressions/campaigns; the original archives retain their failing outcomes and source identity.
+
 The reproduced trace exposes a limitation in the reference model's representation of timer delivery during timeout arming. It is not evidence of a broken semaphore or suspend implementation. M2-01 remains open until the timer-delivery model, regression checks and affected campaigns are reviewed and implemented.
 
 ## Executed campaigns
@@ -85,7 +87,7 @@ for name in ('suspend', 'two-sleepers'):
     sc = bridge.adapt(sc, saved['config'])
     assert bridge.encode_scenario(sc) == saved['encoded_scenario']
     run = bridge.run_kernel(runner, sc, [tuple(x) for x in saved['schedule']])
-    assert run.config == saved['config']
+    assert all(run.config.get(key) == value for key, value in saved['config'].items())
     try:
         bridge.Replay(sc, run).replay()
     except bridge.Divergence as error:
@@ -105,7 +107,9 @@ A further search of the current `cancel_waiter_disinherits` scenario considered 
 
 Keep the historical finding open. Recover its original schedule/build if available, and broaden the captured campaign after correcting and reviewing timer delivery. Do not claim cancellation or inheritance is fixed from a passing six-schedule campaign or from this reduced sleep case.
 
-## Next coding session
+## Follow-up work identified by this investigation
+
+Items 1–3 below are addressed by the [timer-delivery correction](m2-01-timer-correction.md). The historical seed-5 input and general capture/minimization tooling remain open.
 
 1. Represent timer request and delivery at critical-section boundaries explicitly. Preserve deadlines fixed at the call, deadline-order expiry, wait-generation invariants and P1 scheduling. An already-due arm must eventually deliver a timer interrupt even without another injected tick.
 2. Add regression checks for the two-sleeper ordering and original suspension case, plus already-due arming with no later tick, wake-in-window races and ordinary future deadlines. Keep periodic and tickless applicability explicit.
