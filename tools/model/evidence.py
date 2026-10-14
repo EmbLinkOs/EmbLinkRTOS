@@ -85,6 +85,13 @@ def sha256(path):
         return None
 
 
+def configuration_values_sha256(config):
+    """Compare effective values, excluding checkout-dependent origin paths."""
+    values = {name: {key: symbol[key] for key in ("type", "value")}
+              for name, symbol in config["symbols"].items()}
+    return hashlib.sha256(json.dumps(values, sort_keys=True).encode()).hexdigest()
+
+
 def identity(runner):
     def git(*args):
         try:
@@ -119,8 +126,10 @@ def identity(runner):
         compiler_versions = []
         for compiler in sorted((directory/"CMakeFiles").glob("*/CMakeCCompiler.cmake")):
             compiler_versions += re.findall(r'set\(CMAKE_C_COMPILER_VERSION "([^"]+)"\)', compiler.read_text())
+        resolved = json.loads(config.read_text())
         result["build"] = dict(config_path=str(config), config_sha256=sha256(config),
-                              config=json.loads(config.read_text()), cmake_cache=values,
+                              config=resolved, configuration_values_sha256=configuration_values_sha256(resolved),
+                              cmake_cache=values,
                               compiler_versions=compiler_versions)
         break
     return result
@@ -190,9 +199,28 @@ def verdict(sc, run, config, max_steps):
     return None
 
 
+def build_configuration_error(bundle, current):
+    expected = bundle["identity"]["build"]
+    if expected is None:                     # bootstrap/custom-runner captures may lack build metadata
+        return None
+    actual = current["build"]
+    if actual is None and current["runner_sha256"] is not None and \
+            current["runner_sha256"] == bundle["identity"]["runner_sha256"]:
+        return None                         # a byte-identical binary can be moved outside its build tree
+    old = expected.get("configuration_values_sha256") or configuration_values_sha256(expected["config"])
+    new = actual["configuration_values_sha256"] if actual is not None else None
+    if old != new:
+        return bridge.Divergence("resolved build configuration changed or is unavailable",
+                                 "build_config", ["build_config", old, new])
+    return None
+
+
 def replay(bundle, sc, schedule, runner=None, timeout=None):
     if runner:
+        configuration_error = build_configuration_error(bundle, identity(runner))
         run = bridge.run_kernel(runner, sc, schedule, timeout or bundle["limits"]["runner_timeout"])
+        if configuration_error:
+            return run, configuration_error
     else:
         output = bundle["execution"]
         run = bridge.execution_run(output["stdout"], output["stderr"], output["exit_code"], output["error"])
@@ -211,6 +239,8 @@ def reduce_schedule(bundle, sc, schedule, runner, max_attempts=100, max_seconds=
     attempts = 0
     timeout = timeout or bundle["limits"]["runner_timeout"]
     fingerprint = identity(runner)
+    if build_configuration_error(bundle, fingerprint):
+        raise ValueError("resolved build configuration changed or is unavailable; reduction refused")
     signature = bundle["failure"]["signature"]
     def evaluate(candidate):
         nonlocal attempts

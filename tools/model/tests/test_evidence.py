@@ -155,6 +155,30 @@ class Evidence(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "changed during execution"):
             evidence.reduce_schedule(bundle, self.sc, self.schedule, "unused")
 
+    def test_full_configuration_values_are_checked_independently_of_checkout_paths(self):
+        original = {"symbols": {"CONFIG_EMB_PI_MAX_DEPTH": {"type": "int", "value": 8, "origin": "/old/source"}}}
+        relocated = deepcopy(original)
+        relocated["symbols"]["CONFIG_EMB_PI_MAX_DEPTH"]["origin"] = "/new/source"
+        changed = deepcopy(relocated)
+        changed["symbols"]["CONFIG_EMB_PI_MAX_DEPTH"]["value"] = 4
+        old = evidence.configuration_values_sha256(original)
+        self.assertEqual(old, evidence.configuration_values_sha256(relocated))
+        new = evidence.configuration_values_sha256(changed)
+        self.assertNotEqual(old, new)
+        bundle = deepcopy(self.bundle)
+        bundle["identity"]["build"] = dict(configuration_values_sha256=old)
+        current = deepcopy(self.identity)
+        current["build"] = dict(configuration_values_sha256=new)
+        self.assertEqual(evidence.build_configuration_error(bundle, current).kind, "build_config")
+        with patch("evidence.identity", return_value=current), self.assertRaisesRegex(ValueError, "build configuration"):
+            evidence.reduce_schedule(bundle, self.sc, self.schedule, "unused")
+        moved = deepcopy(current)
+        moved["build"] = None
+        moved["runner_sha256"] = bundle["identity"]["runner_sha256"] = "identical-binary"
+        self.assertIsNone(evidence.build_configuration_error(bundle, moved))
+        moved["runner_sha256"] = "different-binary"
+        self.assertEqual(evidence.build_configuration_error(bundle, moved).kind, "build_config")
+
 
 if __name__ == "__main__":
     unittest.main()
