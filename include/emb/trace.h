@@ -72,7 +72,7 @@ typedef void (*emb_trace_sink_t)(const emb_trace_event_t *event, void *ctx);
  * @time     O(1)
  * @owns     none
  * @config   CONFIG_EMB_TRACE
- * @req      OBS-001
+ * @req      OBS-014
  * @since    0.2
  * @stable   experimental
  */

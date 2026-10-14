@@ -53,5 +53,61 @@ class CatalogIntegrity(unittest.TestCase):
             self.extract("# An empty source\n")
 
 
+class AnnotationIntegrity(unittest.TestCase):
+    def test_header_normalization_preserves_empty_contracts_and_parameter_labels(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            headers = root / "include/emb"
+            headers.mkdir(parents=True)
+            (headers / "example.h").write_text("""/**
+ * emb_example() - Wait.
+ * @timeout: How long to wait.
+ * @config
+ */
+""")
+            output = root / "output"
+            output.mkdir()
+            with patch.object(build, "ROOT", root):
+                build.prepare_headers(output)
+            result = (output / "doxygen-input/example.h").read_text()
+            self.assertIn("@param timeout How long to wait.", result)
+            self.assertIn(" * @config\n", result)
+            self.assertNotIn(r"\p config", result)
+
+    def test_reflowed_contracts_keep_every_requirement_and_ignore_parameter_names(self):
+        tags = build.contract_tags("""
+ * emb_example() - Example.
+ * @timeout: A parameter, not the time contract.
+ * @ctx      thread
+ * @time     O(waiters + owned)
+ *           plus timeout work
+ * @config
+ * @req      KRN-SYNC-020
+ *           KRN-SYNC-028
+ * @stable   yes
+ *
+ * Return: EMB_OK.
+""")
+        self.assertEqual(tags["req"], "KRN-SYNC-020 KRN-SYNC-028")
+        self.assertEqual(tags["time"], "O(waiters + owned) plus timeout work")
+        self.assertEqual(tags["config"], "")
+        self.assertNotIn("timeout", tags)
+        self.assertEqual(tags["stable"], "yes")
+
+    def record(self, **changes):
+        return {"function": "emb_example", "missing_tags": [], "missing_parameters": [],
+                "unresolved_requirement_ids": [], "evidence": "not evaluated", **changes}
+
+    def test_each_documentation_omission_fails_the_build(self):
+        for field in ("missing_tags", "missing_parameters", "unresolved_requirement_ids"):
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "emb_example"):
+                build.validate_api_annotations([self.record(**{field: ["missing"]})])
+
+    def test_complete_metadata_does_not_change_execution_evidence(self):
+        record = self.record()
+        build.validate_api_annotations([record])
+        self.assertEqual(record["evidence"], "not evaluated")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -27,6 +27,14 @@ Only the standard library is needed for the basic suite. Install Hypothesis to i
 
 ## First sample
 
-`samples/first_execution/main.c` shows static thread/object setup and execution. Build it with the native preset above. The long-running sample is useful for switching/notification behavior; the conformance target `test_first_execution` provides a finite assertion-based check. Native time is virtual and advances in idle, so host timing is not a board benchmark.
+`samples/first_execution/main.c` shows static thread/object setup and execution. Build it with the native preset above, then run:
+
+```sh
+./build/native-gcc/samples/first_execution/first_execution
+```
+
+The native sample exits after its configured two-million A/B iterations and prints `first_execution: switches A=... B=... ticks=...`. Its A/B counters count loop iterations, not a hardware-measured context-switch total. Embedded versions continue running and print progress where the board console permits. The conformance target `test_first_execution` supplies a shorter assertion-based check. Native time is virtual and advances in idle, so host timing is not a board benchmark.
+
+For a shorter application, follow [Threads and periodic work](tasks.md), which exits after five iterations. Then try [Synchronization and notifications](synchronization.md) and [Debugging](debugging.md). These tutorials use existing native libraries and keep example outputs under ignored `build/tutorials/`.
 
 For repeatable supported operations, start with the generated current API, [core concepts](concepts.md), and [configuration](configuration.md). Consult [Project status](../STATUS.md) before attempting a planned service or hardware workflow.

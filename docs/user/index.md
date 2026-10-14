@@ -6,8 +6,12 @@ The current usable workflow is native kernel development and conformance testing
 :maxdepth: 2
 
 getting-started
+feature-status
 concepts
+tasks
+synchronization
 configuration
+debugging
 ```
 
 Use the generated API reference for current declarations, subsystem specifications for target semantics, and Project status for implementation/evidence limits. Future APIs are not substitutes for an implementation.

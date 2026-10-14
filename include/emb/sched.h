@@ -19,7 +19,7 @@ extern "C" {
  * emb_sched_lock() - Prevent thread preemption until the matching unlock.
  *
  * Interrupts still run; a wake they cause is applied when the lock depth returns
- * to zero (KRN-SCH-016, KRN-SCH-018). Blocking with a nonzero timeout while locked
+ * to zero (KRN-IRQ-022). Blocking with a nonzero timeout while locked
  * is misuse (SPEC-001 §5.3).
  *
  * @ctx      thread
@@ -27,7 +27,7 @@ extern "C" {
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SCH-016 KRN-SCH-017 KRN-SCH-019
+ * @req      KRN-IRQ-022
  * @since    0.2
  * @stable   yes
  */
@@ -41,7 +41,7 @@ void emb_sched_lock(void);
  * @time     O(1), plus one reschedule at depth 0
  * @owns     none
  * @config
- * @req      KRN-SCH-017 KRN-SCH-018
+ * @req      KRN-IRQ-022
  * @since    0.2
  * @stable   yes
  */
@@ -55,7 +55,7 @@ void emb_sched_unlock(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SCH-017
+ * @req      KRN-IRQ-022
  * @since    0.2
  * @stable   yes
  */

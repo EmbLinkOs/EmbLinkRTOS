@@ -8,7 +8,7 @@ Sphinx builds the site; MyST reads the existing Markdown; Furo provides navigati
 
 Edit authored Markdown in `docs/`, never `build/docs/source` or generated HTML. User tutorials and operational guidance belong in `docs/user`; design rationale in architecture/ADRs; normative statements in requirements; subsystem detail in specs; port implementation in ports; engineering process here; research with cited sources in research. Keep group `index.md` toctrees current when adding a page: strict Sphinx builds catch orphan pages and broken internal references.
 
-The existing header comments use `@argument` prose alongside project contract tags. The build normalizes argument references/parameter labels in generated copies for Doxygen, preserving the original public headers. Doxygen's documentation view expands opaque handle wrappers and compiler annotation macros; it does not define a new ABI or require a target build. Parameter/contract omissions are recorded in the API annotation audit rather than hidden as verified documentation coverage.
+The existing header comments use `@argument` prose alongside project contract tags. The build normalizes argument references/parameter labels in generated copies for Doxygen, preserving the original public headers. Doxygen's documentation view expands opaque handle wrappers and compiler annotation macros; it does not define a new ABI or require a target build. Parameter/contract omissions and unresolved requirement IDs are recorded in the API annotation audit and fail the strict build. Complete metadata is documentation coverage, not verified behavior.
 
 ## Install once
 
@@ -53,7 +53,7 @@ Outputs include:
 | `catalog/api-annotations.json` | Extracted declarations, available contract tags and missing documentation fields |
 | `html/needs.json` or `needs/needs.json` | Sphinx Needs catalog export |
 
-Design status and evidence remain independent. Extraction never turns Accepted into Verified, infers implementation from a header link, or establishes test coverage. The existing requirements can name planned paths. API annotations can reference unmigrated groups or contain semantic errors; the audit makes omissions visible for later header work. Human review and the future executed-case matrix remain necessary.
+Design status and evidence remain independent. Extraction never turns Accepted into Verified, infers implementation from a header link, or establishes test coverage. The existing requirements can name planned paths. API annotations must resolve into the normative catalog, but a related requirement may be broader than the implemented portion; the audit cannot detect all semantic errors. Human review and the future executed-case matrix remain necessary. User tutorials and explicit implementation limits are maintained in `docs/user/`.
 
 ## CI and publishing
 

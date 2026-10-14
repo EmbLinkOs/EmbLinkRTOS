@@ -76,7 +76,7 @@ typedef struct emb_thread_attr {
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-014
+ * @req      API-020
  * @since    0.2
  * @stable   yes
  */
@@ -95,7 +95,7 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  * @time     O(1) + stack fill in checked and statistics builds
  * @owns     borrows:storage borrows:attr->stack
  * @config
- * @req      KRN-THR-001 KRN-THR-005 KRN-THR-007 KRN-THR-009 KRN-THR-015
+ * @req      API-021 KRN-THR-004 KRN-THR-007 KRN-THR-015 KRN-THR-023
  * @since    0.2
  * @stable   yes
  *
@@ -131,7 +131,7 @@ emb_status_t emb_thread_start(emb_thread_t thread);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-002
+ * @req      KRN-THR-008
  * @since    0.2
  * @stable   yes
  */
@@ -146,7 +146,7 @@ emb_thread_t emb_thread_self(void);
  * @time     O(owned mutexes)
  * @owns     none
  * @config
- * @req      KRN-THR-004 KRN-THR-005 KRN-THR-006
+ * @req      KRN-THR-005 KRN-THR-006 KRN-THR-017
  * @since    0.2
  * @stable   yes
  */
@@ -155,32 +155,33 @@ EMB_NORETURN void emb_thread_exit(int code);
 /**
  * emb_thread_join() - Wait for @thread to terminate and collect its exit code.
  * @thread:   A joinable thread that is not the caller.
- * @timeout:  How long to wait.
+ * @timeout: How long to wait.
  * @out_code: Receives the exit code on EMB_OK; may be NULL.
  *
  * @ctx      thread
  * @blocks   timeout
- * @time     O(1)
+ * @time     O(1) state check; O(timeouts) finite timeout arm
  * @owns     none
  * @config
- * @req      KRN-THR-006 KRN-THR-017 KRN-THR-018
+ * @req      KRN-THR-006 KRN-THR-012 KRN-THR-018
  * @since    0.2
  * @stable   yes
  *
  * Return: EMB_OK; EMB_ETIMEDOUT; EMB_ECANCELED; EMB_EBUSY for a second joiner;
- *         EMB_EINVAL for a detached thread; EMB_EDEADLK for self; EMB_ESTALE.
+ *         EMB_EINVAL for a detached/invalid thread; EMB_EDEADLK for self.
  */
 emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *out_code);
 
 /**
  * emb_thread_detach() - Make @thread detached; its storage is reusable at exit.
+ * @thread: Joinable initialized thread with no blocked joiner.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-017
+ * @req      KRN-THR-019
  * @since    0.2
  * @stable   yes
  *
@@ -190,6 +191,7 @@ emb_status_t emb_thread_detach(emb_thread_t thread);
 
 /**
  * emb_thread_suspend() - Keep @thread from running until emb_thread_resume().
+ * @thread: Started application thread; suspending self delays return until resumed.
  *
  * An overlay (SPEC-004 §6.5): a blocked thread keeps its queue position and its
  * deadline. Idempotent.
@@ -199,7 +201,7 @@ emb_status_t emb_thread_detach(emb_thread_t thread);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-010 KRN-THR-019
+ * @req      KRN-THR-010 KRN-THR-020
  * @since    0.2
  * @stable   yes
  *
@@ -209,13 +211,14 @@ emb_status_t emb_thread_suspend(emb_thread_t thread);
 
 /**
  * emb_thread_resume() - Undo emb_thread_suspend(). Idempotent.
+ * @thread: Started thread whose suspend overlay is to be removed.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-010 KRN-THR-019
+ * @req      KRN-THR-010 KRN-THR-020
  * @since    0.2
  * @stable   yes
  *
@@ -225,13 +228,14 @@ emb_status_t emb_thread_resume(emb_thread_t thread);
 
 /**
  * emb_thread_cancel() - Request cancellation of @thread (SPEC-008 §7).
+ * @thread: Started application thread to request cancellation of; storage is not destroyed.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-011 KRN-THR-020
+ * @req      KRN-THR-011 KRN-THR-021
  * @since    0.2
  * @stable   yes
  *
@@ -247,7 +251,7 @@ emb_status_t emb_thread_cancel(emb_thread_t thread);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-011
+ * @req      KRN-THR-011 KRN-THR-021
  * @since    0.2
  * @stable   yes
  *
@@ -263,7 +267,7 @@ emb_status_t emb_thread_cancel_point(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-020
+ * @req      KRN-THR-021
  * @since    0.2
  * @stable   yes
  *
@@ -279,7 +283,7 @@ emb_status_t emb_thread_cancel_disable(void);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-020
+ * @req      KRN-THR-021
  * @since    0.2
  * @stable   yes
  *
@@ -289,14 +293,15 @@ emb_status_t emb_thread_cancel_enable(void);
 
 /**
  * emb_thread_set_priority() - Change the base priority of @thread (SPEC-005 §10).
+ * @thread: Initialized application thread whose base priority is to change.
  * @priority: 1 .. EMB_PRIORITY_MAX.
  *
  * @ctx      thread
  * @blocks   no
- * @time     O(owned + depth)
+ * @time     O(PI work), plus waiter requeue and profile-specific scheduling
  * @owns     none
  * @config
- * @req      KRN-SCH-009 KRN-SYNC-018
+ * @req      KRN-THR-022 KRN-SYNC-032
  * @since    0.2
  * @stable   yes
  *
@@ -307,13 +312,14 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority);
 
 /**
  * emb_thread_get_priority() - Base priority of @thread; 0 for a bad handle.
+ * @thread: Initialized thread to inspect; returns 0 for an invalid handle.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SCH-009
+ * @req      KRN-THR-022
  * @since    0.2
  * @stable   yes
  */
@@ -321,13 +327,14 @@ uint8_t emb_thread_get_priority(emb_thread_t thread);
 
 /**
  * emb_thread_get_effective_priority() - Effective priority of @thread (SPEC-005 §2.1).
+ * @thread: Initialized thread to inspect; returns 0 for an invalid handle.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SYNC-002
+ * @req      KRN-THR-022 KRN-SYNC-018
  * @since    0.2
  * @stable   yes
  */
@@ -336,7 +343,7 @@ uint8_t emb_thread_get_effective_priority(emb_thread_t thread);
 /**
  * emb_thread_yield() - Move the caller behind equal-priority READY threads.
  *
- * Never yields to a lower-priority thread (KRN-SCH-008). A no-op that keeps the
+ * Never yields to a lower-priority thread (KRN-TIM-024). A no-op that keeps the
  * reschedule pending while the scheduler is locked.
  *
  * @ctx      thread
@@ -344,7 +351,7 @@ uint8_t emb_thread_get_effective_priority(emb_thread_t thread);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-SCH-008
+ * @req      KRN-TIM-024 KRN-IRQ-022
  * @since    0.2
  * @stable   yes
  */
@@ -359,7 +366,7 @@ void emb_thread_yield(void);
  * @time     O(timeouts) arm
  * @owns     none
  * @config
- * @req      KRN-THR-009 KRN-TIM-010
+ * @req      KRN-TIM-024
  * @since    0.2
  * @stable   yes
  *
@@ -387,6 +394,7 @@ emb_status_t emb_thread_sleep_until(emb_instant_t t);
 
 /**
  * emb_thread_state() - Lifecycle state and, when BLOCKED, the wait reason.
+ * @thread: Initialized thread to inspect.
  * @out_state:  EMB_THREAD_INACTIVE .. EMB_THREAD_TERMINATED.
  * @out_reason: EMB_WAIT_REASON_*; may be NULL.
  *
@@ -395,7 +403,7 @@ emb_status_t emb_thread_sleep_until(emb_instant_t t);
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-021
+ * @req      KRN-THR-025
  * @since    0.2
  * @stable   yes
  *
@@ -405,27 +413,30 @@ emb_status_t emb_thread_state(emb_thread_t thread, uint8_t *out_state, uint8_t *
 
 /**
  * emb_thread_name() - The name given at init, or "" when none or names are compiled out.
+ * @thread: Initialized thread whose borrowed name is returned; invalid handles return an empty
+ * string.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-021
+ * @req      KRN-THR-025
  * @since    0.2
  * @stable   yes
  */
 const char *emb_thread_name(emb_thread_t thread);
 
 /**
- * emb_thread_index() - The small stable index of the debug descriptor; 0xFF for a bad handle.
+ * emb_thread_index() - The current small thread index; 0xFF for a bad handle.
+ * @thread: Initialized thread to inspect. On tiny, the index follows its base-priority table slot.
  *
  * @ctx      thread isr
  * @blocks   no
  * @time     O(1)
  * @owns     none
  * @config
- * @req      KRN-THR-021
+ * @req      KRN-THR-025 KRN-THR-029
  * @since    0.2
  * @stable   yes
  */
@@ -433,15 +444,16 @@ uint8_t emb_thread_index(emb_thread_t thread);
 
 /**
  * emb_thread_stack_info() - Configured size and high-water mark of @thread's stack.
- * @out_size:       Configured size in bytes.
- * @out_high_water: Bytes ever used; 0 when CONFIG_EMB_STACK_STATS is off.
+ * @thread: Initialized thread to inspect.
+ * @out_size:       Configured size in bytes; may be NULL.
+ * @out_high_water: Fill-pattern estimate of bytes used; may be NULL, 0 when stats are off.
  *
  * @ctx      thread
  * @blocks   no
  * @time     O(stack) scan with statistics on
  * @owns     none
  * @config
- * @req      KRN-MEM-009
+ * @req      KRN-THR-023 KRN-THR-025
  * @since    0.2
  * @stable   yes
  *
@@ -452,6 +464,8 @@ emb_status_t emb_thread_stack_info(emb_thread_t thread, size_t *out_size, size_t
 #if CONFIG_EMB_TLS_SLOTS > 0
 /**
  * emb_tls_set() - Store @p in the caller's TLS slot @slot (SPEC-008 §9).
+ * @slot: Slot index, 0 through CONFIG_EMB_TLS_SLOTS - 1.
+ * @p: Pointer to retain in that slot; NULL clears it. Pointee lifetime stays with the caller.
  *
  * @ctx      thread
  * @blocks   no
@@ -465,6 +479,22 @@ emb_status_t emb_thread_stack_info(emb_thread_t thread, size_t *out_size, size_t
  * Return: EMB_OK; EMB_EINVAL for a slot out of range.
  */
 emb_status_t emb_tls_set(uint8_t slot, void *p);
+/**
+ * emb_tls_get() - Read a pointer from the calling thread TLS slot.
+ * @slot: Slot index, 0 through CONFIG_EMB_TLS_SLOTS - 1.
+ *
+ * @ctx      thread
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_TLS_SLOTS
+ * @req      KRN-THR-013
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: the stored pointer, or NULL for an unset/out-of-range slot or a
+ * caller outside thread context. No allocation, copying or cleanup occurs.
+ */
 void *emb_tls_get(uint8_t slot);
 #endif
 
@@ -473,13 +503,16 @@ typedef void (*emb_thread_visit_t)(emb_thread_t thread, void *arg);
 
 /**
  * emb_thread_foreach() - Call @cb for every thread object, under the scheduler lock.
+ * @cb: Called under the scheduler lock; must not block or modify the thread registry. NULL is a
+ * no-op.
+ * @arg: Passed unchanged to each callback; needed only for the duration of traversal.
  *
  * @ctx      thread
  * @blocks   no
- * @time     O(threads)
+ * @time     O(threads) plus callback costs and any reschedule at final unlock
  * @owns     none
  * @config   CONFIG_EMB_THREAD_LIST
- * @req      KRN-THR-021
+ * @req      KRN-THR-025
  * @since    0.2
  * @stable   yes
  */
@@ -488,13 +521,15 @@ void emb_thread_foreach(emb_thread_visit_t cb, void *arg);
 
 /**
  * emb_thread_destroy() - Return the storage of an INACTIVE or joined/detached TERMINATED thread.
+ * @thread: INACTIVE or joined/detached TERMINATED application thread; successful destruction
+ * permits storage reuse.
  *
  * @ctx      thread
  * @blocks   no
  * @time     O(1)
  * @owns     gives:storage
  * @config
- * @req      KRN-OBJ-001 KRN-OBJ-002 KRN-THR-022
+ * @req      KRN-OBJ-001 KRN-THR-024
  * @since    0.2
  * @stable   yes
  *

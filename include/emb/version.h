@@ -22,7 +22,7 @@ extern "C" {
  * @time     O(1)
  * @owns     none
  * @config
- * @req      API-001
+ * @req      API-030
  * @since    0.2
  * @stable   yes
  *
