@@ -1,0 +1,3 @@
+bridge: runner profile=tiny owner_death=fault checked=1; 36 scenarios, 40 runs each, seed 3
+  FAIL suspend_while_waiting schedule=[('tick', 0, 1), ('tick', 0, 22), ('tick', 0, 24), ('isr', 0, 29)]: no model action produces kernel event #11 ('tick', 4); matched 11/20 events, path so far (('skip-tick',), ('run',), ('run',), ('run',), ('run',), ('run',), ('run',), ('tick',), ('run',), ('run',), ('run',), ('tick',))
+bridge: 1399/1400 runs agree with the model, 1 scenarios skipped on this build, 1 divergences

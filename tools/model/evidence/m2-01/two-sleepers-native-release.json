@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "source_sha": "4021959379d679c07a3c97eb43a06b7271a48ea2",
+  "preset": "native-release",
+  "discovery": {
+    "kind": "reduction of arm/delivery mismatch"
+  },
+  "scenario": "due_sleep_arm",
+  "encoded_scenario": "T1=1:sleep 1|T2=3:sleep 2",
+  "schedule": [
+    [
+      "tick",
+      0,
+      10
+    ],
+    [
+      "tick",
+      0,
+      13
+    ]
+  ],
+  "runner_args": [
+    "T1=1:sleep 1|T2=3:sleep 2",
+    "--schedule",
+    "tick@10,tick@13"
+  ],
+  "config": {
+    "profile": "base",
+    "owner_death": "release",
+    "checked": "0"
+  },
+  "runner_sha256": "c56311e1b21db5415e7b944aed552975a5e8b6d4141e36da3e349b33248cc1cc",
+  "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+  "exit_code": 0,
+  "events_lost": 0,
+  "stdout": "thread 1 index 0\nthread 2 index 1\nconfig profile=base owner_death=release checked=0\nev 2 2 0 0 1 0\nev 2 2 0 1 3 0\nev 3 2 0 0 0 0\nev 3 2 0 1 0 0\nev 1 0 0 255 1 0\nev 30 0 0 1 2 0\nev 6 0 0 1 3 93912467413704\nev 8 0 0 1 2 0\nev 1 0 0 1 0 0\nev 30 0 0 0 1 0\nev 6 0 1 0 3 93912467412472\nev 29 1 1 1 0 0\nev 8 0 1 0 1 0\nev 29 1 2 2 0 0\nev 9 1 2 0 0 0\nev 7 1 2 0 1 0\nev 9 1 2 1 0 0\nev 7 1 2 1 1 0\nev 14 1 2 1 0 0\nev 1 0 2 0 1 0\nev 4 0 2 1 0 0\nev 1 0 2 1 0 0\nev 4 0 2 0 0 0\nev 1 0 2 0 254 0\nev 27 0 2 0 0 0\nres 1 0 0 0\nstate 1 4 0\nres 2 0 0 0\nstate 2 4 0\nend done 0 0\n",
+  "stderr": "",
+  "bridge_error": "no model action produces kernel event #5 ('tick', 2); matched 5/13 events, path so far (('run',), ('run',), ('run',), ('run',), ('tick',))",
+  "canonical_events": [
+    [
+      "switch",
+      2
+    ],
+    [
+      "wait_begin",
+      2,
+      2,
+      [
+        "q",
+        93912467413704
+      ]
+    ],
+    [
+      "switch",
+      1
+    ],
+    [
+      "wait_begin",
+      1,
+      2,
+      [
+        "q",
+        93912467412472
+      ]
+    ],
+    [
+      "tick",
+      1
+    ],
+    [
+      "tick",
+      2
+    ],
+    [
+      "wake",
+      1,
+      1
+    ],
+    [
+      "wake",
+      2,
+      1
+    ],
+    [
+      "switch",
+      2
+    ],
+    [
+      "thread_exit",
+      2,
+      0
+    ],
+    [
+      "switch",
+      1
+    ],
+    [
+      "thread_exit",
+      1,
+      0
+    ],
+    [
+      "switch",
+      null
+    ]
+  ]
+}

@@ -44,7 +44,7 @@ The shared event vocabulary is `switch`, `wait_begin`, `wake`, `wait_end`, `noti
 
 Divergence is a kernel bug unless the specification changes first. The first campaign found three in the kernel: a notification set through a semaphore binding reached a terminated thread, a recursive re-lock left no trace, and the generated object storage was aligned to 8 where the control block needs 16 (all fixed in the same change). It found one in the model, against the specification: a relative timeout became a deadline at section 2 instead of at the call (SPEC-003 §5.2), which differs when a tick lands between the two; the model now fixes the deadline at the call and expires an already-due deadline when it is armed, as the kernel's timer programming does.
 
-Known open item: deep campaigns (40 schedules per scenario) still show two runs out of about 1,800 where a tick lands right after a scheduler-lock or cancel section and the bridge cannot place it (`suspend_while_waiting` with seed 3, `cancel_waiter_disinherits` with seed 5). The CI campaign (6 schedules, seed 1) is clean on every native preset; these two are being triaged as replay-search limits before being called kernel or model bugs.
+Known open item: historical deep campaigns reported `suspend_while_waiting` with seed 3 and `cancel_waiter_disinherits` with seed 5. The [2026-10-14 investigation](../../docs/engineering/m2-01-investigation.md) reproduced seed 3 on checked, release and tiny and reduced it to two sleepers and two ticks. It identifies a model timer-delivery limitation when arming an already-due deadline; no behavior correction has been applied. Seed 5 passed on all three current builds, so its historical finding remains open without the original schedule/build. The CI campaign (6 schedules, seed 1) is clean on every native preset; it does not resolve the deeper findings.
 
 ## What is checked
 
@@ -58,7 +58,7 @@ Condition variables, event flags, barriers, and message queues are added when th
 
 The 44-test suite and six-schedule bridge campaign are separate checks. Exhaustive exploration enumerates the enabled interleavings of the finite scenarios supplied to it, within the recorded state budget; it is not a proof of every program with a given thread/object count or of C memory safety, SMP or hardware behavior. Random walks that reach their step limit are bounded invariant checks and must not be reported as completed terminal executions. See `docs/engineering/timing-and-evidence.md` and `docs/STATUS.md`.
 
-The two deeper-campaign cases described above remain unresolved; they are not automatically expected failures or confirmed kernel bugs. The documented investigation starts from the repository root with the built native runner:
+The two deeper-campaign findings described above remain open; they are not automatically expected failures or confirmed kernel bugs. Archived seed-3 inputs, complete traces, configurations and identities are in `evidence/m2-01/`; the investigation page provides exact replays and the diagnosis. The full diagnostic campaigns start from the repository root with the built native runner:
 
 ```sh
 python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 3 --verbose

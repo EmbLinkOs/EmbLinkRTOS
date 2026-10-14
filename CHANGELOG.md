@@ -10,6 +10,7 @@ User-visible changes are recorded here. There are no released versions or releas
 - Strict documentation builds with complete extracted API annotations and integrity checks, plus optional GitHub Pages deployment.
 - Bug/feature issue forms, a pull-request checklist and an ordered M2 implementation checklist.
 - Stable CI merge checks, authored-commit DCO checking and a reviewable `main` branch ruleset policy.
+- M2-01 native deep-campaign evidence, exact replay inputs and a reduced timeout-arm diagnosis; behavior correction and the historical seed-5 finding remain open.
 
 ### Changed
 

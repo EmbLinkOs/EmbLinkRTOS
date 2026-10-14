@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "source_sha": "4021959379d679c07a3c97eb43a06b7271a48ea2",
+  "preset": "native-gcc",
+  "discovery": {
+    "kind": "bounded placement search; historical seed-5 input unavailable; mismatch precedes inheritance"
+  },
+  "scenario": "cancel_waiter_disinherits",
+  "encoded_scenario": "T1=1:lock 0 -1;sleep 3;unlock 0|T3=3:sleep 1;lock 0 -1;unlock 0|T4=5:sleep 2;cancel 3|M0=0,0,0",
+  "schedule": [
+    [
+      "tick",
+      0,
+      12
+    ],
+    [
+      "tick",
+      0,
+      15
+    ]
+  ],
+  "runner_args": [
+    "T1=1:lock 0 -1;sleep 3;unlock 0|T3=3:sleep 1;lock 0 -1;unlock 0|T4=5:sleep 2;cancel 3|M0=0,0,0",
+    "--schedule",
+    "tick@12,tick@15"
+  ],
+  "config": {
+    "profile": "base",
+    "owner_death": "fault",
+    "checked": "1"
+  },
+  "runner_sha256": "d6634865a44df1316e67fc4eff3f5e99e5636a0fdc903b3725f30d4c93cadff7",
+  "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+  "exit_code": 2,
+  "events_lost": 0,
+  "stdout": "thread 1 index 0\nthread 3 index 1\nthread 4 index 2\nconfig profile=base owner_death=fault checked=1\nev 2 2 0 0 1 0\nev 2 2 0 1 3 0\nev 2 2 0 2 5 0\nev 3 2 0 0 0 0\nev 3 2 0 1 0 0\nev 3 2 0 2 0 0\nev 1 0 0 255 2 0\nev 30 0 0 2 2 0\nev 6 0 0 2 3 93876031418272\nev 8 0 0 2 2 0\nev 1 0 0 2 1 0\nev 30 0 0 1 1 0\nev 6 0 1 1 3 93876031417040\nev 29 1 1 1 0 0\nev 8 0 1 1 1 0\nev 29 1 2 2 0 0\nev 9 1 2 1 0 0\nev 7 1 2 1 1 0\nev 9 1 2 2 0 0\nev 7 1 2 2 1 0\nev 14 1 2 2 0 0\nev 1 0 2 1 2 0\nev 24 0 2 1 0 0\nev 4 0 2 2 0 0\nev 1 0 2 2 1 0\nev 16 0 2 1 93876031413984 18446744073709551611\nev 25 0 2 4 1 0\nstate 1 1 0\nres 3 0 0 0\nres 3 1 -5 0\nstate 3 2 0\nres 4 0 0 0\nres 4 1 0 0\nstate 4 4 0\nend fault 4 1\n",
+  "stderr": "diff_runner: fault class 4 code 1 argument 1 at emb_mutex_unlock\nemb native: kernel fault class 4 code 1 argument 1 thread 1 context 0 at emb_mutex_unlock, halting\n",
+  "bridge_error": "no model action produces kernel event #5 ('tick', 2); matched 5/13 events, path so far (('run',), ('run',), ('run',), ('run',), ('tick',))",
+  "canonical_events": [
+    [
+      "switch",
+      4
+    ],
+    [
+      "wait_begin",
+      4,
+      2,
+      [
+        "q",
+        93876031418272
+      ]
+    ],
+    [
+      "switch",
+      3
+    ],
+    [
+      "wait_begin",
+      3,
+      2,
+      [
+        "q",
+        93876031417040
+      ]
+    ],
+    [
+      "tick",
+      1
+    ],
+    [
+      "tick",
+      2
+    ],
+    [
+      "wake",
+      3,
+      1
+    ],
+    [
+      "wake",
+      4,
+      1
+    ],
+    [
+      "switch",
+      4
+    ],
+    [
+      "thread_exit",
+      4,
+      0
+    ],
+    [
+      "switch",
+      3
+    ],
+    [
+      "wait_end",
+      3,
+      2
+    ],
+    [
+      "fault",
+      4,
+      1
+    ]
+  ]
+}
