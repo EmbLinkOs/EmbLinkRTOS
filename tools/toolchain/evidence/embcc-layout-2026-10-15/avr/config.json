@@ -1,0 +1,421 @@
+{
+  "version": 1,
+  "hash": "ec8b58664f17887b",
+  "symbols": {
+    "CONFIG_EMB_ARCH": {
+      "type": "string",
+      "value": "avr",
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:4"
+    },
+    "CONFIG_EMB_ARCH_AVR": {
+      "type": "bool",
+      "value": true,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:4"
+    },
+    "CONFIG_EMB_ARCH_VARIANT": {
+      "type": "string",
+      "value": "atmega328p",
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:5"
+    },
+    "CONFIG_EMB_ARCH_WORD_BITS": {
+      "type": "int",
+      "value": 8,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:6"
+    },
+    "CONFIG_EMB_ARCH_STACK_ALIGN": {
+      "type": "int",
+      "value": 1,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:8"
+    },
+    "CONFIG_EMB_ARCH_STACK_MIN": {
+      "type": "int",
+      "value": 96,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:8"
+    },
+    "CONFIG_EMB_ARCH_CONTEXT_FRAME": {
+      "type": "int",
+      "value": 37,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:8"
+    },
+    "CONFIG_EMB_ARCH_HAS_IRQ_NESTING": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:10"
+    },
+    "CONFIG_EMB_ARCH_HAS_ZERO_LATENCY_IRQS": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:11"
+    },
+    "CONFIG_EMB_ARCH_HAS_CAS": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:12"
+    },
+    "CONFIG_EMB_ARCH_HAS_INTERRUPT_STACK": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:13"
+    },
+    "CONFIG_EMB_ARCH_HAS_HW_STACK_LIMIT": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:14"
+    },
+    "CONFIG_EMB_ARCH_HAS_FPU_LAZY": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:16"
+    },
+    "CONFIG_EMB_ARCH_HAS_CYCLE_COUNTER": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:17"
+    },
+    "CONFIG_EMB_ARCH_HAS_TICKLESS": {
+      "type": "bool",
+      "value": true,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:18"
+    },
+    "CONFIG_EMB_ARCH_HAS_SMP": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:19"
+    },
+    "CONFIG_EMB_ARCH_HAS_FAULT_ENTRY": {
+      "type": "bool",
+      "value": false,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:21"
+    },
+    "CONFIG_EMB_ARCH_MPU": {
+      "type": "string",
+      "value": "none",
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:15"
+    },
+    "CONFIG_EMB_ARCH_SYSCALL_TRAP": {
+      "type": "string",
+      "value": "none",
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:20"
+    },
+    "CONFIG_EMB_ARCH_TCB_EXTENSION": {
+      "type": "int",
+      "value": 0,
+      "origin": "/workspace/EmbLinkRTOS/arch/avr/arch.yaml:23"
+    },
+    "CONFIG_EMB_ARCH_NATIVE": {
+      "type": "bool",
+      "value": false,
+      "origin": "arch/Kconfig:17"
+    },
+    "CONFIG_EMB_ARCH_CORTEX_M": {
+      "type": "bool",
+      "value": false,
+      "origin": "arch/Kconfig:23"
+    },
+    "CONFIG_EMB_ARCH_RISCV": {
+      "type": "bool",
+      "value": false,
+      "origin": "arch/Kconfig:26"
+    },
+    "CONFIG_EMB_NATIVE_INVARIANTS": {
+      "type": "bool",
+      "value": false,
+      "origin": "arch/native/Kconfig:9"
+    },
+    "CONFIG_EMB_NATIVE_MAX_IRQS": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/native/Kconfig:16"
+    },
+    "CONFIG_EMB_NATIVE_HOST_STACK": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/native/Kconfig:21"
+    },
+    "CONFIG_EMB_AVR_MCU": {
+      "type": "string",
+      "value": "atmega328p",
+      "origin": "/workspace/EmbLinkRTOS/boards/arduino/arduino_uno/board.conf:4"
+    },
+    "CONFIG_EMB_AVR_F_CPU": {
+      "type": "int",
+      "value": 16000000,
+      "origin": "/workspace/EmbLinkRTOS/boards/arduino/arduino_uno/board.conf:5"
+    },
+    "CONFIG_EMB_AVR_ISR_STACK_RESERVE": {
+      "type": "int",
+      "value": 64,
+      "origin": "arch/avr/Kconfig:20"
+    },
+    "CONFIG_EMB_AVR_TIMER1_PRESCALER": {
+      "type": "int",
+      "value": 64,
+      "origin": "arch/avr/Kconfig:28"
+    },
+    "CONFIG_EMB_CM_CPU_HZ": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/cortex_m/Kconfig:9"
+    },
+    "CONFIG_EMB_CM_IRQ_COUNT": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/cortex_m/Kconfig:14"
+    },
+    "CONFIG_EMB_CM_KERNEL_BASEPRI": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/cortex_m/Kconfig:19"
+    },
+    "CONFIG_EMB_CM_IRQ_PRIORITY": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/cortex_m/Kconfig:28"
+    },
+    "CONFIG_EMB_RV_MTIME_HZ": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/riscv/Kconfig:9"
+    },
+    "CONFIG_EMB_RV_CLINT_BASE": {
+      "type": "hex",
+      "value": 0,
+      "origin": "arch/riscv/Kconfig:14"
+    },
+    "CONFIG_EMB_RV_IRQ_COUNT": {
+      "type": "int",
+      "value": 0,
+      "origin": "arch/riscv/Kconfig:18"
+    },
+    "CONFIG_EMB_PROFILE_TINY": {
+      "type": "bool",
+      "value": true,
+      "origin": "/workspace/EmbLinkRTOS/configs/tiny.conf:4"
+    },
+    "CONFIG_EMB_PROFILE_BASE": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:15"
+    },
+    "CONFIG_EMB_PROFILE": {
+      "type": "string",
+      "value": "tiny",
+      "origin": "kernel/Kconfig:20"
+    },
+    "CONFIG_EMB_CHECKED": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:25"
+    },
+    "CONFIG_EMB_SCHED_TABLE": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:33"
+    },
+    "CONFIG_EMB_PRIORITY_COUNT": {
+      "type": "int",
+      "value": 8,
+      "origin": "kernel/Kconfig:38"
+    },
+    "CONFIG_EMB_TIME_SLICING": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:48"
+    },
+    "CONFIG_EMB_TIMESLICE_TICKS": {
+      "type": "int",
+      "value": 0,
+      "origin": "kernel/Kconfig:52"
+    },
+    "CONFIG_EMB_IDLE_THREAD": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:58"
+    },
+    "CONFIG_EMB_IDLE_STACK_SIZE": {
+      "type": "int",
+      "value": 0,
+      "origin": "kernel/Kconfig:63"
+    },
+    "CONFIG_EMB_TICK_NS": {
+      "type": "int",
+      "value": 1000000,
+      "origin": "/workspace/EmbLinkRTOS/boards/arduino/arduino_uno/board.conf:6"
+    },
+    "CONFIG_EMB_TICK_32BIT": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:80"
+    },
+    "CONFIG_EMB_TICKLESS": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:87"
+    },
+    "CONFIG_EMB_STACK_CHECK": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:99"
+    },
+    "CONFIG_EMB_STACK_STATS": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:103"
+    },
+    "CONFIG_EMB_TLS_SLOTS": {
+      "type": "int",
+      "value": 0,
+      "origin": "kernel/Kconfig:107"
+    },
+    "CONFIG_EMB_THREAD_LIST": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:112"
+    },
+    "CONFIG_EMB_OBJ_NAMES": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:117"
+    },
+    "CONFIG_EMB_STATUS_NAMES": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:122"
+    },
+    "CONFIG_EMB_NOTIFY": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:133"
+    },
+    "CONFIG_EMB_NOTIFY_BITS": {
+      "type": "int",
+      "value": 8,
+      "origin": "kernel/Kconfig:137"
+    },
+    "CONFIG_EMB_SEM": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:144"
+    },
+    "CONFIG_EMB_SEM_COUNT_BITS": {
+      "type": "int",
+      "value": 8,
+      "origin": "kernel/Kconfig:148"
+    },
+    "CONFIG_EMB_MUTEX": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:155"
+    },
+    "CONFIG_EMB_MUTEX_INHERIT": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:159"
+    },
+    "CONFIG_EMB_PI_MAX_DEPTH": {
+      "type": "int",
+      "value": 8,
+      "origin": "kernel/Kconfig:164"
+    },
+    "CONFIG_EMB_PI_HOP_SECTIONS": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:170"
+    },
+    "CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:181"
+    },
+    "CONFIG_EMB_MUTEX_OWNER_DEATH_RELEASE": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:184"
+    },
+    "CONFIG_EMB_MUTEX_OWNER_DEATH": {
+      "type": "string",
+      "value": "FAULT",
+      "origin": "kernel/Kconfig:189"
+    },
+    "CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:195"
+    },
+    "CONFIG_EMB_HANDLE_MODEL_POINTER": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:209"
+    },
+    "CONFIG_EMB_HANDLE_MODEL": {
+      "type": "string",
+      "value": "POINTER",
+      "origin": "kernel/Kconfig:214"
+    },
+    "CONFIG_EMB_IRQ_ZERO_LATENCY": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:222"
+    },
+    "CONFIG_EMB_IRQ_KERNEL_LEVEL": {
+      "type": "int",
+      "value": 0,
+      "origin": "kernel/Kconfig:227"
+    },
+    "CONFIG_EMB_IRQ_NESTING": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:232"
+    },
+    "CONFIG_EMB_IRQ_MAX_NESTING": {
+      "type": "int",
+      "value": 1,
+      "origin": "kernel/Kconfig:237"
+    },
+    "CONFIG_EMB_IRQ_LOCK_STATS": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:243"
+    },
+    "CONFIG_EMB_IRQ_DYNAMIC": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:248"
+    },
+    "CONFIG_EMB_ISR_STACK_SIZE": {
+      "type": "int",
+      "value": 0,
+      "origin": "kernel/Kconfig:253"
+    },
+    "CONFIG_EMB_FAULT_ACTION_HALT": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:268"
+    },
+    "CONFIG_EMB_FAULT_ACTION_REBOOT": {
+      "type": "bool",
+      "value": true,
+      "origin": "kernel/Kconfig:271"
+    },
+    "CONFIG_EMB_FAULT_ACTION": {
+      "type": "string",
+      "value": "REBOOT",
+      "origin": "kernel/Kconfig:276"
+    },
+    "CONFIG_EMB_FAULT_WHERE": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:281"
+    },
+    "CONFIG_EMB_FAULT_HALT_FOR_DEBUG": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:288"
+    },
+    "CONFIG_EMB_TRACE": {
+      "type": "bool",
+      "value": false,
+      "origin": "kernel/Kconfig:297"
+    }
+  }
+}

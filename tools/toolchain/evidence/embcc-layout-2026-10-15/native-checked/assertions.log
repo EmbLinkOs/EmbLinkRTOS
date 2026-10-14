@@ -1,0 +1,4 @@
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)

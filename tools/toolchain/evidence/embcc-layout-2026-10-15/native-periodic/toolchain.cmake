@@ -1,0 +1,4 @@
+set(CMAKE_C_COMPILER "/workspace/EmbCC/embcc")
+set(CMAKE_C_FLAGS "--target=x86_64-linux-gnu")
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(EMB_TOOLCHAIN_C_FLAGS -O1 -g )

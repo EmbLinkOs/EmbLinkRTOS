@@ -1,0 +1,56 @@
+[1/12] Building C object kernel/CMakeFiles/emb_kernel.dir/fault/fault.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[2/12] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[3/12] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[4/12] Building C object kernel/CMakeFiles/emb_kernel.dir/trace/trace.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[5/12] Building C object kernel/CMakeFiles/emb_kernel.dir/irq/irq.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[6/12] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[7/12] Building C object kernel/CMakeFiles/emb_kernel.dir/notify/notify.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[8/12] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[9/12] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/sem.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[10/12] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[11/12] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/mutex.c.obj
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[12/12] Linking C static library kernel/libemb_kernel.a

@@ -1,0 +1,30 @@
+test_embcc_marker_generates_correct_storage (marker_test.LayoutMarkerTest.test_embcc_marker_generates_correct_storage) ... FAIL
+
+======================================================================
+FAIL: test_embcc_marker_generates_correct_storage (marker_test.LayoutMarkerTest.test_embcc_marker_generates_correct_storage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/EmbLinkRTOS/tools/storage/test_layout_marker.py", line 49, in test_embcc_marker_generates_correct_storage
+    run(compiler, *flags, "-c", str(probe), "-o", str(folder / "probe.o"))
+  File "/workspace/EmbLinkRTOS/tools/storage/test_layout_marker.py", line 48, in run
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : /tmp/emb-layout-fem72_0x/probe.c: In function ‘probe’:
+/tmp/emb-layout-fem72_0x/probe.c:6:5: error: implicit declaration of function ‘EMB_LAYOUT_MARKER’ [-Wimplicit-function-declaration]
+    6 |     EMB_LAYOUT_MARKER(thread, sizeof(struct thread_object), alignof(struct thread_object));
+      |     ^~~~~~~~~~~~~~~~~
+/tmp/emb-layout-fem72_0x/probe.c:6:23: error: ‘thread’ undeclared (first use in this function)
+    6 |     EMB_LAYOUT_MARKER(thread, sizeof(struct thread_object), alignof(struct thread_object));
+      |                       ^~~~~~
+/tmp/emb-layout-fem72_0x/probe.c:6:23: note: each undeclared identifier is reported only once for each function it appears in
+/tmp/emb-layout-fem72_0x/probe.c:7:23: error: ‘sem’ undeclared (first use in this function)
+    7 |     EMB_LAYOUT_MARKER(sem, sizeof(struct sem_object), alignof(struct sem_object));
+      |                       ^~~
+/tmp/emb-layout-fem72_0x/probe.c:8:23: error: ‘mutex’ undeclared (first use in this function)
+    8 |     EMB_LAYOUT_MARKER(mutex, sizeof(struct mutex_object), alignof(struct mutex_object));
+      |                       ^~~~~
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.010s
+
+FAILED (failures=1)

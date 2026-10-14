@@ -1,0 +1,6 @@
+test_embcc_marker_generates_correct_storage (test_layout_marker.LayoutMarkerTest.test_embcc_marker_generates_correct_storage) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.053s
+
+OK

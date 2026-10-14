@@ -1,0 +1,1078 @@
+{
+  "additional_checks": {
+    "gcc_native_ctest": {
+      "failed": 0,
+      "passed": 12,
+      "skipped_targets": 0
+    },
+    "header_contract_embcc": {
+      "passed": 1,
+      "skipped": 0
+    },
+    "header_contract_gcc": {
+      "passed": 1,
+      "skipped": 0
+    },
+    "native_embcc_full_build": {
+      "exit_code": 1,
+      "reason": "pthread.h unavailable after storage generation succeeded"
+    },
+    "native_storage_header_comparison": "Four byte-identical generated headers against GCC checked/release/tiny/periodic",
+    "original_header_contract": {
+      "expected": true,
+      "failed": 1
+    }
+  },
+  "additional_logs": {
+    "embcc-marker-native-build.log": {
+      "normalized_sha256": "b792455074ec14e5aca72aa8310e6b28c5c8372dd7ce7b23e9709ceeb804195f",
+      "raw_sha256": "7eebff5312959d5e9a98b5e577e9b2ef89fc6a335d31ce7f1fd7b4f3dcd1c07b"
+    },
+    "marker-before-regression.log": {
+      "normalized_sha256": "908930898cdac810e2be3b83981b6fa78391cd1558630043ba6fdf3f974f06bb",
+      "raw_sha256": "908930898cdac810e2be3b83981b6fa78391cd1558630043ba6fdf3f974f06bb"
+    },
+    "marker-gcc-ctest.log": {
+      "normalized_sha256": "da29d23157061f7f19de661fdedb54d59e85a833af718c11a02846d0b120c38b",
+      "raw_sha256": "da29d23157061f7f19de661fdedb54d59e85a833af718c11a02846d0b120c38b"
+    },
+    "marker-header-embcc-test.log": {
+      "normalized_sha256": "6b8c067172cbaf20ff902a104bee02fa37a12f5fc6f025d3762580a8cd4e0559",
+      "raw_sha256": "6b8c067172cbaf20ff902a104bee02fa37a12f5fc6f025d3762580a8cd4e0559"
+    },
+    "marker-header-gcc-test.log": {
+      "normalized_sha256": "bdd891186f81997fd8f710da0422d0f9a11f681be57377765f7528fd468f127c",
+      "raw_sha256": "bdd891186f81997fd8f710da0422d0f9a11f681be57377765f7528fd468f127c"
+    }
+  },
+  "cases": [
+    {
+      "archives": {
+        "assertions.c": "native-checked/assertions.c",
+        "config.json": "native-checked/config.json",
+        "storage.h": "native-checked/storage.h",
+        "toolchain.cmake": "native-checked/toolchain.cmake"
+      },
+      "board": "native",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked/toolchain.cmake",
+            "-DEMB_BOARD=native",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "native-checked/configure.log",
+          "log_sha256": "5530bd7e81f34b71a3aa1b7fb17384e8db7d72f85871031dfdf850c638ae9699",
+          "raw_log_sha256": "9164c54e3808da1bf120c50913c81a4c6f556de9059b3b6cbfe1554fa6d174fb"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "native-checked/storage-build.log",
+          "log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c",
+          "raw_log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/native/include",
+            "-I/workspace/EmbLinkRTOS/boards/native/native/include",
+            "--target=x86_64-linux-gnu",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "native-checked/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "native-checked/kernel-build.log",
+          "log_sha256": "743be7b6a493361fb60967465b1037b1c9440d52e8c0718cbc5d8de5a715f97d",
+          "raw_log_sha256": "743be7b6a493361fb60967465b1037b1c9440d52e8c0718cbc5d8de5a715f97d"
+        }
+      ],
+      "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-checked",
+      "header_sha256": "ea9663f4577a385c474d5387f30e13ab2c9d985b762493d883a41038ec5cc7c0",
+      "name": "native-checked",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "SEM": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "THREAD": {
+          "ALIGN": 16,
+          "SIZE": 352
+        }
+      },
+      "target": "x86_64-linux-gnu"
+    },
+    {
+      "archives": {
+        "assertions.c": "native-release/assertions.c",
+        "config.json": "native-release/config.json",
+        "storage.h": "native-release/storage.h",
+        "toolchain.cmake": "native-release/toolchain.cmake"
+      },
+      "board": "native",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release/toolchain.cmake",
+            "-DEMB_BOARD=native",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+            "-DEMB_CONF=configs/release.conf"
+          ],
+          "exit_code": 0,
+          "log": "native-release/configure.log",
+          "log_sha256": "dd11b1640a1c8b593ec6f2fce58caadd644a0df63e1c36240950e8689384b4cd",
+          "raw_log_sha256": "693a7e8060a4f002fe4526fcc5a9e7789f5418301d59db1fafa26c1d79aeb1a8"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "native-release/storage-build.log",
+          "log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c",
+          "raw_log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/native/include",
+            "-I/workspace/EmbLinkRTOS/boards/native/native/include",
+            "--target=x86_64-linux-gnu",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "native-release/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "native-release/kernel-build.log",
+          "log_sha256": "241aa75b55fbc159ff1ba479ffa11fa1034d1bd8f428977fcbddd97e6a06e06f",
+          "raw_log_sha256": "241aa75b55fbc159ff1ba479ffa11fa1034d1bd8f428977fcbddd97e6a06e06f"
+        }
+      ],
+      "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-release",
+      "header_sha256": "ea9663f4577a385c474d5387f30e13ab2c9d985b762493d883a41038ec5cc7c0",
+      "name": "native-release",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "SEM": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "THREAD": {
+          "ALIGN": 16,
+          "SIZE": 352
+        }
+      },
+      "target": "x86_64-linux-gnu"
+    },
+    {
+      "archives": {
+        "assertions.c": "native-tiny/assertions.c",
+        "config.json": "native-tiny/config.json",
+        "storage.h": "native-tiny/storage.h",
+        "toolchain.cmake": "native-tiny/toolchain.cmake"
+      },
+      "board": "native",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny/toolchain.cmake",
+            "-DEMB_BOARD=native",
+            "-DEMB_PROFILE=tiny",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "native-tiny/configure.log",
+          "log_sha256": "1fad14e16df8c1fb3f0977d4225be92d28b101d7026ef64256ee7a35af885a03",
+          "raw_log_sha256": "9d78fd48f9ceea9199243b66b0363caf0d6660a5413526f3b64136a1b7794b09"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "native-tiny/storage-build.log",
+          "log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c",
+          "raw_log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/native/include",
+            "-I/workspace/EmbLinkRTOS/boards/native/native/include",
+            "--target=x86_64-linux-gnu",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "native-tiny/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "native-tiny/kernel-build.log",
+          "log_sha256": "fb7a3a080fe0bc2174c773f984900bd8cdcda1c0d2bba7b2ae678bdf2855cfbd",
+          "raw_log_sha256": "fb7a3a080fe0bc2174c773f984900bd8cdcda1c0d2bba7b2ae678bdf2855cfbd"
+        }
+      ],
+      "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-tiny",
+      "header_sha256": "c3098b1250b1a271a06cbc4f30fdf72bedc65d2fd4222a45b0ab1bc8abe4b62e",
+      "name": "native-tiny",
+      "profile": "tiny",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 8,
+          "SIZE": 48
+        },
+        "SEM": {
+          "ALIGN": 8,
+          "SIZE": 48
+        },
+        "THREAD": {
+          "ALIGN": 16,
+          "SIZE": 256
+        }
+      },
+      "target": "x86_64-linux-gnu"
+    },
+    {
+      "archives": {
+        "assertions.c": "native-periodic/assertions.c",
+        "config.json": "native-periodic/config.json",
+        "storage.h": "native-periodic/storage.h",
+        "toolchain.cmake": "native-periodic/toolchain.cmake"
+      },
+      "board": "native",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic/toolchain.cmake",
+            "-DEMB_BOARD=native",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+            "-DEMB_CONF=configs/native-periodic.conf"
+          ],
+          "exit_code": 0,
+          "log": "native-periodic/configure.log",
+          "log_sha256": "b1a65e67c4569212fe46f37a92b21c64793b8c52a4addc207b08cc9b9f33ce5d",
+          "raw_log_sha256": "50fb382d0b1d0597a051efdec83d86b02bd9e595a54ad44878a43948866d056b"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "native-periodic/storage-build.log",
+          "log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c",
+          "raw_log_sha256": "21f2ac404a6e453cc1a51d73d6298eac4c3f518b179387663fbed5bb75cd496c"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/native/include",
+            "-I/workspace/EmbLinkRTOS/boards/native/native/include",
+            "--target=x86_64-linux-gnu",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "native-periodic/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "native-periodic/kernel-build.log",
+          "log_sha256": "e5bc3a0af1b6df3f32ed6aeba774898490cc6281d731518657cb838adb1bd259",
+          "raw_log_sha256": "e5bc3a0af1b6df3f32ed6aeba774898490cc6281d731518657cb838adb1bd259"
+        }
+      ],
+      "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/native-periodic",
+      "header_sha256": "ea9663f4577a385c474d5387f30e13ab2c9d985b762493d883a41038ec5cc7c0",
+      "name": "native-periodic",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "SEM": {
+          "ALIGN": 8,
+          "SIZE": 64
+        },
+        "THREAD": {
+          "ALIGN": 16,
+          "SIZE": 352
+        }
+      },
+      "target": "x86_64-linux-gnu"
+    },
+    {
+      "archives": {
+        "assertions.c": "cm3/assertions.c",
+        "config.json": "cm3/config.json",
+        "storage.h": "cm3/storage.h",
+        "toolchain.cmake": "cm3/toolchain.cmake"
+      },
+      "board": "mps2_an385",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3/toolchain.cmake",
+            "-DEMB_BOARD=mps2_an385",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "cm3/configure.log",
+          "log_sha256": "0e8db182af16fae516c7bf1d478c016a5db2d76cb2a685f9ed5398e7c4e03dfc",
+          "raw_log_sha256": "40db5d5cf8c7abf4d20ac9b1bc6c7c28d36961e61732e36c0d32d69e6710d61f"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "cm3/storage-build.log",
+          "log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48",
+          "raw_log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/cortex_m/include",
+            "-I/workspace/EmbLinkRTOS/boards/arm/mps2_an385/include",
+            "--target=thumbv7m-none-eabi",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-mcpu=cortex-m3",
+            "-mfloat-abi=soft",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "cm3/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "cm3/kernel-build.log",
+          "log_sha256": "72e5ccf1177de26110b54f990c7e58618224632cc3d51b5865c512fb7c9a726a",
+          "raw_log_sha256": "72e5ccf1177de26110b54f990c7e58618224632cc3d51b5865c512fb7c9a726a"
+        }
+      ],
+      "config_sha256": "ef96f1d63540d7e8f8892b79d6f8719594821ab6234d0fc6890da80744e621ef",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm3",
+      "header_sha256": "7798137df73d7ada12a67fb61b952237c4d3b149fbb8aa78c5871b864aa111c0",
+      "name": "cm3",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 4,
+          "SIZE": 32
+        },
+        "SEM": {
+          "ALIGN": 4,
+          "SIZE": 36
+        },
+        "THREAD": {
+          "ALIGN": 8,
+          "SIZE": 128
+        }
+      },
+      "target": "thumbv7m-none-eabi"
+    },
+    {
+      "archives": {
+        "assertions.c": "cm4hf/assertions.c",
+        "config.json": "cm4hf/config.json",
+        "storage.h": "cm4hf/storage.h",
+        "toolchain.cmake": "cm4hf/toolchain.cmake"
+      },
+      "board": "mps2_an386",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf/toolchain.cmake",
+            "-DEMB_BOARD=mps2_an386",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "cm4hf/configure.log",
+          "log_sha256": "ed09fafd589e1d27620b93f7f4245ee34e57738b140870eea150ebb335fed728",
+          "raw_log_sha256": "c44605224911f2bd27c32a85c288f3c88b535755d5348fdbcbe1047806d80a20"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "cm4hf/storage-build.log",
+          "log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48",
+          "raw_log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/cortex_m/include",
+            "-I/workspace/EmbLinkRTOS/boards/arm/mps2_an386/include",
+            "--target=thumbv7em-none-eabihf",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-mcpu=cortex-m4",
+            "-mfpu=fpv4-sp-d16",
+            "-mfloat-abi=hard",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "cm4hf/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "cm4hf/kernel-build.log",
+          "log_sha256": "78a326da9df862d7d8ac4706b832f7ced9c6f584efd81e3af7e67be35aab8c83",
+          "raw_log_sha256": "78a326da9df862d7d8ac4706b832f7ced9c6f584efd81e3af7e67be35aab8c83"
+        }
+      ],
+      "config_sha256": "516de747f5d1f853014cf2fdde92c8fa96268b476d477af3b39fdd6eb8ab5e4a",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/cm4hf",
+      "header_sha256": "7798137df73d7ada12a67fb61b952237c4d3b149fbb8aa78c5871b864aa111c0",
+      "name": "cm4hf",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 4,
+          "SIZE": 32
+        },
+        "SEM": {
+          "ALIGN": 4,
+          "SIZE": 36
+        },
+        "THREAD": {
+          "ALIGN": 8,
+          "SIZE": 128
+        }
+      },
+      "target": "thumbv7em-none-eabihf"
+    },
+    {
+      "archives": {
+        "assertions.c": "rv32/assertions.c",
+        "config.json": "rv32/config.json",
+        "storage.h": "rv32/storage.h",
+        "toolchain.cmake": "rv32/toolchain.cmake"
+      },
+      "board": "riscv32_virt",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32/toolchain.cmake",
+            "-DEMB_BOARD=riscv32_virt",
+            "-DEMB_PROFILE=base",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "rv32/configure.log",
+          "log_sha256": "e1721148cb94dfdef3b31d8e52af098c666ea01a9086e8ea31f8563436e29d51",
+          "raw_log_sha256": "d835bc0a28b8b3a2108d5e068a1d8c7fec07805c538ce2bfd31dd68116556aa5"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "rv32/storage-build.log",
+          "log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48",
+          "raw_log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/riscv/include",
+            "-I/workspace/EmbLinkRTOS/boards/qemu/riscv32_virt/include",
+            "--target=riscv32-unknown-elf",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-march=rv32imac_zicsr_zifencei",
+            "-mabi=ilp32",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "rv32/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "rv32/kernel-build.log",
+          "log_sha256": "aee8157e5f442c34c9ab39633b12950bfd86744f07fade8c7b38caee1984cd95",
+          "raw_log_sha256": "aee8157e5f442c34c9ab39633b12950bfd86744f07fade8c7b38caee1984cd95"
+        }
+      ],
+      "config_sha256": "6c902afa0b87a11cfd9fcd0c3f26d2df657b6369e3cd4894702a0b7e9efcbc62",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/rv32",
+      "header_sha256": "7798137df73d7ada12a67fb61b952237c4d3b149fbb8aa78c5871b864aa111c0",
+      "name": "rv32",
+      "profile": "base",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 4,
+          "SIZE": 32
+        },
+        "SEM": {
+          "ALIGN": 4,
+          "SIZE": 36
+        },
+        "THREAD": {
+          "ALIGN": 8,
+          "SIZE": 128
+        }
+      },
+      "target": "riscv32-unknown-elf"
+    },
+    {
+      "archives": {
+        "assertions.c": "avr/assertions.c",
+        "config.json": "avr/config.json",
+        "storage.h": "avr/storage.h",
+        "toolchain.cmake": "avr/toolchain.cmake"
+      },
+      "board": "arduino_uno",
+      "commands": [
+        {
+          "args": [
+            "cmake",
+            "-S",
+            "/workspace/EmbLinkRTOS",
+            "-B",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr/toolchain.cmake",
+            "-DEMB_BOARD=arduino_uno",
+            "-DEMB_PROFILE=tiny",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+          ],
+          "exit_code": 0,
+          "log": "avr/configure.log",
+          "log_sha256": "ca885b405688a08891cf535b9626f7115ea179879ca08b1a40bf0d435aec65da",
+          "raw_log_sha256": "dd24038d91085d1d9d0e9673192898fb9e77f7872f075dc861e97a4fed380549"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr",
+            "--target",
+            "emb_storage_h"
+          ],
+          "exit_code": 0,
+          "log": "avr/storage-build.log",
+          "log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48",
+          "raw_log_sha256": "4c7c76ad524d279af527287e6ef96bfdedac54c33a71016574c899577088fd48"
+        },
+        {
+          "args": [
+            "/workspace/EmbCC/embcc",
+            "-I/workspace/EmbLinkRTOS/kernel/include",
+            "-I/workspace/EmbLinkRTOS/include",
+            "-I/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr/generated/include",
+            "-I/workspace/EmbLinkRTOS/arch/avr/include",
+            "-I/workspace/EmbLinkRTOS/boards/arduino/arduino_uno/include",
+            "--target=avr",
+            "-std=c11",
+            "-pedantic",
+            "-ffreestanding",
+            "-fno-common",
+            "-ffunction-sections",
+            "-fdata-sections",
+            "-fstack-usage",
+            "-Wall",
+            "-Wextra",
+            "-Wpedantic",
+            "-Wshadow",
+            "-Wconversion",
+            "-Wsign-conversion",
+            "-Wundef",
+            "-Wstrict-prototypes",
+            "-Wmissing-prototypes",
+            "-Wmissing-declarations",
+            "-Wvla",
+            "-Wcast-align",
+            "-Wcast-qual",
+            "-Wdouble-promotion",
+            "-Wformat=2",
+            "-Wswitch-default",
+            "-Wimplicit-fallthrough",
+            "-Wnull-dereference",
+            "-Wredundant-decls",
+            "-Wnested-externs",
+            "-Werror",
+            "-O1",
+            "-g",
+            "-mmcu=atmega328p",
+            "-c",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr/assertions.c",
+            "-o",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr/assertions.o"
+          ],
+          "exit_code": 0,
+          "log": "avr/assertions.log",
+          "log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997",
+          "raw_log_sha256": "e4768fb69a2ae8f00519a6f0ba376872535848058b88f72309335e2299a0e997"
+        },
+        {
+          "args": [
+            "cmake",
+            "--build",
+            "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr",
+            "--target",
+            "emb_kernel"
+          ],
+          "exit_code": 0,
+          "log": "avr/kernel-build.log",
+          "log_sha256": "c6d6a7aae6079f3452816dbe7869c93978b5c367b4bae1150cb73a1fed088f0c",
+          "raw_log_sha256": "c6d6a7aae6079f3452816dbe7869c93978b5c367b4bae1150cb73a1fed088f0c"
+        }
+      ],
+      "config_sha256": "cb2a8b755dcf887b482042bc09ab97eca144eadd151490ac2ad729ea3aa92137",
+      "dir": "/workspace/EmbLinkRTOS/build/embcc-marker-matrix/avr",
+      "header_sha256": "14e1346e1581783d30fcd9aebb7edc4b5270aa62ff79573e47d31c29f13d11fe",
+      "name": "avr",
+      "profile": "tiny",
+      "storage": {
+        "MUTEX": {
+          "ALIGN": 1,
+          "SIZE": 13
+        },
+        "SEM": {
+          "ALIGN": 1,
+          "SIZE": 10
+        },
+        "THREAD": {
+          "ALIGN": 1,
+          "SIZE": 35
+        }
+      },
+      "target": "avr"
+    }
+  ],
+  "compiler_sha256": "89f389d375b0e35305e0a2d71ea9fe2035b3a2859f32cf8576e9939692214331",
+  "complete": true,
+  "embcc_source": "a3c3ef4c81f9de977b8741ed16072cadca921788",
+  "log_format": "Readable logs strip trailing whitespace. raw-logs.json preserves original text with raw hashes in command/additional-log records.",
+  "rtos_base": "d7cfa78c2690ca696573b104e2b341be28f0a284",
+  "scope": "Storage generation, independent C size/alignment/fit assertions and kernel static archives. No EmbCC image link, port execution or CTest run.",
+  "source_sha256": {
+    "include/emb/compiler/embcc.h": "a17bde5c7d90da7fed27e4e8c143a2d54c93f499f833b70ff28d7e0186426c78",
+    "kernel/object/storage_probe.c": "955b0a2d81a52c7bdc7f375a5c09de7edd51ba4974fc44ca7fe5bac59d584dfc",
+    "tools/storage/gen_storage.py": "cdcf7cd9be49f65089201d29e88682fba94ea5f45cef55076e9f54aea42c0f56",
+    "tools/storage/test_layout_marker.py": "890cb11677a77e9e641739080b52dbd3bb57c98c09c06f088c2d8f7d4254ca72"
+  },
+  "tested_source": "3578006bc306a96a8eaf15076668ac9d9c9f78fd",
+  "tool_versions": {
+    "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+  }
+}
