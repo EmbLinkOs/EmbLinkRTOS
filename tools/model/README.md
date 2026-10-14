@@ -68,6 +68,8 @@ The model/tooling suite (67 tests after the evidence workflow), six-schedule bri
 
 The historical seed-5 finding remains open. Original failure inputs/traces/identities are in `evidence/m2-01/`; corrected-source outcomes are in `evidence/m2-01-correction/`. The full diagnostic campaigns start from the repository root with the built native runner:
 
+The subsequent [bounded seed-5 triage](../../docs/engineering/m2-01-seed5-triage.md) records 56,000 agreeing current-source runs across seeds 1–10 on checked/release/tiny/periodic, plus a rebuild of the source that introduced the historical report. That archive reproduces the known seed-3 mismatch while seed 5 passes on three presets. `evidence/seed5-triage/` preserves commands, identities, configurations, logs and exact current cancellation schedules. The historical cancellation input remains unconfirmed; no disinheritance fix is inferred. The commands below repeat the earlier two-seed diagnostic campaigns:
+
 ```sh
 python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 3 --verbose
 python3 -I tools/model/bridge.py --runner build/native-gcc/tests/differential/diff_runner --runs 40 --seed 5 --verbose

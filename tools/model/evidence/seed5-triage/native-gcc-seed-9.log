@@ -1,0 +1,2 @@
+bridge: runner profile=base owner_death=fault checked=1 tickless=1; 36 scenarios, 40 runs each, seed 9
+bridge: 1400/1400 runs agree with the model, 1 scenarios skipped on this build, 0 divergences

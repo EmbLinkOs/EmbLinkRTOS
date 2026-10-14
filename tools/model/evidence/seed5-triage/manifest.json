@@ -1,0 +1,1707 @@
+{
+  "artifact_notes": {
+    "cancellation_schedules": "Reconstructed after execution from the unchanged admitted catalogue, seed, RNG protocol and parameters; no successful-run raw trace is archived.",
+    "capture": "No current-source failures; no failure bundles or reduction candidates produced.",
+    "configuration_archives": "Copied byte-for-byte from the generated config paths; contents moved out of embedded identities to adjacent files.",
+    "input_digest": "SHA256(json.dumps(ordered scenario/encoded/schedules list, sort_keys=True).encode())"
+  },
+  "bounds": {
+    "campaign_timeout_seconds": 120,
+    "replay_steps": 20000,
+    "runner_timeout_seconds": 15,
+    "schedules_per_scenario": 40,
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "total_timeout_seconds": 600
+  },
+  "complete": true,
+  "elapsed_seconds": 99.824,
+  "filtered": false,
+  "finished_at": "2026-10-14T18:57:08.585524+00:00",
+  "presets": [
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "35670723b431712f2891ffec47736f9685ddea80e8cea5ff31338b1bf0e933db",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "1",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-1"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-1.log",
+          "log_sha256": "0355ba8f3e80671c362889d6a690cb3c9fc89c0d8c00e5bd83555e901fffce43",
+          "seed": 1
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "3b0a6533213a1f831e6b83c0e61dc6799ba4842e812898948654e15e236d3d2b",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "2",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-2"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-2.log",
+          "log_sha256": "c6040e24513c79c61f3da3962257c0fe004966b2520de64cfda7a88f123b3545",
+          "seed": 2
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "69178e5c986a7a1cea4371faee804f4185d484ae951ad049253059e96a235cfb",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "3",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-3"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-3.log",
+          "log_sha256": "3806266516d027ed830cb0e2dfb320db4f63ec16abf5bd0edebbd72dd29e7f45",
+          "seed": 3
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "b20c0c2a2c1d9412df95c95ffabdebbd3fbf263244e5f7e688c2ebf5539406f7",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "4",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-4"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-4.log",
+          "log_sha256": "0994250077b5c2b3dc3d4c15dea530074ab6cbec919caf2609902183d65e28fa",
+          "seed": 4
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "0faf4b094958db1ca6a8cffe4efc3b92d535327746fd90ec8d3b4ce0b598ee43",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "5",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-5"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-5.log",
+          "log_sha256": "21f9e60f0cbfa13c6669eb585986e978c52a2c4cadd5ea2632a85142d0df57d1",
+          "seed": 5
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "56b17859f2f6a6fea4b7eb10bfae6c747fabd59bf2a0aa846de4e6c77145cf97",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "6",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-6"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-6.log",
+          "log_sha256": "d7d12b841e08bd997c970a041f32c61fd37df76910801af38affda6bb9e00639",
+          "seed": 6
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "7f235480be8bc65514545aeb225bc312b34d8a5c2783b266b059b737d6085d60",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "7",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-7"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-7.log",
+          "log_sha256": "ac4c7a7a9dd3a22e529a9ae3ad167f44c1b7cb13fb337536665e26681926df64",
+          "seed": 7
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "055c1329e656bb32ff5d6ca2dbe5bf0309d1d6b027f96c75f099896695d93f49",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "8",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-8"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-8.log",
+          "log_sha256": "0dcded63dfd2069ee2a836a93be84cf0b8cddfadcf5d4513e140c16ece67ea0d",
+          "seed": 8
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "c5f4c4c28d2a16b6ff8f2e31c12db090da905e657eb0674c86eac51a3c7642de",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "9",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-9"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-9.log",
+          "log_sha256": "054569ffaa4cbc506f00fafba5d635503046edae1fe7f9e20fc0b8ea7ad9aca1",
+          "seed": 9
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "738e0b18d206f0368ff909dd62e27178c0389e97231768ba48c0cbbfc799b7b5",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "10",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-gcc/seed-10"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-gcc-seed-10.log",
+          "log_sha256": "ef0659275cef00c9f9fae941b346d93c5327cdc35aac888d47d170e082e48545",
+          "seed": 10
+        }
+      ],
+      "cancellation_scenario": {
+        "inactive": [],
+        "isrs": [],
+        "mutexes": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "name": "cancel_waiter_disinherits",
+        "owner_death": "fault",
+        "sems": [],
+        "threads": [
+          {
+            "priority": 1,
+            "program": [
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "ticks": 3
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 1
+          },
+          {
+            "priority": 3,
+            "program": [
+              {
+                "args": {
+                  "ticks": 1
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 3
+          },
+          {
+            "priority": 5,
+            "program": [
+              {
+                "args": {
+                  "ticks": 2
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "tid": 3
+                },
+                "op": "Cancel"
+              }
+            ],
+            "tid": 4
+          }
+        ],
+        "tickless": true
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-gcc/generated/config.json",
+          "config_sha256": "ed8665b87fffee4233d544287eddc721d8c536a700a14e50b41907dd2a78ddec",
+          "configuration_archive": "native-gcc-config.json",
+          "configuration_values_sha256": "cacaa968c935066dfcdfb4d5d9c82f10962aa4f76c7dd4f0795f1767054bb570"
+        },
+        "git_sha": "37887c9e92e2242ff4d11cfa58c6972fce4b0e0e",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-gcc/tests/differential/diff_runner",
+        "runner_sha256": "e887bb54eb01eda973c6e1dd69246856db5ccc27c8dae3704640d650f82e3295",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": false
+      },
+      "identity_consistent": true,
+      "preset": "native-gcc",
+      "runner_config": {
+        "checked": "1",
+        "owner_death": "fault",
+        "profile": "base",
+        "tickless": "1"
+      }
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "35670723b431712f2891ffec47736f9685ddea80e8cea5ff31338b1bf0e933db",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "1",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-1"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-1.log",
+          "log_sha256": "faa0f767be177736579c952ec16183594466204b2eca54371a620b801142e8b3",
+          "seed": 1
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "3b0a6533213a1f831e6b83c0e61dc6799ba4842e812898948654e15e236d3d2b",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "2",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-2"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-2.log",
+          "log_sha256": "9909d1012ac7c1265951919dbd1988ec50c060284a2c949199dd256320e5c011",
+          "seed": 2
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "69178e5c986a7a1cea4371faee804f4185d484ae951ad049253059e96a235cfb",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "3",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-3"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-3.log",
+          "log_sha256": "d359e9600238dbcc3fce792b01869449f52d1cc95324dbf450bd2ccf00a077b3",
+          "seed": 3
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "b20c0c2a2c1d9412df95c95ffabdebbd3fbf263244e5f7e688c2ebf5539406f7",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "4",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-4"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-4.log",
+          "log_sha256": "3f21c9eb50e168a7ca05cbc78b785e23d558ef0512ee68398977f42bb6e4a3c9",
+          "seed": 4
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "0faf4b094958db1ca6a8cffe4efc3b92d535327746fd90ec8d3b4ce0b598ee43",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "5",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-5"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-5.log",
+          "log_sha256": "5bcee473ee8a7ff5b90c117943fb833d59f8ca83b2c68e2b9e652020d37dfa64",
+          "seed": 5
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "56b17859f2f6a6fea4b7eb10bfae6c747fabd59bf2a0aa846de4e6c77145cf97",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "6",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-6"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-6.log",
+          "log_sha256": "bfbe74de172eaf3a358e94f2a20d56ac84911f48316f3b58c5955f17b8c34a82",
+          "seed": 6
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "7f235480be8bc65514545aeb225bc312b34d8a5c2783b266b059b737d6085d60",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "7",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-7"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-7.log",
+          "log_sha256": "3a6141449e6e7fe6b8ea66e014c6d48b8893b1de14718e139d226f889412bed7",
+          "seed": 7
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "055c1329e656bb32ff5d6ca2dbe5bf0309d1d6b027f96c75f099896695d93f49",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "8",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-8"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-8.log",
+          "log_sha256": "6349071bf6f40568e995cca12e6ebd00ce279c9f93d8ece5f2f41b7d12f8ff8c",
+          "seed": 8
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "c5f4c4c28d2a16b6ff8f2e31c12db090da905e657eb0674c86eac51a3c7642de",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "9",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-9"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-9.log",
+          "log_sha256": "04c9224f39a9e39359429314f85dbcef24c143ae38afb45adca40c295eb605df",
+          "seed": 9
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "738e0b18d206f0368ff909dd62e27178c0389e97231768ba48c0cbbfc799b7b5",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "10",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-release/seed-10"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-release-seed-10.log",
+          "log_sha256": "5ba3b99b1fc86519ab5cc3845036577f70ace6e42b11049f58a4e5bbe3111252",
+          "seed": 10
+        }
+      ],
+      "cancellation_scenario": {
+        "inactive": [],
+        "isrs": [],
+        "mutexes": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "name": "cancel_waiter_disinherits",
+        "owner_death": "release",
+        "sems": [],
+        "threads": [
+          {
+            "priority": 1,
+            "program": [
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "ticks": 3
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 1
+          },
+          {
+            "priority": 3,
+            "program": [
+              {
+                "args": {
+                  "ticks": 1
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 3
+          },
+          {
+            "priority": 5,
+            "program": [
+              {
+                "args": {
+                  "ticks": 2
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "tid": 3
+                },
+                "op": "Cancel"
+              }
+            ],
+            "tid": 4
+          }
+        ],
+        "tickless": true
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-release/generated/config.json",
+          "config_sha256": "d23d5720ea005adbabfee243cda3effc263081c144b05bbb37ec9fb841db38ce",
+          "configuration_archive": "native-release-config.json",
+          "configuration_values_sha256": "c1052c5251bc6be26d80c39968d91af07c092dea0d427183b067886649aa758f"
+        },
+        "git_sha": "37887c9e92e2242ff4d11cfa58c6972fce4b0e0e",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-release/tests/differential/diff_runner",
+        "runner_sha256": "697b5e806adeda47b110cc82571ad94aaa7d3609c0def96c29d5a5210fc8ea14",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": false
+      },
+      "identity_consistent": true,
+      "preset": "native-release",
+      "runner_config": {
+        "checked": "0",
+        "owner_death": "release",
+        "profile": "base",
+        "tickless": "1"
+      }
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "7c3095e93afef2c239faff693ea1fb37c432379300d0cac3a177833d61a033b6",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "1",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-1"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-1.log",
+          "log_sha256": "b82944d5df55e861111808c12699ff5268d0143c2720836d394ab0f8c754da3f",
+          "seed": 1
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "f3d99ed0fe374eb8db28a87b5c8211c1f0342273961768a709bd511faf1cd9fc",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "2",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-2"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-2.log",
+          "log_sha256": "25ee217725a0226be8291ab31261ef771bff8988c622f3a3d189a6498acf14e5",
+          "seed": 2
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "3536d887aed4ce99005b0dfd0b7517c446ce9056b9df724f38886f729e6b0c5c",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "3",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-3"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-3.log",
+          "log_sha256": "6d3b6b9788edaaf3e62b60412a534ecb2606404431b2f41c7172b8d83cec9f17",
+          "seed": 3
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "f3da852ffbd26d3ee339d8f48e139ab984ce515b480dbe468c9f399414c42fd5",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "4",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-4"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-4.log",
+          "log_sha256": "304dede2afb955525de432414e95779c25809a91da67ee822b00fc961a030e61",
+          "seed": 4
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "213b61a5be7b2d3a033467ff2d20ff5e835da04a7de4766eef16d3aef2f2e8f0",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "5",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-5"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-5.log",
+          "log_sha256": "c751c444ca7e1da9b1abc5e3cfb5dbe22e63e824accc5b493f5ff1df2725a77b",
+          "seed": 5
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "9638987ba5e5a004f6f5146ee39270852362f4eb32e6453d7ab96f4f0d2ed3fd",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "6",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-6"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-6.log",
+          "log_sha256": "e23cf885eb419591fc736511f560e79b6d3ec2ce7474588abeb94125fd43ceaa",
+          "seed": 6
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "025dbcffa5b62ecd1fd6b7a4590e5222b6fde3229d84fc627c1ce3eba44cbc83",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "7",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-7"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-7.log",
+          "log_sha256": "c63ea65eb636391fa0ec050290e01a4c53f5084d81033169b5aef94ccec5f18b",
+          "seed": 7
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "05746794a053900b90ed61b58b0d20713fdb1f8c074d9930dec0050b567a54d5",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "8",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-8"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-8.log",
+          "log_sha256": "96a7c281dfdce90037522f1d3cc55cf580be22fcd3e105728fcbdfa399405c4a",
+          "seed": 8
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "47f841e48cf0dbdc8f1a8ea3c58a03d6eeeb973190399d1c04956bdb6a0bafc8",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "9",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-9"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-9.log",
+          "log_sha256": "8211f210b2655f2690c430944ab428786dee74b39f051185e056f270d349424a",
+          "seed": 9
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "596382a95ad750d8f3cdb72fb66e0278ee6b812e721a9264eaa104a8e01276f1",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "10",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-tiny/seed-10"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-tiny-seed-10.log",
+          "log_sha256": "15b762fc9e00f91fe2ba6fffbe793810723c37574f9a522af0646fff98080e68",
+          "seed": 10
+        }
+      ],
+      "cancellation_scenario": {
+        "inactive": [],
+        "isrs": [],
+        "mutexes": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "name": "cancel_waiter_disinherits",
+        "owner_death": "fault",
+        "sems": [],
+        "threads": [
+          {
+            "priority": 1,
+            "program": [
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "ticks": 3
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 1
+          },
+          {
+            "priority": 3,
+            "program": [
+              {
+                "args": {
+                  "ticks": 1
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 3
+          },
+          {
+            "priority": 5,
+            "program": [
+              {
+                "args": {
+                  "ticks": 2
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "tid": 3
+                },
+                "op": "Cancel"
+              }
+            ],
+            "tid": 4
+          }
+        ],
+        "tickless": true
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-tiny/generated/config.json",
+          "config_sha256": "fbb62f618f9588111fbf3449e6a0906fb61a9055201944063592f319321e1f3d",
+          "configuration_archive": "native-tiny-config.json",
+          "configuration_values_sha256": "8cc6502ebbcfeaa77f4dc67e6ff40d004a4909ecae812d1fa6471d4876dc91f5"
+        },
+        "git_sha": "37887c9e92e2242ff4d11cfa58c6972fce4b0e0e",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-tiny/tests/differential/diff_runner",
+        "runner_sha256": "5a568a9d6feb2d64f6aa479580fa4ead7be60387de30d0b1f95a127a0db86d43",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": false
+      },
+      "identity_consistent": true,
+      "preset": "native-tiny",
+      "runner_config": {
+        "checked": "1",
+        "owner_death": "fault",
+        "profile": "tiny",
+        "tickless": "1"
+      }
+    },
+    {
+      "campaigns": [
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "35670723b431712f2891ffec47736f9685ddea80e8cea5ff31338b1bf0e933db",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "1",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-1"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-1.log",
+          "log_sha256": "0aa0b2b8d7cc2cd9508813924086d449d6ccc9eca2122b4eb8a4e67b47364dd6",
+          "seed": 1
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "3b0a6533213a1f831e6b83c0e61dc6799ba4842e812898948654e15e236d3d2b",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "2",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-2"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-2.log",
+          "log_sha256": "96899e81f0941d0a8cc5188f39a613b6086d7d1e1e6c4b206c2572cfed987306",
+          "seed": 2
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "69178e5c986a7a1cea4371faee804f4185d484ae951ad049253059e96a235cfb",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "3",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-3"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-3.log",
+          "log_sha256": "a6fe117ecc4362ccff8fdf020cf0ac6764320355e85bef56f051a975ff8469d4",
+          "seed": 3
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "b20c0c2a2c1d9412df95c95ffabdebbd3fbf263244e5f7e688c2ebf5539406f7",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "4",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-4"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-4.log",
+          "log_sha256": "9ef3797b0b97ed32dcd04af4850c6b81eea7b2efaea0518f1882a8042ec47036",
+          "seed": 4
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "0faf4b094958db1ca6a8cffe4efc3b92d535327746fd90ec8d3b4ce0b598ee43",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "5",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-5"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-5.log",
+          "log_sha256": "dfc4c4451922b332a6fac59d9053410cd381ecb3c88410d496e902f35bb66b1a",
+          "seed": 5
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "56b17859f2f6a6fea4b7eb10bfae6c747fabd59bf2a0aa846de4e6c77145cf97",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "6",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-6"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-6.log",
+          "log_sha256": "26f8e7a0231e04c907a372a1f8e7afa3afd88c480c0373a306b598f4c55e4dcd",
+          "seed": 6
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "7f235480be8bc65514545aeb225bc312b34d8a5c2783b266b059b737d6085d60",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "7",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-7"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-7.log",
+          "log_sha256": "5836c31e570a4125aca63207b942c155e2e2d5b2b1a6c99e2b23cd009cd7cc58",
+          "seed": 7
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "055c1329e656bb32ff5d6ca2dbe5bf0309d1d6b027f96c75f099896695d93f49",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "8",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-8"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-8.log",
+          "log_sha256": "716d32364cf77694f71211ca0fc08e19c023bb6e89aa3a2b8ab896e428693f01",
+          "seed": 8
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "c5f4c4c28d2a16b6ff8f2e31c12db090da905e657eb0674c86eac51a3c7642de",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "9",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-9"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-9.log",
+          "log_sha256": "8bea75fd1dd41902a8fb8668d7014c3e623402bccd9df4500a9b043889a37e28",
+          "seed": 9
+        },
+        {
+          "agreed": 1400,
+          "all_inputs_sha256": "738e0b18d206f0368ff909dd62e27178c0389e97231768ba48c0cbbfc799b7b5",
+          "cancellation_schedule_archive": "cancellation-schedules.jsonl",
+          "command": [
+            "/workspace/EmbLinkRTOS/.venv/bin/python",
+            "-I",
+            "tools/model/bridge.py",
+            "--runner",
+            "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+            "--runs",
+            "40",
+            "--seed",
+            "10",
+            "--timeout",
+            "15",
+            "--replay-steps",
+            "20000",
+            "--capture-dir",
+            "/workspace/EmbLinkRTOS/build/m2-seed5-triage/failures/native-periodic/seed-10"
+          ],
+          "divergences": 0,
+          "excluded_scenarios": 1,
+          "executed": 1400,
+          "exit_code": 0,
+          "log": "native-periodic-seed-10.log",
+          "log_sha256": "e239a180cefaa7f1689fd83e4e02dcb0e0680af0832b4e777a5fabae9d2c627c",
+          "seed": 10
+        }
+      ],
+      "cancellation_scenario": {
+        "inactive": [],
+        "isrs": [],
+        "mutexes": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "name": "cancel_waiter_disinherits",
+        "owner_death": "fault",
+        "sems": [],
+        "threads": [
+          {
+            "priority": 1,
+            "program": [
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "ticks": 3
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 1
+          },
+          {
+            "priority": 3,
+            "program": [
+              {
+                "args": {
+                  "ticks": 1
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "mutex": 0,
+                  "timeout": null
+                },
+                "op": "Lock"
+              },
+              {
+                "args": {
+                  "mutex": 0
+                },
+                "op": "Unlock"
+              }
+            ],
+            "tid": 3
+          },
+          {
+            "priority": 5,
+            "program": [
+              {
+                "args": {
+                  "ticks": 2
+                },
+                "op": "Sleep"
+              },
+              {
+                "args": {
+                  "tid": 3
+                },
+                "op": "Cancel"
+              }
+            ],
+            "tid": 4
+          }
+        ],
+        "tickless": false
+      },
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/EmbLinkRTOS/build/native-periodic/generated/config.json",
+          "config_sha256": "0358842cdf975d182569798aa9b0b3e903253f69f26b77aafc961ff6cb46387e",
+          "configuration_archive": "native-periodic-config.json",
+          "configuration_values_sha256": "164694c177d6e5b72a0151acc6c1e8f84a7772bea5642a7fd9df77aabdc17901"
+        },
+        "git_sha": "37887c9e92e2242ff4d11cfa58c6972fce4b0e0e",
+        "kernel_tree_sha256": "e4d28a189eb1a5b2a9a7b60850e49e48ed77f61a81e5f77ce9f2c768eb640e30",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/EmbLinkRTOS/build/native-periodic/tests/differential/diff_runner",
+        "runner_sha256": "ad57639c0db3e8fe1a4d623789b95d954095ae774777f0dc207f3bb8c4ea6715",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "59bcc4cc74e735ae84f0f5056e8946a1846a787b1b8f3159ae7b53954a571c0c",
+          "tools/model/bridge.py": "953ab77cb460242f0da8c67b2e732338077af1a4b457863b07d4a647a544cf8f",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "7c5c650966a1fed91e6298a21339606a5d436d8c28650fe9bd6528221c6db93e",
+          "tools/model/evidence.py": "4e7559bf9c5d7c7051aaee474fd120d5a3b391d15095e1c02db8ad6602436e15",
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": false
+      },
+      "identity_consistent": true,
+      "preset": "native-periodic",
+      "runner_config": {
+        "checked": "1",
+        "owner_death": "fault",
+        "profile": "base",
+        "tickless": "0"
+      }
+    }
+  ],
+  "source": "37887c9e92e2242ff4d11cfa58c6972fce4b0e0e",
+  "started_at": "2026-10-14T18:55:28.763070+00:00"
+}

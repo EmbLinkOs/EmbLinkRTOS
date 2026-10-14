@@ -24,10 +24,11 @@ Items 5–8 can be developed independently once their common prerequisites are s
 
 ## M2-01: Reproducible failure capture first
 
-The [initial investigation](m2-01-investigation.md) archives the seed-3 reproduction and a two-sleeper reduction. The [timer-delivery correction](m2-01-timer-correction.md) adds model/live regressions and records 11,200 agreeing deep-campaign runs. The [evidence workflow](differential-evidence.md) now provides automatic bundles, exact offline/live replay and bounded schedule reduction with repeat confirmation. The historical seed-5 input remains open; M2-01 is not complete.
+The [initial investigation](m2-01-investigation.md) archives the seed-3 reproduction and a two-sleeper reduction. The [timer-delivery correction](m2-01-timer-correction.md) adds model/live regressions and records 11,200 agreeing deep-campaign runs. The [evidence workflow](differential-evidence.md) now provides automatic bundles, exact offline/live replay and bounded schedule reduction with repeat confirmation. The [bounded seed-5 triage](m2-01-seed5-triage.md) records 56,000 current-source agreements and a historical-source check: the old seed-3 control fails as expected, but seed 5 passes. The historical seed-5 cause remains unknown; M2-01 is not complete.
 
 - [x] Capture `suspend_while_waiting` from the unfiltered 40-schedule campaign with seed 3.
 - [ ] Recover/capture and classify the historical `cancel_waiter_disinherits` seed-5 input; the current documented campaign passes without reproducing it.
+- [x] Complete bounded seeds 1–10 campaigns on checked/release/tiny/periodic and check the report's originating source; retain the historical finding as unconfirmed and identify evidence that would reopen reproduction work.
 - [x] Archive observed runner/model source identity, profile/check/owner-death settings, encoded scenarios, exact IRQ/tick placement, complete traces, operation results and final states.
 - [x] Replay the captured schedules exactly; do not assume `--only` preserves an unfiltered random schedule.
 - [x] Reduce and classify the reproduced seed-3 timing gap, preserve regressions and rerun affected campaigns.
@@ -36,6 +37,8 @@ The [initial investigation](m2-01-investigation.md) archives the seed-3 reproduc
 This work may change evidence/replay tooling before kernel code, but its investigation and design still belong in a reviewed coding session. No failure is pre-classified as “just the bridge.”
 
 ## M2-02: Current contracts before new APIs
+
+The [contract review](m2-02-contract-review.md) records source-grounded proposals for IRQ domains/mapping, independent diagnostic indexes, explicit public fault IDs, POINTER lifetime and resource bounds. These are preparations for joint coding sessions, not accepted contract amendments or completed implementation evidence. The unresolved historical M2-01 item remains visible during this review.
 
 - [ ] Reconcile Cortex-M `emb_irq_set_level()` with KRN-IRQ-028's larger-is-more-urgent convention; specify range/unsupported behavior for fixed-level ports and test the observable mapping.
 - [ ] Resolve tiny's priority-slot-based `emb_thread_index()` versus the stable-index target of KRN-THR-025. Choose a justified implementation or scoped contract amendment before changing identity behavior.

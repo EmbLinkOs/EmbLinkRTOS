@@ -1,0 +1,235 @@
+{
+  "archive_source": "aff0bb97e52e2e1dc44bf548f1bd1eb1a1fb2019",
+  "campaign_timeout_seconds": 120,
+  "campaigns": [
+    {
+      "agreed": 1399,
+      "command": [
+        "/workspace/EmbLinkRTOS/.venv/bin/python",
+        "-I",
+        "tools/model/bridge.py",
+        "--runner",
+        "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/tests/differential/diff_runner",
+        "--runs",
+        "40",
+        "--seed",
+        "3"
+      ],
+      "cwd": "/workspace/scratch/m2-historical-aff0bb9",
+      "divergences": 1,
+      "elapsed_seconds": 2.687,
+      "excluded_scenarios": 1,
+      "executed": 1400,
+      "exit_code": 1,
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/generated/config.json",
+          "config_sha256": "52978a489eedd49455d887fc0d08d8a0f30a8a1c7d0d5b1b36dc711e47b7efec",
+          "configuration_archive": "native-gcc-config.json",
+          "configuration_values_sha256": "f1d5aec1dc564afa32d6d493f52eb77d60a9f39bd7861d35df5f45e319c8666c"
+        },
+        "git_sha": null,
+        "kernel_tree_sha256": "10e3ec650afa1680d2ef854032a122b66fc14d5ec42172499696bca34fd3b11e",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/tests/differential/diff_runner",
+        "runner_sha256": "68da033934b1328dc6ee63d33a0a4e39a82f86f331b805315f627867ee2fbe55",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "9ae71b6a3c7981482349dc5c8a0c10abd97438746a7ba7b6ab82affb32ee89a0",
+          "tools/model/bridge.py": "fa88a3df5c40e05c3eb9ffc4eea4eb8f22eccefd0a6b1b262bf976a13e6511d4",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "5e885fae1740b7f25792e8e9d2032018c7c51957bb87a76e0a2964d6685e5c00",
+          "tools/model/evidence.py": null,
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": null
+      },
+      "identity_consistent": true,
+      "log": "native-gcc-seed-3.log",
+      "log_sha256": "7ef3423463f9f2a2dcfdfcb508762890020e96f2f5ff6639f230527092bd0be9",
+      "preset": "native-gcc",
+      "seed": 3
+    },
+    {
+      "agreed": 1400,
+      "command": [
+        "/workspace/EmbLinkRTOS/.venv/bin/python",
+        "-I",
+        "tools/model/bridge.py",
+        "--runner",
+        "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/tests/differential/diff_runner",
+        "--runs",
+        "40",
+        "--seed",
+        "5"
+      ],
+      "cwd": "/workspace/scratch/m2-historical-aff0bb9",
+      "divergences": 0,
+      "elapsed_seconds": 2.363,
+      "excluded_scenarios": 1,
+      "executed": 1400,
+      "exit_code": 0,
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/generated/config.json",
+          "config_sha256": "52978a489eedd49455d887fc0d08d8a0f30a8a1c7d0d5b1b36dc711e47b7efec",
+          "configuration_archive": "native-gcc-config.json",
+          "configuration_values_sha256": "f1d5aec1dc564afa32d6d493f52eb77d60a9f39bd7861d35df5f45e319c8666c"
+        },
+        "git_sha": null,
+        "kernel_tree_sha256": "10e3ec650afa1680d2ef854032a122b66fc14d5ec42172499696bca34fd3b11e",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-gcc/tests/differential/diff_runner",
+        "runner_sha256": "68da033934b1328dc6ee63d33a0a4e39a82f86f331b805315f627867ee2fbe55",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "9ae71b6a3c7981482349dc5c8a0c10abd97438746a7ba7b6ab82affb32ee89a0",
+          "tools/model/bridge.py": "fa88a3df5c40e05c3eb9ffc4eea4eb8f22eccefd0a6b1b262bf976a13e6511d4",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "5e885fae1740b7f25792e8e9d2032018c7c51957bb87a76e0a2964d6685e5c00",
+          "tools/model/evidence.py": null,
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": null
+      },
+      "identity_consistent": true,
+      "log": "native-gcc-seed-5.log",
+      "log_sha256": "9e00b9e788273351e99b5782cc07c39c5d7a15a7fdde361e5e8d4912c510171b",
+      "preset": "native-gcc",
+      "seed": 5
+    },
+    {
+      "agreed": 1400,
+      "command": [
+        "/workspace/EmbLinkRTOS/.venv/bin/python",
+        "-I",
+        "tools/model/bridge.py",
+        "--runner",
+        "/workspace/scratch/m2-historical-aff0bb9/build/native-release/tests/differential/diff_runner",
+        "--runs",
+        "40",
+        "--seed",
+        "5"
+      ],
+      "cwd": "/workspace/scratch/m2-historical-aff0bb9",
+      "divergences": 0,
+      "elapsed_seconds": 2.473,
+      "excluded_scenarios": 1,
+      "executed": 1400,
+      "exit_code": 0,
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-release/generated/config.json",
+          "config_sha256": "63271242c69368fdb6fc90520646f8bd429601024b6e7790859450ac8866d638",
+          "configuration_archive": "native-release-config.json",
+          "configuration_values_sha256": "6389a0238b033ab7924bfcfdaa7a09a7bf84fc67d012dfb3def3786ffeb46733"
+        },
+        "git_sha": null,
+        "kernel_tree_sha256": "10e3ec650afa1680d2ef854032a122b66fc14d5ec42172499696bca34fd3b11e",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-release/tests/differential/diff_runner",
+        "runner_sha256": "3b1ed03a1138306a3a2676907859ba8c859bb417b50fa88eb7eba4dd7f9692bb",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "9ae71b6a3c7981482349dc5c8a0c10abd97438746a7ba7b6ab82affb32ee89a0",
+          "tools/model/bridge.py": "fa88a3df5c40e05c3eb9ffc4eea4eb8f22eccefd0a6b1b262bf976a13e6511d4",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "5e885fae1740b7f25792e8e9d2032018c7c51957bb87a76e0a2964d6685e5c00",
+          "tools/model/evidence.py": null,
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": null
+      },
+      "identity_consistent": true,
+      "log": "native-release-seed-5.log",
+      "log_sha256": "d77dfa59600078438470aa41ed6d681e2c73d857f370265b08b48a0dcca9b5a5",
+      "preset": "native-release",
+      "seed": 5
+    },
+    {
+      "agreed": 1400,
+      "command": [
+        "/workspace/EmbLinkRTOS/.venv/bin/python",
+        "-I",
+        "tools/model/bridge.py",
+        "--runner",
+        "/workspace/scratch/m2-historical-aff0bb9/build/native-tiny/tests/differential/diff_runner",
+        "--runs",
+        "40",
+        "--seed",
+        "5"
+      ],
+      "cwd": "/workspace/scratch/m2-historical-aff0bb9",
+      "divergences": 0,
+      "elapsed_seconds": 2.369,
+      "excluded_scenarios": 1,
+      "executed": 1400,
+      "exit_code": 0,
+      "identity": {
+        "build": {
+          "cmake_cache": {
+            "CMAKE_CACHE_MAJOR_VERSION": "3",
+            "CMAKE_CACHE_MINOR_VERSION": "31",
+            "CMAKE_CACHE_PATCH_VERSION": "10"
+          },
+          "compiler_versions": [
+            "14.2.0"
+          ],
+          "config_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-tiny/generated/config.json",
+          "config_sha256": "d952cac0078ef03b00cc96dd80eda7caf8528c1aecd68c7f4e3fd2f8e1abe670",
+          "configuration_archive": "native-tiny-config.json",
+          "configuration_values_sha256": "f4d2c65cbd7f273fb43d5aaba4672ba5197d53f23db17bb5b6c7d763be399741"
+        },
+        "git_sha": null,
+        "kernel_tree_sha256": "10e3ec650afa1680d2ef854032a122b66fc14d5ec42172499696bca34fd3b11e",
+        "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "runner_path": "/workspace/scratch/m2-historical-aff0bb9/build/native-tiny/tests/differential/diff_runner",
+        "runner_sha256": "a66719b97e62a4280c3cf1dc45f1ee7d85fc932897567891f7845661f9516c42",
+        "source_sha256": {
+          "tests/differential/diff_runner.c": "9ae71b6a3c7981482349dc5c8a0c10abd97438746a7ba7b6ab82affb32ee89a0",
+          "tools/model/bridge.py": "fa88a3df5c40e05c3eb9ffc4eea4eb8f22eccefd0a6b1b262bf976a13e6511d4",
+          "tools/model/embmodel/__init__.py": "d9792b39d5fb38ea5acbf5551f2203ec587c1a54201ce8dd7dc7877395b122b4",
+          "tools/model/embmodel/explore.py": "bf8b55b7f4a087426103381491c17c8b8d88f0d61d68169ab86017abe57aef85",
+          "tools/model/embmodel/kernel.py": "5e885fae1740b7f25792e8e9d2032018c7c51957bb87a76e0a2964d6685e5c00",
+          "tools/model/evidence.py": null,
+          "tools/model/tests/scenarios.py": "8617807bb031159452c792fb7bc8a88f551d23f4dcd67f5ff182ac94daf298eb"
+        },
+        "tracked_dirty": null
+      },
+      "identity_consistent": true,
+      "log": "native-tiny-seed-5.log",
+      "log_sha256": "09196bf8b84c9b842af7a8cedbaf17552834c16881d05498a2836e80c8d728c9",
+      "preset": "native-tiny",
+      "seed": 5
+    }
+  ],
+  "source_kind": "git archive; rebuilt with current tools, not original binary"
+}
