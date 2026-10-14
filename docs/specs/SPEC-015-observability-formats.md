@@ -1,5 +1,7 @@
 # SPEC-015 - Observability Formats: Log Records, Trace, Crash Record, Debug Descriptor, Monitors
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §12. Specification work item 14 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/OBS.md` (OBS-001 to 012 restated; new from 013).
 **Builds on:** 04 §7 (logging, tracing, flight recorder, descriptor, statistics), 03 §10.2 (crash record); ADR-009, ADR-011, ADR-021, ADR-034; SPEC-002 §10 (latency metrics), SPEC-010 §13 (partition events), SPEC-011 §14 (port contribution), SPEC-013 §8 (the bridge consumes the trace), SPEC-014 §6 (generated trace metadata); 09 §7 (`NOLOAD` sections and symbol-address identifiers), §9 (`embdbg`, `embread`); the trace events named in every earlier specification.
@@ -56,6 +58,8 @@ A log worker (a system work queue item by default, or a dedicated thread at a co
 
 `tools/logdec` reads the ELF (the `LOG_STRINGS` region's symbols and their metadata) and a byte stream, and prints text with timestamps, module, level, file and line; `embdbg` embeds the same decoder; the decoder refuses a stream whose ELF build id does not match the image's and says so.
 
+M1 does not implement these logging rings or decoders. Before claiming ISR-safe lock-free behavior, specify nested producer reservation, commit/publication order, preemption of an unfinished record, overflow and consumer progress; a per-CPU ring still has thread and nested-ISR producers. Validate record atomicity and decoder recovery, including resets during writes.
+
 ## 3. Tracing (ADR-021)
 
 ### 3.1 Event set
@@ -78,6 +82,8 @@ Every specification named its events; the catalogue lives in `hw/trace_events.ya
 | `part` | `partition_fault(p, thread, class, code, pc)`, `partition_restart(p, count, duration)`, `partition_suspend`, `partition_resume`, `cap_denied(p, nr, reason)`, `irq_delivered(p, irq)`, `syscall(p, nr, status)` (optional) |
 | `power` | `state_enter(state)`, `state_exit(state, residency)`, `device_suspend`, `device_resume` |
 | `user` | `user_event(id, a, b)`: an application hook with two words |
+
+M1 traces every outcome, including immediate returns and misuse that faults, so the differential bridge observes each operation end; bound semaphore notifications to terminated targets are dropped and timer IRQs emit TICK (A19). The complete generated catalogue/ring below is planned.
 
 Event payloads are fixed-size little-endian fields; handles appear as their object index and generation (POINTER model: the pointer), threads as their index, so the decoder maps them to names through the object registry events (`obj_init`) and the descriptor.
 
@@ -184,7 +190,7 @@ A product in the field hard-faults in a driver. The fault entry writes the v1 re
 
 1. Log identifiers are symbol addresses in a `NOLOAD` dummy region; 16-bit ids when the region fits, else 32; record format `id timestamp args` with typed arguments from the metadata signature and bounded string copies.
 2. Logs and traces live in per-CPU lock-free rings; drops are counted and announced in-band; nothing blocks the kernel.
-3. Trace is CTF with generated metadata from `trace_events.yaml`; the catalogue of §3.1 is the 1.0 event set; packets default to 1 KB with `events_discarded`.
+3. Trace is CTF with generated metadata from `trace_events.yaml`; the catalogue of §3.1 is the full target event set; each release emits only events for implemented subsystems and versions its metadata; packets default to 1 KB with `events_discarded`.
 4. Crash record v1 layout as in §4, append-only versioning, small v2 for AVR, partition mini-records in a retained ring.
 5. The debug descriptor's sections are those of §5 and it is found by symbol or magic; one generic tool plugin serves every kernel version.
 6. Monitors record worst case with the opener's program counter and act at the closing point; thresholds choose trace, notify, or fault.

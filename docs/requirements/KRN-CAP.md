@@ -1,5 +1,7 @@
 # KRN-CAP - Handles and Capabilities
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-CAP`. Design: `docs/specs/SPEC-009-objects-capabilities-and-storage.md` §3, §4. Related groups: KRN-OBJ (generations, lifecycle), KRN-PART (syscall boundary, tables per partition), KRN-NOTIF (`NOTIFY`, `BIND` rights), HW (generated initial tables).
 
 KRN-CAP-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §7.2. All are restated here as the authoritative copy. New requirements start at 006.
@@ -56,7 +58,7 @@ KRN-CAP-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 **Trace.** SPEC-009 §3.3, §8
 
 ### KRN-CAP-008  Rights per type
-**Statement.** Each object type shall define its rights within eight bits with `DESTROY` and `GRANT` as the two universal top bits, as listed in SPEC-009 §4.2; every operation's `@req` annotation shall name the right it needs and the generated stubs shall check exactly that right.
+**Statement.** Each object type shall define its rights within eight bits with `DESTROY` and `GRANT` as the two universal top bits, as listed in SPEC-009 §4.2; every operation's explicit `@right` metadata shall name the right each handle parameter needs, separately from `@req` requirement identifiers and the generated stubs shall check exactly that right.
 **Rationale.** One source of truth for rights, machine-checked.
 **Status.** Accepted 2026-10-07
 **Verification.** Analysis: `tools/apidoc` cross-checks annotations against the stub generator's table.
@@ -89,3 +91,10 @@ KRN-CAP-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 **Status.** Accepted 2026-10-07
 **Verification.** Statistics API test.
 **Trace.** SPEC-009 §9
+
+### KRN-CAP-013  Incarnation persistence and exhaustion
+**Statement.** Slot and object generation state shall retain its incremented value across reinitialization and partition restart. A generation value shall not be reused while a stale reference with that value may survive; exhaustion shall refuse the operation or invoke a reviewed reclamation scheme. Lookup/revocation shall preserve object lifetime for in-flight operations, and renew shall require current trusted recovery authority.
+**Rationale.** Resetting or wrapping a generation can revalidate stale authority; a stale DESTROY capability cannot authorize its own renewal.
+**Status.** Proposed 2026-10-14; unimplemented.
+**Verification.** Planned forced wrap/exhaustion, stale renew, concurrent lookup/revoke and restart tests on INDEXED/TABLE configurations.
+**Trace.** SPEC-009 §13; SPEC-010 §7, §17

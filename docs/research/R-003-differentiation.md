@@ -15,7 +15,7 @@ EmbLinkRTOS's reason to exist is the empty space between them, defined by nine c
 | # | Claim | How a user checks it |
 |---|---|---|
 | C1 | **Semantics you can read and test.** Every behavior the kernel promises is a numbered requirement with a verification method, checked by a conformance suite that runs unchanged on every port, with an executable reference model as the oracle | `docs/requirements/`, the traceability matrix, the conformance results per target in each release |
-| C2 | **The fastest small kernel on the same board, shown by a public harness.** The same operations, on the same board, with the same compiler and options, for FreeRTOS, Zephyr, ThreadX, and EmbLinkRTOS, with distributions and worst cases, published every release | §6 harness; raw data in the release |
+| C2 | **Competitive small-kernel performance, evaluated by a public same-board harness.** The same operations, on the same board, with the same compiler and options, for FreeRTOS, Zephyr, ThreadX, and EmbLinkRTOS, with distributions and worst cases, published every release | §6 harness; raw data in the release |
 | C3 | **One kernel from a 2 KB AVR to an isolated multicore SoC.** One API, one source tree, one conformance suite; features compile to nothing where not configured | the tiny and isolated reference configurations (03 §11) both pass the same suite |
 | C4 | **Synchronization that is actually correct.** Transitive inheritance with correct multi-mutex restore, disinheritance on timeout, deadlock detection, owner-death handling, no `FromISR` twins, bounded interrupt-masked time | KRN-SYNC and KRN-WAIT tests; the masked-time bound measured by the harness |
 | C5 | **Isolation designed in, in C.** Partitions, capabilities with rights, generation-tagged handles, supervisor-driven restart without reboot, partition-local kernel storage | the isolated reference configuration; fault-injection tests in the conformance suite |
@@ -156,10 +156,10 @@ These are design targets, not measurements. Nothing here is claimed until the ha
 | T4 | TCB size, base profile | as T3, 64-bit time, notifications 32 bits | FreeRTOS `TCB_t` about 100 bytes; ThreadX `TX_THREAD` about 200 bytes | <= 96 bytes | C3 |
 | T5 | Cooperative context switch | STM32F407 at 168 MHz, GCC `-O2`, asserts off, yield between two threads, DWT cycle counter | FreeRTOS 223 cycles, Zephyr 468 to 524 cycles on an F429 (UL) | <= 200 cycles; <= FreeRTOS measured by the harness | C2 |
 | T6 | Interrupt to thread latency | as T5, from the first instruction of the ISR to the first instruction of the woken higher-priority thread, via a notification | not published in comparable form | <= 350 cycles; <= every competitor measured by the harness | C2 |
-| T7 | Longest interrupt-masked section in any kernel path | as T5, every kernel path exercised by the conformance suite, measured by the monitor of ADR-034 | nobody bounds it | <= 150 cycles for every O(1) path; the two O(n) paths (priority-ordered wait-queue insert, n = waiters on that object; timeout-list insert, n = armed timeouts) are masked for the walk only, never across the block window (ADR-026), with both n stated per configuration and the wheel of ADR-010 as the escape for the second | C4 |
+| T7 | Longest interrupt-masked section in any kernel path | as T5, every kernel path exercised by the conformance suite, measured by the monitor of ADR-034 | nobody bounds it | <= 150 cycles for every O(1) path; variable-cost paths (wait insertion/requeue, timeout insertion/removal/expiry batches, owned-mutex scans, inheritance propagation, tiny ready/wait scans, event/broadcast batches and bounded copies) require complete admitted-resource and interference bounds; no lock spans the block window, but each whole section includes its hooks. Report maximum observed separately from analyzed bounds; a timeout backend change alone does not bound inheritance or batches | C4 |
 | T8 | Notification set from ISR to wake | as T5 | FreeRTOS direct-to-task notification is its cheapest wake | O(1), <= 120 cycles for the set, measured | C2 |
-| T9 | Mutex lock and unlock, uncontended | as T5 | Zephyr sample 83 cycles lock; ThreadX 0.2 to 0.3 µs class | <= 80 cycles each; inheritance walk of depth k costs O(k) with <= T7 masked per hop | C4 |
-| T10 | Sleep accuracy, tickless | as T5, `emb_sleep(EMB_MS(10))`, 10,000 samples | not published | wake within [10 ms, 10 ms + 1 tick + 5 µs]; distribution published | C6 |
+| T9 | Mutex lock and unlock, uncontended | as T5 | Zephyr sample 83 cycles lock; ThreadX 0.2 to 0.3 µs class | <= 80 cycles each; whole-operation inheritance cost includes owned-lock scans and waiter requeue at each hop; M1 holds the caller's critical section across the walk, with no verified per-hop T7 bound | C4 |
+| T10 | Sleep accuracy, tickless | as T5, `emb_thread_sleep(EMB_MS(10))`, 10,000 samples | not published | wake within [10 ms, 10 ms + 1 tick + 5 µs]; distribution published | C6 |
 | T11 | Periodic timer drift | as T5, 1 ms period, 1 hour | ThreadX drifts by design | zero accumulated drift; overruns counted | C6 |
 | T12 | Isolated partition restart | STM32F4 or RP2350 with MPU, fault injected in a partition | Hubris: restart with 5 ms minimum delay by policy | the system keeps meeting T6 for other partitions during the restart; restart completes without reboot; measured time published | C5 |
 | T13 | Conformance | every supported target | nobody runs one suite across a 2 KB AVR and an MPU SoC | identical suite passes on tiny and isolated reference configurations | C1, C3 |
@@ -169,8 +169,8 @@ These are design targets, not measurements. Nothing here is claimed until the ha
 
 | Reason | Mitigation |
 |---|---|
-| New and unproven; no production deployments | C1 and C2 replace reputation with evidence; the native port and the reference model let users run the conformance suite themselves on day one |
-| No board catalog | ADR-004 importers make a vendor SVD a half-day job; the first targets (ADR-025) are the cheapest and most common boards |
+| New and unproven; no production deployments | C1 and C2 supplement, but do not replace, production experience and maintenance continuity; the native port and the reference model let users run the conformance suite themselves on day one |
+| No board catalog | ADR-004 importers produce drafts; clocks, pins, DMA, power and errata still need curation, so no fixed porting-duration promise is made; the first targets (ADR-025) are the cheapest and most common boards |
 | No middleware (network stacks, file systems, USB) | ADR-037: CMSIS-RTOS2 and FreeRTOS-API adapters let existing middleware run unchanged; native middleware comes later and is not the kernel's job |
 | No certification | C9 builds the kit incrementally; no claim before achievement; the certified profile is defined from day one so scope never has to be cut out of a larger code base |
 | Migration cost from FreeRTOS | ADR-037 adapter plus a migration guide mapping each FreeRTOS primitive to its EmbLinkRTOS equivalent, including the semantic differences (R-001 §5) |
@@ -178,7 +178,7 @@ These are design targets, not measurements. Nothing here is claimed until the ha
 
 ## 6. The benchmark harness
 
-A deliverable of M2 (first measurements) and of every release after it. It implements claim C2 and the targets of §4.
+A deliverable of the primary-board validation gate after M2 and of releases within the measured supported scope. It implements claim C2 and the targets of §4.
 
 **Boards.** NUCLEO-F446RE and STM32F407 Discovery first (ADR-025); RP2350 when its port exists; the native port for functional checks only, never for numbers.
 
@@ -194,7 +194,7 @@ A deliverable of M2 (first measurements) and of every release after it. It imple
 
 ## 7. Candidate decisions
 
-Recorded in `06-decision-records.md` as ADR-026 to ADR-037, all Proposed. Summary:
+Recorded in `06-decision-records.md` as ADR-026 to ADR-037, accepted on 2026-10-07. ADR-039 refines delivery scope and evidence interpretation. Summary:
 
 | ADR | Title | Changes |
 |---|---|---|
@@ -226,6 +226,12 @@ Requirement additions outside those ADRs: KRN-SCH-041 (preempted thread ahead of
 ## 9. Questions for the owner and answers (2026-10-07)
 
 1. *Accept ADR-026 to ADR-037?* **All twelve accepted.** The specification work items refine them; a refinement that changes a decision goes through a new ADR.
-2. *Are T5 (<= 200 cycles yield) and T7 (<= 150 cycles masked) the right ambition?* **Kept as stated.** They are design targets; the first harness measurement becomes the baseline that later releases may not regress (OBS-012), and the promise made to users is always relative ("not slower than the best competitor measured on the same board"), never the absolute number until measured.
+2. *Are T5 (<= 200 cycles yield) and T7 (<= 150 cycles masked) the right ambition?* **Kept as stated.** They are design targets; the first harness measurement becomes the baseline that later releases may not regress (OBS-012), and relative and absolute comparisons both remain targets until measured under the public harness; any released comparison names its competitor/configuration set and reports maximum observed separately from established bounds (ADR-039).
 3. *API adapters (ADR-037)?* **Wanted.** CMSIS-RTOS2 first because vendor middleware targets it, the FreeRTOS API second for migration; optional layers in M4, never part of the certified profile, never influencing the native API.
 4. *Preemption threshold (ADR-031)?* **Rejected for 1.0 and carried as FUTURE**, to be reopened only with harness evidence of a switch-count problem on a real workload.
+
+## 10. Claim scope after documentation review
+
+The principal value proposition is a small kernel with explicit, testable semantics and diagnosable failures. C1 to C9 mix implemented foundations with unimplemented target capabilities; [Project status](../STATUS.md) identifies the difference. C5, C7 and C8 are not current product claims. Pointer handles do not enforce capability security, and compiling the same source across profiles does not establish identical security or supported feature sets.
+
+Statements such as nobody, unique, market duopoly and affordable certification describe the inspected research sample or a hypothesis, not a proven exhaustive market/legal conclusion. R-001's source notes did not execute competitors and R-002 has summary-only sources. Before external comparisons, reverify against current primary sources, name the versions/scope and distinguish repository contents from the wider product ecosystem. Readability, import effort and configuration complexity need user exercises as well as source inspection. Evidence-first development helps assurance but cannot predict certification cost or establish certification without the required process and assessment.

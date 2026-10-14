@@ -1,5 +1,7 @@
 # SPEC-004 - Wait and Wake Protocol
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner, with the defaults of §16. Specification work item 4 of the roadmap (07 §3). Reference model: `tools/model/` (SPEC-004 §13).
 **Requirements:** `docs/requirements/KRN-WAIT.md` (KRN-WAIT-001 to 009 restated; new from 010).
 **Builds on:** 03 §1.1 (thread states and wait reasons), 03 §3; SPEC-001 §4 (status codes), §5 (contexts and misuse); SPEC-002 §2 (per-CPU state), §4 (critical sections), §5 (scheduler lock), §6 (preemption points); SPEC-003 §5 (timeouts); ADR-013 (reference model), ADR-020 (destroy with waiters), ADR-026 (this protocol), ADR-027 (notification binding), ADR-036 (tiny profile scheduler).
@@ -36,15 +38,17 @@ thread:
   wait_state        READY | INTEND_TO_BLOCK | BLOCKED          one byte
   wait_generation   embk_wait_gen_t                            uint8_t on tiny, uint16_t otherwise
   wait_reason       START | SUSPEND | SLEEP | OBJECT | JOIN | NOTIFY
-  wait_object       pointer to the object, or NULL for SLEEP and NOTIFY
+  # no separate wait_object field in M1: recover the object from wait_queue and its flags (A10)
   wait_queue        pointer to the wait queue the node is in, or NULL
   wait_node         intrusive doubly linked node (prev, next); absent in the table scheduler (§11)
   timeout_node      SPEC-003 §5.1, shared with sleep
-  wake_result       emb_wait_result_t
+  wake_result       logical field packed in the thread obj.flags bits (A16)
   wake_data         uintptr_t hand-off word
   suspended         bool: a SUSPEND overlay is active (§6.5)
   cancel_pending    bool: thread cancellation requested (§6.6)
 ```
+
+The layout above is a logical protocol view, not a C ABI: M1 packs fields and uses the definitions in `kernel/include/embk/kernel.h`; interface/pseudocode names below also describe the later lock-domain design.
 
 The thread state of 03 §1.1 is derived: `BLOCKED` when `wait_state == BLOCKED` or `suspended`, else `READY` or `RUNNING` by the scheduler.
 
@@ -127,16 +131,17 @@ block_on(object, reason, timeout):                       -- thread context, no l
   key = object_lock()                                                   -- section 1
     if condition satisfied:        object_unlock(key); return SATISFIED (with hand-off if any)
     if timeout == EMB_NO_WAIT:     object_unlock(key); return TIMEOUT
-    if misuse (ISR, scheduler locked, critical section held by caller): fault / EMB_EINVAL   (SPEC-001 §5.3)
+    if misuse (ISR, scheduler locked, critical section held by caller): fault / EMB_EPERM   (SPEC-001 §5.3)
     gen = thread.wait_generation
-    thread.wait_reason = reason; thread.wait_object = object; thread.wait_queue = q
+    deadline = now + timeout  -- captured at call entry, wrap-safe/clamped by SPEC-003 (A21)
+    thread.wait_reason = reason; thread.wait_queue = q  -- object derived from q in M1
     enqueue wait_node by policy                                         -- O(waiters)
     thread.wait_state = INTEND_TO_BLOCK
   object_unlock(key)                                       -- WINDOW: interrupts on, wakers may act
 
   if timeout is finite:
     key = timeout_lock()                                                -- section 2
-      embk_timeout_arm(&thread.timeout_node, deadline, gen)             -- O(armed timeouts)
+      embk_timeout_arm(&thread.timeout_node, deadline)  -- UP; gen added for future SMP             -- O(armed timeouts)
     timeout_unlock(key)
 
   key = sched_lock_domain()                                             -- section 3
@@ -153,7 +158,7 @@ block_on(object, reason, timeout):                       -- thread context, no l
   return thread.wake_result
 ```
 
-Each numbered section is bounded by one list operation; nothing is held across the window. On uniprocessor every lock domain is the same critical section, so the sections are three short masked stretches with interrupts enabled in between (KRN-WAIT-008, KRN-WAIT-011).
+The numbered sections identify protocol phases; nothing is held across the window. A phase can also execute priority-inheritance hooks, owned-lock recomputation, or a configured table scan. Its bound includes all such work, not just one list operation. See [Timing and evidence](../engineering/timing-and-evidence.md). On uniprocessor every lock domain is the same critical section, so the sections are three short masked stretches with interrupts enabled in between (KRN-WAIT-008, KRN-WAIT-011).
 
 ### 5.2 Waking
 
@@ -180,7 +185,7 @@ The waker never spins and never waits. A wake that finds `INTEND_TO_BLOCK` costs
 
 ```
 wake_timeout(t, gen):                                    -- from SPEC-003 §5.3 expiry
-  obj = t.wait_object; q = t.wait_queue                  -- read without a lock; validated below
+  q = t.wait_queue; obj = object_from_queue_flags(q)  -- M1 has no wait_object field                  -- read without a lock; validated below
   key = object_lock(obj)                                 -- uniprocessor: already inside the critical section
     if t.wait_generation != gen or t.wait_queue != q:    -- stale: the wait completed or t waits elsewhere
         object_unlock(key); return
@@ -236,7 +241,7 @@ An object that becomes ready for its bound operation, and whose transition was *
 
 ### 6.6 Thread cancellation
 
-`emb_thread_cancel(t)` sets `cancel_pending`. If `t` is waiting with a cancelable reason (`SLEEP`, `OBJECT`, `JOIN`, `NOTIFY`), `embk_wait_cancel(t)` reads `t.wait_object`, takes its lock, re-validates that `t` still waits there with the same generation, and calls `wake(t, CANCELED, 0)`. `START` and `SUSPEND` are not cancelable by wake; the request is delivered at the thread's next blocking call, where `block_on` returns `CANCELED` before enqueuing when `cancel_pending` is set (KRN-THR-011). There is no separate "abort another thread's wait" API: cancellation is that API, and its scope is the whole thread, not one wait.
+`emb_thread_cancel(t)` sets `cancel_pending`. If `t` is waiting with a cancelable reason (`SLEEP`, `OBJECT`, `JOIN`, `NOTIFY`), `embk_wait_cancel(t)` obtains the object from the current queue/flags in M1, takes its lock, re-validates that `t` still waits there with the same generation, and calls `wake(t, CANCELED, 0)`. `START` and `SUSPEND` are not cancelable by wake; the request is delivered at the thread's next blocking call, where `block_on` returns `CANCELED` before enqueuing when `cancel_pending` is set (KRN-THR-011). There is no separate "abort another thread's wait" API: cancellation is that API, and its scope is the whole thread, not one wait.
 
 ### 6.7 Destruction and stale peers
 
@@ -313,7 +318,7 @@ Restated: KRN-WAIT-001 to 009 (03 §3). New: KRN-WAIT-010 to 022, in `docs/requi
 
 Semaphore take with a 10 ms timeout, counting semaphore at zero, one other waiter of lower priority, giver in an ISR after 3 ms:
 
-1. T1 calls `emb_sem_take(s, EMB_MS(10))`. Section 1: count is zero, T1 enqueues ahead of the lower-priority waiter, `INTEND_TO_BLOCK`. Window.
+1. T1 calls `emb_sem_take(s, EMB_TIMEOUT(EMB_MS(10)))`. Section 1: count is zero, T1 enqueues ahead of the lower-priority waiter, `INTEND_TO_BLOCK`. Window.
 2. Section 2: deadline `now + 10 ms` armed with generation 7.
 3. Section 3: compare-and-set succeeds, T1 is removed from the ready structure, switch to the next thread.
 4. 3 ms later an ISR calls `emb_sem_give(s)`. The give finds a waiter: `embk_wait_first` is T1; `embk_wait_wake(T1, SATISFIED, 1)` dequeues T1, sets the result and the unit, bumps the generation to 8, finds BLOCKED, disarms the timeout, makes T1 ready, sets `reschedule_pending`. The count stays zero (hand-off, §6.1). No binding bit is set (the transition was consumed).
@@ -330,4 +335,4 @@ Semaphore take with a 10 ms timeout, counting semaphore at zero, one other waite
 6. The reference model is written in Python 3 with `hypothesis`; exhaustive exploration up to 3 threads and 2 objects, randomized beyond. This answers 08 Q15.
 7. `emb_wait_result_t` is an internal type; public functions return status codes. `STALE` is added to the result set for restarted peers (ADR-032); `INTERRUPTED` and `BUDGET` stay reserved.
 8. One notification binding per object (ADR-027); a transition consumed by a hand-off to a direct waiter sets no bit.
-9. The wait generation is 8 bits on the tiny profile and 16 bits elsewhere; wrap is harmless because a stale source can only hold a value from a wait that completed at most one generation ago on tiny targets with their bounded timeout count, and the checked build asserts that no two armed timeouts of one thread exist.
+9. The wait generation is 8 bits on the tiny profile and 16 bits elsewhere; UP safety relies on serialized timeout removal/wait completion, with no old expiry retained across reuse. This does not prove wrap harmless on SMP or for externally retained callbacks: those require a reviewed in-flight lifetime/epoch scheme before a value can be reused; the thread-count bound alone is insufficient (A15).

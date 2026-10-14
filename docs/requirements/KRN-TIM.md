@@ -1,5 +1,7 @@
 # KRN-TIM - Kernel Clock, Timeouts, Sleep, Software Timers
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-TIM`. Design: `docs/specs/SPEC-003-time-timeouts-and-timers.md` and SPEC-001 §7. Related groups: KRN-IRQ (timer interrupt), KRN-WAIT (timeout as a wake source), KRN-WQ (callback execution), KRN-SCH (time slicing).
 
 KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 016 in `docs/architecture/03-kernel-architecture.md` §4. All are restated here as the authoritative copy; KRN-TIM-009 carries the refinement made at the same time in document 03. New requirements start at 017.
@@ -147,14 +149,14 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 **Trace.** SPEC-003 §4.3
 
 ### KRN-TIM-021  Timeout structure
-**Statement.** Armed timeouts and timers shall be kept in an intrusive structure with O(1) removal, O(1) access to the earliest deadline, and expiry in deadline order with arming order as the tie-break. The default shall be a doubly linked list ordered by absolute deadline; an alternative structure may be selected per profile behind the same interface only on the basis of measurements.
+**Statement.** Armed timeouts and timers shall be kept in an intrusive structure with O(1) removal on the base profile (bounded O(armed nodes) removal on the tiny singly linked profile), O(1) access to the earliest deadline, and expiry in deadline order with arming order as the tie-break. The default shall be a doubly linked list ordered by absolute deadline; an alternative structure may be selected per profile behind the same interface only on the basis of measurements.
 **Rationale.** ADR-010; intrusive nodes satisfy KRN-TCB-007 and KRN-RQ-004.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: ordering and tie-break tests; Demonstration: insertion cost measured versus armed count per reference board.
 **Trace.** SPEC-003 §5.1; ADR-010
 
 ### KRN-TIM-022  32-bit profile timeout range
-**Statement.** In the 32-bit tick profile, a finite timeout shall be clamped to `2^31 - 1` ticks and a `_until` deadline more than `2^31 - 1` ticks in the future shall be rejected with `EMB_EOVERFLOW`; deadline comparisons shall use signed wrap-safe differences.
+**Statement.** In the 32-bit tick profile, a finite timeout shall be clamped to `2^31 - 1` ticks ; absolute deadlines supplied by callers shall remain within the half-range because an out-of-range future value aliases a past instant and cannot be rejected as overflow; deadline comparisons shall use signed wrap-safe differences.
 **Rationale.** This is the condition under which wrap-safe comparison is correct (KRN-TIM-003).
 **Status.** Accepted 2026-10-07
 **Verification.** Test: boundary tests at `2^31 - 1` and `2^31` in the 32-bit profile.

@@ -1,5 +1,7 @@
 # SPEC-005 - Synchronization: Mutexes, Semaphores, Event Flags, Condition Variables, Barriers, Spinlocks
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner, with the defaults of §17. Specification work item 5 of the roadmap (07 §3). Reference model: `tools/model/` (SPEC-005 §15).
 **Requirements:** `docs/requirements/KRN-SYNC.md` (KRN-SYNC-001 to 017 restated; new from 018).
 **Builds on:** SPEC-004 (every blocking primitive here is a thin layer over the wait protocol; hand-off, generations, cancellation, destroy, suspend overlay are inherited and not restated); SPEC-001 §4 to §6 (status codes, contexts, handles, storage, attributes); SPEC-002 §4 (critical sections, spinlocks), §5 (scheduler lock); SPEC-003 (timeouts); 03 §5; v0.1 §8; ADR-027 (notification binding), ADR-028 (inheritance algorithm), ADR-030 (compile-time ceilings), ADR-036 (tiny profile).
@@ -19,9 +21,9 @@
 | **Hand-off** | Transfer of a mutex, a semaphore unit, or event bits to a waiter in the same step as its wake (SPEC-004 §6.1); the waiter never re-checks |
 | **Walk** | The transitive propagation of a contribution change along the chain waiter, owner, the mutex that owner waits on, its owner, and so on (ADR-028) |
 
-The primitives, with their 1.0 status and context classes (SPEC-001 §5.2):
+The primitives, with their target-design inclusion and context classes (SPEC-001 §5.2):
 
-| Primitive | 1.0 | Blocking operations (`thread`) | Signal operations (`thread isr`) | Section |
+| Primitive | Target design | Blocking operations (`thread`) | Signal operations (`thread isr`) | Section |
 |---|---|---|---|---|
 | Mutex | yes | `lock`, `lock_until` | none | §3 |
 | Semaphore (binary and counting) | yes | `take`, `take_until` | `give` | §4 |
@@ -43,7 +45,7 @@ effective(t) = max( base(t),
                     max over m in owned(t) with protocol CEILING:  ceiling(m) )
 ```
 
-The recomputation `embk_prio_recompute(t)` evaluates this in O(owned mutexes); each term is O(1) because a wait queue's head is its highest waiter (KRN-WAIT-001). When the result differs from the stored effective priority the kernel applies it (KRN-SYNC-018):
+The base recomputation `embk_prio_recompute(t)` evaluates this in O(owned mutexes); each base term is O(1) because a wait queue's head is its highest waiter (KRN-WAIT-001). When the result differs from the stored effective priority the kernel applies it (KRN-SYNC-018):
 
 - `t` READY: remove and reinsert in the ready structure at the new level, behind its new peers.
 - `t` RUNNING: update; if a READY thread now has a higher effective priority, set `reschedule_pending` (P2 at the end of the operation).
@@ -52,7 +54,7 @@ The recomputation `embk_prio_recompute(t)` evaluates this in O(owned mutexes); e
 
 ### 2.2 The walk
 
-`embk_prio_propagate(t)`: repeat `embk_prio_recompute` along the chain `t`, owner of the mutex `t` waits on, owner of the mutex *that* thread waits on, until a recomputation changes nothing, the chain ends, or `CONFIG_EMB_PI_MAX_DEPTH` (default 8) hops were taken. Both raises and lowerings propagate; a lowering stops as soon as a hop's effective priority does not change (another contribution holds it up). The walk is one section per hop on uniprocessor (the critical section is released and re-taken between hops when `CONFIG_EMB_PI_HOP_SECTIONS=y`, the default on Cortex-M; a single section on AVR where the hop count is tiny); R-003 target T9 bounds its cost.
+`embk_prio_propagate(t)`: repeat `embk_prio_recompute` along the chain `t`, owner of the mutex `t` waits on, owner of the mutex *that* thread waits on, until a recomputation changes nothing, the chain ends, or `CONFIG_EMB_PI_MAX_DEPTH` (default 8) hops were taken. Both raises and lowerings propagate; a lowering stops as soon as a hop's effective priority does not change (another contribution holds it up). M1 runs the whole propagation walk within the caller's object critical section on every UP port; `CONFIG_EMB_PI_HOP_SECTIONS` is not implemented. A hop scans the owner's mutexes and may reinsert a waiter or scan the tiny thread table. The total bound depends on depth, owned mutexes, and waiters; it is not simply O(depth), and there is no measured per-hop masking guarantee. R-003 T9 is a target pending hardware evidence.
 
 Exceeding the depth: the walk stops, the lock proceeds with inheritance truncated at that depth, a `pi_depth_exceeded` trace event is recorded; in checked builds it is a kernel fault (KRN-SYNC-009). The depth is a system design parameter; exceeding it means the lock graph is deeper than the designer declared.
 
@@ -91,7 +93,7 @@ typedef struct emb_mutex_attr {
 void         emb_mutex_attr_default(emb_mutex_attr_t *out_attr);
 emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t *attr, emb_mutex_t *out);  /* @ctx prekernel thread */
 emb_status_t emb_mutex_destroy(emb_mutex_t m);                                   /* @ctx thread */
-emb_status_t emb_mutex_lock(emb_mutex_t m, emb_timeout_t timeout);              /* @ctx thread  @blocks timeout  @time O(1) uncontended; O(waiters + depth) contended */
+emb_status_t emb_mutex_lock(emb_mutex_t m, emb_timeout_t timeout);              /* @ctx thread  @blocks timeout  @time includes owned locks, waiters, depth and scheduler scans */
 emb_status_t emb_mutex_lock_until(emb_mutex_t m, emb_instant_t deadline);       /* @ctx thread  @blocks deadline */
 emb_status_t emb_mutex_unlock(emb_mutex_t m);                                   /* @ctx thread  @blocks no  @time O(owned) */
 bool         emb_mutex_is_owner(emb_mutex_t m);                                 /* @ctx thread isr  @blocks no  O(1) */
@@ -126,7 +128,7 @@ lock(m, timeout):                                        -- thread context
   else:                    return map(result)            -- the owner's priority was already recomputed by the wake path (§3.3)
 ```
 
-The walk in section 1 is what makes the lock's contended cost O(waiters + depth). The deadlock check and the propagation share one traversal of the owner chain.
+Section 1 includes waiter insertion, deadlock detection, and priority propagation. M1 performs the deadlock check and propagation as separate traversals. Costs include each visited thread's owned-lock scan and any waiter reinsertion; even uncontended acquisition appends to a singly linked owned list and costs O(owned mutexes). See the complete bound inventory in [Timing and evidence](../engineering/timing-and-evidence.md).
 
 ### 3.3 Unlock and waiter removal
 
@@ -153,14 +155,14 @@ A waiter that leaves the queue for any other reason (timeout, cancellation, dest
 
 ### 3.4 Priority ceiling (ADR-030)
 
-- **Static ceiling.** A mutex declared in the system description with `protocol: ceiling` and a `users:` list gets `ceiling = max base priority of its users`, emitted by the generator into the storage initializer. Locking raises `eff_prio` to the ceiling immediately. In checked builds a locker that is not a declared user, or whose base priority exceeds the ceiling, faults (`EMB_FAULT_API_OWNER`); release builds return `EMB_EPERM`. With every user declared the mutex can never have a waiter, so `CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY=y` (default on the tiny profile) builds ceiling mutexes without a wait queue.
+- **Static ceiling.** A mutex declared in the system description with `protocol: ceiling` and a `users:` list gets `ceiling = max base priority of its users`, emitted by the generator into the storage initializer. Locking raises `eff_prio` to the ceiling immediately; the current owned-list bookkeeping and recomputation are O(owned mutexes). In checked builds a locker that is not a declared user, or whose base priority exceeds the ceiling, faults (`EMB_FAULT_API_OWNER`); release builds return `EMB_EPERM`. Omitting a wait queue additionally requires a proved UP immediate-ceiling execution model: no blocking, yield, suspension, budget demotion or exhaustion that permits another user to run while the mutex is held; no incompatible nested-lock ordering; and enforced bounds on user effective priorities, including boosts from other locks. No outside inheritance/ceiling contribution may invalidate the no-contention proof. Declaring users alone does not prove absence of contention. M1 retains wait queues; `CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY` and generated user checks remain planned. No queue may be removed until these restrictions are validated; SMP needs a separate protocol.
 - **Dynamic ceiling.** `attr.ceiling != 0` on a mutex created at run time; same locking rule, checked against the caller's base priority only. Such a mutex keeps a wait queue because an undeclared caller of lower priority may contend.
-- A ceiling mutex never inherits; a thread may own ceiling and inheritance mutexes at once, and §2.1 combines them.
+- A ceiling mutex never inherits; a thread may own ceiling and inheritance mutexes at once when the queue-bearing implementation is used, and §2.1 combines them.
 - Thread-level only: sharing data with an ISR uses a critical section (SPEC-002 §4) or the zero-latency class; RTIC-style interrupt ceilings are out of scope.
 
 ### 3.5 Deadlock detection
 
-During the walk of §3.2, reaching `self` means the caller already blocks the chain it wants to join: `EMB_EDEADLK` in release builds, kernel fault in checked builds (KRN-SYNC-015). Detection costs nothing extra because the walk visits the chain anyway. It covers `INHERIT` mutexes; a cycle through `NONE` mutexes is not detected (there is no owner chain to walk), which the documentation states. Timeouts do not disable detection: a cycle is an error whether or not it would time out.
+During the walk of §3.2, reaching `self` means the caller already blocks the chain it wants to join: `EMB_EDEADLK` in release builds, kernel fault in checked builds (KRN-SYNC-015). Detection uses a separate bounded traversal in M1. It covers `INHERIT` mutexes; a cycle through `NONE` mutexes is not detected (there is no owner chain to walk), which the documentation states. M1 detection is also limited to `CONFIG_EMB_PI_MAX_DEPTH`; a cycle beyond that bound is not guaranteed to be detected. Timeouts do not disable detection: a cycle is an error whether or not it would time out.
 
 ### 3.6 Owner termination
 
@@ -197,7 +199,7 @@ emb_status_t emb_sem_take(emb_sem_t s, emb_timeout_t timeout);        /* @ctx th
 emb_status_t emb_sem_take_until(emb_sem_t s, emb_instant_t deadline);
 emb_status_t emb_sem_give(emb_sem_t s);                               /* @ctx thread isr  @blocks no       O(1) */
 emb_sem_count_t emb_sem_count(emb_sem_t s);                           /* @ctx thread isr  O(1); a snapshot */
-emb_status_t emb_sem_bind_notify(emb_sem_t s, emb_thread_t t, uint8_t bit);     /* ADR-027; SPEC-006 */
+emb_status_t emb_sem_bind_notify(emb_sem_t s, emb_thread_t t, emb_notify_bits_t bit);     /* ADR-027; SPEC-006 */
 ```
 
 `emb_sem_count_t` is `uint32_t`; `CONFIG_EMB_SEM_COUNT_BITS` (8, 16, 32; default 32, tiny profile 8) narrows it and `EMB_SEM_COUNT_MAX` follows.
@@ -230,7 +232,7 @@ emb_event_bits_t emb_event_get(emb_event_t e);                                  
 emb_status_t emb_event_wait(emb_event_t e, emb_event_bits_t mask, uint8_t mode,   /* EMB_EVENT_ANY | EMB_EVENT_ALL, optionally | EMB_EVENT_CLEAR */
                             emb_timeout_t timeout, emb_event_bits_t *out_satisfied);  /* @ctx thread  @blocks timeout */
 emb_status_t emb_event_wait_until(emb_event_t e, emb_event_bits_t mask, uint8_t mode, emb_instant_t deadline, emb_event_bits_t *out_satisfied);
-emb_status_t emb_event_bind_notify(emb_event_t e, emb_thread_t t, uint8_t bit);
+emb_status_t emb_event_bind_notify(emb_event_t e, emb_thread_t t, emb_notify_bits_t bit);
 ```
 
 ### 5.2 Semantics
@@ -312,7 +314,7 @@ Trace events: `mutex_lock(thread, mutex, contended)`, `mutex_unlock(thread, mute
 
 ## 13. Tiny profile
 
-With `CONFIG_EMB_SCHED_TABLE` (ADR-036): wait queues are bitmaps, so `head waiter` is one count-leading-zeros and the walk's requeue is a no-op; `CONFIG_EMB_MUTEX_INHERIT` (default y) costs the owned list (two pointers per mutex, one per thread); `CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY=y` removes the wait queue from ceiling mutexes; `EMB_SEM_COUNT_BITS=8`, `EMB_EVENT_BITS=8`; condition variables and barriers are off by default. Everything that is on passes the same conformance tests.
+With `CONFIG_EMB_SCHED_TABLE` (ADR-036): wait queues are bitmaps; selecting by effective priority can scan the configured thread table when owners are raised, and requeue does not edit a linked list; `CONFIG_EMB_MUTEX_INHERIT` (default y) costs the owned list (two pointers per mutex, one per thread); the planned queue-free static ceiling optimization requires §3.4 restrictions and is not implemented; `EMB_SEM_COUNT_BITS=8`, `EMB_EVENT_BITS=8`; condition variables and barriers are off by default. Everything that is on passes the same conformance tests.
 
 ## 14. SMP note (FUTURE, interface fixed now)
 

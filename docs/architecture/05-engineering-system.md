@@ -1,6 +1,6 @@
 # 05 - Engineering System
 
-**Status:** PROPOSED unless marked. This document fixes the conventions that shape every header, build, test, and release.
+**Status:** Target engineering process, PROPOSED unless marked. [Project status](../STATUS.md) lists current CI gates; the coverage, traceability, analysis and release gates below are requirements to implement, not a report that they already run. This document fixes the conventions that shape every header, build, test, and release.
 
 ---
 
@@ -21,7 +21,7 @@ These are decided before the first public header is written.
 
 Avoid any spelling resembling `embos`; embOS is an existing commercial RTOS trademark.
 
-Object verbs are uniform: `init` (caller storage), `create` (where an allocator is configured), `destroy`, plus the object's operations. Blocking operations take a trailing `emb_timeout_t`. Absolute variants end in `_until`.
+Object verbs are uniform: `init` (caller storage), `create` (where an allocator is configured), `destroy`, plus the object's operations. Blocking operations take a typed `emb_timeout_t` (before trailing outputs where present); sleep takes an `emb_duration_t`. Absolute variants end in `_until`.
 
 ### 1.2 Status codes
 
@@ -37,7 +37,7 @@ One API, not `_from_isr` duplicates. Each function is documented with one of thr
 | **Thread-only** | Blocks or may block; calling from ISR is a kernel fault in checked builds and returns `EMB_EPERM` in release |
 | **Pre-kernel** | Callable before the scheduler starts (object init) |
 
-Any blocking function called from an ISR with `EMB_NO_WAIT` is permitted and behaves as its ISR-safe non-blocking form; with any other timeout it is misuse. Reschedule-on-ISR-exit is handled by the kernel's `reschedule_pending` flag and the architecture exit path, so no "higher priority woken" out-parameter exists.
+A blocking function is callable from an ISR with `EMB_NO_WAIT` only when its annotation explicitly includes `isr`; mutex and semaphore take remain thread-only in M1. A timeout value alone never grants ISR safety (SPEC-001 §5.2). Reschedule-on-ISR-exit is handled by the kernel's `reschedule_pending` flag and the architecture exit path, so no "higher priority woken" out-parameter exists.
 
 ### 1.4 Machine-readable contracts
 
@@ -116,7 +116,7 @@ Include-path isolation enforces the dependency rules in 02 §5; a CI script fail
 
 ### 4.1 The conformance suite is the specification (principle 10)
 
-`tests/conformance/` holds the normative tests for every public API and every kernel requirement. Each test names the requirement identifiers it covers. A requirement without a test is flagged; a test without a requirement is flagged. The traceability matrix is generated, not maintained by hand.
+`tests/conformance/` holds the normative tests for every public API and every kernel requirement. Each test names the requirement identifiers it covers. The generated matrix must validate individual execution and assertion/analysis coverage, not identifier presence alone; its schema and evidence rules are [Timing and evidence](../engineering/timing-and-evidence.md). A requirement without a test is flagged; a test without a requirement is flagged. The traceability matrix is generated, not maintained by hand.
 
 ### 4.2 Executable reference model (ADR-013)
 
@@ -175,11 +175,11 @@ Requirements live in `docs/requirements/` as structured text (one file per group
 
 ### 7.1 Versioning
 
-`0.x` while architecture and API are unstable. `1.0` freezes the public C API (source compatible for all `1.x`), the hardware description schema (versioned, with migration tooling), the trace and crash record formats (versioned), and the debug descriptor (versioned). Binary ABI stability is promised only at the syscall boundary of isolated profiles and in the versioned data formats.
+`0.x` while architecture and API are unstable. `1.0` freezes the supported public C API included in that release (source compatible for all `1.x`) and the included versioned diagnostic formats. Unimplemented APIs, the hardware schema, isolation ABI and experimental formats stabilize only at their own declared releases; future designs do not imply an existing compatibility promise (ADR-039). Binary ABI stability is promised only at the syscall boundary of isolated profiles and in the versioned data formats.
 
 ### 7.2 Long-term support
 
-LTS lines every 18 to 24 months with a published maintenance window, security fixes, critical bug fixes, qualified toolchain versions, and an end-of-life date. Non-LTS releases get security fixes until the next release.
+LTS cadence and maintenance duration are declared only when maintainer capacity, security triage and the supported toolchain/target scope can sustain them. Each release publishes a concrete support window, fix policy and end-of-life date; no standing 18-to-24-month cadence or unstaffed support guarantee is implied.
 
 ### 7.3 Release contents
 

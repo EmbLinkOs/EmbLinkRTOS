@@ -1,5 +1,7 @@
 # SPEC-007 - Inter-Thread Communication: Message Queues, Pipes, Buffer Pools, Ports
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §11. Specification work item 6b of the roadmap (07 §3), added because M2 delivers message queues.
 **Requirements:** `docs/requirements/KRN-IPC.md` (KRN-IPC-001 to 005 from v0.1 §9.4 and 006 to 009 from 03 §6 restated; new from 010).
 **Builds on:** SPEC-004 (wait protocol, hand-off), SPEC-006 §3 (binding), SPEC-001 §5, §6 (contexts, handles, storage), SPEC-005 §4 (the semaphore as the pattern a queue repeats twice), 03 §6.3 to §6.6, §9.2; ADR-020, ADR-027, ADR-032 (leases).
@@ -9,7 +11,7 @@
 
 ## 1. Scope and terms
 
-| Primitive | 1.0 | Blocking (`thread`) | ISR-safe (`thread isr`, `EMB_NO_WAIT` only) | Section |
+| Primitive | Target design | Blocking (`thread`) | ISR-safe (`thread isr`, `EMB_NO_WAIT` only) | Section |
 |---|---|---|---|---|
 | Message queue | yes | `send`, `receive`, `_until` forms | `send`, `send_front`, `receive`, `peek` with `EMB_NO_WAIT` | §2 |
 | Pipe (byte stream) | yes, `CONFIG_EMB_PIPE` | `write`, `read`, `_until` forms | `write`, `read` with `EMB_NO_WAIT` | §3 |
@@ -44,7 +46,7 @@ emb_status_t emb_msgq_receive_until(emb_msgq_t q, void *out_item, emb_instant_t 
 emb_status_t emb_msgq_peek(emb_msgq_t q, void *out_item);                                 /* @ctx thread isr  copies the head without removing it */
 uint16_t     emb_msgq_count(emb_msgq_t q);                                                /* @ctx thread isr  snapshot */
 uint16_t     emb_msgq_free(emb_msgq_t q);
-emb_status_t emb_msgq_bind_notify(emb_msgq_t q, emb_thread_t t, uint8_t bit);            /* receive side: empty -> non-empty */
+emb_status_t emb_msgq_bind_notify(emb_msgq_t q, emb_thread_t t, emb_notify_bits_t bit);            /* receive side: empty -> non-empty */
 ```
 
 ### 2.2 Semantics
@@ -83,7 +85,7 @@ emb_status_t emb_pipe_read(emb_pipe_t p, void *buf, size_t len, size_t min_len, 
 emb_status_t emb_pipe_close(emb_pipe_t p);                      /* @ctx thread isr: no more writes; readers drain then see EMB_ESTATE */
 emb_status_t emb_pipe_reset(emb_pipe_t p);                      /* @ctx thread: discard contents, wake waiters with EMB_ESTATE, reopen */
 size_t       emb_pipe_fill(emb_pipe_t p);
-emb_status_t emb_pipe_bind_notify(emb_pipe_t p, emb_thread_t t, uint8_t bit);
+emb_status_t emb_pipe_bind_notify(emb_pipe_t p, emb_thread_t t, emb_notify_bits_t bit);
 ```
 
 ### 3.2 Semantics
@@ -118,7 +120,7 @@ emb_status_t emb_pool_alloc_until(emb_pool_t p, emb_instant_t deadline, void **o
 emb_status_t emb_pool_free(emb_pool_t p, void *block);                                   /* @ctx thread isr  @time O(1) */
 emb_status_t emb_pool_transfer(emb_pool_t p, void *block, emb_thread_t to);              /* @ctx thread isr  checked builds: move ownership */
 uint16_t     emb_pool_available(emb_pool_t p);
-emb_status_t emb_pool_bind_notify(emb_pool_t p, emb_thread_t t, uint8_t bit);            /* exhausted -> available */
+emb_status_t emb_pool_bind_notify(emb_pool_t p, emb_thread_t t, emb_notify_bits_t bit);            /* exhausted -> available */
 ```
 
 ### 4.2 Semantics
@@ -172,7 +174,7 @@ Trace events: `msgq_send(q, handed_to | slot)`, `msgq_receive(q, from_slot | han
 
 ## 9. Tiny profile
 
-Message queues and pools are available (`uint8_t` counts when `CONFIG_EMB_IPC_SMALL=y`); pipes are off by default; `CONFIG_EMB_MSGQ_MAX_ITEM` defaults to 16; ownership tracking exists only in checked builds and costs nothing otherwise.
+The target tiny configuration makes message queues and pools available once implemented (`uint8_t` counts when `CONFIG_EMB_IPC_SMALL=y`); pipes are off by default; `CONFIG_EMB_MSGQ_MAX_ITEM` defaults to 16; ownership tracking exists only in checked builds and costs nothing otherwise.
 
 ## 10. Reference model
 

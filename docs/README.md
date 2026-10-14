@@ -7,6 +7,10 @@
 | [`requirements/`](requirements/README.md) | Normative requirements, one file per identifier group, in a fixed format that tooling extracts into the traceability matrix | You are writing a test, checking coverage, or deciding whether a behavior is promised |
 | [`research/`](research/README.md) | Research records: mechanism comparison of eleven kernels, market and certification facts, differentiation decisions with measurable targets, per-kernel source notes | You want to know why a design choice was made relative to other systems, or what EmbLinkRTOS promises to beat and how that is measured |
 
+## Current implementation and development
+
+Read [Project status](STATUS.md) first to distinguish implemented features, configured CI jobs, observed results and future designs. [Timing and evidence](engineering/timing-and-evidence.md) defines claim categories and the requirement/evidence matrix. [Adoption](adoption.md) gives the first application, native commands and migration differences. The [roadmap](architecture/07-roadmap.md) scopes the first supported release and later isolation/platform gates.
+
 ## How the pieces relate
 
 ```
@@ -44,7 +48,7 @@ A change that alters behavior touches all four in one pull request (05 §5).
 | [SPEC-014](specs/SPEC-014-hardware-description-schema.md) | Hardware description schema v0 and generator: SoC, board, and system descriptions, conventions, generated outputs, semantic validation, SVD and DeviceTree importers, determinism, versioning | 07 §3 item 13 | Accepted 2026-10-07 |
 | [SPEC-015](specs/SPEC-015-observability-formats.md) | Observability formats: deferred log records, CTF trace catalogue and rings, crash record v1 and v2, debug descriptor, monitors and statistics API, framing and memory channel, host tools, profile defaults | 07 §3 item 14 | Accepted 2026-10-07 |
 
-All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. M1 implementation (07 §2) follows, in dependency order: the coding standard (`CODING-STANDARD.md` in this directory, with the formatter and analyzer configuration at the repository root), the configuration and build system, the public headers, the kernel modules (SPEC-002 to 008), the native and AVR ports (SPEC-011 to 013), and the conformance suite, with the reference model as oracle.
+All fourteen specification work items of the roadmap (plus 6b) are written and accepted as of 2026-10-07. M1 implementation exists; M2 and platform designs remain incomplete (see STATUS.md). The implementation work order was: the coding standard (`CODING-STANDARD.md` in this directory, with the formatter and analyzer configuration at the repository root), the configuration and build system, the public headers, the kernel modules (SPEC-002 to 008), the native and AVR ports (SPEC-011 to 013), and the conformance suite, with the reference model as oracle.
 
 ## Ports
 

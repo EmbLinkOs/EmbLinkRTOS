@@ -1,5 +1,7 @@
 # KRN-OBJ - Kernel Objects, Lifecycle, and Storage
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-OBJ`. Design: `docs/specs/SPEC-009-objects-capabilities-and-storage.md`. Related groups: KRN-CAP (handles and rights), KRN-WAIT (flush on destroy), KRN-PART (restart), BLD (storage generator), OBS (debug descriptor).
 
 KRN-OBJ-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §7.4 (004 and 005 added by R-003 and ADR-032). All are restated here as the authoritative copy. New requirements start at 006.
@@ -63,10 +65,10 @@ KRN-OBJ-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 **Trace.** SPEC-009 §5.1; ADR-006; BLD-007
 
 ### KRN-OBJ-009  Init table
-**Statement.** `_DEFINE` macros shall register objects in the bracketed section `.emb_init_table`; kernel start shall construct them in link order before `main()`; `EMB_INIT_AFTER` shall order dependent objects; the mechanism shall work on every target without a linker script.
+**Statement.** `_DEFINE` macros shall register objects in the bracketed section `.emb_init_table`; `emb_kernel_init()` shall construct them in link order before scheduler start; `EMB_INIT_AFTER` shall order dependent objects; the mechanism shall use the port's supported section/table mechanism; M1 AVR requires the board linker script to bracket flash entries (A8).
 **Rationale.** Static objects without hand-written init code, on AVR too (09 §7).
 **Status.** Accepted 2026-10-07
-**Verification.** Test: `obj/define_constructed_before_main` on every port including AVR.
+**Verification.** Test: init-table construction during `emb_kernel_init()` on every port including AVR.
 **Trace.** SPEC-009 §5.2; SPEC-001 §6.4
 
 ### KRN-OBJ-010  Type-specific destroy conditions

@@ -15,6 +15,8 @@ Every requirement is one block with a fixed shape so that `tools/reqs/` (to be w
 **Trace.** Design and decision references (SPEC-001 §4, ADR-002), and parent requirements if any.
 ```
 
+The verification fields below mix existing cases, analysis obligations and planned paths. They are not execution results. [Project status](../STATUS.md) inventories current tools; the generated matrix is unimplemented. [Timing and evidence](../engineering/timing-and-evidence.md) defines its required profile/configuration scope and outcome fields. A test identifier mention alone does not establish coverage. New safety/security constraints from the documentation review are Proposed and unimplemented until their evidence exists.
+
 Rules:
 
 - The heading is exactly `### `, the identifier, two spaces, the title. Identifiers are never reused or renumbered; a withdrawn requirement keeps its number with status Withdrawn and a one-line reason.

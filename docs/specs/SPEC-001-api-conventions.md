@@ -1,5 +1,7 @@
 # SPEC-001 - Public API Conventions
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner, with the defaults of §14. Specification work item 1 of the roadmap (07 §3).
 **Requirements:** `docs/requirements/API.md` (API-001 to API-032). This document is the design; the requirement file is the normative, testable statement of it.
 **Decided by:** ADR-002 (namespaces, status enum, typed time), ADR-003 (single API with context classes), ADR-006 (generated storage types), ADR-014 (handles are capabilities), ADR-023 (C11 minimum, freestanding).
@@ -60,7 +62,7 @@ Standard verbs. A subject uses the verb from this table that matches the operati
 
 Qualifiers: `_until` is the absolute-deadline form of a blocking verb (§7.4). `_all` and `_any` are event-wait modes. `_front` is send-to-front on a queue. There is no `_try` qualifier (pass `EMB_NO_WAIT`) and no `_from_isr` qualifier (ADR-003).
 
-Parameter order is fixed: the handle first, then inputs, then outputs (pointers named `out_*`), then the timeout or deadline last.
+The object handle is first, followed by inputs; outputs use `out_*` names. M1 functions with results place timeout/deadline before trailing outputs (`emb_thread_join`, `emb_notify_wait`); functions without outputs put it last. Preserve each public prototype; future tooling identifies the typed timeout and explicit argument metadata rather than assuming the last argument (A26).
 
 ## 4. Status codes
 
@@ -96,8 +98,9 @@ Values are stable forever once released (API-010). The errno column is the mappi
 | `EMB_EOVERFLOW` | -15 | Value or size exceeds what can be represented or stored (time conversion saturated, message larger than the slot) | `EOVERFLOW` |
 | `EMB_ESTALE` | -16 | Handle refers to an object generation that no longer exists | `ESTALE` |
 | `EMB_EINTR` | -17 | Reserved for signal-like interruption of waits; not returned in 1.0 | `EINTR` |
+| `EMB_EDEADLK` | -32 | Self-join, non-recursive self-lock, or detected inheritance-chain cycle | `EDEADLK` |
 
-Ranges: -1 to -31 kernel core (above); -32 to -63 reserved for the kernel; -64 to -127 driver classes and subsystems, each defined in that class's specification with the prefix `EMB_E` and a class word (for example `EMB_ECRC`); -128 to -255 application-defined, from `EMB_EAPP_BASE`. No value below -255 is ever defined, so a status always fits an `int8_t` if an application wants to store one compactly.
+Ranges: -1 to -31 kernel core (above); -32 to -63 kernel extension range (`EMB_EDEADLK = -32`; the remaining values are reserved); -64 to -127 driver classes and subsystems, each defined in that class's specification with the prefix `EMB_E` and a class word (for example `EMB_ECRC`); -128 to -255 application-defined, from `EMB_EAPP_BASE`. Negative status codes down to -255 require at least `int16_t` for compact storage; `int8_t` cannot represent the application range. `emb_status_t` remains `int`, including operation-specific positive counts, which must be range-checked before narrowing.
 
 ### 4.3 Declaration form
 
@@ -192,7 +195,7 @@ EMB_DECLARE_HANDLE(emb_mutex_t);
 #define EMB_HANDLE_EQ(a, b)    ((a).raw == (b).raw)
 ```
 
-The word holds a pointer (tiny profile), a tagged pointer with generation bits (base profile), or a capability-table index (isolated profiles); the API signature is the same in all three (KRN-CAP-001, ADR-014). Handles are passed by value, copied freely, and compared only with `EMB_HANDLE_EQ`. Nothing in application code dereferences a handle.
+The word holds a pointer (tiny and base default), a registry index plus slot generation (planned INDEXED option), or a partition capability-table index plus slot generation (planned TABLE model); the API signature is the same in all three (KRN-CAP-001, ADR-014). Handles are passed by value, copied freely, and compared only with `EMB_HANDLE_EQ`. Nothing in application code dereferences a handle.
 
 All three ABIs pass a one-word struct in a single register. EmbCC does not inline a function that takes or returns a struct (09 §7, optimizer gaps); public API functions are real calls anyway, and the handle helpers above are macros, so there is no cost.
 
@@ -206,7 +209,7 @@ Every object type has a generated storage type and size constant (ADR-006):
 #define EMB_MUTEX_STORAGE_ALIGN  4u
 typedef union emb_mutex_storage {
     emb_max_align_t align_;
-    unsigned char   bytes_[EMB_MUTEX_STORAGE_SIZE];
+    EMB_ALIGNED(EMB_MUTEX_STORAGE_ALIGN) unsigned char bytes_[EMB_MUTEX_STORAGE_SIZE];
 } emb_mutex_storage_t;
 ```
 
@@ -244,7 +247,7 @@ emb_status_t emb_mutex_destroy(emb_mutex_t mutex);
 EMB_MUTEX_DEFINE(name, attr_initializer...)   /* storage + handle variable + registration in the init table */
 ```
 
-The `_DEFINE` form registers the object in a generated initialization table so it is constructed before `main` (or before the scheduler starts) without hand-written init code; the table is one of the bracketed sections `embld` and GNU ld both provide (09 §7).
+The `_DEFINE` form registers the object in a generated initialization table so it is constructed during `emb_kernel_init()`, before the scheduler starts without hand-written init code; the table is one of the bracketed sections `embld` and GNU ld both provide (09 §7).
 
 ## 7. Time
 
@@ -278,22 +281,22 @@ Three structs over the same scalar: the compiler rejects an instant where a dura
 #define EMB_TIMEOUT(d)    emb_timeout_from_duration(d)     /* saturates to EMB_TICK_MAX - 1 so a finite wait never reads as forever */
 
 emb_instant_t  emb_time_now(void);                                       /* thread isr prekernel */
-emb_instant_t  emb_instant_add(emb_instant_t t, emb_duration_t d);       /* saturating */
+emb_instant_t  emb_instant_add(emb_instant_t t, emb_duration_t d);       /* 64-bit: saturating; 32-bit: wrapping */
 emb_duration_t emb_instant_sub(emb_instant_t later, emb_instant_t earlier);  /* 0 if later < earlier */
 bool           emb_instant_before(emb_instant_t a, emb_instant_t b);     /* wrap-safe in the 32-bit profile */
 uint64_t       emb_duration_to_ns(emb_duration_t d);                      /* saturating */
 ```
 
-Rounding rule: a duration-to-ticks conversion rounds **up**, so that a wait of `EMB_MS(3)` on a 2 ms tick waits 2 ticks, never 1. A ticks-to-duration conversion is exact. Compile-time constant conversions that overflow `emb_tick_t` are compile errors (`_Static_assert` inside the macro where the argument is constant); runtime conversions saturate and the caller can detect saturation with `emb_duration_is_saturated()`.
+Rounding rule: a duration-to-ticks conversion rounds **up**, so that a wait of `EMB_MS(3)` on a 2 ms tick waits 2 ticks, never 1. A ticks-to-duration conversion is exact. Unit conversions saturate for both constants and runtime values; `emb_duration_is_saturated()` detects saturation. The generic C11/C++17 API does not promise compile-time overflow diagnostics or constant-expression evaluation of unit conversions. `EMB_TICKS(n)` is a raw cast constructor; callers must supply a representable value (A1).
 
 C++17 wrappers expose the same three types as `constexpr` strong types with `std::chrono` conversions.
 
 ### 7.4 Blocking semantics
 
-- A call with timeout `t` returns no earlier than `t` after the call's start as read on the kernel clock, and no later than `t` plus one tick plus the scheduling latency of the caller's priority. In tickless configurations with a high-resolution timer the extra tick is the timer's resolution.
+- An operation may complete before its timeout when satisfied, canceled, or destroyed. Expiry makes an unsatisfied waiter eligible to return `EMB_ETIMEDOUT`; actual return also depends on dispatch and, for a condition variable, mutex reacquisition. There is no universal finite return-time guarantee under arbitrary higher-priority load or suspension. A response-time bound requires the workload and resource assumptions of [Timing and evidence](../engineering/timing-and-evidence.md).
 - `EMB_NO_WAIT` never blocks and never yields.
 - `EMB_WAIT_FOREVER` has no deadline; the wait ends only by satisfaction, cancel, or destroy.
-- Every blocking function has an absolute form `..._until(..., emb_instant_t deadline)`; a deadline in the past behaves as `EMB_NO_WAIT`. Periodic work uses `emb_thread_sleep_until(next)` with `next = emb_instant_add(next, period)` so that drift does not accumulate (KRN-TIM-011).
+- Every blocking function has an absolute form `..._until(..., emb_instant_t deadline)`; a past wait deadline behaves as `EMB_NO_WAIT`; sleep with a zero duration or past deadline yields with `EMB_OK`. Periodic work uses `emb_thread_sleep_until(next)` with `next = emb_instant_add(next, period)` so that drift does not accumulate (KRN-TIM-011).
 - 64-bit time is read with `emb_time_now()`, which uses a sequence lock or critical section internally; no 64-bit atomic is involved (KRN-TIM-016).
 
 ## 8. Headers
@@ -311,9 +314,11 @@ include/emb/
   context.h      emb_context(), EMB_CONTEXT_*, emb_in_isr()
   thread.h  sched.h  mutex.h  sem.h  event.h  notify.h  cond.h
   queue.h  pipe.h  pool.h  timer.h  work.h  part.h  cap.h  mem.h
-  irq.h  power.h  fault.h  log.h  trace.h
+  irq.h  power.h  fault.h  log.h  trace.h  kernel.h
   compiler/      gcc.h  clang.h  embcc.h  (one per compiler, nothing else includes them directly)
 ```
+
+This is the target header inventory; unimplemented headers are listed in [Project status](../STATUS.md). `kernel.h` provides init/start, the initialization table, and `EMB_CHECK`; M1 `trace.h` exposes the trace sink subset. `arch.h` is the port contract and is not public application API.
 
 Rules for every public header:
 
@@ -362,12 +367,14 @@ Tag grammar (one tag per line, order free, every tag mandatory unless marked opt
 | `@time` | `O(1)`, `O(log N)`, `O(N)` with `N` one of `priorities`, `waiters`, `timeouts`, `items`, `len`, `regions`, `caps`; free text after the bound | Timing class per configuration; a function with more than one phase lists each |
 | `@owns` | `none`, `takes:<param>`, `gives:<param>`, `borrows:<param>` | Ownership transfer of a buffer or object across the call |
 | `@config` | zero or more `CONFIG_EMB_*` | Symbols that must be enabled for the function to exist |
-| `@req` | one or more requirement identifiers | Traceability (05 §6) |
+| `@req` | one or more requirement identifiers | Traceability (05 §6); never a capability-right name |
+| `@right` (required for future syscall generation) | explicit handle-parameter to object-right mapping, or `none` | Capability enforcement; separate from requirement IDs |
+| `@arg` (required for future syscall generation) | explicit argument kind, length relation, access, maximum, and lifetime | Marshaller validation; not inferred solely from C pointer types |
 | `@since` | version | First release with this signature |
 | `@stable` | `yes`, `experimental`, `deprecated:<version>` | Stability promise (§11) |
 | `@isr-note` (optional) | free text | What differs when called from an ISR, for `thread isr` functions |
 
-A header whose function lacks a mandatory tag fails the documentation gate (05 §5). The JSON form is one object per function with the tag names as keys and parsed values; its schema lives in `tools/apidoc/schema.json` once the tool exists.
+The planned documentation gate rejects a function lacking a mandatory tag; it is not implemented in current CI. Future syscall generation requires explicit `@right` and `@arg` metadata; current headers do not supply it and are not ready for generated security checks. The JSON form is one object per function with the tag names as keys and parsed values; its schema lives in `tools/apidoc/schema.json` once the tool exists.
 
 ## 10. Compiler portability layer
 
@@ -419,7 +426,7 @@ A callback's documentation states its context exactly as a function's `@ctx` doe
 static emb_mutex_storage_t  g_lock_storage;
 static emb_mutex_t          g_lock;
 static emb_thread_storage_t g_worker_storage;
-static uint32_t             g_worker_stack[256 / sizeof(uint32_t)];
+EMB_THREAD_STACK(g_worker_stack, 256);
 
 static void worker(void *arg)
 {
@@ -427,7 +434,7 @@ static void worker(void *arg)
     emb_instant_t next = emb_time_now();
     for (;;) {
         next = emb_instant_add(next, EMB_MS(10));
-        if (emb_mutex_lock(g_lock, EMB_MS(2)) == EMB_OK) {
+        if (emb_mutex_lock(g_lock, EMB_TIMEOUT(EMB_MS(2))) == EMB_OK) {
             /* ... */
             (void)emb_mutex_unlock(g_lock);
         }

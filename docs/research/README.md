@@ -26,3 +26,7 @@ Read-only analyses at pinned commits, one fixed question list each, with file an
 ## Method
 
 Each kernel was cloned at the pinned commit and read, not executed. A fixed question list (scheduler, context switch and interrupts, time, blocking and waiting, synchronization and inheritance, IPC and memory, isolation, observability, configuration and quality) was answered per kernel with citations. The notes end with "ideas to borrow" and "weaknesses". R-001 synthesizes across kernels; R-003 turns the synthesis into decisions with measurable targets. Web sources in R-002 that could not be fetched directly are marked (summary) and listed in R-002 §6 for re-verification before external use.
+
+## Interpretation limits
+
+These records analyze pinned source snapshots and available public material, not exhaustive performance, security, certification or market evidence. Summary-only sources require primary-source re-verification before external use. The absence of tests/certificates in an inspected clone does not establish their absence from the complete upstream product. Mechanisms are design input; comparative performance must come from the hardware harness. Current EmbLinkRTOS implementation is listed in [Project status](../STATUS.md).

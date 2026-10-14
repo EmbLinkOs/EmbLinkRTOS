@@ -1,5 +1,7 @@
 # KRN-SYNC - Synchronization
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-SYNC`. Design: `docs/specs/SPEC-005-synchronization.md`. Related groups: KRN-WAIT (the protocol every primitive here uses), KRN-SCH (effective priority in the ready structure), KRN-THR (priority change, termination), KRN-TP (demotion versus inheritance), KRN-NOTIF (binding), KRN-SMP (spinlocks), KRN-OBJ (destroy).
 
 KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to 017 in `docs/architecture/03-kernel-architecture.md` §5.2 (014 to 017 added by ADR-028 and ADR-030). All are restated here as the authoritative copy. New requirements start at 018.
@@ -119,7 +121,7 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 **Trace.** SPEC-005 §3.3
 
 ### KRN-SYNC-017  Static ceilings from the system description
-**Statement.** A ceiling mutex declared in the system description shall receive its ceiling from the generator as the highest base priority among its declared users; locking it shall raise the effective priority to the ceiling in O(1) and, when every user is declared, shall never need a wait queue.
+**Statement.** A ceiling mutex declared in the system description shall receive its ceiling from the generator as the highest base priority among its declared users; locking it shall raise effective priority to the ceiling; a queue-free optimization shall additionally prove the UP execution restrictions in SPEC-005 §3.4, including no blocking/yield/suspension/budget-induced ineligibility while held. M1 retains wait queues and owned-list scans.
 **Rationale.** RTIC's compile-time ceilings for threads in a C kernel (ADR-030).
 **Status.** Accepted 2026-10-07
 **Verification.** Test: generator test `hw/gen_ceiling` plus `sync/ceiling_static_no_queue` on the tiny profile.
@@ -140,7 +142,7 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 **Trace.** SPEC-005 §2.2
 
 ### KRN-SYNC-020  Mutex lock cost
-**Statement.** An uncontended lock or unlock shall be O(1); a contended lock shall be O(waiters on that mutex) for the enqueue plus O(depth) for the walk, each hop a bounded section.
+**Statement.** Lock/unlock timing shall include owned-mutex append/remove/recomputation, wait insertion or requeue, separate deadlock traversal, inheritance depth and configured scheduler scans. M1 shall be documented as holding one caller section across propagation; per-hop sections and constant-time uncontended bookkeeping shall not be claimed without implementation and evidence.
 **Rationale.** R-003 target T9.
 **Status.** Accepted 2026-10-07
 **Verification.** Benchmark: harness operation "mutex lock and unlock uncontended; contended with chains of depth 1, 2, 4" (TEST-012); monitor of ADR-034 for section lengths.
@@ -182,8 +184,8 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 **Trace.** SPEC-005 §3.6; KRN-SYNC-011; 08 Q5
 
 ### KRN-SYNC-026  Ceiling rules
-**Statement.** Locking a `CEILING` mutex shall raise the caller's effective priority to the ceiling immediately; a caller whose base priority exceeds the ceiling, or that is not a declared user of a statically declared mutex, is misuse (`EMB_EPERM` in release builds); `CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY` shall build ceiling mutexes without a wait queue.
-**Rationale.** Immediate ceiling gives deadlock freedom and a single blocking per job; the misuse rule is what makes "never a waiter" true.
+**Statement.** Locking a `CEILING` mutex shall raise the caller's effective priority to the ceiling immediately; a caller whose base priority exceeds the ceiling, or that is not a declared user of a statically declared mutex, is misuse (`EMB_EPERM` in release builds); a future `CONFIG_EMB_MUTEX_CEILING_STATIC_ONLY` optimization shall omit a wait queue only after enforcing the complete restrictions of SPEC-005 §3.4; it is unimplemented in M1.
+**Rationale.** Immediate-ceiling guarantees require an analyzed execution/resource model; declared users alone do not establish no contention or deadlock freedom.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `sync/ceiling_*`, `misuse/ceiling_violation`; footprint test on the tiny profile.
 **Trace.** SPEC-005 §3.4; KRN-SYNC-017

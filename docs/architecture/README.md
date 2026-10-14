@@ -12,7 +12,7 @@ This directory is the architecture baseline for EmbLinkRTOS. It supersedes the v
 | 03 | [Kernel architecture](03-kernel-architecture.md) | Execution model, scheduling classes and budgets, wait protocol, time, synchronization, IPC, objects and capabilities, partitions, memory, faults |
 | 04 | [Platform architecture](04-platform-architecture.md) | Hardware description pipeline, device and driver model, power, boot and update, security, observability, multicore, simulation, middleware |
 | 05 | [Engineering system](05-engineering-system.md) | API conventions, configuration and build, repository layout, verification, quality gates, traceability, release, support, documentation |
-| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-037 with alternatives and consequences; ADR-004, ADR-024, ADR-025, and ADR-026 to ADR-037 (from the research records in `../research/`, R-003) are accepted; the rest await review |
+| 06 | [Decision records](06-decision-records.md) | ADR-001 to ADR-039 with alternatives and consequences; ADR-004, ADR-024, ADR-025, ADR-026 to ADR-038 and the ADR-039 documentation revision are accepted; older records retain their recorded statuses and subsequent specification refinements |
 | 07 | [Roadmap](07-roadmap.md) | 1.0 boundary, milestones M0 to M6+, specification work order, risks |
 | 08 | [Open questions](08-open-questions.md) | Decisions awaiting the project owner, each with a recommendation |
 | 09 | [EmbCC toolchain profile](09-embcc-toolchain-profile.md) | Verified EmbCC capabilities and limits per target, and the kernel rules that follow from them |
@@ -43,4 +43,4 @@ Requirements move into `docs/requirements/` as structured files group by group, 
 
 ## Phase
 
-Architecture only. No kernel code exists yet by design; see roadmap §3 for the specification work that precedes the first implementation milestone.
+M1 kernel execution is implemented; M2 remains incomplete. Native, AVR, Cortex-M3/M4F, and RV32IMAC ports exist, with embedded conformance configured under QEMU. Hardware latency, isolation, budgets, the hardware generator, and complete observability remain outstanding. Read [Project status](../STATUS.md) for the authoritative implementation and evidence inventory and the roadmap for delivery gates.

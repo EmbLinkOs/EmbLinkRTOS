@@ -1,5 +1,7 @@
 # PORT - Compiler Portability and the Architecture Port Contract
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `PORT` with two series: `PORT-ABI` (compiler portability, from v0.1 §21.5) and `PORT` (the architecture port contract, SPEC-011). Design: `docs/specs/SPEC-011-architecture-port-contract.md`; SPEC-001 §10 (compiler portability layer); `docs/architecture/09-embcc-toolchain-profile.md`. Related groups: KRN-IRQ, KRN-TIM, KRN-THR, KRN-PART, ARCH-AVR, SIM, BLD, OBS.
 
 PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restated here as the authoritative copy. PORT-001 onward are new.
@@ -63,7 +65,7 @@ PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restate
 **Trace.** SPEC-011 §4
 
 ### PORT-004  Context init and single switch path
-**Statement.** `emb_arch_context_init` shall build a frame that enters the entry function with its argument and returns into the exit function; `emb_arch_switch_to` shall save callee-saved state, exchange stack pointers, and resume; each architecture shall have exactly one switch path serving P1 and P2; the switch shall be a full memory barrier.
+**Statement.** `emb_arch_context_init` shall build a frame that enters `embk_thread_launch(entry, arg)`, which calls the entry and exits with code 0; `emb_arch_switch_final` shall switch without saving the terminating context; `emb_arch_switch_out_done` shall prevent reuse until switch-out completes; `emb_arch_switch_to` shall save callee-saved state, exchange stack pointers, and resume; each architecture shall have exactly one switch path serving P1 and P2; the switch shall be a full memory barrier.
 **Rationale.** KRN-THR-005, KRN-MM-002, SPEC-002 §6.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `arch/context_init_launch`, `arch/switch_roundtrip`, `arch/switch_from_isr_and_thread_interoperate`.

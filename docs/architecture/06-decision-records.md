@@ -20,7 +20,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Context.** Names and conventions were open in v0.1; every header depends on them.
 
-**Decision.** Public `emb_`, port contract `emb_arch_`, kernel-private `embk_`, config `CONFIG_EMB_`. One `emb_status_t` with zero success and negative errors. Distinct `emb_instant_t`, `emb_duration_t`, `emb_timeout_t`. Blocking functions end with a timeout parameter; `_until` variants take an instant.
+**Decision.** Public `emb_`, port contract `emb_arch_`, kernel-private `embk_`, config `CONFIG_EMB_`. One `emb_status_t` with zero success and negative errors. Distinct `emb_instant_t`, `emb_duration_t`, `emb_timeout_t`. Blocking functions carry a typed timeout before trailing outputs where present; `_until` variants take an instant.
 
 **Alternatives.** A new distinctive prefix such as `elk_` (avoids generic collisions, but splits brand from the EmbLink family); errno-style globals (hostile to ISRs and SMP); untyped `uint32_t` ticks (invites unit bugs).
 
@@ -72,7 +72,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Alternatives.** Expose structures publicly (freezes layout as ABI); oversize fixed buffers (wastes RAM on tiny targets); require an allocator (violates KRN-MEM-001).
 
-**Consequences.** Works on all three compilers without extensions; objects can live in flash-initialized tables where configuration permits; a configuration change requires a rebuild of all users, which is already true.
+**Consequences.** Works on all three compilers without extensions; object registration metadata can live in flash tables while mutable object storage remains in RAM (SPEC-009); a configuration change requires a rebuild of all users, which is already true.
 
 **Status.** Proposed.
 
@@ -164,7 +164,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Context.** v0.1 wanted opaque handles, optional permissions, stale-handle detection, and future userspace. These are one mechanism.
 
-**Decision.** A handle is a capability: object reference plus rights. Representation per profile: pointer (tiny), tagged pointer with generation (base), validated table index (isolated). Rights reduce on derivation; revocation is by generation bump.
+**Decision.** A handle is a capability: object reference plus rights. Representation per profile: POINTER (tiny and base default), INDEXED with slot generation (base option), TABLE with rights and generations (isolated). SPEC-009 rejects tagged pointers because no address bits are portably available; INDEXED and TABLE remain unimplemented in M1. Rights reduce on derivation; revocation is by generation bump.
 
 **Alternatives.** Raw pointers forever (no isolation path); separate permission objects (two mechanisms to validate).
 
@@ -380,7 +380,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Context.** 03 §7 already gives objects a generation for stale-handle detection. Hubris extends the idea to tasks: a task id carries a generation, a restart bumps it, and every peer blocked on the old id is woken with a dead code so restarts are visible without polling (R-001 §7). Hubris also replaces large message copies with leases: borrowed buffers validated on every access and revoked automatically when the lender resumes.
 
-**Decision.** In every profile that checks generations (tagged pointers in `base`, capability tables in `isolated`), thread and partition handles carry a generation; a partition restart bumps the generation of the partition and of its threads; any thread blocked on such a handle (join, port request, notification binding) completes with `EMB_ESTALE`. For Ports (03 §6.6, FUTURE for 1.0), a message may carry up to `CONFIG_EMB_PORT_MAX_LEASES` lease descriptors `(base, length, rights)` over the client's memory; the server accesses leased memory only through kernel calls that validate against the client's regions; a lease is valid only while the client is blocked in that request and is revoked implicitly when the client resumes for any reason. Messages up to the copy threshold (default 64 bytes) are copied; larger buffers are leased.
+**Decision.** In every profile that checks generations (INDEXED handles in `base`, capability tables in `isolated`), thread and partition handles carry a generation; a partition restart bumps the generation of the partition and of its threads; any thread blocked on such a handle (join, port request, notification binding) completes with `EMB_ESTALE`. For Ports (03 §6.6, FUTURE for 1.0), a message may carry up to `CONFIG_EMB_PORT_MAX_LEASES` lease descriptors `(base, length, rights)` over the client's memory; the server accesses leased memory only through kernel calls that validate against the client's regions; a lease is valid only while the client is blocked in that request and is revoked implicitly when the client resumes for any reason. Messages up to the copy threshold (default 64 bytes) are copied; larger buffers are leased.
 
 **Alternatives.** Kernel copies for everything (bounded message size or large kernel buffers); shared-memory regions set up by the application (no revocation, no validation).
 
@@ -459,3 +459,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** The M1 exit criterion's AVR hardware measurement moves behind the Cortex-M one; the EmbCC gap list of document 09 §10 is read Cortex-M and RISC-V first; the 32-bit ports share one test platform (`tests/framework/platform_target.c`) and one emulator runner (`tools/qemu/run_qemu.py`).
 
 **Status.** Accepted 2026-10-09 (maintainer decision).
+
+## ADR-039 Evidence-scoped delivery and contract reconciliation
+
+**Context.** M1 code, accepted target designs, historical measurements and future CI gates have become interleaved in the documentation. The original 1.0 boundary couples a working small kernel to an entire driver, isolation, update and qualification platform. Several M1 contract refinements remained only in an amendment log.
+
+**Decision.** Reconcile existing specifications with the actual M1 API, layout, initialization and UP behavior. `docs/STATUS.md` is the authoritative implementation/evidence inventory; specifications define target semantics and the roadmap defines release gates. First 1.0 focuses on a complete base-profile controller on one physical Cortex-M board and native development, with the complete applicable kernel conformance, traceability, diagnostics and memory/timing evidence. Isolation, budgets, full hardware importers, update/power services and multicore have separate subsequent gates; their designs stay in the tree. Early migration guidance and focused compatibility previews follow implemented APIs. New isolation/timing constraints are design obligations; documentation changes alone do not verify them.
+
+**Alternatives.** Retain the comprehensive 1.0 gate (delays usable deployment and overloads validation); discard future designs (loses architectural intent); leave contradictions in an amendment-only overlay (requires readers to discover precedence themselves).
+
+**Consequences.** Current support claims are narrower and testable. The roadmap preserves deferred work explicitly. Timing costs include owned-lock scans, wake hooks and batches; static ceiling optimization requires proved progress assumptions. DMA, restart, generation lifetime and syscall pointer validation must pass dedicated isolation review before containment is claimed. Requirement evidence records execution and scope rather than identifier presence. APIs/formats stabilize only when included in a released supported scope.
+
+**Status.** Accepted documentation revision 2026-10-14, following the project owner's instruction to apply the documentation review. Implementation and verification of new constraints remain pending.

@@ -1,5 +1,7 @@
 # SPEC-013 - Native Port (`arch/native`)
 
+**Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Acceptance of this design does not establish implementation, verification, or support. Reconciled 2026-10-14.
+
 **Status:** Accepted 2026-10-07 by the project owner ("do all"), with the defaults of §13. Specification work item 12 of the roadmap (07 §3). Built in M1 alongside the AVR port (ADR-001).
 **Requirements:** `docs/requirements/SIM.md` (SIM-001 to 003 from 04 §9 restated; new from 004).
 **Builds on:** 02 §8 (the native port), 04 §9 (simulation layers); SPEC-011 (the contract it implements); SPEC-002 §13, SPEC-003 §13 (native rows); SPEC-004 §13 and `tools/model` (the oracle the differential bridge feeds); SPEC-010 §4.1 (software protection checks); 05 §4 (verification architecture); 09 §2 (EmbCC hosts: x86-64 Linux, macOS, AArch64, Windows incomplete); ADR-013.
@@ -60,7 +62,7 @@ Nothing else of the host is used (02 §8: non-POSIX hosts stay possible, matchin
 
 One **gate** per simulated CPU: a host mutex, a condition variable per EmbLinkRTOS thread, and the identity of the one host thread allowed to run. Every EmbLinkRTOS thread is a host thread parked on its condition variable until the kernel dispatches it; `emb_arch_switch_to(next)` signals `next`'s variable and waits on the caller's, under the gate mutex, so exactly one simulated thread runs at any time and the kernel's scheduling decisions are exact (02 §8). The idle context and the interrupt injector are host threads of the same gate.
 
-- `emb_arch_context_init` records entry, argument, and exit function in the TCB extension; the host thread is created lazily at the thread's first dispatch (SPEC-008 §4 `start`) with a trampoline that waits for the gate, calls `entry(arg)`, and calls `exit_fn(0)` on return.
+- `emb_arch_context_init` records entry and argument in the TCB extension; the host thread is created lazily at the thread's first dispatch (SPEC-008 §4 `start`) with a trampoline that waits for the gate, enters `embk_thread_launch(entry, arg)` which calls the entry and exits with code 0.
 - Thread exit (SPEC-008 §5) hands the gate to the next thread and then lets the host thread return; `emb_arch_switch_out_done` reports true once the host thread has released the gate mutex, which is the only "switch-out completion" this port has.
 - Host stack sizes are generous and unrelated to the configured thread stack sizes; `emb_thread_stack_info` reports the configured size and a high-water mark of zero, and the stack guard check is a no-op (the port's documentation says so).
 
@@ -107,6 +109,8 @@ For the SMP work (ADR-012) the port grows to N gates, one per simulated CPU, eac
 - Compilers: GCC and Clang on Linux and macOS, EmbCC on Linux (x86-64 and AArch64, 09 §2); Windows with MSVC-compatible Clang is a best-effort leg until EmbCC's Windows target completes.
 - The port is a normal CMake target; `ctest` runs the conformance suite in deterministic virtual-time mode; sanitizer, coverage, fuzz, and asynchronous stress legs are separate presets.
 - The reference configurations `tiny`, `base`, and `isolated` all build for native (profiles are configuration, 02 §7); the isolated configuration uses the simulated trap and software region checks.
+
+Current M1 handlers are static connect-style functions declared with `EMB_ISR(name)` and bound via `emb_irq_connect()`. The framework maps portable test IRQ slots to native software IRQs or AVR USART data-register-empty; no arbitrary AVR software-pend capability is implied (A12). QEMU embedded jobs use instruction-count virtual time to avoid host-load timing flakiness, with port-specific shifts. This is reproducibility of functional timing, never physical cycle/latency evidence (A14, A22).
 
 ## 12. Conformance
 

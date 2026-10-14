@@ -1,72 +1,73 @@
 # 07 - Roadmap
 
-**Status:** PROPOSED. Replaces v0.1 §40 and §41 with a 1.0 boundary and a revised milestone order. The principle is unchanged: vertical slices, no subsystem before the scheduler runs.
+**Status:** Delivery baseline revised 2026-10-14 (ADR-039). The comprehensive platform vision is retained, with independently validated delivery gates. Dates below describe recorded history, not delivery forecasts. [Project status](../STATUS.md) is the current implementation/evidence inventory.
 
----
+## 1. First supported 1.0 boundary
 
-## 1. What 1.0 is
+The first supported release is a complete base-profile interrupt-driven controller on the NUCLEO-F446RE (STM32F446, Cortex-M4F), with native development. The STM32F407 Discovery is a follow-on STM32F4 family target, not the same SoC as the F446. A same-SoC data-only board demonstration must use a second F446 design chosen separately; physical availability must be established before HIL execution. The choice follows ADR-025 and does not imply either board is already running the project.
 
-**1.0 contains**
+Required scope:
 
-- Kernel: threads, fixed-priority class, unified wait protocol, 64-bit and 32-bit time, tickless, software timers on work queues, mutex with priority inheritance and optional ceiling, semaphores, event flags, condition variables, notifications, work queues, message queues, pipes, buffer pools, capabilities (pointer, tagged, and validated representations), partitions on MPU and PMP hardware with supervisor, budgets with all four overrun policies, crash records, software watchdog.
-- Ports: `native`, `avr`, `cortex_m` (Armv6-M, Armv7-M with FPU, Armv8-M with MPU and TrustZone non-secure), `riscv` (RV32 with PMP).
-- Platform: hardware description schema v1 with SVD and DTS importers and generator; device model; driver classes GPIO, pinctrl, interrupt controller, clock and reset, timer, UART, SPI, I2C, DMA, watchdog, flash, RTC, entropy; power management core with system and device states; MCUboot-compatible images and A/B update service; deferred-format logging; CTF tracing; debug descriptor; flight recorder.
-- Engineering: Kconfig and CMake; EmbCC, GCC, Clang qualified on stated versions; conformance suite; reference model; traceability matrix; HIL on at least one board per architecture; Renode CI; benchmark publication; SBOM; reproducible builds; SECURITY.md; support matrix; LTS policy.
-- Profiles: tiny, base, isolated, native fully supported; multicore experimental.
+- Kernel: UP fixed priority, thread lifecycle, common waits, typed time, tested hardware clock modes, mutexes with bounded inheritance/ceiling, semaphores, notifications, event flags, condition variables, work queues/software timers and copy-by-value message queues. Each included API is implemented and tested before freeze. Barrier, pipe and pool APIs may remain experimental until their own evidence is complete.
+- Ports: native/POSIX plus the selected Cortex-M4F board, with compiler/feature/version support declared explicitly. Existing AVR and RV32 emulated ports remain regression targets; physical validation and compiler qualification on them do not block the primary release and are not implicitly claimed.
+- Application/platform: the controller in [Adoption](../adoption.md); minimal GPIO, pin/clock, timer and UART support; a small reproducible board/layout generation path; retained fault record, matching host decoder, useful trace and debugger metadata for implemented services. Diagnostics must identify an injected field failure from its artifacts.
+- Evidence: all applicable requirements mapped to executed individual cases or analyses; checked/release conformance, model agreement with unresolved failures triaged, statement/branch coverage reported with gaps, selected static-analysis gates, physical timing and complete flash/RAM/stack accounting, adversarial workload/soak runs, pinned reproducible builds, SBOM, disclosure and explicit maintenance/support windows.
 
-**1.0 explicitly excludes**
+This release does not require isolation, INDEXED/TABLE handles, budgets/shares, Armv6-M/Armv8-M support, PMP, multicore, complete SVD/DTS importers, a broad driver catalog, power/update services, full diagnostic transports, middleware stacks, compiler qualification across all ports, LTS cadence, or certification packages. Those retain their designs and have subsequent gates below. No unsupported future API/schema or isolation ABI is frozen merely by releasing the base kernel.
 
-SMP scheduling (experimental only), DEADLINE and TIME_TABLE classes, dynamic partitions, networking and USB stacks (contracts defined, integrations experimental), filesystems beyond flash and block class APIs, CMSIS-RTOS2 and POSIX layers, safety evidence packages, hardware ports beyond the four named.
+Optional focused CMSIS-RTOS2/FreeRTOS compatibility previews may ship after underlying APIs exist and their implemented subsets pass migration checks. They do not alter native semantics or form part of a future qualification profile. Source/API stability and format versions apply only to the supported scope advertised by a release.
 
-## 2. Milestones
+## 2. Delivery gates
 
-### M0 - Architecture baseline (complete 2026-10-07)
+### M0 - Architecture and specifications
 
-Deliverables: these documents accepted; the specification work in §3 completed (SPEC-001 to SPEC-015); requirement files created under `docs/requirements/` for every group the specifications cover; API conventions written (SPEC-001); hardware description schema v0 specified (SPEC-014); the reference model written and explored for the wait protocol, mutexes with inheritance, notifications, and thread lifecycle (`tools/model/`, 48 scenarios, 44 tests); the research records R-001 to R-003 and ADR-026 to ADR-037 accepted.
+The original SPEC-001 to SPEC-015 acceptance baseline was recorded on 2026-10-07. The reference model and research records exist. Acceptance is design status, not completion of every requirement. This documentation reconciliation folds M1 contract changes into the specifications and adds timing, isolation and evidence obligations. Remaining architecture groups need requirement migration when their owning subsystem is implemented.
 
-Exit: met for the kernel groups (KRN-*), PORT, ARCH-AVR, SIM, HW, OBS. The coding standard (05 §1.6) is written as the first M1 deliverable: `docs/CODING-STANDARD.md` with `.clang-format`, `.clang-tidy`, and `.editorconfig`. Still pending from the original exit criterion: the remaining architecture groups without their own specification (KRN-MEM, KRN-TP beyond ADR-029, KRN-SMP/MC, FLT, DRV, PWR, BOOT, SEC, BLD, TEST, REL), whose identifiers stay in documents 03 to 05 until their milestones (M3 to M5) specify them.
+### M1 - First execution (implemented subset)
 
-Status of the §3 work order: 1 to 14 and 6b accepted; see each item's line below.
+Native and AVR execute the kernel; Cortex-M3/M4F and RV32IMAC ports now exist under QEMU (ADR-038). M1 includes threads, fixed priority, waits/timeouts, notifications, semaphores, mutexes, generated storage, build configuration and conformance. Native periodic/tickless operation is implemented; embedded tickless remains refused. AVR map-derived T1/T2 subtotals are recorded in the port page; no hardware latency measurement is complete. The full original M1 hardware exit is therefore outstanding, not silently waived.
 
-### M1 - First execution on two ports (native + AVR)
+Continue native and emulator regression testing. Preserve AVR as the tiny-profile constraint check. Concentrate new physical-board development on Cortex-M; keep each port's skips and supported features visible.
 
-**Status 2026-10-07: delivered, except the hardware measurement.** `arch/native` and `arch/avr` with the `arduino_uno` board; kernel init, idle, threads, the bitmap and table schedulers, the wait protocol, time with periodic and tickless modes, notifications, semaphores, mutexes with inheritance and ceilings (the M2 blocking kernel brought forward, since the reference model already existed); nine conformance suites (70 tests) passing on the native port under GCC, Clang, both profiles, both build kinds, and three sanitizers, and on the ATmega328P under QEMU (SIM-002) with the fork-based fault checks skipped there; the v0.1 §41.3 sequence running for two million switches on native and continuously under QEMU; CI matrix with GCC, Clang and avr-gcc (EmbCC when available); footprint tracking with a per-commit gate. Not met: the measured switch latency on AVR hardware (no board in the loop yet; `tests/benchmarks/bench_switch` is ready and emulator numbers are never published, SIM-003), The R-003 footprint targets T1 and T2 were met by the footprint pass that followed (`docs/ports/avr.md`: release kernel text 3805 bytes against 4096, static RAM 63 against 64, control block 32 against 32, gated per commit on the `avr-uno-t1` preset). Deviations found during implementation: `docs/specs/AMENDMENTS-M1.md`.
+### M2 - Finish the blocking kernel and its evidence
 
-Deliverables: `arch/native` and `arch/avr`; kernel init; idle; thread create and start; fixed-priority scheduler with FIFO; context switch; interrupt entry and exit with reschedule-on-exit; tick and tickless timer hook; scheduler lock; conformance suite skeleton running on both; CI with a build matrix of EmbCC, GCC, and Clang on both ports (EmbCC already targets the ATmega328P and the x86-64 host, see 09); footprint tracking.
+Open work: event flags, condition variables, work queues, software timers, message queues; defined binding teardown/lifetime; applicable object lifecycle/freeze behavior; misuse/property campaigns; generated traceability for the implemented core. Pipes, pools, barriers and INDEXED handles have separate feature gates if not needed by the reference application. TABLE handles belong to M3b.
 
-Exit: the v0.1 §41.3 sequence runs for millions of switches on ATmega328P and on the native port; both pass the same tests; measured switch latency on AVR published with metadata.
+Extend model scenarios and conformance with each primitive, including timeout/cancel/destroy races, ownership conservation and boundary resource counts. Diagnose/minimize the deep replay cases before declaring a campaign clean. Reconcile public annotations with actual complexity and implement the complete resource-bound inventory.
 
-**Target order (ADR-038, 2026-10-09).** Cortex-M and RISC-V come first; AVR is a secondary target. The Cortex-M port (Armv7-M and Armv7E-M with lazy FPU stacking) runs the conformance suite under QEMU on `mps2-an385` and `mps2-an386`, ahead of M3's STM32F4 boards; see `docs/ports/cortex_m.md`. The RISC-V port (RV32IMAC, machine mode) runs the same suite under QEMU `virt`; see `docs/ports/riscv.md`. The AVR hardware latency measurement moves behind the Cortex-M one.
+Exit: each included kernel API has explicit semantics, implementation, applicable individual evidence and documented limits; no unexplained required test failure; traceability/coverage reports identify uncovered and skipped cases instead of counting identifier presence as coverage.
 
-### M2 - Blocking kernel
+### M3a - One physical Cortex-M controller and minimal hardware pipeline
 
-**Status 2026-10-07: in progress.** Delivered with M1: the wait protocol, timeouts and wraparound, sleep and `sleep_until`, mutexes with inheritance and ceilings, semaphores, notifications, the object storage generation, the pointer capability form, the checked-build fault paths. Delivered since: the differential bridge (`tools/model/bridge.py` with `tests/differential/diff_runner`), which replays the kernel's trace through the reference model for every scenario of the catalogue under seeded schedules of interrupts and ticks, in CI on every native preset (TEST-008); its first campaign found and fixed three kernel defects (`tools/model/README.md`). Open: event flags, condition variables, work queues, software timers, message queues, the tagged capability form, property-based misuse tests.
+Bring up the NUCLEO-F446RE, kernel-aware IRQ/timer behavior, minimal drivers and first HIL runner. Deliver the controller, retained crash/decoder demonstration, useful trace/debug metadata and adversarial timing/memory campaigns. Compare equivalent operations with pinned competitors through a fair same-board harness when their adapters exist; competitive rankings are optional evidence, not a substitute for the application's latency needs.
 
-Deliverables: wait protocol; timeouts and wraparound; sleep and `sleep_until`; mutex with inheritance; semaphores; event flags; condition variables; notifications; work queues; software timers; message queues; object storage generation; capability layer in pointer and tagged forms; differential tests against the reference model; property-based misuse tests; checked-build fault paths.
+Start the hardware generator with one SoC and two boards, clear validation errors, generated device/layout data and deterministic output. Prove that the second supported-SoC board needs no peripheral C changes. SVD/DTS importing and broad clock/power automation are later additions. Publish migration examples and a focused compatibility preview after its underlying APIs work.
 
-Exit: all kernel requirement groups covered in the traceability matrix; differential test campaign clean; priority inheritance nested and contention tests pass on both ports.
+Exit: the application runs and handles overload/failure on physical hardware; full memory/stack and measured latency evidence is archived; the diagnostic record identifies an injected failure; the first 1.0 scope has its required release evidence. The same-SoC second-board demonstration is an independent generator acceptance gate, rather than a prerequisite for the primary-board kernel release. A 1.0 release may occur at this gate after API/support review, without waiting for the remaining platform vision.
 
-### M3 - Cortex-M, isolation, and the hardware pipeline
+### M3b - First isolated configuration (independent later release gate)
 
-Deliverables: `arch/cortex_m` for Armv6-M, Armv7-M (lazy FPU stacking), Armv8-M (MPU, stack limits, TrustZone non-secure); partitions with supervisor on MPU targets; syscall boundary and validated capabilities; budgets; hardware description schema v1, SVD importer, generator, first SoC family STM32F4 with the STM32F407 Discovery and NUCLEO-F446RE boards, then the RP2350 (Raspberry Pi Pico 2) as the Armv8-M isolation board (ADR-025); device model; drivers GPIO, pinctrl, clock, timer, UART, DMA; deferred-format logging with decoder; CTF trace with generated metadata; debug descriptor; crash record; Renode in CI; first HIL board; first run of the cross-RTOS benchmark harness against FreeRTOS, Zephyr, and ThreadX on the STM32F4 boards (R-003 §6, TEST-012).
+On one supported MPU board, implement a small static partition set, protected kstores, TABLE capabilities, authenticated blocking syscalls, safe-copy/buffer-lifetime validation, the supervisor and restart. Start with trusted DMA mediation. Implement incarnation persistence/exhaustion and freeze/regrant recovery. Expand from native validation to actual hardware privilege and DMA negative tests; record cross-partition interference and recovery evidence per SPEC-010 §17.
 
-Exit: conformance suite unchanged and green on native, AVR, three Cortex-M variants; a partition fault is contained and restarted on the RP2350; a second board on the same SoC is added with no C changes; harness results for R-003 targets T1 to T9 published with raw data.
+Budgets enter only after a separate model/analysis of lock owners, ISR/syscall accounting, depletion, replenishment overflow and restart progress. Reject unsupported combinations. Armv8-M stack limits and the RP2350 are follow-on targets, not prerequisites for demonstrating the first MPU boundary.
 
-### M4 - Platform maturity
+Exit: the defined attack/fault campaign passes, including active DMA and remote waits; a restart preserves stale rejection and unrelated workload requirements without reboot; no universal security or temporal guarantee is inferred from one test. Stabilize only the ABI/profile actually supported.
 
-Deliverables: power management core and device power states; SPI, I2C, watchdog, flash, RTC, entropy drivers; MCUboot-compatible images and update service; software watchdog; flight recorder; `emb` CLI; CMSIS-RTOS2 and FreeRTOS-API adapters (ADR-037); EmbDebug descriptor consumer; benchmark publication pipeline; SBOM and reproducible build verification; DTS importer; second SoC family, an industrial Armv8-M part in the STM32U5 or STM32H5 class with CAN-FD and Ethernet.
+### M4 - Platform services and wider adoption
 
-Exit: a reference application updates itself A/B with power-loss injection on HIL; measured idle power states on a reference board; support matrix generated from CI.
+Extend drivers as demanded by real applications: SPI/I2C, DMA mediation, watchdog, flash, RTC and entropy. Add power management with measured residency/wake constraints, MCUboot-compatible updates with power-loss injection, richer observability and transports, full importers/CLI, expanded adapters and a second SoC family. Each service has an independent conformance, HIL and support gate.
 
-### M5 - RISC-V, qualification, and 1.0
+Exit: an application validates each included service on hardware; update recovery and power behavior are measured; support matrix comes from archived outcomes; maintenance commitments match available resources.
 
-Deliverables: `arch/riscv` with PMP partitions, first on the RP2350's Hazard3 cores and on an emulated RV32 target in Renode; EmbCC qualified for all ports; compiler version matrix; API freeze review; documentation complete per 05 §9; SECURITY.md and disclosure process; LTS policy; release engineering; coverage targets met on kernel.
+### M5 - Additional protected ports and qualification scope
 
-Exit: 1.0 criteria in §1 met; 1.0 released.
+RISC-V PMP/Hazard3, additional Cortex-M variants, and EmbCC execution/qualification follow their own compiler/target evidence. Preserve existing QEMU coverage while adding HIL. Select and resource any safety/qualification scope explicitly; certification, tool qualification and LTS are not consequences of ordinary conformance alone.
+
+Exit: each promoted port/profile/version has its declared evidence and no inherited support claim from another port. Release/maintenance/qualification artifacts identify their exact scope.
 
 ### M6+ - Advanced platform
 
-SMP on the RP2350 (global structure first, ADR-012); AMP ports, with the RP2350 in mixed Arm and RISC-V configuration and an STM32H7 dual-core part as candidates; DEADLINE and TIME_TABLE classes; networking and USB integrations; filesystems; CMSIS-RTOS2 and POSIX layers; PSA secure partition integration; attestation; safety evidence packages; broad board catalog; EmbStudio integration; first LTS line.
+SMP, AMP/Ports/leases, budget donation, DEADLINE/TIME_TABLE classes, middleware/network/USB/filesystems, secure-side integration/attestation, wider boards and EmbStudio integration retain their design direction. Validate hardware architecture-selection constraints before committing to heterogeneous mixed-core configurations. Each needs its own semantic model, interoperability/fault campaign and performance evidence.
 
 ## 3. Specification work order (before M1 code)
 
@@ -92,14 +93,14 @@ Refines v0.1 §47 with the v0.2 additions. Each produces a requirement file and,
 13. Hardware description schema v0 and generator outputs (04 §1). **Accepted 2026-10-07:** `docs/specs/SPEC-014-hardware-description-schema.md`, `docs/requirements/HW.md`.
 14. Observability formats: log record, trace event set, crash record, debug descriptor (04 §7). **Accepted 2026-10-07:** `docs/specs/SPEC-015-observability-formats.md`, `docs/requirements/OBS.md`.
 
-All items are specified and accepted as of 2026-10-07; M1 implementation begins with the native and AVR ports and the kernel modules in dependency order, with the reference model (`tools/model/`) as the oracle and the specifications' decision sections as the contract.
+The original specification work items were accepted on 2026-10-07. M1 implementation exists; the remaining gates above implement and validate the uncompleted portions. New proposed constraints are recorded with their own status and do not become verified through this documentation revision.
 
 ## 4. Risks and mitigations
 
 | Risk | Mitigation |
 |---|---|
-| AVR-first biases layouts toward 8-bit | Native port in M1; Cortex-M in M3; all widths are configuration |
-| Scope growth before the scheduler runs | 1.0 boundary in §1; FUTURE items need an ADR to move earlier |
+| AVR-first biases layouts toward 8-bit | Native port in M1; Cortex-M/RV32 emulator ports now exist; primary-board HIL precedes broad platform work; all widths are configuration |
+| Scope growth before the scheduler runs | Focused 1.0 boundary and independent gates in §1/§2; expand supported scope only with corresponding evidence and maintenance capacity |
 | Hardware description schema churn | Versioned schema with migration tool from v1; importers reduce hand authoring |
 | Isolation complexity delays M3 | Partitions scoped to static tables and MPU only; dynamic creation and MMU are FUTURE |
 | Reference model drifts from kernel | Differential tests in CI; semantic changes must touch both in one change |

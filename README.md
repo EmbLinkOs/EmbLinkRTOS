@@ -2,11 +2,13 @@
 
 A deterministic real-time kernel at the center of a complete embedded software platform, scaling from 8-bit microcontrollers with 2 KB of RAM to isolated, multicore 32-bit systems with one kernel source, one set of semantics, and one tool pipeline.
 
-**Current phase: Milestone 1 delivered; Cortex-M and RISC-V are the first embedded targets (ADR-038).** The kernel runs on the native port, on Cortex-M3 and Cortex-M4F, on RV32IMAC, and on the ATmega328P, all but native under QEMU, passing the same conformance suite everywhere; see `docs/architecture/07-roadmap.md` for the exact status. The architecture (`docs/architecture/`), fifteen accepted specifications (`docs/specs/`), 356 requirements with verification methods (`docs/requirements/`), three research records comparing eleven other kernels (`docs/research/`), and an executable reference model that explores the kernel's protocols exhaustively (`tools/model/`) fix the semantics before the first source file, so the implementation never has to be rebuilt around them.
+**Current phase: M1 kernel execution implemented, M2 incomplete; Cortex-M and RISC-V are the first embedded targets (ADR-038).** The kernel runs on the native port, on Cortex-M3 and Cortex-M4F, on RV32IMAC, and on the ATmega328P, with embedded conformance configured under QEMU and unsupported cases reported as skips; see `docs/architecture/07-roadmap.md` for the exact status. The architecture (`docs/architecture/`), fifteen accepted specifications (`docs/specs/`), numbered requirements with verification methods (`docs/requirements/`), three research records comparing eleven other kernels (`docs/research/`), and an executable reference model that explores the kernel's protocols exhaustively (`tools/model/`) fix the semantics before the first source file, so the implementation never has to be rebuilt around them.
 
-Start with [`docs/README.md`](docs/README.md).
+Start with [`docs/STATUS.md`](docs/STATUS.md) for implementation and evidence, then [`docs/README.md`](docs/README.md) for the design. The first supported release targets one Cortex-M controller with native development; isolation, budgets and the broader platform retain separate later gates (ADR-039).
 
-## What makes it different
+## Design direction
+
+The following describes the target platform. The implemented subset and unverified guarantees are listed in `docs/STATUS.md`; acceptance of a specification does not imply a shipped feature.
 
 - **Isolation-ready by construction.** Capabilities and partitions exist at every scale: a pointer on a 2 KB device, hardware-enforced isolation with restartable partitions on an MPU device, same application source.
 - **Temporal protection.** Fixed-priority scheduling with execution budgets and deadline monitoring, instead of silent starvation or priority aging.

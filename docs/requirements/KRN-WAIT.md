@@ -1,5 +1,7 @@
 # KRN-WAIT - Wait and Wake Protocol
 
+**Documentation revision:** 2026-10-14 (ADR-039; M1 amendment log). Existing status dates record original design acceptance, not validation of the revised wording. New implementation obligations remain Proposed until implemented and verified.
+
 Group `KRN-WAIT`. Design: `docs/specs/SPEC-004-wait-and-wake-protocol.md`. Related groups: KRN-IRQ (critical sections, preemption points), KRN-TIM (timeout as a wake source), KRN-THR (suspend, cancel, join), KRN-SYNC and KRN-IPC (the primitives built on this protocol), KRN-NOTIF (binding hook), KRN-OBJ (destroy with waiters, generations).
 
 KRN-WAIT-001 to 009 originate in `docs/architecture/03-kernel-architecture.md` §3 (008 and 009 added by ADR-026). All are restated here as the authoritative copy. New requirements start at 010.
@@ -77,7 +79,7 @@ KRN-WAIT-001 to 009 originate in `docs/architecture/03-kernel-architecture.md` �
 **Trace.** SPEC-004 §2.1; KRN-MEM
 
 ### KRN-WAIT-011  Three bounded sections
-**Statement.** A blocking operation shall consist of at most three lock-domain sections (condition check and enqueue; timeout arm; commit and switch), each bounded by one list operation, with the lock domain released between them.
+**Statement.** A blocking operation shall consist of at most three lock-domain sections (condition check and enqueue; timeout arm; commit and switch), with the lock domain released between phases; each phase shall state its complete configured bound including list operations, wake hooks, inheritance propagation, and scheduler scans.
 **Rationale.** Makes the T7 masked-time bound a structural property rather than a measurement.
 **Status.** Accepted 2026-10-07
 **Verification.** Analysis: review of `embk_block_on`, `embk_wait_prepare`, `embk_wait_commit`. Test: monitor of ADR-034 on the conformance run.
@@ -147,14 +149,14 @@ KRN-WAIT-001 to 009 originate in `docs/architecture/03-kernel-architecture.md` �
 **Trace.** SPEC-004 §10; OBS-005, OBS-008
 
 ### KRN-WAIT-021  Checked-build diagnostics
-**Statement.** Checked builds shall fault on: blocking with a nonzero timeout from an ISR, under the scheduler lock, or inside the caller's critical section; blocking while the wait state is not READY; a wake asserted on a thread that does not wait on the given queue; a queue order violation after insert; destroy with waiters without `ABORT_WAITERS`. Release builds shall return `EMB_EINVAL`, false, or `EMB_EBUSY` as SPEC-004 §9 lists.
+**Statement.** Checked builds shall fault on: blocking with a nonzero timeout from an ISR, under the scheduler lock, or inside the caller's critical section; blocking while the wait state is not READY; a wake asserted on a thread that does not wait on the given queue; a queue order violation after insert; destroy with waiters without `ABORT_WAITERS`. Release builds shall return `EMB_EPERM` for context misuse, `EMB_EINVAL` for invalid arguments, false for a losing wake, or `EMB_EBUSY` for refused destruction, as SPEC-001 §5 and SPEC-004 §9 specify.
 **Rationale.** SPEC-001 §5.3 rule applied to this protocol.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `misuse/wait_*` in checked and release configurations (TEST-010).
 **Trace.** SPEC-004 §9; SPEC-001 §5.3; KRN-IRQ-001, 021, 035; ADR-035
 
 ### KRN-WAIT-022  Exploration coverage
-**Statement.** The reference model shall be explored exhaustively for every interleaving at section granularity of up to 3 threads, 2 objects, and one armed timeout per thread over the operations block, wake, expire, cancel, suspend, resume, flush, set-priority, interrupt entry and exit, scheduler lock and unlock, and yield; and by randomized stateful testing beyond those bounds with a committed seed corpus.
+**Statement.** The reference model shall exhaustively explore all enabled section-granularity interleavings of each declared finite scenario within its recorded state budget, including scenarios of up to 3 threads, 2 objects, and one armed timeout per thread over the operations block, wake, expire, cancel, suspend, resume, flush, set-priority, interrupt entry and exit, scheduler lock and unlock, and yield; and by randomized stateful testing beyond those bounds with a committed seed corpus.
 **Rationale.** Fixes what "explored" means so that KRN-WAIT-007 is checkable.
 **Status.** Accepted 2026-10-07
 **Verification.** Analysis: the exploration tool reports the state count and the bounds reached; CI fails if the bounds are lowered.

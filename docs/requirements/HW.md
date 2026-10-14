@@ -77,7 +77,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 **Trace.** SPEC-014 §6
 
 ### HW-011  Semantic validation
-**Statement.** The generator shall fail the build, naming file and node, on unresolved references, duplicate names, overlapping or misaligned regions or partitions, duplicate or out-of-range interrupts, pin conflicts, clock cycles or bus overspeed, dependency cycles, partition hardware constraint violations, undeclared ceiling users, port manifest mismatches, inapplicable errata, and uncurated nodes under the `safety` attribute.
+**Statement.** The generator shall fail the build, naming file and node, on unresolved references, duplicate names, overlapping or misaligned regions or partitions, independently writable flash partitions sharing erase units or violating write/update alignment, duplicate or out-of-range interrupts, pin conflicts, clock cycles or bus overspeed, dependency cycles, partition hardware constraint violations, undeclared ceiling users, port manifest mismatches, inapplicable errata, and uncurated nodes under the `safety` attribute.
 **Rationale.** Every rule here was a runtime bug somewhere else.
 **Status.** Accepted 2026-10-07
 **Verification.** One negative generator test per rule.
@@ -98,7 +98,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 **Trace.** SPEC-014 §9
 
 ### HW-014  Schema versioning and migration
-**Statement.** Schema v0 is unstable until 1.0 and ships a migration tool for breaking changes; from 1.0 the schema shall follow the API versioning policy.
+**Statement.** Schema v0 is unstable until its own stable release and ships a migration tool for breaking changes; from that release the schema shall follow the API versioning policy.
 **Rationale.** Descriptions are long-lived assets of users.
 **Status.** Accepted 2026-10-07
 **Verification.** Migration test on a v0 fixture at each breaking change.

@@ -12,7 +12,7 @@ It is built so that it *could* carry industrial controllers, robotics, automotiv
 
 ## 2. What "modern" means for EmbLinkRTOS
 
-**PROPOSED.** These are the properties that distinguish a 2026-era RTOS from a 2006-era one. They are commitments, not slogans, and each maps to concrete architecture in documents 02 to 05.
+**PROPOSED.** These are the properties that distinguish a 2026-era RTOS from a 2006-era one. They are target capabilities, each mapped to architecture in documents 02 to 05. Implemented support is recorded in [Project status](../STATUS.md); the roadmap gates their delivery. The initial product audience is an embedded team developing a predictable interrupt-driven controller, with production diagnostics and explicit support limits.
 
 1. **Isolation-ready by construction.** Every kernel object is reached through a capability. Every thread belongs to a partition. On a 2 KB device there is one partition and the capability is a pointer. On an MPU device the same application source becomes spatially isolated and restartable without rewriting it.
 
@@ -88,13 +88,13 @@ EmbLinkRTOS is not:
 | QNX, seL4 MCS | Adaptive partitioning with idle-time sharing and critical budgets; scheduling contexts, passive servers, timeout faults | Not MCU-class |
 | ARINC 653 systems (PikeOS, VxWorks 653) | Time and space partitioning as the certification primitive | Static schedules as the only model |
 
-The synthesis EmbLinkRTOS aims for: FreeRTOS-class footprint on the smallest targets, Zephyr-class hardware pipeline, seL4-style capabilities, Hubris-style isolation and supervision on MPU targets, ARINC-style time partitioning as an option, Embassy-style asynchronous driver model underneath synchronous APIs, and evidence discipline from the safety world. All in one source tree, all compiling down to what each target can afford.
+The long-term synthesis EmbLinkRTOS aims for: FreeRTOS-class footprint on the smallest targets, Zephyr-class hardware pipeline, seL4-style capabilities, Hubris-style isolation and supervision on MPU targets, ARINC-style time partitioning as an option, Embassy-style asynchronous driver model underneath synchronous APIs, and evidence discipline from the safety world. All in one source tree, all compiling down to what each target can afford.
 
-The mechanism-level comparison behind this table is `docs/research/R-001-rtos-mechanism-comparison.md`; the market, performance, and certification facts are `R-002`; the nine claims that define the positioning, each with a measurable target and a way for a user to check it, are `R-003` §1 and §4. The short form: semantics you can test, the fastest small kernel on the same board shown by a public harness, one kernel from 2 KB to isolated multicore, synchronization that is correct in every case the others get wrong, isolation designed in, time done right, observability out of the box, hardware as data without macro layers, and evidence as a by-product of development.
+The mechanism-level comparison behind this table is `docs/research/R-001-rtos-mechanism-comparison.md`; the market, performance, and certification facts are `R-002`; the nine claims that define the positioning, each with a measurable target and a way for a user to check it, are `R-003` §1 and §4. The short form: semantics you can test, competitive small-kernel performance evaluated by a public same-board harness, one kernel from 2 KB to isolated multicore, synchronization that is correct in every case the others get wrong, isolation designed in, time done right, observability out of the box, hardware as data without macro layers, and evidence as a by-product of development.
 
 ## 6. Definition of success
 
-Inherited from v0.1 Appendix D and extended. EmbLinkRTOS is credible when all of the following hold at once:
+Inherited from v0.1 Appendix D and extended. The complete platform vision is demonstrated when the following hold. These are long-term success criteria, not a claim of current readiness or the first 1.0 release gate (ADR-039):
 
 - scheduling and synchronization semantics are precise and the conformance suite enforces them;
 - at least three architecture ports plus the native port pass the same conformance suite unchanged;
