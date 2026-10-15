@@ -1,0 +1,7 @@
+set(CMAKE_C_COMPILER /workspace/EmbCC/embcc)
+set(CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> --target=x86_64-linux-gnu -nostdinc -isystem /usr/include/x86_64-linux-gnu -isystem /usr/include -isystem /usr/lib/gcc/x86_64-linux-gnu/14/include -fgnuc-version=13.0.0 <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>")
+set(CMAKE_C_LINK_EXECUTABLE "/usr/bin/gcc <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+set(CMAKE_EXE_LINKER_FLAGS_INIT -no-pie)
+set(EMB_TOOLCHAIN_C_FLAGS -pthread -g -O1)
+set(EMB_TOOLCHAIN_LINK_FLAGS -pthread)
+set(EMB_TOOLCHAIN_DEFINES _POSIX_C_SOURCE=200809L _DEFAULT_SOURCE)

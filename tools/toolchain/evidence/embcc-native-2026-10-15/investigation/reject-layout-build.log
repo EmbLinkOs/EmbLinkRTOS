@@ -1,0 +1,18 @@
+[1/19] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[2/19] generating emb/storage.h from the layout probe
+[3/19] Building C object CMakeFiles/emb_host_abi.dir/tools/toolchain/native_abi.c.o
+[4/19] Building C object CMakeFiles/emb_kernel_abi.dir/tools/toolchain/native_abi.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[5/19] Generating generated/abi/kernel.h
+[6/19] Generating generated/abi/host.h
+[7/19] checking GCC/EmbCC native sizes, alignments and member offsets
+FAILED: [code=1] generated/abi/verified /workspace/EmbLinkRTOS/build/embcc-reject-layout/generated/abi/verified
+cd /workspace/EmbLinkRTOS/build/embcc-reject-layout && /workspace/EmbLinkRTOS/.venv/lib/python3.12/site-packages/cmake/data/bin/cmake -E compare_files /workspace/EmbLinkRTOS/build/embcc-reject-layout/generated/abi/host.h /workspace/EmbLinkRTOS/build/embcc-reject-layout/generated/abi/kernel.h && /workspace/EmbLinkRTOS/.venv/lib/python3.12/site-packages/cmake/data/bin/cmake -E touch /workspace/EmbLinkRTOS/build/embcc-reject-layout/generated/abi/verified
+ninja: build stopped: subcommand failed.

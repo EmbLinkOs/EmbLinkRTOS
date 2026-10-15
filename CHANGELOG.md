@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Experimental Linux x86-64 presets for an EmbCC-built kernel with a GCC POSIX host, a build-time ABI layout guard and scoped executed conformance/model evidence.
+
 - Searchable Sphinx documentation with native user tutorials, extracted C API, a design-requirement catalog and downloadable metadata.
 - Strict documentation builds with complete extracted API annotations and integrity checks, plus optional GitHub Pages deployment.
 - Bug/feature issue forms, a pull-request checklist and an ordered M2 implementation checklist.

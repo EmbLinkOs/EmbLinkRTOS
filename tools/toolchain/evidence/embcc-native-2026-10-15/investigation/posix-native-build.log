@@ -1,0 +1,93 @@
+[1/47] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[2/47] generating emb/storage.h from the layout probe
+[3/47] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[4/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[5/47] Building C object kernel/CMakeFiles/emb_kernel.dir/fault/fault.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[6/47] Building C object kernel/CMakeFiles/emb_kernel.dir/trace/trace.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[7/47] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[8/47] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[9/47] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[10/47] Building C object kernel/CMakeFiles/emb_kernel.dir/irq/irq.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[11/47] Building C object kernel/CMakeFiles/emb_kernel.dir/notify/notify.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[12/47] Building C object boards/native/CMakeFiles/emb_board.dir/board.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[13/47] Building C object arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+FAILED: [code=1] arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+/workspace/EmbCC/embcc --target=x86_64-linux-gnu -nostdinc -isystem /usr/include/x86_64-linux-gnu -isystem /usr/include -isystem /usr/lib/gcc/x86_64-linux-gnu/14/include -fgnuc-version=13.0.0 -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -I/workspace/EmbLinkRTOS/arch/native/include -I/workspace/EmbLinkRTOS/include -I/workspace/EmbLinkRTOS/build/embcc-posix-native/generated/include -I/workspace/EmbLinkRTOS/boards/native/native/include -std=c11 -pedantic -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstack-usage -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wvla -Wcast-align -Wcast-qual -Wdouble-promotion -Wformat=2 -Wswitch-default -Wimplicit-fallthrough -Wnull-dereference -Wredundant-decls -Wnested-externs -Werror -pthread -g -O1 -o arch/native/CMakeFiles/emb_arch.dir/native_port.c.o -c /workspace/EmbLinkRTOS/arch/native/native_port.c
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: /usr/include/x86_64-linux-gnu/sys/types.h:164: error: __attribute__((__mode__)) is not supported: the declaration would keep its written type, so a typedef that asks for a specific width would silently get another
+  typedef int register_t __attribute__ ((__mode__ (__word__)));
+embcc: compilation terminated: 1 error
+[14/47] Linking C static library boards/native/libemb_board.a
+[15/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/sem.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[16/47] Building C object tests/framework/CMakeFiles/emb_test.dir/emb_test.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[17/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/mutex.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[18/47] Building C object tests/framework/CMakeFiles/emb_test.dir/platform_native.c.o
+FAILED: [code=1] tests/framework/CMakeFiles/emb_test.dir/platform_native.c.o
+/workspace/EmbCC/embcc --target=x86_64-linux-gnu -nostdinc -isystem /usr/include/x86_64-linux-gnu -isystem /usr/include -isystem /usr/lib/gcc/x86_64-linux-gnu/14/include -fgnuc-version=13.0.0 -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -I/workspace/EmbLinkRTOS/tests/framework/. -I/workspace/EmbLinkRTOS/include -I/workspace/EmbLinkRTOS/build/embcc-posix-native/generated/include -I/workspace/EmbLinkRTOS/arch/native/include -I/workspace/EmbLinkRTOS/boards/native/native/include -std=c11 -pedantic -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstack-usage -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wundef -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wvla -Wcast-align -Wcast-qual -Wdouble-promotion -Wformat=2 -Wswitch-default -Wimplicit-fallthrough -Wnull-dereference -Wredundant-decls -Wnested-externs -Werror -pthread -g -O1 -o tests/framework/CMakeFiles/emb_test.dir/platform_native.c.o -c /workspace/EmbLinkRTOS/tests/framework/platform_native.c
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: /usr/include/x86_64-linux-gnu/sys/types.h:164: error: __attribute__((__mode__)) is not supported: the declaration would keep its written type, so a typedef that asks for a specific width would silently get another
+  typedef int register_t __attribute__ ((__mode__ (__word__)));
+embcc: compilation terminated: 1 error
+ninja: build stopped: subcommand failed.

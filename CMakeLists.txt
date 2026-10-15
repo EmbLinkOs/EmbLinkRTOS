@@ -18,12 +18,14 @@ option(EMB_WERROR "Treat warnings as errors (CODING-STANDARD CS-13.1)" ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(emb_config)      # board lookup, embconfig run, CONFIG_EMB_* variables
+include(emb_native_compiler) # optional explicit EmbCC kernel / GCC host boundary
 include(emb_flags)       # warning set and per-toolchain flags
 include(emb_target)      # emb_add_executable(), footprint targets
 
 add_subdirectory(include)
 add_subdirectory(arch/${CONFIG_EMB_ARCH})
 add_subdirectory(kernel)
+emb_check_native_abi()
 add_subdirectory(${EMB_BOARD_DIR} boards/${EMB_BOARD})
 if(EMB_BUILD_SAMPLES)
   add_subdirectory(samples)

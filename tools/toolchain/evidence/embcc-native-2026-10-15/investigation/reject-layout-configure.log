@@ -1,0 +1,21 @@
+Preset CMake variables:
+
+  CMAKE_TOOLCHAIN_FILE:FILEPATH="/workspace/EmbLinkRTOS/cmake/toolchains/embcc-native-mixed.cmake"
+  EMB_BOARD="native"
+  EMB_PROFILE="base"
+
+-- The C compiler identification is GNU 14.2.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Found Python3: /workspace/EmbLinkRTOS/.venv/bin/python3.12 (found suitable version "3.12.14", minimum required is "3.9") found components: Interpreter
+-- Mixed native build: kernel=/workspace/EmbCC/embcc (EmbCC 1.0.0-m2.complete (the Emb toolchain's C and C++ compiler, for embedded systems and operating systems)); host=/usr/bin/gcc
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- EmbLinkRTOS 0.2.0: board native (native/posix), profile base, checked=1, config 7c33210bd136ab10, compiler GNU 14.2.0
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/EmbLinkRTOS/build/embcc-reject-layout

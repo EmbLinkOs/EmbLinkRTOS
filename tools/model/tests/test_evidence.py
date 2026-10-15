@@ -31,6 +31,24 @@ class Evidence(unittest.TestCase):
             path = evidence.write_bundle(bundle, Path(folder)/"capture.json")
             return evidence.read_bundle(path)
 
+    def test_mixed_compiler_identity_is_read_without_executing_cache_paths(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root/"generated").mkdir()
+            (root/"generated/config.json").write_text(json.dumps({"symbols": {}}))
+            (root/"CMakeCache.txt").write_text(
+                "CMAKE_C_COMPILER:FILEPATH=/unused/host-gcc\n"
+                "EMB_KERNEL_COMPILER:FILEPATH=/unused/embcc\n"
+                "EMB_KERNEL_COMPILER_VERSION:INTERNAL=EmbCC test version\n"
+                "EMB_KERNEL_COMPILER_SHA256:INTERNAL=abc123\n")
+            runner = root/"diff_runner"
+            runner.write_bytes(b"not an executable")
+            cache = evidence.identity(runner)["build"]["cmake_cache"]
+            self.assertEqual(cache["CMAKE_C_COMPILER"], "/unused/host-gcc")
+            self.assertEqual(cache["EMB_KERNEL_COMPILER"], "/unused/embcc")
+            self.assertEqual(cache["EMB_KERNEL_COMPILER_VERSION"], "EmbCC test version")
+            self.assertEqual(cache["EMB_KERNEL_COMPILER_SHA256"], "abc123")
+
     def test_scenarios_roundtrip_without_catalogue_lookup_or_reordering(self):
         for sc in [f() for f in scenarios.ALL] + [bridge.Scenario(
                 threads={17: (1, (bridge.Sleep(None),)), 4: (3, (bridge.Exit(7),))},

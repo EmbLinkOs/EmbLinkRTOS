@@ -1,0 +1,1403 @@
+bridge: runner profile=base owner_death=fault checked=1 tickless=0; 36 scenarios, 40 runs each, seed 5
+  ok   worked_example schedule=[] steps=18 events=20
+  ok   worked_example schedule=[('isr', 0, 1)] steps=6 events=7
+  ok   worked_example schedule=[('tick', 0, 23), ('tick', 0, 34), ('isr', 0, 40)] steps=21 events=25
+  ok   worked_example schedule=[('isr', 0, 2), ('tick', 0, 4), ('tick', 0, 11), ('tick', 0, 16)] steps=9 events=10
+  ok   worked_example schedule=[('isr', 0, 8), ('tick', 0, 16), ('tick', 0, 31)] steps=11 events=13
+  ok   worked_example schedule=[('isr', 0, 25)] steps=14 events=16
+  ok   worked_example schedule=[('tick', 0, 1), ('isr', 0, 37)] steps=19 events=21
+  ok   worked_example schedule=[('tick', 0, 12), ('isr', 0, 14), ('tick', 0, 18), ('tick', 0, 25)] steps=13 events=15
+  ok   worked_example schedule=[('isr', 0, 11)] steps=9 events=11
+  ok   worked_example schedule=[('tick', 0, 1), ('isr', 0, 9), ('tick', 0, 9), ('tick', 0, 9)] steps=12 events=14
+  ok   worked_example schedule=[('isr', 0, 1), ('tick', 0, 14)] steps=7 events=8
+  ok   worked_example schedule=[('isr', 0, 11), ('tick', 0, 19)] steps=10 events=12
+  ok   worked_example schedule=[('isr', 0, 21), ('tick', 0, 35)] steps=14 events=16
+  ok   worked_example schedule=[('tick', 0, 13), ('isr', 0, 14)] steps=11 events=13
+  ok   worked_example schedule=[('tick', 0, 2), ('tick', 0, 24), ('isr', 0, 25)] steps=15 events=17
+  ok   worked_example schedule=[('tick', 0, 10), ('isr', 0, 27)] steps=15 events=17
+  ok   worked_example schedule=[('isr', 0, 17)] steps=11 events=13
+  ok   worked_example schedule=[('isr', 0, 22), ('tick', 0, 38), ('tick', 0, 39)] steps=15 events=17
+  ok   worked_example schedule=[('isr', 0, 1), ('tick', 0, 5), ('tick', 0, 20)] steps=8 events=9
+  ok   worked_example schedule=[('tick', 0, 21), ('isr', 0, 23), ('tick', 0, 31)] steps=15 events=17
+  ok   worked_example schedule=[('tick', 0, 4), ('isr', 0, 12), ('tick', 0, 12), ('tick', 0, 31)] steps=12 events=14
+  ok   worked_example schedule=[('isr', 0, 17)] steps=11 events=13
+  ok   worked_example schedule=[('tick', 0, 2), ('isr', 0, 23), ('tick', 0, 27), ('tick', 0, 36)] steps=16 events=18
+  ok   worked_example schedule=[('tick', 0, 1), ('isr', 0, 24), ('tick', 0, 29), ('tick', 0, 38)] steps=16 events=18
+  ok   worked_example schedule=[('isr', 0, 3), ('tick', 0, 40)] steps=7 events=8
+  ok   worked_example schedule=[('isr', 0, 13)] steps=10 events=12
+  ok   worked_example schedule=[('isr', 0, 16), ('tick', 0, 23), ('tick', 0, 23), ('tick', 0, 33)] steps=14 events=16
+  ok   worked_example schedule=[('tick', 0, 7), ('tick', 0, 30), ('isr', 0, 34)] steps=18 events=20
+  ok   worked_example schedule=[('tick', 0, 3), ('tick', 0, 19), ('isr', 0, 38)] steps=22 events=26
+  ok   worked_example schedule=[('isr', 0, 28)] steps=15 events=17
+  ok   worked_example schedule=[('isr', 0, 14), ('tick', 0, 33), ('tick', 0, 40)] steps=12 events=14
+  ok   worked_example schedule=[('tick', 0, 22), ('isr', 0, 24)] steps=14 events=16
+  ok   worked_example schedule=[('isr', 0, 18)] steps=12 events=14
+  ok   worked_example schedule=[('tick', 0, 12), ('isr', 0, 20), ('tick', 0, 20)] steps=14 events=16
+  ok   worked_example schedule=[('isr', 0, 6), ('tick', 0, 20)] steps=9 events=10
+  ok   worked_example schedule=[('tick', 0, 4), ('isr', 0, 31)] steps=17 events=19
+  ok   worked_example schedule=[('tick', 0, 3), ('isr', 0, 6), ('tick', 0, 16), ('tick', 0, 39)] steps=9 events=10
+  ok   worked_example schedule=[('isr', 0, 23), ('tick', 0, 27), ('tick', 0, 30)] steps=15 events=17
+  ok   worked_example schedule=[('isr', 0, 10)] steps=9 events=11
+  ok   worked_example schedule=[('isr', 0, 3), ('tick', 0, 9), ('tick', 0, 14), ('tick', 0, 22)] steps=9 events=10
+  ok   give_in_window schedule=[] steps=10 events=13
+  ok   give_in_window schedule=[('isr', 0, 1)] steps=3 events=5
+  ok   give_in_window schedule=[('tick', 0, 27), ('isr', 0, 37)] steps=12 events=15
+  ok   give_in_window schedule=[('isr', 0, 7), ('tick', 0, 28)] steps=7 events=10
+  ok   give_in_window schedule=[('tick', 0, 4), ('isr', 0, 24)] steps=11 events=14
+  ok   give_in_window schedule=[('tick', 0, 10), ('isr', 0, 27), ('tick', 0, 30)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 34), ('isr', 0, 40)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 18), ('tick', 0, 21), ('isr', 0, 30), ('tick', 0, 31)] steps=13 events=16
+  ok   give_in_window schedule=[('tick', 0, 8), ('tick', 0, 10), ('isr', 0, 19), ('tick', 0, 26)] steps=12 events=15
+  ok   give_in_window schedule=[('isr', 0, 25), ('tick', 0, 32)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 6), ('isr', 0, 22)] steps=11 events=14
+  ok   give_in_window schedule=[('isr', 0, 32), ('tick', 0, 33), ('tick', 0, 36)] steps=13 events=16
+  ok   give_in_window schedule=[('tick', 0, 5), ('tick', 0, 23), ('isr', 0, 33)] steps=12 events=15
+  ok   give_in_window schedule=[('isr', 0, 38)] steps=11 events=14
+  ok   give_in_window schedule=[('tick', 0, 18), ('isr', 0, 20), ('tick', 0, 36)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 19), ('tick', 0, 22), ('isr', 0, 32)] steps=12 events=15
+  ok   give_in_window schedule=[('isr', 0, 12)] steps=8 events=11
+  ok   give_in_window schedule=[('tick', 0, 18), ('tick', 0, 21), ('isr', 0, 31)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 23), ('isr', 0, 30), ('tick', 0, 33)] steps=13 events=16
+  ok   give_in_window schedule=[('isr', 0, 23), ('tick', 0, 23), ('tick', 0, 27)] steps=13 events=16
+  ok   give_in_window schedule=[('isr', 0, 23), ('tick', 0, 29)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 10), ('isr', 0, 24), ('tick', 0, 34)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 13), ('isr', 0, 34)] steps=11 events=14
+  ok   give_in_window schedule=[('tick', 0, 6), ('tick', 0, 19), ('isr', 0, 24), ('tick', 0, 27)] steps=13 events=16
+  ok   give_in_window schedule=[('isr', 0, 11), ('tick', 0, 20), ('tick', 0, 36), ('tick', 0, 40)] steps=11 events=14
+  ok   give_in_window schedule=[('isr', 0, 18)] steps=10 events=13
+  ok   give_in_window schedule=[('isr', 0, 13), ('tick', 0, 38)] steps=9 events=12
+  ok   give_in_window schedule=[('tick', 0, 15), ('isr', 0, 29)] steps=11 events=14
+  ok   give_in_window schedule=[('isr', 0, 12)] steps=8 events=11
+  ok   give_in_window schedule=[('tick', 0, 11), ('isr', 0, 31)] steps=11 events=14
+  ok   give_in_window schedule=[('isr', 0, 4), ('tick', 0, 8)] steps=6 events=8
+  ok   give_in_window schedule=[('isr', 0, 21), ('tick', 0, 31)] steps=12 events=15
+  ok   give_in_window schedule=[('isr', 0, 13)] steps=8 events=11
+  ok   give_in_window schedule=[('tick', 0, 23), ('tick', 0, 25), ('isr', 0, 27), ('tick', 0, 40)] steps=14 events=17
+  ok   give_in_window schedule=[('isr', 0, 5), ('tick', 0, 16)] steps=6 events=8
+  ok   give_in_window schedule=[('isr', 0, 24)] steps=11 events=14
+  ok   give_in_window schedule=[('tick', 0, 8), ('tick', 0, 18), ('isr', 0, 23), ('tick', 0, 27)] steps=13 events=16
+  ok   give_in_window schedule=[('tick', 0, 3), ('isr', 0, 36), ('tick', 0, 36)] steps=13 events=16
+  ok   give_in_window schedule=[('tick', 0, 7), ('tick', 0, 19), ('isr', 0, 40)] steps=12 events=15
+  ok   give_in_window schedule=[('tick', 0, 19), ('isr', 0, 35), ('tick', 0, 38)] steps=12 events=15
+  ok   two_gives_three_takers schedule=[] steps=17 events=20
+  ok   two_gives_three_takers schedule=[('isr', 0, 1)] steps=15 events=18
+  ok   two_gives_three_takers schedule=[('isr', 1, 1)] steps=15 events=18
+  ok   two_gives_three_takers schedule=[('isr', 1, 9), ('isr', 0, 23), ('tick', 0, 27), ('tick', 0, 35), ('tick', 0, 37)] steps=18 events=21
+  ok   two_gives_three_takers schedule=[('tick', 0, 11), ('isr', 0, 24), ('isr', 1, 30)] steps=21 events=26
+  ok   two_gives_three_takers schedule=[('tick', 0, 9), ('tick', 0, 13), ('isr', 1, 25), ('isr', 0, 39), ('tick', 0, 39)] steps=22 events=28
+  ok   two_gives_three_takers schedule=[('isr', 0, 6), ('isr', 1, 23)] steps=14 events=17
+  ok   two_gives_three_takers schedule=[('isr', 1, 7), ('isr', 0, 25), ('tick', 0, 37), ('tick', 0, 40)] steps=17 events=20
+  ok   two_gives_three_takers schedule=[('isr', 1, 10), ('tick', 0, 25), ('isr', 0, 35), ('tick', 0, 37)] steps=22 events=28
+  ok   two_gives_three_takers schedule=[('isr', 0, 28), ('isr', 1, 28), ('tick', 0, 32)] steps=22 events=27
+  ok   two_gives_three_takers schedule=[('tick', 0, 11), ('isr', 0, 19), ('tick', 0, 25), ('isr', 1, 31), ('tick', 0, 39)] steps=22 events=28
+  ok   two_gives_three_takers schedule=[('isr', 1, 17), ('tick', 0, 17), ('tick', 0, 32), ('isr', 0, 39)] steps=22 events=29
+  ok   two_gives_three_takers schedule=[('isr', 1, 2), ('tick', 0, 20), ('isr', 0, 27), ('tick', 0, 32)] steps=19 events=24
+  ok   two_gives_three_takers schedule=[('tick', 0, 2), ('tick', 0, 8), ('isr', 1, 10), ('isr', 0, 19), ('tick', 0, 40)] steps=17 events=20
+  ok   two_gives_three_takers schedule=[('tick', 0, 3), ('tick', 0, 9), ('isr', 1, 16), ('isr', 0, 29)] steps=18 events=22
+  ok   two_gives_three_takers schedule=[('isr', 1, 1), ('tick', 0, 18), ('isr', 0, 26), ('tick', 0, 35), ('tick', 0, 36)] steps=20 events=25
+  ok   two_gives_three_takers schedule=[('isr', 0, 16), ('isr', 1, 31)] steps=18 events=22
+  ok   two_gives_three_takers schedule=[('tick', 0, 10), ('isr', 0, 16), ('tick', 0, 19), ('isr', 1, 32)] steps=19 events=23
+  ok   two_gives_three_takers schedule=[('tick', 0, 8), ('isr', 0, 19), ('isr', 1, 32), ('tick', 0, 34), ('tick', 0, 39)] steps=21 events=25
+  ok   two_gives_three_takers schedule=[('isr', 0, 2), ('isr', 1, 9), ('tick', 0, 19), ('tick', 0, 35)] steps=11 events=13
+  ok   two_gives_three_takers schedule=[('tick', 0, 2), ('isr', 0, 22), ('tick', 0, 34), ('isr', 1, 40)] steps=22 events=28
+  ok   two_gives_three_takers schedule=[('tick', 0, 9), ('isr', 1, 23), ('isr', 0, 30), ('tick', 0, 38)] steps=19 events=23
+  ok   two_gives_three_takers schedule=[('isr', 1, 1), ('isr', 0, 3), ('tick', 0, 30), ('tick', 0, 36)] steps=11 events=13
+  ok   two_gives_three_takers schedule=[('tick', 0, 1), ('isr', 0, 7), ('isr', 1, 35)] steps=19 events=25
+  ok   two_gives_three_takers schedule=[('tick', 0, 25), ('tick', 0, 26), ('isr', 0, 28), ('isr', 1, 28), ('tick', 0, 31)] steps=23 events=28
+  ok   two_gives_three_takers schedule=[('tick', 0, 1), ('tick', 0, 5), ('isr', 0, 13), ('isr', 1, 19), ('tick', 0, 20)] steps=17 events=20
+  ok   two_gives_three_takers schedule=[('tick', 0, 20), ('isr', 0, 28), ('tick', 0, 31), ('isr', 1, 38)] steps=22 events=27
+  ok   two_gives_three_takers schedule=[('isr', 0, 10), ('isr', 1, 11), ('tick', 0, 22), ('tick', 0, 32), ('tick', 0, 36)] steps=15 events=18
+  ok   two_gives_three_takers schedule=[('tick', 0, 4), ('isr', 1, 10), ('isr', 0, 35), ('tick', 0, 35), ('tick', 0, 38)] steps=23 events=28
+  ok   two_gives_three_takers schedule=[('isr', 0, 5), ('tick', 0, 5), ('tick', 0, 6), ('isr', 1, 15)] steps=13 events=15
+  ok   two_gives_three_takers schedule=[('isr', 0, 2), ('tick', 0, 5), ('isr', 1, 22), ('tick', 0, 26), ('tick', 0, 32)] steps=16 events=19
+  ok   two_gives_three_takers schedule=[('isr', 0, 4), ('isr', 1, 8)] steps=9 events=11
+  ok   two_gives_three_takers schedule=[('isr', 0, 15), ('isr', 1, 40)] steps=21 events=28
+  ok   two_gives_three_takers schedule=[('isr', 0, 9), ('tick', 0, 10), ('tick', 0, 12), ('isr', 1, 19), ('tick', 0, 40)] steps=16 events=18
+  ok   two_gives_three_takers schedule=[('tick', 0, 5), ('isr', 0, 12), ('isr', 1, 27)] steps=17 events=21
+  ok   two_gives_three_takers schedule=[('isr', 1, 14), ('isr', 0, 40)] steps=21 events=28
+  ok   two_gives_three_takers schedule=[('tick', 0, 4), ('tick', 0, 5), ('isr', 1, 7), ('tick', 0, 18), ('isr', 0, 36)] steps=20 events=26
+  ok   two_gives_three_takers schedule=[('isr', 0, 37), ('isr', 1, 37)] steps=21 events=26
+  ok   two_gives_three_takers schedule=[('tick', 0, 1), ('isr', 0, 26), ('isr', 1, 40)] steps=22 events=28
+  ok   two_gives_three_takers schedule=[('isr', 1, 6), ('isr', 0, 28), ('tick', 0, 32), ('tick', 0, 39)] steps=20 events=25
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 4), ('tick', 0, 23), ('tick', 0, 24)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 19)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 37)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 36), ('tick', 0, 36)] steps=8 events=9
+  ok   cancel_variants schedule=[('tick', 0, 17)] steps=7 events=8
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 17)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 9), ('tick', 0, 34)] steps=8 events=9
+  ok   cancel_variants schedule=[('tick', 0, 24)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 9), ('tick', 0, 12), ('tick', 0, 25)] steps=9 events=10
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 6), ('tick', 0, 37)] steps=8 events=9
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 16), ('tick', 0, 25), ('tick', 0, 30)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 7), ('tick', 0, 21), ('tick', 0, 34)] steps=9 events=10
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 4), ('tick', 0, 10), ('tick', 0, 28)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 8)] steps=7 events=8
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 9), ('tick', 0, 14), ('tick', 0, 40)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 16), ('tick', 0, 19), ('tick', 0, 23)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 23), ('tick', 0, 40)] steps=8 events=9
+  ok   cancel_variants schedule=[('tick', 0, 9), ('tick', 0, 23), ('tick', 0, 25)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 24), ('tick', 0, 28)] steps=8 events=9
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 12)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 3), ('tick', 0, 5), ('tick', 0, 7)] steps=9 events=10
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 13)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 3)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 1), ('tick', 0, 23), ('tick', 0, 31)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 20), ('tick', 0, 31), ('tick', 0, 40)] steps=9 events=10
+  ok   cancel_variants schedule=[('tick', 0, 21), ('tick', 0, 30), ('tick', 0, 30)] steps=9 events=10
+  ok   cancel_variants schedule=[] steps=6 events=7
+  ok   cancel_variants schedule=[('tick', 0, 10)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 5)] steps=7 events=8
+  ok   cancel_variants schedule=[('tick', 0, 25), ('tick', 0, 31)] steps=8 events=9
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 36)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 8), ('tick', 0, 18)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 19)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 3)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 3), ('tick', 0, 23), ('tick', 0, 24)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 2), ('tick', 0, 4)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 8), ('tick', 0, 10), ('tick', 0, 31)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 19), ('tick', 0, 30)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 11)] steps=9 events=12
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 2)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 6)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 12), ('tick', 0, 20), ('tick', 0, 24)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 5), ('tick', 0, 19), ('tick', 0, 24)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 11), ('tick', 0, 12), ('tick', 0, 16)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 3)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 1), ('tick', 0, 18), ('tick', 0, 30)] steps=11 events=14
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 3), ('tick', 0, 11), ('tick', 0, 27)] steps=11 events=14
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 5), ('tick', 0, 7)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 32)] steps=9 events=12
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 4), ('tick', 0, 4), ('tick', 0, 16)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 4), ('tick', 0, 4), ('tick', 0, 26)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 27), ('tick', 0, 29)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 3), ('tick', 0, 4)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 12)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 13), ('tick', 0, 15), ('tick', 0, 35)] steps=11 events=14
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 6), ('tick', 0, 7)] steps=10 events=13
+  ok   cancel_blocked schedule=[('tick', 0, 39)] steps=9 events=12
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 40)] steps=9 events=12
+  ok   cancel_blocked schedule=[] steps=8 events=11
+  ok   cancel_blocked schedule=[('tick', 0, 23), ('tick', 0, 32), ('tick', 0, 35)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 25), ('tick', 0, 34), ('tick', 0, 37)] steps=11 events=14
+  ok   cancel_blocked schedule=[('tick', 0, 1)] steps=9 events=12
+  ok   cancel_blocked schedule=[('tick', 0, 15), ('tick', 0, 29)] steps=10 events=13
+  ok   cancel_in_window schedule=[] steps=6 events=5
+  ok   cancel_in_window schedule=[('isr', 0, 1)] steps=7 events=9
+  ok   cancel_in_window schedule=[('isr', 0, 36)] steps=13 events=16
+  ok   cancel_in_window schedule=[('tick', 0, 6), ('isr', 0, 9), ('tick', 0, 31)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 9), ('tick', 0, 9), ('isr', 0, 17), ('tick', 0, 21)] steps=16 events=19
+  ok   cancel_in_window schedule=[('isr', 0, 35)] steps=13 events=16
+  ok   cancel_in_window schedule=[('tick', 0, 6), ('isr', 0, 31)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 18), ('isr', 0, 28)] steps=14 events=17
+  ok   cancel_in_window schedule=[('isr', 0, 4), ('tick', 0, 4), ('tick', 0, 13), ('tick', 0, 16)] steps=10 events=12
+  ok   cancel_in_window schedule=[('tick', 0, 5), ('tick', 0, 7), ('isr', 0, 19)] steps=15 events=18
+  ok   cancel_in_window schedule=[('tick', 0, 25), ('isr', 0, 27), ('tick', 0, 36)] steps=15 events=18
+  ok   cancel_in_window schedule=[('isr', 0, 1), ('tick', 0, 9), ('tick', 0, 37)] steps=9 events=11
+  ok   cancel_in_window schedule=[('isr', 0, 2), ('tick', 0, 2), ('tick', 0, 4), ('tick', 0, 10)] steps=10 events=12
+  ok   cancel_in_window schedule=[('tick', 0, 7), ('tick', 0, 25), ('isr', 0, 28)] steps=15 events=18
+  ok   cancel_in_window schedule=[('tick', 0, 21), ('isr', 0, 36)] steps=14 events=17
+  ok   cancel_in_window schedule=[('isr', 0, 5), ('tick', 0, 9), ('tick', 0, 11)] steps=9 events=11
+  ok   cancel_in_window schedule=[('tick', 0, 3), ('isr', 0, 17), ('tick', 0, 19), ('tick', 0, 21)] steps=16 events=19
+  ok   cancel_in_window schedule=[('isr', 0, 5)] steps=7 events=9
+  ok   cancel_in_window schedule=[('isr', 0, 2)] steps=7 events=9
+  ok   cancel_in_window schedule=[('isr', 0, 4), ('tick', 0, 23)] steps=8 events=10
+  ok   cancel_in_window schedule=[('tick', 0, 2), ('isr', 0, 28), ('tick', 0, 40)] steps=15 events=18
+  ok   cancel_in_window schedule=[('tick', 0, 9), ('tick', 0, 13), ('isr', 0, 15), ('tick', 0, 24)] steps=16 events=19
+  ok   cancel_in_window schedule=[('tick', 0, 1), ('tick', 0, 11), ('isr', 0, 22)] steps=15 events=18
+  ok   cancel_in_window schedule=[('tick', 0, 7), ('isr', 0, 38)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 10), ('isr', 0, 18)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 8), ('tick', 0, 22), ('tick', 0, 28), ('isr', 0, 29)] steps=16 events=19
+  ok   cancel_in_window schedule=[('tick', 0, 15), ('isr', 0, 21), ('tick', 0, 30), ('tick', 0, 39)] steps=16 events=19
+  ok   cancel_in_window schedule=[('isr', 0, 28), ('tick', 0, 29)] steps=14 events=17
+  ok   cancel_in_window schedule=[('isr', 0, 4), ('tick', 0, 35)] steps=8 events=10
+  ok   cancel_in_window schedule=[('tick', 0, 1), ('tick', 0, 7), ('isr', 0, 31), ('tick', 0, 39)] steps=16 events=19
+  ok   cancel_in_window schedule=[('tick', 0, 1), ('tick', 0, 4), ('isr', 0, 9), ('tick', 0, 14)] steps=13 events=16
+  ok   cancel_in_window schedule=[('isr', 0, 3), ('tick', 0, 31)] steps=8 events=10
+  ok   cancel_in_window schedule=[('tick', 0, 13), ('tick', 0, 14), ('isr', 0, 23), ('tick', 0, 30)] steps=16 events=19
+  ok   cancel_in_window schedule=[('isr', 0, 18), ('tick', 0, 20)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 16), ('tick', 0, 24), ('isr', 0, 36)] steps=15 events=18
+  ok   cancel_in_window schedule=[('tick', 0, 4), ('isr', 0, 23)] steps=14 events=17
+  ok   cancel_in_window schedule=[('tick', 0, 10), ('tick', 0, 23), ('tick', 0, 26), ('isr', 0, 40)] steps=16 events=19
+  ok   cancel_in_window schedule=[('isr', 0, 10), ('tick', 0, 32)] steps=14 events=17
+  ok   cancel_in_window schedule=[('isr', 0, 25)] steps=13 events=16
+  ok   cancel_in_window schedule=[('isr', 0, 7), ('tick', 0, 26)] steps=11 events=14
+  ok   suspend_while_waiting schedule=[] steps=19 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 1)] steps=16 events=17
+  ok   suspend_while_waiting schedule=[('isr', 0, 7), ('tick', 0, 13), ('tick', 0, 21)] steps=17 events=18
+  ok   suspend_while_waiting schedule=[('tick', 0, 6), ('isr', 0, 31), ('tick', 0, 35), ('tick', 0, 40)] steps=22 events=23
+  ok   suspend_while_waiting schedule=[('tick', 0, 1), ('tick', 0, 7), ('isr', 0, 13), ('tick', 0, 33)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('tick', 0, 25), ('isr', 0, 39)] steps=20 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 2), ('tick', 0, 2), ('tick', 0, 40)] steps=18 events=19
+  ok   suspend_while_waiting schedule=[('isr', 0, 20), ('tick', 0, 31), ('tick', 0, 33), ('tick', 0, 35)] steps=22 events=23
+  ok   suspend_while_waiting schedule=[('tick', 0, 4), ('isr', 0, 26), ('tick', 0, 36), ('tick', 0, 38)] steps=22 events=23
+  ok   suspend_while_waiting schedule=[('tick', 0, 27), ('isr', 0, 35)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 24)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('tick', 0, 19), ('isr', 0, 34)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 19)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('isr', 0, 2)] steps=16 events=17
+  ok   suspend_while_waiting schedule=[('tick', 0, 1), ('tick', 0, 18), ('tick', 0, 20), ('isr', 0, 23)] steps=22 events=23
+  ok   suspend_while_waiting schedule=[('isr', 0, 16)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('isr', 0, 3)] steps=16 events=17
+  ok   suspend_while_waiting schedule=[('isr', 0, 20), ('tick', 0, 39), ('tick', 0, 40)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('tick', 0, 31), ('isr', 0, 36)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 34)] steps=19 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 8), ('tick', 0, 22)] steps=17 events=18
+  ok   suspend_while_waiting schedule=[('tick', 0, 1), ('tick', 0, 25), ('tick', 0, 26), ('isr', 0, 35)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 25), ('tick', 0, 34)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 14), ('tick', 0, 21), ('tick', 0, 25)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 7), ('tick', 0, 7), ('tick', 0, 16)] steps=17 events=18
+  ok   suspend_while_waiting schedule=[('isr', 0, 14), ('tick', 0, 18), ('tick', 0, 20)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 40)] steps=20 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 11)] steps=18 events=19
+  ok   suspend_while_waiting schedule=[('tick', 0, 15), ('isr', 0, 27)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 5), ('tick', 0, 15), ('tick', 0, 27), ('tick', 0, 28)] steps=18 events=19
+  ok   suspend_while_waiting schedule=[('tick', 0, 20), ('isr', 0, 31)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('tick', 0, 6), ('isr', 0, 27), ('tick', 0, 39)] steps=21 events=22
+  ok   suspend_while_waiting schedule=[('isr', 0, 22), ('tick', 0, 27)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('isr', 0, 2), ('tick', 0, 8)] steps=17 events=18
+  ok   suspend_while_waiting schedule=[('isr', 0, 19), ('tick', 0, 28)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('tick', 0, 7), ('isr', 0, 13), ('tick', 0, 39)] steps=21 events=23
+  ok   suspend_while_waiting schedule=[('isr', 0, 22)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('isr', 0, 4), ('tick', 0, 5), ('tick', 0, 9), ('tick', 0, 34)] steps=19 events=20
+  ok   suspend_while_waiting schedule=[('isr', 0, 21), ('tick', 0, 30)] steps=20 events=21
+  ok   suspend_while_waiting schedule=[('isr', 0, 25), ('tick', 0, 40)] steps=20 events=21
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 1), ('tick', 0, 7), ('tick', 0, 13)] steps=13 events=14
+  ok   destroy_with_waiters schedule=[('tick', 0, 8)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 10), ('tick', 0, 24)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 12), ('tick', 0, 21), ('tick', 0, 36)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 5), ('tick', 0, 7)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 14)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 12), ('tick', 0, 24)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 6), ('tick', 0, 16), ('tick', 0, 26)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 1), ('tick', 0, 8), ('tick', 0, 25)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 1), ('tick', 0, 9)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 5), ('tick', 0, 22), ('tick', 0, 25)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 2), ('tick', 0, 8), ('tick', 0, 19)] steps=13 events=14
+  ok   destroy_with_waiters schedule=[('tick', 0, 13), ('tick', 0, 22), ('tick', 0, 23)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 10), ('tick', 0, 19), ('tick', 0, 32)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 22), ('tick', 0, 27)] steps=10 events=11
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 4), ('tick', 0, 15), ('tick', 0, 27)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 18)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 18)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 12), ('tick', 0, 28), ('tick', 0, 35)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 6), ('tick', 0, 16), ('tick', 0, 29)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 6), ('tick', 0, 9)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 24)] steps=10 events=11
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 30), ('tick', 0, 36)] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 4), ('tick', 0, 6), ('tick', 0, 34)] steps=12 events=13
+  ok   destroy_with_waiters schedule=[('tick', 0, 13)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[('tick', 0, 1), ('tick', 0, 31), ('tick', 0, 34)] steps=11 events=12
+  ok   destroy_with_waiters schedule=[] steps=10 events=11
+  ok   destroy_with_waiters schedule=[('tick', 0, 31), ('tick', 0, 39)] steps=10 events=11
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 26)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 38), ('tick', 0, 38), ('tick', 0, 40)] steps=28 events=29
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 2)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 25), ('tick', 0, 27), ('tick', 0, 28)] steps=28 events=29
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 22)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 20)] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 28)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 14), ('tick', 0, 26)] steps=19 events=20
+  ok   requeue_on_priority_change schedule=[('tick', 0, 9), ('tick', 0, 13), ('tick', 0, 18)] steps=17 events=17
+  ok   requeue_on_priority_change schedule=[('tick', 0, 1), ('tick', 0, 19), ('tick', 0, 24)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 30)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 3), ('tick', 0, 10), ('tick', 0, 27)] steps=28 events=29
+  ok   requeue_on_priority_change schedule=[('tick', 0, 2)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 21), ('tick', 0, 30), ('tick', 0, 39)] steps=28 events=29
+  ok   requeue_on_priority_change schedule=[('tick', 0, 30)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 5)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 2), ('tick', 0, 40)] steps=27 events=28
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 28)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 9), ('tick', 0, 24)] steps=27 events=28
+  ok   requeue_on_priority_change schedule=[('tick', 0, 10), ('tick', 0, 14)] steps=17 events=18
+  ok   requeue_on_priority_change schedule=[('tick', 0, 34), ('tick', 0, 36)] steps=27 events=28
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[('tick', 0, 7), ('tick', 0, 8)] steps=27 events=28
+  ok   requeue_on_priority_change schedule=[('tick', 0, 20), ('tick', 0, 24), ('tick', 0, 24)] steps=27 events=28
+  ok   requeue_on_priority_change schedule=[('tick', 0, 29), ('tick', 0, 36), ('tick', 0, 38)] steps=28 events=29
+  ok   requeue_on_priority_change schedule=[('tick', 0, 37)] steps=26 events=27
+  ok   requeue_on_priority_change schedule=[('tick', 0, 17)] steps=22 events=23
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   requeue_on_priority_change schedule=[] steps=25 events=26
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 9), ('tick', 0, 16), ('tick', 0, 31)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 27)] steps=10 events=11
+  ok   give_under_sched_lock schedule=[('tick', 0, 33)] steps=10 events=11
+  ok   give_under_sched_lock schedule=[('tick', 0, 20)] steps=10 events=11
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 3)] steps=10 events=11
+  ok   give_under_sched_lock schedule=[('tick', 0, 2), ('tick', 0, 23), ('tick', 0, 36)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 29), ('tick', 0, 29)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 34), ('tick', 0, 37)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 38), ('tick', 0, 39)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 11), ('tick', 0, 20), ('tick', 0, 25)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 4), ('tick', 0, 14), ('tick', 0, 34)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 7), ('tick', 0, 20), ('tick', 0, 33)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 9), ('tick', 0, 27)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 5), ('tick', 0, 23), ('tick', 0, 32)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 37)] steps=10 events=11
+  ok   give_under_sched_lock schedule=[('tick', 0, 3), ('tick', 0, 4), ('tick', 0, 6)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 10), ('tick', 0, 24)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 17), ('tick', 0, 18)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 8), ('tick', 0, 10), ('tick', 0, 17)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 2), ('tick', 0, 17)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[('tick', 0, 11), ('tick', 0, 16), ('tick', 0, 17)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 9), ('tick', 0, 12), ('tick', 0, 39)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 8), ('tick', 0, 36)] steps=11 events=12
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 3), ('tick', 0, 32), ('tick', 0, 40)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[] steps=9 events=10
+  ok   give_under_sched_lock schedule=[('tick', 0, 8), ('tick', 0, 27), ('tick', 0, 34)] steps=12 events=13
+  ok   give_under_sched_lock schedule=[('tick', 0, 15), ('tick', 0, 37), ('tick', 0, 40)] steps=12 events=13
+  ok   preempted_goes_ahead schedule=[] steps=11 events=12
+  ok   preempted_goes_ahead schedule=[('isr', 0, 1)] steps=11 events=14
+  ok   preempted_goes_ahead schedule=[('isr', 0, 35)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('isr', 0, 5)] steps=11 events=14
+  ok   preempted_goes_ahead schedule=[('isr', 0, 3)] steps=11 events=14
+  ok   preempted_goes_ahead schedule=[('isr', 0, 30), ('tick', 0, 34), ('tick', 0, 35)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 5), ('tick', 0, 8), ('tick', 0, 26)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('isr', 0, 20), ('tick', 0, 20), ('tick', 0, 30)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 20)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('tick', 0, 10), ('isr', 0, 21), ('tick', 0, 25), ('tick', 0, 30)] steps=17 events=21
+  ok   preempted_goes_ahead schedule=[('isr', 0, 14), ('tick', 0, 21), ('tick', 0, 40)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('tick', 0, 6), ('tick', 0, 10), ('isr', 0, 14), ('tick', 0, 23)] steps=17 events=21
+  ok   preempted_goes_ahead schedule=[('isr', 0, 6), ('tick', 0, 29), ('tick', 0, 34), ('tick', 0, 40)] steps=14 events=17
+  ok   preempted_goes_ahead schedule=[('tick', 0, 13), ('isr', 0, 26)] steps=15 events=19
+  ok   preempted_goes_ahead schedule=[('isr', 0, 9), ('tick', 0, 11), ('tick', 0, 29), ('tick', 0, 33)] steps=17 events=21
+  ok   preempted_goes_ahead schedule=[('tick', 0, 2), ('tick', 0, 10), ('isr', 0, 37)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 28), ('tick', 0, 32), ('tick', 0, 37)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 33), ('tick', 0, 36)] steps=15 events=19
+  ok   preempted_goes_ahead schedule=[('isr', 0, 16), ('tick', 0, 27)] steps=15 events=19
+  ok   preempted_goes_ahead schedule=[('tick', 0, 19), ('tick', 0, 21), ('isr', 0, 36)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 40)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('isr', 0, 13), ('tick', 0, 23), ('tick', 0, 28)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('tick', 0, 6), ('tick', 0, 32), ('isr', 0, 34)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 8)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('isr', 0, 22)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('isr', 0, 7), ('tick', 0, 12), ('tick', 0, 38)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('isr', 0, 4), ('tick', 0, 12), ('tick', 0, 17), ('tick', 0, 22)] steps=14 events=17
+  ok   preempted_goes_ahead schedule=[('isr', 0, 7), ('tick', 0, 7), ('tick', 0, 20), ('tick', 0, 22)] steps=14 events=17
+  ok   preempted_goes_ahead schedule=[('isr', 0, 5), ('tick', 0, 22), ('tick', 0, 27)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('isr', 0, 27)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('isr', 0, 5), ('tick', 0, 5), ('tick', 0, 12)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('isr', 0, 3)] steps=11 events=14
+  ok   preempted_goes_ahead schedule=[('tick', 0, 7), ('tick', 0, 27), ('tick', 0, 30), ('isr', 0, 33)] steps=17 events=21
+  ok   preempted_goes_ahead schedule=[('isr', 0, 5), ('tick', 0, 27)] steps=12 events=15
+  ok   preempted_goes_ahead schedule=[('isr', 0, 2), ('tick', 0, 7), ('tick', 0, 33)] steps=13 events=16
+  ok   preempted_goes_ahead schedule=[('tick', 0, 5), ('isr', 0, 21), ('tick', 0, 30)] steps=16 events=20
+  ok   preempted_goes_ahead schedule=[('isr', 0, 25)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('tick', 0, 8), ('isr', 0, 11)] steps=15 events=19
+  ok   preempted_goes_ahead schedule=[('isr', 0, 40)] steps=14 events=18
+  ok   preempted_goes_ahead schedule=[('isr', 0, 6), ('tick', 0, 8), ('tick', 0, 18), ('tick', 0, 28)] steps=14 events=17
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 30), ('tick', 0, 36)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 3), ('tick', 0, 14), ('tick', 0, 33)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 25)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 13)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 5), ('tick', 0, 34)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 20)] steps=5 events=6
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 20), ('tick', 0, 29), ('tick', 0, 36)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 11), ('tick', 0, 19)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 30), ('tick', 0, 31)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 7), ('tick', 0, 9), ('tick', 0, 39)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 30)] steps=5 events=6
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 9), ('tick', 0, 15), ('tick', 0, 16)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 6)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 17), ('tick', 0, 30), ('tick', 0, 40)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 31)] steps=5 events=6
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 17), ('tick', 0, 38)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 4), ('tick', 0, 35)] steps=6 events=7
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 2)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 37), ('tick', 0, 38)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 32), ('tick', 0, 34), ('tick', 0, 39)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 22), ('tick', 0, 39)] steps=6 events=7
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 9), ('tick', 0, 34)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 19), ('tick', 0, 24), ('tick', 0, 27)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 19)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 3)] steps=5 events=6
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   no_wait_path schedule=[('tick', 0, 11), ('tick', 0, 20), ('tick', 0, 27)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 27), ('tick', 0, 38)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 22), ('tick', 0, 33), ('tick', 0, 34)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 1), ('tick', 0, 40)] steps=6 events=7
+  ok   no_wait_path schedule=[('tick', 0, 37)] steps=5 events=6
+  ok   no_wait_path schedule=[('tick', 0, 1), ('tick', 0, 31), ('tick', 0, 35)] steps=7 events=8
+  ok   no_wait_path schedule=[('tick', 0, 3), ('tick', 0, 15), ('tick', 0, 24)] steps=7 events=8
+  ok   no_wait_path schedule=[] steps=4 events=5
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 8), ('tick', 0, 11), ('tick', 0, 13)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 33)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[('tick', 0, 26)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 15), ('tick', 0, 18), ('tick', 0, 27)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 16)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 28), ('tick', 0, 38)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 7), ('tick', 0, 15)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 36), ('tick', 0, 39)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 4), ('tick', 0, 17), ('tick', 0, 34)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 28)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 1), ('tick', 0, 13), ('tick', 0, 13)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 30)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[('tick', 0, 19), ('tick', 0, 31), ('tick', 0, 31)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 39), ('tick', 0, 40), ('tick', 0, 40)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 2)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[('tick', 0, 5), ('tick', 0, 13), ('tick', 0, 33)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 7), ('tick', 0, 13)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 6), ('tick', 0, 12)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 26)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 4), ('tick', 0, 13), ('tick', 0, 20)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 8), ('tick', 0, 11), ('tick', 0, 26)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 9), ('tick', 0, 13), ('tick', 0, 14)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[('tick', 0, 10), ('tick', 0, 27), ('tick', 0, 29)] steps=10 events=8
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 30), ('tick', 0, 34)] steps=9 events=7
+  ok   sleep_and_cancel schedule=[('tick', 0, 18)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[] steps=7 events=5
+  ok   sleep_and_cancel schedule=[('tick', 0, 28)] steps=8 events=6
+  ok   sleep_and_cancel schedule=[('tick', 0, 13), ('tick', 0, 29), ('tick', 0, 36)] steps=10 events=8
+  ok   binding_hook schedule=[] steps=10 events=13
+  ok   binding_hook schedule=[('isr', 0, 1)] steps=5 events=8
+  ok   binding_hook schedule=[('isr', 0, 13), ('tick', 0, 17), ('tick', 0, 38)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 3), ('tick', 0, 35)] steps=6 events=9
+  ok   binding_hook schedule=[('tick', 0, 7), ('isr', 0, 11), ('tick', 0, 39)] steps=10 events=13
+  ok   binding_hook schedule=[('tick', 0, 10), ('tick', 0, 19), ('isr', 0, 28)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 12)] steps=9 events=12
+  ok   binding_hook schedule=[('tick', 0, 28), ('isr', 0, 35)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 7)] steps=7 events=9
+  ok   binding_hook schedule=[('tick', 0, 6), ('tick', 0, 21), ('tick', 0, 32), ('isr', 0, 36)] steps=13 events=16
+  ok   binding_hook schedule=[('tick', 0, 1), ('tick', 0, 4), ('isr', 0, 10)] steps=10 events=13
+  ok   binding_hook schedule=[('tick', 0, 17), ('tick', 0, 31), ('isr', 0, 39)] steps=12 events=15
+  ok   binding_hook schedule=[('tick', 0, 22), ('tick', 0, 35), ('isr', 0, 37), ('tick', 0, 39)] steps=14 events=17
+  ok   binding_hook schedule=[('tick', 0, 26), ('isr', 0, 27)] steps=12 events=15
+  ok   binding_hook schedule=[('tick', 0, 2), ('tick', 0, 15), ('isr', 0, 28), ('tick', 0, 31)] steps=13 events=16
+  ok   binding_hook schedule=[('isr', 0, 19)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 33)] steps=11 events=14
+  ok   binding_hook schedule=[('tick', 0, 6), ('tick', 0, 15), ('isr', 0, 35), ('tick', 0, 39)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 21)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 6), ('tick', 0, 12), ('tick', 0, 27)] steps=9 events=11
+  ok   binding_hook schedule=[('tick', 0, 3), ('tick', 0, 20), ('isr', 0, 21)] steps=13 events=16
+  ok   binding_hook schedule=[('isr', 0, 8)] steps=8 events=11
+  ok   binding_hook schedule=[('isr', 0, 6)] steps=7 events=9
+  ok   binding_hook schedule=[('tick', 0, 14), ('tick', 0, 20), ('tick', 0, 29), ('isr', 0, 32)] steps=13 events=16
+  ok   binding_hook schedule=[('isr', 0, 10), ('tick', 0, 18), ('tick', 0, 29), ('tick', 0, 40)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 37)] steps=11 events=14
+  ok   binding_hook schedule=[('tick', 0, 19), ('isr', 0, 34)] steps=12 events=15
+  ok   binding_hook schedule=[('tick', 0, 5), ('isr', 0, 6), ('tick', 0, 25)] steps=7 events=10
+  ok   binding_hook schedule=[('tick', 0, 7), ('tick', 0, 11), ('isr', 0, 19), ('tick', 0, 23)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 28)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 22), ('tick', 0, 23)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 7), ('tick', 0, 7), ('tick', 0, 21), ('tick', 0, 32)] steps=10 events=12
+  ok   binding_hook schedule=[('isr', 0, 21)] steps=11 events=14
+  ok   binding_hook schedule=[('isr', 0, 29)] steps=11 events=14
+  ok   binding_hook schedule=[('tick', 0, 19), ('isr', 0, 39)] steps=12 events=15
+  ok   binding_hook schedule=[('isr', 0, 20), ('tick', 0, 30), ('tick', 0, 33)] steps=13 events=16
+  ok   binding_hook schedule=[('tick', 0, 33), ('tick', 0, 33), ('isr', 0, 34)] steps=13 events=16
+  ok   binding_hook schedule=[('isr', 0, 6), ('tick', 0, 13), ('tick', 0, 27), ('tick', 0, 40)] steps=10 events=12
+  ok   binding_hook schedule=[('tick', 0, 5), ('tick', 0, 8), ('tick', 0, 9), ('isr', 0, 26)] steps=12 events=15
+  ok   binding_hook schedule=[('tick', 0, 3), ('tick', 0, 20), ('isr', 0, 29)] steps=13 events=16
+  skip bitmap_queue: BITMAP queues need the tiny profile
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 27), ('tick', 0, 39)] steps=22 events=21
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 1)] steps=21 events=20
+  ok   classic_inversion schedule=[('tick', 0, 3), ('tick', 0, 10), ('tick', 0, 20)] steps=22 events=21
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 19), ('tick', 0, 19)] steps=21 events=20
+  ok   classic_inversion schedule=[('tick', 0, 3), ('tick', 0, 15), ('tick', 0, 28)] steps=21 events=20
+  ok   classic_inversion schedule=[('tick', 0, 11), ('tick', 0, 19), ('tick', 0, 22)] steps=23 events=23
+  ok   classic_inversion schedule=[('tick', 0, 30), ('tick', 0, 30), ('tick', 0, 40)] steps=23 events=22
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 24)] steps=21 events=20
+  ok   classic_inversion schedule=[('tick', 0, 6), ('tick', 0, 21), ('tick', 0, 40)] steps=22 events=21
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 18), ('tick', 0, 22), ('tick', 0, 24)] steps=22 events=21
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 17), ('tick', 0, 26), ('tick', 0, 29)] steps=22 events=21
+  ok   classic_inversion schedule=[('tick', 0, 10)] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 12), ('tick', 0, 18), ('tick', 0, 23)] steps=23 events=23
+  ok   classic_inversion schedule=[('tick', 0, 27)] steps=21 events=20
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 13), ('tick', 0, 17), ('tick', 0, 21)] steps=23 events=23
+  ok   classic_inversion schedule=[('tick', 0, 28)] steps=21 events=20
+  ok   classic_inversion schedule=[('tick', 0, 8), ('tick', 0, 19), ('tick', 0, 25)] steps=22 events=21
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 13)] steps=21 events=21
+  ok   classic_inversion schedule=[('tick', 0, 16), ('tick', 0, 32), ('tick', 0, 38)] steps=25 events=25
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 7), ('tick', 0, 22)] steps=22 events=21
+  ok   classic_inversion schedule=[('tick', 0, 23), ('tick', 0, 40)] steps=22 events=21
+  ok   classic_inversion schedule=[('tick', 0, 1)] steps=21 events=20
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 32)] steps=21 events=20
+  ok   classic_inversion schedule=[] steps=20 events=19
+  ok   classic_inversion schedule=[('tick', 0, 31), ('tick', 0, 34)] steps=22 events=21
+  ok   classic_inversion schedule=[('tick', 0, 3)] steps=21 events=20
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 22)] steps=16 events=16
+  ok   nested_chain_timeout schedule=[('tick', 0, 15), ('tick', 0, 24)] steps=13 events=12
+  ok   nested_chain_timeout schedule=[('tick', 0, 2), ('tick', 0, 3), ('tick', 0, 8)] steps=30 events=32
+  ok   nested_chain_timeout schedule=[('tick', 0, 7)] steps=28 events=30
+  ok   nested_chain_timeout schedule=[('tick', 0, 8), ('tick', 0, 16)] steps=12 events=12
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 17), ('tick', 0, 22)] steps=14 events=15
+  ok   nested_chain_timeout schedule=[('tick', 0, 11), ('tick', 0, 18), ('tick', 0, 20)] steps=15 events=15
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 12), ('tick', 0, 16), ('tick', 0, 32)] steps=12 events=12
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 15), ('tick', 0, 31)] steps=13 events=12
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 25)] steps=16 events=16
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 3), ('tick', 0, 32)] steps=28 events=30
+  ok   nested_chain_timeout schedule=[('tick', 0, 1), ('tick', 0, 30)] steps=28 events=30
+  ok   nested_chain_timeout schedule=[('tick', 0, 8)] steps=16 events=15
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 21)] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 16), ('tick', 0, 40)] steps=27 events=27
+  ok   nested_chain_timeout schedule=[('tick', 0, 1), ('tick', 0, 1), ('tick', 0, 38)] steps=29 events=30
+  ok   nested_chain_timeout schedule=[('tick', 0, 26), ('tick', 0, 34)] steps=16 events=16
+  ok   nested_chain_timeout schedule=[('tick', 0, 18), ('tick', 0, 21)] steps=14 events=15
+  ok   nested_chain_timeout schedule=[('tick', 0, 38)] steps=27 events=28
+  ok   nested_chain_timeout schedule=[('tick', 0, 10), ('tick', 0, 29)] steps=17 events=16
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 15)] steps=13 events=12
+  ok   nested_chain_timeout schedule=[] steps=27 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 6), ('tick', 0, 15)] steps=13 events=11
+  ok   nested_chain_timeout schedule=[('tick', 0, 14)] steps=12 events=10
+  ok   nested_chain_timeout schedule=[('tick', 0, 14), ('tick', 0, 19), ('tick', 0, 38)] steps=18 events=18
+  ok   nested_chain_timeout schedule=[('tick', 0, 14)] steps=12 events=10
+  ok   nested_chain_timeout schedule=[('tick', 0, 8)] steps=16 events=15
+  ok   nested_chain_timeout schedule=[('tick', 0, 15), ('tick', 0, 20), ('tick', 0, 29)] steps=12 events=13
+  ok   nested_chain_timeout schedule=[('tick', 0, 6), ('tick', 0, 39)] steps=28 events=29
+  ok   nested_chain_timeout schedule=[('tick', 0, 38)] steps=27 events=28
+  ok   nested_chain_timeout schedule=[('tick', 0, 7), ('tick', 0, 23), ('tick', 0, 35)] steps=17 events=17
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 1), ('tick', 0, 20), ('tick', 0, 34)] steps=15 events=14
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 39)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 20)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 18), ('tick', 0, 31), ('tick', 0, 39)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 9), ('tick', 0, 13)] steps=15 events=17
+  ok   deadlock_two_lockers schedule=[('tick', 0, 13), ('tick', 0, 36), ('tick', 0, 36)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 12), ('tick', 0, 19), ('tick', 0, 35)] steps=11 events=11
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 18)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 18)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 6), ('tick', 0, 18), ('tick', 0, 23)] steps=15 events=14
+  ok   deadlock_two_lockers schedule=[('tick', 0, 8), ('tick', 0, 40)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 2)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 18)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 5), ('tick', 0, 17), ('tick', 0, 29)] steps=15 events=14
+  ok   deadlock_two_lockers schedule=[('tick', 0, 10), ('tick', 0, 26), ('tick', 0, 32)] steps=17 events=20
+  ok   deadlock_two_lockers schedule=[('tick', 0, 4), ('tick', 0, 31), ('tick', 0, 35)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 3), ('tick', 0, 39), ('tick', 0, 40)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 33)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 22), ('tick', 0, 33)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 24)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 11), ('tick', 0, 40), ('tick', 0, 40)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 15), ('tick', 0, 37), ('tick', 0, 40)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 15), ('tick', 0, 27)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 12), ('tick', 0, 31), ('tick', 0, 34)] steps=11 events=11
+  ok   deadlock_two_lockers schedule=[('tick', 0, 29), ('tick', 0, 31), ('tick', 0, 32)] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 16)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 10), ('tick', 0, 15)] steps=16 events=19
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[('tick', 0, 1), ('tick', 0, 30), ('tick', 0, 35)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 1)] steps=14 events=13
+  ok   deadlock_two_lockers schedule=[('tick', 0, 8), ('tick', 0, 9), ('tick', 0, 40)] steps=15 events=14
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   deadlock_two_lockers schedule=[] steps=13 events=12
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 8), ('tick', 0, 12), ('tick', 0, 29)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 28), ('tick', 0, 35)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 11), ('tick', 0, 15)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 32), ('tick', 0, 33), ('tick', 0, 36)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 4), ('tick', 0, 38)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 1), ('tick', 0, 32)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 13)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 18), ('tick', 0, 20)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 16)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 5), ('tick', 0, 32), ('tick', 0, 37)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 15), ('tick', 0, 22), ('tick', 0, 27)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 14), ('tick', 0, 24)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 1), ('tick', 0, 8), ('tick', 0, 21)] steps=6 events=5
+  ok   owner_death_with_waiter schedule=[('tick', 0, 16)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 16), ('tick', 0, 19)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 16), ('tick', 0, 19)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 8), ('tick', 0, 17), ('tick', 0, 35)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 3), ('tick', 0, 10)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 10), ('tick', 0, 20), ('tick', 0, 35)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 21)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 3), ('tick', 0, 12)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 1), ('tick', 0, 25), ('tick', 0, 28)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 26), ('tick', 0, 34)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 20), ('tick', 0, 36)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 9), ('tick', 0, 10), ('tick', 0, 24)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 6), ('tick', 0, 18)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 1), ('tick', 0, 28), ('tick', 0, 34)] steps=5 events=4
+  ok   owner_death_with_waiter schedule=[('tick', 0, 20), ('tick', 0, 31), ('tick', 0, 31)] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[] steps=4 events=3
+  ok   owner_death_with_waiter schedule=[('tick', 0, 5), ('tick', 0, 34)] steps=5 events=4
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 28)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 33)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 13), ('tick', 0, 31), ('tick', 0, 34)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 10), ('tick', 0, 13)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 1), ('tick', 0, 27), ('tick', 0, 30)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 15), ('tick', 0, 36)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 17), ('tick', 0, 32)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 15)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 5), ('tick', 0, 17), ('tick', 0, 31)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 6), ('tick', 0, 40)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 3), ('tick', 0, 28)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 4), ('tick', 0, 4), ('tick', 0, 12)] steps=5 events=5
+  ok   owner_death_no_waiter schedule=[('tick', 0, 28)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 14)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 5), ('tick', 0, 16)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 12), ('tick', 0, 15), ('tick', 0, 29)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 9), ('tick', 0, 29), ('tick', 0, 37)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 24)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 8), ('tick', 0, 20), ('tick', 0, 30)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 21), ('tick', 0, 24), ('tick', 0, 39)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 5)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 20), ('tick', 0, 24)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 23), ('tick', 0, 24)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 15)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 24), ('tick', 0, 27), ('tick', 0, 34)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 27), ('tick', 0, 27)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 39)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 2)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 3), ('tick', 0, 7)] steps=5 events=5
+  ok   owner_death_no_waiter schedule=[('tick', 0, 28)] steps=3 events=3
+  ok   owner_death_no_waiter schedule=[('tick', 0, 8), ('tick', 0, 13), ('tick', 0, 28)] steps=4 events=4
+  ok   owner_death_no_waiter schedule=[('tick', 0, 15), ('tick', 0, 26)] steps=3 events=3
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 15), ('tick', 0, 21), ('tick', 0, 23)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 27)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 18), ('tick', 0, 20)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 11), ('tick', 0, 15), ('tick', 0, 21)] steps=13 events=14
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 6), ('tick', 0, 15), ('tick', 0, 21)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 6), ('tick', 0, 20), ('tick', 0, 23)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 10), ('tick', 0, 39)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 32), ('tick', 0, 33)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 31)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 26)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 18), ('tick', 0, 38), ('tick', 0, 40)] steps=14 events=15
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 7)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 2), ('tick', 0, 11), ('tick', 0, 33)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 2), ('tick', 0, 17)] steps=12 events=13
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 8), ('tick', 0, 28)] steps=11 events=11
+  ok   ceiling_mutex schedule=[('tick', 0, 12)] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 14), ('tick', 0, 19)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 9), ('tick', 0, 11), ('tick', 0, 39)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 19), ('tick', 0, 26), ('tick', 0, 40)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 17), ('tick', 0, 21), ('tick', 0, 21)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 3), ('tick', 0, 19)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 31), ('tick', 0, 36), ('tick', 0, 39)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 17)] steps=12 events=13
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   ceiling_mutex schedule=[('tick', 0, 7), ('tick', 0, 24), ('tick', 0, 40)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 32)] steps=12 events=13
+  ok   ceiling_mutex schedule=[('tick', 0, 3), ('tick', 0, 31), ('tick', 0, 39)] steps=14 events=15
+  ok   ceiling_mutex schedule=[('tick', 0, 21), ('tick', 0, 37)] steps=13 events=14
+  ok   ceiling_mutex schedule=[('tick', 0, 8), ('tick', 0, 34)] steps=11 events=11
+  ok   ceiling_mutex schedule=[('tick', 0, 38)] steps=12 events=13
+  ok   ceiling_mutex schedule=[] steps=11 events=12
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 5), ('tick', 0, 9), ('tick', 0, 23)] steps=30 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 9), ('tick', 0, 39)] steps=29 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 4)] steps=29 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 8), ('tick', 0, 9), ('tick', 0, 29)] steps=30 events=32
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 29)] steps=28 events=31
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 1), ('tick', 0, 7)] steps=30 events=33
+  ok   waiter_priority_change schedule=[('tick', 0, 38)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 38)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 32), ('tick', 0, 33), ('tick', 0, 38)] steps=29 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 8), ('tick', 0, 15)] steps=26 events=27
+  ok   waiter_priority_change schedule=[('tick', 0, 36)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 24), ('tick', 0, 39), ('tick', 0, 39)] steps=28 events=30
+  ok   waiter_priority_change schedule=[('tick', 0, 2), ('tick', 0, 9), ('tick', 0, 27)] steps=30 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 3), ('tick', 0, 9)] steps=30 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 3), ('tick', 0, 11), ('tick', 0, 27)] steps=30 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 30), ('tick', 0, 38)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 15), ('tick', 0, 27), ('tick', 0, 32)] steps=26 events=28
+  ok   waiter_priority_change schedule=[('tick', 0, 23), ('tick', 0, 31)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 2), ('tick', 0, 8), ('tick', 0, 35)] steps=30 events=33
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 35)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 9), ('tick', 0, 21), ('tick', 0, 22)] steps=29 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 6), ('tick', 0, 18), ('tick', 0, 22)] steps=29 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 5), ('tick', 0, 5), ('tick', 0, 8)] steps=31 events=34
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 5)] steps=29 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 32)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 16), ('tick', 0, 23), ('tick', 0, 25)] steps=31 events=34
+  ok   waiter_priority_change schedule=[('tick', 0, 13), ('tick', 0, 13)] steps=30 events=33
+  ok   waiter_priority_change schedule=[] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 3), ('tick', 0, 18)] steps=29 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 15), ('tick', 0, 25), ('tick', 0, 38)] steps=28 events=30
+  ok   waiter_priority_change schedule=[('tick', 0, 9), ('tick', 0, 38)] steps=29 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 1)] steps=29 events=32
+  ok   waiter_priority_change schedule=[('tick', 0, 29)] steps=28 events=31
+  ok   waiter_priority_change schedule=[('tick', 0, 4)] steps=29 events=32
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 17), ('tick', 0, 32)] steps=23 events=23
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 5), ('tick', 0, 29), ('tick', 0, 32)] steps=23 events=23
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 12), ('tick', 0, 38)] steps=19 events=17
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 7), ('tick', 0, 8)] steps=24 events=23
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 1), ('tick', 0, 16), ('tick', 0, 35)] steps=25 events=28
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 2), ('tick', 0, 16), ('tick', 0, 25)] steps=26 events=29
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 3), ('tick', 0, 8)] steps=24 events=23
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 31)] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 15), ('tick', 0, 18)] steps=15 events=15
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 30), ('tick', 0, 37)] steps=23 events=23
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 16)] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 12)] steps=19 events=17
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 8)] steps=19 events=17
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 2), ('tick', 0, 18), ('tick', 0, 31)] steps=24 events=24
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 1), ('tick', 0, 14), ('tick', 0, 15)] steps=25 events=27
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 10), ('tick', 0, 10), ('tick', 0, 25)] steps=21 events=22
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 12), ('tick', 0, 22)] steps=19 events=17
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 13), ('tick', 0, 17)] steps=16 events=15
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 24), ('tick', 0, 35)] steps=20 events=20
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 28)] steps=21 events=20
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 32)] steps=23 events=23
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 22)] steps=19 events=18
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 34)] steps=23 events=23
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 10), ('tick', 0, 17)] steps=16 events=15
+  ok   cancel_waiter_disinherits schedule=[] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 5), ('tick', 0, 8), ('tick', 0, 34)] steps=25 events=25
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 17)] steps=22 events=21
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 4), ('tick', 0, 18)] steps=23 events=22
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 15), ('tick', 0, 15), ('tick', 0, 31)] steps=15 events=15
+  ok   cancel_waiter_disinherits schedule=[('tick', 0, 11), ('tick', 0, 12), ('tick', 0, 35)] steps=22 events=24
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 13), ('tick', 0, 24)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 2), ('tick', 0, 3), ('tick', 0, 18)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 15), ('tick', 0, 27)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 8), ('tick', 0, 38)] steps=11 events=12
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 21), ('tick', 0, 33), ('tick', 0, 37)] steps=12 events=13
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 30), ('tick', 0, 32)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 6), ('tick', 0, 36), ('tick', 0, 39)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 32), ('tick', 0, 38)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 28)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 3), ('tick', 0, 5)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 22), ('tick', 0, 28)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 17), ('tick', 0, 36)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 7)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 9), ('tick', 0, 17)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 6)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 6)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 24)] steps=10 events=11
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 36)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 18), ('tick', 0, 38)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 8), ('tick', 0, 19), ('tick', 0, 25)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 16), ('tick', 0, 28), ('tick', 0, 29)] steps=12 events=13
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 14)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 15), ('tick', 0, 33)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 18)] steps=10 events=11
+  ok   recursive_mutex schedule=[('tick', 0, 11), ('tick', 0, 23), ('tick', 0, 30)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 9), ('tick', 0, 25), ('tick', 0, 39)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 6), ('tick', 0, 23)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 11), ('tick', 0, 26)] steps=11 events=12
+  ok   recursive_mutex schedule=[] steps=9 events=10
+  ok   recursive_mutex schedule=[('tick', 0, 8), ('tick', 0, 36), ('tick', 0, 36)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 2), ('tick', 0, 12)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 2), ('tick', 0, 13), ('tick', 0, 33)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 5), ('tick', 0, 22), ('tick', 0, 32)] steps=12 events=13
+  ok   recursive_mutex schedule=[('tick', 0, 11), ('tick', 0, 16)] steps=11 events=12
+  ok   recursive_mutex schedule=[('tick', 0, 1), ('tick', 0, 20), ('tick', 0, 36)] steps=12 events=13
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 31)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 23), ('tick', 0, 24), ('tick', 0, 40)] steps=28 events=31
+  ok   two_waiters_handoff schedule=[('tick', 0, 36)] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 16), ('tick', 0, 16)] steps=31 events=35
+  ok   two_waiters_handoff schedule=[('tick', 0, 10)] steps=26 events=30
+  ok   two_waiters_handoff schedule=[('tick', 0, 17)] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 16), ('tick', 0, 29), ('tick', 0, 32)] steps=27 events=31
+  ok   two_waiters_handoff schedule=[('tick', 0, 27)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 12)] steps=27 events=32
+  ok   two_waiters_handoff schedule=[('tick', 0, 13), ('tick', 0, 38)] steps=27 events=32
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 14), ('tick', 0, 26)] steps=24 events=27
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 29)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[('tick', 0, 6), ('tick', 0, 10)] steps=31 events=35
+  ok   two_waiters_handoff schedule=[('tick', 0, 5), ('tick', 0, 11), ('tick', 0, 22)] steps=25 events=28
+  ok   two_waiters_handoff schedule=[('tick', 0, 29)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[('tick', 0, 23)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[('tick', 0, 5), ('tick', 0, 30), ('tick', 0, 38)] steps=28 events=31
+  ok   two_waiters_handoff schedule=[('tick', 0, 18)] steps=29 events=33
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 6)] steps=30 events=34
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 28), ('tick', 0, 30)] steps=27 events=30
+  ok   two_waiters_handoff schedule=[('tick', 0, 15)] steps=24 events=27
+  ok   two_waiters_handoff schedule=[('tick', 0, 5), ('tick', 0, 28), ('tick', 0, 32)] steps=28 events=31
+  ok   two_waiters_handoff schedule=[('tick', 0, 20), ('tick', 0, 21), ('tick', 0, 30)] steps=27 events=30
+  ok   two_waiters_handoff schedule=[('tick', 0, 31)] steps=26 events=29
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 2)] steps=30 events=34
+  ok   two_waiters_handoff schedule=[('tick', 0, 23), ('tick', 0, 39)] steps=27 events=30
+  ok   two_waiters_handoff schedule=[] steps=29 events=33
+  ok   two_waiters_handoff schedule=[('tick', 0, 15), ('tick', 0, 25), ('tick', 0, 36)] steps=25 events=28
+  ok   two_waiters_handoff schedule=[('tick', 0, 6), ('tick', 0, 36), ('tick', 0, 36)] steps=31 events=35
+  ok   two_waiters_handoff schedule=[('tick', 0, 16), ('tick', 0, 22), ('tick', 0, 28)] steps=32 events=36
+  ok   two_waiters_handoff schedule=[('tick', 0, 12), ('tick', 0, 14), ('tick', 0, 23)] steps=29 events=34
+  ok   notify_set_in_window schedule=[] steps=10 events=13
+  ok   notify_set_in_window schedule=[('isr', 0, 1)] steps=3 events=6
+  ok   notify_set_in_window schedule=[('tick', 0, 13), ('isr', 0, 21)] steps=11 events=15
+  ok   notify_set_in_window schedule=[('isr', 0, 32)] steps=11 events=14
+  ok   notify_set_in_window schedule=[('tick', 0, 10), ('tick', 0, 19), ('isr', 0, 21), ('tick', 0, 35)] steps=13 events=17
+  ok   notify_set_in_window schedule=[('tick', 0, 17), ('tick', 0, 23), ('isr', 0, 35)] steps=12 events=15
+  ok   notify_set_in_window schedule=[('tick', 0, 4), ('tick', 0, 13), ('isr', 0, 24)] steps=11 events=14
+  ok   notify_set_in_window schedule=[('isr', 0, 25), ('tick', 0, 25)] steps=12 events=16
+  ok   notify_set_in_window schedule=[('tick', 0, 1), ('tick', 0, 11), ('isr', 0, 37)] steps=12 events=15
+  ok   notify_set_in_window schedule=[('tick', 0, 9), ('tick', 0, 9), ('isr', 0, 22)] steps=11 events=14
+  ok   notify_set_in_window schedule=[('tick', 0, 16), ('isr', 0, 22), ('tick', 0, 22), ('tick', 0, 26)] steps=13 events=17
+  ok   notify_set_in_window schedule=[('isr', 0, 16), ('tick', 0, 37)] steps=10 events=14
+  ok   notify_set_in_window schedule=[('tick', 0, 9), ('tick', 0, 14), ('isr', 0, 20), ('tick', 0, 34)] steps=12 events=16
+  ok   notify_set_in_window schedule=[('isr', 0, 26)] steps=11 events=14
+  ok   notify_set_in_window schedule=[('tick', 0, 3), ('isr', 0, 10), ('tick', 0, 28)] steps=9 events=13
+  ok   notify_set_in_window schedule=[('isr', 0, 6), ('tick', 0, 22), ('tick', 0, 38)] steps=8 events=12
+  ok   notify_set_in_window schedule=[('tick', 0, 2), ('isr', 0, 10), ('tick', 0, 14), ('tick', 0, 31)] steps=10 events=14
+  ok   notify_set_in_window schedule=[('isr', 0, 22), ('tick', 0, 34)] steps=12 events=16
+  ok   notify_set_in_window schedule=[('tick', 0, 3), ('tick', 0, 11), ('tick', 0, 19), ('isr', 0, 24)] steps=13 events=17
+  ok   notify_set_in_window schedule=[('tick', 0, 2), ('tick', 0, 6), ('tick', 0, 12), ('isr', 0, 20)] steps=12 events=16
+  ok   notify_set_in_window schedule=[('isr', 0, 38)] steps=11 events=14
+  ok   notify_set_in_window schedule=[('isr', 0, 6)] steps=6 events=10
+  ok   notify_set_in_window schedule=[('isr', 0, 3), ('tick', 0, 28), ('tick', 0, 39)] steps=5 events=8
+  ok   notify_set_in_window schedule=[('isr', 0, 29), ('tick', 0, 33), ('tick', 0, 38)] steps=13 events=16
+  ok   notify_set_in_window schedule=[('tick', 0, 3), ('tick', 0, 18), ('isr', 0, 24), ('tick', 0, 27)] steps=13 events=17
+  ok   notify_set_in_window schedule=[('isr', 0, 7), ('tick', 0, 13)] steps=7 events=11
+  ok   notify_set_in_window schedule=[('tick', 0, 2), ('tick', 0, 14), ('isr', 0, 25)] steps=12 events=15
+  ok   notify_set_in_window schedule=[('isr', 0, 10)] steps=7 events=11
+  ok   notify_set_in_window schedule=[('tick', 0, 9), ('isr', 0, 13), ('tick', 0, 36)] steps=10 events=14
+  ok   notify_set_in_window schedule=[('tick', 0, 4), ('tick', 0, 19), ('isr', 0, 20), ('tick', 0, 29)] steps=13 events=17
+  ok   notify_set_in_window schedule=[('isr', 0, 12), ('tick', 0, 19)] steps=9 events=13
+  ok   notify_set_in_window schedule=[('isr', 0, 9), ('tick', 0, 16), ('tick', 0, 37)] steps=9 events=13
+  ok   notify_set_in_window schedule=[('tick', 0, 11), ('isr', 0, 13), ('tick', 0, 16), ('tick', 0, 37)] steps=11 events=15
+  ok   notify_set_in_window schedule=[('tick', 0, 9), ('tick', 0, 32), ('tick', 0, 33), ('isr', 0, 39)] steps=13 events=16
+  ok   notify_set_in_window schedule=[('isr', 0, 15), ('tick', 0, 38)] steps=10 events=14
+  ok   notify_set_in_window schedule=[('isr', 0, 10), ('tick', 0, 33), ('tick', 0, 35)] steps=9 events=13
+  ok   notify_set_in_window schedule=[('isr', 0, 15), ('tick', 0, 28), ('tick', 0, 35)] steps=11 events=15
+  ok   notify_set_in_window schedule=[('tick', 0, 3), ('isr', 0, 34)] steps=12 events=15
+  ok   notify_set_in_window schedule=[('isr', 0, 12), ('tick', 0, 30), ('tick', 0, 32)] steps=10 events=14
+  ok   notify_set_in_window schedule=[('isr', 0, 4), ('tick', 0, 18), ('tick', 0, 40)] steps=7 events=10
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 1), ('tick', 0, 4), ('tick', 0, 20)] steps=12 events=15
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 13)] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 32)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 11), ('tick', 0, 14)] steps=9 events=11
+  ok   notify_level schedule=[('tick', 0, 13)] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 12), ('tick', 0, 26)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 2), ('tick', 0, 12), ('tick', 0, 23)] steps=10 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 23)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 11), ('tick', 0, 16), ('tick', 0, 27)] steps=10 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 16), ('tick', 0, 18), ('tick', 0, 27)] steps=12 events=15
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 39)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 9)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 14), ('tick', 0, 26), ('tick', 0, 28)] steps=12 events=15
+  ok   notify_level schedule=[('tick', 0, 10), ('tick', 0, 12), ('tick', 0, 29)] steps=10 events=12
+  ok   notify_level schedule=[('tick', 0, 1), ('tick', 0, 18)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 20), ('tick', 0, 36)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 4), ('tick', 0, 7), ('tick', 0, 38)] steps=12 events=15
+  ok   notify_level schedule=[('tick', 0, 19), ('tick', 0, 22)] steps=11 events=14
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 35)] steps=10 events=13
+  ok   notify_level schedule=[('tick', 0, 19), ('tick', 0, 31)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 5)] steps=10 events=13
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 13), ('tick', 0, 16), ('tick', 0, 33)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 22)] steps=10 events=13
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[] steps=9 events=12
+  ok   notify_level schedule=[('tick', 0, 17), ('tick', 0, 27)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 1), ('tick', 0, 8)] steps=11 events=14
+  ok   notify_level schedule=[('tick', 0, 22), ('tick', 0, 33), ('tick', 0, 40)] steps=12 events=15
+  ok   notify_all_two_sets schedule=[] steps=19 events=23
+  ok   notify_all_two_sets schedule=[('isr', 0, 1)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('isr', 0, 4)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('isr', 0, 2), ('tick', 0, 12), ('tick', 0, 24)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('tick', 0, 21), ('isr', 0, 27), ('tick', 0, 40)] steps=18 events=23
+  ok   notify_all_two_sets schedule=[('isr', 0, 23)] steps=15 events=20
+  ok   notify_all_two_sets schedule=[('tick', 0, 23), ('isr', 0, 36)] steps=20 events=25
+  ok   notify_all_two_sets schedule=[('isr', 0, 11), ('tick', 0, 13), ('tick', 0, 13), ('tick', 0, 40)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('tick', 0, 17), ('tick', 0, 21), ('tick', 0, 29), ('isr', 0, 33)] steps=20 events=25
+  ok   notify_all_two_sets schedule=[('tick', 0, 17), ('tick', 0, 17), ('isr', 0, 31), ('tick', 0, 33)] steps=20 events=25
+  ok   notify_all_two_sets schedule=[('isr', 0, 19), ('tick', 0, 33), ('tick', 0, 39)] steps=17 events=21
+  ok   notify_all_two_sets schedule=[('isr', 0, 13), ('tick', 0, 14), ('tick', 0, 25)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('tick', 0, 3), ('isr', 0, 13), ('tick', 0, 20), ('tick', 0, 24)] steps=18 events=22
+  ok   notify_all_two_sets schedule=[('tick', 0, 24), ('tick', 0, 30), ('isr', 0, 38), ('tick', 0, 39)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('tick', 0, 18), ('isr', 0, 33), ('tick', 0, 35), ('tick', 0, 38)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('tick', 0, 19), ('tick', 0, 23), ('isr', 0, 33), ('tick', 0, 36)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('tick', 0, 1), ('isr', 0, 13), ('tick', 0, 24), ('tick', 0, 32)] steps=18 events=22
+  ok   notify_all_two_sets schedule=[('isr', 0, 3), ('tick', 0, 18)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('tick', 0, 7), ('tick', 0, 20), ('isr', 0, 30), ('tick', 0, 38)] steps=20 events=25
+  ok   notify_all_two_sets schedule=[('isr', 0, 13)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('isr', 0, 10), ('tick', 0, 28)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('tick', 0, 9), ('isr', 0, 13), ('tick', 0, 21)] steps=13 events=17
+  ok   notify_all_two_sets schedule=[('tick', 0, 14), ('tick', 0, 16), ('tick', 0, 24), ('isr', 0, 30)] steps=19 events=24
+  ok   notify_all_two_sets schedule=[('isr', 0, 39)] steps=20 events=25
+  ok   notify_all_two_sets schedule=[('isr', 0, 36)] steps=19 events=24
+  ok   notify_all_two_sets schedule=[('tick', 0, 3), ('tick', 0, 22), ('tick', 0, 27), ('isr', 0, 34)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('tick', 0, 2), ('tick', 0, 13), ('tick', 0, 31), ('isr', 0, 37)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('isr', 0, 5), ('tick', 0, 15), ('tick', 0, 22)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('isr', 0, 7), ('tick', 0, 11), ('tick', 0, 13), ('tick', 0, 34)] steps=14 events=18
+  ok   notify_all_two_sets schedule=[('tick', 0, 4), ('isr', 0, 34), ('tick', 0, 34), ('tick', 0, 38)] steps=21 events=26
+  ok   notify_all_two_sets schedule=[('tick', 0, 23), ('isr', 0, 30)] steps=18 events=23
+  ok   notify_all_two_sets schedule=[('isr', 0, 8)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('isr', 0, 13)] steps=15 events=19
+  ok   notify_all_two_sets schedule=[('tick', 0, 6), ('isr', 0, 11), ('tick', 0, 26), ('tick', 0, 29)] steps=18 events=22
+  ok   notify_all_two_sets schedule=[('isr', 0, 8), ('tick', 0, 16), ('tick', 0, 37)] steps=17 events=21
+  ok   notify_all_two_sets schedule=[('tick', 0, 12), ('isr', 0, 13), ('tick', 0, 13)] steps=16 events=20
+  ok   notify_all_two_sets schedule=[('isr', 0, 16), ('tick', 0, 28), ('tick', 0, 35), ('tick', 0, 40)] steps=18 events=22
+  ok   notify_all_two_sets schedule=[('isr', 0, 12), ('tick', 0, 14), ('tick', 0, 25), ('tick', 0, 37)] steps=17 events=21
+  ok   notify_all_two_sets schedule=[('tick', 0, 4), ('isr', 0, 5), ('tick', 0, 33), ('tick', 0, 40)] steps=18 events=22
+  ok   notify_all_two_sets schedule=[('tick', 0, 6), ('tick', 0, 13), ('isr', 0, 25), ('tick', 0, 32)] steps=18 events=23
+  ok   bound_two_sems schedule=[] steps=24 events=28
+  ok   bound_two_sems schedule=[('isr', 0, 1)] steps=18 events=22
+  ok   bound_two_sems schedule=[('tick', 0, 17), ('tick', 0, 28), ('isr', 0, 39)] steps=25 events=30
+  ok   bound_two_sems schedule=[('tick', 0, 21), ('isr', 0, 34), ('tick', 0, 37)] steps=24 events=29
+  ok   bound_two_sems schedule=[('tick', 0, 5), ('tick', 0, 8), ('tick', 0, 9), ('isr', 0, 38)] steps=26 events=31
+  ok   bound_two_sems schedule=[('tick', 0, 8), ('tick', 0, 10), ('isr', 0, 38)] steps=22 events=26
+  ok   bound_two_sems schedule=[('isr', 0, 37)] steps=23 events=28
+  ok   bound_two_sems schedule=[('isr', 0, 40)] steps=24 events=29
+  ok   bound_two_sems schedule=[('isr', 0, 40)] steps=24 events=29
+  ok   bound_two_sems schedule=[('isr', 0, 27)] steps=20 events=24
+  ok   bound_two_sems schedule=[('isr', 0, 20)] steps=18 events=22
+  ok   bound_two_sems schedule=[('tick', 0, 2), ('isr', 0, 17), ('tick', 0, 17)] steps=20 events=24
+  ok   bound_two_sems schedule=[('tick', 0, 17), ('isr', 0, 22), ('tick', 0, 31), ('tick', 0, 34)] steps=21 events=25
+  ok   bound_two_sems schedule=[('isr', 0, 7), ('tick', 0, 36)] steps=19 events=23
+  ok   bound_two_sems schedule=[('isr', 0, 19), ('tick', 0, 30), ('tick', 0, 35)] steps=20 events=24
+  ok   bound_two_sems schedule=[('isr', 0, 20)] steps=18 events=22
+  ok   bound_two_sems schedule=[('tick', 0, 7), ('isr', 0, 9), ('tick', 0, 12), ('tick', 0, 24)] steps=22 events=26
+  ok   bound_two_sems schedule=[('isr', 0, 18), ('tick', 0, 18), ('tick', 0, 26)] steps=20 events=24
+  ok   bound_two_sems schedule=[('isr', 0, 4), ('tick', 0, 5), ('tick', 0, 12), ('tick', 0, 25)] steps=22 events=26
+  ok   bound_two_sems schedule=[('tick', 0, 3), ('isr', 0, 30)] steps=22 events=27
+  ok   bound_two_sems schedule=[('tick', 0, 6), ('tick', 0, 19), ('tick', 0, 22), ('isr', 0, 27)] steps=21 events=25
+  ok   bound_two_sems schedule=[('isr', 0, 5)] steps=18 events=22
+  ok   bound_two_sems schedule=[('isr', 0, 4), ('tick', 0, 23), ('tick', 0, 24)] steps=20 events=24
+  ok   bound_two_sems schedule=[('tick', 0, 6), ('tick', 0, 9), ('tick', 0, 13), ('isr', 0, 33)] steps=22 events=26
+  ok   bound_two_sems schedule=[('tick', 0, 15), ('isr', 0, 19), ('tick', 0, 38)] steps=20 events=24
+  ok   bound_two_sems schedule=[('tick', 0, 5), ('isr', 0, 7), ('tick', 0, 12), ('tick', 0, 22)] steps=23 events=27
+  ok   bound_two_sems schedule=[('isr', 0, 24)] steps=18 events=22
+  ok   bound_two_sems schedule=[('isr', 0, 4), ('tick', 0, 6), ('tick', 0, 8)] steps=20 events=24
+  ok   bound_two_sems schedule=[('isr', 0, 2), ('tick', 0, 6), ('tick', 0, 9)] steps=20 events=24
+  ok   bound_two_sems schedule=[('isr', 0, 9), ('tick', 0, 20)] steps=19 events=23
+  ok   bound_two_sems schedule=[('tick', 0, 14), ('isr', 0, 29)] steps=21 events=25
+  ok   bound_two_sems schedule=[('isr', 0, 4)] steps=18 events=22
+  ok   bound_two_sems schedule=[('tick', 0, 5), ('isr', 0, 30), ('tick', 0, 32)] steps=23 events=28
+  ok   bound_two_sems schedule=[('isr', 0, 36), ('tick', 0, 38)] steps=24 events=29
+  ok   bound_two_sems schedule=[('isr', 0, 39)] steps=24 events=29
+  ok   bound_two_sems schedule=[('tick', 0, 10), ('isr', 0, 35)] steps=23 events=28
+  ok   bound_two_sems schedule=[('isr', 0, 5), ('tick', 0, 20)] steps=19 events=23
+  ok   bound_two_sems schedule=[('isr', 0, 19), ('tick', 0, 32)] steps=19 events=23
+  ok   bound_two_sems schedule=[('isr', 0, 16), ('tick', 0, 32)] steps=19 events=23
+  ok   bound_two_sems schedule=[('tick', 0, 10), ('isr', 0, 28), ('tick', 0, 35)] steps=22 events=27
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 30), ('tick', 0, 34), ('tick', 0, 35)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 13), ('tick', 0, 40)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 34)] steps=8 events=10
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 13)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 5), ('tick', 0, 34)] steps=9 events=11
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 12), ('tick', 0, 35)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 37)] steps=8 events=10
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 3), ('tick', 0, 8), ('tick', 0, 20)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 2)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 5), ('tick', 0, 27), ('tick', 0, 35)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 33), ('tick', 0, 36)] steps=9 events=11
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 4), ('tick', 0, 34), ('tick', 0, 36)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 33), ('tick', 0, 36)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 33)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 15)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 14), ('tick', 0, 30)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 21), ('tick', 0, 31)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 35), ('tick', 0, 37)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 27)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 31)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 13)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 8), ('tick', 0, 11)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 1), ('tick', 0, 4)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 22), ('tick', 0, 31)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 24)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 17)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 10), ('tick', 0, 40)] steps=9 events=11
+  ok   join_before_exit schedule=[] steps=7 events=9
+  ok   join_before_exit schedule=[('tick', 0, 8), ('tick', 0, 37)] steps=9 events=11
+  ok   join_before_exit schedule=[('tick', 0, 3), ('tick', 0, 12), ('tick', 0, 19)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 28), ('tick', 0, 29), ('tick', 0, 30)] steps=10 events=12
+  ok   join_before_exit schedule=[('tick', 0, 32)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 10)] steps=8 events=10
+  ok   join_before_exit schedule=[('tick', 0, 16)] steps=8 events=10
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 35)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 4), ('tick', 0, 19), ('tick', 0, 20)] steps=12 events=15
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 2), ('tick', 0, 10), ('tick', 0, 10)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 7)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 2), ('tick', 0, 9)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 2), ('tick', 0, 37)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 19)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 2), ('tick', 0, 3)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 33)] steps=10 events=13
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 1), ('tick', 0, 8)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 35)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 16), ('tick', 0, 22), ('tick', 0, 23)] steps=12 events=15
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 21), ('tick', 0, 40)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 28)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 6), ('tick', 0, 36)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 11), ('tick', 0, 13), ('tick', 0, 36)] steps=10 events=13
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 31)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 26), ('tick', 0, 38)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 22), ('tick', 0, 25), ('tick', 0, 26)] steps=12 events=15
+  ok   join_after_exit schedule=[('tick', 0, 36)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 15), ('tick', 0, 16)] steps=10 events=13
+  ok   join_after_exit schedule=[('tick', 0, 14), ('tick', 0, 20), ('tick', 0, 31)] steps=11 events=14
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 7), ('tick', 0, 38), ('tick', 0, 39)] steps=12 events=15
+  ok   join_after_exit schedule=[('tick', 0, 6), ('tick', 0, 30)] steps=11 events=14
+  ok   join_after_exit schedule=[('tick', 0, 5), ('tick', 0, 5), ('tick', 0, 6)] steps=12 events=15
+  ok   join_after_exit schedule=[('tick', 0, 19), ('tick', 0, 20)] steps=11 events=14
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 7), ('tick', 0, 29), ('tick', 0, 37)] steps=12 events=15
+  ok   join_after_exit schedule=[('tick', 0, 13)] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 8)] steps=9 events=12
+  ok   join_after_exit schedule=[('tick', 0, 26), ('tick', 0, 36)] steps=11 events=14
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 12), ('tick', 0, 33)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 18), ('tick', 0, 33)] steps=18 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 40)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 22)] steps=17 events=20
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 21), ('tick', 0, 38)] steps=18 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 22), ('tick', 0, 22)] steps=18 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 14), ('tick', 0, 27), ('tick', 0, 33)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[('tick', 0, 34), ('tick', 0, 40)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 6), ('tick', 0, 8), ('tick', 0, 37)] steps=19 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 1), ('tick', 0, 2), ('tick', 0, 29)] steps=20 events=24
+  ok   join_timeout_then_exit schedule=[('tick', 0, 8)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 12), ('tick', 0, 26)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 1), ('tick', 0, 4), ('tick', 0, 6)] steps=20 events=24
+  ok   join_timeout_then_exit schedule=[('tick', 0, 8), ('tick', 0, 22)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 26), ('tick', 0, 37), ('tick', 0, 38)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 7), ('tick', 0, 35)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 3), ('tick', 0, 13), ('tick', 0, 25)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 12), ('tick', 0, 17), ('tick', 0, 38)] steps=18 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 2), ('tick', 0, 7), ('tick', 0, 40)] steps=20 events=24
+  ok   join_timeout_then_exit schedule=[('tick', 0, 1)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 10), ('tick', 0, 40)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 13)] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 1), ('tick', 0, 5), ('tick', 0, 20)] steps=19 events=22
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 7)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[] steps=17 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 12), ('tick', 0, 16), ('tick', 0, 28)] steps=18 events=21
+  ok   join_timeout_then_exit schedule=[('tick', 0, 33)] steps=18 events=22
+  ok   join_timeout_then_exit schedule=[('tick', 0, 39), ('tick', 0, 40)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[('tick', 0, 3), ('tick', 0, 27), ('tick', 0, 30)] steps=19 events=23
+  ok   join_timeout_then_exit schedule=[('tick', 0, 4), ('tick', 0, 7), ('tick', 0, 37)] steps=20 events=24
+  ok   join_timeout_then_exit schedule=[('tick', 0, 7), ('tick', 0, 15)] steps=18 events=22
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 8), ('tick', 0, 23), ('tick', 0, 37)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 1)] steps=10 events=13
+  ok   join_second_ebusy schedule=[('tick', 0, 3), ('tick', 0, 15), ('tick', 0, 23)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 6), ('tick', 0, 30)] steps=11 events=14
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 32), ('tick', 0, 37), ('tick', 0, 39)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 17), ('tick', 0, 29), ('tick', 0, 30)] steps=12 events=15
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 6), ('tick', 0, 24)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 12), ('tick', 0, 23)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 1), ('tick', 0, 26)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 2), ('tick', 0, 17), ('tick', 0, 40)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 9), ('tick', 0, 34)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 22)] steps=10 events=13
+  ok   join_second_ebusy schedule=[('tick', 0, 21), ('tick', 0, 30)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 5), ('tick', 0, 11), ('tick', 0, 36)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 23), ('tick', 0, 28)] steps=11 events=14
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 5)] steps=10 events=13
+  ok   join_second_ebusy schedule=[('tick', 0, 2), ('tick', 0, 17)] steps=11 events=14
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 10), ('tick', 0, 31)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 6), ('tick', 0, 33)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 13), ('tick', 0, 22), ('tick', 0, 33)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 40)] steps=10 events=13
+  ok   join_second_ebusy schedule=[('tick', 0, 16), ('tick', 0, 23)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 4)] steps=10 events=13
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 6), ('tick', 0, 10), ('tick', 0, 20)] steps=12 events=15
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 23), ('tick', 0, 40)] steps=11 events=14
+  ok   join_second_ebusy schedule=[('tick', 0, 13), ('tick', 0, 35)] steps=11 events=14
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 8)] steps=10 events=13
+  ok   join_second_ebusy schedule=[] steps=9 events=12
+  ok   join_second_ebusy schedule=[('tick', 0, 10), ('tick', 0, 29), ('tick', 0, 29)] steps=12 events=15
+  ok   join_second_ebusy schedule=[('tick', 0, 25)] steps=10 events=13
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 39)] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 3), ('tick', 0, 6), ('tick', 0, 38)] steps=23 events=27
+  ok   cancel_joiner schedule=[('tick', 0, 13), ('tick', 0, 16), ('tick', 0, 28)] steps=24 events=28
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 16), ('tick', 0, 38), ('tick', 0, 39)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 3), ('tick', 0, 18), ('tick', 0, 35)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 8), ('tick', 0, 39)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 8), ('tick', 0, 37)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 13), ('tick', 0, 29), ('tick', 0, 39)] steps=22 events=26
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 4), ('tick', 0, 10), ('tick', 0, 17)] steps=23 events=27
+  ok   cancel_joiner schedule=[('tick', 0, 5), ('tick', 0, 20)] steps=22 events=26
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 12)] steps=21 events=24
+  ok   cancel_joiner schedule=[('tick', 0, 18), ('tick', 0, 37), ('tick', 0, 38)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 8), ('tick', 0, 27), ('tick', 0, 33)] steps=22 events=26
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 5), ('tick', 0, 38)] steps=22 events=26
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 40)] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 6), ('tick', 0, 24)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 3), ('tick', 0, 35)] steps=22 events=26
+  ok   cancel_joiner schedule=[('tick', 0, 11), ('tick', 0, 14), ('tick', 0, 40)] steps=23 events=27
+  ok   cancel_joiner schedule=[('tick', 0, 20)] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 8), ('tick', 0, 12)] steps=23 events=27
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 30)] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 28), ('tick', 0, 39)] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 17)] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 14), ('tick', 0, 25)] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 26), ('tick', 0, 31)] steps=21 events=25
+  ok   cancel_joiner schedule=[] steps=21 events=25
+  ok   cancel_joiner schedule=[('tick', 0, 2), ('tick', 0, 27), ('tick', 0, 39)] steps=22 events=26
+  ok   start_inactive schedule=[] steps=12 events=15
+  ok   start_inactive schedule=[('isr', 0, 1)] steps=10 events=13
+  ok   start_inactive schedule=[('isr', 0, 10), ('tick', 0, 12), ('tick', 0, 34)] steps=15 events=18
+  ok   start_inactive schedule=[('isr', 0, 35)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 8), ('tick', 0, 16), ('tick', 0, 19), ('tick', 0, 25)] steps=13 events=17
+  ok   start_inactive schedule=[('isr', 0, 18), ('tick', 0, 21)] steps=14 events=17
+  ok   start_inactive schedule=[('tick', 0, 16), ('tick', 0, 17), ('tick', 0, 24), ('isr', 0, 38)] steps=16 events=19
+  ok   start_inactive schedule=[('tick', 0, 2), ('tick', 0, 3), ('isr', 0, 7), ('tick', 0, 28)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 39)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 14), ('tick', 0, 21), ('tick', 0, 22)] steps=15 events=18
+  ok   start_inactive schedule=[('isr', 0, 9), ('tick', 0, 13), ('tick', 0, 14), ('tick', 0, 17)] steps=15 events=19
+  ok   start_inactive schedule=[('tick', 0, 2), ('tick', 0, 28), ('isr', 0, 40), ('tick', 0, 40)] steps=16 events=19
+  ok   start_inactive schedule=[('tick', 0, 8), ('isr', 0, 23), ('tick', 0, 34)] steps=14 events=17
+  ok   start_inactive schedule=[('tick', 0, 15), ('isr', 0, 39), ('tick', 0, 39)] steps=15 events=18
+  ok   start_inactive schedule=[('tick', 0, 18), ('tick', 0, 26), ('isr', 0, 34)] steps=15 events=18
+  ok   start_inactive schedule=[('isr', 0, 8), ('tick', 0, 40)] steps=11 events=15
+  ok   start_inactive schedule=[('tick', 0, 14), ('isr', 0, 22)] steps=14 events=17
+  ok   start_inactive schedule=[('isr', 0, 9), ('tick', 0, 14), ('tick', 0, 25), ('tick', 0, 33)] steps=12 events=16
+  ok   start_inactive schedule=[('isr', 0, 32)] steps=13 events=16
+  ok   start_inactive schedule=[('tick', 0, 11), ('tick', 0, 26), ('isr', 0, 31), ('tick', 0, 39)] steps=16 events=19
+  ok   start_inactive schedule=[('tick', 0, 12), ('tick', 0, 33), ('isr', 0, 35), ('tick', 0, 38)] steps=16 events=19
+  ok   start_inactive schedule=[('isr', 0, 23), ('tick', 0, 39)] steps=14 events=17
+  ok   start_inactive schedule=[('tick', 0, 28), ('isr', 0, 33)] steps=14 events=17
+  ok   start_inactive schedule=[('isr', 0, 17)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 37)] steps=13 events=16
+  ok   start_inactive schedule=[('tick', 0, 24), ('isr', 0, 38)] steps=14 events=17
+  ok   start_inactive schedule=[('isr', 0, 2), ('tick', 0, 2)] steps=11 events=14
+  ok   start_inactive schedule=[('tick', 0, 26), ('isr', 0, 35), ('tick', 0, 39)] steps=15 events=18
+  ok   start_inactive schedule=[('isr', 0, 29)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 24)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 14), ('tick', 0, 17)] steps=14 events=17
+  ok   start_inactive schedule=[('isr', 0, 26)] steps=13 events=16
+  ok   start_inactive schedule=[('tick', 0, 1), ('isr', 0, 10), ('tick', 0, 13)] steps=14 events=18
+  ok   start_inactive schedule=[('tick', 0, 8), ('isr', 0, 17)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 14)] steps=13 events=16
+  ok   start_inactive schedule=[('isr', 0, 6), ('tick', 0, 23)] steps=11 events=14
+  ok   start_inactive schedule=[('tick', 0, 2), ('tick', 0, 21), ('isr', 0, 35)] steps=15 events=18
+  ok   start_inactive schedule=[('tick', 0, 2), ('tick', 0, 25), ('tick', 0, 27), ('isr', 0, 34)] steps=16 events=19
+  ok   start_inactive schedule=[('isr', 0, 1)] steps=10 events=13
+  ok   start_inactive schedule=[('isr', 0, 8), ('tick', 0, 8), ('tick', 0, 28)] steps=14 events=17
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 12), ('tick', 0, 23)] steps=14 events=12
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 8), ('tick', 0, 26), ('tick', 0, 27)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 31)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 2), ('tick', 0, 34)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 9)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 12), ('tick', 0, 13)] steps=15 events=13
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 16)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 38)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 7), ('tick', 0, 11), ('tick', 0, 36)] steps=12 events=9
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 1), ('tick', 0, 4)] steps=12 events=9
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 2), ('tick', 0, 7), ('tick', 0, 20)] steps=12 events=9
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 17)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 11), ('tick', 0, 29)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 20), ('tick', 0, 29)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 10), ('tick', 0, 16), ('tick', 0, 35)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 15)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 14)] steps=15 events=12
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 10)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 14), ('tick', 0, 32), ('tick', 0, 39)] steps=15 events=12
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 7), ('tick', 0, 30)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 3), ('tick', 0, 32)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 4), ('tick', 0, 20)] steps=11 events=8
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 35), ('tick', 0, 38)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 5), ('tick', 0, 15), ('tick', 0, 35)] steps=16 events=13
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 16), ('tick', 0, 22)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 13), ('tick', 0, 13), ('tick', 0, 16)] steps=17 events=16
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 17), ('tick', 0, 22), ('tick', 0, 37)] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[] steps=10 events=7
+  ok   exit_owning_mutex_joined schedule=[('tick', 0, 11), ('tick', 0, 19)] steps=11 events=8
+bridge: 1400/1400 runs agree with the model, 1 scenarios skipped on this build, 0 divergences

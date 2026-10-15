@@ -23,6 +23,7 @@ if(CONFIG_EMB_MUTEX)
 endif()
 
 add_library(emb_kernel STATIC ${EMB_KERNEL_SOURCES})
+emb_use_kernel_compiler(emb_kernel)
 target_include_directories(emb_kernel PRIVATE include)
 target_link_libraries(emb_kernel PUBLIC emb_api PRIVATE emb_flags INTERFACE emb_arch)
 add_dependencies(emb_kernel emb_storage_h)
