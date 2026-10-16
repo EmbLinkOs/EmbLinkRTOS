@@ -19,7 +19,7 @@ SIM-001 to 003 originate in `docs/architecture/04-platform-architecture.md` §9 
 **Statement.** Each supported architecture shall have at least one emulated target in CI.
 **Rationale.** Real port code under an emulator catches what the native port cannot.
 **Status.** Accepted 2026-10-07
-**Verification.** CI matrix: QEMU AVR, QEMU or Renode Cortex-M, QEMU RISC-V.
+**Verification.** CI matrix: QEMU AVR and EmbSIM's Arduino Uno (`avr-uno-embsim`), QEMU or Renode Cortex-M, QEMU RISC-V.
 **Trace.** 04 §9; 09 §9
 
 ### SIM-003  Emulated results are not timing evidence

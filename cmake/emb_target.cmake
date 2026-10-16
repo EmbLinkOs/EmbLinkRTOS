@@ -28,13 +28,20 @@ function(emb_add_executable name)
 endfunction()
 
 # emb_add_test(<name> <sources>...)  a conformance or unit test executable: run by ctest
-# directly on the native port (SPEC-013 §11), under the board's QEMU machine elsewhere.
+# directly on the native port (SPEC-013 §11), under the board's QEMU machine or on its
+# EmbSIM board elsewhere.
 function(emb_add_test name)
   emb_add_executable(${name} ${ARGN})
   target_link_libraries(${name} PRIVATE emb_test)
   if(NOT CONFIG_EMB_ARCH STREQUAL "native")
-    # the image runs under the board's QEMU machine; the runner reads the console (SIM-002)
-    if(EMB_QEMU)
+    # the image runs on the board's emulator; the runner reads the console (SIM-002)
+    if(EMB_TEST_EMULATOR STREQUAL "embsim")
+      if(EMB_EMBSIM AND EMB_BOARD_EMBSIM_TARGET)
+        add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/embsim/run_embsim.py"
+                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" --quiet "$<TARGET_FILE:${name}>")
+        set_tests_properties(${name} PROPERTIES TIMEOUT 400)
+      endif()
+    elseif(EMB_QEMU)
       string(REPLACE ";" " " _qargs "${EMB_BOARD_QEMU_ARGS}")
       add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/qemu/run_qemu.py"
                --qemu "${EMB_QEMU}" --qemu-args "${_qargs}" --quiet "$<TARGET_FILE:${name}>")

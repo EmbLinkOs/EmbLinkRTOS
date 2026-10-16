@@ -18,6 +18,26 @@ For a local checkout, replace `/workspace/EmbLinkRTOS` with your checkout direct
 
 Experimental Linux x86-64 presets can compile the kernel with EmbCC while GCC supplies the POSIX host and final link. See [EmbCC native integration](../engineering/embcc-native-linux.md) for compiler selection, the ABI guard and qualification limits.
 
+## Embedded tests on EmbSIM
+
+The Arduino Uno build's conformance suite also runs on [EmbSIM](https://github.com/EmbLinkOs/EmbSIM)'s
+simulated Uno: the ATmega328P's core, timers and USART at its clock, with the board's circuit around it.
+Build EmbSIM's command line, then configure the `avr-uno-embsim` preset with it:
+
+```sh
+cmake -S ../EmbSIM -B ../EmbSIM/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF
+cmake --build ../EmbSIM/build --target embsim_cli
+cmake --preset avr-uno-embsim -DEMB_EMBSIM="$PWD/../EmbSIM/build/bin/embsim"
+cmake --build --preset avr-uno-embsim
+ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+```
+
+`tools/embsim/run_embsim.py` runs each test image with `embsim run --target emblink/arduino_uno --image
+TEST.elf --until-text EMB_TEST_END --console` and reads the console as `tools/qemu/run_qemu.py` reads
+QEMU's. Runs are deterministic: an image gives the same console on every run. Any board that sets
+`EMB_BOARD_EMBSIM_TARGET` in its `board.cmake` can use `-DEMB_TEST_EMULATOR=embsim`. As with QEMU,
+simulated time is never timing evidence (SIM-003).
+
 ## Reference model
 
 ```sh
