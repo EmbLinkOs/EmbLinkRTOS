@@ -5,3 +5,4 @@ set(EMB_BOARD_VARIANT atmega328p)
 set(EMB_BOARD_MCU atmega328p)
 set(EMB_BOARD_DEFAULT_PROFILE tiny)
 set(EMB_BOARD_QEMU_ARGS -M arduino-uno -icount shift=6,sleep=off -bios) # ~16 MIPS, deterministic time
+set(EMB_BOARD_EMBSIM_TARGET emblink/arduino_uno) # EMB_TEST_EMULATOR=embsim: EmbSIM's Uno, cycle-timed

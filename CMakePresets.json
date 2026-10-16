@@ -118,6 +118,18 @@
       }
     },
     {
+      "name": "avr-uno-embsim",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked, tests on EmbSIM's Uno",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-embsim",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_TEST_EMULATOR": "embsim"
+      }
+    },
+    {
       "name": "cm3-an385",
       "displayName": "Cortex-M3 (QEMU mps2-an385), GCC, base profile, checked",
       "generator": "Ninja",
@@ -262,6 +274,10 @@
       "configurePreset": "avr-uno-t1"
     },
     {
+      "name": "avr-uno-embsim",
+      "configurePreset": "avr-uno-embsim"
+    },
+    {
       "name": "cm3-an385",
       "configurePreset": "cm3-an385"
     },
@@ -373,6 +389,13 @@
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-embsim",
+      "configurePreset": "avr-uno-embsim",
       "output": {
         "outputOnFailure": true
       }

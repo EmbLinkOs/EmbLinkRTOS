@@ -6,6 +6,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The Arduino Uno conformance suite on EmbSIM's simulated Uno (`avr-uno-embsim` preset,
+  `EMB_TEST_EMULATOR=embsim`, `tools/embsim/run_embsim.py`) and an `avr-embsim` CI job that builds
+  EmbSIM from source (SIM-002).
+
 - Experimental Linux x86-64 presets for an EmbCC-built kernel with a GCC POSIX host, a build-time ABI layout guard and scoped executed conformance/model evidence.
 
 - Searchable Sphinx documentation with native user tutorials, extracted C API, a design-requirement catalog and downloadable metadata.

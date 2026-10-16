@@ -2,7 +2,8 @@
 # Copyright 2026 Junior Deogracias
 # Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
 # Cortex-M with arm-none-eabi-gcc and RISC-V with riscv64-unknown-elf-gcc run under QEMU,
-# AVR with avr-gcc run under QEMU (SIM-002), formatting, and the footprint gate (TEST-011).
+# AVR with avr-gcc run under QEMU and on EmbSIM's Arduino Uno (SIM-002), formatting, and the
+# footprint gate (TEST-011).
 # Target order: Cortex-M and RISC-V first, AVR secondary (ADR-038).
 # The EmbCC legs join when the compiler is available to CI (09 §11).
 name: ci
@@ -169,10 +170,38 @@ jobs:
           pip install hypothesis pytest
           cd tools/model && python3 -m pytest -q
 
+  avr-embsim:
+    # the conformance suite on EmbSIM's Arduino Uno (SIM-002): EmbSIM built from source,
+    # each test image run in virtual time until its EMB_TEST_END (tools/embsim/run_embsim.py)
+    runs-on: ubuntu-24.04
+    env:
+      EMBSIM_REF: main
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: EmbLinkOs/EmbSIM
+          ref: ${{ env.EMBSIM_REF }}
+          path: embsim
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-avr avr-libc binutils-avr python3-yaml
+      - name: Build EmbSIM
+        run: |
+          cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
+          cmake --build embsim/build --target embsim_cli
+      - name: Configure
+        run: cmake --preset avr-uno-embsim -DEMB_EMBSIM="$PWD/embsim/build/bin/embsim"
+      - name: Build
+        run: cmake --build --preset avr-uno-embsim
+      - name: Test on EmbSIM
+        run: ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed
