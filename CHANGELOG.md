@@ -9,6 +9,11 @@ User-visible changes are recorded here. There are no released versions or releas
 - The Arduino Uno conformance suite on EmbSIM's simulated Uno (`avr-uno-embsim` preset,
   `EMB_TEST_EMULATOR=embsim`, `tools/embsim/run_embsim.py`) and an `avr-embsim` CI job that builds
   EmbSIM from source (SIM-002).
+- The NUCLEO-F446RE board (`boards/st/nucleo_f446re`): the STM32F446RE at 180 MHz from the PLL
+  fed by the ST-LINK's 8 MHz MCO (HSE bypass, voltage scale 1 with over-drive, five flash wait
+  states), the console on USART2 (the ST-LINK's virtual COM port, PA2/PA3), LD2 on PA5, and a
+  run that ends masked in WFI (`emb_cm_halt`). Its conformance suite runs on EmbSIM's
+  NUCLEO-F446RE (`cm4-nucleo-embsim` preset) in a `cm4-embsim` CI job.
 
 - Experimental Linux x86-64 presets for an EmbCC-built kernel with a GCC POSIX host, a build-time ABI layout guard and scoped executed conformance/model evidence.
 

@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
+# in M1 the matching hw_config.h is written by hand (include/hw_config.h).
+board: nucleo_f446re
+soc: st/stm32f4/stm32f446re
+oscillators:
+  main: { hz: 8000000, source: external_clock } # the ST-LINK's MCO through SB16/SB50, HSE bypass
+  lse: { hz: 32768, source: external_crystal }   # X2
+cpu_hz: 180000000 # PLL: M 8, N 360, P 2; voltage scale 1 with over-drive, 5 flash wait states
+console: { device: usart2, baud: 115200, pins: { tx: PA2, rx: PA3 } } # the ST-LINK's virtual COM port
+leds: [ { name: user, gpio: PA5 } ]   # LD2
+buttons: [ { name: user, gpio: PC13, active: low } ] # B1
+flash_partitions:
+  - { name: app, base: 0x08000000, size: 524288 }
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }
