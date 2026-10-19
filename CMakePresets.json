@@ -172,6 +172,17 @@
       }
     },
     {
+      "name": "cm4-nucleo-embsim",
+      "displayName": "NUCLEO-F446RE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446RE",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-nucleo-embsim",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "nucleo_f446re",
+        "EMB_TEST_EMULATOR": "embsim"
+      }
+    },
+    {
       "name": "rv32-virt",
       "displayName": "RV32IMAC (QEMU virt), GCC, base profile, checked",
       "generator": "Ninja",
@@ -292,6 +303,10 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny"
+    },
+    {
+      "name": "cm4-nucleo-embsim",
+      "configurePreset": "cm4-nucleo-embsim"
     },
     {
       "name": "rv32-virt",
@@ -424,6 +439,13 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-nucleo-embsim",
+      "configurePreset": "cm4-nucleo-embsim",
       "output": {
         "outputOnFailure": true
       }

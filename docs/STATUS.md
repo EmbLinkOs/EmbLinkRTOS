@@ -14,7 +14,7 @@ This page is the authoritative inventory of implementation and available evidenc
 | Notifications | Per-thread bits and one semaphore-to-thread binding | Binding takes a one-bit mask; no unbind implementation; pointer lifetime remains caller responsibility |
 | Objects | Caller-owned generated storage and POINTER handles | No INDEXED or TABLE handles, capability rights, partition restart or system freeze implementation |
 | Native port | POSIX host-thread gate, deterministic IRQ injection, virtual time | Base/tiny development workflow; no current wall-clock, asynchronous signal stress, simulated isolated profile or Win32 backend |
-| Embedded ports | ATmega328P; Cortex-M3/M4F; RV32IMAC machine mode | QEMU jobs defined in CI; no real-board timing or peripheral/HIL validation recorded here |
+| Embedded ports | ATmega328P; Cortex-M3/M4F; RV32IMAC machine mode; boards Arduino Uno, NUCLEO-F446RE, QEMU's MPS2 and RV32 virt | QEMU jobs and EmbSIM jobs (Uno, NUCLEO-F446RE) defined in CI; no real-board timing or peripheral/HIL validation recorded here |
 | Configuration/build | Kconfig subset, port manifests, CMake/Ninja, layout probe, footprint tool | GCC/Clang native CI and cross-GCC QEMU jobs; ten legacy EmbCC capabilities reviewed with scoped local checks, but current RTOS compiler CI/qualification remains incomplete |
 | Observability | M1 trace sink and fault reporting | CTF rings/metadata, deferred log decoder, retained crash records, debug descriptor and worst-case monitors remain planned |
 | Documentation | Sphinx/MyST manuals and native tutorials, Doxygen/Breathe C API, Sphinx Needs design catalog, JSON/CSV downloads and annotation audit | Strict local HTML build, complete extracted function annotations, source-preservation and catalog-integrity checks; merged `37887c9` Pages deployment and served evidence-workflow page independently observed successful |
@@ -43,7 +43,7 @@ The [EmbCC review](engineering/embcc-capability-review.md), compiler source `a3c
 
 ## CI definitions versus outcomes
 
-`.github/workflows/ci.yml` defines native GCC/Clang, release/tiny/periodic, ASan/UBSan and TSan jobs; Cortex-M, RV32 and AVR cross-GCC/QEMU jobs; formatting, banned-construct and configuration checks; model tests; and AVR footprint gates. A job definition is not a successful run. Link immutable run results and artifacts before advertising a target/version as supported or validated.
+`.github/workflows/ci.yml` defines native GCC/Clang, release/tiny/periodic, ASan/UBSan and TSan jobs; Cortex-M, RV32 and AVR cross-GCC/QEMU jobs; the AVR and Cortex-M conformance suites on EmbSIM's Uno and NUCLEO-F446RE; formatting, banned-construct and configuration checks; model tests; and AVR footprint gates. A job definition is not a successful run. Link immutable run results and artifacts before advertising a target/version as supported or validated.
 
 On 2026-10-14, GitHub reported the complete pre-workflow-preparation matrix successful for merged source `efff40cc2dbf803a56bab5c3fc844b78a4837f9f`: [CI run](https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/38505570243), [docs build](https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/38505570241) and [Pages deployment](https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/38505739354). The configured site URL is `https://emblinkos.github.io/EmbLinkRTOS/`. These are observed workflow/job outcomes, not individual requirement coverage or physical hardware qualification; the new stable checks need their own PR results.
 

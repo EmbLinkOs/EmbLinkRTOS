@@ -2,7 +2,8 @@
 /* Copyright 2026 Junior Deogracias */
 /*
  * Cortex-M port services for boards and tests (not kernel API): the Arm semihosting exit
- * that emulated boards end a run with, and the floating-point register probes of the FPU
+ * that emulated boards end a run with, the halt that hardware boards end it with, and the
+ * floating-point register probes of the FPU
  * conformance test. Inline assembly stays in arch/ (CODING-STANDARD CS-1.5).
  */
 #ifndef EMB_CORTEX_M_H
@@ -19,6 +20,10 @@ extern "C" {
 /* SYS_EXIT_EXTENDED: the emulator (run with -semihosting) exits with @code. Halts a part
  * that has no debugger attached; for emulated boards only. */
 EMB_NORETURN void emb_cm_semihosting_exit(int code);
+
+/* Masks every interrupt (PRIMASK) and sleeps for good: how a board with no host to exit to
+ * ends a run. A pending interrupt still wakes WFI; the loop sleeps again. */
+EMB_NORETURN void emb_cm_halt(void);
 
 #if defined(__ARM_FP)
 /* s16..s31 = base, base + 1, ... as raw bit patterns. */

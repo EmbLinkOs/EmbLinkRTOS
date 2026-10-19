@@ -16,6 +16,16 @@ void emb_cm_semihosting_exit(int code)
     }
 }
 
+void emb_cm_halt(void)
+{
+    __asm__ __volatile__("cpsid i" ::: "memory");
+    for (;;) { /* the panic path (CS-6.2): the run is over */
+        __asm__ __volatile__("dsb\n\t"
+                             "wfi" ::
+                                 : "memory");
+    }
+}
+
 #if defined(__ARM_FP)
 EMB_NAKED void emb_cm_fp_fill(uint32_t base)
 {

@@ -38,6 +38,17 @@ QEMU's. Runs are deterministic: an image gives the same console on every run. An
 `EMB_BOARD_EMBSIM_TARGET` in its `board.cmake` can use `-DEMB_TEST_EMULATOR=embsim`. As with QEMU,
 simulated time is never timing evidence (SIM-003).
 
+The NUCLEO-F446RE build does the same on EmbSIM's NUCLEO-F446RE (`emblink/nucleo_f446re`): the
+STM32F446RE's Cortex-M4F, RCC, PWR, flash interface, GPIO and USART2 on the board's circuit, the
+ST-LINK's MCO as the clock input and its virtual COM port as the console. Use the
+`cm4-nucleo-embsim` preset with `gcc-arm-none-eabi` installed:
+
+```sh
+cmake --preset cm4-nucleo-embsim -DEMB_EMBSIM="$PWD/../EmbSIM/build/bin/embsim"
+cmake --build --preset cm4-nucleo-embsim
+ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error
+```
+
 ## Reference model
 
 ```sh

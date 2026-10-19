@@ -1,8 +1,8 @@
 # Cortex-M port
 
-**Status:** Armv7-M (Cortex-M3) and Armv7E-M (Cortex-M4F) running the full conformance suite under QEMU (`mps2-an385`, `mps2-an386`); first 32-bit target with RISC-V (ADR-038). Armv6-M and Armv8-M follow (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
+**Status:** Armv7-M (Cortex-M3) and Armv7E-M (Cortex-M4F) running the full conformance suite under QEMU (`mps2-an385`, `mps2-an386`) and on EmbSIM's NUCLEO-F446RE; first 32-bit target with RISC-V (ADR-038). Armv6-M and Armv8-M follow (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
 
-**Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, shared code in `boards/arm/mps2_common/`.
+**Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit, halt and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, shared code in `boards/arm/mps2_common/`, and `boards/st/nucleo_f446re`.
 
 ## Switching
 
@@ -48,6 +48,8 @@ Static RAM includes the idle thread's 256-byte stack and control block. R-003 T4
 
 Under QEMU 8.2, on `mps2-an385` (Cortex-M3) and `mps2-an386` (Cortex-M4F, checked, release and tiny): the nine conformance suites, plus `test_fpu` on the M4F. `test_fpu` checks that s16-s31 survive a blocking switch and that a float computation preempted by a float-using thread at every tick gives the bit-identical result. Disabling the PendSV FP save makes both tests fail. The first-execution sample ran 2.5 million switches in 15 seconds on the M4F. The fork-based misuse tests are skipped, as on AVR. QEMU runs with `-icount`, so virtual time follows executed instructions and the timing tests do not depend on host load; without it, a stalled host made overdue timer interrupts fire back to back and a 3-tick sleep observed 5 ticks.
 
+On EmbSIM's NUCLEO-F446RE (`emblink/nucleo_f446re`, preset `cm4-nucleo-embsim`, checked base profile): the same ten test images, built as for the board. `emb_board_init` brings the part from its reset state (HSI at 16 MHz) to 180 MHz as RM0390 orders it: HSE in bypass from the ST-LINK's MCO, the PLL (M 8, N 360, P 2), over-drive and its switch, five wait states, then SYSCLK to the PLL with APB1 at 45 MHz and APB2 at 90 MHz. Each ready flag is polled a bounded number of times; if HSE never comes ready (a board whose MCO is not on PH0), the console starts on HSI, says so, and the run halts. The console is USART2 at 115200 baud from APB1. The test interrupt is line 61, reserved on the F446 (no Ethernet). A test run ends in `emb_cm_halt` (PRIMASK set, WFI) after the last frame's TC; EmbSIM stops at the console's `EMB_TEST_END`. The test_time run ends at 122 ms of virtual time after 113 ticks, so SysTick does run from a 180 MHz HCLK. The board has not run on a physical NUCLEO yet.
+
 ## Next
 
-Armv6-M (PRIMASK critical sections, no `basepri`), Armv8-M Mainline (PSPLIM stack limits, `mps2-an505`), tickless SysTick, DWT cycle counter on hardware, and the STM32F407 Discovery and NUCLEO-F446RE boards (M3).
+Armv6-M (PRIMASK critical sections, no `basepri`), Armv8-M Mainline (PSPLIM stack limits, `mps2-an505`), tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
