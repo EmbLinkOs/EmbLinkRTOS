@@ -13,3 +13,5 @@ Readable logs strip trailing whitespace. `raw-logs.json` retains original local/
 To reproduce locally, configure/build a documented preset and run CTest with `--no-tests=error`; focus on `-R '^test_irq_priority$' -V` for per-case output. Configuration tests use `python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v`. The existing QEMU/EmbSIM CI jobs provide the cross tools and run the same images.
 
 These are bounded local/emulator results. They do not establish physical NUCLEO timing/jitter, all Cortex-M priority widths, an implemented raw class, generated hardware tables, stable thread IDs, public fault API IDs or generation-based POINTER protection.
+
+`followup-ci/` records the M3 job at `7bb9c0b` adding the non-nesting configuration gate and focused single-level test. It passed the ordinary ten M3 images and the additional single-level priority image (seven registered cases, zero failures, three fork-only skipped assertions). The normal multi-level priority image has nine cases and three such skips. This is subsequent source/evidence, separate from the original clean local captures at `6e12f88`. The manifest records both source identities.
