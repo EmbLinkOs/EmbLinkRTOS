@@ -1,0 +1,247 @@
+{
+  "source_commit": "ea8ee9947663bb884c7fb695762c0ff785ad1035",
+  "run_url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740",
+  "checks": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:45Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627673/job/119425466908",
+      "name": "Documentation build",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "Documentation"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627778/job/119425467471",
+      "name": "Repository policy",
+      "startedAt": "2026-10-21T19:06:26Z",
+      "status": "COMPLETED",
+      "workflowName": "Repository"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:31Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467492",
+      "name": "native (native-gcc)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467656",
+      "name": "native (native-clang)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:51Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425468415",
+      "name": "native (native-release)",
+      "startedAt": "2026-10-21T19:06:34Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:46Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425468225",
+      "name": "native (native-tiny)",
+      "startedAt": "2026-10-21T19:06:26Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:34Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467689",
+      "name": "native (native-periodic)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467546",
+      "name": "native (native-asan)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:10:10Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467662",
+      "name": "native (native-tsan)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:45Z",
+      "conclusion": "SKIPPED",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627673/job/119425861534",
+      "name": "deploy",
+      "startedAt": "2026-10-21T19:06:46Z",
+      "status": "COMPLETED",
+      "workflowName": "Documentation"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:07:20Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467511",
+      "name": "cortex_m (cm3-an385)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467535",
+      "name": "cortex_m (cm4-an386)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:07:14Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467292",
+      "name": "cortex_m (cm4-an386-release)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:59Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467563",
+      "name": "cortex_m (cm4-an386-tiny)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467628",
+      "name": "riscv (rv32-virt)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:57Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467399",
+      "name": "riscv (rv32-virt-release)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467547",
+      "name": "riscv (rv32-virt-tiny)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:32Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467560",
+      "name": "avr (avr-uno, first_execution)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:40Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467441",
+      "name": "avr (avr-uno-release, first_execution)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467612",
+      "name": "avr (avr-uno-t1, footprint_t1)",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467757",
+      "name": "lint",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:06:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467124",
+      "name": "avr-embsim",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:07:26Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119425467358",
+      "name": "cm4-embsim",
+      "startedAt": "2026-10-21T19:06:02Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T19:10:30Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39658627740/job/119427594546",
+      "name": "CI merge gate",
+      "startedAt": "2026-10-21T19:10:28Z",
+      "status": "COMPLETED",
+      "workflowName": "ci"
+    }
+  ],
+  "scope": "Emulator/native CI and static linked footprint; no physical execution"
+}
