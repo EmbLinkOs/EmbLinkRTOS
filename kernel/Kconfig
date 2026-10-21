@@ -225,9 +225,19 @@ config EMB_IRQ_ZERO_LATENCY
 	default n
 
 config EMB_IRQ_KERNEL_LEVEL
-	int "Highest generic interrupt level that may call the kernel (SPEC-002 §8.1)"
+	int
 	default 0
 	range 0 255
+	help
+	  Derived highest kernel-aware level; Cortex-M uses its priority width and
+	  BASEPRI threshold. Fixed-level ports expose only level 0.
+
+config EMB_IRQ_LEVEL_MAX
+	int
+	default 0
+	range 0 255
+	help
+	  Derived highest level implemented by the current port configuration.
 
 config EMB_IRQ_NESTING
 	bool "Allow kernel-aware interrupts to nest (SPEC-002 §7.1)"

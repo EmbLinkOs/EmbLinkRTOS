@@ -101,8 +101,8 @@ bool emb_arch_irq_is_enabled(emb_irq_t irq)
 
 emb_status_t emb_arch_irq_set_level(emb_irq_t irq, uint8_t level)
 {
-    (void)level; /* one level: vector order is the priority (SPEC-012 §5) */
-    return (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT) ? EMB_OK : EMB_EINVAL;
+    /* One configurable level: hardware vector ordering is fixed (SPEC-012 §5). */
+    return (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && level == 0u) ? EMB_OK : EMB_EINVAL;
 }
 
 emb_status_t emb_arch_irq_clear_pending(emb_irq_t irq)

@@ -163,8 +163,8 @@ bool emb_arch_irq_is_enabled(emb_irq_t irq)
 
 emb_status_t emb_arch_irq_set_level(emb_irq_t irq, uint8_t level)
 {
-    (void)level; /* one level until the PLIC driver (no nesting in this milestone) */
-    return (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT) ? EMB_OK : EMB_EINVAL;
+    /* One configurable level until a programmable interrupt controller is added. */
+    return (irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && level == 0u) ? EMB_OK : EMB_EINVAL;
 }
 
 emb_status_t emb_arch_irq_clear_pending(emb_irq_t irq)

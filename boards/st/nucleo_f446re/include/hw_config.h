@@ -16,4 +16,6 @@
 #define EMB_HW_TEST_IRQ \
     61u /* reserved on the F446 (no Ethernet): the test framework's software interrupt */
 
+#define EMB_HW_TEST_IRQ_HIGH 62u /* second idle line for NVIC priority conformance */
+
 #endif /* HW_CONFIG_H */

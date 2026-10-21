@@ -11,4 +11,6 @@
 #define EMB_HW_UART0_BASE 0x40004000u
 #define EMB_HW_TEST_IRQ   30u /* a line no device drives: the test framework's software interrupt */
 
+#define EMB_HW_TEST_IRQ_HIGH 31u /* second idle line for NVIC priority conformance */
+
 #endif /* HW_CONFIG_H */

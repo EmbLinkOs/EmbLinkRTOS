@@ -4,6 +4,7 @@
 emb_add_test(test_smoke test_smoke.c)
 emb_add_test(test_sched test_sched.c)
 emb_add_test(test_irq test_irq.c)
+emb_add_test(test_irq_priority test_irq_priority.c)
 emb_add_test(test_thread test_thread.c)
 emb_add_test(test_time test_time.c)
 if(CONFIG_EMB_NOTIFY)

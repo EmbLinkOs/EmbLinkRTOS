@@ -23,6 +23,8 @@
 
 #include <stdint.h>
 
+#include <emb_irq_priority.h>
+
 /* ---- system control registers (Armv7-M ARM B3.2) ---------------------------------- */
 
 #define REG32(a) (*(volatile uint32_t *)(uintptr_t)(a)) /* CODING-STANDARD CS-5.1 */
@@ -46,7 +48,7 @@
 #define NVIC_IPR       0xE000E400u
 
 #define PRIO_PENDSV  0xFFu /* the lowest: reads back as the lowest implemented */
-#define PRIO_SYSTICK ((uint8_t)CONFIG_EMB_CM_IRQ_PRIORITY)
+#define PRIO_SYSTICK embn_cm_irq_priority((uint8_t)CONFIG_EMB_CM_TIMER_LEVEL)
 
 /* ---- switching state --------------------------------------------------------------- */
 
@@ -207,19 +209,14 @@ bool emb_arch_irq_is_enabled(emb_irq_t irq)
     return valid_irq(irq) && (REG32(NVIC_ISER + 4u * (irq / 32u)) & (1u << (irq % 32u))) != 0u;
 }
 
-/* Level 0 is the most urgent kernel-aware level; each level is one step of the three
- * priority bits every Armv7-M part implements. Zero-latency priorities (below the
- * kernel's BASEPRI) are set by the board, not through this call (SPEC-002 §3). */
+/* Larger generic levels encode smaller NVIC values: more urgent (SPEC-002 §8).
+ * Only kernel-aware levels are currently exposed; PendSV's encoding is reserved. */
 emb_status_t emb_arch_irq_set_level(emb_irq_t irq, uint8_t level)
 {
-    uint32_t prio = (uint32_t)CONFIG_EMB_CM_KERNEL_BASEPRI + 32u * (uint32_t)level;
-    if (!valid_irq(irq)) {
+    if (!valid_irq(irq) || level > EMB_IRQ_LEVEL_KERNEL_MAX) {
         return EMB_EINVAL;
     }
-    if (prio > 0xC0u) {
-        prio = 0xC0u; /* 0xE0 and above belong to PendSV */
-    }
-    REG8(NVIC_IPR + irq) = (uint8_t)prio;
+    REG8(NVIC_IPR + irq) = embn_cm_irq_priority(level);
     return EMB_OK;
 }
 
@@ -343,6 +340,11 @@ void emb_arch_early_init(void)
 void emb_arch_init(void)
 {
     unsigned i;
+    uint32_t aircr = REG32(SCB_AIRCR);
+    /* All advertised bits are preemption bits; preserve unrelated AIRCR fields. */
+    aircr &= ~((0xFFFFu << 16) | (7u << 8));
+    REG32(SCB_AIRCR) = aircr | (0x5FAu << 16);
+    __asm__ __volatile__("dsb\n\tisb" ::: "memory");
     REG8(SCB_SHPR3 + 2u) = PRIO_PENDSV;
     REG8(SCB_SHPR3 + 3u) = PRIO_SYSTICK;
     REG32(SCB_SHCSR) |= (1u << 16) | (1u << 17) | (1u << 18); /* MemManage, BusFault, Usage */

@@ -36,3 +36,19 @@ Expressions: `!`, `&&`, `||`, parentheses, `=`, `!=`, `<`, `>`, `<=`, `>=`, symb
 | `.config` | the resolved configuration in fragment syntax, reproducible input for the next run |
 
 Files whose content did not change are not rewritten, so nothing rebuilds after a configure that resolved to the same values.
+
+## Implemented IRQ priority domain
+
+Before final resolution, the tool derives `CONFIG_EMB_IRQ_KERNEL_LEVEL` and
+`CONFIG_EMB_IRQ_LEVEL_MAX`. They are equal for the current kernel-aware-only ports.
+Native, AVR and RV32 derive zero. Cortex-M uses the board's
+`CONFIG_EMB_CM_IRQ_PRIORITY_BITS` (3–7 high preemption bits), the aligned nonzero
+`CONFIG_EMB_CM_KERNEL_BASEPRI` and one reserved least-urgent PendSV encoding.
+With `step = 1 << (8 - bits)`, the maximum is
+`(256 - 2*step - BASEPRI) / step`. Inconsistent explicit limit overrides fail.
+
+The legacy raw default `CONFIG_EMB_CM_IRQ_PRIORITY` must be aligned and inside that
+kernel-aware domain. `CONFIG_EMB_CM_TIMER_LEVEL` is a generic value; its default is
+the derived maximum. Raw kernel-independent vectors are not implemented and enabling
+`CONFIG_EMB_IRQ_ZERO_LATENCY` on this Cortex-M port is refused. The arithmetic is
+port validation, not an extension to the Kconfig expression language.

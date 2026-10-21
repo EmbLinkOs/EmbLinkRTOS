@@ -22,6 +22,7 @@ extern "C" {
 typedef void (*emb_isr_fn_t)(void *arg);
 
 #define EMB_IRQ_LEVEL_KERNEL_MAX CONFIG_EMB_IRQ_KERNEL_LEVEL
+#define EMB_IRQ_LEVEL_MAX        CONFIG_EMB_IRQ_LEVEL_MAX
 
 /**
  * emb_irq_lock() - Mask kernel-aware interrupts on this CPU.
@@ -161,7 +162,7 @@ bool emb_irq_is_enabled(emb_irq_t irq);
 /**
  * emb_irq_set_level() - Set a generic interrupt priority.
  * @irq: Interrupt number from the port/SoC table.
- * @level: Port priority value; see the current mapping limitation below.
+ * @level: Generic priority in 0..EMB_IRQ_LEVEL_MAX; larger means more urgent.
  *
  * @ctx      thread prekernel
  * @blocks   no
@@ -172,12 +173,15 @@ bool emb_irq_is_enabled(emb_irq_t irq);
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_EINVAL for an invalid number on validating ports.
- * The target convention is larger = more urgent (KRN-IRQ-028), but the current
- * Cortex-M port maps 0 to the most urgent kernel-aware level and clamps larger
- * values toward lower urgency. Native, AVR and current RV32 accept a known
- * number but ignore level. This API does not yet implement generic priority
- * numbering consistently; do not infer hardware preemption from native tests.
+ * Return: EMB_OK; release builds return EMB_EPERM in ISR context and EMB_EINVAL
+ * for an unknown number or out-of-range level. Checked builds raise the respective
+ * context/argument fault. Context is checked first, then irq (argument 1), then
+ * level (argument 2). Invalid requests do not write the controller.
+ * Current ports expose only kernel-aware levels: EMB_IRQ_LEVEL_MAX equals
+ * EMB_IRQ_LEVEL_KERNEL_MAX. Native, AVR and current RV32 expose only level 0;
+ * it preserves their fixed delivery order, not equal hardware urgency for all
+ * sources. Cortex-M maps generic levels using its declared priority width.
+ * Callers must query the advertised limits; a level is not portable to every port.
  */
 emb_status_t emb_irq_set_level(emb_irq_t irq, uint8_t level);
 /**
