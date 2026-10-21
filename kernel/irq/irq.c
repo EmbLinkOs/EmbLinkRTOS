@@ -22,8 +22,13 @@ bool emb_irq_is_enabled(emb_irq_t irq)
 
 emb_status_t emb_irq_set_level(emb_irq_t irq, uint8_t level)
 {
+    emb_status_t status;
     EMBK_REQUIRE_NOT_ISR();
-    return emb_arch_irq_set_level(irq, level);
+    EMBK_REQUIRE(irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_REQUIRE(level <= EMB_IRQ_LEVEL_MAX, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    status = emb_arch_irq_set_level(irq, level);
+    EMBK_REQUIRE(status != EMB_EINVAL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    return status;
 }
 
 emb_status_t emb_irq_pend(emb_irq_t irq)

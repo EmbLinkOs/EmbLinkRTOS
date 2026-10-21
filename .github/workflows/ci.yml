@@ -64,7 +64,15 @@ jobs:
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
-        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Single-level non-nesting IRQ conformance
+        if: matrix.preset == 'cm3-an385'
+        run: |
+          cmake -S . -B build/cm3-irq-single -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-gcc.cmake -DEMB_BOARD=mps2_an385 \
+            -DEMB_SET="EMB_CM_KERNEL_BASEPRI=192;EMB_CM_IRQ_PRIORITY=192;EMB_IRQ_NESTING=n"
+          cmake --build build/cm3-irq-single --target test_irq_priority
+          ctest --test-dir build/cm3-irq-single -R '^test_irq_priority$' --no-tests=error --verbose
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -165,6 +173,8 @@ jobs:
             --conf boards/native/native/board.conf --conf configs/base.conf --print > /dev/null
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/avr/arch.yaml \
             --conf boards/arduino/arduino_uno/board.conf --conf configs/tiny.conf --print > /dev/null
+      - name: IRQ configuration and encoding regressions
+        run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
       - name: Reference model
         run: |
           pip install hypothesis pytest
@@ -225,7 +235,7 @@ jobs:
       - name: Build
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
-        run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error
+        run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
 
   merge_gate:
     name: CI merge gate

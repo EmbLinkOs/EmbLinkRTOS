@@ -730,6 +730,51 @@ def _set_user(tree: Tree, name: str, raw: str, origin: str):
 # --------------------------------------------------------------------------- output
 
 
+def derive_irq_levels(tree: Tree):
+    """Resolve the currently implemented priority domain before other defaults use it.
+
+    Board fragments provide Cortex-M priority width and the legacy BASEPRI encoding.
+    The public limits are calculated, never independent user choices. Other current
+    ports expose one configurable level. Keep this outside the expression language:
+    Kconfig expressions intentionally do not implement arithmetic.
+    """
+    if "EMB_IRQ_KERNEL_LEVEL" not in tree.symbols or "EMB_ARCH" not in tree.symbols:
+        return
+    probe = Resolver(tree)
+
+    def integer(name):
+        value = probe.value(tree.symbols[name])
+        if probe.errors:
+            raise ConfigError("\n".join(probe.errors))
+        return int(value, 0)
+
+    maximum = 0
+    if probe.value(tree.symbols["EMB_ARCH"]) == "cortex_m":
+        bits = integer("EMB_CM_IRQ_PRIORITY_BITS")
+        if not 3 <= bits <= 7:
+            raise ConfigError("CONFIG_EMB_CM_IRQ_PRIORITY_BITS must be in 3..7")
+        step = 1 << (8 - bits)
+        lowest = 256 - 2 * step  # leave the least urgent encoding to PendSV
+        base = integer("EMB_CM_KERNEL_BASEPRI")
+        if base == 0 or base > lowest or base % step:
+            raise ConfigError("CONFIG_EMB_CM_KERNEL_BASEPRI must be nonzero, aligned to "
+                              f"{step}, and no greater than {lowest}")
+        default = integer("EMB_CM_IRQ_PRIORITY")
+        if not base <= default <= lowest or default % step:
+            raise ConfigError("CONFIG_EMB_CM_IRQ_PRIORITY must be aligned to "
+                              f"{step} and in {base}..{lowest} (PendSV is reserved)")
+        maximum = (lowest - base) // step
+    for name in ("EMB_IRQ_KERNEL_LEVEL", "EMB_IRQ_LEVEL_MAX"):
+        symbol = tree.symbols[name]
+        if symbol.user is not None and integer(name) != maximum:
+            raise ConfigError(f"CONFIG_{name} is derived by the port and must equal {maximum}")
+        symbol.user = str(maximum)
+        symbol.user_origin = "architecture priority domain"
+    # Partial resolution above must not freeze defaults that depend on derived limits.
+    for symbol in tree.symbols.values():
+        symbol.value = None
+
+
 def c_literal(s: Symbol, v: str) -> str:
     if s.kind == "bool":
         return "1" if v == "y" else "0"
@@ -844,6 +889,7 @@ def main(argv: list[str]) -> int:
         for item in args.set:
             k, _, val = item.partition("=")
             _set_user(tree, k.removeprefix("CONFIG_"), val, "command line")
+        derive_irq_levels(tree)
         res = Resolver(tree)
         res.resolve()
         emit(tree, res, args)

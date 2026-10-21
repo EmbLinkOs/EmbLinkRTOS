@@ -1,0 +1,757 @@
+﻿2026-10-21T18:23:31.4811396Z Current runner version: '2.338.0'
+2026-10-21T18:23:31.4836581Z ##[group]Runner Image Provisioner
+2026-10-21T18:23:31.4837665Z Hosted Compute Agent
+2026-10-21T18:23:31.4838355Z Version: 20261012.601
+2026-10-21T18:23:31.4839048Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-21T18:23:31.4839857Z Build Date: 2026-10-12T17:48:21Z
+2026-10-21T18:23:31.4840552Z Worker ID: {365b1573-35a8-44df-b8c8-446fa9e3517e}
+2026-10-21T18:23:31.4841261Z Region: westus3
+2026-10-21T18:23:31.4841865Z Cloud: Azure
+2026-10-21T18:23:31.4842401Z ##[endgroup]
+2026-10-21T18:23:31.4843925Z ##[group]Operating System
+2026-10-21T18:23:31.4844616Z Ubuntu
+2026-10-21T18:23:31.4845130Z 24.04.5
+2026-10-21T18:23:31.4845690Z LTS
+2026-10-21T18:23:31.4846207Z ##[endgroup]
+2026-10-21T18:23:31.4847094Z ##[group]Runner Image
+2026-10-21T18:23:31.4847732Z Image: ubuntu-24.04
+2026-10-21T18:23:31.4848291Z Version: 20261012.334.1
+2026-10-21T18:23:31.4849665Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-21T18:23:31.4851288Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-21T18:23:31.4852287Z ##[endgroup]
+2026-10-21T18:23:31.4853357Z ##[group]GITHUB_TOKEN Permissions
+2026-10-21T18:23:31.4855544Z Contents: read
+2026-10-21T18:23:31.4856140Z Metadata: read
+2026-10-21T18:23:31.4857107Z ##[endgroup]
+2026-10-21T18:23:31.4859286Z Secret source: Actions
+2026-10-21T18:23:31.4860315Z Cache mode: write
+2026-10-21T18:23:31.4861364Z Prepare workflow directory
+2026-10-21T18:23:31.5300281Z Prepare all required actions
+2026-10-21T18:23:31.5348475Z Getting action download info
+2026-10-21T18:23:31.8411622Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-21T18:23:32.0622895Z Complete job name: cm4-embsim
+2026-10-21T18:23:32.1437297Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-21T18:23:32.1438421Z with:
+2026-10-21T18:23:32.1438902Z   repository: EmbLinkOs/EmbLinkRTOS
+2026-10-21T18:23:32.1442932Z   token: ***
+2026-10-21T18:23:32.1443383Z   ssh-strict: true
+2026-10-21T18:23:32.1443815Z   ssh-user: git
+2026-10-21T18:23:32.1444264Z   persist-credentials: true
+2026-10-21T18:23:32.1444749Z   clean: true
+2026-10-21T18:23:32.1445191Z   sparse-checkout-cone-mode: true
+2026-10-21T18:23:32.1445708Z   fetch-depth: 1
+2026-10-21T18:23:32.1446137Z   fetch-tags: false
+2026-10-21T18:23:32.1446581Z   show-progress: true
+2026-10-21T18:23:32.1447240Z   lfs: false
+2026-10-21T18:23:32.1447652Z   submodules: false
+2026-10-21T18:23:32.1448105Z   set-safe-directory: true
+2026-10-21T18:23:32.1448601Z   allow-unsafe-pr-checkout: false
+2026-10-21T18:23:32.1449368Z env:
+2026-10-21T18:23:32.1449858Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:32.1450457Z ##[endgroup]
+2026-10-21T18:23:32.2511968Z Syncing repository: EmbLinkOs/EmbLinkRTOS
+2026-10-21T18:23:32.2514323Z ##[group]Getting Git version info
+2026-10-21T18:23:32.2515176Z Working directory is '/home/runner/work/EmbLinkRTOS/EmbLinkRTOS'
+2026-10-21T18:23:32.2516518Z [command]/usr/bin/git version
+2026-10-21T18:23:32.2575632Z git version 2.55.0
+2026-10-21T18:23:32.2600181Z ##[endgroup]
+2026-10-21T18:23:32.2618907Z Temporarily overriding HOME='/home/runner/work/_temp/46d1a9f3-9c82-45a1-b3c1-0cc99790fea5' before making global git config changes
+2026-10-21T18:23:32.2621328Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T18:23:32.2622509Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/EmbLinkRTOS/EmbLinkRTOS
+2026-10-21T18:23:32.2668732Z Deleting the contents of '/home/runner/work/EmbLinkRTOS/EmbLinkRTOS'
+2026-10-21T18:23:32.2672174Z ##[group]Determining repository object format
+2026-10-21T18:23:32.2673713Z ##[endgroup]
+2026-10-21T18:23:32.2675059Z ##[group]Initializing the repository
+2026-10-21T18:23:32.2678253Z [command]/usr/bin/git init /home/runner/work/EmbLinkRTOS/EmbLinkRTOS
+2026-10-21T18:23:32.2788433Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-21T18:23:32.2790212Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-21T18:23:32.2791783Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-21T18:23:32.2793009Z hint: call:
+2026-10-21T18:23:32.2793698Z hint:
+2026-10-21T18:23:32.2794542Z hint: 	git config --global init.defaultBranch <name>
+2026-10-21T18:23:32.2795555Z hint:
+2026-10-21T18:23:32.2796473Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-21T18:23:32.2798211Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-21T18:23:32.2799470Z hint:
+2026-10-21T18:23:32.2800130Z hint: 	git branch -m <name>
+2026-10-21T18:23:32.2800876Z hint:
+2026-10-21T18:23:32.2801962Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-21T18:23:32.2803692Z Initialized empty Git repository in /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git/
+2026-10-21T18:23:32.2807238Z [command]/usr/bin/git remote add origin https://github.com/EmbLinkOs/EmbLinkRTOS
+2026-10-21T18:23:32.2862915Z ##[endgroup]
+2026-10-21T18:23:32.2864268Z ##[group]Disabling automatic garbage collection
+2026-10-21T18:23:32.2866058Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-21T18:23:32.2900437Z ##[endgroup]
+2026-10-21T18:23:32.2901680Z ##[group]Setting up auth
+2026-10-21T18:23:32.2916754Z Removing SSH command configuration
+2026-10-21T18:23:32.2924138Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T18:23:32.2956336Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T18:23:32.3318950Z Removing HTTP extra header
+2026-10-21T18:23:32.3325130Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T18:23:32.3366769Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T18:23:32.3599563Z Removing includeIf entries pointing to credentials config files
+2026-10-21T18:23:32.3604083Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T18:23:32.3643552Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T18:23:32.3878314Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-21T18:23:32.3921384Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git.path /home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:23:32.3956244Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:23:32.3995842Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:23:32.4032657Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:23:32.4066248Z ##[endgroup]
+2026-10-21T18:23:32.4067291Z ##[group]Fetching the repository
+2026-10-21T18:23:32.4074224Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5fbdb59f8469e622d973c0b38ba8846ae9676222:refs/remotes/pull/15/merge
+2026-10-21T18:23:33.2658316Z From https://github.com/EmbLinkOs/EmbLinkRTOS
+2026-10-21T18:23:33.2660668Z  * [new ref]         5fbdb59f8469e622d973c0b38ba8846ae9676222 -> pull/15/merge
+2026-10-21T18:23:33.2664892Z ##[endgroup]
+2026-10-21T18:23:33.2666551Z ##[group]Determining the checkout info
+2026-10-21T18:23:33.2668621Z ##[endgroup]
+2026-10-21T18:23:33.2673053Z [command]/usr/bin/git sparse-checkout disable
+2026-10-21T18:23:33.2731069Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-21T18:23:33.2770179Z ##[group]Checking out the ref
+2026-10-21T18:23:33.2774556Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/15/merge
+2026-10-21T18:23:33.3219967Z Note: switching to 'refs/remotes/pull/15/merge'.
+2026-10-21T18:23:33.3220787Z
+2026-10-21T18:23:33.3221380Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T18:23:33.3222736Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T18:23:33.3224039Z state without impacting any branches by switching back to a branch.
+2026-10-21T18:23:33.3224809Z
+2026-10-21T18:23:33.3225362Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T18:23:33.3227306Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T18:23:33.3228593Z
+2026-10-21T18:23:33.3229232Z   git switch -c <new-branch-name>
+2026-10-21T18:23:33.3230183Z
+2026-10-21T18:23:33.3230798Z Or undo this operation with:
+2026-10-21T18:23:33.3231626Z
+2026-10-21T18:23:33.3232139Z   git switch -
+2026-10-21T18:23:33.3232799Z
+2026-10-21T18:23:33.3233875Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T18:23:33.3235452Z
+2026-10-21T18:23:33.3237339Z HEAD is now at 5fbdb59 Merge 6e12f8837b89c8572f61c56ad7ab1d1b80f51f9a into 3eb878341f415d0ef91673a5ef136abf24a8d89f
+2026-10-21T18:23:33.3242645Z ##[endgroup]
+2026-10-21T18:23:33.3290933Z [command]/usr/bin/git log -1 --format=%H
+2026-10-21T18:23:33.3320765Z 5fbdb59f8469e622d973c0b38ba8846ae9676222
+2026-10-21T18:23:33.3813385Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-21T18:23:33.3815022Z with:
+2026-10-21T18:23:33.3815921Z   repository: EmbLinkOs/EmbSIM
+2026-10-21T18:23:33.3817389Z   ref: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:33.3818585Z   path: embsim
+2026-10-21T18:23:33.3828272Z   token: ***
+2026-10-21T18:23:33.3829176Z   ssh-strict: true
+2026-10-21T18:23:33.3830101Z   ssh-user: git
+2026-10-21T18:23:33.3831042Z   persist-credentials: true
+2026-10-21T18:23:33.3832047Z   clean: true
+2026-10-21T18:23:33.3832997Z   sparse-checkout-cone-mode: true
+2026-10-21T18:23:33.3834093Z   fetch-depth: 1
+2026-10-21T18:23:33.3835002Z   fetch-tags: false
+2026-10-21T18:23:33.3835932Z   show-progress: true
+2026-10-21T18:23:33.3837127Z   lfs: false
+2026-10-21T18:23:33.3838022Z   submodules: false
+2026-10-21T18:23:33.3838972Z   set-safe-directory: true
+2026-10-21T18:23:33.3840040Z   allow-unsafe-pr-checkout: false
+2026-10-21T18:23:33.3841102Z env:
+2026-10-21T18:23:33.3842125Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:33.3843364Z ##[endgroup]
+2026-10-21T18:23:33.4690613Z Syncing repository: EmbLinkOs/EmbSIM
+2026-10-21T18:23:33.4692983Z ##[group]Getting Git version info
+2026-10-21T18:23:33.4695333Z Working directory is '/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim'
+2026-10-21T18:23:33.4758209Z [command]/usr/bin/git version
+2026-10-21T18:23:33.4788220Z git version 2.55.0
+2026-10-21T18:23:33.4851546Z ##[endgroup]
+2026-10-21T18:23:33.4858187Z Temporarily overriding HOME='/home/runner/work/_temp/6101172f-7db5-401f-94d4-1c401a5236cb' before making global git config changes
+2026-10-21T18:23:33.4862796Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T18:23:33.4867089Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim
+2026-10-21T18:23:33.4872665Z ##[group]Determining repository object format
+2026-10-21T18:23:33.4874486Z ##[endgroup]
+2026-10-21T18:23:33.4876035Z ##[group]Initializing the repository
+2026-10-21T18:23:33.4878448Z [command]/usr/bin/git init /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim
+2026-10-21T18:23:33.4914813Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-21T18:23:33.4918772Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-21T18:23:33.4922440Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-21T18:23:33.4925295Z hint: call:
+2026-10-21T18:23:33.4927483Z hint:
+2026-10-21T18:23:33.4929651Z hint: 	git config --global init.defaultBranch <name>
+2026-10-21T18:23:33.4932027Z hint:
+2026-10-21T18:23:33.4934307Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-21T18:23:33.4938238Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-21T18:23:33.4940473Z hint:
+2026-10-21T18:23:33.4942083Z hint: 	git branch -m <name>
+2026-10-21T18:23:33.4943772Z hint:
+2026-10-21T18:23:33.4946343Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-21T18:23:33.4949893Z Initialized empty Git repository in /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git/
+2026-10-21T18:23:33.4954222Z [command]/usr/bin/git remote add origin https://github.com/EmbLinkOs/EmbSIM
+2026-10-21T18:23:33.4976397Z ##[endgroup]
+2026-10-21T18:23:33.4979804Z ##[group]Disabling automatic garbage collection
+2026-10-21T18:23:33.4982734Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-21T18:23:33.5023643Z ##[endgroup]
+2026-10-21T18:23:33.5026482Z ##[group]Setting up auth
+2026-10-21T18:23:33.5029235Z Removing SSH command configuration
+2026-10-21T18:23:33.5032362Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T18:23:33.5067978Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T18:23:33.5323211Z Removing HTTP extra header
+2026-10-21T18:23:33.5331146Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T18:23:33.5371820Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T18:23:33.5651168Z Removing includeIf entries pointing to credentials config files
+2026-10-21T18:23:33.5653220Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T18:23:33.5691745Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T18:23:33.5943862Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-21T18:23:33.5986628Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git.path /home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:23:33.6021883Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:23:33.6058008Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/embsim/.git.path /github/runner_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:23:33.6094266Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/embsim/.git/worktrees/*.path /github/runner_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:23:33.6127369Z ##[endgroup]
+2026-10-21T18:23:33.6128985Z ##[group]Fetching the repository
+2026-10-21T18:23:33.6133714Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:35.7844610Z From https://github.com/EmbLinkOs/EmbSIM
+2026-10-21T18:23:35.7845785Z  * branch            c52829326e4e2477e751f41f3532b7a021f60fb7 -> FETCH_HEAD
+2026-10-21T18:23:35.7856023Z [command]/usr/bin/git rev-parse --verify --quiet c52829326e4e2477e751f41f3532b7a021f60fb7^{object}
+2026-10-21T18:23:35.7887454Z c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:35.7893502Z ##[endgroup]
+2026-10-21T18:23:35.7894439Z ##[group]Determining the checkout info
+2026-10-21T18:23:35.7900640Z ##[endgroup]
+2026-10-21T18:23:35.7901420Z [command]/usr/bin/git sparse-checkout disable
+2026-10-21T18:23:35.7951393Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-21T18:23:35.7989213Z ##[group]Checking out the ref
+2026-10-21T18:23:35.7994305Z [command]/usr/bin/git checkout --progress --force c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:36.0631008Z Note: switching to 'c52829326e4e2477e751f41f3532b7a021f60fb7'.
+2026-10-21T18:23:36.0631593Z
+2026-10-21T18:23:36.0631919Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T18:23:36.0632698Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T18:23:36.0633538Z state without impacting any branches by switching back to a branch.
+2026-10-21T18:23:36.0634021Z
+2026-10-21T18:23:36.0634328Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T18:23:36.0635099Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T18:23:36.0635560Z
+2026-10-21T18:23:36.0635744Z   git switch -c <new-branch-name>
+2026-10-21T18:23:36.0636075Z
+2026-10-21T18:23:36.0636342Z Or undo this operation with:
+2026-10-21T18:23:36.0636615Z
+2026-10-21T18:23:36.0636779Z   git switch -
+2026-10-21T18:23:36.0637273Z
+2026-10-21T18:23:36.0637632Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T18:23:36.0638528Z
+2026-10-21T18:23:36.0638869Z HEAD is now at c528293 EmbLinkRTOS on the NUCLEO-F446RE (step 11)
+2026-10-21T18:23:36.0647717Z ##[endgroup]
+2026-10-21T18:23:36.0694349Z [command]/usr/bin/git log -1 --format=%H
+2026-10-21T18:23:36.0722584Z c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:36.0875029Z ##[group]Run sudo apt-get update
+2026-10-21T18:23:36.0875455Z [36;1msudo apt-get update[0m
+2026-10-21T18:23:36.0875964Z [36;1msudo apt-get install -y ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi python3-yaml[0m
+2026-10-21T18:23:36.1187467Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T18:23:36.1187912Z env:
+2026-10-21T18:23:36.1188229Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:23:36.1188581Z ##[endgroup]
+2026-10-21T18:23:36.2186578Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T18:23:36.2537906Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-10-21T18:23:36.2539601Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-10-21T18:23:36.2571668Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-10-21T18:23:36.2619842Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-10-21T18:23:36.2622027Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-10-21T18:23:36.3892866Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.4 kB]
+2026-10-21T18:23:36.4008937Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [567 kB]
+2026-10-21T18:23:36.4130035Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [630 kB]
+2026-10-21T18:23:36.4434705Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1400 kB]
+2026-10-21T18:23:36.4507822Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [309 kB]
+2026-10-21T18:23:36.4545707Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1706 kB]
+2026-10-21T18:23:36.4633939Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+2026-10-21T18:23:36.4645432Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1805 kB]
+2026-10-21T18:23:36.4737627Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [411 kB]
+2026-10-21T18:23:36.5657810Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1145 kB]
+2026-10-21T18:23:36.5721271Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [231 kB]
+2026-10-21T18:23:36.5735713Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1222 kB]
+2026-10-21T18:23:36.5798870Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-10-21T18:23:36.6250250Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1713 kB]
+2026-10-21T18:23:36.6339442Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [392 kB]
+2026-10-21T18:23:40.4247729Z Fetched 12.5 MB in 1s (9625 kB/s)
+2026-10-21T18:23:41.4997726Z Reading package lists...
+2026-10-21T18:23:41.5323307Z Reading package lists...
+2026-10-21T18:23:41.7938623Z Building dependency tree...
+2026-10-21T18:23:41.7947019Z Reading state information...
+2026-10-21T18:23:42.0923880Z python3-yaml is already the newest version (6.0.1-2build2).
+2026-10-21T18:23:42.0924564Z python3-yaml set to manually installed.
+2026-10-21T18:23:42.0924995Z The following additional packages will be installed:
+2026-10-21T18:23:42.0930972Z   binutils-arm-none-eabi libnewlib-dev libstdc++-arm-none-eabi-dev
+2026-10-21T18:23:42.0936974Z   libstdc++-arm-none-eabi-newlib
+2026-10-21T18:23:42.0947699Z Suggested packages:
+2026-10-21T18:23:42.0948063Z   libnewlib-doc
+2026-10-21T18:23:42.1174347Z The following NEW packages will be installed:
+2026-10-21T18:23:42.1178376Z   binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi
+2026-10-21T18:23:42.1183020Z   libnewlib-dev libstdc++-arm-none-eabi-dev libstdc++-arm-none-eabi-newlib
+2026-10-21T18:23:42.1186057Z   ninja-build
+2026-10-21T18:23:42.1439305Z 0 upgraded, 7 newly installed, 0 to remove and 94 not upgraded.
+2026-10-21T18:23:42.1439987Z Need to get 574 MB of archives.
+2026-10-21T18:23:42.1440558Z After this operation, 3106 MB of additional disk space will be used.
+2026-10-21T18:23:42.1441272Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T18:23:42.2252200Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 binutils-arm-none-eabi amd64 2.42-1ubuntu1+23 [3137 kB]
+2026-10-21T18:23:42.3161404Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 gcc-arm-none-eabi amd64 15:13.2.rel1-2 [57.5 MB]
+2026-10-21T18:23:43.5746347Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libstdc++-arm-none-eabi-dev all 15:13.2.rel1-2+26 [1320 kB]
+2026-10-21T18:23:43.6761886Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 ninja-build amd64 1.11.1-2 [129 kB]
+2026-10-21T18:23:43.7616749Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libnewlib-dev all 4.4.0.20231231-2 [140 kB]
+2026-10-21T18:23:43.8279334Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libnewlib-arm-none-eabi all 4.4.0.20231231-2 [49.2 MB]
+2026-10-21T18:23:44.9005773Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libstdc++-arm-none-eabi-newlib all 15:13.2.rel1-2+26 [463 MB]
+2026-10-21T18:23:55.4514776Z Fetched 574 MB in 13s (44.9 MB/s)
+2026-10-21T18:23:55.4788232Z Selecting previously unselected package binutils-arm-none-eabi.
+2026-10-21T18:23:55.5070719Z (Reading database ...
+2026-10-21T18:23:55.5071228Z (Reading database ... 5%
+2026-10-21T18:23:55.5071619Z (Reading database ... 10%
+2026-10-21T18:23:55.5071989Z (Reading database ... 15%
+2026-10-21T18:23:55.5072351Z (Reading database ... 20%
+2026-10-21T18:23:55.5072698Z (Reading database ... 25%
+2026-10-21T18:23:55.5073039Z (Reading database ... 30%
+2026-10-21T18:23:55.5073784Z (Reading database ... 35%
+2026-10-21T18:23:55.5074119Z (Reading database ... 40%
+2026-10-21T18:23:55.5075101Z (Reading database ... 45%
+2026-10-21T18:23:55.5075543Z (Reading database ... 50%
+2026-10-21T18:23:55.5119826Z (Reading database ... 55%
+2026-10-21T18:23:55.6159464Z (Reading database ... 60%
+2026-10-21T18:23:55.8604338Z (Reading database ... 65%
+2026-10-21T18:23:56.0244725Z (Reading database ... 70%
+2026-10-21T18:23:56.2132176Z (Reading database ... 75%
+2026-10-21T18:23:56.4133858Z (Reading database ... 80%
+2026-10-21T18:23:56.6024886Z (Reading database ... 85%
+2026-10-21T18:23:56.7604755Z (Reading database ... 90%
+2026-10-21T18:23:57.0739925Z (Reading database ... 95%
+2026-10-21T18:23:57.0740415Z (Reading database ... 100%
+2026-10-21T18:23:57.0741009Z (Reading database ... 203540 files and directories currently installed.)
+2026-10-21T18:23:57.0786777Z Preparing to unpack .../0-binutils-arm-none-eabi_2.42-1ubuntu1+23_amd64.deb ...
+2026-10-21T18:23:57.0816632Z Unpacking binutils-arm-none-eabi (2.42-1ubuntu1+23) ...
+2026-10-21T18:23:57.1775670Z Selecting previously unselected package gcc-arm-none-eabi.
+2026-10-21T18:23:57.1904749Z Preparing to unpack .../1-gcc-arm-none-eabi_15%3a13.2.rel1-2_amd64.deb ...
+2026-10-21T18:23:57.1925338Z Unpacking gcc-arm-none-eabi (15:13.2.rel1-2) ...
+2026-10-21T18:23:58.7076222Z Selecting previously unselected package libstdc++-arm-none-eabi-dev.
+2026-10-21T18:23:58.7208361Z Preparing to unpack .../2-libstdc++-arm-none-eabi-dev_15%3a13.2.rel1-2+26_all.deb ...
+2026-10-21T18:23:58.7217857Z Unpacking libstdc++-arm-none-eabi-dev (15:13.2.rel1-2+26) ...
+2026-10-21T18:23:59.0390336Z Selecting previously unselected package ninja-build.
+2026-10-21T18:23:59.0524261Z Preparing to unpack .../3-ninja-build_1.11.1-2_amd64.deb ...
+2026-10-21T18:23:59.0534726Z Unpacking ninja-build (1.11.1-2) ...
+2026-10-21T18:23:59.0920690Z Selecting previously unselected package libnewlib-dev.
+2026-10-21T18:23:59.1051901Z Preparing to unpack .../4-libnewlib-dev_4.4.0.20231231-2_all.deb ...
+2026-10-21T18:23:59.1061473Z Unpacking libnewlib-dev (4.4.0.20231231-2) ...
+2026-10-21T18:23:59.1482881Z Selecting previously unselected package libnewlib-arm-none-eabi.
+2026-10-21T18:23:59.1612680Z Preparing to unpack .../5-libnewlib-arm-none-eabi_4.4.0.20231231-2_all.deb ...
+2026-10-21T18:23:59.1620502Z Unpacking libnewlib-arm-none-eabi (4.4.0.20231231-2) ...
+2026-10-21T18:24:00.4666295Z Selecting previously unselected package libstdc++-arm-none-eabi-newlib.
+2026-10-21T18:24:00.4802927Z Preparing to unpack .../6-libstdc++-arm-none-eabi-newlib_15%3a13.2.rel1-2+26_all.deb ...
+2026-10-21T18:24:00.4812050Z Unpacking libstdc++-arm-none-eabi-newlib (15:13.2.rel1-2+26) ...
+2026-10-21T18:24:07.2886449Z Setting up binutils-arm-none-eabi (2.42-1ubuntu1+23) ...
+2026-10-21T18:24:07.2910527Z Setting up gcc-arm-none-eabi (15:13.2.rel1-2) ...
+2026-10-21T18:24:07.2932999Z Setting up ninja-build (1.11.1-2) ...
+2026-10-21T18:24:07.2954726Z Setting up libnewlib-dev (4.4.0.20231231-2) ...
+2026-10-21T18:24:07.3038731Z Setting up libnewlib-arm-none-eabi (4.4.0.20231231-2) ...
+2026-10-21T18:24:07.3122277Z Setting up libstdc++-arm-none-eabi-dev (15:13.2.rel1-2+26) ...
+2026-10-21T18:24:07.3201543Z Setting up libstdc++-arm-none-eabi-newlib (15:13.2.rel1-2+26) ...
+2026-10-21T18:24:07.3229333Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-10-21T18:24:07.3251781Z Not building database; man-db/auto-update is not 'true'.
+2026-10-21T18:24:07.3264029Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-10-21T18:24:07.9845607Z
+2026-10-21T18:24:07.9846316Z Running kernel seems to be up-to-date.
+2026-10-21T18:24:07.9846700Z
+2026-10-21T18:24:07.9847208Z No services need to be restarted.
+2026-10-21T18:24:07.9847516Z
+2026-10-21T18:24:07.9847720Z No containers need to be restarted.
+2026-10-21T18:24:07.9848038Z
+2026-10-21T18:24:07.9848237Z No user sessions are running outdated binaries.
+2026-10-21T18:24:07.9848595Z
+2026-10-21T18:24:07.9848931Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-21T18:24:09.1562858Z ##[group]Run cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
+2026-10-21T18:24:09.1563760Z [36;1mcmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF[0m
+2026-10-21T18:24:09.1564360Z [36;1mcmake --build embsim/build --target embsim_cli[0m
+2026-10-21T18:24:09.1631700Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T18:24:09.1632057Z env:
+2026-10-21T18:24:09.1632301Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:24:09.1632599Z ##[endgroup]
+2026-10-21T18:24:10.0394853Z -- The C compiler identification is GNU 13.3.0
+2026-10-21T18:24:10.1445492Z -- Detecting C compiler ABI info
+2026-10-21T18:24:10.3081766Z -- Detecting C compiler ABI info - done
+2026-10-21T18:24:10.3249908Z -- Check for working C compiler: /usr/bin/cc - skipped
+2026-10-21T18:24:10.3292780Z -- Detecting C compile features
+2026-10-21T18:24:10.3340256Z -- Detecting C compile features - done
+2026-10-21T18:24:10.3590934Z -- Configuring done (0.8s)
+2026-10-21T18:24:10.3805971Z -- Generating done (0.0s)
+2026-10-21T18:24:10.3809333Z -- Build files have been written to: /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/build
+2026-10-21T18:24:10.3994347Z [0/2] Re-checking globbed directories...
+2026-10-21T18:24:10.4393814Z [1/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lctype.c.o
+2026-10-21T18:24:10.6808264Z [2/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lbaselib.c.o
+2026-10-21T18:24:10.8438381Z [3/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lauxlib.c.o
+2026-10-21T18:24:11.0050078Z [4/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lfunc.c.o
+2026-10-21T18:24:11.1052744Z [5/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ldebug.c.o
+2026-10-21T18:24:11.1718207Z [6/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ldump.c.o
+2026-10-21T18:24:11.2073104Z [7/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ldo.c.o
+2026-10-21T18:24:11.3158067Z [8/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lmem.c.o
+2026-10-21T18:24:11.3978140Z [9/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lapi.c.o
+2026-10-21T18:24:11.4358219Z [10/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lopcodes.c.o
+2026-10-21T18:24:11.4988218Z [11/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lmathlib.c.o
+2026-10-21T18:24:11.6992567Z [12/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lobject.c.o
+2026-10-21T18:24:11.7542157Z [13/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lcode.c.o
+2026-10-21T18:24:11.7866785Z [14/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/llex.c.o
+2026-10-21T18:24:11.8071544Z [15/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lstate.c.o
+2026-10-21T18:24:11.8839436Z [16/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lgc.c.o
+2026-10-21T18:24:11.9378270Z [17/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lstring.c.o
+2026-10-21T18:24:12.1300046Z [18/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ltablib.c.o
+2026-10-21T18:24:12.1519122Z [19/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ltable.c.o
+2026-10-21T18:24:12.1572917Z [20/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lundump.c.o
+2026-10-21T18:24:12.2919048Z [21/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lzio.c.o
+2026-10-21T18:24:12.2948019Z [22/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/ltm.c.o
+2026-10-21T18:24:12.3188181Z [23/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lutf8lib.c.o
+2026-10-21T18:24:12.4738273Z [24/181] Building C object CMakeFiles/embsim.dir/core/analog/bridge.c.o
+2026-10-21T18:24:12.7958665Z [25/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lparser.c.o
+2026-10-21T18:24:12.8268656Z [26/181] Building C object CMakeFiles/embsim.dir/core/analog/interactive.c.o
+2026-10-21T18:24:12.8417885Z [27/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lstrlib.c.o
+2026-10-21T18:24:12.9498203Z [28/181] Building C object CMakeFiles/embsim.dir/core/analog/named.c.o
+2026-10-21T18:24:13.0927916Z [29/181] Building C object CMakeFiles/embsim.dir/core/analog/ptc.c.o
+2026-10-21T18:24:13.2653858Z [30/181] Building C object CMakeFiles/embsim.dir/core/engine/world.c.o
+2026-10-21T18:24:13.4408198Z [31/181] Building C object CMakeFiles/embsim.dir/core/host/host_path.c.o
+2026-10-21T18:24:13.7730759Z [32/181] Building C object CMakeFiles/embsim.dir/core/analog/mna.c.o
+2026-10-21T18:24:13.8958256Z [33/181] Building C object CMakeFiles/embsim.dir/core/analog/devices.c.o
+2026-10-21T18:24:13.9148186Z [34/181] Building C object CMakeFiles/embsim.dir/core/host/host_win32.c.o
+2026-10-21T18:24:13.9222971Z [35/181] Building C object CMakeFiles/embsim_lua.dir/third_party/lua/src/lvm.c.o
+2026-10-21T18:24:13.9468035Z [36/181] Building C object CMakeFiles/embsim.dir/core/engine/engine.c.o
+2026-10-21T18:24:13.9738330Z [37/181] Building C object CMakeFiles/embsim.dir/core/host/host_pty.c.o
+2026-10-21T18:24:13.9998422Z [38/181] Building C object CMakeFiles/embsim.dir/core/host/host_posix.c.o
+2026-10-21T18:24:14.0051735Z [39/181] Building C object CMakeFiles/embsim.dir/core/ext/lua_model.c.o
+2026-10-21T18:24:14.0663895Z [40/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/adc.c.o
+2026-10-21T18:24:14.0943321Z [41/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/ac.c.o
+2026-10-21T18:24:14.1104617Z [42/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/cpu.c.o
+2026-10-21T18:24:14.1817987Z [43/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/eeprom.c.o
+2026-10-21T18:24:14.2888227Z [44/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/disasm.c.o
+2026-10-21T18:24:14.2978339Z [45/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/exint.c.o
+2026-10-21T18:24:14.3698125Z [46/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/port.c.o
+2026-10-21T18:24:14.4208049Z [47/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/spi.c.o
+2026-10-21T18:24:14.5318038Z [48/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/usart.c.o
+2026-10-21T18:24:14.6047791Z [49/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/avr.c.o
+2026-10-21T18:24:14.6308113Z [50/181] Building C object CMakeFiles/embsim.dir/core/mcu/analysis.c.o
+2026-10-21T18:24:14.6508154Z [51/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/wdt.c.o
+2026-10-21T18:24:14.6888269Z [52/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/twi.c.o
+2026-10-21T18:24:14.7643874Z [53/181] Building C object CMakeFiles/embsim.dir/core/mcu/build.c.o
+2026-10-21T18:24:14.8140583Z [54/181] Linking C static library lib/libembsim_lua.a
+2026-10-21T18:24:14.8346586Z [55/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/dwt.c.o
+2026-10-21T18:24:14.9208031Z [56/181] Building C object CMakeFiles/embsim.dir/core/mcu/bus.c.o
+2026-10-21T18:24:14.9298007Z [57/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/mpu.c.o
+2026-10-21T18:24:15.0798192Z [58/181] Building C object CMakeFiles/embsim.dir/core/mcu/avr/timer.c.o
+2026-10-21T18:24:15.1298068Z [59/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/scs.c.o
+2026-10-21T18:24:15.1598112Z [60/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/systick.c.o
+2026-10-21T18:24:15.1898153Z [61/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/disasm.c.o
+2026-10-21T18:24:15.3577964Z [62/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/smp.c.o
+2026-10-21T18:24:15.6768109Z [63/181] Building C object CMakeFiles/embsim.dir/core/mcu/coverage.c.o
+2026-10-21T18:24:15.8138072Z [64/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/cortexm.c.o
+2026-10-21T18:24:15.9758533Z [65/181] Building C object CMakeFiles/embsim.dir/core/mcu/fault.c.o
+2026-10-21T18:24:16.0046446Z [66/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/fpu.c.o
+2026-10-21T18:24:16.1328169Z [67/181] Building C object CMakeFiles/embsim.dir/core/mcu/mips/disasm.c.o
+2026-10-21T18:24:16.2048080Z [68/181] Building C object CMakeFiles/embsim.dir/core/mcu/image.c.o
+2026-10-21T18:24:16.2647986Z [69/181] Building C object CMakeFiles/embsim.dir/core/mcu/mach.c.o
+2026-10-21T18:24:16.3039244Z [70/181] Building C object CMakeFiles/embsim.dir/core/mcu/models.c.o
+2026-10-21T18:24:16.3661192Z [71/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/clock.c.o
+2026-10-21T18:24:16.5046435Z [72/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/gpio.c.o
+2026-10-21T18:24:16.5932649Z [73/181] Building C object CMakeFiles/embsim.dir/core/mcu/dwarf.c.o
+2026-10-21T18:24:16.5976205Z [74/181] Building C object CMakeFiles/embsim.dir/core/mcu/cortexm/thumb.c.o
+2026-10-21T18:24:16.6528005Z [75/181] Building C object CMakeFiles/embsim.dir/core/mcu/mips/mips16.c.o
+2026-10-21T18:24:16.6567712Z [76/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/gpiote.c.o
+2026-10-21T18:24:16.7458031Z [77/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/rtc.c.o
+2026-10-21T18:24:16.7668332Z [78/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/periph.c.o
+2026-10-21T18:24:16.8568172Z [79/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/saadc.c.o
+2026-10-21T18:24:16.9323067Z [80/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/pwm.c.o
+2026-10-21T18:24:16.9673011Z [81/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/timer.c.o
+2026-10-21T18:24:17.0548222Z [82/181] Building C object CMakeFiles/embsim.dir/core/mcu/mips/mips.c.o
+2026-10-21T18:24:17.1482251Z [83/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/uart.c.o
+2026-10-21T18:24:17.2439756Z [84/181] Building C object CMakeFiles/embsim.dir/core/mcu/nrf52/spim.c.o
+2026-10-21T18:24:17.3299259Z [85/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/gpio.c.o
+2026-10-21T18:24:17.3337959Z [86/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/osc.c.o
+2026-10-21T18:24:17.3567725Z [87/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/dsp.c.o
+2026-10-21T18:24:17.4393869Z [88/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/intc.c.o
+2026-10-21T18:24:17.4708088Z [89/181] Building C object CMakeFiles/embsim.dir/core/mcu/mcu.c.o
+2026-10-21T18:24:17.5088294Z [90/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/disasm.c.o
+2026-10-21T18:24:17.5718212Z [91/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/tmr.c.o
+2026-10-21T18:24:17.6621559Z [92/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/uart.c.o
+2026-10-21T18:24:17.6728025Z [93/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic32/gpio.c.o
+2026-10-21T18:24:17.6958070Z [94/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic32/tmr.c.o
+2026-10-21T18:24:17.7458150Z [95/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic32/evic.c.o
+2026-10-21T18:24:17.7577198Z [96/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic32/osc.c.o
+2026-10-21T18:24:17.8961367Z [97/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/clint.c.o
+2026-10-21T18:24:17.9118210Z [98/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/aon.c.o
+2026-10-21T18:24:18.0028239Z [99/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic32/uart.c.o
+2026-10-21T18:24:18.0072952Z [100/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/disasm.c.o
+2026-10-21T18:24:18.0308178Z [101/181] Building C object CMakeFiles/embsim.dir/core/mcu/profile.c.o
+2026-10-21T18:24:18.0951536Z [102/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/gpio.c.o
+2026-10-21T18:24:18.1288156Z [103/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/prci.c.o
+2026-10-21T18:24:18.2258547Z [104/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/plic.c.o
+2026-10-21T18:24:18.3188053Z [105/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/pwm.c.o
+2026-10-21T18:24:18.4598503Z [106/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/uart.c.o
+2026-10-21T18:24:18.5118303Z [107/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/spi.c.o
+2026-10-21T18:24:18.5268133Z [108/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/adc.c.o
+2026-10-21T18:24:18.6570142Z [109/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/boot.c.o
+2026-10-21T18:24:18.8568229Z [110/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/i2c.c.o
+2026-10-21T18:24:18.8740781Z [111/181] Building C object CMakeFiles/embsim.dir/core/mcu/rf.c.o
+2026-10-21T18:24:19.0948286Z [112/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/io.c.o
+2026-10-21T18:24:19.1241287Z [113/181] Building C object CMakeFiles/embsim.dir/core/mcu/riscv/riscv.c.o
+2026-10-21T18:24:19.2831257Z [114/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/pwm.c.o
+2026-10-21T18:24:19.3398148Z [115/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/sio.c.o
+2026-10-21T18:24:19.4410477Z [116/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/rom.c.o
+2026-10-21T18:24:19.4437977Z [117/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/spi.c.o
+2026-10-21T18:24:19.4683183Z [118/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/timer.c.o
+2026-10-21T18:24:19.5388428Z [119/181] Building C object CMakeFiles/embsim.dir/core/mcu/semihost.c.o
+2026-10-21T18:24:19.5538057Z [120/181] Building C object CMakeFiles/embsim.dir/core/mcu/pic24/pic24.c.o
+2026-10-21T18:24:19.5794986Z [121/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/clocks.c.o
+2026-10-21T18:24:19.5916391Z [122/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/ssi.c.o
+2026-10-21T18:24:19.6618613Z [123/181] Building C object CMakeFiles/embsim.dir/core/mcu/rp2040/uart.c.o
+2026-10-21T18:24:19.6938248Z [124/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/afio_f1.c.o
+2026-10-21T18:24:19.7478316Z [125/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/adc_f1.c.o
+2026-10-21T18:24:19.8258268Z [126/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/exti.c.o
+2026-10-21T18:24:19.9568165Z [127/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/dac_f4.c.o
+2026-10-21T18:24:19.9868695Z [128/181] Building C object CMakeFiles/embsim.dir/core/mcu/stack.c.o
+2026-10-21T18:24:20.0814516Z [129/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/adc_f4.c.o
+2026-10-21T18:24:20.1068294Z [130/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/flash_f4.c.o
+2026-10-21T18:24:20.2108118Z [131/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/gpio_f1.c.o
+2026-10-21T18:24:20.2818243Z [132/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/dma_f4.c.o
+2026-10-21T18:24:20.3138222Z [133/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/gpio_f4.c.o
+2026-10-21T18:24:20.3217921Z [134/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/pwr_f4.c.o
+2026-10-21T18:24:20.3798164Z [135/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/storage.c.o
+2026-10-21T18:24:20.4038073Z [136/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/syscfg_f4.c.o
+2026-10-21T18:24:20.8138237Z [137/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/rtc_f4.c.o
+2026-10-21T18:24:20.9358371Z [138/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/usart.c.o
+2026-10-21T18:24:21.0498084Z [139/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/rcc.c.o
+2026-10-21T18:24:21.1455074Z [140/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/wdg.c.o
+2026-10-21T18:24:21.1708051Z [141/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/i2c.c.o
+2026-10-21T18:24:21.1827909Z [142/181] Building C object CMakeFiles/embsim.dir/core/model/registry.c.o
+2026-10-21T18:24:21.2408093Z [143/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/spi.c.o
+2026-10-21T18:24:21.2862381Z [144/181] Building C object CMakeFiles/embsim.dir/core/protocol/noserver.c.o
+2026-10-21T18:24:21.4508448Z [145/181] Building C object CMakeFiles/embsim.dir/core/protocol/protocol.c.o
+2026-10-21T18:24:21.5281935Z [146/181] Building C object CMakeFiles/embsim.dir/core/protocol/stdio.c.o
+2026-10-21T18:24:21.5327833Z [147/181] Building C object CMakeFiles/embsim.dir/core/model/digital.c.o
+2026-10-21T18:24:21.5948128Z [148/181] Building C object CMakeFiles/embsim.dir/core/project/catalog.c.o
+2026-10-21T18:24:21.7508179Z [149/181] Building C object CMakeFiles/embsim.dir/core/protocol/wsutil.c.o
+2026-10-21T18:24:21.7839974Z [150/181] Building C object CMakeFiles/embsim.dir/core/project/toolchain.c.o
+2026-10-21T18:24:22.0618236Z [151/181] Building C object CMakeFiles/embsim.dir/core/project/loader.c.o
+2026-10-21T18:24:22.1098045Z [152/181] Building C object CMakeFiles/embsim.dir/core/session/edit.c.o
+2026-10-21T18:24:22.1828099Z [153/181] Building C object CMakeFiles/embsim.dir/core/mcu/stm32/tim.c.o
+2026-10-21T18:24:22.1883192Z [154/181] Building C object CMakeFiles/embsim.dir/core/session/gdb.c.o
+2026-10-21T18:24:22.2318317Z [155/181] Building C object CMakeFiles/embsim.dir/core/session/hostport.c.o
+2026-10-21T18:24:22.2618220Z [156/181] Building C object CMakeFiles/embsim.dir/core/session/debug.c.o
+2026-10-21T18:24:22.3967915Z [157/181] Building C object CMakeFiles/embsim.dir/core/session/measure.c.o
+2026-10-21T18:24:22.4628231Z [158/181] Building C object CMakeFiles/embsim.dir/core/session/scenario.c.o
+2026-10-21T18:24:22.5308138Z [159/181] Building C object CMakeFiles/embsim.dir/core/session/validate.c.o
+2026-10-21T18:24:22.5528964Z [160/181] Building C object CMakeFiles/embsim.dir/core/time/clock.c.o
+2026-10-21T18:24:22.6318172Z [161/181] Building C object CMakeFiles/embsim.dir/core/util/diag.c.o
+2026-10-21T18:24:22.6597890Z [162/181] Building C object CMakeFiles/embsim.dir/core/util/alloc.c.o
+2026-10-21T18:24:22.6917972Z [163/181] Building C object CMakeFiles/embsim.dir/core/session/record.c.o
+2026-10-21T18:24:22.7458114Z [164/181] Building C object CMakeFiles/embsim.dir/core/time/sched.c.o
+2026-10-21T18:24:22.8688010Z [165/181] Building C object CMakeFiles/embsim.dir/core/util/map.c.o
+2026-10-21T18:24:22.8837879Z [166/181] Building C object CMakeFiles/embsim.dir/core/util/num.c.o
+2026-10-21T18:24:22.9038109Z [167/181] Building C object CMakeFiles/embsim.dir/core/util/sanity.c.o
+2026-10-21T18:24:23.0788211Z [168/181] Building C object CMakeFiles/embsim.dir/core/util/sha256.c.o
+2026-10-21T18:24:23.1148204Z [169/181] Building C object CMakeFiles/embsim.dir/core/util/inflate.c.o
+2026-10-21T18:24:23.1177886Z [170/181] Building C object CMakeFiles/embsim.dir/core/session/rpc.c.o
+2026-10-21T18:24:23.1418114Z [171/181] Building C object CMakeFiles/embsim_cli.dir/cli/main.c.o
+2026-10-21T18:24:23.1451481Z [172/181] Building C object CMakeFiles/embsim.dir/core/util/vec.c.o
+2026-10-21T18:24:23.1691836Z [173/181] Building C object CMakeFiles/embsim.dir/core/util/str.c.o
+2026-10-21T18:24:23.3777941Z [174/181] Building C object CMakeFiles/embsim.dir/core/util/json.c.o
+2026-10-21T18:24:23.3962118Z [175/181] Building C object CMakeFiles/embsim.dir/core/util/zip.c.o
+2026-10-21T18:24:23.4235980Z [176/181] Building C object CMakeFiles/embsim.dir/core/session/session.c.o
+2026-10-21T18:24:23.5267923Z [177/181] Building C object CMakeFiles/embsim_cli.dir/cli/sdk.c.o
+2026-10-21T18:24:23.6121103Z [178/181] Linking C static library lib/libembsim.a
+2026-10-21T18:24:23.7270021Z [179/181] Building C object CMakeFiles/embsim_cli.dir/cli/commands.c.o
+2026-10-21T18:24:23.7823296Z [180/181] Linking C executable bin/embsim
+2026-10-21T18:24:23.7869057Z ##[group]Run cmake --preset cm4-nucleo-embsim -DEMB_EMBSIM="$PWD/embsim/build/bin/embsim"
+2026-10-21T18:24:23.7869718Z [36;1mcmake --preset cm4-nucleo-embsim -DEMB_EMBSIM="$PWD/embsim/build/bin/embsim"[0m
+2026-10-21T18:24:23.7931746Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T18:24:23.7932085Z env:
+2026-10-21T18:24:23.7932320Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:24:23.7932617Z ##[endgroup]
+2026-10-21T18:24:23.8591974Z Preset CMake variables:
+2026-10-21T18:24:23.8592296Z
+2026-10-21T18:24:23.8593223Z   CMAKE_TOOLCHAIN_FILE:FILEPATH="/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/cmake/toolchains/arm-none-eabi-gcc.cmake"
+2026-10-21T18:24:23.8594198Z   EMB_BOARD="nucleo_f446re"
+2026-10-21T18:24:23.8594579Z   EMB_TEST_EMULATOR="embsim"
+2026-10-21T18:24:23.8594744Z
+2026-10-21T18:24:23.8594879Z -- The C compiler identification is GNU 13.2.1
+2026-10-21T18:24:23.8717748Z -- Detecting C compiler ABI info
+2026-10-21T18:24:23.9730670Z -- Detecting C compiler ABI info - done
+2026-10-21T18:24:23.9817003Z -- Check for working C compiler: /usr/bin/arm-none-eabi-gcc - skipped
+2026-10-21T18:24:23.9821174Z -- Detecting C compile features
+2026-10-21T18:24:23.9825974Z -- Detecting C compile features - done
+2026-10-21T18:24:24.1130315Z -- Found Python3: /usr/bin/python3.12 (found suitable version "3.12.3", minimum required is "3.9") found components: Interpreter
+2026-10-21T18:24:24.2042040Z -- EmbLinkRTOS 0.2.0: board nucleo_f446re (cortex_m/armv7em), profile base, checked=1, config a47ea192428abb35, compiler GNU 13.2.1
+2026-10-21T18:24:24.2046654Z -- Configuring done (0.4s)
+2026-10-21T18:24:24.2264825Z -- Generating done (0.0s)
+2026-10-21T18:24:24.2269379Z -- Build files have been written to: /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim
+2026-10-21T18:24:24.2347520Z ##[group]Run cmake --build --preset cm4-nucleo-embsim
+2026-10-21T18:24:24.2347968Z [36;1mcmake --build --preset cm4-nucleo-embsim[0m
+2026-10-21T18:24:24.2411677Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T18:24:24.2412023Z env:
+2026-10-21T18:24:24.2412272Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:24:24.2412572Z ##[endgroup]
+2026-10-21T18:24:24.2735065Z [1/51] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.obj
+2026-10-21T18:24:24.3022472Z [2/51] generating emb/storage.h from the layout probe
+2026-10-21T18:24:24.3438082Z [3/51] Building C object arch/cortex_m/CMakeFiles/emb_arch.dir/cm_vectors.c.obj
+2026-10-21T18:24:24.3529356Z [4/51] Building C object arch/cortex_m/CMakeFiles/emb_arch.dir/cm_services.c.obj
+2026-10-21T18:24:24.4328209Z [5/51] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.obj
+2026-10-21T18:24:24.4428147Z [6/51] Building C object boards/nucleo_f446re/CMakeFiles/emb_board.dir/board.c.obj
+2026-10-21T18:24:24.4968277Z [7/51] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.obj
+2026-10-21T18:24:24.5003945Z [8/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.obj
+2026-10-21T18:24:24.5005069Z [9/51] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.obj
+2026-10-21T18:24:24.5075703Z [10/51] Building C object kernel/CMakeFiles/emb_kernel.dir/fault/fault.c.obj
+2026-10-21T18:24:24.5254251Z [11/51] Building C object arch/cortex_m/CMakeFiles/emb_arch.dir/cm_port.c.obj
+2026-10-21T18:24:24.5538085Z [12/51] Building C object kernel/CMakeFiles/emb_kernel.dir/trace/trace.c.obj
+2026-10-21T18:24:24.5718093Z [13/51] Building C object kernel/CMakeFiles/emb_kernel.dir/irq/irq.c.obj
+2026-10-21T18:24:24.6198217Z [14/51] Building C object kernel/CMakeFiles/emb_kernel.dir/notify/notify.c.obj
+2026-10-21T18:24:24.7513724Z [15/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/sem.c.obj
+2026-10-21T18:24:24.7531009Z [16/51] Building C object tests/framework/CMakeFiles/emb_test.dir/emb_test.c.obj
+2026-10-21T18:24:24.7608330Z [17/51] Building C object tests/framework/CMakeFiles/emb_test.dir/platform_target.c.obj
+2026-10-21T18:24:24.7620367Z [18/51] Linking C static library boards/nucleo_f446re/libemb_board.a
+2026-10-21T18:24:24.7822703Z [19/51] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.obj
+2026-10-21T18:24:24.8189666Z [20/51] Building C object samples/footprint_t1/CMakeFiles/footprint_t1.dir/main.c.obj
+2026-10-21T18:24:24.8318516Z [21/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/mutex.c.obj
+2026-10-21T18:24:24.8363357Z [22/51] Building C object tests/conformance/CMakeFiles/test_smoke.dir/test_smoke.c.obj
+2026-10-21T18:24:24.8518611Z [23/51] Building C object samples/first_execution/CMakeFiles/first_execution.dir/main.c.obj
+2026-10-21T18:24:24.9308161Z [24/51] Building C object tests/conformance/CMakeFiles/test_sched.dir/test_sched.c.obj
+2026-10-21T18:24:24.9458364Z [25/51] Building C object tests/conformance/CMakeFiles/test_irq.dir/test_irq.c.obj
+2026-10-21T18:24:24.9462344Z [26/51] Linking C static library arch/cortex_m/libemb_arch.a
+2026-10-21T18:24:25.0037898Z [27/51] Linking C static library kernel/libemb_kernel.a
+2026-10-21T18:24:25.0786715Z [28/51] Building C object tests/conformance/CMakeFiles/test_time.dir/test_time.c.obj
+2026-10-21T18:24:25.0828020Z [29/51] Building C object tests/conformance/CMakeFiles/test_irq_priority.dir/test_irq_priority.c.obj
+2026-10-21T18:24:25.1031311Z [30/51] Building C object tests/conformance/CMakeFiles/test_notify.dir/test_notify.c.obj
+2026-10-21T18:24:25.1209057Z [31/51] Building C object tests/conformance/CMakeFiles/test_thread.dir/test_thread.c.obj
+2026-10-21T18:24:25.1775817Z [32/51] Linking C static library tests/framework/libemb_test.a
+2026-10-21T18:24:25.1777362Z [33/51] Building C object tests/conformance/CMakeFiles/test_fpu.dir/test_fpu.c.obj
+2026-10-21T18:24:25.1947477Z [34/51] Building C object tests/conformance/CMakeFiles/test_sem.dir/test_sem.c.obj
+2026-10-21T18:24:25.2118525Z [35/51] Linking C executable samples/first_execution/first_execution.elf
+2026-10-21T18:24:25.2167438Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2168609Z    7984	      0	   3440	  11424	   2ca0	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/samples/first_execution/first_execution.elf
+2026-10-21T18:24:25.2227246Z [36/51] Linking C executable samples/footprint_t1/footprint_t1.elf
+2026-10-21T18:24:25.2248722Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2278338Z    8640	      0	   3480	  12120	   2f58	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/samples/footprint_t1/footprint_t1.elf
+2026-10-21T18:24:25.2315765Z [37/51] Building C object tests/conformance/CMakeFiles/test_first_execution.dir/test_first_execution.c.obj
+2026-10-21T18:24:25.2317656Z [38/51] Building C object tests/benchmarks/CMakeFiles/bench_switch.dir/bench_switch.c.obj
+2026-10-21T18:24:25.2318939Z [39/51] Linking C executable tests/conformance/test_smoke.elf
+2026-10-21T18:24:25.2319882Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2321126Z    9920	      0	  23240	  33160	   8188	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_smoke.elf
+2026-10-21T18:24:25.2367922Z [40/51] Linking C executable tests/conformance/test_sched.elf
+2026-10-21T18:24:25.2368884Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2370367Z   12208	      0	  23760	  35968	   8c80	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_sched.elf
+2026-10-21T18:24:25.2421202Z [41/51] Linking C executable tests/conformance/test_irq.elf
+2026-10-21T18:24:25.2429461Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2431279Z   12416	      0	  23768	  36184	   8d58	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_irq.elf
+2026-10-21T18:24:25.2432800Z [42/51] Linking C executable tests/conformance/test_irq_priority.elf
+2026-10-21T18:24:25.2433710Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2435003Z   12256	      0	   6344	  18600	   48a8	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_irq_priority.elf
+2026-10-21T18:24:25.2620365Z [43/51] Linking C executable tests/conformance/test_time.elf
+2026-10-21T18:24:25.2677874Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2698308Z   12352	      0	  23744	  36096	   8d00	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_time.elf
+2026-10-21T18:24:25.2699504Z [44/51] Linking C executable tests/conformance/test_thread.elf
+2026-10-21T18:24:25.2726332Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2752910Z   19984	      0	  25984	  45968	   b390	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_thread.elf
+2026-10-21T18:24:25.2768476Z [45/51] Linking C executable tests/conformance/test_sem.elf
+2026-10-21T18:24:25.2769363Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2770738Z   13856	      0	  23800	  37656	   9318	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_sem.elf
+2026-10-21T18:24:25.2772270Z [46/51] Linking C executable tests/conformance/test_notify.elf
+2026-10-21T18:24:25.2773146Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2774469Z   15376	      0	  23800	  39176	   9908	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_notify.elf
+2026-10-21T18:24:25.2776015Z [47/51] Linking C executable tests/conformance/test_first_execution.elf
+2026-10-21T18:24:25.2777249Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2778666Z   12128	      0	  23264	  35392	   8a40	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_first_execution.elf
+2026-10-21T18:24:25.2796283Z [48/51] Linking C executable tests/conformance/test_fpu.elf
+2026-10-21T18:24:25.2798365Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2799470Z   11312	      0	  23752	  35064	   88f8	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_fpu.elf
+2026-10-21T18:24:25.2827605Z [49/51] Linking C executable tests/benchmarks/bench_switch.elf
+2026-10-21T18:24:25.2828019Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.2828622Z    8664	      0	   2280	  10944	   2ac0	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/benchmarks/bench_switch.elf
+2026-10-21T18:24:25.3111330Z [50/51] Building C object tests/conformance/CMakeFiles/test_mutex.dir/test_mutex.c.obj
+2026-10-21T18:24:25.3244516Z [51/51] Linking C executable tests/conformance/test_mutex.elf
+2026-10-21T18:24:25.3245178Z    text	   data	    bss	    dec	    hex	filename
+2026-10-21T18:24:25.3246218Z   16576	      0	  23816	  40392	   9dc8	/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim/tests/conformance/test_mutex.elf
+2026-10-21T18:24:25.3288657Z ##[group]Run ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error
+2026-10-21T18:24:25.3289263Z [36;1mctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error[0m
+2026-10-21T18:24:25.3350098Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T18:24:25.3350429Z env:
+2026-10-21T18:24:25.3350666Z   EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+2026-10-21T18:24:25.3350958Z ##[endgroup]
+2026-10-21T18:24:25.9678632Z Test project /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/build/cm4-nucleo-embsim
+2026-10-21T18:24:26.0259252Z       Start  1: test_smoke
+2026-10-21T18:24:26.1947900Z  1/11 Test  #1: test_smoke .......................   Passed    0.16 sec
+2026-10-21T18:24:26.2028548Z       Start  2: test_sched
+2026-10-21T18:24:26.5510284Z  2/11 Test  #2: test_sched .......................   Passed    0.35 sec
+2026-10-21T18:24:26.5511264Z       Start  3: test_irq
+2026-10-21T18:24:26.9438370Z  3/11 Test  #3: test_irq .........................   Passed    0.39 sec
+2026-10-21T18:24:26.9439315Z       Start  4: test_irq_priority
+2026-10-21T18:24:27.3809366Z  4/11 Test  #4: test_irq_priority ................   Passed    0.44 sec
+2026-10-21T18:24:27.3810376Z       Start  5: test_thread
+2026-10-21T18:24:28.1000166Z  5/11 Test  #5: test_thread ......................   Passed    0.72 sec
+2026-10-21T18:24:28.1001292Z       Start  6: test_time
+2026-10-21T18:24:28.3841220Z  6/11 Test  #6: test_time ........................   Passed    0.28 sec
+2026-10-21T18:24:28.3842124Z       Start  7: test_notify
+2026-10-21T18:24:28.7177328Z  7/11 Test  #7: test_notify ......................   Passed    0.33 sec
+2026-10-21T18:24:28.7178674Z       Start  8: test_sem
+2026-10-21T18:24:29.1249244Z  8/11 Test  #8: test_sem .........................   Passed    0.41 sec
+2026-10-21T18:24:29.1250454Z       Start  9: test_mutex
+2026-10-21T18:24:29.6730040Z  9/11 Test  #9: test_mutex .......................   Passed    0.55 sec
+2026-10-21T18:24:29.6731122Z       Start 10: test_first_execution
+2026-10-21T18:24:30.3283353Z 10/11 Test #10: test_first_execution .............   Passed    0.65 sec
+2026-10-21T18:24:30.3284067Z       Start 11: test_fpu
+2026-10-21T18:24:30.5232774Z 11/11 Test #11: test_fpu .........................   Passed    0.19 sec
+2026-10-21T18:24:30.5235800Z
+2026-10-21T18:24:30.5236144Z 100% tests passed, 0 tests failed out of 11
+2026-10-21T18:24:30.5236475Z
+2026-10-21T18:24:30.5236640Z Total Test time (real) =   4.56 sec
+2026-10-21T18:24:30.6864890Z Post job cleanup.
+2026-10-21T18:24:30.7730085Z [command]/usr/bin/git version
+2026-10-21T18:24:30.7776661Z git version 2.55.0
+2026-10-21T18:24:30.7818184Z Temporarily overriding HOME='/home/runner/work/_temp/af22c56c-7329-4cff-9b50-f4023dddb98b' before making global git config changes
+2026-10-21T18:24:30.7819187Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T18:24:30.7823595Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim
+2026-10-21T18:24:30.7855923Z Removing SSH command configuration
+2026-10-21T18:24:30.7862674Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T18:24:30.7899271Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T18:24:30.8150188Z Removing HTTP extra header
+2026-10-21T18:24:30.8157232Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T18:24:30.8195984Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T18:24:30.8463004Z Removing includeIf entries pointing to credentials config files
+2026-10-21T18:24:30.8472840Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T18:24:30.8505653Z includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git.path
+2026-10-21T18:24:30.8506952Z includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git/worktrees/*.path
+2026-10-21T18:24:30.8508380Z includeif.gitdir:/github/workspace/embsim/.git.path
+2026-10-21T18:24:30.8509329Z includeif.gitdir:/github/workspace/embsim/.git/worktrees/*.path
+2026-10-21T18:24:30.8516506Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git.path
+2026-10-21T18:24:30.8546537Z /home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:24:30.8558474Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-6c468e5d\-fd05\-45fb\-b58b\-d4e2dfa566e5\.config
+2026-10-21T18:24:30.8607716Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git/worktrees/*.path
+2026-10-21T18:24:30.8644697Z /home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:24:30.8656321Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/embsim/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-6c468e5d\-fd05\-45fb\-b58b\-d4e2dfa566e5\.config
+2026-10-21T18:24:30.8695436Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/embsim/.git.path
+2026-10-21T18:24:30.8734962Z /github/runner_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:24:30.8743596Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/embsim/.git.path \/github\/runner_temp\/git\-credentials\-6c468e5d\-fd05\-45fb\-b58b\-d4e2dfa566e5\.config
+2026-10-21T18:24:30.8798060Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/embsim/.git/worktrees/*.path
+2026-10-21T18:24:30.8815191Z /github/runner_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config
+2026-10-21T18:24:30.8824170Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/embsim/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-6c468e5d\-fd05\-45fb\-b58b\-d4e2dfa566e5\.config
+2026-10-21T18:24:30.8864603Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T18:24:30.9113770Z Removing credentials config '/home/runner/work/_temp/git-credentials-6c468e5d-fd05-45fb-b58b-d4e2dfa566e5.config'
+2026-10-21T18:24:30.9338744Z Post job cleanup.
+2026-10-21T18:24:31.0267879Z [command]/usr/bin/git version
+2026-10-21T18:24:31.0317785Z git version 2.55.0
+2026-10-21T18:24:31.0351218Z Temporarily overriding HOME='/home/runner/work/_temp/81ffb8d1-d81f-4847-8568-6de408852f94' before making global git config changes
+2026-10-21T18:24:31.0352169Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T18:24:31.0352832Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/EmbLinkRTOS/EmbLinkRTOS
+2026-10-21T18:24:31.0399127Z Removing SSH command configuration
+2026-10-21T18:24:31.0407412Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T18:24:31.0465594Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T18:24:31.0699211Z Removing HTTP extra header
+2026-10-21T18:24:31.0705770Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T18:24:31.0742764Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T18:24:31.0983575Z Removing includeIf entries pointing to credentials config files
+2026-10-21T18:24:31.0991985Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T18:24:31.1022126Z includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git.path
+2026-10-21T18:24:31.1023080Z includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git/worktrees/*.path
+2026-10-21T18:24:31.1023577Z includeif.gitdir:/github/workspace/.git.path
+2026-10-21T18:24:31.1023959Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T18:24:31.1041205Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git.path
+2026-10-21T18:24:31.1061249Z /home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:24:31.1072113Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-7617d08f\-8a4c\-4f54\-b526\-334d84d19195\.config
+2026-10-21T18:24:31.1118020Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git/worktrees/*.path
+2026-10-21T18:24:31.1148882Z /home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:24:31.1158539Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/EmbLinkRTOS/EmbLinkRTOS/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-7617d08f\-8a4c\-4f54\-b526\-334d84d19195\.config
+2026-10-21T18:24:31.1196722Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-21T18:24:31.1226557Z /github/runner_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:24:31.1235742Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-7617d08f\-8a4c\-4f54\-b526\-334d84d19195\.config
+2026-10-21T18:24:31.1274009Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T18:24:31.1301184Z /github/runner_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config
+2026-10-21T18:24:31.1310482Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-7617d08f\-8a4c\-4f54\-b526\-334d84d19195\.config
+2026-10-21T18:24:31.1351068Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T18:24:31.1571171Z Removing credentials config '/home/runner/work/_temp/git-credentials-7617d08f-8a4c-4f54-b526-334d84d19195.config'
+2026-10-21T18:24:31.1719970Z Cleaning up orphan processes

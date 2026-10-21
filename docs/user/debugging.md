@@ -83,6 +83,6 @@ The fault hook receives a temporary `emb_fault_info_t` with class/code, context,
 | Checked build stops on an API call | Wrong context, ownership, handle/lifetime, storage or blocking sub-state |
 | Tiny thread init/priority change returns `EMB_EBUSY` | Another initialized thread owns that base-priority slot |
 | Unexpected `EMB_EOWNERDEAD` | A previous mutex owner terminated with the lock held; the new caller owns it |
-| IRQ priority works differently on native and Cortex-M | Native ignores levels; Cortex-M's current direction differs from the generic target convention |
+| IRQ level is rejected on one port | Check `EMB_IRQ_LEVEL_MAX`: native/AVR/current RV32 accept only 0; Cortex-M advertises a board-dependent range with larger levels more urgent. Checked builds fault on invalid requests; release returns `EMB_EINVAL` |
 
 Use a passing relevant conformance run as evidence for that reproduction/configuration. It does not close the known deep differential failures or prove every API requirement. Check [Project status](../STATUS.md) for unresolved implementation and evidence gaps.

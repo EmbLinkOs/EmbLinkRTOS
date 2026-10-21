@@ -36,7 +36,7 @@ The manifest budgets 37 bytes per context (`stack.context_frame`), two more than
 
 - `emb_arch_irq_lock()`: `in r, SREG; cli`; the key is the saved SREG. `unlock`: `out SREG, key`. Both always-inline with a `"memory"` clobber. Under QEMU a pending interrupt is taken after the unlock only when the emulator returns to its main loop (amendment A14); the conformance suite synchronizes on the handler through `emb_test_irq_settle()` where the order of events around an unlock is asserted.
 - Kernel-aware handlers run with I clear (no nesting); `CONFIG_EMB_AVR_ISR_STACK_RESERVE` (64 bytes) is the per-thread reserve for the 35-byte frame plus the handler's C frame.
-- The mask table (`arch/avr/avr_port.c`) maps each of the 26 vectors to its interrupt-enable register and bit; `emb_irq_set_level` is a no-op (vector order is the priority), `emb_irq_pend` is `EMB_ENOTSUP`, and `emb_irq_clear_pending` covers the external, pin-change and timer flags.
+- The mask table (`arch/avr/avr_port.c`) maps each of the 26 vectors to its interrupt-enable register and bit; `emb_irq_set_level` accepts only advertised level 0, preserving fixed vector ordering; nonzero requests are invalid, `emb_irq_pend` is `EMB_ENOTSUP`, and `emb_irq_clear_pending` covers the external, pin-change and timer flags.
 
 ## Time
 

@@ -1,0 +1,14 @@
+test_default_priority_must_be_aligned_masked_and_not_pendsv (test_irq_config.IRQConfiguration.test_default_priority_must_be_aligned_masked_and_not_pendsv) ... ok
+test_derived_limits_cannot_be_overridden_inconsistently (test_irq_config.IRQConfiguration.test_derived_limits_cannot_be_overridden_inconsistently) ... ok
+test_encoding_matches_known_f446_values (test_irq_config.IRQConfiguration.test_encoding_matches_known_f446_values) ... ok
+test_fixed_ports_have_one_explicit_level (test_irq_config.IRQConfiguration.test_fixed_ports_have_one_explicit_level) ... ok
+test_invalid_width_or_threshold_is_refused (test_irq_config.IRQConfiguration.test_invalid_width_or_threshold_is_refused) ... ok
+test_reference_boards_derive_limits_and_timer_default (test_irq_config.IRQConfiguration.test_reference_boards_derive_limits_and_timer_default) ... ok
+test_timer_level_can_be_selected_within_domain (test_irq_config.IRQConfiguration.test_timer_level_can_be_selected_within_domain) ... ok
+test_unimplemented_raw_class_is_refused (test_irq_config.IRQConfiguration.test_unimplemented_raw_class_is_refused) ... ok
+test_width_and_threshold_determine_range (test_irq_config.IRQConfiguration.test_width_and_threshold_determine_range) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.425s
+
+OK

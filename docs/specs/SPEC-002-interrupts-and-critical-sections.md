@@ -215,6 +215,30 @@ EMB_IRQ_LEVEL_MAX                        highest level the hardware implements
 
 A configuration whose kernel level is the hardware maximum has no kernel-independent class; the configuration system reports that as information, not an error.
 
+**Current kernel-aware implementation (ADR-042).** The implemented domain is advertised
+by `EMB_IRQ_LEVEL_MAX`, equal to `EMB_IRQ_LEVEL_KERNEL_MAX`. Native, AVR and current
+RV32 advertise only level 0, preserving existing fixed delivery order. Nonzero values
+are out of range, rather than successful ignored requests. Cortex-M derives both
+limits from its board-declared high priority bits and masking threshold. PendSV's
+least-urgent encoding is reserved; generic level 0 maps to the next encoding and
+increasing levels move toward the threshold. The limits are derived configuration
+outputs, not independent overrides. A board may declare a conservative subset of
+its implemented priority bits; it must not declare more than it implements.
+
+`emb_irq_set_level()` checks context before interrupt number (argument 1), then level
+(argument 2), before changing any controller state. Invalid numbers/levels raise
+`EMB_FAULT_API_ARGUMENT` in checked builds and return `EMB_EINVAL` in release builds;
+ISR calls raise `EMB_FAULT_API_CONTEXT` or return `EMB_EPERM`, respectively. It remains
+O(1), non-blocking and permitted in thread/prekernel context. Port-level operations
+return errors without faulting; the public entry applies the build-kind policy.
+
+The current Cortex-M port fixes `PRIGROUP=0`, exposes at most seven high preemption
+bits, validates the raw threshold/default priority, and makes SysTick's generic level
+configurable with the highest kernel-aware level as its default. A current non-nesting Cortex-M configuration must have a single kernel-aware level with a matching default IRQ encoding; multi-level domains with nesting disabled are refused. Raw kernel-independent
+vectors and generic hardware-description generation remain unimplemented; enabling
+the raw class is refused instead of routing such handlers through kernel entry hooks.
+This scope does not establish physical interrupt latency or the later full class API.
+
 ### 8.2 Functions
 
 ```c

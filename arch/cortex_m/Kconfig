@@ -19,7 +19,7 @@ config EMB_CM_IRQ_COUNT
 config EMB_CM_KERNEL_BASEPRI
 	int "BASEPRI value of the kernel's critical section"
 	default 32
-	range 16 128
+	range 1 254
 	help
 	  Interrupts with a priority byte below this value are zero-latency: never masked
 	  by the kernel and not allowed to call it (SPEC-002 §3). 32 is priority level 1
@@ -28,12 +28,28 @@ config EMB_CM_KERNEL_BASEPRI
 config EMB_CM_IRQ_PRIORITY
 	int "Default priority byte of a kernel-aware interrupt"
 	default 128
-	range 32 224
+	range 1 254
+
+config EMB_CM_IRQ_PRIORITY_BITS
+	int "Priority bits exposed by the board's Cortex-M port"
+	default 3
+	range 3 7
+	help
+	  Declare implemented high bits, or a conservative subset, in board.conf.
+	  PRIGROUP=0 gives these bits preemption semantics. At most seven bits are
+	  exposed because the eighth would be subpriority, not preemption priority.
+
+config EMB_CM_TIMER_LEVEL
+	int "Generic SysTick priority (defaults to the highest kernel-aware level)"
+	default EMB_IRQ_KERNEL_LEVEL
+	range 0 EMB_IRQ_KERNEL_LEVEL
 
 endmenu
 
 require EMB_IRQ_DYNAMIC "the Cortex-M port binds handlers with emb_irq_connect() (docs/ports/cortex_m.md)"
 require !EMB_TICKLESS "the Cortex-M port implements the periodic SysTick tick only in this milestone"
+require !EMB_IRQ_ZERO_LATENCY "raw kernel-independent vectors are not implemented by the current Cortex-M port"
+require EMB_IRQ_NESTING || EMB_IRQ_KERNEL_LEVEL = 0 "non-nesting Cortex-M needs one kernel-aware level: set BASEPRI and the default IRQ encoding to the least-urgent kernel-aware encoding"
 require EMB_CM_IRQ_PRIORITY >= EMB_CM_KERNEL_BASEPRI "a kernel-aware interrupt must be masked by the kernel's BASEPRI"
 
 endif
