@@ -234,7 +234,9 @@ def kernel_canonical(run: Run):
     out = []
     tid_of = dict(run.index_to_tid)
 
-    idle = 0 if run.config.get("profile") == "tiny" else IDLE_INDEX   # the table slot of EMB_PRIORITY_IDLE
+    # New captures declare the diagnostic idle ID. Retain the old table-slot
+    # convention only for historical tiny captures that lack the field.
+    idle = int(run.config.get("idle_index", 0 if run.config.get("profile") == "tiny" else IDLE_INDEX))
 
     def thr(idx):
         if idx == idle:

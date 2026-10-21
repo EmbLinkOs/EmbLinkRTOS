@@ -124,6 +124,12 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_TOBJ_RESULT_SHIFT 2u
 #define EMBK_TOBJ_RESULT_MASK  ((uint8_t)0x1Cu)
 
+/* Up to seven non-idle threads fit independent IDs in the three unused object
+ * flag bits. Larger table/list profiles retain the separate byte. */
+#define EMBK_THREAD_INDEX_PACKED (CONFIG_EMB_SCHED_TABLE && CONFIG_EMB_PRIORITY_COUNT <= 8)
+#define EMBK_TOBJ_INDEX_SHIFT    5u
+#define EMBK_TOBJ_INDEX_MASK     ((uint8_t)0xE0u)
+
 struct embk_mutex;
 
 struct embk_thread {
@@ -135,6 +141,9 @@ struct embk_thread {
     uint8_t wait_reason; /* EMB_WAIT_REASON_* */
     uint8_t tflags;      /* EMBK_THREAD_* */
     uint8_t cancel_disable;
+#if !EMBK_THREAD_INDEX_PACKED
+    uint8_t index; /* diagnostic identity, independent of the scheduler slot (SPEC-008 §3) */
+#endif
 #if CONFIG_EMB_CHECKED
     uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
 #endif
@@ -144,7 +153,6 @@ struct embk_thread {
 #if !CONFIG_EMB_SCHED_TABLE
     embk_list_node_t wait_node;
     embk_list_node_t ready_node;
-    uint8_t index; /* stable small integer (SPEC-008 §3); the table slot on tiny */
 #endif
     embk_timeout_t timeout;
     embk_wait_queue_t self_q; /* pseudo-queue for SLEEP and NOTIFY (SPEC-004 §5.3) */
@@ -170,10 +178,22 @@ struct embk_thread {
 
 static EMB_INLINE uint8_t embk_thread_index(const embk_thread_t *t)
 {
-#if CONFIG_EMB_SCHED_TABLE
-    return t->base_prio;
+#if EMBK_THREAD_INDEX_PACKED
+    uint8_t index = (uint8_t)((t->obj.flags & EMBK_TOBJ_INDEX_MASK) >> EMBK_TOBJ_INDEX_SHIFT);
+    return index == 7u ? 0xFEu : index;
 #else
     return t->index;
+#endif
+}
+
+static EMB_INLINE void embk_thread_set_index(embk_thread_t *t, uint8_t index)
+{
+#if EMBK_THREAD_INDEX_PACKED
+    uint8_t encoded = index == 0xFEu ? 7u : index;
+    t->obj.flags = (uint8_t)((t->obj.flags & (uint8_t)~EMBK_TOBJ_INDEX_MASK) |
+                             (uint8_t)(encoded << EMBK_TOBJ_INDEX_SHIFT));
+#else
+    t->index = index;
 #endif
 }
 

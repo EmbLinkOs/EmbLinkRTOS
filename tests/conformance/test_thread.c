@@ -171,7 +171,9 @@ EMB_TEST(thread_suspend_resume_are_idempotent_overlays)
     counter = 0u;
     h = emb_test_thread(EMB_TEST_NAME("tick"), 3u, 0u, periodic_counter, &counter);
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(5)));
-    EMB_ASSERT_EQ(counter, 5u);
+    /* Hardware ticks can advance during call/dispatch overhead; retain exact
+     * virtual-time checking and the framework's one-tick real-time allowance. */
+    emb_test_check_elapsed(__LINE__, counter, 5u);
     EMB_ASSERT_OK(emb_thread_suspend(h));
     EMB_ASSERT_OK(emb_thread_suspend(h)); /* idempotent */
     before = counter;

@@ -70,13 +70,17 @@ static void lock_m1_report(void *arg)
 EMB_TEST(mutex_contended_lock_inherits_and_hands_off)
 {
     emb_thread_t low;
+    uint8_t index;
     EMB_TEST_REQ("KRN-SYNC-003", "KRN-SYNC-009", "KRN-SYNC-010", "KRN-WAIT-012");
     make(&st1, &m1, EMB_MUTEX_INHERIT, 0u, 0u);
     low = emb_test_thread(EMB_TEST_NAME("low"), 2u, 0u, hold_m1_for, (void *)10);
+    index = emb_thread_index(low);
     (void)emb_test_thread(EMB_TEST_NAME("high"), 4u, 0u, lock_m1_report, (void *)100);
+    EMB_ASSERT_EQ(emb_thread_index(low), index);
     EMB_ASSERT_EQ(emb_thread_get_effective_priority(low), 4u); /* raised by the waiter */
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(15)));
     EMB_ASSERT_EQ(emb_thread_get_effective_priority(low), 2u);
+    EMB_ASSERT_EQ(emb_thread_index(low), index);
     /* low unlocks at tick 10: high gets it by hand-off and runs before low continues */
     EMB_ASSERT_MARKS(1, 2, 10, 3);
     EMB_ASSERT_OK(emb_mutex_destroy(m1));

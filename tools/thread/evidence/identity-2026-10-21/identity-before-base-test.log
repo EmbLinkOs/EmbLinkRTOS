@@ -1,0 +1,24 @@
+Internal ctest changing into directory: /workspace/scratch/identity-before/build/native-gcc
+Test project /workspace/scratch/identity-before/build/native-gcc
+    Start 11: test_thread_identity
+1/1 Test #11: test_thread_identity .............***Failed    0.00 sec
+TEST thread_identity_exhaustion_is_atomic_and_destroy_releases_id
+  FAIL line 87: expected: !seen[index]
+  values 254 and 253  FAIL line 91: expected equal: n == 253u
+  values 0 and -8  FAIL line 92: expected equal: st == EMB_ENOMEM
+  -> FAILED
+TEST thread_identity_repeated_construction_does_not_alias_live_object
+  -> ok
+TEST thread_identity_survives_priority_and_termination
+  FAIL line 31: expected: emb_thread_index(b) != index
+  -> FAILED
+3 tests, 2 failed, 0 skipped, 0 ticks
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.00 sec
+
+The following tests FAILED:
+	 11 - test_thread_identity (Failed)
+Errors while running CTest

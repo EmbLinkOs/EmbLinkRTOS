@@ -92,7 +92,7 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  *
  * @ctx      prekernel thread
  * @blocks   no
- * @time     O(1) + stack fill in checked and statistics builds
+ * @time     bounded scan of at most 254 IDs + stack fill when configured
  * @owns     borrows:storage borrows:attr->stack
  * @config
  * @req      API-021 KRN-THR-004 KRN-THR-007 KRN-THR-015 KRN-THR-023
@@ -101,7 +101,9 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  *
  * Return: EMB_OK; EMB_EINVAL for a NULL storage, entry, stack, a priority of 0 or
  *         above EMB_PRIORITY_MAX, a misaligned or undersized stack (misuse, SPEC-008
- *         §12); EMB_EBUSY on the tiny profile when the priority's table slot is taken.
+ *         §12); EMB_EBUSY on tiny when the priority slot is taken; EMB_ENOMEM when
+ *         all 254 list-scheduler diagnostic IDs are reserved. Admission failure leaves
+ *         construction storage untouched.
  */
 emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_attr_t *attr,
                              emb_thread_entry_t entry, void *arg, emb_thread_t *out_thread);
@@ -428,8 +430,10 @@ emb_status_t emb_thread_state(emb_thread_t thread, uint8_t *out_state, uint8_t *
 const char *emb_thread_name(emb_thread_t thread);
 
 /**
- * emb_thread_index() - The current small thread index; 0xFF for a bad handle.
- * @thread: Initialized thread to inspect. On tiny, the index follows its base-priority table slot.
+ * emb_thread_index() - Stable diagnostic index; 0xFF for a bad handle.
+ * @thread: Initialized thread to inspect. Stable until successful destroy, including
+ *          after exit and priority changes. Unique among live thread objects;
+ *          reusable after destroy, so not a generation-tagged handle. Idle uses 0xFE.
  *
  * @ctx      thread isr
  * @blocks   no
