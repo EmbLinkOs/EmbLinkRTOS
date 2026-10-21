@@ -1,0 +1,35 @@
+Test project /workspace/EmbLinkRTOS/build/native-embcc-tiny
+      Start  1: test_smoke
+ 1/15 Test  #1: test_smoke .......................   Passed    0.00 sec
+      Start  2: test_fault
+ 2/15 Test  #2: test_fault .......................   Passed    0.00 sec
+      Start  3: test_sched
+ 3/15 Test  #3: test_sched .......................   Passed    0.00 sec
+      Start  4: test_irq
+ 4/15 Test  #4: test_irq .........................   Passed    0.00 sec
+      Start  5: test_irq_priority
+ 5/15 Test  #5: test_irq_priority ................   Passed    0.00 sec
+      Start  6: test_thread
+ 6/15 Test  #6: test_thread ......................   Passed    0.00 sec
+      Start  7: test_thread_identity
+ 7/15 Test  #7: test_thread_identity .............   Passed    0.00 sec
+      Start  8: test_time
+ 8/15 Test  #8: test_time ........................   Passed    0.00 sec
+      Start  9: test_notify
+ 9/15 Test  #9: test_notify ......................   Passed    0.00 sec
+      Start 10: test_sem
+10/15 Test #10: test_sem .........................   Passed    0.00 sec
+      Start 11: test_mutex
+11/15 Test #11: test_mutex .......................   Passed    0.00 sec
+      Start 12: test_first_execution
+12/15 Test #12: test_first_execution .............   Passed    3.83 sec
+      Start 13: differential_bridge
+13/15 Test #13: differential_bridge ..............   Passed    0.52 sec
+      Start 14: differential_timer_regressions
+14/15 Test #14: differential_timer_regressions ...   Passed    0.09 sec
+      Start 15: differential_evidence
+15/15 Test #15: differential_evidence ............   Passed    1.13 sec
+
+100% tests passed, 0 tests failed out of 15
+
+Total Test time (real) =   5.61 sec

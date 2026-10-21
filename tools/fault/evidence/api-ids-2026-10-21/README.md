@@ -23,3 +23,10 @@ added afterward; baseline execution does not claim that extra case.
 The complete suite logs predate that last additional assertion; the focused final
 checked and no-where logs include it. Embedded negative checks need fork and are
 not physical fault-entry evidence.
+
+Follow-up validation at merge source 06149bf87706654bc9138445961efed3d94e3956:
+a 16-level tiny table and the mixed EmbCC tiny preset each pass 15 targets;
+registry/decoder checks pass eight. The `ci/` directory captures all ten footprint
+artifacts from the initial API source eae71c8dbb7143b201826c8247686015dd06a840,
+with successful cross-port jobs and the then-current native/aggregate status.
+Final required checks remain independently attached to the PR head.

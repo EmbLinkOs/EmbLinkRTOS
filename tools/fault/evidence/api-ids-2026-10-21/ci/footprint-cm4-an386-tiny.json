@@ -1,0 +1,76 @@
+{
+  "components": {
+    "app": {
+      "text": 870,
+      "data": 0,
+      "bss": 1752
+    },
+    "arch": {
+      "text": 1124,
+      "data": 0,
+      "bss": 272
+    },
+    "board": {
+      "text": 291,
+      "data": 0,
+      "bss": 4
+    },
+    "kernel/exec": {
+      "text": 304,
+      "data": 0,
+      "bss": 12
+    },
+    "kernel/fault": {
+      "text": 225,
+      "data": 0,
+      "bss": 4
+    },
+    "kernel/irq": {
+      "text": 44,
+      "data": 0,
+      "bss": 256
+    },
+    "kernel/mutex": {
+      "text": 160,
+      "data": 0,
+      "bss": 0
+    },
+    "kernel/notify": {
+      "text": 550,
+      "data": 0,
+      "bss": 0
+    },
+    "kernel/sched": {
+      "text": 817,
+      "data": 0,
+      "bss": 101
+    },
+    "kernel/thread": {
+      "text": 1194,
+      "data": 0,
+      "bss": 1
+    },
+    "kernel/time": {
+      "text": 300,
+      "data": 0,
+      "bss": 8
+    },
+    "kernel/wait": {
+      "text": 489,
+      "data": 0,
+      "bss": 0
+    },
+    "other:libc_nano.a(libc_a-memset.o)": {
+      "text": 164,
+      "data": 0,
+      "bss": 0
+    }
+  },
+  "kernel": {
+    "text": 4083,
+    "data": 0,
+    "bss": 382
+  },
+  "kernel_ram": 382,
+  "tcb": 64
+}
