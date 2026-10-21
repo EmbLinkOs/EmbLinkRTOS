@@ -36,7 +36,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
-- IRQ callers must use advertised limits; previously ignored/clamped priority requests now fail. Cortex-M configuration derives the public domain from declared priority width and the validated masking threshold.
+- IRQ callers must use advertised limits; previously ignored/clamped priority requests now fail. Cortex-M configuration derives the public domain from declared priority width and the validated masking threshold; non-nesting configurations require a single kernel-aware level.
 
 - Reconciled design contracts, current implementation limits, timing/evidence obligations and the staged first-release scope.
 - Clarified API parameter/storage lifetimes, wait outcomes, configuration and current interrupt-priority/thread-index limitations.

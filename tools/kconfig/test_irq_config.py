@@ -63,7 +63,8 @@ class IRQConfiguration(unittest.TestCase):
                 self.assertEqual(self.value(symbols, "EMB_IRQ_KERNEL_LEVEL"), (1 << bits) - 3)
         symbols = self.configure("f446", ["EMB_CM_KERNEL_BASEPRI=64"])
         self.assertEqual(self.value(symbols, "EMB_IRQ_KERNEL_LEVEL"), 10)
-        symbols = self.configure("cm3", ["EMB_CM_KERNEL_BASEPRI=192", "EMB_CM_IRQ_PRIORITY=192"])
+        symbols = self.configure("cm3", ["EMB_CM_KERNEL_BASEPRI=192", "EMB_CM_IRQ_PRIORITY=192",
+                                          "EMB_IRQ_NESTING=n"])
         self.assertEqual(self.value(symbols, "EMB_IRQ_KERNEL_LEVEL"), 0)
 
     def test_invalid_width_or_threshold_is_refused(self):
@@ -92,6 +93,8 @@ class IRQConfiguration(unittest.TestCase):
 
     def test_unimplemented_raw_class_is_refused(self):
         self.assertIn("raw kernel-independent vectors", self.configure("f446", ["EMB_IRQ_ZERO_LATENCY=y"], False))
+        self.assertIn("non-nesting Cortex-M needs one kernel-aware level",
+                      self.configure("f446", ["EMB_IRQ_NESTING=n"], False))
 
     def test_encoding_matches_known_f446_values(self):
         symbols = self.configure("f446")

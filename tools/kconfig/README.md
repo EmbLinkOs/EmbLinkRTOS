@@ -45,7 +45,7 @@ Native, AVR and RV32 derive zero. Cortex-M uses the board's
 `CONFIG_EMB_CM_IRQ_PRIORITY_BITS` (3–7 high preemption bits), the aligned nonzero
 `CONFIG_EMB_CM_KERNEL_BASEPRI` and one reserved least-urgent PendSV encoding.
 With `step = 1 << (8 - bits)`, the maximum is
-`(256 - 2*step - BASEPRI) / step`. Inconsistent explicit limit overrides fail.
+`(256 - 2*step - BASEPRI) / step`. Inconsistent explicit limit overrides fail. With Cortex-M nesting disabled, the derived maximum must be zero; set the threshold and default IRQ encoding to the least-urgent kernel-aware encoding.
 
 The legacy raw default `CONFIG_EMB_CM_IRQ_PRIORITY` must be aligned and inside that
 kernel-aware domain. `CONFIG_EMB_CM_TIMER_LEVEL` is a generic value; its default is

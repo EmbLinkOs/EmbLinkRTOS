@@ -65,6 +65,14 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Single-level non-nesting IRQ conformance
+        if: matrix.preset == 'cm3-an385'
+        run: |
+          cmake -S . -B build/cm3-irq-single -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-gcc.cmake -DEMB_BOARD=mps2_an385 \
+            -DEMB_SET="EMB_CM_KERNEL_BASEPRI=192;EMB_CM_IRQ_PRIORITY=192;EMB_IRQ_NESTING=n"
+          cmake --build build/cm3-irq-single --target test_irq_priority
+          ctest --test-dir build/cm3-irq-single -R '^test_irq_priority$' --no-tests=error --verbose
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \

@@ -234,7 +234,7 @@ return errors without faulting; the public entry applies the build-kind policy.
 
 The current Cortex-M port fixes `PRIGROUP=0`, exposes at most seven high preemption
 bits, validates the raw threshold/default priority, and makes SysTick's generic level
-configurable with the highest kernel-aware level as its default. Raw kernel-independent
+configurable with the highest kernel-aware level as its default. A current non-nesting Cortex-M configuration must have a single kernel-aware level with a matching default IRQ encoding; multi-level domains with nesting disabled are refused. Raw kernel-independent
 vectors and generic hardware-description generation remain unimplemented; enabling
 the raw class is refused instead of routing such handlers through kernel entry hooks.
 This scope does not establish physical interrupt latency or the later full class API.
