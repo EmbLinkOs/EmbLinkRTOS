@@ -29,7 +29,7 @@ Set a breakpoint at `embk_fault_raise` for misuse or at the function under inves
 
 ## Inspect a thread
 
-Use `emb_thread_state()` for lifecycle and wait reason, `emb_thread_get_priority()` for base priority and `emb_thread_get_effective_priority()` for inherited/ceiling priority. `emb_thread_name()` returns a borrowed name when names are enabled. On tiny, `emb_thread_index()` is the current table slot and can change with base priority; do not use it as a durable object identity.
+Use `emb_thread_state()` for lifecycle and wait reason, `emb_thread_get_priority()` for base priority and `emb_thread_get_effective_priority()` for inherited/ceiling priority. `emb_thread_name()` returns a borrowed name when names are enabled. `emb_thread_index()` is stable from initialization through successful destruction, including priority changes and termination, and unique among live objects. IDs can be reused after destroy; they are diagnostic labels, not generation-tagged handles or durable identities across restart. `0xFE` is idle and `0xFF` denotes an invalid handle/non-thread context.
 
 `emb_thread_stack_info()` reports configured bytes and, with `CONFIG_EMB_STACK_STATS`, a fill-pattern estimate. Zero with statistics disabled is not evidence that the stack uses no memory. Native stack observations do not size an MCU application's C call stack: host threads use host-managed stacks. Account for architecture frames, interrupt reserve, call paths and physical high-water measurements as described in [Timing and evidence](../engineering/timing-and-evidence.md).
 

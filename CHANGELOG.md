@@ -29,6 +29,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Fixed
 
+- Thread diagnostic IDs remain stable across priority changes on tiny and unique among live objects on every profile. IDs are released only by successful destroy; exhaustion returns `EMB_ENOMEM` without partial construction.
+
 - Generic IRQ priorities now increase with urgency on Cortex-M, with board-derived bounds and validation before register writes; fixed-level native/AVR/RV32 reject nonzero levels. SysTick defaults to highest kernel-aware urgency. Raw kernel-independent vectors remain unsupported.
 
 - EmbCC now emits storage-layout probe markers without an injected header; generation and kernel-archive compilation pass on eight configurations. Full Linux-native compilation advances to the separate missing-POSIX-header boundary.

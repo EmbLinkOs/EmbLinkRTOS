@@ -9,6 +9,16 @@ from tests import scenarios
 
 
 class TimerDelivery(unittest.TestCase):
+    def test_tiny_identity_metadata_keeps_zero_a_real_thread_and_replays_legacy(self):
+        new = bridge.parse_run("config profile=tiny idle_index=254\nthread 7 index 0\n")
+        new.events = [(bridge.TR_SWITCH, 0, 0, 255, 0, 0),
+                      (bridge.TR_SWITCH, 0, 0, 0, 254, 0)]
+        self.assertEqual(bridge.kernel_canonical(new), [("switch", 7), ("switch", None)])
+        old = bridge.parse_run("config profile=tiny\nthread 7 index 3\n")
+        old.events = [(bridge.TR_SWITCH, 0, 0, 255, 3, 0),
+                      (bridge.TR_SWITCH, 0, 0, 3, 0, 0)]
+        self.assertEqual(bridge.kernel_canonical(old), [("switch", 7), ("switch", None)])
+
     def due_wait(self, tickless=True):
         k = build(Scenario(threads={1: (1, (Take(0, 1),))}, sems={0: dict(count=0)},
                            tickless=tickless))

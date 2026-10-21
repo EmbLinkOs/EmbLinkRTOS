@@ -135,6 +135,7 @@ struct embk_thread {
     uint8_t wait_reason; /* EMB_WAIT_REASON_* */
     uint8_t tflags;      /* EMBK_THREAD_* */
     uint8_t cancel_disable;
+    uint8_t index; /* diagnostic identity, independent of the scheduler slot (SPEC-008 §3) */
 #if CONFIG_EMB_CHECKED
     uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
 #endif
@@ -144,7 +145,6 @@ struct embk_thread {
 #if !CONFIG_EMB_SCHED_TABLE
     embk_list_node_t wait_node;
     embk_list_node_t ready_node;
-    uint8_t index; /* stable small integer (SPEC-008 §3); the table slot on tiny */
 #endif
     embk_timeout_t timeout;
     embk_wait_queue_t self_q; /* pseudo-queue for SLEEP and NOTIFY (SPEC-004 §5.3) */
@@ -170,11 +170,7 @@ struct embk_thread {
 
 static EMB_INLINE uint8_t embk_thread_index(const embk_thread_t *t)
 {
-#if CONFIG_EMB_SCHED_TABLE
-    return t->base_prio;
-#else
     return t->index;
-#endif
 }
 
 /* ---- per-CPU state (SPEC-002 §2) ---------------------------------------------- */

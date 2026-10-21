@@ -21,9 +21,32 @@ EMB_STATIC_ASSERT(offsetof(embk_thread_t, arch) == 0u,
 #if CONFIG_EMB_THREAD_LIST
 embk_list_t embk_thread_all;
 #endif
-#if !CONFIG_EMB_SCHED_TABLE
-static uint8_t next_index; /* lock: scheduler domain */
+/* IDs are reserved until destroy, not exit. Tiny can have at most one live
+ * non-idle object per priority; other profiles use the full 0..253 namespace. */
+#if CONFIG_EMB_SCHED_TABLE
+#define THREAD_INDEX_COUNT (CONFIG_EMB_PRIORITY_COUNT - 1u)
+#else
+#define THREAD_INDEX_COUNT 254u
 #endif
+static uint8_t index_used[(THREAD_INDEX_COUNT + 7u) / 8u]; /* lock: scheduler domain */
+
+static uint8_t index_acquire(void)
+{
+    unsigned i;
+    for (i = 0u; i < THREAD_INDEX_COUNT; i++) {
+        uint8_t mask = (uint8_t)(1u << (i % 8u));
+        if ((index_used[i / 8u] & mask) == 0u) {
+            index_used[i / 8u] |= mask;
+            return (uint8_t)i;
+        }
+    }
+    return UINT8_MAX;
+}
+
+static void index_release(uint8_t index)
+{
+    index_used[index / 8u] &= (uint8_t) ~(uint8_t)(1u << (index % 8u));
+}
 #if CONFIG_EMB_IDLE_THREAD
 EMB_THREAD_STACK(idle_stack, CONFIG_EMB_IDLE_STACK_SIZE);
 #endif
@@ -35,9 +58,7 @@ void embk_thread_init_subsystem(void)
 #if CONFIG_EMB_THREAD_LIST
     embk_list_init(&embk_thread_all);
 #endif
-#if !CONFIG_EMB_SCHED_TABLE
-    next_index = 0u;
-#endif
+    (void)EMB_MEMSET(index_used, 0, sizeof(index_used));
 }
 
 static void tcb_reset(embk_thread_t *t)
@@ -70,9 +91,8 @@ void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size)
     t->wait_state = EMBK_WAIT_READY;
     t->tflags = EMBK_THREAD_STARTED | EMBK_THREAD_KERNEL | EMBK_THREAD_DETACHED;
     t->cancel_disable = UINT8_MAX;
-#if !CONFIG_EMB_SCHED_TABLE
     t->index = IDLE_INDEX;
-#else
+#if CONFIG_EMB_SCHED_TABLE
     embk_thread_table[EMB_PRIORITY_IDLE] = t;
 #endif
 #if CONFIG_EMB_IDLE_THREAD
@@ -110,6 +130,7 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
 {
     embk_thread_t *t;
     emb_irq_key_t key;
+    uint8_t index;
 
     if (out_thread != NULL) {
         out_thread->raw = 0u;
@@ -146,7 +167,13 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
         return EMB_EBUSY; /* one thread per priority (ADR-036) */
     }
 #endif
+    index = index_acquire();
+    if (index == UINT8_MAX) {
+        embk_unlock_sched(key);
+        return EMB_ENOMEM; /* resource exhaustion is not API misuse */
+    }
     tcb_reset(t);
+    t->index = index;
     embk_obj_init(&t->obj, EMBK_OBJ_THREAD, 0u, attr->name);
     t->base_prio = attr->priority;
     t->eff_prio = attr->priority;
@@ -170,11 +197,6 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     emb_arch_context_init(t, attr->stack, attr->stack_size, entry, arg, false);
 #if CONFIG_EMB_SCHED_TABLE
     embk_thread_table[attr->priority] = t;
-#else
-    t->index = next_index;
-    if (next_index < IDLE_INDEX - 1u) {
-        next_index++;
-    }
 #endif
 #if CONFIG_EMB_THREAD_LIST
     embk_list_append(&embk_thread_all, &t->all_node);
@@ -499,7 +521,7 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
             embk_unlock_sched(key);
             return EMB_EBUSY;
         }
-        /* the slot is the identity on this profile: move every bit that names it */
+        /* Move scheduler/wait bitmap slots; the diagnostic index stays unchanged. */
         {
             bool ready = embk_sched_is_ready(t);
             embk_wait_queue_t *q = t->wait_queue;
@@ -760,6 +782,7 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
 #if CONFIG_EMB_SCHED_TABLE
     embk_thread_table[t->base_prio] = NULL;
 #endif
+    index_release(t->index);
     t->obj.state = EMBK_OBJ_UNINIT;
     embk_unlock_sched(key);
     return EMB_OK;

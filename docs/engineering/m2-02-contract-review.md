@@ -31,6 +31,8 @@ The native timer-first ordering is part of the current model's applicability. Na
 
 ## Stable thread indexes across priority changes
 
+**Implementation follow-up:** [stable diagnostic identity](m2-02-thread-identity.md) implements this recommendation. The observations below describe the reviewed baseline.
+
 KRN-THR-025 and SPEC-008 §3 call for a stable diagnostic index. `embk_thread_index()` in `kernel/include/embk/kernel.h` returns `base_prio` for the table scheduler and an `index` field otherwise. Reprioritizing a tiny thread therefore changes its trace and fault identity. There is another source-level limit: base's `next_index` in `kernel/thread/thread.c` stops incrementing at `0xFD`; later initializations receive that same value. The current allocation path neither reclaims indexes nor reports diagnostic-index exhaustion. Existing query tests check that an index is not `0xFF`, without establishing uniqueness over repeated construction. This saturation observation is code analysis, not an executed exhaustion test.
 
 **Recommendation:** keep a separate diagnostic index in every scheduler profile, stable from successful init until successful destroy. Keep table slots as an internal scheduling detail. Indexes must be unique among live threads; they may be reused after destruction and are not generation-checked handles or durable identities across storage reuse/restart.
