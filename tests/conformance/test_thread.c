@@ -165,27 +165,23 @@ EMB_TEST(thread_suspend_resume_are_idempotent_overlays)
     static uint32_t counter;
     emb_thread_t h;
     uint32_t before;
-    uint8_t index;
     uint8_t state = 0u;
     uint8_t reason = 0u;
     EMB_TEST_REQ("KRN-THR-010", "KRN-THR-019");
     counter = 0u;
     h = emb_test_thread(EMB_TEST_NAME("tick"), 3u, 0u, periodic_counter, &counter);
-    index = emb_thread_index(h);
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(5)));
     EMB_ASSERT_EQ(counter, 5u);
     EMB_ASSERT_OK(emb_thread_suspend(h));
     EMB_ASSERT_OK(emb_thread_suspend(h)); /* idempotent */
     before = counter;
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(5)));
-    EMB_ASSERT_EQ(emb_thread_index(h), index);
     EMB_ASSERT_EQ(counter, before); /* its deadline passed while suspended: wake kept, not run */
     EMB_ASSERT_OK(emb_thread_state(h, &state, &reason));
     EMB_ASSERT_EQ(state, EMB_THREAD_BLOCKED);
     EMB_ASSERT_EQ(reason, EMB_WAIT_REASON_SUSPEND);
     EMB_ASSERT_OK(emb_thread_resume(h));
     EMB_ASSERT_OK(emb_thread_resume(h));
-    EMB_ASSERT_EQ(emb_thread_index(h), index);
     EMB_ASSERT_EQ(counter, before + 1u); /* the recorded wake took effect at resume */
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(3)));
     EMB_ASSERT_EQ(counter, before + 4u);

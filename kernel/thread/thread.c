@@ -91,7 +91,7 @@ void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size)
     t->wait_state = EMBK_WAIT_READY;
     t->tflags = EMBK_THREAD_STARTED | EMBK_THREAD_KERNEL | EMBK_THREAD_DETACHED;
     t->cancel_disable = UINT8_MAX;
-    t->index = IDLE_INDEX;
+    embk_thread_set_index(t, IDLE_INDEX);
 #if CONFIG_EMB_SCHED_TABLE
     embk_thread_table[EMB_PRIORITY_IDLE] = t;
 #endif
@@ -173,8 +173,8 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
         return EMB_ENOMEM; /* resource exhaustion is not API misuse */
     }
     tcb_reset(t);
-    t->index = index;
     embk_obj_init(&t->obj, EMBK_OBJ_THREAD, 0u, attr->name);
+    embk_thread_set_index(t, index);
     t->base_prio = attr->priority;
     t->eff_prio = attr->priority;
     t->wait_state = EMBK_WAIT_BLOCKED; /* INACTIVE: BLOCKED with reason START (KRN-THR-009) */
@@ -782,7 +782,7 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
 #if CONFIG_EMB_SCHED_TABLE
     embk_thread_table[t->base_prio] = NULL;
 #endif
-    index_release(t->index);
+    index_release(embk_thread_index(t));
     t->obj.state = EMBK_OBJ_UNINIT;
     embk_unlock_sched(key);
     return EMB_OK;

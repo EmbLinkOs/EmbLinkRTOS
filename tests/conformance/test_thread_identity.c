@@ -54,6 +54,35 @@ EMB_TEST(thread_identity_repeated_construction_does_not_alias_live_object)
     }
 }
 
+#if CONFIG_EMB_SEM
+static emb_sem_storage_t identity_sem_storage;
+static emb_sem_t identity_sem;
+
+static void identity_wait(void *arg)
+{
+    (void)arg;
+    EMB_ASSERT_OK(emb_sem_take(identity_sem, EMB_WAIT_FOREVER));
+}
+
+EMB_TEST(thread_identity_survives_suspend_and_resume)
+{
+    emb_thread_t h;
+    uint8_t index;
+    EMB_TEST_REQ("KRN-THR-025");
+    EMB_ASSERT_OK(emb_sem_init(&identity_sem_storage, NULL, &identity_sem));
+    h = emb_test_thread(EMB_TEST_NAME("identity"), 2u, 0u, identity_wait, NULL);
+    index = emb_thread_index(h);
+    EMB_ASSERT_OK(emb_thread_suspend(h));
+    EMB_ASSERT_EQ(emb_thread_index(h), index);
+    EMB_ASSERT_OK(emb_thread_resume(h));
+    EMB_ASSERT_EQ(emb_thread_index(h), index);
+    EMB_ASSERT_OK(emb_sem_give(identity_sem));
+    EMB_ASSERT_OK(emb_thread_join(h, EMB_NO_WAIT, NULL));
+    EMB_ASSERT_EQ(emb_thread_index(h), index);
+    EMB_ASSERT_OK(emb_sem_destroy(identity_sem));
+}
+#endif
+
 #if CONFIG_EMB_ARCH_NATIVE && !CONFIG_EMB_SCHED_TABLE
 /* Never started: native context init creates no host thread. Distinct caller-owned
  * stacks make this a real admission test without borrowing another object's storage. */

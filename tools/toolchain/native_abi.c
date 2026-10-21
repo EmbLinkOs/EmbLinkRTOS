@@ -29,6 +29,9 @@ void emb_native_abi_probe(void)
     FIELD(thread_wait_reason, embk_thread_t, wait_reason);
     FIELD(thread_tflags, embk_thread_t, tflags);
     FIELD(thread_cancel_disable, embk_thread_t, cancel_disable);
+#if !EMBK_THREAD_INDEX_PACKED
+    FIELD(thread_index, embk_thread_t, index);
+#endif
     FIELD(thread_wait_gen, embk_thread_t, wait_gen);
     FIELD(thread_wake_data, embk_thread_t, wake_data);
     FIELD(thread_wait_queue, embk_thread_t, wait_queue);
@@ -45,7 +48,6 @@ void emb_native_abi_probe(void)
     TYPE(thread_list_sched, embk_thread_t);
     FIELD(thread_list_sched_wait_node, embk_thread_t, wait_node);
     FIELD(thread_list_sched_ready_node, embk_thread_t, ready_node);
-    FIELD(thread_list_sched_index, embk_thread_t, index);
 #endif
 #if CONFIG_EMB_NOTIFY
     TYPE(thread_notify, embk_thread_t);
