@@ -8,3 +8,7 @@ set(CMAKE_C_COMPILER ${EMB_SANITIZER_CC})
 set(EMB_TOOLCHAIN_C_FLAGS -pthread -g -O1 -fsanitize=thread -fno-omit-frame-pointer)
 set(EMB_TOOLCHAIN_LINK_FLAGS -pthread -fsanitize=thread)
 set(EMB_TOOLCHAIN_DEFINES _POSIX_C_SOURCE=200809L _DEFAULT_SOURCE)
+
+if(APPLE)
+  list(APPEND EMB_TOOLCHAIN_LINK_FLAGS -Wl,-no_warn_duplicate_libraries)
+endif()

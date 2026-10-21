@@ -6,3 +6,7 @@ set(CMAKE_CXX_COMPILER clang++)
 set(EMB_TOOLCHAIN_C_FLAGS -pthread -g -O1)
 set(EMB_TOOLCHAIN_LINK_FLAGS -pthread)
 set(EMB_TOOLCHAIN_DEFINES _POSIX_C_SOURCE=200809L _DEFAULT_SOURCE)
+
+if(APPLE)
+  list(APPEND EMB_TOOLCHAIN_LINK_FLAGS -Wl,-no_warn_duplicate_libraries)
+endif()
