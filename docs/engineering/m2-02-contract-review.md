@@ -4,6 +4,8 @@
 
 The recommendations below preserve the specified priority direction, stable thread identity and attributable misuse faults. They turn the disclosed gaps into bounded implementation tasks. Merge of this review records the proposals; acceptance of a particular behavior requires the corresponding specification, API, implementation and regression review together.
 
+**Subsequent implementation:** [kernel-aware IRQ priority correction](m2-02-irq-priority.md), ADR-042, 2026-10-21. The source observations/proposals below describe the reviewed revision; the correction supplies bounded domains, range validation, Cortex-M mapping and scoped emulator evidence. Other M2-02 work remains open.
+
 ## Interrupt priority direction and supported range
 
 KRN-IRQ-028 and SPEC-002 §8 require larger generic levels to mean greater urgency. `kernel/irq/irq.c` currently delegates to the port after a context check. Cortex-M's `emb_arch_irq_set_level()` in `arch/cortex_m/cm_port.c` computes `BASEPRI + 32 * level`, clamps at `0xC0`, and succeeds. NVIC gives smaller encodings greater urgency, so this reverses the contract and silently collapses out-of-range requests. Native, AVR and RV32 accept any level for an in-range interrupt number and ignore it. Their delivery order is fixed by the harness or controller, rather than by this API.
@@ -23,7 +25,7 @@ For the currently assumed three NVIC priority bits, let `B` be a validated nonze
 
 The fixed-level recommendation makes any nonzero request out of range, rather than reporting a successful priority change. It follows SPEC-002's above-maximum `EMB_EINVAL` rule. It deliberately changes today's no-op behavior and needs a compatibility note. If a later controller advertises multiple classes but cannot program one in a configuration, `EMB_ENOTSUP` applies to that supported-domain capability failure; it is not a substitute for range validation.
 
-`EMB_IRQ_LEVEL_KERNEL_MAX` currently expands to a configuration name without a corresponding implemented Kconfig symbol; `EMB_IRQ_LEVEL_MAX` from the specification is not provided. Supply usable limits and validate the configuration as part of this task. The generic kernel-independent class, hardware-description generation and board-only zero-latency setup need their own explicit supported scope. Correcting kernel-aware `set_level` alone does not establish every clause of KRN-IRQ-028 or KRN-IRQ-031.
+`EMB_IRQ_LEVEL_KERNEL_MAX` expands to `CONFIG_EMB_IRQ_KERNEL_LEVEL`, which already exists in Kconfig but is not connected to the port's actual domain at the reviewed revision; `EMB_IRQ_LEVEL_MAX` from the specification is not provided. This corrects the earlier note that the Kconfig symbol was absent. Supply usable limits and validate the configuration as part of this task. The generic kernel-independent class, hardware-description generation and board-only zero-latency setup need their own explicit supported scope. Correcting kernel-aware `set_level` alone does not establish every clause of KRN-IRQ-028 or KRN-IRQ-031.
 
 The native timer-first ordering is part of the current model's applicability. Native level programming must not be simulated by changing that ordering in this task without a separate model review. Software encoding assertions do not establish Cortex-M preemption or physical timer jitter. Those outcomes stay unrun until an actual suitable emulator/board experiment completes.
 

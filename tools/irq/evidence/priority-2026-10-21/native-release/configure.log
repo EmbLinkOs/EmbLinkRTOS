@@ -1,0 +1,11 @@
+Preset CMake variables:
+
+  CMAKE_TOOLCHAIN_FILE:FILEPATH="/workspace/EmbLinkRTOS/cmake/toolchains/native-gcc.cmake"
+  EMB_BOARD="native"
+  EMB_CONF="configs/release.conf"
+  EMB_PROFILE="base"
+
+-- EmbLinkRTOS 0.2.0: board native (native/posix), profile base, checked=0, config ecf26692cde530ec, compiler GNU 14.2.0
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/EmbLinkRTOS/build/native-release

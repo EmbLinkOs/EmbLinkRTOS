@@ -1,0 +1,44 @@
+UpdateCTestConfiguration  from :/workspace/EmbLinkRTOS/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspace/EmbLinkRTOS/build/native-tiny/DartConfiguration.tcl
+Test project /workspace/EmbLinkRTOS/build/native-tiny
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 4
+    Start 4: test_irq_priority
+
+4: Test command: /workspace/EmbLinkRTOS/build/native-tiny/tests/conformance/test_irq_priority
+4: Working Directory: /workspace/EmbLinkRTOS/build/native-tiny/tests/conformance
+4: Environment variables:
+4:  TSAN_OPTIONS=die_after_fork=0
+4: Test timeout computed to be: 300
+4: TEST irq_priority_context_precedes_argument_validation
+4: emb native: kernel fault class 1 code 1 argument 0 thread 255 context 1 at ?, halting
+4:   -> ok
+4: TEST irq_priority_fault_argument_and_precedence
+4: emb native: kernel fault class 2 code 2 argument 2 thread 1 context 0 at ?, halting
+4: emb native: kernel fault class 2 code 2 argument 1 thread 1 context 0 at ?, halting
+4:   -> ok
+4: TEST irq_priority_port_rejects_invalid_inputs
+4:   -> ok
+4: TEST irq_priority_rejects_unknown_number
+4: emb native: kernel fault class 2 code 2 argument 1 thread 1 context 0 at ?, halting
+4:   -> ok
+4: TEST irq_priority_rejects_out_of_range_level
+4: emb native: kernel fault class 2 code 2 argument 2 thread 1 context 0 at ?, halting
+4: emb native: kernel fault class 2 code 2 argument 2 thread 1 context 0 at ?, halting
+4:   -> ok
+4: TEST irq_priority_accepts_advertised_endpoints
+4:   -> ok
+4: 6 tests, 0 failed, 0 skipped, 0 ticks
+1/1 Test #4: test_irq_priority ................   Passed    0.00 sec
+
+The following tests passed:
+	test_irq_priority
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.00 sec

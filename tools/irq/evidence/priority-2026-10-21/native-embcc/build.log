@@ -1,0 +1,103 @@
+[1/52] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[2/52] generating emb/storage.h from the layout probe
+[3/52] Building C object CMakeFiles/emb_host_abi.dir/tools/toolchain/native_abi.c.o
+[4/52] Building C object CMakeFiles/emb_kernel_abi.dir/tools/toolchain/native_abi.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[5/52] Generating generated/abi/kernel.h
+[6/52] Generating generated/abi/host.h
+[7/51] Building C object arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+[8/51] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[9/51] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[10/51] Building C object kernel/CMakeFiles/emb_kernel.dir/fault/fault.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[11/51] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[12/51] Building C object kernel/CMakeFiles/emb_kernel.dir/trace/trace.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[13/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[14/51] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[15/51] Building C object kernel/CMakeFiles/emb_kernel.dir/irq/irq.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[16/51] Linking C static library arch/native/libemb_arch.a
+[17/51] Building C object kernel/CMakeFiles/emb_kernel.dir/notify/notify.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[18/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/sem.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[19/51] Building C object tests/framework/CMakeFiles/emb_test.dir/platform_native.c.o
+[20/51] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/mutex.c.o
+embcc: warning: -pedantic: EmbCC has no diagnostics for extensions to ISO C, so this turns nothing on
+embcc: warning: -Wpedantic is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wcast-align is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+embcc: warning: -Wnull-dereference is not a warning EmbCC has, so it turns nothing on (--help-warnings lists them)
+[21/51] Building C object samples/footprint_t1/CMakeFiles/footprint_t1.dir/main.c.o
+[22/51] Building C object samples/first_execution/CMakeFiles/first_execution.dir/main.c.o
+[23/51] Building C object tests/conformance/CMakeFiles/test_smoke.dir/test_smoke.c.o
+[24/51] Linking C static library kernel/libemb_kernel.a
+[25/51] Building C object tests/framework/CMakeFiles/emb_test.dir/emb_test.c.o
+[26/51] Linking C static library tests/framework/libemb_test.a
+[27/51] Building C object tests/conformance/CMakeFiles/test_sched.dir/test_sched.c.o
+[28/51] Building C object tests/conformance/CMakeFiles/test_irq_priority.dir/test_irq_priority.c.o
+[29/51] Building C object tests/conformance/CMakeFiles/test_irq.dir/test_irq.c.o
+[30/51] Building C object tests/conformance/CMakeFiles/test_time.dir/test_time.c.o
+[31/51] Building C object tests/conformance/CMakeFiles/test_first_execution.dir/test_first_execution.c.o
+[32/51] Building C object tests/conformance/CMakeFiles/test_sem.dir/test_sem.c.o
+[33/51] Building C object tests/benchmarks/CMakeFiles/bench_switch.dir/bench_switch.c.o
+[34/51] Linking C executable samples/first_execution/first_execution
+[35/51] Building C object tests/conformance/CMakeFiles/test_notify.dir/test_notify.c.o
+[36/51] Linking C executable samples/footprint_t1/footprint_t1
+[37/51] Linking C executable tests/conformance/test_smoke
+[38/51] Building C object tests/conformance/CMakeFiles/test_mutex.dir/test_mutex.c.o
+[39/51] Linking C executable tests/conformance/test_irq_priority
+[40/51] Linking C executable tests/conformance/test_time
+[41/51] Building C object tests/conformance/CMakeFiles/test_thread.dir/test_thread.c.o
+[42/51] Linking C executable tests/conformance/test_irq
+[43/51] Linking C executable tests/conformance/test_sched
+[44/51] Linking C executable tests/conformance/test_notify
+[45/51] Linking C executable tests/conformance/test_thread
+[46/51] Linking C executable tests/conformance/test_first_execution
+[47/51] Linking C executable tests/benchmarks/bench_switch
+[48/51] Linking C executable tests/conformance/test_sem
+[49/51] Linking C executable tests/conformance/test_mutex
+[50/51] Building C object tests/differential/CMakeFiles/diff_runner.dir/diff_runner.c.o
+[51/51] Linking C executable tests/differential/diff_runner

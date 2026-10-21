@@ -38,9 +38,9 @@ This work may change evidence/replay tooling before kernel code, but its investi
 
 ## M2-02: Current contracts before new APIs
 
-The [contract review](m2-02-contract-review.md) records source-grounded proposals for IRQ domains/mapping, independent diagnostic indexes, explicit public fault IDs, POINTER lifetime and resource bounds. These are preparations for joint coding sessions, not accepted contract amendments or completed implementation evidence. The unresolved historical M2-01 item remains visible during this review.
+The [contract review](m2-02-contract-review.md) records source-grounded proposals for IRQ domains/mapping, independent diagnostic indexes, explicit public fault IDs, POINTER lifetime and resource bounds. The review preserves the original proposals; the [IRQ correction](m2-02-irq-priority.md) and ADR-042 subsequently implement and verify the kernel-aware priority portion. The remaining proposals are not completed implementation evidence. The unresolved historical M2-01 item remains visible during this review.
 
-- [ ] Reconcile Cortex-M `emb_irq_set_level()` with KRN-IRQ-028's larger-is-more-urgent convention; specify range/unsupported behavior for fixed-level ports and test the observable mapping.
+- [x] Reconcile Cortex-M `emb_irq_set_level()` in the current kernel-aware domain with larger-is-more-urgent; advertise fixed-port limits and verify encodings/pending order/nested delivery under QEMU and F446 EmbSIM. Raw-class/generator scope and physical measurements remain separate; see the IRQ report.
 - [ ] Resolve tiny's priority-slot-based `emb_thread_index()` versus the stable-index target of KRN-THR-025. Choose a justified implementation or scoped contract amendment before changing identity behavior.
 - [ ] Define usable fault API attribution instead of leaving `api_id` zero; test class, argument, context and API identity without claiming the later retained crash format already exists.
 - [ ] Review current POINTER-handle/lifecycle error behavior and resource costs against comments; do not promise generation-based stale rejection or unrestricted cycle detection.

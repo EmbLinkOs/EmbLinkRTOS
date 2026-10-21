@@ -1,0 +1,25 @@
+Internal ctest changing into directory: /workspace/EmbLinkRTOS/build/irq-priority-before
+Test project /workspace/EmbLinkRTOS/build/irq-priority-before
+    Start 10: test_irq_priority
+1/1 Test #10: test_irq_priority ................***Failed    0.00 sec
+TEST irq_priority_port_rejects_invalid_inputs
+  status 0, expected -2  FAIL line 32: status: emb_arch_irq_set_level(0u, (uint8_t)(EMB_IRQ_LEVEL_KERNEL_MAX + 1u))
+  -> FAILED
+TEST irq_priority_rejects_unknown_number
+  -> ok
+TEST irq_priority_rejects_out_of_range_level
+  status 0, expected -2  FAIL line 17: status: (emb_irq_set_level(0u, (uint8_t)(0 + 1u)))
+  status 0, expected -2  FAIL line 19: status: (emb_irq_set_level(0u, 0xff))
+  -> FAILED
+TEST irq_priority_accepts_advertised_endpoints
+  -> ok
+4 tests, 2 failed, 0 skipped, 0 ticks
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.00 sec
+
+The following tests FAILED:
+	 10 - test_irq_priority (Failed)
+Errors while running CTest

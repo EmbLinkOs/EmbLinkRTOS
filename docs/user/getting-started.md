@@ -14,7 +14,7 @@ cmake --build --preset native-gcc --parallel 4
 ctest --preset native-gcc --output-on-failure --no-tests=error
 ```
 
-For a local checkout, replace `/workspace/EmbLinkRTOS` with your checkout directory. Passing CTest should report twelve targets: nine conformance executables, the differential bridge, timer regressions and evidence workflow check. Individual case counts and skipped model scenarios are inside the runner logs. A zero-test run is a setup failure.
+For a local checkout, replace `/workspace/EmbLinkRTOS` with your checkout directory. Passing CTest should report thirteen targets: ten conformance executables (including IRQ priorities), the differential bridge, timer regressions and evidence workflow check. Individual case counts and skipped model scenarios are inside the runner logs. A zero-test run is a setup failure.
 
 Experimental Linux x86-64 presets can compile the kernel with EmbCC while GCC supplies the POSIX host and final link. See [EmbCC native integration](../engineering/embcc-native-linux.md) for compiler selection, the ABI guard and qualification limits.
 

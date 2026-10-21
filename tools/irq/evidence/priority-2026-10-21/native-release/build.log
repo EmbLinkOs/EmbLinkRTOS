@@ -1,0 +1,47 @@
+[1/47] Building C object include/CMakeFiles/emb_storage_probe.dir/__/kernel/object/storage_probe.c.o
+[2/47] generating emb/storage.h from the layout probe
+[3/47] Building C object kernel/CMakeFiles/emb_kernel.dir/time/time.c.o
+[4/47] Building C object kernel/CMakeFiles/emb_kernel.dir/exec/exec.c.o
+[5/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sched/sched.c.o
+[6/47] Building C object kernel/CMakeFiles/emb_kernel.dir/fault/fault.c.o
+[7/47] Building C object arch/native/CMakeFiles/emb_arch.dir/native_port.c.o
+[8/47] Building C object kernel/CMakeFiles/emb_kernel.dir/wait/wait.c.o
+[9/47] Building C object kernel/CMakeFiles/emb_kernel.dir/trace/trace.c.o
+[10/47] Building C object kernel/CMakeFiles/emb_kernel.dir/irq/irq.c.o
+[11/47] Building C object kernel/CMakeFiles/emb_kernel.dir/notify/notify.c.o
+[12/47] Linking C static library arch/native/libemb_arch.a
+[13/47] Building C object samples/first_execution/CMakeFiles/first_execution.dir/main.c.o
+[14/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/sem.c.o
+[15/47] Building C object kernel/CMakeFiles/emb_kernel.dir/thread/thread.c.o
+[16/47] Building C object samples/footprint_t1/CMakeFiles/footprint_t1.dir/main.c.o
+[17/47] Building C object tests/framework/CMakeFiles/emb_test.dir/emb_test.c.o
+[18/47] Building C object tests/conformance/CMakeFiles/test_smoke.dir/test_smoke.c.o
+[19/47] Building C object tests/framework/CMakeFiles/emb_test.dir/platform_native.c.o
+[20/47] Building C object tests/conformance/CMakeFiles/test_irq_priority.dir/test_irq_priority.c.o
+[21/47] Building C object tests/conformance/CMakeFiles/test_irq.dir/test_irq.c.o
+[22/47] Building C object tests/conformance/CMakeFiles/test_sched.dir/test_sched.c.o
+[23/47] Building C object tests/conformance/CMakeFiles/test_time.dir/test_time.c.o
+[24/47] Building C object kernel/CMakeFiles/emb_kernel.dir/sync/mutex.c.o
+[25/47] Linking C static library kernel/libemb_kernel.a
+[26/47] Linking C static library tests/framework/libemb_test.a
+[27/47] Building C object tests/conformance/CMakeFiles/test_notify.dir/test_notify.c.o
+[28/47] Building C object tests/conformance/CMakeFiles/test_first_execution.dir/test_first_execution.c.o
+[29/47] Building C object tests/benchmarks/CMakeFiles/bench_switch.dir/bench_switch.c.o
+[30/47] Building C object tests/conformance/CMakeFiles/test_sem.dir/test_sem.c.o
+[31/47] Linking C executable samples/first_execution/first_execution
+[32/47] Linking C executable samples/footprint_t1/footprint_t1
+[33/47] Building C object tests/conformance/CMakeFiles/test_mutex.dir/test_mutex.c.o
+[34/47] Building C object tests/conformance/CMakeFiles/test_thread.dir/test_thread.c.o
+[35/47] Linking C executable tests/conformance/test_smoke
+[36/47] Linking C executable tests/conformance/test_sched
+[37/47] Linking C executable tests/conformance/test_irq_priority
+[38/47] Linking C executable tests/conformance/test_irq
+[39/47] Linking C executable tests/conformance/test_time
+[40/47] Linking C executable tests/conformance/test_thread
+[41/47] Linking C executable tests/conformance/test_sem
+[42/47] Linking C executable tests/conformance/test_notify
+[43/47] Linking C executable tests/benchmarks/bench_switch
+[44/47] Linking C executable tests/conformance/test_first_execution
+[45/47] Linking C executable tests/conformance/test_mutex
+[46/47] Building C object tests/differential/CMakeFiles/diff_runner.dir/diff_runner.c.o
+[47/47] Linking C executable tests/differential/diff_runner

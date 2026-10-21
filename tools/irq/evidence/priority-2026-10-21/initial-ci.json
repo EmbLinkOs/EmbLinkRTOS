@@ -1,0 +1,48 @@
+{
+  "conclusion": "success",
+  "head_sha": "6e12f8837b89c8572f61c56ad7ab1d1b80f51f9a",
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 119403399229,
+      "log": "initial-ci/job-119403399229.log",
+      "name": "cortex_m (cm4-an386)",
+      "raw_sha256": "93b304226d87256762506c7ba533ccc9d9ea3425d57d16955e57d691fb150225",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591/job/119403399229"
+    },
+    {
+      "conclusion": "success",
+      "id": 119403399351,
+      "log": "initial-ci/job-119403399351.log",
+      "name": "cortex_m (cm4-an386-release)",
+      "raw_sha256": "17c57c71cc45abef8fa4c9417570bde443611ecdb7de51c32bf7b31422214101",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591/job/119403399351"
+    },
+    {
+      "conclusion": "success",
+      "id": 119403399451,
+      "log": "initial-ci/job-119403399451.log",
+      "name": "cortex_m (cm4-an386-tiny)",
+      "raw_sha256": "922665f4b85fa5957d93c8312651a8234012a14587bfb47bd6630e76f53edabd",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591/job/119403399451"
+    },
+    {
+      "conclusion": "success",
+      "id": 119403399723,
+      "log": "initial-ci/job-119403399723.log",
+      "name": "cortex_m (cm3-an385)",
+      "raw_sha256": "44643641dd816a47499e0b4994386e9ebbda1ac2642b47963cbbd90f3daa1f5e",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591/job/119403399723"
+    },
+    {
+      "conclusion": "success",
+      "id": 119403399844,
+      "log": "initial-ci/job-119403399844.log",
+      "name": "cm4-embsim",
+      "raw_sha256": "d07efd195af761118f1d11525db3576f813a46f364ccf6afddc217119304814c",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591/job/119403399844"
+    }
+  ],
+  "run_id": "39652273591",
+  "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39652273591"
+}

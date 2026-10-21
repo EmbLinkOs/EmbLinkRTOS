@@ -1,0 +1,7 @@
+test_exact_arguments_and_compiler_failure_are_preserved (test_kernel_compile.KernelCompiler.test_exact_arguments_and_compiler_failure_are_preserved) ... ok
+test_missing_kernel_compiler_fails_without_running_host (test_kernel_compile.KernelCompiler.test_missing_kernel_compiler_fails_without_running_host) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.036s
+
+OK
