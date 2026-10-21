@@ -45,6 +45,8 @@ If tiny's resource budget cannot admit stable identity, propose a scoped KRN-THR
 
 ## Public API identity in misuse faults
 
+**Implementation follow-up:** [numeric API attribution](m2-02-fault-api-ids.md) implements this recommendation. The observations below describe the reviewed baseline.
+
 API-017 and SPEC-001 §5.3 require the public function and offending argument. `raise_info()` in `kernel/fault/fault.c` currently assigns `api_id = 0` for every fault. `EMBK_MISUSE` preserves the class, negated return status as code, argument and optional `__func__`, but common helpers can report their own name rather than the public caller. The hook's stack-local record is not the retained crash record described by the later observability milestone.
 
 **Recommendation:** assign explicit, unique, nonzero `uint16_t` IDs to public APIs in a checked-in registry, with zero reserved for faults without public API attribution. Keep assigned values stable; do not derive them from declaration order, line numbers, addresses or optional strings. Pass the public entry ID and argument numbering explicitly through shared implementation helpers. Avoid a mutable global “current API,” which can be overwritten by nested entry or ISR activity.

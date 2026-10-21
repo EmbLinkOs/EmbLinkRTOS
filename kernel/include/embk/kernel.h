@@ -11,6 +11,7 @@
 #ifndef EMBK_KERNEL_H
 #define EMBK_KERNEL_H
 
+#include <emb/api_ids.h>
 #include <emb/arch.h>
 #include <emb/config.h>
 #include <emb/context.h>
@@ -248,6 +249,9 @@ static EMB_ALWAYS_INLINE void embk_irq_unlock(emb_irq_key_t key)
 EMB_NORETURN void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument,
                                    const char *where);
 
+EMB_NORETURN void embk_fault_raise_api(uint16_t api_id, uint8_t fault_class, uint16_t code,
+                                       uint8_t argument, const char *where);
+
 /* The location recorded with a fault: the function name, or nothing where the strings
  * would cost RAM (CONFIG_EMB_FAULT_WHERE=n on the tiny profile). */
 #if CONFIG_EMB_FAULT_WHERE
@@ -256,25 +260,26 @@ EMB_NORETURN void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t a
 #define EMBK_WHERE ((const char *)0)
 #endif
 
-/* A misuse: a fault in checked builds, the status in release builds. Used only in a
- * function returning emb_status_t. */
+/* Public-entry identity is explicit, including in shared helper functions. */
 #if CONFIG_EMB_CHECKED
-#define EMBK_MISUSE(fault_class, status, argument)                                      \
-    do {                                                                                \
-        embk_fault_raise((fault_class), (uint16_t)(-(status)), (argument), EMBK_WHERE); \
+#define EMBK_API_MISUSE(api_id, fault_class, status, argument)                           \
+    do {                                                                                 \
+        embk_fault_raise_api((api_id), (fault_class), (uint16_t)(-(status)), (argument), \
+                             EMBK_WHERE);                                                \
     } while (0)
 #else
-#define EMBK_MISUSE(fault_class, status, argument) \
-    do {                                           \
-        return (status);                           \
+#define EMBK_API_MISUSE(api_id, fault_class, status, argument) \
+    do {                                                       \
+        (void)(api_id);                                        \
+        return (status);                                       \
     } while (0)
 #endif
 
-#define EMBK_REQUIRE(cond, fault_class, status, argument)     \
-    do {                                                      \
-        if (EMB_UNLIKELY(!(cond))) {                          \
-            EMBK_MISUSE((fault_class), (status), (argument)); \
-        }                                                     \
+#define EMBK_API_REQUIRE(api_id, cond, fault_class, status, argument)       \
+    do {                                                                    \
+        if (EMB_UNLIKELY(!(cond))) {                                        \
+            EMBK_API_MISUSE((api_id), (fault_class), (status), (argument)); \
+        }                                                                   \
     } while (0)
 
 /* Kernel invariants: checked builds only, never with side effects in the condition. */
@@ -302,19 +307,19 @@ static EMB_INLINE bool embk_in_thread(void)
     return embk_cpu.kernel_state == EMBK_KERNEL_RUNNING && embk_cpu.irq_nesting_depth == 0u;
 }
 
-/* Thread-only function entry. */
-#define EMBK_REQUIRE_THREAD() EMBK_REQUIRE(embk_in_thread(), EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u)
-/* prekernel or thread. */
-#define EMBK_REQUIRE_NOT_ISR() EMBK_REQUIRE(!embk_in_isr(), EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u)
-/* A blocking call with a nonzero timeout: thread context, scheduler not locked, no
- * critical section held by the caller (SPEC-001 §5.1, SPEC-002 §12). */
-#define EMBK_REQUIRE_CAN_BLOCK(timeout_ticks)                                   \
-    do {                                                                        \
-        if ((timeout_ticks) != 0u) {                                            \
-            EMBK_REQUIRE(embk_in_thread() && embk_cpu.sched_lock_depth == 0u && \
-                             !emb_arch_irq_locked(),                            \
-                         EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u);                 \
-        }                                                                       \
+/* Thread-only function entry; prekernel-or-thread entry; blocking sub-state. */
+#define EMBK_API_REQUIRE_THREAD(api_id) \
+    EMBK_API_REQUIRE((api_id), embk_in_thread(), EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u)
+#define EMBK_API_REQUIRE_NOT_ISR(api_id) \
+    EMBK_API_REQUIRE((api_id), !embk_in_isr(), EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u)
+#define EMBK_API_REQUIRE_CAN_BLOCK(api_id, timeout_ticks)                           \
+    do {                                                                            \
+        if ((timeout_ticks) != 0u) {                                                \
+            EMBK_API_REQUIRE((api_id),                                              \
+                             embk_in_thread() && embk_cpu.sched_lock_depth == 0u && \
+                                 !emb_arch_irq_locked(),                            \
+                             EMB_FAULT_API_CONTEXT, EMB_EPERM, 0u);                 \
+        }                                                                           \
     } while (0)
 
 /* ---- trace (SPEC-015 M1 subset) ------------------------------------------------ */

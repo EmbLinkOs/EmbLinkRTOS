@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Stable numeric IDs in public API misuse fault records, a generated header and downloadable decoder map, with checked-in assignments and compatibility checks. Shared helpers retain the public caller ID and location strings remain optional.
+
 - The Arduino Uno conformance suite on EmbSIM's simulated Uno (`avr-uno-embsim` preset,
   `EMB_TEST_EMULATOR=embsim`, `tools/embsim/run_embsim.py`) and an `avr-embsim` CI job that builds
   EmbSIM from source (SIM-002).

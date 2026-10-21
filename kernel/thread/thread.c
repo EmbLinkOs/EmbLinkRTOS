@@ -135,26 +135,33 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     if (out_thread != NULL) {
         out_thread->raw = 0u;
     }
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(embk_cpu.kernel_state != EMBK_KERNEL_UNINIT, EMB_FAULT_API_LIFECYCLE, EMB_ESTATE,
-                 0u);
-    EMBK_REQUIRE(storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(attr != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_REQUIRE(entry != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
-    EMBK_REQUIRE(out_thread != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 5u);
-    EMBK_REQUIRE(attr->priority >= EMB_PRIORITY_MIN && attr->priority <= EMB_PRIORITY_MAX,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_REQUIRE(attr->stack != NULL && ((uintptr_t)attr->stack % (uintptr_t)EMB_STACK_ALIGN) == 0u,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_THREAD_INIT);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, embk_cpu.kernel_state != EMBK_KERNEL_UNINIT,
+                     EMB_FAULT_API_LIFECYCLE, EMB_ESTATE, 0u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, attr != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, entry != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, out_thread != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     5u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
+                     attr->priority >= EMB_PRIORITY_MIN && attr->priority <= EMB_PRIORITY_MAX,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
+                     attr->stack != NULL &&
+                         ((uintptr_t)attr->stack % (uintptr_t)EMB_STACK_ALIGN) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     {
         size_t min_stack = EMB_THREAD_STACK_MIN;
         if (min_stack < EMBK_STACK_GUARD_BYTES + (size_t)CONFIG_EMB_ARCH_CONTEXT_FRAME) {
             min_stack = EMBK_STACK_GUARD_BYTES + (size_t)CONFIG_EMB_ARCH_CONTEXT_FRAME;
         }
-        EMBK_REQUIRE(attr->stack_size >= min_stack, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+        EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, attr->stack_size >= min_stack,
+                         EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     }
-    EMBK_REQUIRE(((uintptr_t)storage % (uintptr_t)EMB_THREAD_STORAGE_ALIGN) == 0u,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
+                     ((uintptr_t)storage % (uintptr_t)EMB_THREAD_STORAGE_ALIGN) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     EMB_STATIC_ASSERT(sizeof(embk_thread_t) <= EMB_THREAD_STORAGE_SIZE,
                       "generated storage too small");
 
@@ -211,7 +218,7 @@ emb_status_t emb_thread_start(emb_thread_t thread)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_START, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) != 0u) {
         embk_unlock_sched(key);
@@ -248,7 +255,7 @@ void emb_thread_exit(int code)
     emb_irq_key_t key;
 
     if (!embk_in_thread() || embk_cpu.current == &embk_idle_thread) {
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_THREAD_EXIT, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
     }
     self = embk_cpu.current;
     key = embk_lock_sched();
@@ -310,18 +317,18 @@ emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *ou
     uintptr_t data;
     emb_tick_t deadline;
 
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_JOIN);
     if (t == NULL) {
         EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(embk_cpu.current), 0xFFu, EMB_EINVAL);
-        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+        EMBK_API_MISUSE(EMB_API_ID_THREAD_JOIN, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     }
     self = embk_cpu.current;
     if (t == self) {
         EMBK_TRACE(EMB_TRACE_THREAD_JOIN, embk_thread_index(self), embk_thread_index(t),
                    EMB_EDEADLK);
-        EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u);
+        EMBK_API_MISUSE(EMB_API_ID_THREAD_JOIN, EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u);
     }
-    EMBK_REQUIRE_CAN_BLOCK(timeout.ticks);
+    EMBK_API_REQUIRE_CAN_BLOCK(EMB_API_ID_THREAD_JOIN, timeout.ticks);
     key = embk_lock_sched();
     if ((t->tflags & (EMBK_THREAD_DETACHED | EMBK_THREAD_KERNEL)) != 0u) {
         emb_status_t st = ((t->tflags & EMBK_THREAD_KERNEL) != 0u) ? EMB_EPERM : EMB_EINVAL;
@@ -373,7 +380,7 @@ emb_status_t emb_thread_detach(emb_thread_t thread)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_DETACH, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_KERNEL) != 0u) {
         embk_unlock_sched(key);
@@ -397,11 +404,12 @@ emb_status_t emb_thread_suspend(emb_thread_t thread)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE((t->tflags & EMBK_THREAD_KERNEL) == 0u, EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_SUSPEND);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_SUSPEND, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_SUSPEND, (t->tflags & EMBK_THREAD_KERNEL) == 0u,
+                     EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
     if (t == embk_cpu.current) {
-        EMBK_REQUIRE_CAN_BLOCK(1u); /* self-suspend switches away */
+        EMBK_API_REQUIRE_CAN_BLOCK(EMB_API_ID_THREAD_SUSPEND, 1u); /* self-suspend switches away */
     }
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) == 0u || (t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
@@ -428,7 +436,7 @@ emb_status_t emb_thread_resume(emb_thread_t thread)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_RESUME, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) == 0u || (t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
         embk_unlock_sched(key);
@@ -455,8 +463,9 @@ emb_status_t emb_thread_cancel(emb_thread_t thread)
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
     bool delivered;
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE((t->tflags & EMBK_THREAD_KERNEL) == 0u, EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_CANCEL, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_CANCEL, (t->tflags & EMBK_THREAD_KERNEL) == 0u,
+                     EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) == 0u || (t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
         embk_unlock_sched(key);
@@ -475,7 +484,7 @@ emb_status_t emb_thread_cancel_point(void)
 {
     emb_irq_key_t key;
     bool taken;
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_CANCEL_POINT);
     key = embk_lock_sched();
     taken = embk_thread_take_cancel_locked(embk_cpu.current);
     embk_unlock_sched(key);
@@ -485,9 +494,10 @@ emb_status_t emb_thread_cancel_point(void)
 emb_status_t emb_thread_cancel_disable(void)
 {
     embk_thread_t *self;
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_CANCEL_DISABLE);
     self = embk_cpu.current;
-    EMBK_REQUIRE(self->cancel_disable < UINT8_MAX, EMB_FAULT_API_ARGUMENT, EMB_EOVERFLOW, 0u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_CANCEL_DISABLE, self->cancel_disable < UINT8_MAX,
+                     EMB_FAULT_API_ARGUMENT, EMB_EOVERFLOW, 0u);
     self->cancel_disable++; /* own field, thread context: no lock needed */
     return EMB_OK;
 }
@@ -495,9 +505,10 @@ emb_status_t emb_thread_cancel_disable(void)
 emb_status_t emb_thread_cancel_enable(void)
 {
     embk_thread_t *self;
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_CANCEL_ENABLE);
     self = embk_cpu.current;
-    EMBK_REQUIRE(self->cancel_disable != 0u, EMB_FAULT_API_ARGUMENT, EMB_ESTATE, 0u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_CANCEL_ENABLE, self->cancel_disable != 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_ESTATE, 0u);
     self->cancel_disable--;
     return EMB_OK;
 }
@@ -508,11 +519,14 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(priority >= EMB_PRIORITY_MIN && priority <= EMB_PRIORITY_MAX,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_REQUIRE((t->tflags & EMBK_THREAD_KERNEL) == 0u, EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_SET_PRIORITY);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_SET_PRIORITY, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL,
+                     1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_SET_PRIORITY,
+                     priority >= EMB_PRIORITY_MIN && priority <= EMB_PRIORITY_MAX,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_SET_PRIORITY, (t->tflags & EMBK_THREAD_KERNEL) == 0u,
+                     EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
     key = embk_lock_sched();
 #if CONFIG_EMB_SCHED_TABLE
     if (priority != t->base_prio) {
@@ -584,7 +598,7 @@ void emb_thread_yield(void)
     emb_irq_key_t key;
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_THREAD_YIELD, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif
@@ -594,13 +608,13 @@ void emb_thread_yield(void)
     embk_unlock_sched(key);
 }
 
-static emb_status_t sleep_until_deadline(emb_tick_t deadline)
+static emb_status_t sleep_until_deadline(uint16_t api_id, emb_tick_t deadline)
 {
     embk_thread_t *self;
     emb_irq_key_t key;
     embk_wait_result_t r;
     uintptr_t data;
-    EMBK_REQUIRE_CAN_BLOCK(1u);
+    EMBK_API_REQUIRE_CAN_BLOCK(api_id, 1u);
     self = embk_cpu.current;
     key = embk_lock_sched();
     if (embk_thread_take_cancel_locked(self)) {
@@ -617,17 +631,18 @@ static emb_status_t sleep_until_deadline(emb_tick_t deadline)
 
 emb_status_t emb_thread_sleep(emb_duration_t d)
 {
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_SLEEP);
     if (d.ticks == 0u) {
         emb_thread_yield();
         return EMB_OK;
     }
-    return sleep_until_deadline(embk_deadline_from_timeout(emb_timeout_from_duration(d)));
+    return sleep_until_deadline(EMB_API_ID_THREAD_SLEEP,
+                                embk_deadline_from_timeout(emb_timeout_from_duration(d)));
 }
 
 emb_status_t emb_thread_sleep_until(emb_instant_t t)
 {
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_SLEEP_UNTIL);
 #if CONFIG_EMB_TICK_32BIT
     /* A 32-bit instant more than EMB_TIMEOUT_MAX_TICKS ahead is indistinguishable from
      * one in the past (SPEC-003 §5.2 window); it takes the past-deadline path. */
@@ -644,7 +659,7 @@ emb_status_t emb_thread_sleep_until(emb_instant_t t)
         t.ticks = EMB_TICK_MAX - 1u; /* finite, never reads as forever */
     }
 #endif
-    return sleep_until_deadline(t.ticks);
+    return sleep_until_deadline(EMB_API_ID_THREAD_SLEEP_UNTIL, t.ticks);
 }
 
 /* ---- queries (SPEC-008 §3) --------------------------------------------------------- */
@@ -655,8 +670,9 @@ emb_status_t emb_thread_state(emb_thread_t thread, uint8_t *out_state, uint8_t *
     emb_irq_key_t key;
     uint8_t state;
     uint8_t reason = EMB_WAIT_REASON_NONE;
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(out_state != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_STATE, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_STATE, out_state != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     2u);
     key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) == 0u) {
         state = EMB_THREAD_INACTIVE;
@@ -703,8 +719,8 @@ uint8_t emb_thread_index(emb_thread_t thread)
 emb_status_t emb_thread_stack_info(emb_thread_t thread, size_t *out_size, size_t *out_high_water)
 {
     const embk_thread_t *t = embk_thread_from_handle(thread);
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_THREAD_STACK_INFO);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_STACK_INFO, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     if (out_size != NULL) {
         *out_size = t->stack_size;
     }
@@ -728,8 +744,9 @@ emb_status_t emb_thread_stack_info(emb_thread_t thread, size_t *out_size, size_t
 #if CONFIG_EMB_TLS_SLOTS > 0
 emb_status_t emb_tls_set(uint8_t slot, void *p)
 {
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(slot < (uint8_t)CONFIG_EMB_TLS_SLOTS, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_TLS_SET);
+    EMBK_API_REQUIRE(EMB_API_ID_TLS_SET, slot < (uint8_t)CONFIG_EMB_TLS_SLOTS,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     embk_cpu.current->tls[slot] = p;
     return EMB_OK;
 }
@@ -765,16 +782,17 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
     bool ok;
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE((t->tflags & EMBK_THREAD_KERNEL) == 0u, EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_THREAD_DESTROY);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_DESTROY, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_DESTROY, (t->tflags & EMBK_THREAD_KERNEL) == 0u,
+                     EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
     key = embk_lock_sched();
     ok = (t->tflags & EMBK_THREAD_STARTED) == 0u ||
          ((t->tflags & EMBK_THREAD_TERMINATED) != 0u && (t->tflags & EMBK_THREAD_JOINED) != 0u &&
           emb_arch_switch_out_done(t));
     if (!ok) {
         embk_unlock_sched(key);
-        EMBK_MISUSE(EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+        EMBK_API_MISUSE(EMB_API_ID_THREAD_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
     }
 #if CONFIG_EMB_THREAD_LIST
     embk_list_remove(&t->all_node);

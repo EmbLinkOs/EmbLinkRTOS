@@ -25,3 +25,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python3 tools/repository/check_dco.py --base "$BASE_SHA" --head "$HEAD_SHA"
+      - name: Check stable API ID registry
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: python3 -I tools/fault/generate.py --check --baseline "$BASE_SHA"
