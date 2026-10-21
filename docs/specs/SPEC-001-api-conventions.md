@@ -175,7 +175,7 @@ A **misuse** is a programming error in the caller that a correct program never m
 
 **Isolated profiles.** A call from an unprivileged partition crosses the syscall boundary, where every check above is performed and *always* returns a status to the caller; an unprivileged partition can never cause a kernel fault by misusing the API (KRN-CAP-002). Faults in checked builds apply to privileged callers only.
 
-Faults carry the API function identifier and the offending argument index into the crash record (03 §10.2).
+Faults carry the API function identifier and the offending argument index into the crash record (03 §10.2). The implemented temporary fault-hook record already carries an explicitly assigned `EMB_API_ID_*` from `<emb/api_ids.h>` for public API misuse, including shared-helper checks. The checked-in `tools/fault/api-registry.json` generates definitions and decoder metadata; zero is reserved for faults without public entry attribution. Existing assignments survive API retirement and are never reused. Manual `emb_fault()`, `EMB_CHECK()`, hardware and generic invariant faults use zero. Retained crash serialization remains a later observability feature.
 
 ## 6. Handles, storage, and attributes
 

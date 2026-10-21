@@ -39,6 +39,14 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Numeric fault IDs without location strings
+        if: matrix.preset == 'native-gcc'
+        run: |
+          cmake -S . -B build/native-fault-no-where -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/native-gcc.cmake -DEMB_BOARD=native \
+            -DEMB_SET="EMB_FAULT_WHERE=n"
+          cmake --build build/native-fault-no-where --target test_fault
+          ctest --test-dir build/native-fault-no-where -R '^test_fault$' --no-tests=error --verbose
       - name: Preserve differential failure bundles
         if: ${{ failure() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -163,6 +171,10 @@ jobs:
             | xargs -0 clang-format-18 --dry-run -Werror
       - name: Banned constructs
         run: python3 -I scripts/check-banned.py
+      - name: API ID registry and decoder contract
+        run: |
+          python3 -I tools/fault/generate.py --check
+          python3 -I -m unittest discover -s tools/fault -p 'test_*.py' -v
       - name: Storage marker contract
         run: python3 -I -m unittest discover -s tools/storage -p 'test_*.py' -v
       - name: Mixed native compiler launcher contract

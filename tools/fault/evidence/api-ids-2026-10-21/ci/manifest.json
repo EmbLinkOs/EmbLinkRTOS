@@ -1,0 +1,128 @@
+{
+  "source_commit": "eae71c8dbb7143b201826c8247686015dd06a840",
+  "run_url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853",
+  "scope": "Native/emulator CI and linked footprint; physical execution unclaimed",
+  "jobs": [
+    {
+      "name": "cm4-embsim",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484167"
+    },
+    {
+      "name": "cortex_m (cm4-an386-tiny)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484513"
+    },
+    {
+      "name": "lint",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484684"
+    },
+    {
+      "name": "riscv (rv32-virt-release)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484715"
+    },
+    {
+      "name": "cortex_m (cm3-an385)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484723"
+    },
+    {
+      "name": "cortex_m (cm4-an386)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484727"
+    },
+    {
+      "name": "riscv (rv32-virt-tiny)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484763"
+    },
+    {
+      "name": "riscv (rv32-virt)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484807"
+    },
+    {
+      "name": "avr (avr-uno, first_execution)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484808"
+    },
+    {
+      "name": "avr-embsim",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484828"
+    },
+    {
+      "name": "native (native-periodic)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484926"
+    },
+    {
+      "name": "native (native-tiny)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484938"
+    },
+    {
+      "name": "native (native-clang)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484939"
+    },
+    {
+      "name": "native (native-asan)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427484948"
+    },
+    {
+      "name": "native (native-gcc)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485008"
+    },
+    {
+      "name": "native (native-release)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485021"
+    },
+    {
+      "name": "native (native-tsan)",
+      "status": "in_progress",
+      "conclusion": null,
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485143"
+    },
+    {
+      "name": "cortex_m (cm4-an386-release)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485207"
+    },
+    {
+      "name": "avr (avr-uno-t1, footprint_t1)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485228"
+    },
+    {
+      "name": "avr (avr-uno-release, first_execution)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/EmbLinkOs/EmbLinkRTOS/actions/runs/39659206853/job/119427485271"
+    }
+  ],
+  "note": "Captured after all cross-port jobs passed; TSAN/aggregate gate may still be pending. Final required checks are attached to the PR head."
+}

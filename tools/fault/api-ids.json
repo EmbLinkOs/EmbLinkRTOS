@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "unknown_id": 0,
+  "apis": [
+    {
+      "id": 1,
+      "name": "emb_context",
+      "header": "context.h",
+      "state": "active"
+    },
+    {
+      "id": 2,
+      "name": "emb_in_isr",
+      "header": "context.h",
+      "state": "active"
+    },
+    {
+      "id": 3,
+      "name": "emb_fault_set_hook",
+      "header": "fault.h",
+      "state": "active"
+    },
+    {
+      "id": 4,
+      "name": "emb_fault",
+      "header": "fault.h",
+      "state": "active"
+    },
+    {
+      "id": 5,
+      "name": "emb_irq_lock",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 6,
+      "name": "emb_irq_unlock",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 7,
+      "name": "emb_irq_is_locked",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 8,
+      "name": "emb_irq_nesting_depth",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 9,
+      "name": "emb_irq_enable",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 10,
+      "name": "emb_irq_disable",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 11,
+      "name": "emb_irq_is_enabled",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 12,
+      "name": "emb_irq_set_level",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 13,
+      "name": "emb_irq_pend",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 14,
+      "name": "emb_irq_clear_pending",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 15,
+      "name": "emb_irq_connect",
+      "header": "irq.h",
+      "state": "active"
+    },
+    {
+      "id": 16,
+      "name": "emb_kernel_init",
+      "header": "kernel.h",
+      "state": "active"
+    },
+    {
+      "id": 17,
+      "name": "emb_kernel_start",
+      "header": "kernel.h",
+      "state": "active"
+    },
+    {
+      "id": 18,
+      "name": "emb_check_status",
+      "header": "kernel.h",
+      "state": "active"
+    },
+    {
+      "id": 19,
+      "name": "emb_mutex_attr_default",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 20,
+      "name": "emb_mutex_init",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 21,
+      "name": "emb_mutex_destroy",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 22,
+      "name": "emb_mutex_lock",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 23,
+      "name": "emb_mutex_lock_until",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 24,
+      "name": "emb_mutex_unlock",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 25,
+      "name": "emb_mutex_is_owner",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 26,
+      "name": "emb_mutex_mark_consistent",
+      "header": "mutex.h",
+      "state": "active"
+    },
+    {
+      "id": 27,
+      "name": "emb_notify_set",
+      "header": "notify.h",
+      "state": "active"
+    },
+    {
+      "id": 28,
+      "name": "emb_notify_wait",
+      "header": "notify.h",
+      "state": "active"
+    },
+    {
+      "id": 29,
+      "name": "emb_notify_wait_until",
+      "header": "notify.h",
+      "state": "active"
+    },
+    {
+      "id": 30,
+      "name": "emb_notify_get",
+      "header": "notify.h",
+      "state": "active"
+    },
+    {
+      "id": 31,
+      "name": "emb_notify_clear",
+      "header": "notify.h",
+      "state": "active"
+    },
+    {
+      "id": 32,
+      "name": "emb_sched_lock",
+      "header": "sched.h",
+      "state": "active"
+    },
+    {
+      "id": 33,
+      "name": "emb_sched_unlock",
+      "header": "sched.h",
+      "state": "active"
+    },
+    {
+      "id": 34,
+      "name": "emb_sched_lock_depth",
+      "header": "sched.h",
+      "state": "active"
+    },
+    {
+      "id": 35,
+      "name": "emb_sem_attr_default",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 36,
+      "name": "emb_sem_attr_binary",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 37,
+      "name": "emb_sem_init",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 38,
+      "name": "emb_sem_destroy",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 39,
+      "name": "emb_sem_take",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 40,
+      "name": "emb_sem_take_until",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 41,
+      "name": "emb_sem_give",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 42,
+      "name": "emb_sem_count",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 43,
+      "name": "emb_sem_bind_notify",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 44,
+      "name": "emb_status_name",
+      "header": "status.h",
+      "state": "active"
+    },
+    {
+      "id": 45,
+      "name": "emb_thread_attr_default",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 46,
+      "name": "emb_thread_init",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 47,
+      "name": "emb_thread_start",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 48,
+      "name": "emb_thread_self",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 49,
+      "name": "emb_thread_exit",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 50,
+      "name": "emb_thread_join",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 51,
+      "name": "emb_thread_detach",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 52,
+      "name": "emb_thread_suspend",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 53,
+      "name": "emb_thread_resume",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 54,
+      "name": "emb_thread_cancel",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 55,
+      "name": "emb_thread_cancel_point",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 56,
+      "name": "emb_thread_cancel_disable",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 57,
+      "name": "emb_thread_cancel_enable",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 58,
+      "name": "emb_thread_set_priority",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 59,
+      "name": "emb_thread_get_priority",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 60,
+      "name": "emb_thread_get_effective_priority",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 61,
+      "name": "emb_thread_yield",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 62,
+      "name": "emb_thread_sleep",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 63,
+      "name": "emb_thread_sleep_until",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 64,
+      "name": "emb_thread_state",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 65,
+      "name": "emb_thread_name",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 66,
+      "name": "emb_thread_index",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 67,
+      "name": "emb_thread_stack_info",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 68,
+      "name": "emb_tls_set",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 69,
+      "name": "emb_tls_get",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 70,
+      "name": "emb_thread_foreach",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 71,
+      "name": "emb_thread_destroy",
+      "header": "thread.h",
+      "state": "active"
+    },
+    {
+      "id": 72,
+      "name": "emb_mul_sat_u64",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 73,
+      "name": "emb_ns_to_ticks",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 74,
+      "name": "emb_time_now",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 75,
+      "name": "emb_timeout_from_duration",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 76,
+      "name": "emb_instant_add",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 77,
+      "name": "emb_instant_sub",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 78,
+      "name": "emb_instant_before",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 79,
+      "name": "emb_duration_to_ns",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 80,
+      "name": "emb_duration_is_saturated",
+      "header": "time.h",
+      "state": "active"
+    },
+    {
+      "id": 81,
+      "name": "emb_trace_set_sink",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 82,
+      "name": "emb_version_string",
+      "header": "version.h",
+      "state": "active"
+    }
+  ]
+}

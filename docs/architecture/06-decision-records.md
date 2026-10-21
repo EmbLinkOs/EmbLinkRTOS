@@ -517,3 +517,13 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Tiny with up to eight priority levels pays no extra TCB byte; larger configurations pay a byte subject to ABI padding, plus a bitmap of `ceil((priority_count - 1)/8)` bytes; base replaces its one-byte counter with 32 bytes. Query remains O(1). IDs are reusable diagnostic labels, not capability generations. Wait/ready bitmap positions remain base priorities. Captures declare the idle ID; historical tiny captures retain their old interpretation. Heap allocation and new application configuration are unnecessary.
 
 **Status.** Implementation for review, 2026-10-21, authorized by the project owner. Costs and validation are recorded in the identity report.
+
+## ADR-044 Stable numeric public API attribution
+
+**Context.** Fault hooks had an API ID field but generic construction always filled zero. Function strings can be disabled and shared helpers obscure the public call.
+
+**Decision.** Maintain explicit nonzero 16-bit IDs for documented public functions in a versioned registry; generate `<emb/api_ids.h>` and a host decoder JSON. Preserve assignments forever, retaining retired entries. Pass the public ID explicitly through misuse macros and common helpers, with no mutable global current-API field. Keep generic/internal, manual application, hardware and `EMB_CHECK()` attribution zero. Thread exit with owned mutexes attributes the lifecycle fault to `emb_thread_exit`, including implicit entry-function return. Fault record layout and trace event payload stay unchanged.
+
+**Consequences.** Firmware requires no API-name lookup table or new mutable state. Export the decoder map with firmware; it can be consumed by future EmbDebug integration without claiming that integration exists. Checked/release policies, argument numbering and error precedence are preserved. CI checks generated output, declaration coverage and compatibility with the PR/push baseline. Retained crash serialization remains separate.
+
+**Status.** Implementation for review, 2026-10-21, authorized by the project owner. See the fault attribution report for executed validation and exclusions.

@@ -42,7 +42,7 @@ The [contract review](m2-02-contract-review.md) records source-grounded proposal
 
 - [x] Reconcile Cortex-M `emb_irq_set_level()` in the current kernel-aware domain with larger-is-more-urgent; advertise fixed-port limits and verify encodings/pending order/nested delivery under QEMU and F446 EmbSIM. Raw-class/generator scope and physical measurements remain separate; see the IRQ report.
 - [x] Give every profile a separate stable diagnostic index and bounded allocation/reclamation; preserve scheduler slots and historical trace replay. See the identity report for tests and resource costs.
-- [ ] Define usable fault API attribution instead of leaving `api_id` zero; test class, argument, context and API identity without claiming the later retained crash format already exists.
+- [x] Give public misuse faults explicit stable API IDs, preserve wrapper attribution through helpers, export a decoder map, and test class/argument/context/identity including location strings disabled. See the fault attribution report; retained crash format remains separate.
 - [ ] Review current POINTER-handle/lifecycle error behavior and resource costs against comments; do not promise generation-based stale rejection or unrestricted cycle detection.
 - [ ] Add relevant checked/release and port/model evidence. Hardware priority observation stays unrun until an appropriate emulator/board test is actually executed.
 

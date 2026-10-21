@@ -1,0 +1,64 @@
+Internal ctest changing into directory: /workspace/EmbLinkRTOS/build/native-fault-no-where
+UpdateCTestConfiguration  from :/workspace/EmbLinkRTOS/build/native-fault-no-where/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspace/EmbLinkRTOS/build/native-fault-no-where/DartConfiguration.tcl
+Test project /workspace/EmbLinkRTOS/build/native-fault-no-where
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 2
+    Start 2: test_fault
+
+2: Test command: /workspace/EmbLinkRTOS/build/native-fault-no-where/tests/conformance/test_fault
+2: Working Directory: /workspace/EmbLinkRTOS/build/native-fault-no-where/tests/conformance
+2: Environment variables: 
+2:  TSAN_OPTIONS=die_after_fork=0
+2: Test timeout computed to be: 300
+2: TEST fault_generic_manual_check_invariant_and_hardware_ids_are_zero
+2: emb native: kernel fault class 2 code 42 argument 0 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 11 code 2 argument 0 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 6 code 17 argument 0 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 10 code 9 argument 0 thread 0 context 0 at architecture fault, halting
+2:   -> ok
+2: TEST fault_prekernel_context_and_blocking_substate_keep_entry_id
+2: emb native: kernel fault class 1 code 1 argument 0 thread 255 context 2 at ?, halting
+2: emb native: kernel fault class 1 code 1 argument 0 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 1 code 1 argument 0 thread 0 context 0 at ?, halting
+2:   -> ok
+2: TEST fault_isr_context_precedes_bad_arguments_and_has_no_thread
+2: emb native: kernel fault class 1 code 1 argument 0 thread 255 context 1 at ?, halting
+2:   -> ok
+2: TEST fault_owner_death_helper_attributes_thread_exit
+2: emb native: kernel fault class 5 code 2 argument 0 thread 0 context 0 at ?, halting
+2:   -> ok
+2: TEST fault_all_misuse_classes_and_public_argument_numbers
+2: emb native: kernel fault class 2 code 2 argument 2 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 4 code 32 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 5 code 0 argument 0 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 5 code 1 argument 0 thread 0 context 0 at ?, halting
+2:   -> ok
+2: TEST fault_public_wrapper_ids_survive_shared_helpers
+2: emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 2 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 2 code 2 argument 1 thread 0 context 0 at ?, halting
+2:   -> ok
+2: TEST fault_status_policy_is_preserved
+2: emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at ?, halting
+2: emb native: kernel fault class 2 code 2 argument 2 thread 0 context 0 at ?, halting
+2:   -> ok
+2: TEST fault_successful_check_preserves_status
+2:   -> ok
+2: 8 tests, 0 failed, 0 skipped, 0 ticks
+1/1 Test #2: test_fault .......................   Passed    0.01 sec
+
+The following tests passed:
+	test_fault
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.01 sec
