@@ -16,3 +16,8 @@ baseline objects; it is not an independent clean-lifetime finding.
 The final additional rejected-destroy assertion was checked separately in native
 checked/release builds. Mixed EmbCC-kernel/GCC-host checked also passed 14 targets.
 The implementation report records layout, cross-port and evidence limits.
+
+The initial local logs belong to the first implementation commit 0d2f0a9. Later
+small-table flag packing and the real-time fixture correction are covered by
+CI source ea8ee9947663bb884c7fb695762c0ff785ad1035; `ci/manifest.json`
+records that run and raw footprint JSON. The original thresholds are unchanged.

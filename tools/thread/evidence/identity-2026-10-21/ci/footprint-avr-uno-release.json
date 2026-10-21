@@ -1,0 +1,71 @@
+{
+  "components": {
+    "app": {
+      "text": 856,
+      "data": 0,
+      "bss": 1656
+    },
+    "arch": {
+      "text": 762,
+      "data": 0,
+      "bss": 4
+    },
+    "board": {
+      "text": 164,
+      "data": 0,
+      "bss": 0
+    },
+    "kernel/exec": {
+      "text": 270,
+      "data": 0,
+      "bss": 6
+    },
+    "kernel/fault": {
+      "text": 160,
+      "data": 0,
+      "bss": 2
+    },
+    "kernel/mutex": {
+      "text": 390,
+      "data": 0,
+      "bss": 0
+    },
+    "kernel/notify": {
+      "text": 448,
+      "data": 0,
+      "bss": 0
+    },
+    "kernel/sched": {
+      "text": 756,
+      "data": 0,
+      "bss": 52
+    },
+    "kernel/thread": {
+      "text": 1100,
+      "data": 0,
+      "bss": 1
+    },
+    "kernel/time": {
+      "text": 416,
+      "data": 0,
+      "bss": 6
+    },
+    "kernel/wait": {
+      "text": 493,
+      "data": 0,
+      "bss": 0
+    },
+    "runtime": {
+      "text": 344,
+      "data": 0,
+      "bss": 0
+    }
+  },
+  "kernel": {
+    "text": 4033,
+    "data": 0,
+    "bss": 67
+  },
+  "kernel_ram": 67,
+  "tcb": 34
+}
