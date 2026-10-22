@@ -47,6 +47,34 @@ static void index_release(uint8_t index)
 {
     index_used[index / 8u] &= (uint8_t) ~(uint8_t)(1u << (index % 8u));
 }
+
+/* Storage that still holds a thread object that was not destroyed: init must not
+ * overwrite it, because storage is reused only through destroy (SPEC-008 §5, §12).
+ * With the all-threads list the check is exact. Without it, a live object is
+ * recognized by its type tag, active state and reserved identity together, which
+ * storage that was never initialized matches only by accident. Scheduler lock held. */
+static bool storage_is_live(const embk_thread_t *t)
+{
+#if CONFIG_EMB_THREAD_LIST
+    const embk_list_node_t *n;
+    /* bounded by the number of live threads */
+    for (n = embk_list_first(&embk_thread_all); n != NULL;
+         n = embk_list_next(&embk_thread_all, n)) {
+        if (n == &t->all_node) {
+            return true;
+        }
+    }
+    return false;
+#else
+    uint8_t index;
+    if (t->obj.type != EMBK_OBJ_THREAD || t->obj.state != EMBK_OBJ_ACTIVE) {
+        return false;
+    }
+    index = embk_thread_index(t);
+    return index < THREAD_INDEX_COUNT &&
+           (index_used[index / 8u] & (uint8_t)(1u << (index % 8u))) != 0u;
+#endif
+}
 #if CONFIG_EMB_IDLE_THREAD
 EMB_THREAD_STACK(idle_stack, CONFIG_EMB_IDLE_STACK_SIZE);
 #endif
@@ -168,6 +196,10 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     t = (embk_thread_t *)(void *)
         storage; /* the storage union is sized and aligned for it (CS-4.5) */
     key = embk_lock_sched();
+    if (storage_is_live(t)) {
+        embk_unlock_sched(key);
+        EMBK_API_MISUSE(EMB_API_ID_THREAD_INIT, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+    }
 #if CONFIG_EMB_SCHED_TABLE
     if (embk_thread_table[attr->priority] != NULL) {
         embk_unlock_sched(key);
@@ -271,7 +303,7 @@ void emb_thread_exit(int code)
         self->tflags |= EMBK_THREAD_JOINED;
         (void)embk_wait_wake(joiner, EMBK_WAKE_SATISFIED, (uintptr_t)(intptr_t)code);
     } else if ((self->tflags & EMBK_THREAD_DETACHED) != 0u) {
-        self->tflags |= EMBK_THREAD_JOINED; /* detached: reusable at step 5 */
+        self->tflags |= EMBK_THREAD_JOINED; /* detached: destroyable at step 5 */
     } else {
         /* joinable: the object waits for its joiner */
     }
@@ -392,7 +424,7 @@ emb_status_t emb_thread_detach(emb_thread_t thread)
     }
     t->tflags |= EMBK_THREAD_DETACHED;
     if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
-        t->tflags |= EMBK_THREAD_JOINED; /* reusable now */
+        t->tflags |= EMBK_THREAD_JOINED; /* destroyable now */
     }
     embk_unlock_sched(key);
     return EMB_OK;

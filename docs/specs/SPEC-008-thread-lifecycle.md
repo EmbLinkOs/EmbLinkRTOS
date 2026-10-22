@@ -13,10 +13,10 @@
 
 | Term | Meaning |
 |---|---|
-| **Thread object** | The thread control block in caller-provided storage, from `init` to `destroy` (or storage reuse) |
+| **Thread object** | The thread control block in caller-provided storage, from `init` to `destroy` |
 | **Execution** | From `start` to termination; strictly inside the object's lifetime (KRN-THR-006) |
 | **Joinable** | The default: termination keeps the object until one `join` has collected the exit code |
-| **Detached** | Termination makes the object's storage reusable at once; no exit code is kept |
+| **Detached** | Termination makes the object reusable (destroyable) at once; no exit code is kept |
 | **Cancellation point** | A blocking call, `emb_thread_sleep`, or `emb_thread_cancel_point()`: where a pending cancel request is delivered (KRN-THR-011) |
 | **Exit code** | An `int` passed to `emb_thread_exit` or `0` when the entry function returns; delivered to the joiner by hand-off |
 
@@ -87,7 +87,7 @@ The exit path, in thread context with interrupts enabled except where noted:
 2. Owned mutexes are released per `CONFIG_EMB_MUTEX_OWNER_DEATH` (SPEC-005 §3.6); in checked builds, owned pool blocks are a lifecycle fault (SPEC-007 §4.3).
 3. Statistics are finalized (CPU time, switches, stack high-water) and the `thread_exit(code)` trace event is emitted.
 4. In one critical section: the exit code is stored in `wake_data` (no waker writes it after termination, A16); the joiner, if blocked, is woken with the code handed over (SPEC-004 §6.1); the thread's own pending timeout, notification bits, TLS slots, and binding references are discarded; the state becomes `TERMINATED`; the thread is removed from the ready structure; `embk_sched_reschedule_if_needed()` performs the final switch (P2).
-5. The object becomes **reusable** when the architecture confirms the switch-out has completed (`emb_arch_switch_out_done`, SPEC-011): on uniprocessor this is the moment the next thread runs; on SMP the reusability flag is set by the switching code after the old stack is no longer in use, and `join`/`destroy` on another CPU wait for it. A joinable object is reusable after `join` returns; a detached one at step 5. Reusable means the owner may `destroy` it or re-`init` the storage; the kernel frees nothing (KRN-OBJ-003).
+5. The object becomes **reusable** when the architecture confirms the switch-out has completed (`emb_arch_switch_out_done`, SPEC-011): on uniprocessor this is the moment the next thread runs; on SMP the reusability flag is set by the switching code after the old stack is no longer in use, and `join`/`destroy` on another CPU wait for it. A joinable object is reusable after `join` returns; a detached one at step 5. Reusable means the owner may `destroy` it; the kernel frees nothing (KRN-OBJ-003). The storage is reused only through `destroy` followed by `init`: a terminated object still holds kernel state (its diagnostic identity, its place in the all-threads list) that only `destroy` releases, so `init` on storage that holds an undestroyed thread object is misuse (§12).
 
 The exiting thread's stack is in use until step 5. Interrupts taken between steps 4 and 5 run on the interrupt stack where one exists (SPEC-002 §7) and on the dying stack otherwise, which is why reusability is published only after the switch.
 
@@ -106,7 +106,7 @@ The exiting thread's stack is in use until step 5. Interrupts taken between step
 
 ## 8. Destroy
 
-`destroy(t)` requires `INACTIVE` (never started), or `TERMINATED` and reusable (joined or detached, switch-out complete). Anything else is misuse (`EMB_EBUSY`). Destroy removes the thread from the all-threads list, bumps the handle generation (KRN-OBJ-002), and returns the storage to the owner. A thread that is still a mutex owner cannot be `TERMINATED` (step 2 of §5 released them), so no ownership survives destroy. After destroy or re-init, stale handles fail with `EMB_ESTALE` in profiles that check generations and are undefined in the tiny profile, as for every object (SPEC-009).
+`destroy(t)` requires `INACTIVE` (never started), or `TERMINATED` and reusable (joined or detached, switch-out complete). Anything else is misuse (`EMB_EBUSY`). Destroy removes the thread from the all-threads list, bumps the handle generation (KRN-OBJ-002), and returns the storage to the owner. A thread that is still a mutex owner cannot be `TERMINATED` (step 2 of §5 released them), so no ownership survives destroy. After destroy, stale handles fail with `EMB_ESTALE` in profiles that check generations and are undefined in the tiny profile, as for every object (SPEC-009).
 
 ## 9. Thread-local storage slots
 
@@ -137,7 +137,7 @@ The exiting thread's stack is in use until step 5. Interrupts taken between step
 | `exit` or entry return with owned mutexes or (checked) owned pool blocks | per SPEC-005 §3.6 / fault `EMB_FAULT_API_LIFECYCLE` | mutexes released per configuration |
 | `cancel_disable` count overflow; `cancel_enable` at zero | fault `EMB_FAULT_API_ARGUMENT` | `EMB_EOVERFLOW` / `EMB_ESTATE` |
 | stack overflow detected at switch | kernel or partition fault per 03 §10.1 | same |
-| storage re-initialized before reusable (SMP: before switch-out completed) | fault `EMB_FAULT_KERNEL_INVARIANT` when detectable | undefined |
+| `init` on storage that holds a thread object not yet destroyed, in any state including reusable | fault `EMB_FAULT_API_LIFECYCLE`: exact with the all-threads list, otherwise detected from the type tag, active state and reserved identity | `EMB_EBUSY` when detected |
 
 ## 13. Observability
 

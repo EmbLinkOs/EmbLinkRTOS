@@ -144,3 +144,31 @@ EMB_TEST(thread_identity_exhaustion_is_atomic_and_destroy_releases_id)
     }
 }
 #endif
+
+EMB_TEST(thread_storage_reuse_requires_destroy)
+{
+    emb_thread_attr_t attr;
+    emb_thread_t a;
+    emb_thread_t again;
+    uint8_t index;
+    EMB_TEST_REQ("KRN-THR-015", "KRN-THR-023");
+    emb_thread_attr_default(&attr);
+    attr.priority = 2u;
+    attr.stack = emb_test_scratch_stack(&attr.stack_size);
+    EMB_ASSERT_OK(emb_thread_init(emb_test_scratch_storage(), &attr, identity_entry, NULL, &a));
+    index = emb_thread_index(a);
+    /* INACTIVE, not destroyed */
+    EMB_ASSERT_MISUSE(
+        emb_thread_init(emb_test_scratch_storage(), &attr, identity_entry, NULL, &again),
+        EMB_EBUSY);
+    EMB_ASSERT_OK(emb_thread_start(a)); /* runs to its end at once (priority 2) */
+    EMB_ASSERT_OK(emb_thread_join(a, EMB_WAIT_FOREVER, NULL));
+    /* joined: destroyable, but still not reusable by init */
+    EMB_ASSERT_MISUSE(
+        emb_thread_init(emb_test_scratch_storage(), &attr, identity_entry, NULL, &again),
+        EMB_EBUSY);
+    EMB_ASSERT_EQ(emb_thread_index(a), index); /* the refused init left the object intact */
+    EMB_ASSERT_OK(emb_thread_destroy(a));
+    EMB_ASSERT_OK(emb_thread_init(emb_test_scratch_storage(), &attr, identity_entry, NULL, &again));
+    EMB_ASSERT_OK(emb_thread_destroy(again));
+}

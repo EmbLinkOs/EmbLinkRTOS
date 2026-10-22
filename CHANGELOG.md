@@ -47,6 +47,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- Thread storage is reused only through `emb_thread_destroy()` followed by `emb_thread_init()` (SPEC-008 §5, §12; KRN-THR-015). `emb_thread_init()` on storage that still holds an undestroyed thread, including a joined or detached terminated one, is now misuse: a fault in checked builds, `EMB_EBUSY` in release. Re-initializing without destroy previously leaked the diagnostic identity and, with the all-threads list, linked the object twice.
+
 - IRQ callers must use advertised limits; previously ignored/clamped priority requests now fail. Cortex-M configuration derives the public domain from declared priority width and the validated masking threshold; non-nesting configurations require a single kernel-aware level.
 
 - Reconciled design contracts, current implementation limits, timing/evidence obligations and the staged first-release scope.

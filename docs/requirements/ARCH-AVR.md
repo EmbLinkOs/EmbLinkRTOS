@@ -46,7 +46,7 @@ New group; numbering starts at 001.
 **Trace.** SPEC-012 §7
 
 ### ARCH-AVR-006  Footprint budget
-**Statement.** The tiny reference configuration on this port shall fit the T1 and T2 targets: kernel text at most 4 KB at `-Os` on EmbCC and avr-gcc, kernel static RAM at most 64 bytes, TCB at most 32 bytes; the footprint test shall enforce them from the map file.
+**Statement.** The tiny reference configuration on this port shall fit the T1 and T2 targets: kernel text at most 4 KB at `-Os` on EmbCC and avr-gcc, kernel static RAM at most 64 bytes including the idle context's control block (R-003 §4, T2 accounting), TCB at most 32 bytes; the footprint test shall enforce them from the map file.
 **Rationale.** R-003 §4.
 **Status.** Accepted 2026-10-07
 **Verification.** Footprint test in CI on both compilers.
