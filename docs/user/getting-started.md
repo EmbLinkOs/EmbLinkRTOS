@@ -49,6 +49,17 @@ cmake --build --preset cm4-nucleo-embsim
 ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error
 ```
 
+The ESP32-C3-DevKitM-1 build runs on EmbSIM's DevKitM-1 (`emblink/esp32c3_devkitm1`) as the
+board does: each test image is also written as `<name>.bin`, the flash image Espressif's boot
+ROM loads from offset 0, and that is what EmbSIM flashes. Use the `rv32-c3-embsim` preset with
+`gcc-riscv64-unknown-elf` and picolibc installed:
+
+```sh
+cmake --preset rv32-c3-embsim -DEMB_EMBSIM="$PWD/../EmbSIM/build/bin/embsim"
+cmake --build --preset rv32-c3-embsim
+ctest --preset rv32-c3-embsim --output-on-failure --no-tests=error
+```
+
 ## Reference model
 
 ```sh

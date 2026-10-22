@@ -12,6 +12,8 @@
  * or a fresh one, clear for a thread that switched out inside its critical section.
  * gp and tp are not used by this port and are not saved.
  */
+#include <emb/config.h>
+
         .equ    FRAME, 128
         .equ    MSTATUS_MPP_M, 0x1800
         .equ    MSTATUS_MPIE,  0x80
@@ -152,13 +154,32 @@ embn_rv_trap_entry:
         lw      sp, 0(a0)
         j       embn_rv_restore
 
-/* Reset (QEMU virt with -bios none starts here in machine mode): interrupts off, the
+#if CONFIG_EMB_RV_ESP32C3
+/* The ESP32-C3's vectored mtvec (TRM 1.6): exceptions at the base, interrupt n at
+ * base + 4n. Each entry jumps to the one trap entry, which reads mcause; norvc keeps
+ * every jump four bytes long. */
+        .section .text.embn_rv_vectors, "ax"
+        .globl  embn_rv_vectors
+        .balign 256
+        .option push
+        .option norvc
+embn_rv_vectors:
+        .rept   32
+        j       embn_rv_trap_entry
+        .endr
+        .option pop
+#endif
+
+/* Reset (QEMU virt with -bios none starts here in machine mode; the ESP32-C3's boot ROM
+ * jumps here once it has loaded the image): interrupts off, the
  * stack, .bss cleared, then C. Everything is loaded in RAM, so .data needs no copy. */
         .section .text.reset, "ax"
         .globl  embn_rv_reset
         .align  2
 embn_rv_reset:
-        csrw    mie, zero
+#if !CONFIG_EMB_RV_ESP32C3
+        csrw    mie, zero                  /* the ESP32-C3 has no mie: its controller is off */
+#endif
         csrci   mstatus, MSTATUS_MIE
         la      sp, __stack_top
         la      t0, __bss_start

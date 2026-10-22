@@ -47,6 +47,10 @@ static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
     return (s & EMBN_RV_MSTATUS_MIE) == 0u;
 }
 
+/* Clears mstatus.MIE and sleeps for good: how a board with no host to exit to ends a run.
+ * A pending interrupt still wakes WFI; the loop sleeps again. */
+EMB_NORETURN void emb_rv_halt(void);
+
 /* Kernel-aware handlers are plain functions bound with emb_irq_connect(); the trap entry
  * brackets them with the kernel's interrupt entry and exit (CONFIG_EMB_IRQ_DYNAMIC). */
 #define EMB_ISR(name)     static void name(void *emb_isr_arg_)

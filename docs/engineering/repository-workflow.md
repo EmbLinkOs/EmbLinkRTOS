@@ -6,7 +6,7 @@ Work branches start from reviewed `main`. Use the bug/feature forms in `.github/
 
 | Required check name | Workflow/job | What it actually checks |
 |---|---|---|
-| `CI merge gate` | `ci.yml` / `merge_gate` | All native, Cortex-M, RISC-V, AVR matrix jobs, the EmbSIM jobs (Uno, NUCLEO-F446RE) and lint must succeed |
+| `CI merge gate` | `ci.yml` / `merge_gate` | All native, Cortex-M, RISC-V, AVR matrix jobs, the EmbSIM jobs (Uno, NUCLEO-F446RE, ESP32-C3-DevKitM-1) and lint must succeed |
 | `Documentation build` | `docs.yml` / `build` | Pinned docs toolchain, integrity tests, complete API annotations, strict site build and source preservation |
 | `Repository policy` | `repository.yml` / `policy` | DCO checker tests and matching author sign-off trailers on the change's non-merge commits |
 

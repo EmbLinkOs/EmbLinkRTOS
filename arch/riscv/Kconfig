@@ -6,8 +6,16 @@ if EMB_ARCH_RISCV
 
 menu "RISC-V port"
 
+config EMB_RV_ESP32C3
+	bool "ESP32-C3: SYSTIMER and the interrupt matrix in place of the CLINT"
+	default n
+	help
+	  The tick is SYSTIMER's comparator 0 in period mode on CPU interrupt 2, interrupt
+	  0 is FROM_CPU_INTR0 on CPU interrupt 1, mtvec is vectored, and the boot ROM's
+	  watchdogs are stopped at startup (docs/ports/riscv.md).
+
 config EMB_RV_MTIME_HZ
-	int "Frequency of the machine timer (mtime) in Hz"
+	int "Frequency of the machine timer (mtime, or the ESP32-C3's SYSTIMER) in Hz"
 	default 10000000
 	range 32768 1000000000
 

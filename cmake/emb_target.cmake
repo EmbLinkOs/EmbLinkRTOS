@@ -23,6 +23,13 @@ function(emb_add_executable name)
       COMMAND ${CMAKE_OBJCOPY} -O ihex -R .eeprom "$<TARGET_FILE:${name}>" "$<TARGET_FILE_DIR:${name}>/${name}.hex"
       COMMAND ${CMAKE_SIZE} --format=berkeley "$<TARGET_FILE:${name}>"
       COMMENT "hex and size: ${name}")
+    if(EMB_BOARD_FLASH_IMAGE STREQUAL "esp32c3")
+      # what the board's ROM boots from flash offset 0 (tools/esp/esp_image.py)
+      add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/esp/esp_image.py"
+                "$<TARGET_FILE:${name}>" -o "$<TARGET_FILE_DIR:${name}>/${name}.bin"
+        COMMENT "flash image: ${name}.bin")
+    endif()
   endif()
   set_property(GLOBAL APPEND PROPERTY EMB_IMAGES "$<TARGET_FILE:${name}>")
 endfunction()
@@ -37,8 +44,13 @@ function(emb_add_test name)
     # the image runs on the board's emulator; the runner reads the console (SIM-002)
     if(EMB_TEST_EMULATOR STREQUAL "embsim")
       if(EMB_EMBSIM AND EMB_BOARD_EMBSIM_TARGET)
+        # the ELF, or the flash image where the board boots one
+        set(_image "$<TARGET_FILE:${name}>")
+        if(EMB_BOARD_FLASH_IMAGE)
+          set(_image "$<TARGET_FILE_DIR:${name}>/${name}.bin")
+        endif()
         add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/embsim/run_embsim.py"
-                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" "$<TARGET_FILE:${name}>")
+                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" "${_image}")
         set_tests_properties(${name} PROPERTIES TIMEOUT 400)
       endif()
     elseif(EMB_QEMU)
