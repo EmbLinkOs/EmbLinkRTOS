@@ -54,11 +54,13 @@ Measured with `tools/footprint/footprint.py` from the link map; the kernel total
 
 | preset | program | kernel text | kernel static RAM | thread control block | R-003 target |
 |---|---|---:|---:|---:|---|
-| avr-uno-t1 (release) | `footprint_t1` | 3805 | 63 | 32 | 4096 / 64 / 32 (T1, T2): met |
-| avr-uno-release | `first_execution` | 3909 | 66 | 34 | — |
-| avr-uno (checked) | `first_execution` | 4654 | 68 | 35 | — |
+| avr-uno-t1 (release) | `footprint_t1` | 4029 | 64 | 32 | 4096 / 64 / 32 (T1, T2): met, no RAM margin |
+| avr-uno-release | `first_execution` | 4131 | 67 | 34 | — |
+| avr-uno (checked) | `first_execution` | 5013 | 69 | 35 | — |
 
 What the pass changed (amendments A15 to A17): linker relaxation and shared prologues in the reference build; no padding byte in the object header; the exit code in `wake_data`; the wake result and notification mode in the thread's `obj.flags` bits; a singly linked timeout list without a generation field on the tiny profile; the clock sequence counter only where the port reads the clock through it; the raised-priority count only with mutexes; one table scan shared by the scheduler and the wait queues. The first M1 baseline, for the record, was 4577 / 84 / 42 (release, `first_execution`).
+
+The `footprint_t1` kernel static RAM is at the T2 limit. Of its 64 bytes, the idle context's control block takes 32, the priority-indexed thread table 16, the tick count and timeout list head 6, the per-CPU state 6, the fault hook pointer 2, and the ready set and the diagnostic index bitmap 1 each. The idle control block stays in the kernel's fixed cost (R-003 §4, T2 accounting); the planned headroom work is in the [M2 work order](../engineering/m2-checklist.md#tiny-profile-ram-headroom).
 
 ## Skipped conformance tests
 

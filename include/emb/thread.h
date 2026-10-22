@@ -27,7 +27,7 @@ typedef union emb_thread_storage emb_thread_storage_t;
 typedef void (*emb_thread_entry_t)(void *arg); /* returning terminates the thread (KRN-THR-005) */
 
 /* Attribute flags (SPEC-008 §2). */
-#define EMB_THREAD_DETACHED        ((uint8_t)0x01u) /* no exit code kept; storage reusable at exit */
+#define EMB_THREAD_DETACHED        ((uint8_t)0x01u) /* no exit code kept; destroyable at exit */
 #define EMB_THREAD_CRITICAL        ((uint8_t)0x02u) /* ADR-029; reserved for temporal protection */
 #define EMB_THREAD_CANCEL_DISABLED ((uint8_t)0x04u) /* start with the cancel-disable count at 1 */
 #define EMB_THREAD_NO_AUTOSTART    ((uint8_t)0x80u) /* EMB_THREAD_DEFINE only: no autostart */
@@ -101,7 +101,9 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  *
  * Return: EMB_OK; EMB_EINVAL for a NULL storage, entry, stack, a priority of 0 or
  *         above EMB_PRIORITY_MAX, a misaligned or undersized stack (misuse, SPEC-008
- *         §12); EMB_EBUSY on tiny when the priority slot is taken; EMB_ENOMEM when
+ *         §12); EMB_EBUSY when @storage still holds a thread that was not destroyed
+ *         (misuse: storage is reused only through emb_thread_destroy()) or, on tiny,
+ *         when the priority slot is taken; EMB_ENOMEM when
  *         all 254 list-scheduler diagnostic IDs are reserved. Admission failure leaves
  *         construction storage untouched.
  */
@@ -175,7 +177,7 @@ EMB_NORETURN void emb_thread_exit(int code);
 emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *out_code);
 
 /**
- * emb_thread_detach() - Make @thread detached; its storage is reusable at exit.
+ * emb_thread_detach() - Make @thread detached; it can be destroyed as soon as it exits.
  * @thread: Joinable initialized thread with no blocked joiner.
  *
  * @ctx      thread isr

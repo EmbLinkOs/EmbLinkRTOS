@@ -113,7 +113,7 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_THREAD_STARTED        ((uint8_t)0x01u)
 #define EMBK_THREAD_TERMINATED     ((uint8_t)0x02u)
 #define EMBK_THREAD_DETACHED       ((uint8_t)0x04u)
-#define EMBK_THREAD_JOINED         ((uint8_t)0x08u) /* exit code collected: storage reusable */
+#define EMBK_THREAD_JOINED         ((uint8_t)0x08u) /* exit code collected: destroy allowed */
 #define EMBK_THREAD_SUSPENDED      ((uint8_t)0x10u)
 #define EMBK_THREAD_CANCEL_PENDING ((uint8_t)0x20u)
 #define EMBK_THREAD_KERNEL         ((uint8_t)0x40u) /* idle or work-queue thread */
