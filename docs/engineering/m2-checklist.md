@@ -65,6 +65,14 @@ The current docs disclose these gaps. Correcting one must update its contract, r
 
 The [timing/evidence contract](timing-and-evidence.md) controls these artifacts. Physical timing and full release reproducibility remain the subsequent hardware/release gates, not inferred results of this export.
 
+## Tiny-profile RAM headroom
+
+The `footprint_t1` reference build is at the R-003 T2 limit of 64 bytes of kernel static RAM, which includes the idle context's control block (R-003 §4, T2 accounting). This work is independent of the M2 order; until it lands, a change that adds tiny kernel RAM must remove as much in the same change.
+
+- [ ] Small savings of about 6 bytes: bind the fault hook at link time instead of through a RAM pointer, pack the per-CPU flags, and drop the idle slot from the priority-indexed thread table.
+- [ ] Slim idle context: idle never blocks, times out, takes notifications, joins or changes priority, so on the tiny profile it needs only its saved stack pointer and the fields the scheduler and switch path read. Expected to recover about 25 of its 32 bytes. Check every path that treats idle as a full `embk_thread_t` (switch, diagnostics, identity, trace) on native, AVR, Cortex-M and RV32 before changing its type.
+- [ ] Lower the `avr-uno-t1` RAM threshold to the new measured value so the recovered bytes are not silently spent.
+
 ## M2-05 through M2-09: Primitive acceptance
 
 - [ ] **Event flags:** model overlapping masks and ANY/ALL/CLEAR; test deterministic waiter order, clearing before the next waiter, multi-wake cost, ISR set, timeout/cancel/destroy and binding semantics. Follow SPEC-005 and KRN-SYNC-029.

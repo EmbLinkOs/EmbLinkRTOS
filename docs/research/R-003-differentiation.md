@@ -165,6 +165,8 @@ These are design targets, not measurements. Nothing here is claimed until the ha
 | T13 | Conformance | every supported target | nobody runs one suite across a 2 KB AVR and an MPU SoC | identical suite passes on tiny and isolated reference configurations | C1, C3 |
 | T14 | Evidence | every release | Zephyr: 15 kLOC scope certified after the fact | 100% requirement-to-test traceability for the profile under release; statement and branch coverage reported; MISRA-subset compliance reported | C9 |
 
+**T2 accounting.** The fixed 64 bytes are everything the kernel holds in static RAM in the reference build, including the idle context's control block; the per-thread allowance covers the application's threads only. A system's kernel RAM is therefore 64 bytes plus 32 bytes for each thread it creates, with nothing else to add. Re-filing the idle context, or any other kernel object, under the per-thread allowance to make room is not allowed: it frees no memory and only weakens the gate. While the tiny kernel sits at its limit, a change that adds static RAM to it must remove at least as much in the same change.
+
 ## 5. Why someone would still not choose us, and what we do about it
 
 | Reason | Mitigation |
