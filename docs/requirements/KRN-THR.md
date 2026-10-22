@@ -86,7 +86,7 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 **Trace.** SPEC-008 §5, §7; KRN-WAIT-015
 
 ### KRN-THR-012  Join and detach
-**Statement.** Join shall be supported for joinable threads; a detached thread's object storage becomes reusable immediately on termination according to its storage policy.
+**Statement.** Join shall be supported for joinable threads; a detached thread's object becomes reusable (destroyable) immediately on termination, and its storage is reused through `destroy`.
 **Rationale.** POSIX-shaped lifetime control without an allocator.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `thr/join_*`, `thr/detach_*`; model scenarios `join_*`.
@@ -107,10 +107,10 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 **Trace.** SPEC-008 §9; 09 §3
 
 ### KRN-THR-015  Lifecycle states and reusability
-**Statement.** A thread object shall pass through `INACTIVE` (initialized, not started), the scheduler states, and `TERMINATED`; its storage shall become reusable only when it is `INACTIVE`, or `TERMINATED` and either detached or joined, and the switch-out of its last execution has completed.
+**Statement.** A thread object shall pass through `INACTIVE` (initialized, not started), the scheduler states, and `TERMINATED`; it shall become reusable (destroyable) only when it is `INACTIVE`, or `TERMINATED` and either detached or joined, and the switch-out of its last execution has completed. Its storage shall be reused only through `destroy` followed by `init`; `init` on storage that holds an undestroyed thread object shall be misuse.
 **Rationale.** A defined reuse point instead of idle-task reclamation (R-001 §1, FreeRTOS) or a spin on in-flight timeouts (Zephyr).
 **Status.** Accepted 2026-10-07
-**Verification.** Test: `thr/reuse_after_join`, `thr/reuse_detached`; SMP test `thr/destroy_waits_switch_out`.
+**Verification.** Test: `thr/reuse_after_join`, `thr/reuse_detached`, `thread_storage_reuse_requires_destroy`; SMP test `thr/destroy_waits_switch_out`.
 **Trace.** SPEC-008 §5, §8
 
 ### KRN-THR-016  Start semantics
@@ -135,7 +135,7 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 **Trace.** SPEC-008 §6
 
 ### KRN-THR-019  Detach
-**Statement.** `detach` shall make a joinable thread detached, shall make an already terminated thread reusable at once, and shall be refused with `EMB_EBUSY` while a joiner is blocked.
+**Statement.** `detach` shall make a joinable thread detached, shall make an already terminated thread reusable (destroyable) at once, and shall be refused with `EMB_EBUSY` while a joiner is blocked.
 **Rationale.** Lifetime control for fire-and-forget threads.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: `thr/detach_*`.
