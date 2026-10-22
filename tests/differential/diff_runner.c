@@ -541,7 +541,7 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
         case OP_SETPRIO: {
             struct thread_desc *d = thread_by_tid(op->a);
             st = emb_thread_set_priority(d->handle, (uint8_t)op->b);
-            /* on the tiny profile the index is the base priority (SPEC-008 §3) */
+            /* Keep the mapping record for compatibility with historical captures. */
             record((uint16_t)EV_INDEX_MARK, (uint8_t)emb_context(), 0u, (uintptr_t)d->tid,
                    (uintptr_t)emb_thread_index(d->handle), 0u);
             break;
@@ -614,7 +614,8 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
         return;
     }
     dumped = 1u;
-    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d\n", CONFIG_EMB_PROFILE,
+    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254\n",
+                 CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
 #else

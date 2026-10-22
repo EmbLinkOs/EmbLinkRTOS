@@ -1,0 +1,13 @@
+test_api_fault_sites_use_explicit_attribution (test_registry.Registry.test_api_fault_sites_use_explicit_attribution) ... ok
+test_checked_in_outputs_are_current (test_registry.Registry.test_checked_in_outputs_are_current) ... ok
+test_decoder_uses_exported_numbers_and_reports_unknown (test_registry.Registry.test_decoder_uses_exported_numbers_and_reports_unknown) ... ok
+test_every_documented_public_function_has_an_id (test_registry.Registry.test_every_documented_public_function_has_an_id) ... ok
+test_explicit_ids_do_not_depend_on_input_order (test_registry.Registry.test_explicit_ids_do_not_depend_on_input_order) ... ok
+test_published_pairs_cannot_be_deleted_renumbered_or_reassigned (test_registry.Registry.test_published_pairs_cannot_be_deleted_renumbered_or_reassigned) ... ok
+test_retirement_keeps_id_and_new_assignments_are_allowed (test_registry.Registry.test_retirement_keeps_id_and_new_assignments_are_allowed) ... ok
+test_zero_duplicates_and_bad_ranges_are_rejected (test_registry.Registry.test_zero_duplicates_and_bad_ranges_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.010s
+
+OK

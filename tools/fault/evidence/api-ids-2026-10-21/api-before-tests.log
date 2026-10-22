@@ -1,0 +1,62 @@
+Internal ctest changing into directory: /workspace/scratch/fault-before/build/native-gcc
+Test project /workspace/scratch/fault-before/build/native-gcc
+    Start 12: test_fault
+1/1 Test #12: test_fault .......................***Failed    0.01 sec
+TEST fault_generic_manual_check_invariant_and_hardware_ids_are_zero
+emb native: kernel fault class 2 code 42 argument 0 thread 0 context 0 at ?, halting
+emb native: kernel fault class 11 code 2 argument 0 thread 0 context 0 at ?, halting
+emb native: kernel fault class 6 code 17 argument 0 thread 0 context 0 at ?, halting
+emb native: kernel fault class 10 code 9 argument 0 thread 0 context 0 at architecture fault, halting
+  -> ok
+TEST fault_prekernel_context_and_blocking_substate_keep_entry_id
+  child exit status 97 (signaled 0)
+  FAIL line 125: { embk_cpu.kernel_state = EMBK_KERNEL_INIT; (void)emb_sem_take(null_sem, EMB_NO_WAIT); }
+  child exit status 97 (signaled 0)
+  FAIL line 130: { emb_sched_lock(); (void)emb_thread_sleep(EMB_TICKS(1)); }
+  child exit status 97 (signaled 0)
+  FAIL line 135: { emb_sched_lock(); (void)emb_thread_sleep_until(emb_instant_add(emb_time_now(), EMB_TICKS(1))); }
+  -> FAILED
+TEST fault_isr_context_precedes_bad_arguments_and_has_no_thread
+  child exit status 97 (signaled 0)
+  FAIL line 113: emb_test_irq_raise(0u)
+  -> FAILED
+TEST fault_all_misuse_classes_and_public_argument_numbers
+  child exit status 97 (signaled 0)
+  FAIL line 90: (void)emb_thread_set_priority(emb_thread_self(), 0u)
+  child exit status 97 (signaled 0)
+  FAIL line 92: (void)emb_thread_join(emb_thread_self(), EMB_NO_WAIT, NULL)
+  child exit status 97 (signaled 0)
+  FAIL line 94: emb_kernel_init()
+  child exit status 97 (signaled 0)
+  FAIL line 96: emb_kernel_start()
+  -> FAILED
+TEST fault_public_wrapper_ids_survive_shared_helpers
+  child exit status 97 (signaled 0)
+  FAIL line 70: (void)emb_sem_take(null_sem, EMB_NO_WAIT)
+  child exit status 97 (signaled 0)
+  FAIL line 72: (void)emb_sem_take_until(null_sem, emb_time_now())
+  child exit status 97 (signaled 0)
+  FAIL line 74: (void)emb_mutex_lock(null_mutex, EMB_NO_WAIT)
+  child exit status 97 (signaled 0)
+  FAIL line 76: (void)emb_mutex_lock_until(null_mutex, emb_time_now())
+  child exit status 97 (signaled 0)
+  FAIL line 78: (void)emb_notify_wait(0u, 0u, EMB_NO_WAIT, NULL)
+  child exit status 97 (signaled 0)
+  FAIL line 81: (void)emb_notify_wait_until(0u, 0u, emb_time_now(), NULL)
+  -> FAILED
+TEST fault_status_policy_is_preserved
+emb native: kernel fault class 3 code 2 argument 1 thread 0 context 0 at emb_thread_start, halting
+emb native: kernel fault class 2 code 2 argument 2 thread 0 context 0 at emb_thread_set_priority, halting
+  -> ok
+TEST fault_successful_check_preserves_status
+  -> ok
+7 tests, 4 failed, 0 skipped, 0 ticks
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.01 sec
+
+The following tests FAILED:
+	 12 - test_fault (Failed)
+Errors while running CTest

@@ -41,7 +41,7 @@ static void run_init_table(void)
 void emb_kernel_init(void)
 {
     if (embk_cpu.kernel_state != EMBK_KERNEL_UNINIT) {
-        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_KERNEL_INIT, EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
     }
     emb_arch_init();
     embk_sched_init();
@@ -57,7 +57,7 @@ void emb_kernel_start(void)
     emb_irq_key_t key;
 
     if (embk_cpu.kernel_state != EMBK_KERNEL_INIT) {
-        embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 1u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_KERNEL_START, EMB_FAULT_API_LIFECYCLE, 1u, 0u, EMBK_WHERE);
     }
     key = embk_lock_sched();
     embk_time_start();
@@ -122,7 +122,8 @@ emb_irq_key_t emb_irq_lock(void)
 void emb_irq_unlock(emb_irq_key_t key)
 {
     if (embk_cpu.irq_lock_depth == 0u) {
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 1u, 1u, EMBK_WHERE); /* unlock without lock */
+        embk_fault_raise_api(EMB_API_ID_IRQ_UNLOCK, EMB_FAULT_API_CONTEXT, 1u, 1u,
+                             EMBK_WHERE); /* unlock without lock */
     }
     embk_irq_unlock(key);
 }
@@ -134,13 +135,13 @@ void emb_sched_lock(void)
 {
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_SCHED_LOCK, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif
     }
     if (embk_cpu.sched_lock_depth == UINT8_MAX) {
-        embk_fault_raise(EMB_FAULT_API_ARGUMENT, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_SCHED_LOCK, EMB_FAULT_API_ARGUMENT, 0u, 0u, EMBK_WHERE);
     }
     embk_cpu.sched_lock_depth++; /* single byte, thread context only: no critical section needed */
     EMBK_TRACE(EMB_TRACE_SCHED_LOCK, embk_cpu.sched_lock_depth, 0u, 0u);
@@ -151,14 +152,15 @@ void emb_sched_unlock(void)
     emb_irq_key_t key;
     if (!embk_in_thread()) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
+        embk_fault_raise_api(EMB_API_ID_SCHED_UNLOCK, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
 #else
         return;
 #endif
     }
     if (embk_cpu.sched_lock_depth == 0u) {
 #if CONFIG_EMB_CHECKED
-        embk_fault_raise(EMB_FAULT_API_CONTEXT, 2u, 0u, EMBK_WHERE); /* unlock without lock */
+        embk_fault_raise_api(EMB_API_ID_SCHED_UNLOCK, EMB_FAULT_API_CONTEXT, 2u, 0u,
+                             EMBK_WHERE); /* unlock without lock */
 #else
         return;
 #endif

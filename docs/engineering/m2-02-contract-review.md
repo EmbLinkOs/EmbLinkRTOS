@@ -31,6 +31,8 @@ The native timer-first ordering is part of the current model's applicability. Na
 
 ## Stable thread indexes across priority changes
 
+**Implementation follow-up:** [stable diagnostic identity](m2-02-thread-identity.md) implements this recommendation. The observations below describe the reviewed baseline.
+
 KRN-THR-025 and SPEC-008 §3 call for a stable diagnostic index. `embk_thread_index()` in `kernel/include/embk/kernel.h` returns `base_prio` for the table scheduler and an `index` field otherwise. Reprioritizing a tiny thread therefore changes its trace and fault identity. There is another source-level limit: base's `next_index` in `kernel/thread/thread.c` stops incrementing at `0xFD`; later initializations receive that same value. The current allocation path neither reclaims indexes nor reports diagnostic-index exhaustion. Existing query tests check that an index is not `0xFF`, without establishing uniqueness over repeated construction. This saturation observation is code analysis, not an executed exhaustion test.
 
 **Recommendation:** keep a separate diagnostic index in every scheduler profile, stable from successful init until successful destroy. Keep table slots as an internal scheduling detail. Indexes must be unique among live threads; they may be reused after destruction and are not generation-checked handles or durable identities across storage reuse/restart.
@@ -42,6 +44,8 @@ Implementation evidence must cover stable identity after base-priority changes, 
 If tiny's resource budget cannot admit stable identity, propose a scoped KRN-THR-025/SPEC-008 amendment with the measured cost and a trace-consumer migration. Do not silently weaken the existing stable-index target to match the implementation.
 
 ## Public API identity in misuse faults
+
+**Implementation follow-up:** [numeric API attribution](m2-02-fault-api-ids.md) implements this recommendation. The observations below describe the reviewed baseline.
 
 API-017 and SPEC-001 §5.3 require the public function and offending argument. `raise_info()` in `kernel/fault/fault.c` currently assigns `api_id = 0` for every fault. `EMBK_MISUSE` preserves the class, negated return status as code, argument and optional `__func__`, but common helpers can report their own name rather than the public caller. The hook's stack-local record is not the retained crash record described by the later observability milestone.
 

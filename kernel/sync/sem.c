@@ -52,17 +52,18 @@ emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr
     if (out_sem != NULL) {
         out_sem->raw = 0u;
     }
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(out_sem != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
-    EMBK_REQUIRE(((uintptr_t)storage % (uintptr_t)EMB_SEM_STORAGE_ALIGN) == 0u,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_SEM_INIT);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, out_sem != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT,
+                     ((uintptr_t)storage % (uintptr_t)EMB_SEM_STORAGE_ALIGN) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_sem_attr_default(&def);
         attr = &def;
     }
-    EMBK_REQUIRE(attr->max >= 1u && attr->initial <= attr->max, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
-                 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, attr->max >= 1u && attr->initial <= attr->max,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     s = (embk_sem_t *)(void *)storage;
     embk_obj_init(&s->obj, EMBK_OBJ_SEM,
                   attr->flags & (EMB_SEM_SATURATE | EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO),
@@ -82,13 +83,13 @@ emb_status_t emb_sem_destroy(emb_sem_t sem)
 {
     embk_sem_t *s = sem_from_handle(sem);
     emb_irq_key_t key;
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_SEM_DESTROY);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_DESTROY, s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_object(s);
     if (!embk_wait_queue_is_empty(&s->waiters)) {
         if ((s->obj.flags & EMB_OBJ_ABORT_WAITERS) == 0u) {
             embk_unlock_object(s, key);
-            EMBK_MISUSE(EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+            EMBK_API_MISUSE(EMB_API_ID_SEM_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
         }
         (void)embk_wait_flush(&s->waiters, EMBK_WAKE_DESTROYED);
     }
@@ -98,18 +99,18 @@ emb_status_t emb_sem_destroy(emb_sem_t sem)
     return EMB_OK;
 }
 
-static emb_status_t take_common(embk_sem_t *s, emb_tick_t deadline, bool nowait)
+static emb_status_t take_common(uint16_t api_id, embk_sem_t *s, emb_tick_t deadline, bool nowait)
 {
     embk_thread_t *self;
     emb_irq_key_t key;
     embk_wait_result_t r;
     uintptr_t data;
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(api_id);
     if (s == NULL) {
         EMBK_TRACE(EMB_TRACE_SEM_TAKE, embk_thread_index(embk_cpu.current), 0u, EMB_EINVAL);
-        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     }
-    EMBK_REQUIRE_CAN_BLOCK(nowait ? 0u : 1u);
+    EMBK_API_REQUIRE_CAN_BLOCK(api_id, nowait ? 0u : 1u);
     self = embk_cpu.current;
     key = embk_lock_object(s);
     if (embk_thread_take_cancel_locked(self)) {
@@ -135,14 +136,14 @@ static emb_status_t take_common(embk_sem_t *s, emb_tick_t deadline, bool nowait)
 
 emb_status_t emb_sem_take(emb_sem_t sem, emb_timeout_t timeout)
 {
-    return take_common(sem_from_handle(sem), embk_deadline_from_timeout(timeout),
-                       EMB_TIMEOUT_IS_NO_WAIT(timeout));
+    return take_common(EMB_API_ID_SEM_TAKE, sem_from_handle(sem),
+                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_sem_take_until(emb_sem_t sem, emb_instant_t deadline)
 {
     bool nowait = deadline.ticks != EMB_TICK_MAX && embk_deadline_passed(deadline.ticks);
-    return take_common(sem_from_handle(sem), deadline.ticks, nowait);
+    return take_common(EMB_API_ID_SEM_TAKE_UNTIL, sem_from_handle(sem), deadline.ticks, nowait);
 }
 
 emb_status_t emb_sem_give(emb_sem_t sem)
@@ -150,7 +151,7 @@ emb_status_t emb_sem_give(emb_sem_t sem)
     embk_sem_t *s = sem_from_handle(sem);
     embk_thread_t *w;
     emb_irq_key_t key;
-    EMBK_REQUIRE(s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_GIVE, s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_object(s);
     w = embk_wait_first(&s->waiters);
     if (w != NULL) {
@@ -187,12 +188,14 @@ emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_
     embk_sem_t *s = sem_from_handle(sem);
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
-    EMBK_REQUIRE_NOT_ISR(); /* bindings are set up before the kernel runs too (A18) */
-    EMBK_REQUIRE(s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 2u);
-    EMBK_REQUIRE(bit != 0u && (bit & (emb_notify_bits_t)(bit - 1u)) == 0u &&
-                     (bit & (emb_notify_bits_t)~EMB_NOTIFY_APP_MASK) == 0u,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
+    EMBK_API_REQUIRE_NOT_ISR(
+        EMB_API_ID_SEM_BIND_NOTIFY); /* bindings are set up before the kernel runs too (A18) */
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_BIND_NOTIFY, s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_BIND_NOTIFY, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_BIND_NOTIFY,
+                     bit != 0u && (bit & (emb_notify_bits_t)(bit - 1u)) == 0u &&
+                         (bit & (emb_notify_bits_t)~EMB_NOTIFY_APP_MASK) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
     key = embk_lock_object(s);
     if (s->bind_thread != NULL) {
         embk_unlock_object(s, key);

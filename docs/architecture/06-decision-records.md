@@ -507,3 +507,23 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Previously ignored nonzero requests on fixed-level ports now fail. Derived limits replace independent kernel-level overrides; legacy raw Cortex-M threshold/default settings remain transitional inputs until hardware generation. Enabling the unimplemented raw class fails configuration. Board declarations must match hardware or a conservative subset; emulator acceptance of extra bits does not qualify a physical chip. Tests cover invalid writes, public fault precedence, encoding and observed pending/nested delivery; physical jitter and full KRN-IRQ-028 generation/class scope remain separate. Native timer-first ordering and the reference model's applicability remain unchanged.
 
 **Status.** Implementation for review, 2026-10-21, following the project owner's authorization during the joint IRQ-priority walkthrough. Verification scope is recorded with the implementation evidence.
+
+## ADR-043 Diagnostic thread identity independent of scheduling
+
+**Context.** KRN-THR-025 requires a stable diagnostic index. Tiny used a mutable priority slot; base saturated a construction counter and eventually duplicated IDs.
+
+**Decision.** Store an independent diagnostic index in every TCB. On table configurations with at most eight priority levels, encode its 0–6 values in the three unused high object-flag bits (7 encodes idle); larger table and list configurations use a separate byte. Reserve IDs under the scheduler lock with a static bitmap, keeping 0xFE for idle and 0xFF for invalid/non-thread context. The list scheduler admits 254 non-idle objects; tiny needs only `CONFIG_EMB_PRIORITY_COUNT - 1` slots because it already limits live objects by unique priority. Scan at most that many bits at init, release in O(1) at successful destroy, and return `EMB_ENOMEM` before storage mutation when exhausted. Termination, join and detach do not release the ID. Table-slot conflicts keep their existing `EMB_EBUSY` precedence.
+
+**Consequences.** Tiny with up to eight priority levels pays no extra TCB byte; larger configurations pay a byte subject to ABI padding, plus a bitmap of `ceil((priority_count - 1)/8)` bytes; base replaces its one-byte counter with 32 bytes. Query remains O(1). IDs are reusable diagnostic labels, not capability generations. Wait/ready bitmap positions remain base priorities. Captures declare the idle ID; historical tiny captures retain their old interpretation. Heap allocation and new application configuration are unnecessary.
+
+**Status.** Implementation for review, 2026-10-21, authorized by the project owner. Costs and validation are recorded in the identity report.
+
+## ADR-044 Stable numeric public API attribution
+
+**Context.** Fault hooks had an API ID field but generic construction always filled zero. Function strings can be disabled and shared helpers obscure the public call.
+
+**Decision.** Maintain explicit nonzero 16-bit IDs for documented public functions in a versioned registry; generate `<emb/api_ids.h>` and a host decoder JSON. Preserve assignments forever, retaining retired entries. Pass the public ID explicitly through misuse macros and common helpers, with no mutable global current-API field. Keep generic/internal, manual application, hardware and `EMB_CHECK()` attribution zero. Thread exit with owned mutexes attributes the lifecycle fault to `emb_thread_exit`, including implicit entry-function return. Fault record layout and trace event payload stay unchanged.
+
+**Consequences.** Firmware requires no API-name lookup table or new mutable state. Export the decoder map with firmware; it can be consumed by future EmbDebug integration without claiming that integration exists. Checked/release policies, argument numbering and error precedence are preserved. CI checks generated output, declaration coverage and compatibility with the PR/push baseline. Retained crash serialization remains separate.
+
+**Status.** Implementation for review, 2026-10-21, authorized by the project owner. See the fault attribution report for executed validation and exclusions.

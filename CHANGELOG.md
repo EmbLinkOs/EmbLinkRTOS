@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Stable numeric IDs in public API misuse fault records, a generated header and downloadable decoder map, with checked-in assignments and compatibility checks. Shared helpers retain the public caller ID and location strings remain optional.
+
 - The Arduino Uno conformance suite on EmbSIM's simulated Uno (`avr-uno-embsim` preset,
   `EMB_TEST_EMULATOR=embsim`, `tools/embsim/run_embsim.py`) and an `avr-embsim` CI job that builds
   EmbSIM from source (SIM-002).
@@ -28,6 +30,8 @@ User-visible changes are recorded here. There are no released versions or releas
 - Pinned EmbCC ten-item capability review, scoped local compiler/tool/EmbSim evidence and current RTOS integration findings.
 
 ### Fixed
+
+- Thread diagnostic IDs remain stable across priority changes on tiny and unique among live objects on every profile. IDs are released only by successful destroy; exhaustion returns `EMB_ENOMEM` without partial construction.
 
 - Generic IRQ priorities now increase with urgency on Cortex-M, with board-derived bounds and validation before register writes; fixed-level native/AVR/RV32 reject nonzero levels. SysTick defaults to highest kernel-aware urgency. Raw kernel-independent vectors remain unsupported.
 

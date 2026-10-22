@@ -1,0 +1,20 @@
+Internal ctest changing into directory: /workspace/scratch/identity-before/build/native-tiny
+Test project /workspace/scratch/identity-before/build/native-tiny
+    Start 11: test_thread_identity
+1/1 Test #11: test_thread_identity .............***Failed    0.00 sec
+TEST thread_identity_repeated_construction_does_not_alias_live_object
+  -> ok
+TEST thread_identity_survives_priority_and_termination
+  values 5 and 2  FAIL line 27: expected equal: emb_thread_index(a) == index
+  values 5 and 2  FAIL line 29: expected equal: emb_thread_index(a) == index
+  -> FAILED
+2 tests, 1 failed, 0 skipped, 0 ticks
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.00 sec
+
+The following tests FAILED:
+	 11 - test_thread_identity (Failed)
+Errors while running CTest

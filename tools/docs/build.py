@@ -253,6 +253,7 @@ def main():
     apis = generate_api(source, output)
     exports = source / "_exports"
     exports.mkdir()
+    shutil.copyfile(ROOT / "tools/fault/api-ids.json", exports / "api-ids.json")
     for catalog in (output / "catalog").glob("*"):
         shutil.copyfile(catalog, exports / catalog.name)
     subprocess.run([sys.executable, "-m", "sphinx", "-b", args.builder, "-c", str(DOCS), "-d", str(output / "doctrees"),

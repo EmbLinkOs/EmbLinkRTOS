@@ -8,6 +8,7 @@
 #ifndef EMB_FAULT_H
 #define EMB_FAULT_H
 
+#include <emb/api_ids.h>
 #include <emb/types.h>
 
 #ifdef __cplusplus
@@ -35,7 +36,7 @@ typedef struct emb_fault_info {
     uint8_t fault_class;  /* enum emb_fault_class */
     uint8_t argument;     /* offending argument index for API faults, 0 otherwise */
     uint16_t code;        /* class-specific code */
-    uint16_t api_id;      /* identifier of the API function, 0 when not an API fault */
+    uint16_t api_id;      /* EMB_API_ID_* public entry; 0 for generic/manual/non-API faults */
     uint8_t thread_index; /* index of the faulting thread, 0xFF in prekernel or ISR context */
     uint8_t context;      /* emb_context_t at the time of the fault */
     uintptr_t address;    /* faulting address for hardware faults, 0 otherwise */

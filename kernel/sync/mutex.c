@@ -137,19 +137,24 @@ emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t
     if (out_mutex != NULL) {
         out_mutex->raw = 0u;
     }
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMBK_REQUIRE(out_mutex != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
-    EMBK_REQUIRE(((uintptr_t)storage % (uintptr_t)EMB_MUTEX_STORAGE_ALIGN) == 0u,
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_MUTEX_INIT);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     1u);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT, out_mutex != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     3u);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT,
+                     ((uintptr_t)storage % (uintptr_t)EMB_MUTEX_STORAGE_ALIGN) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_mutex_attr_default(&def);
         attr = &def;
     }
-    EMBK_REQUIRE(attr->protocol <= EMB_MUTEX_NONE, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_REQUIRE(attr->protocol != EMB_MUTEX_CEILING ||
-                     (attr->ceiling >= EMB_PRIORITY_MIN && attr->ceiling <= EMB_PRIORITY_MAX),
-                 EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT, attr->protocol <= EMB_MUTEX_NONE,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT,
+                     attr->protocol != EMB_MUTEX_CEILING ||
+                         (attr->ceiling >= EMB_PRIORITY_MIN && attr->ceiling <= EMB_PRIORITY_MAX),
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
 #if !CONFIG_EMB_MUTEX_INHERIT
     if (attr->protocol == EMB_MUTEX_INHERIT) {
         return EMB_ENOTSUP;
@@ -174,17 +179,17 @@ emb_status_t emb_mutex_destroy(emb_mutex_t mutex)
 {
     embk_mutex_t *m = mutex_from_handle(mutex);
     emb_irq_key_t key;
-    EMBK_REQUIRE_NOT_ISR();
-    EMBK_REQUIRE(m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_MUTEX_DESTROY);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_DESTROY, m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_object(m);
     if (m->owner != NULL && m->owner != embk_cpu.current) {
         embk_unlock_object(m, key);
-        EMBK_MISUSE(EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+        EMBK_API_MISUSE(EMB_API_ID_MUTEX_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
     }
     if (!embk_wait_queue_is_empty(&m->waiters)) {
         if ((m->obj.flags & EMB_OBJ_ABORT_WAITERS) == 0u) {
             embk_unlock_object(m, key);
-            EMBK_MISUSE(EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+            EMBK_API_MISUSE(EMB_API_ID_MUTEX_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
         }
         (void)embk_wait_flush(&m->waiters,
                               EMBK_WAKE_DESTROYED); /* recomputes the owner through the hook */
@@ -221,7 +226,7 @@ static bool chain_reaches(const embk_thread_t *owner, const embk_thread_t *self)
     return false;
 }
 
-static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowait)
+static emb_status_t lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t deadline, bool nowait)
 {
     embk_thread_t *self;
     emb_irq_key_t key;
@@ -229,12 +234,12 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
     uintptr_t data;
     emb_status_t st;
 
-    EMBK_REQUIRE_THREAD();
+    EMBK_API_REQUIRE_THREAD(api_id);
     if (m == NULL) {
         EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(embk_cpu.current), 0u, EMB_EINVAL);
-        EMBK_MISUSE(EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     }
-    EMBK_REQUIRE_CAN_BLOCK(nowait ? 0u : 1u);
+    EMBK_API_REQUIRE_CAN_BLOCK(api_id, nowait ? 0u : 1u);
     self = embk_cpu.current;
     key = embk_lock_object(m);
     if (embk_thread_take_cancel_locked(self)) {
@@ -246,7 +251,8 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
         if (m->protocol == EMB_MUTEX_CEILING && self->base_prio > m->ceiling) {
             EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EPERM);
             embk_unlock_object(m, key);
-            EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EPERM, 1u); /* ceiling violation (§3.4) */
+            EMBK_API_MISUSE(api_id, EMB_FAULT_API_OWNER, EMB_EPERM,
+                            1u); /* ceiling violation (§3.4) */
         }
         m->owner = self;
         m->count = 1u;
@@ -273,7 +279,7 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
         }
         EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EDEADLK);
         embk_unlock_object(m, key);
-        EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* self-deadlock */
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* self-deadlock */
     }
     if (nowait) {
         EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_ETIMEDOUT);
@@ -283,7 +289,7 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
     if (m->protocol == EMB_MUTEX_INHERIT && chain_reaches(m->owner, self)) {
         EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EDEADLK);
         embk_unlock_object(m, key);
-        EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* KRN-SYNC-015 */
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_OWNER, EMB_EDEADLK, 1u); /* KRN-SYNC-015 */
     }
     embk_wait_prepare(&m->waiters, EMB_WAIT_REASON_OBJECT);
     if (m->protocol == EMB_MUTEX_INHERIT) {
@@ -303,14 +309,15 @@ static emb_status_t lock_common(embk_mutex_t *m, emb_tick_t deadline, bool nowai
 
 emb_status_t emb_mutex_lock(emb_mutex_t mutex, emb_timeout_t timeout)
 {
-    return lock_common(mutex_from_handle(mutex), embk_deadline_from_timeout(timeout),
-                       EMB_TIMEOUT_IS_NO_WAIT(timeout));
+    return lock_common(EMB_API_ID_MUTEX_LOCK, mutex_from_handle(mutex),
+                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_mutex_lock_until(emb_mutex_t mutex, emb_instant_t deadline)
 {
     bool nowait = deadline.ticks != EMB_TICK_MAX && embk_deadline_passed(deadline.ticks);
-    return lock_common(mutex_from_handle(mutex), deadline.ticks, nowait);
+    return lock_common(EMB_API_ID_MUTEX_LOCK_UNTIL, mutex_from_handle(mutex), deadline.ticks,
+                       nowait);
 }
 
 /* ---- unlock (§3.3) ------------------------------------------------------------------------ */
@@ -351,13 +358,14 @@ emb_status_t emb_mutex_unlock(emb_mutex_t mutex)
     embk_mutex_t *m = mutex_from_handle(mutex);
     embk_thread_t *self;
     emb_irq_key_t key;
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_MUTEX_UNLOCK);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_UNLOCK, m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     self = embk_cpu.current;
     key = embk_lock_object(m);
     if (m->owner != self) {
         embk_unlock_object(m, key);
-        EMBK_MISUSE(EMB_FAULT_API_OWNER, EMB_EPERM, 1u); /* KRN-SYNC-008 */
+        EMBK_API_MISUSE(EMB_API_ID_MUTEX_UNLOCK, EMB_FAULT_API_OWNER, EMB_EPERM,
+                        1u); /* KRN-SYNC-008 */
     }
     if (m->count > 1u) {
         m->count--;
@@ -381,8 +389,9 @@ emb_status_t emb_mutex_mark_consistent(emb_mutex_t mutex)
 {
     embk_mutex_t *m = mutex_from_handle(mutex);
     emb_irq_key_t key;
-    EMBK_REQUIRE_THREAD();
-    EMBK_REQUIRE(m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_MUTEX_MARK_CONSISTENT);
+    EMBK_API_REQUIRE(EMB_API_ID_MUTEX_MARK_CONSISTENT, m != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL,
+                     1u);
     key = embk_lock_object(m);
     if (m->owner != embk_cpu.current) {
         embk_unlock_object(m, key);
@@ -402,7 +411,7 @@ void embk_mutex_release_all_on_exit(embk_thread_t *t)
     }
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT
 #if CONFIG_EMB_CHECKED
-    embk_fault_raise(EMB_FAULT_API_LIFECYCLE, 2u, 0u, "thread exit with owned mutexes");
+    embk_fault_raise_api(EMB_API_ID_THREAD_EXIT, EMB_FAULT_API_LIFECYCLE, 2u, 0u, EMBK_WHERE);
 #else
     EMBK_TRACE(EMB_TRACE_FAULT, EMB_FAULT_API_LIFECYCLE, 2u,
                0u); /* recorded, not fatal, in release builds */

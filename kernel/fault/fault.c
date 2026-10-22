@@ -29,16 +29,16 @@ static EMB_NORETURN void act(const emb_fault_info_t *info)
 #endif
 }
 
-static EMB_NORETURN void raise_info(uint8_t fault_class, uint16_t code, uint8_t argument,
-                                    const char *where, uintptr_t address, uintptr_t pc,
-                                    uintptr_t sp)
+static EMB_NORETURN void raise_info(uint16_t api_id, uint8_t fault_class, uint16_t code,
+                                    uint8_t argument, const char *where, uintptr_t address,
+                                    uintptr_t pc, uintptr_t sp)
 {
     emb_fault_info_t info;
     (void)emb_arch_irq_lock(); /* never unmasked again: the fault path does not return */
     info.fault_class = fault_class;
     info.argument = argument;
     info.code = code;
-    info.api_id = 0u;
+    info.api_id = api_id;
     info.thread_index = (embk_cpu.kernel_state == EMBK_KERNEL_RUNNING &&
                          embk_cpu.irq_nesting_depth == 0u && embk_cpu.current != NULL)
                             ? embk_thread_index(embk_cpu.current)
@@ -57,12 +57,19 @@ static EMB_NORETURN void raise_info(uint8_t fault_class, uint16_t code, uint8_t 
 
 void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument, const char *where)
 {
-    raise_info(fault_class, code, argument, where, 0u, 0u, 0u);
+    raise_info(EMB_API_ID_NONE, fault_class, code, argument, where, 0u, 0u, 0u);
+}
+
+void embk_fault_raise_api(uint16_t api_id, uint8_t fault_class, uint16_t code, uint8_t argument,
+                          const char *where)
+{
+    raise_info(api_id, fault_class, code, argument, where, 0u, 0u, 0u);
 }
 
 void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr_t sp)
 {
-    raise_info(EMB_FAULT_HARDWARE, code, 0u, "architecture fault", address, pc, sp);
+    raise_info(EMB_API_ID_NONE, EMB_FAULT_HARDWARE, code, 0u, "architecture fault", address, pc,
+               sp);
 }
 
 void emb_fault(uint8_t fault_class, uint16_t code, const char *where)
