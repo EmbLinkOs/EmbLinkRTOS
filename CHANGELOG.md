@@ -16,6 +16,13 @@ User-visible changes are recorded here. There are no released versions or releas
   states), the console on USART2 (the ST-LINK's virtual COM port, PA2/PA3), LD2 on PA5, and a
   run that ends masked in WFI (`emb_cm_halt`). Its conformance suite runs on EmbSIM's
   NUCLEO-F446RE (`cm4-nucleo-embsim` preset) in a `cm4-embsim` CI job.
+- The ESP32-C3-DevKitM-1 board (`boards/espressif/esp32c3_devkitm1`) and the RISC-V port on the
+  ESP32-C3 (`CONFIG_EMB_RV_ESP32C3`, variant `rv32imc`): SYSTIMER's comparator 0 as the tick,
+  FROM_CPU_INTR0 as interrupt 0 through the interrupt matrix, a vectored mtvec, the boot ROM's
+  watchdogs stopped; each image is also written as the flash image the ROM boots
+  (`tools/esp/esp_image.py`). The conformance suite runs on EmbSIM's DevKitM-1
+  (`rv32-c3-embsim` preset) in an `rv32-embsim` CI job. The CLINT code moved to
+  `arch/riscv/rv_clint.c`; QEMU virt is unchanged.
 
 - Experimental Linux x86-64 presets for an EmbCC-built kernel with a GCC POSIX host, a build-time ABI layout guard and scoped executed conformance/model evidence.
 

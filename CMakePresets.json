@@ -215,6 +215,17 @@
       }
     },
     {
+      "name": "rv32-c3-embsim",
+      "displayName": "ESP32-C3-DevKitM-1 (RV32IMC), GCC, base profile, checked, tests on EmbSIM's DevKitM-1",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-c3-embsim",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "esp32c3_devkitm1",
+        "EMB_TEST_EMULATOR": "embsim"
+      }
+    },
+    {
       "name": "native-embcc",
       "displayName": "experimental, EmbCC kernel / GCC Linux host",
       "inherits": "native-gcc",
@@ -311,6 +322,10 @@
     {
       "name": "rv32-virt",
       "configurePreset": "rv32-virt"
+    },
+    {
+      "name": "rv32-c3-embsim",
+      "configurePreset": "rv32-c3-embsim"
     },
     {
       "name": "rv32-virt-release",
@@ -453,6 +468,13 @@
     {
       "name": "rv32-virt",
       "configurePreset": "rv32-virt",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-c3-embsim",
+      "configurePreset": "rv32-c3-embsim",
       "output": {
         "outputOnFailure": true
       }

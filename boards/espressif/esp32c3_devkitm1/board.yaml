@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
+# in M1 the matching hw_config.h is written by hand (include/hw_config.h).
+board: esp32c3_devkitm1
+soc: espressif/esp32c3/esp32c3
+oscillators:
+  main: { hz: 40000000, source: external_crystal } # the module's 40 MHz crystal
+cpu_hz: 20000000 # XTAL_CLK / 2, as the boot ROM leaves SYSTEM_SYSCLK_CONF
+console: { device: uart0, baud: 115200, pins: { tx: GPIO21, rx: GPIO20 } } # the CP2102N's port
+leds: [] # the board's only LED is the SK6812 on GPIO8, an addressable one
+buttons: [ { name: boot, gpio: GPIO9, active: low } ] # SW1
+flash_partitions:
+  - { name: image, base: 0x0, size: 4194304 } # the ROM boots the image at 0x0
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }
