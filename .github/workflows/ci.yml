@@ -86,6 +86,7 @@ jobs:
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm arm-none-eabi-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -115,6 +116,7 @@ jobs:
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm riscv64-unknown-elf-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -150,6 +152,7 @@ jobs:
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf.map \
             --elf build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf --nm avr-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json \
             --thresholds tools/footprint/thresholds-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -181,6 +184,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
+      - name: Footprint report tool
+        run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
       - name: Configuration tool self-check
         run: |
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
