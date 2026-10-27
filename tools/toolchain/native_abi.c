@@ -5,6 +5,7 @@
  * by the existing storage generator. Member widths are compared separately.
  * This is a maintained layout inventory, supplemented by executed ABI crossings.
  */
+#include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
 
