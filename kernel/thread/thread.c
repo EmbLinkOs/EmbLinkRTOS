@@ -56,15 +56,7 @@ static void index_release(uint8_t index)
 static bool storage_is_live(const embk_thread_t *t)
 {
 #if CONFIG_EMB_THREAD_LIST
-    const embk_list_node_t *n;
-    /* bounded by the number of live threads */
-    for (n = embk_list_first(&embk_thread_all); n != NULL;
-         n = embk_list_next(&embk_thread_all, n)) {
-        if (n == &t->all_node) {
-            return true;
-        }
-    }
-    return false;
+    return embk_list_contains(&embk_thread_all, &t->all_node); /* O(live threads) */
 #else
     uint8_t index;
     if (t->obj.type != EMBK_OBJ_THREAD || t->obj.state != EMBK_OBJ_ACTIVE) {

@@ -157,6 +157,25 @@ EMB_TEST(sem_destroy_with_waiters_is_misuse)
     EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 
+#if CONFIG_EMB_OBJ_LIST
+EMB_TEST(sem_storage_reuse_requires_destroy)
+{
+    emb_sem_t other;
+    EMB_TEST_REQ("KRN-OBJ-007", "KRN-OBJ-011");
+    make(NULL);
+    (void)emb_test_thread(EMB_TEST_NAME("t3"), 3u, 0u, taker, (void *)3);
+    EMB_ASSERT_MISUSE(emb_sem_init(&storage, NULL, &other), EMB_EBUSY);
+#if !CONFIG_EMB_CHECKED
+    EMB_ASSERT_EQ(other.raw, 0u);
+#endif
+    EMB_ASSERT_OK(emb_sem_give(sem)); /* the live semaphore and its waiter are untouched */
+    EMB_ASSERT_MARKS(3);
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
+    make(NULL); /* destroyed storage is reusable */
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
+}
+#endif
+
 EMB_TEST(sem_blocking_take_from_prekernel_or_isr_rejected)
 {
     EMB_TEST_REQ("API-012", "API-013");

@@ -215,6 +215,15 @@ config EMB_HANDLE_MODEL
 	string
 	default "POINTER" if EMB_HANDLE_MODEL_POINTER
 
+config EMB_OBJ_LIST
+	bool "Keep a per-type list of active objects (KRN-OBJ-011)"
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  SPEC-009 §6, §7. Init refuses storage that still holds an active
+	  object of its type, exactly, by looking it up in the list. Without
+	  the list, init on such storage is undefined.
+
 endmenu
 
 menu "Interrupts"

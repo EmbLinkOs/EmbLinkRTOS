@@ -110,4 +110,20 @@ static EMB_INLINE embk_list_node_t *embk_list_pop_first(embk_list_t *l)
     return n;
 }
 
+/* Is @n on @l? Compares addresses only, so @n may be storage that holds no object. */
+static EMB_INLINE bool embk_list_contains(const embk_list_t *l, const embk_list_node_t *n)
+{
+    const embk_list_node_t *p;
+    /* bounded by the length of @l */
+    for (p = embk_list_first(l); p != NULL; p = embk_list_next(l, p)) {
+        if (p == n) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* A static initializer for an empty list, for lists used before any init code runs. */
+#define EMBK_LIST_INITIALIZER(l) {{&(l).head, &(l).head}}
+
 #endif /* EMBK_LIST_H */

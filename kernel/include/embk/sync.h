@@ -18,7 +18,14 @@ typedef struct embk_sem {
     embk_thread_t *bind_thread; /* ADR-027: NULL when unbound */
     emb_notify_bits_t bind_bit;
 #endif
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_node_t all_node; /* in embk_sem_all from init to destroy */
+#endif
 } embk_sem_t;
+
+#if CONFIG_EMB_OBJ_LIST
+extern embk_list_t embk_sem_all; /* every active semaphore (KRN-OBJ-011); lock: scheduler domain */
+#endif
 #endif
 
 #if CONFIG_EMB_MUTEX
@@ -35,7 +42,14 @@ typedef struct embk_mutex {
     uint8_t ceiling;
     uint8_t count; /* recursion count, 0 when free */
     uint8_t reserved_;
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_node_t all_node; /* in embk_mutex_all from init to destroy */
+#endif
 } embk_mutex_t;
+
+#if CONFIG_EMB_OBJ_LIST
+extern embk_list_t embk_mutex_all; /* every active mutex (KRN-OBJ-011); lock: scheduler domain */
+#endif
 
 /* Recompute and apply @t's effective priority (SPEC-005 §2.1); returns whether it changed. */
 bool embk_prio_recompute(embk_thread_t *t);

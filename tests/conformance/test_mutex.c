@@ -194,6 +194,8 @@ EMB_TEST(mutex_deadlock_is_detected_on_the_chain)
     deadlock_scenario();
     EMB_ASSERT_EQ(deadlock_status, EMB_EDEADLK);
 #endif
+    EMB_ASSERT_OK(emb_mutex_destroy(m1));
+    EMB_ASSERT_OK(emb_mutex_destroy(m2));
 }
 
 static void ceiling_locker(void *arg)
@@ -272,6 +274,27 @@ EMB_TEST(mutex_destroy_rules)
     EMB_ASSERT_OK(emb_mutex_destroy(m1)); /* the waiter leaves with EMB_EDESTROYED */
     EMB_ASSERT_MARKS(1, 2, 3, 12);
 }
+
+#if CONFIG_EMB_OBJ_LIST
+EMB_TEST(mutex_storage_reuse_requires_destroy)
+{
+    emb_mutex_t other;
+    EMB_TEST_REQ("KRN-OBJ-007", "KRN-OBJ-011");
+    make(&st1, &m1, EMB_MUTEX_INHERIT, 0u, 0u);
+    EMB_ASSERT_OK(emb_mutex_lock(m1, EMB_NO_WAIT));
+    (void)emb_test_thread(EMB_TEST_NAME("w"), 3u, 0u, lock_m1_report, (void *)100);
+    EMB_ASSERT_MISUSE(emb_mutex_init(&st1, NULL, &other), EMB_EBUSY);
+#if !CONFIG_EMB_CHECKED
+    EMB_ASSERT_EQ(other.raw, 0u);
+#endif
+    EMB_ASSERT_TRUE(emb_mutex_is_owner(m1)); /* ownership and the waiter are untouched */
+    EMB_ASSERT_OK(emb_mutex_unlock(m1));
+    EMB_ASSERT_MARKS(10);
+    EMB_ASSERT_OK(emb_mutex_destroy(m1));
+    make(&st1, &m1, EMB_MUTEX_INHERIT, 0u, 0u); /* destroyed storage is reusable */
+    EMB_ASSERT_OK(emb_mutex_destroy(m1));
+}
+#endif
 
 static void lock_mark_unlock(void *arg)
 {
