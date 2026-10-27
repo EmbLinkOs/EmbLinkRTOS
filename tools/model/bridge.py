@@ -32,9 +32,10 @@ from embmodel import (BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal
                       Destroy, EventClear, EventDestroy, EventSet,
                       EventWait, Exit, Give, Join, Lock, ModelError, MsgDestroy, MsgPeek, MsgRecv,
                       MsgSend, MsgSendFront, Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy,
+                      TimerStart, TimerStop, TimerStopSync,
                       NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
                       SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
-                      UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT)
+                      UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT, TIMER_WORK_BASE)
 from tests import scenarios as catalogue  # noqa: E402
 
 # ---- the kernel's trace vocabulary (include/emb/trace.h, M1 subset) ------------------------
@@ -46,7 +47,8 @@ TR_NOTIFY_SET, TR_NOTIFY_WAIT, TR_FAULT, TR_TICK = 20, 21, 25, 29
 TR_EVENT_SET, TR_EVENT_WAIT = 31, 32
 TR_COND_WAIT, TR_COND_SIGNAL = 33, 34
 TR_MSGQ_SEND, TR_MSGQ_RECEIVE = 35, 36
-TR_WORK_WAIT = 40
+TR_WORK_RUN, TR_WORK_WAIT = 38, 40
+TR_TIMER_EXPIRE, TR_TIMER_START, TR_TIMER_STOP = 41, 42, 43
 CTX_THREAD = 0                         # emb_context_t
 EV_ISR_MARK = 1000                     # the runner's own record: ISR body i starts
 EV_INDEX_MARK = 1001                   # the runner's record: thread tid now has index i
@@ -178,6 +180,12 @@ def encode_op(op) -> str:
         return f"wflush {op.q} {_t(op.timeout)}"
     if isinstance(op, WorkqDestroy):
         return f"wqdestroy {op.q}"
+    if isinstance(op, TimerStart):
+        return f"tstart {op.timer} {op.first} {op.period}"
+    if isinstance(op, TimerStop):
+        return f"tstop {op.timer}"
+    if isinstance(op, TimerStopSync):
+        return f"tsync {op.timer} {_t(op.timeout)}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -216,6 +224,9 @@ def encode_scenario(sc: Scenario) -> str:
         parts.append(f"W{q}={cfg['tid']},{cfg['prio']}")
     for w, cfg in sc.works.items():
         parts.append(f"H{w}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
+    for t, cfg in sc.timers.items():
+        mode = "isr" if cfg.get("isr") else f"q{cfg['q']}"
+        parts.append(f"R{t}={mode}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
     for mid, cfg in sc.mutexes.items():
         proto = int(cfg.get("protocol", 0))
         parts.append(f"M{mid}={proto},{cfg.get('ceiling', 0)},{int(bool(cfg.get('recursive', False)))}")
@@ -237,6 +248,7 @@ class Run:
         self.evflags = {}       # eid -> bits
         self.msgqs = {}         # qid -> stored items, head first
         self.works = {}         # w -> emb_work_state_t
+        self.timers = {}        # t -> (expiries, overruns, armed)
         self.end = None         # ("done",) or ("fault", class, code)
         self.events_lost = 0
         self.exit_code = 0
@@ -306,6 +318,8 @@ def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
             r.msgqs[int(f[1])] = tuple(int(x) for x in f[2:])
         elif f[0] == "work":
             r.works[int(f[1])] = int(f[2])
+        elif f[0] == "timer":
+            r.timers[int(f[1])] = (int(f[2]), int(f[3]), f[4] == "1")
         elif f[0] == "events_lost":
             r.events_lost = int(f[1])
         elif f[0] == "end":
@@ -359,6 +373,12 @@ def kernel_canonical(run: Run):
             out.append(("wait_end", thr(a0), STATUS_TO_RESULT[st]))
         elif eid == TR_NOTIFY_SET:
             out.append(("notify_set", thr(a0), a1))
+        elif eid in (TR_TIMER_START, TR_TIMER_EXPIRE):            # the only record of a silent start
+            out.append(("timer_start" if eid == TR_TIMER_START else "timer_expire", ("t", a1)))
+        elif eid == TR_TIMER_STOP:                                # and of what a stop found
+            out.append(("timer_stop", ("t", a1), a2))
+        elif eid == TR_WORK_RUN:                                  # a handler's start (0) and end (1)
+            out.append(("work_run", ("w", a1), a2))
         elif eid == TR_MUTEX_UNLOCK:
             out.append(("mutex_unlock", thr(a0), ("m", a1), None if a2 == 0xFF else thr(a2)))
         elif eid == TR_THREAD_EXIT:
@@ -420,6 +440,12 @@ def model_canonical(cur, trace, act) -> list:
                 out.append(("thread_exit", ev[1], ev[2]))
         elif name == "thread_start":
             out.append(("thread_start", ev[1]))
+        elif name in ("timer_start", "timer_expire"):
+            out.append((name, ("t", ev[1])))
+        elif name == "timer_stop":
+            out.append((name, ("t", ev[1]), ev[2]))
+        elif name == "work_run":
+            out.append((name, ("w", ev[1]), ev[2]))
         # mutex_lock, notify_dropped, stale_timeout: no kernel counterpart
         i += 1
     return out
@@ -462,6 +488,16 @@ class Replay:
             if mm in mmap.values():
                 return False
             mmap[km] = mm
+            return True
+        if kev[0] in ("timer_start", "timer_expire", "timer_stop", "work_run"):
+            if kev[2:] != mev[2:]:
+                return False                                    # a stop's state, a run's phase
+            kt, mt = (kev[1][0], kev[1][1]), mev[1]            # learned like a queue address, tagged
+            if kt in qmap:
+                return qmap[kt] == mt
+            if mt in qmap.values():
+                return False
+            qmap[kt] = mt
             return True
         if kev[0] == "tick":
             return True                     # the tick count is compared through the events it causes
@@ -620,7 +656,8 @@ class Replay:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
-                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait, MsgRecv, MsgPeek, WorkCancel)) \
+                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait, MsgRecv, MsgPeek, WorkCancel,
+                                   TimerStop)) \
                         and result == Result.SATISFIED \
                         and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
@@ -643,7 +680,13 @@ class Replay:
         for eid, e in k.events.items():
             if eid in r.evflags and not e.destroyed and r.evflags[eid] != e.bits:
                 raise Divergence(f"event flags {eid}: kernel bits {r.evflags[eid]:#x}, model {e.bits:#x}")
+        for tm, t in k.timers.items():
+            if r.timers.get(tm) != (t.expiries, t.overruns, t.deadline is not None):
+                raise Divergence(f"timer {tm}: kernel (expiries, overruns, armed) {r.timers.get(tm)}, "
+                                 f"model {(t.expiries, t.overruns, t.deadline is not None)}")
         for wid, w in k.works.items():
+            if wid >= TIMER_WORK_BASE:
+                continue                                  # a timer's embedded item: the timer line covers it
             if r.works.get(wid) != w.state:
                 raise Divergence(f"work item {wid}: kernel state {r.works.get(wid)}, model {w.state}")
         for qid, q in k.msgqs.items():
@@ -709,6 +752,8 @@ def applicable(sc: Scenario, config: dict) -> tuple:
         return False, "message queues are not configured in this build"
     if sc.workqs and config.get("workqs", "0") != "1":
         return False, "work queues are not configured in this build"
+    if sc.timers and config.get("timers", "0") != "1":
+        return False, "software timers are not configured in this build"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"

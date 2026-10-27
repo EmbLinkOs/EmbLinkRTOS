@@ -68,6 +68,7 @@ COND_QID_BASE = 300             # condition variables 300..
 MSGQ_QID_BASE = 400             # message queues: receivers 400 + 2i, senders 401 + 2i
 WORK_QID_BASE = 500             # work queues: the completion queue of queue q is 500 + q
 K_WORK = 1 << 31                # EMB_NOTIFY_K_WORK with 32-bit notification words (SPEC-006 §2.1)
+TIMER_WORK_BASE = 1000          # the work item embedded in timer t is item 1000 + t
 WORK_IDLE, WORK_PENDING, WORK_RUNNING = 0, 1, 2   # emb_work_state_t; PENDING is "queued"
 
 
@@ -337,6 +338,27 @@ class WorkDone:
     q: int
 
 
+@dataclass(frozen=True)
+class TimerStart:
+    """emb_timer_start(t, first), or emb_timer_start_periodic(t, first, period) when period > 0."""
+    timer: int
+    first: int
+    period: int = 0
+
+
+@dataclass(frozen=True)
+class TimerStop:
+    """emb_timer_stop(t): disarm and drop a queued callback; the result's data is the state found."""
+    timer: int
+
+
+@dataclass(frozen=True)
+class TimerStopSync:
+    """emb_timer_stop_sync(t, timeout): stop in one section, then wait for a running callback."""
+    timer: int
+    timeout: Optional[int] = FOREVER
+
+
 def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     got = bits & mask
     if all_:
@@ -344,10 +366,10 @@ def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     return got
 
 
-NONWAIT_RESULT_OPS = NONWAIT_RESULT_OPS + (Submit,)
+NONWAIT_RESULT_OPS = NONWAIT_RESULT_OPS + (Submit, TimerStart)
 NONWAIT_DATA_OPS = (MsgSendFront, MsgPeek)                        # record a result and data, never wait
 ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear,  # SPEC-001 §5.2: signal-type operations are `thread isr`
-                MsgSendFront, MsgPeek, MsgSend, MsgRecv, Submit, WorkCancel)
+                MsgSendFront, MsgPeek, MsgSend, MsgRecv, Submit, WorkCancel, TimerStart, TimerStop)
 ISR_NO_WAIT_ONLY = (MsgSend, MsgRecv)                             # with EMB_NO_WAIT only (SPEC-007 §1)
 
 
@@ -390,6 +412,7 @@ class Thread:
     msg_value: int = 0                        # a blocked sender's item (the kernel keeps its pointer)
     wq_item: Optional[int] = None             # a queue thread: the item whose handler it runs
     work_target: Optional[tuple] = None       # a completion wait: ("w", item) or ("m", flusher tid)
+    stop_phase: int = 0                       # TimerStopSync: 1 once the stop section ran
     cancel_deferred: bool = False             # cancellation is not delivered (the relock, A41)
 
     def key(self):
@@ -401,7 +424,7 @@ class Thread:
                 self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner,
                 self.collected, self.destroyed, self.cond_phase,
                 None if self.cond_result is None else int(self.cond_result), self.cond_data,
-                self.cancel_deferred, self.msg_value, self.wq_item, self.work_target)
+                self.cancel_deferred, self.msg_value, self.wq_item, self.work_target, self.stop_phase)
 
 
 @dataclass
@@ -485,6 +508,25 @@ class Work:
 
 
 @dataclass
+class Timer:
+    tmid: int
+    isr: bool                                 # EMB_TIMER_ISR_CONTEXT, else its work item runs it on queue q
+    q: Optional[int] = None
+    deadline: Optional[int] = None            # armed when set
+    seq: int = 0                              # arming order among equal deadlines
+    period: int = 0
+    origin: int = 0                           # the first deadline of a periodic start: deadlines stay on its grid
+    expiries: int = 0
+    overruns: int = 0
+    armed_in_pass: bool = False               # armed by this expiry pass: the next pass expires it
+    in_callback: bool = False                 # an ISR_CONTEXT callback runs
+
+    def key(self):
+        return (self.tmid, self.deadline, self.seq, self.period, self.origin, self.expiries, self.overruns,
+                self.armed_in_pass, self.in_callback)
+
+
+@dataclass
 class Workq:
     q: int
     tid: int                                  # the queue's thread
@@ -525,6 +567,8 @@ class Scenario:
     msgqs: dict = field(default_factory=dict)    # qid -> dict(capacity=, policy=, binding=)
     workqs: dict = field(default_factory=dict)   # q -> dict(tid=, prio=): the queue thread
     works: dict = field(default_factory=dict)    # w -> dict(body=ops the handler runs)
+    timers: dict = field(default_factory=dict)   # t -> dict(isr=bool, q=queue, body=callback ops)
+    horizon: Optional[int] = None              # no tick past it while a periodic timer is armed
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
@@ -534,7 +578,7 @@ class Scenario:
 
 def build(sc: Scenario) -> "Kernel":
     k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs),
-               owner_death=sc.owner_death, tickless=sc.tickless)
+               owner_death=sc.owner_death, tickless=sc.tickless, horizon=sc.horizon)
     for tid, (prio, _) in sc.threads.items():
         k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio, inactive=(tid in sc.inactive))
         k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)        # SLEEP / NOTIFY / START
@@ -560,6 +604,13 @@ def build(sc: Scenario) -> "Kernel":
     for w, cfg in sc.works.items():
         k.works[w] = Work(wid=w)
         k.work_bodies[w] = tuple(cfg.get("body", ()))
+    for tm, cfg in sc.timers.items():
+        isr = bool(cfg.get("isr", False))
+        k.timers[tm] = Timer(tmid=tm, isr=isr, q=None if isr else cfg["q"])
+        k.timer_bodies[tm] = tuple(cfg.get("body", ()))
+        if not isr:                                                   # the embedded work item
+            k.works[TIMER_WORK_BASE + tm] = Work(wid=TIMER_WORK_BASE + tm)
+            k.work_bodies[TIMER_WORK_BASE + tm] = k.timer_bodies[tm]
     for mq, cfg in sc.msgqs.items():
         rq, wq = MSGQ_QID_BASE + 2 * mq, MSGQ_QID_BASE + 2 * mq + 1
         k.queues[rq] = WaitQueue(qid=rq, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
@@ -615,6 +666,8 @@ class Kernel:
     works: dict = field(default_factory=dict)
     wq_of_tid: dict = field(default_factory=dict)   # static: queue thread tid -> queue
     work_bodies: dict = field(default_factory=dict)  # static: item -> handler ops
+    timers: dict = field(default_factory=dict)
+    timer_bodies: dict = field(default_factory=dict)  # static: timer -> callback ops
     qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
     ready: dict = field(default_factory=dict)
     current: Optional[int] = None
@@ -630,6 +683,8 @@ class Kernel:
     isr_fired: frozenset = frozenset()
     pi_depth_max: int = 0
     trace: list = field(default_factory=list)
+    in_expiry: bool = False                         # transient: inside a timer's expiry, not part of the key
+    horizon: Optional[int] = None                   # static: the scenario's tick bound for periodic timers
 
     # ------------------------------------------------------------------ state identity
     def key(self):
@@ -642,6 +697,7 @@ class Kernel:
                 tuple(q.key() for _, q in sorted(self.msgqs.items())),
                 tuple(q.key() for _, q in sorted(self.workqs.items())),
                 tuple(w.key() for _, w in sorted(self.works.items())),
+                tuple(t.key() for _, t in sorted(self.timers.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
@@ -660,6 +716,7 @@ class Kernel:
         k.msgqs = {i: copy.copy(q) for i, q in self.msgqs.items()}
         k.workqs = {i: copy.copy(q) for i, q in self.workqs.items()}
         k.works = {i: copy.copy(w) for i, w in self.works.items()}
+        k.timers = {i: copy.copy(t) for i, t in self.timers.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -1380,6 +1437,7 @@ class Kernel:
             w = self.works[entry[1]]
             w.state = WORK_RUNNING
             wq.running = w.wid
+            self._event("work_run", w.wid, 0)
             t.wq_item, t.op_index, t.pc = w.wid, 0, 0                     # the handler's body follows
             return
         if wq.stopping:
@@ -1391,6 +1449,7 @@ class Kernel:
         wq, w = self.workqs[op.q], self.works[t.wq_item]
         if t.owned:
             raise ModelError(f"work item {w.wid} returned owning mutexes {t.owned} (SPEC-006 §6)")
+        self._event("work_run", w.wid, 1)
         wq.running = None
         w.runs += 1
         if w.resubmitted:
@@ -1746,11 +1805,19 @@ class Kernel:
                 res = self._op_unbind(op)
             elif isinstance(op, Submit):
                 res = self._op_submit(op)
+            elif isinstance(op, TimerStart):
+                res = self._op_timer_start(op)
             else:
                 res = self._op_thread_destroy(op)
             self._record(t, res)
             self._advance(t)
             if isinstance(op, Submit):
+                self.reschedule_if_needed()
+        elif isinstance(op, TimerStop):
+            self._record(t, Result.SATISFIED, self._op_timer_stop(op))
+            self._advance(t)
+        elif isinstance(op, TimerStopSync):
+            if self._op_timer_stop_sync(t, op):
                 self.reschedule_if_needed()
         elif isinstance(op, WorkCancel):
             self._record(t, Result.SATISFIED, self._op_work_cancel(op))
@@ -1798,6 +1865,13 @@ class Kernel:
         self.isr_fired = self.isr_fired | {index}
         self.irq_nesting += 1
         for op in self.isr_bodies[index]:
+            self._isr_op(op)
+        self.irq_nesting -= 1
+        self._p1()
+
+    def _isr_op(self, op):
+        """One operation of an interrupt body or of an EMB_TIMER_ISR_CONTEXT callback."""
+        if True:
             if not isinstance(op, ISR_SAFE_OPS):
                 raise ModelError(f"{op!r} is not ISR-safe (SPEC-001 §5.2)")
             if isinstance(op, ISR_NO_WAIT_ONLY) and op.timeout != NO_WAIT:
@@ -1824,22 +1898,120 @@ class Kernel:
                 self._op_submit(op)
             elif isinstance(op, WorkCancel):
                 self._op_work_cancel(op)
-        self.irq_nesting -= 1
-        self._p1()
+            elif isinstance(op, TimerStart):
+                self._op_timer_start(op)
+            elif isinstance(op, TimerStop):
+                self._op_timer_stop(op)
 
     def tick(self):
         self.now += 1
         self._expire_due()
 
     def _expire_due(self):
-        """The timer interrupt: every deadline at or before now, in deadline order."""
+        """The timer interrupt: every deadline at or before now, in deadline order. Timers come
+        from their own list (ADR-047): the earlier head first, a thread timeout first on equal
+        deadlines, and a timer armed by this pass waits for the next one."""
         self.timer_pending = False
         self.irq_nesting += 1
-        while self.timeouts and self.timeouts[0][0] <= self.now:
-            _, _, tid, gen = self.timeouts.pop(0)
-            self.wake_timeout(tid, gen)
+        timers_done = False
+        while True:
+            th = self.timeouts[0] if self.timeouts and self.timeouts[0][0] <= self.now else None
+            tm = None
+            if not timers_done:
+                armed = sorted((t.deadline, t.seq, t.tmid) for t in self.timers.values() if t.deadline is not None)
+                if armed and armed[0][0] <= self.now and (th is None or armed[0][0] < th[0]):
+                    tm = self.timers[armed[0][2]]
+            if tm is not None:
+                if tm.armed_in_pass:
+                    timers_done = True
+                    continue
+                self._timer_expired(tm)
+                continue
+            if th is None:
+                break
+            self.timeouts.pop(0)
+            self.wake_timeout(th[2], th[3])
+        for t in self.timers.values():
+            t.armed_in_pass = False
         self.irq_nesting -= 1
         self._p1()
+
+    # ------------------------------------------------------------------ software timers (SPEC-003 §7, M2-09)
+    def _timer_arm(self, tm: Timer, deadline: int):
+        tm.deadline, tm.seq = deadline, self._next_seq()
+        tm.armed_in_pass = self.irq_nesting > 0 and self.in_expiry
+        if self.tickless and deadline <= self.now:
+            self.timer_pending = True                                 # an already-due compare
+
+    def _timer_expired(self, tm: Timer):
+        tm.expiries += 1
+        if tm.period:
+            nxt = tm.deadline + tm.period                             # from the previous deadline: no drift
+            if nxt <= self.now:                                       # whole periods already past, closed form
+                skip = (self.now - nxt) // tm.period + 1
+                tm.overruns += skip
+                nxt += skip * tm.period
+            self.in_expiry = True
+            self._timer_arm(tm, nxt)                                  # before the callback
+            self.in_expiry = False
+        else:
+            tm.deadline = None
+        self._event("timer_expire", tm.tmid)
+        if tm.isr:
+            tm.in_callback, self.in_expiry = True, True
+            for op in self.timer_bodies[tm.tmid]:
+                self._isr_op(op)
+            tm.in_callback, self.in_expiry = False, False
+            return
+        w = self.works[TIMER_WORK_BASE + tm.tmid]
+        if w.state == WORK_PENDING or (w.state == WORK_RUNNING and w.resubmitted):
+            tm.overruns += 1                                          # coalesced
+        else:
+            self._op_submit(Submit(tm.q, w.wid))
+
+    def _op_timer_start(self, op: TimerStart) -> Result:
+        tm = self.timers[op.timer]
+        tm.deadline = None
+        tm.period = op.period
+        if op.period:
+            tm.origin = self.now + op.first
+        self._timer_arm(tm, self.now + op.first)
+        self._event("timer_start", tm.tmid)
+        return Result.SATISFIED
+
+    def _op_timer_stop(self, op) -> int:
+        tm = self.timers[op.timer]
+        st = WORK_IDLE
+        if tm.deadline is not None:
+            tm.deadline = None
+            st = WORK_PENDING
+        if not tm.isr:
+            was = self._op_work_cancel(WorkCancel(TIMER_WORK_BASE + tm.tmid))
+            if was != WORK_IDLE:
+                st = was
+        if tm.in_callback:
+            st = WORK_RUNNING
+        self._event("timer_stop", tm.tmid, st)
+        return st
+
+    def _op_timer_stop_sync(self, t: Thread, op: TimerStopSync) -> bool:
+        tm = self.timers[op.timer]
+        if t.stop_phase == 0:
+            w = self.works.get(TIMER_WORK_BASE + tm.tmid)
+            if w is not None and w.state == WORK_RUNNING and self.wq_of_tid.get(t.tid) == tm.q:
+                self._finish(t, Result.EPERM)                         # its own callback: misuse
+                return True
+            self._op_timer_stop(op)                                   # the stop section
+            t.stop_phase = 1
+            return False
+        if tm.isr:
+            t.stop_phase = 0
+            self._finish(t, Result.SATISFIED)                         # nothing runs under a thread
+            return True
+        done = self._op_work_cancel_sync(t, WorkCancelSync(TIMER_WORK_BASE + tm.tmid, op.timeout))
+        if done:
+            t.stop_phase = 0
+        return done
 
     def _p1(self):
         if self.irq_nesting == 0 and self.reschedule_pending and self.sched_lock_depth == 0:
@@ -1875,6 +2047,11 @@ class Kernel:
         for s in self.sems.values():                                      # ADR-046: no binding outlives its target
             if s.binding is not None and self.threads[s.binding[0]].destroyed:
                 raise ModelError(f"semaphore {s.sid} is bound to destroyed thread {s.binding[0]}")
+        for tm in self.timers.values():                                   # SPEC-003 §7.4, KRN-TIM-015
+            if tm.period and tm.deadline is not None and (tm.deadline - tm.origin) % tm.period != 0:
+                raise ModelError(f"timer {tm.tmid}: deadline {tm.deadline} drifted off {tm.origin} + k * {tm.period}")
+            if tm.deadline is not None and tm.armed_in_pass:
+                raise ModelError(f"timer {tm.tmid}: the pass marker survived its expiry pass")
         for w in self.works.values():                                     # SPEC-006 §4.3
             places = [(wq.q, e) for wq in self.workqs.values() for e in wq.fifo if e == ("w", w.wid)]
             if (w.state == WORK_PENDING) != (len(places) == 1) or len(places) > 1:
@@ -1980,7 +2157,13 @@ class Kernel:
         for i in range(len(self.isr_bodies)):
             if i not in self.isr_fired:
                 acts.append(("isr", i))
-        if self.timeouts:
+        # A periodic timer keeps a tick enabled forever. The runner advances time only when
+        # idle or by one of its few scheduled ticks, so past the scenario's horizon the model
+        # ticks only while idle.
+        periodic = any(t.deadline is not None and t.period for t in self.timers.values())
+        past = periodic and self.horizon is not None and self.now >= self.horizon
+        if (self.timeouts or any(t.deadline is not None for t in self.timers.values())) and \
+                not (past and self.current is not None):
             acts.append(("tick",))
         return acts
 
@@ -2008,4 +2191,6 @@ class Kernel:
                 ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))),
                 ("events", tuple((eid, e.bits) for eid, e in sorted(self.events.items()))),
                 ("msgqs", tuple((qid, q.ring) for qid, q in sorted(self.msgqs.items()))),
-                ("works", tuple((wid, w.state, w.runs) for wid, w in sorted(self.works.items()))))
+                ("works", tuple((wid, w.state, w.runs) for wid, w in sorted(self.works.items()))),
+                ("timers", tuple((tm, t.expiries, t.overruns, t.deadline is not None)
+                                 for tm, t in sorted(self.timers.items()))))

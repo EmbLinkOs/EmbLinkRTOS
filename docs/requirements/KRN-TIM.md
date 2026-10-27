@@ -41,8 +41,8 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 ### KRN-TIM-005  Defined callback-context semantics
 **Statement.** One-shot and periodic software timers shall have defined callback-context semantics.
 **Rationale.** Callback context confusion is a leading cause of RTOS bugs.
-**Status.** Accepted (v0.1)
-**Verification.** Test: callback context observed with `emb_context()` for default and `ISR_CONTEXT` timers.
+**Status.** Accepted (v0.1); implemented 2026-10-27 (M2-09).
+**Verification.** Test: `timer_isr_context_one_shot_and_periodic_without_drift` observes `EMB_CONTEXT_ISR`, `timer_callback_runs_on_its_work_queue` observes `EMB_CONTEXT_THREAD`.
 **Trace.** v0.1 §7.5; SPEC-003 §7.3
 
 ### KRN-TIM-006  Bounded timer operations
@@ -97,22 +97,22 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 ### KRN-TIM-013  Callbacks on a work queue by default
 **Statement.** Software timer callbacks shall execute by default on a work queue in thread context.
 **Rationale.** Interrupt-context callbacks are dangerous for general code (ADR-019).
-**Status.** Accepted (03 §4.3)
-**Verification.** Test: default timer callback observes `EMB_CONTEXT_THREAD` and runs on the configured queue's thread.
+**Status.** Accepted (03 §4.3); implemented 2026-10-27 (M2-09). The queue is named explicitly (A55).
+**Verification.** Test: `timer_callback_runs_on_its_work_queue`, `timer_init_needs_a_queue_or_isr_context`; model scenario `timer_work_queue_callback`.
 **Trace.** 03 §4.3; SPEC-003 §7.3
 
 ### KRN-TIM-014  ISR-context callbacks are opt-in and bounded
 **Statement.** A timer may be created with `ISR_CONTEXT` only when its callback is declared ISR-safe; such callbacks shall be bounded and shall not block.
 **Rationale.** A few callbacks need interrupt-level latency; the rest must not pay for it or risk it.
-**Status.** Accepted (03 §4.3)
-**Verification.** Test: a blocking call from an `ISR_CONTEXT` callback faults in checked builds.
+**Status.** Accepted (03 §4.3); implemented 2026-10-27 (M2-09).
+**Verification.** Test: `timer_isr_context_one_shot_and_periodic_without_drift`; a blocking call from the callback is refused by the common interrupt-context checks (inspection; no fault-forking case runs in interrupt context).
 **Trace.** 03 §4.3; SPEC-003 §7.3
 
 ### KRN-TIM-015  Periodic re-arm without drift
 **Statement.** One-shot and periodic timers shall be supported; a periodic timer's next expiry shall be computed from the previous expiry, not from callback completion.
 **Rationale.** Re-arming from completion accumulates callback latency into the period.
-**Status.** Accepted (03 §4.3)
-**Verification.** Test: a periodic timer's expiry instants are exact multiples of the period from the first expiry over 10 000 periods on native.
+**Status.** Accepted (03 §4.3); implemented 2026-10-27 (M2-09).
+**Verification.** Test: `timer_isr_context_one_shot_and_periodic_without_drift` (exact spacing), `timer_missed_periods_are_skipped_in_closed_form` (native); model invariant that a periodic deadline stays on its first-expiry grid. The 10 000-period run is not done.
 **Trace.** 03 §4.3; SPEC-003 §7.4
 
 ### KRN-TIM-016  No 64-bit atomics for time
@@ -181,29 +181,29 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 ### KRN-TIM-025  Software timer API
 **Statement.** The kernel shall provide `emb_timer_init`, `emb_timer_destroy`, `emb_timer_start`, `emb_timer_start_at`, `emb_timer_start_periodic`, `emb_timer_stop`, `emb_timer_stop_sync`, `emb_timer_restart`, `emb_timer_is_running`, `emb_timer_remaining`, and `emb_timer_get_counts` with the context classes and bounds of SPEC-003 §7.2. Start, stop, restart, and the queries shall be ISR-safe; `stop_sync` shall be thread-only and blocking with a timeout.
 **Rationale.** Timers are driven from ISRs as often as from threads; teardown needs a synchronous stop.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: API conformance including each function from ISR context where allowed.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-09).
+**Verification.** Test: the `test_timer` suite on every list-scheduler target; ISR use of start and stop in the model scenarios.
 **Trace.** SPEC-003 §7.2
 
 ### KRN-TIM-026  Expiry processing
 **Statement.** At expiry, a work-queue timer shall submit its embedded work item to its configured queue in O(1) without calling application code; an `ISR_CONTEXT` timer shall call its callback directly in the expiry path. Expiry shall never run a work-queue callback in interrupt context.
 **Rationale.** KRN-TIM-013 and 014 at the mechanism level; the expiry path must stay bounded regardless of callback behavior.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: callback context tests; Analysis: expiry path `@time` and stack usage.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-09).
+**Verification.** Test: callback context tests; model scenarios `timer_equal_deadlines_thread_first` and the differential bridge's ordering of expiries; Analysis: one pass per interrupt (ADR-047).
 **Trace.** SPEC-003 §7.3, §7.4
 
 ### KRN-TIM-027  Periodic re-arm and overrun accounting
 **Statement.** A periodic timer shall be re-armed from its previous deadline before its callback is run; whole periods already past at expiry shall be skipped and counted as overruns; an expiry whose work item is still queued from the previous expiry shall coalesce and count as an overrun. Expiry and overrun counts shall be readable and a trace point shall record each overrun.
 **Rationale.** No drift (KRN-TIM-015), no unbounded backlog, and visibility when the system cannot keep up.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: overload and sleep-past-several-periods scenarios on native; counts and trace match the model.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-09).
+**Verification.** Test: `timer_missed_periods_are_skipped_in_closed_form`, `timer_expiries_during_a_long_callback_are_overruns`; model scenario `timer_periodic_overrun_on_long_callback`; counts compared by the differential bridge.
 **Trace.** SPEC-003 §7.4
 
 ### KRN-TIM-028  Timer lifecycle
 **Statement.** Destroying a timer whose callback is pending or running shall be misuse: a kernel fault in checked builds and `EMB_EBUSY` in release builds. `emb_timer_stop` shall report whether the callback was idle, pending, or running; `emb_timer_stop_sync` from the timer's own callback shall be misuse.
 **Rationale.** Use-after-destroy in a work queue is otherwise undetectable.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: misuse suite for timers in both build kinds.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-09).
+**Verification.** Test: `timer_restart_remaining_and_stop_states`, `timer_stop_sync_waits_for_a_running_callback`; model scenario `timer_stop_running_callback_and_stop_sync`.
 **Trace.** SPEC-003 §7.5; KRN-OBJ-001
 
 ### KRN-TIM-029  Time slicing quantum as a deadline

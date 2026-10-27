@@ -8,6 +8,7 @@
 #include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
+#include <embk/timer.h>
 #include <embk/work.h>
 
 #include <stdalign.h>
@@ -139,6 +140,12 @@ void emb_native_abi_probe(void)
     TYPE(cond, embk_cond_t);
     FIELD(cond_obj, embk_cond_t, obj);
     FIELD(cond_waiters, embk_cond_t, waiters);
+#endif
+#if CONFIG_EMB_TIMER
+    TYPE(timer, embk_timer_t);
+    FIELD(timer_node, embk_timer_t, node);
+    FIELD(timer_period, embk_timer_t, period);
+    FIELD(timer_expiries, embk_timer_t, expiries);
 #endif
 #if CONFIG_EMB_WORKQ
     TYPE(work, embk_work_t);

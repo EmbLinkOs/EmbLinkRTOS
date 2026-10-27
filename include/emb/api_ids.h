@@ -128,5 +128,17 @@
 #define EMB_API_ID_WORK_CANCEL                   0x007Au
 #define EMB_API_ID_WORK_CANCEL_SYNC              0x007Bu
 #define EMB_API_ID_WORK_STATE                    0x007Cu
+#define EMB_API_ID_TIMER_ATTR_DEFAULT            0x007Du
+#define EMB_API_ID_TIMER_INIT                    0x007Eu
+#define EMB_API_ID_TIMER_DESTROY                 0x007Fu
+#define EMB_API_ID_TIMER_START                   0x0080u
+#define EMB_API_ID_TIMER_START_AT                0x0081u
+#define EMB_API_ID_TIMER_START_PERIODIC          0x0082u
+#define EMB_API_ID_TIMER_RESTART                 0x0083u
+#define EMB_API_ID_TIMER_STOP                    0x0084u
+#define EMB_API_ID_TIMER_STOP_SYNC               0x0085u
+#define EMB_API_ID_TIMER_IS_RUNNING              0x0086u
+#define EMB_API_ID_TIMER_REMAINING               0x0087u
+#define EMB_API_ID_TIMER_GET_COUNTS              0x0088u
 
 #endif /* EMB_API_IDS_H */

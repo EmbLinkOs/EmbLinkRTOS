@@ -575,3 +575,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** M1 images and traces are unchanged, and the footprint of an image that does not use work queues does not grow. An application that references the system queue from a translation unit also gets its stack; one that only creates its own queues does not. Work queue destroy blocks until the thread has switched out, so it is thread-only. KRN-WQ-008's "exists from kernel start" holds for every image that can name the queue. The table scheduler has no work queues in M2 (A53).
 
 **Status.** Implemented for review, 2026-10-27, as part of M2-08; awaiting project-owner review.
+
+## ADR-047 Software timers keep their own deadline list
+
+**Context.** SPEC-003 §5 gives every thread one intrusive timeout node in one deadline list, and its expiry loop wakes the thread that owns each node. Software timers need the same ordered expiry, but a timer node is not a thread: sharing the list means tagging every node with its kind, testing the tag on the thread timeout path that M1 measured and traced, and letting timers reorder thread timeouts at equal deadlines. A periodic timer also re-arms during the expiry pass and its callback may start timers there, which a single loop over "every node due at now" could expire again and again in one pass.
+
+**Decision.** Timers have their own deadline list, protected by the same timeout lock. The expiry pass takes the earlier of the two heads; on equal deadlines the thread timeout goes first, and each list keeps arming order. Each timer records the pass that armed it, and a timer armed during the current pass (a callback restarting a timer with a deadline already past) waits for the next pass. The next-deadline computation for tickless programming takes the earlier head. A periodic timer re-arms from its previous deadline before its callback, skipping whole missed periods in closed form.
+
+**Alternatives.** One list with a kind tag costs a byte or a pointer test per node on every thread timeout and changes M1's insertion order. A timing wheel is a drop-in alternative behind the same interface where measurements show the list walk on the critical path (KRN-TIM-021); nothing shows that yet. Bounding a pass by a counter instead of the pass marker would cut off due nodes arbitrarily.
+
+**Consequences.** With `CONFIG_EMB_TIMER=n` the thread timeout path is the M1 code. Arming a timer is O(armed timers); stopping is O(1). A timer restarted already due from its own ISR-context callback expires one pass later: at the next tick in periodic mode, at once by the reprogrammed compare in tickless mode. The table scheduler's singly linked list has no timer list, and timers are off with it in M2.
+
+**Status.** Implemented for review, 2026-10-27, as part of M2-09; awaiting project-owner review.

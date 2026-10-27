@@ -678,3 +678,64 @@ def work_flush_waits_for_running_handler():
 WORKQ = [work_fifo_and_idempotent_submit, work_resubmit_while_running, work_cancel_states, work_flush_and_timeout,
          work_isr_submit, workq_destroy_joins_its_thread, work_flush_waits_for_running_handler]
 ALL = ALL + WORKQ
+
+
+# ---------------------------------------------------------------------------------------
+# M2-09: software timers (SPEC-003 §7): ISR_CONTEXT callbacks run their operations in the
+# expiry pass; work queue callbacks run on queue 0's thread 9
+# ---------------------------------------------------------------------------------------
+from embmodel import TimerStart, TimerStop, TimerStopSync  # noqa: E402
+
+
+def timer_one_shot_isr_context():
+    """A one-shot ISR_CONTEXT timer gives the semaphore its thread waits on."""
+    return Scenario(name="timer_one_shot_isr_context",
+                    threads={1: (1, (TimerStart(0, 2), Take(0)))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))})
+
+
+def timer_periodic_isr_stopped_by_thread():
+    """A periodic timer expires on its grid until the thread stops it; a late stop sees one more."""
+    return Scenario(name="timer_periodic_isr_stopped_by_thread",
+                    threads={1: (1, (TimerStart(0, 1, 2), Take(0), Take(0), TimerStop(0)))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))}, horizon=10)
+
+
+def timer_equal_deadlines_thread_first():
+    """A thread timeout and a timer due at the same tick: the thread's expires first."""
+    return Scenario(name="timer_equal_deadlines_thread_first",
+                    threads={1: (1, (TimerStart(0, 2), Sleep(2))), 2: (3, (Take(0),))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))})
+
+
+def timer_work_queue_callback():
+    """A timer's callback runs on its work queue's thread."""
+    return Scenario(name="timer_work_queue_callback",
+                    threads={1: (1, (TimerStart(0, 2), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Give(0),))})
+
+
+def timer_stop_running_callback_and_stop_sync():
+    """stop reports a running callback; stop_sync waits until it returns."""
+    return Scenario(name="timer_stop_running_callback_and_stop_sync",
+                    threads={1: (1, (TimerStart(0, 1), Sleep(2), TimerStop(0), TimerStopSync(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Sleep(2),))})
+
+
+def timer_periodic_overrun_on_long_callback():
+    """Expiries that find the callback's rerun already due are overruns, not extra runs."""
+    return Scenario(name="timer_periodic_overrun_on_long_callback",
+                    threads={1: (1, (TimerStart(0, 1, 1), Sleep(4), TimerStopSync(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Sleep(2),))}, horizon=10)
+
+
+TIMER = [timer_one_shot_isr_context, timer_periodic_isr_stopped_by_thread, timer_equal_deadlines_thread_first,
+         timer_work_queue_callback, timer_stop_running_callback_and_stop_sync, timer_periodic_overrun_on_long_callback]
+ALL = ALL + TIMER

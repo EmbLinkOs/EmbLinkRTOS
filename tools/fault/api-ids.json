@@ -745,6 +745,78 @@
       "name": "emb_work_state",
       "header": "work.h",
       "state": "active"
+    },
+    {
+      "id": 125,
+      "name": "emb_timer_attr_default",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 126,
+      "name": "emb_timer_init",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 127,
+      "name": "emb_timer_destroy",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 128,
+      "name": "emb_timer_start",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 129,
+      "name": "emb_timer_start_at",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 130,
+      "name": "emb_timer_start_periodic",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 131,
+      "name": "emb_timer_restart",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 132,
+      "name": "emb_timer_stop",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 133,
+      "name": "emb_timer_stop_sync",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 134,
+      "name": "emb_timer_is_running",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 135,
+      "name": "emb_timer_remaining",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 136,
+      "name": "emb_timer_get_counts",
+      "header": "timer.h",
+      "state": "active"
     }
   ]
 }

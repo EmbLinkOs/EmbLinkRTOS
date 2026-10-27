@@ -55,9 +55,12 @@ enum emb_trace_id {
     EMB_TRACE_MSGQ_RECEIVE = 36, /* a0 = index, a1 = queue address, a2 = status */
     EMB_TRACE_WORK_SUBMIT = 37,  /* a0 = queue thread index, a1 = item address, a2 = status */
     EMB_TRACE_WORK_RUN = 38, /* a0 = queue thread index, a1 = item address, a2 = 0 start, 1 end */
-    EMB_TRACE_WORK_CANCEL = 39, /* a0 = index or 0xFF, a1 = item address, a2 = state it was in */
-    EMB_TRACE_WORK_WAIT = 40    /* a0 = index, a1 = item or queue, a2 = status (cancel_sync, flush,
-                                   destroy) */
+    EMB_TRACE_WORK_CANCEL = 39,  /* a0 = index or 0xFF, a1 = item address, a2 = state it was in */
+    EMB_TRACE_WORK_WAIT = 40,    /* a0 = index, a1 = item or queue, a2 = status (cancel_sync, flush,
+                                    destroy, timer stop_sync) */
+    EMB_TRACE_TIMER_EXPIRE = 41, /* a0 = periods skipped, a1 = timer address, a2 = expiries */
+    EMB_TRACE_TIMER_START = 42,  /* a0 = deadline low word, a1 = timer address, a2 = period */
+    EMB_TRACE_TIMER_STOP = 43    /* a0 = index or 0xFF, a1 = timer address, a2 = state found */
 };
 
 typedef struct emb_trace_event {

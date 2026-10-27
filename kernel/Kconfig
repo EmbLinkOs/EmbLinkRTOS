@@ -241,6 +241,19 @@ config EMB_IPC_SMALL
 
 endmenu
 
+menu "Software timers"
+
+config EMB_TIMER
+	bool "Software timers (SPEC-003 §7)"
+	depends on !EMB_SCHED_TABLE
+	default y
+	help
+	  One-shot and periodic timers whose callbacks run on a work queue, or in the expiry
+	  interrupt with EMB_TIMER_ISR_CONTEXT. The tiny profile's table scheduler has no
+	  timers in M2.
+
+endmenu
+
 menu "Work queues"
 
 config EMB_WORKQ
