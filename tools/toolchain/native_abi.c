@@ -8,6 +8,7 @@
 #include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
+#include <embk/work.h>
 
 #include <stdalign.h>
 #include <stddef.h>
@@ -138,6 +139,15 @@ void emb_native_abi_probe(void)
     TYPE(cond, embk_cond_t);
     FIELD(cond_obj, embk_cond_t, obj);
     FIELD(cond_waiters, embk_cond_t, waiters);
+#endif
+#if CONFIG_EMB_WORKQ
+    TYPE(work, embk_work_t);
+    FIELD(work_node, embk_work_t, node);
+    FIELD(work_state, embk_work_t, state);
+    TYPE(workq, embk_workq_t);
+    FIELD(workq_thread, embk_workq_t, thread);
+    FIELD(workq_fifo, embk_workq_t, fifo);
+    FIELD(workq_done_q, embk_workq_t, done_q);
 #endif
 #if CONFIG_EMB_MSGQ
     TYPE(msgq, embk_msgq_t);

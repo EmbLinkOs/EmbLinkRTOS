@@ -118,5 +118,15 @@
 #define EMB_API_ID_MSGQ_FREE                     0x0070u
 #define EMB_API_ID_MSGQ_BIND_NOTIFY              0x0071u
 #define EMB_API_ID_MSGQ_UNBIND_NOTIFY            0x0072u
+#define EMB_API_ID_WORKQ_ATTR_DEFAULT            0x0073u
+#define EMB_API_ID_WORKQ_INIT                    0x0074u
+#define EMB_API_ID_WORKQ_DESTROY                 0x0075u
+#define EMB_API_ID_WORKQ_FLUSH                   0x0076u
+#define EMB_API_ID_WORKQ_SYSTEM                  0x0077u
+#define EMB_API_ID_WORK_INIT                     0x0078u
+#define EMB_API_ID_WORK_SUBMIT                   0x0079u
+#define EMB_API_ID_WORK_CANCEL                   0x007Au
+#define EMB_API_ID_WORK_CANCEL_SYNC              0x007Bu
+#define EMB_API_ID_WORK_STATE                    0x007Cu
 
 #endif /* EMB_API_IDS_H */

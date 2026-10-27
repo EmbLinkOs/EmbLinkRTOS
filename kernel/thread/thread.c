@@ -149,52 +149,33 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr)
     out_attr->reserved_ = 0u;
 }
 
-emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_attr_t *attr,
-                             emb_thread_entry_t entry, void *arg, emb_thread_t *out_thread)
+/* The checks and construction an application thread and a kernel thread share (SPEC-008
+ * §4); @api_id names the caller's API in faults, @kernel marks a kernel thread. */
+static emb_status_t thread_construct(uint16_t api_id, embk_thread_t *t,
+                                     const emb_thread_attr_t *attr, emb_thread_entry_t entry,
+                                     void *arg, bool kernel)
 {
-    embk_thread_t *t;
     emb_irq_key_t key;
     uint8_t index;
 
-    if (out_thread != NULL) {
-        out_thread->raw = 0u;
-    }
-    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_THREAD_INIT);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, embk_cpu.kernel_state != EMBK_KERNEL_UNINIT,
-                     EMB_FAULT_API_LIFECYCLE, EMB_ESTATE, 0u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
-                     1u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, attr != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, entry != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, out_thread != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
-                     5u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
+    EMBK_API_REQUIRE(api_id,
                      attr->priority >= EMB_PRIORITY_MIN && attr->priority <= EMB_PRIORITY_MAX,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
-                     attr->stack != NULL &&
-                         ((uintptr_t)attr->stack % (uintptr_t)EMB_STACK_ALIGN) == 0u,
-                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(
+        api_id, attr->stack != NULL && ((uintptr_t)attr->stack % (uintptr_t)EMB_STACK_ALIGN) == 0u,
+        EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     {
         size_t min_stack = EMB_THREAD_STACK_MIN;
         if (min_stack < EMBK_STACK_GUARD_BYTES + (size_t)CONFIG_EMB_ARCH_CONTEXT_FRAME) {
             min_stack = EMBK_STACK_GUARD_BYTES + (size_t)CONFIG_EMB_ARCH_CONTEXT_FRAME;
         }
-        EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, attr->stack_size >= min_stack,
-                         EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+        EMBK_API_REQUIRE(api_id, attr->stack_size >= min_stack, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                         2u);
     }
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_THREAD_STORAGE_ALIGN) == 0u,
-                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMB_STATIC_ASSERT(sizeof(embk_thread_t) <= EMB_THREAD_STORAGE_SIZE,
-                      "generated storage too small");
-
-    t = (embk_thread_t *)(void *)
-        storage; /* the storage union is sized and aligned for it (CS-4.5) */
     key = embk_lock_sched();
     if (storage_is_live(t)) {
         embk_unlock_sched(key);
-        EMBK_API_MISUSE(EMB_API_ID_THREAD_INIT, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
     }
 #if CONFIG_EMB_SCHED_TABLE
     if (EMBK_TABLE_SLOT(attr->priority) != NULL) {
@@ -214,14 +195,16 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     t->eff_prio = attr->priority;
     t->wait_state = EMBK_WAIT_BLOCKED; /* INACTIVE: BLOCKED with reason START (KRN-THR-009) */
     t->wait_reason = EMB_WAIT_REASON_START;
-    t->tflags = 0u;
+    t->tflags = kernel ? EMBK_THREAD_KERNEL : 0u;
     if ((attr->flags & EMB_THREAD_DETACHED) != 0u) {
         t->tflags |= EMBK_THREAD_DETACHED;
     }
     if ((attr->flags & EMB_THREAD_CRITICAL) != 0u) {
         t->tflags |= EMBK_THREAD_CRITICAL;
     }
-    t->cancel_disable = ((attr->flags & EMB_THREAD_CANCEL_DISABLED) != 0u) ? 1u : 0u;
+    t->cancel_disable = kernel                                               ? UINT8_MAX
+                        : ((attr->flags & EMB_THREAD_CANCEL_DISABLED) != 0u) ? 1u
+                                                                             : 0u;
     t->stack_base = (uint8_t *)attr->stack;
     t->stack_size = attr->stack_size;
 #if CONFIG_EMB_CHECKED || CONFIG_EMB_STACK_STATS
@@ -237,17 +220,46 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     embk_list_append(&embk_thread_all, &t->all_node);
 #endif
     embk_unlock_sched(key);
-    *out_thread = embk_thread_handle(t);
     EMBK_TRACE(EMB_TRACE_THREAD_INIT, embk_thread_index(t), attr->priority, 0u);
     return EMB_OK;
 }
 
-emb_status_t emb_thread_start(emb_thread_t thread)
+emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_attr_t *attr,
+                             emb_thread_entry_t entry, void *arg, emb_thread_t *out_thread)
 {
-    embk_thread_t *t = embk_thread_from_handle(thread);
-    emb_irq_key_t key;
-    EMBK_API_REQUIRE(EMB_API_ID_THREAD_START, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    key = embk_lock_sched();
+    embk_thread_t *t;
+    emb_status_t st;
+
+    if (out_thread != NULL) {
+        out_thread->raw = 0u;
+    }
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_THREAD_INIT);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, embk_cpu.kernel_state != EMBK_KERNEL_UNINIT,
+                     EMB_FAULT_API_LIFECYCLE, EMB_ESTATE, 0u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     1u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, attr != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, entry != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, out_thread != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     5u);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
+                     ((uintptr_t)storage % (uintptr_t)EMB_THREAD_STORAGE_ALIGN) == 0u,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    EMB_STATIC_ASSERT(sizeof(embk_thread_t) <= EMB_THREAD_STORAGE_SIZE,
+                      "generated storage too small");
+
+    t = (embk_thread_t *)(void *)
+        storage; /* the storage union is sized and aligned for it (CS-4.5) */
+    st = thread_construct(EMB_API_ID_THREAD_INIT, t, attr, entry, arg, false);
+    if (st == EMB_OK) {
+        *out_thread = embk_thread_handle(t);
+    }
+    return st;
+}
+
+static emb_status_t thread_start(embk_thread_t *t)
+{
+    emb_irq_key_t key = embk_lock_sched();
     if ((t->tflags & EMBK_THREAD_STARTED) != 0u) {
         embk_unlock_sched(key);
         return EMB_ESTATE;
@@ -264,6 +276,13 @@ emb_status_t emb_thread_start(emb_thread_t thread)
     return EMB_OK;
 }
 
+emb_status_t emb_thread_start(emb_thread_t thread)
+{
+    embk_thread_t *t = embk_thread_from_handle(thread);
+    EMBK_API_REQUIRE(EMB_API_ID_THREAD_START, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    return thread_start(t);
+}
+
 emb_thread_t emb_thread_self(void)
 {
     emb_thread_t h;
@@ -276,16 +295,12 @@ emb_thread_t emb_thread_self(void)
 
 /* ---- termination (SPEC-008 §5) ------------------------------------------------------ */
 
-void emb_thread_exit(int code)
+static EMB_NORETURN void thread_exit(int code)
 {
-    embk_thread_t *self;
+    embk_thread_t *self = embk_cpu.current;
     embk_thread_t *joiner;
     emb_irq_key_t key;
 
-    if (!embk_in_thread() || embk_cpu.current == EMBK_IDLE) {
-        embk_fault_raise_api(EMB_API_ID_THREAD_EXIT, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
-    }
-    self = embk_cpu.current;
     key = embk_lock_sched();
     self->cancel_disable = UINT8_MAX; /* step 1: no further delivery */
 #if CONFIG_EMB_MUTEX
@@ -312,6 +327,15 @@ void emb_thread_exit(int code)
     self->wait_state = EMBK_WAIT_READY;
     (void)key;
     embk_sched_switch_final(); /* step 5 is the port's switch-out completion */
+}
+
+void emb_thread_exit(int code)
+{
+    /* idle and the work queue threads are kernel threads: they never exit on request */
+    if (!embk_in_thread() || (embk_cpu.current->tflags & EMBK_THREAD_KERNEL) != 0u) {
+        embk_fault_raise_api(EMB_API_ID_THREAD_EXIT, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
+    }
+    thread_exit(code);
 }
 
 void embk_thread_launch(emb_thread_entry_t entry, void *arg)
@@ -805,6 +829,19 @@ void emb_thread_foreach(emb_thread_visit_t cb, void *arg)
 }
 #endif
 
+/* The end of a thread object: its identity and table slot are free again. */
+static void thread_release_locked(embk_thread_t *t)
+{
+#if CONFIG_EMB_THREAD_LIST
+    embk_list_remove(&t->all_node);
+#endif
+#if CONFIG_EMB_SCHED_TABLE
+    EMBK_TABLE_SLOT(t->base_prio) = NULL;
+#endif
+    index_release(embk_thread_index(t));
+    t->obj.state = EMBK_OBJ_UNINIT;
+}
+
 emb_status_t emb_thread_destroy(emb_thread_t thread)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
@@ -825,14 +862,36 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
         embk_unlock_sched(key);
         EMBK_API_MISUSE(EMB_API_ID_THREAD_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
     }
-#if CONFIG_EMB_THREAD_LIST
-    embk_list_remove(&t->all_node);
-#endif
-#if CONFIG_EMB_SCHED_TABLE
-    EMBK_TABLE_SLOT(t->base_prio) = NULL;
-#endif
-    index_release(embk_thread_index(t));
-    t->obj.state = EMBK_OBJ_UNINIT;
+    thread_release_locked(t);
     embk_unlock_sched(key);
     return EMB_OK;
 }
+
+#if CONFIG_EMB_WORKQ
+/* ---- kernel threads (the work queues' threads, SPEC-006 §4) ------------------------- */
+
+emb_status_t embk_thread_init_kernel(uint16_t api_id, embk_thread_t *t,
+                                     const emb_thread_attr_t *attr, emb_thread_entry_t entry,
+                                     void *arg)
+{
+    emb_status_t st = thread_construct(api_id, t, attr, entry, arg, true);
+    if (st == EMB_OK) {
+        (void)thread_start(t);
+    }
+    return st;
+}
+
+void embk_thread_exit_kernel(void)
+{
+    thread_exit(0);
+}
+
+void embk_thread_destroy_kernel(embk_thread_t *t)
+{
+    emb_irq_key_t key = embk_lock_sched();
+    /* joined, and switched out before its joiner ran */
+    EMBK_ASSERT((t->tflags & EMBK_THREAD_JOINED) != 0u && emb_arch_switch_out_done(t));
+    thread_release_locked(t);
+    embk_unlock_sched(key);
+}
+#endif

@@ -15,7 +15,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **batch_wake**: waiters woken at once (destroy with EMB_OBJ_ABORT_WAITERS) | the waiters of the destroyed object | as for waiters | structural | yes | one section, one reschedule at the end | SPEC-004 §6.7; KRN-OBJ-001 |
 | **thread_ids**: diagnostic identity scan at thread init | 254 IDs on list profiles, CONFIG_EMB_PRIORITY_COUNT - 1 on tiny | fixed per profile; EMB_ENOMEM beyond it | admission | yes | bitmap scan from the lowest ID | ADR-043; m2-02-thread-identity.md |
 | **live_threads**: threads on the all-threads list | at most 254 (the ID space) | CONFIG_EMB_THREAD_LIST; the ID admission | admission | yes | base only (no list on tiny); walked by thread init and emb_thread_foreach | SPEC-008 §12; ADR-045 |
-| **active_objects**: active objects of one type (semaphores, mutexes, event flags, condition variables, message queues) | not limited by the kernel: the objects the application initializes | application | application | yes | with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init | ADR-045; m2-02-object-lifecycle.md |
+| **active_objects**: active objects of one type (semaphores, mutexes, event flags, condition variables, message queues, work queues) | not limited by the kernel: the objects the application initializes | application | application | yes | with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init | ADR-045; m2-02-object-lifecycle.md |
 | **item_copy**: bytes copied for one message queue operation | at most two items (a receive that refills from a waiting sender), each item_size bytes | CONFIG_EMB_MSGQ_MAX_ITEM (default 64, tiny 16); init refuses a larger item_size | configuration | yes | a byte loop under the object lock on every profile | SPEC-007 §2.2, KRN-IPC-011; tests/conformance/test_msgq.c |
 | **stack**: bytes of one thread's stack | the stack size the application supplied | application | application | no | the high-water scan exists only with CONFIG_EMB_STACK_STATS; init fills the stack in checked and statistics builds | SPEC-008 §10; KRN-MEM-009 |
 | **init_table**: entries of the initialization table | the EMB_*_DEFINE objects linked into the image | application, fixed at link time | application | no | prekernel only | KRN-OBJ-009 |
@@ -70,3 +70,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_thread_sleep()` | O(timeouts) arm | timeouts |
 | `emb_thread_sleep_until()` | O(timeouts) arm | timeouts |
 | `emb_thread_stack_info()` | O(stack) scan with statistics on | stack |
+| `emb_work_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_work_submit()` | O(1), plus the queue thread's wake | timeouts, reschedule |
+| `emb_workq_destroy()` | O(1) plus the queue thread's exit | timeouts, reschedule |
+| `emb_workq_flush()` | O(1) enqueue of a marker; O(waiters + timeouts) finite wait enqueue | waiters, timeouts, reschedule |
+| `emb_workq_init()` | as emb_thread_init(); O(active work queues) list lookup with CONFIG_EMB_OBJ_LIST | thread_ids, live_threads, stack, active_objects |

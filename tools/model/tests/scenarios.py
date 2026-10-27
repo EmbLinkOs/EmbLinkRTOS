@@ -604,3 +604,77 @@ MSGQ = [msgq_fifo_order, msgq_receiver_handoff, msgq_send_front_and_peek, msgq_i
         msgq_isr_recv_frees_a_slot, msgq_sender_timeout_and_cancel, msgq_destroy_aborts_both_sides,
         msgq_binding_on_empty_to_nonempty, msgq_refill_does_not_signal_binding]
 ALL = ALL + MSGQ
+
+
+# ---------------------------------------------------------------------------------------
+# M2-08: work queues (SPEC-006 §4): a queue thread drains a FIFO of items whose handlers run
+# model operations; thread 9 is the queue's thread
+# ---------------------------------------------------------------------------------------
+from embmodel import Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy  # noqa: E402
+
+
+def work_fifo_and_idempotent_submit():
+    """Items run in submission order on the queue thread; a second submit of a queued item is EEXIST."""
+    return Scenario(name="work_fifo_and_idempotent_submit",
+                    threads={1: (2, (Submit(0, 0), Submit(0, 0), Submit(0, 1), Take(0), Take(1)))},
+                    sems={0: dict(count=0), 1: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Give(0),)), 1: dict(body=(Give(1),))})
+
+
+def work_resubmit_while_running():
+    """A submit while the handler runs is not lost: the item runs again after it returns."""
+    return Scenario(name="work_resubmit_while_running",
+                    threads={1: (1, (Submit(0, 0), Submit(0, 0), Take(0), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Sleep(1), Give(0)))})
+
+
+def work_cancel_states():
+    """cancel reports PENDING for a queued item, IDLE after, and RUNNING for a running handler;
+    cancel_sync then waits for that handler to return."""
+    return Scenario(name="work_cancel_states",
+                    threads={1: (2, (Submit(0, 0), WorkCancel(0), WorkCancel(0), Submit(0, 0), Sleep(1),
+                                     WorkCancel(0), WorkCancelSync(0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Sleep(3),))})
+
+
+def work_flush_and_timeout():
+    """A flush returns once everything queued before it ran; a timed-out flush leaves no marker."""
+    return Scenario(name="work_flush_and_timeout",
+                    threads={1: (2, (Submit(0, 0), WorkFlush(0, 1), Submit(0, 1), WorkFlush(0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Sleep(2),)), 1: dict(body=())})
+
+
+def work_isr_submit():
+    """An ISR submits at any point: the item runs exactly once."""
+    return Scenario(name="work_isr_submit",
+                    threads={1: (2, (Take(0, 4),))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Give(0),))},
+                    isrs=((Submit(0, 0),),))
+
+
+def workq_destroy_joins_its_thread():
+    """Destroy of an idle queue stops its thread and returns after the thread exited."""
+    return Scenario(name="workq_destroy_joins_its_thread",
+                    threads={1: (2, (Submit(0, 0), WorkFlush(0), WorkqDestroy(0), Submit(0, 0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=())})
+
+
+def work_flush_waits_for_running_handler():
+    """A flush while a handler runs and nothing else is queued waits for that handler."""
+    return Scenario(name="work_flush_waits_for_running_handler",
+                    threads={1: (1, (Submit(0, 0), WorkFlush(0), WorkCancel(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Sleep(2),))})
+
+
+WORKQ = [work_fifo_and_idempotent_submit, work_resubmit_while_running, work_cancel_states, work_flush_and_timeout,
+         work_isr_submit, workq_destroy_joins_its_thread, work_flush_waits_for_running_handler]
+ALL = ALL + WORKQ

@@ -10,6 +10,7 @@ granularity and checks the invariants of SPEC-004 §5.4 after every step.
 """
 from .kernel import (  # noqa: F401
     BindNotify, Cancel, CondBroadcast, MsgDestroy, MsgPeek, MsgRecv, MsgSend, MsgSendFront,
+    Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy, K_WORK, WORK_IDLE, WORK_PENDING, WORK_RUNNING,
     NONWAIT_DATA_OPS, CondDestroy, CondSignal, CondWait, Destroy, EventClear, EventDestroy, EventSet, EventWait, Exit, Give, Join,
     NONWAIT_RESULT_OPS, ThreadDestroy, UnbindNotify, Kernel, Lock, ModelError, Mutex, NotifySet, NotifyWait, Policy,
     Protocol, Reason, Result, Resume, Start, SchedLock, SchedUnlock, Scenario, SetPrio, Sleep, Suspend, Take, Thread,

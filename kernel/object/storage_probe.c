@@ -10,6 +10,7 @@
 #include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
+#include <embk/work.h>
 
 #include <stdalign.h>
 
@@ -38,5 +39,9 @@ void embk_storage_probe(void)
 #endif
 #if CONFIG_EMB_MSGQ
     PROBE(msgq, embk_msgq_t);
+#endif
+#if CONFIG_EMB_WORKQ
+    PROBE(work, embk_work_t);
+    PROBE(workq, embk_workq_t);
 #endif
 }

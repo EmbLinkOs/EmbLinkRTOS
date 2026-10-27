@@ -35,6 +35,11 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
     EMBK_API_REQUIRE(EMB_API_ID_NOTIFY_SET, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+#if CONFIG_EMB_WORKQ
+    /* a work queue thread's word belongs to the kernel (SPEC-006 §5) */
+    EMBK_API_REQUIRE(EMB_API_ID_NOTIFY_SET, (t->tflags & EMBK_THREAD_KERNEL) == 0u,
+                     EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+#endif
     EMBK_API_REQUIRE(EMB_API_ID_NOTIFY_SET,
                      bits != 0u && (bits & (emb_notify_bits_t)~EMB_NOTIFY_APP_MASK) == 0u,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);

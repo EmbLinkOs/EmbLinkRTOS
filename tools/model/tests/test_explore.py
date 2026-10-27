@@ -443,3 +443,66 @@ class MessageQueues(unittest.TestCase):
             self.assertEqual([(r[1], r[2]) for r in d[2]],
                              [(Result.SATISFIED, 1), (Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
             self.assertEqual(q[0], (2,))
+
+
+class WorkQueues(unittest.TestCase):
+    """M2-08 (SPEC-006 §4): serial FIFO execution, idempotent submit, resubmission while running,
+    cancel states, cancel_sync and flush completion, and destroy joining the queue thread. The
+    item-state invariants are checked in every explored state."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {w: (s, n) for w, s, n in dict(o)["works"]})
+                for o in explore(make()).outcomes]
+
+    def test_every_workq_scenario_holds_invariants(self):
+        for make in S.WORKQ:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_fifo_and_idempotent_submit(self):
+        for d, w in self.outcomes(S.work_fifo_and_idempotent_submit):
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED, Result.EXIST] + [Result.SATISFIED] * 3)
+            self.assertEqual(w, {0: (0, 1), 1: (0, 1)})
+
+    def test_resubmit_while_running_runs_again(self):
+        for d, w in self.outcomes(S.work_resubmit_while_running):
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 4)
+            self.assertEqual(w[0], (0, 2))
+
+    def test_cancel_reports_each_state(self):
+        seen = set()
+        for d, w in self.outcomes(S.work_cancel_states):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            self.assertEqual(res[1], (Result.SATISFIED, 1))           # PENDING: unlinked
+            self.assertEqual(res[2], (Result.SATISFIED, 0))           # IDLE
+            seen.add(res[5][1])                                       # RUNNING, or PENDING if T1 woke first
+            self.assertEqual(res[6][0], Result.SATISFIED)             # cancel_sync: done or waited for it
+            self.assertEqual(w[0], (0, 1 if res[5][1] == 2 else 0))
+        self.assertEqual(seen, {1, 2})
+
+    def test_flush_waits_and_a_timed_out_flush_leaves_no_marker(self):
+        for d, w in self.outcomes(S.work_flush_and_timeout):
+            res = {r[0]: r[1] for r in d[1]}
+            self.assertEqual(res[1], Result.TIMEOUT)
+            self.assertEqual(res[3], Result.SATISFIED)
+            self.assertEqual(w, {0: (0, 1), 1: (0, 1)})
+
+    def test_isr_submit_runs_once(self):
+        seen = set()
+        for d, w in self.outcomes(S.work_isr_submit):
+            seen.add(d[1][0][1])
+            self.assertEqual(w[0][1], 1)
+        self.assertIn(Result.SATISFIED, seen)
+
+    def test_destroy_joins_the_queue_thread(self):
+        for o in explore(S.workq_destroy_joins_its_thread()).outcomes:
+            d = dict(dict(o)["threads"])
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 3 + [Result.STALE])
+
+    def test_flush_waits_for_a_running_handler(self):
+        for d, w in self.outcomes(S.work_flush_waits_for_running_handler):
+            self.assertEqual([(r[1], r[2]) for r in d[1]],
+                             [(Result.SATISFIED, 0), (Result.SATISFIED, 0), (Result.SATISFIED, 0)])  # idle after
+            self.assertEqual(w[0], (0, 1))
