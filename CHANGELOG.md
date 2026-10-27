@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Executed case evidence (M2-04): conformance runs print each case's requirement citations and outcome with assertion and skip counts; `tools/evidence/collect.py` gathers them from the CTest log of any port, CI uploads them per configuration, and `tools/evidence/matrix.py` derives the requirement-by-configuration matrix from executed, asserting cases only.
+
 - `emb_sem_unbind_notify()` (KRN-NOTIF-013). A thread counts the bindings that name it, and `emb_thread_destroy()` refuses it while any does; `emb_sem_bind_notify()` refuses terminated (`EMB_ESTATE`) and kernel (`EMB_EPERM`) targets (KRN-NOTIF-014, ADR-046). The reference model and the differential bridge cover bind, unbind and thread destroy.
 
 - `CONFIG_EMB_OBJ_LIST`: per-type lists of active semaphores and mutexes (KRN-OBJ-011).

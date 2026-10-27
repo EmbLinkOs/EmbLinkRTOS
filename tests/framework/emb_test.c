@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* Test runner: main() starts the kernel, a runner thread executes every EMB_TEST. */
+#include <stdarg.h>
+
 #include <emb_board.h>
 #include <emb_test.h>
 
@@ -9,6 +11,14 @@ EMB_TABLE_BOUNDS(const emb_test_case_t, emb_test_table);
 static unsigned failures;
 static unsigned skips;
 static unsigned current_failed;
+static unsigned current_asserts;
+static unsigned current_skips;
+
+/* The case's requirement citations, printed after it ends: output inside a case would
+ * take ticks on a real-time port. The pointers are string literals. */
+#define REQS_MAX 8u
+static const char *current_reqs[REQS_MAX];
+static unsigned current_reqs_n;
 
 void emb_test_fail(unsigned line, const char *what_flash)
 {
@@ -24,17 +34,52 @@ void emb_test_skip(const char *why_flash)
     emb_test_puts_flash(why_flash);
     emb_test_puts_flash(EMB_TEST_STR("\n"));
     skips++;
+    current_skips++;
+}
+
+void emb_test_asserted(void)
+{
+    current_asserts++;
 }
 
 void emb_test_note_reqs(const char *first, ...)
 {
-    (void)first; /* collected statically by the traceability tool */
+    va_list ap;
+    const char *id = first;
+    va_start(ap, first);
+    /* bounded by the citation list, which ends with a null pointer */
+    while (id != NULL) {
+        if (current_reqs_n < REQS_MAX) {
+            current_reqs[current_reqs_n] = id;
+        }
+        current_reqs_n++; /* counts past the buffer, so an overflow is reported */
+        id = va_arg(ap, const char *);
+    }
+    va_end(ap);
+}
+
+static void print_reqs(void)
+{
+    unsigned i;
+    if (current_reqs_n == 0u) {
+        return;
+    }
+    emb_test_puts_flash(EMB_TEST_STR("  req"));
+    for (i = 0u; i < current_reqs_n && i < REQS_MAX; i++) {
+        emb_test_puts_flash(EMB_TEST_STR(" "));
+        emb_test_puts(current_reqs[i]);
+    }
+    if (current_reqs_n > REQS_MAX) {
+        emb_test_logf(EMB_TEST_STR(" +%u"), current_reqs_n - REQS_MAX); /* not recorded */
+    }
+    emb_test_puts_flash(EMB_TEST_STR("\n"));
 }
 
 void emb_test_check_elapsed(unsigned line, uint32_t elapsed, uint32_t expected)
 {
     /* exact in virtual time; a tick may pass during the test's own work in real time */
     uint32_t slack = EMB_TEST_EXACT_TIME ? 0u : 1u;
+    emb_test_asserted();
     if (elapsed < expected || elapsed > expected + slack) {
         emb_test_logf(EMB_TEST_STR("  elapsed %lu, expected %lu"), (unsigned long)elapsed,
                       (unsigned long)expected);
@@ -79,6 +124,7 @@ void emb_test_marks_check(unsigned line, const int *expected, size_t n)
 {
     size_t i;
     bool ok = marks_n == n;
+    emb_test_asserted();
     for (i = 0u; ok && i < n; i++) {
         ok = marks[i] == expected[i];
     }
@@ -259,10 +305,19 @@ static void runner(void *arg)
     unsigned ran = 0u;
     (void)arg;
     emb_test_platform_irq_bind(dispatch);
+    /* one identity line per run (docs/engineering/case-evidence.md) */
+    emb_test_puts_flash(EMB_TEST_STR("EVIDENCE v1 suite="));
+    emb_test_puts_flash(emb_test_suite);
+    emb_test_logf(EMB_TEST_STR(" config=" EMB_CONFIG_HASH_STRING " profile=" CONFIG_EMB_PROFILE
+                               " board=" EMB_HW_BOARD_NAME " checked=%u\n"),
+                  (unsigned)CONFIG_EMB_CHECKED);
     for (; tc != NULL && tc < stop; tc++) {
         emb_test_fn_t fn = (emb_test_fn_t)EMB_FLASH_READ_FNPTR(&tc->fn);
         const char *name = (const char *)EMB_FLASH_READ_PTR(&tc->name);
         current_failed = 0u;
+        current_asserts = 0u;
+        current_skips = 0u;
+        current_reqs_n = 0u;
         emb_test_marks_clear();
         emb_test_puts_flash(EMB_TEST_STR("TEST "));
         emb_test_puts_flash(name);
@@ -276,6 +331,17 @@ static void runner(void *arg)
         } else {
             emb_test_puts_flash(EMB_TEST_STR("  -> ok\n"));
         }
+        print_reqs();
+        emb_test_puts_flash(EMB_TEST_STR("CASE "));
+        emb_test_puts_flash(name);
+        if (current_failed != 0u) {
+            emb_test_puts_flash(EMB_TEST_STR(" outcome=failed"));
+        } else if (current_asserts == 0u && current_skips != 0u) {
+            emb_test_puts_flash(EMB_TEST_STR(" outcome=skipped"));
+        } else {
+            emb_test_puts_flash(EMB_TEST_STR(" outcome=passed"));
+        }
+        emb_test_logf(EMB_TEST_STR(" asserts=%u skips=%u\n"), current_asserts, current_skips);
     }
     emb_test_logf(EMB_TEST_STR("%u tests, %u failed, %u skipped, %lu ticks\n"), ran, failures,
                   skips, (unsigned long)EMB_TEST_NOW());
