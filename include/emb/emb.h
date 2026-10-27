@@ -16,6 +16,9 @@
 #include <emb/fault.h>
 #include <emb/irq.h>
 #include <emb/kernel.h>
+#if CONFIG_EMB_MSGQ
+#include <emb/msgq.h>
+#endif
 #include <emb/mutex.h>
 #include <emb/notify.h>
 #include <emb/sched.h>

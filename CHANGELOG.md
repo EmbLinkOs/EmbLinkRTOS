@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Message queues (`CONFIG_EMB_MSGQ`, `include/emb/msgq.h`, M2-07): fixed-size items copied by value through a caller-provided ring declared with `EMB_MSGQ_RING()`, with direct hand-off to a waiting receiver, slot hand-off from a waiting sender, `send_front`, `peek`, `count` and `free`, `EMB_NO_WAIT` calls from interrupts, timeouts and absolute deadlines, cancellation, destroy with ABORT_WAITERS, and a receive-side notification binding. Items are bounded by `CONFIG_EMB_MSGQ_MAX_ITEM` (64 bytes, 16 on tiny, where `CONFIG_EMB_IPC_SMALL` keeps 8-bit counts). The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.
+
 - The reference model covers copy-by-value message queues ahead of their implementation (KRN-IPC-022, M2-07): send, send_front, receive and peek, ISR calls with `EMB_NO_WAIT`, hand-off to a waiting receiver, refill from a waiting sender, destroy, and the empty-to-nonempty binding, checking in every explored state that each accepted item is received once, still stored or dropped by destroy, and that no side waits while the other could proceed.
 
 - Condition variables (`CONFIG_EMB_COND`, `include/emb/cond.h`, M2-06): an atomic enqueue-and-release wait, signal and broadcast, and a mandatory, non-cancelable relock on every result, with `EMB_EOWNERDEAD` and relock failures taking precedence. The reference model, the differential bridge and a conformance suite cover them; they are off on the tiny profile.

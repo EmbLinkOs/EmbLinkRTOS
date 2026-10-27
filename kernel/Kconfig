@@ -217,6 +217,30 @@ config EMB_MUTEX_CEILING_STATIC_ONLY
 
 endmenu
 
+menu "Inter-thread communication"
+
+config EMB_MSGQ
+	bool "Message queues (SPEC-007 §2)"
+	default y
+
+config EMB_MSGQ_MAX_ITEM
+	int "Largest message queue item in bytes (SPEC-007 §2.2)"
+	depends on EMB_MSGQ
+	default 16 if EMB_PROFILE_TINY
+	default 64
+	range 1 255 if EMB_IPC_SMALL
+	range 1 1024
+	help
+	  Bounds the copy each send or receive makes with interrupts masked (KRN-IPC-011).
+	  Larger payloads belong in a buffer pool, passed by pointer.
+
+config EMB_IPC_SMALL
+	bool "8-bit IPC counts: at most 255 items per queue (KRN-IPC-021)"
+	default y if EMB_PROFILE_TINY
+	default n
+
+endmenu
+
 menu "Objects"
 
 choice EMB_HANDLE_MODEL_CHOICE

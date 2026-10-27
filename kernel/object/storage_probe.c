@@ -7,6 +7,7 @@
  * (EMB_LAYOUT_MARKER), which tools/storage/gen_storage.py reads from an ELF, Mach-O,
  * or COFF object alike, for the host or a cross target.
  */
+#include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
 
@@ -34,5 +35,8 @@ void embk_storage_probe(void)
 #endif
 #if CONFIG_EMB_COND
     PROBE(cond, embk_cond_t);
+#endif
+#if CONFIG_EMB_MSGQ
+    PROBE(msgq, embk_msgq_t);
 #endif
 }

@@ -105,5 +105,18 @@
 #define EMB_API_ID_COND_WAIT_UNTIL               0x0063u
 #define EMB_API_ID_COND_SIGNAL                   0x0064u
 #define EMB_API_ID_COND_BROADCAST                0x0065u
+#define EMB_API_ID_MSGQ_ATTR_DEFAULT             0x0066u
+#define EMB_API_ID_MSGQ_INIT                     0x0067u
+#define EMB_API_ID_MSGQ_DESTROY                  0x0068u
+#define EMB_API_ID_MSGQ_SEND                     0x0069u
+#define EMB_API_ID_MSGQ_SEND_UNTIL               0x006Au
+#define EMB_API_ID_MSGQ_SEND_FRONT               0x006Bu
+#define EMB_API_ID_MSGQ_RECEIVE                  0x006Cu
+#define EMB_API_ID_MSGQ_RECEIVE_UNTIL            0x006Du
+#define EMB_API_ID_MSGQ_PEEK                     0x006Eu
+#define EMB_API_ID_MSGQ_COUNT                    0x006Fu
+#define EMB_API_ID_MSGQ_FREE                     0x0070u
+#define EMB_API_ID_MSGQ_BIND_NOTIFY              0x0071u
+#define EMB_API_ID_MSGQ_UNBIND_NOTIFY            0x0072u
 
 #endif /* EMB_API_IDS_H */

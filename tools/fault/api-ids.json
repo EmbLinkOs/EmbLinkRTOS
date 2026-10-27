@@ -607,6 +607,84 @@
       "name": "emb_cond_broadcast",
       "header": "cond.h",
       "state": "active"
+    },
+    {
+      "id": 102,
+      "name": "emb_msgq_attr_default",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 103,
+      "name": "emb_msgq_init",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 104,
+      "name": "emb_msgq_destroy",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 105,
+      "name": "emb_msgq_send",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 106,
+      "name": "emb_msgq_send_until",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 107,
+      "name": "emb_msgq_send_front",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 108,
+      "name": "emb_msgq_receive",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 109,
+      "name": "emb_msgq_receive_until",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 110,
+      "name": "emb_msgq_peek",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 111,
+      "name": "emb_msgq_count",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 112,
+      "name": "emb_msgq_free",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 113,
+      "name": "emb_msgq_bind_notify",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 114,
+      "name": "emb_msgq_unbind_notify",
+      "header": "msgq.h",
+      "state": "active"
     }
   ]
 }

@@ -95,13 +95,23 @@
     },
     {
       "id": "active_objects",
-      "input": "active semaphores or mutexes of one type",
+      "input": "active objects of one type (semaphores, mutexes, event flags, condition variables, message queues)",
       "bound": "not limited by the kernel: the objects the application initializes",
       "limit": "application",
       "enforcement": "application",
       "masked": true,
       "profiles": "with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init",
       "evidence": "ADR-045; m2-02-object-lifecycle.md"
+    },
+    {
+      "id": "item_copy",
+      "input": "bytes copied for one message queue operation",
+      "bound": "at most two items (a receive that refills from a waiting sender), each item_size bytes",
+      "limit": "CONFIG_EMB_MSGQ_MAX_ITEM (default 64, tiny 16); init refuses a larger item_size",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "a byte loop under the object lock on every profile",
+      "evidence": "SPEC-007 \u00a72.2, KRN-IPC-011; tests/conformance/test_msgq.c"
     },
     {
       "id": "stack",
@@ -298,6 +308,45 @@
       "batch_wake",
       "timeouts",
       "reschedule"
+    ],
+    "emb_msgq_init": [
+      "active_objects"
+    ],
+    "emb_msgq_destroy": [
+      "batch_wake",
+      "reschedule"
+    ],
+    "emb_msgq_send": [
+      "item_copy",
+      "waiters",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_msgq_send_until": [
+      "item_copy",
+      "waiters",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_msgq_receive": [
+      "item_copy",
+      "waiters",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_msgq_receive_until": [
+      "item_copy",
+      "waiters",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_msgq_send_front": [
+      "item_copy",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_msgq_peek": [
+      "item_copy"
     ]
   }
 }

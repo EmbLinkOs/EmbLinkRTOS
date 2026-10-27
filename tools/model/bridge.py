@@ -45,6 +45,8 @@ TR_MUTEX_LOCK, TR_MUTEX_UNLOCK, TR_SEM_TAKE, TR_SEM_GIVE = 16, 17, 18, 19
 TR_NOTIFY_SET, TR_NOTIFY_WAIT, TR_FAULT, TR_TICK = 20, 21, 25, 29
 TR_EVENT_SET, TR_EVENT_WAIT = 31, 32
 TR_COND_WAIT, TR_COND_SIGNAL = 33, 34
+TR_MSGQ_SEND, TR_MSGQ_RECEIVE = 35, 36
+CTX_THREAD = 0                         # emb_context_t
 EV_ISR_MARK = 1000                     # the runner's own record: ISR body i starts
 EV_INDEX_MARK = 1001                   # the runner's record: thread tid now has index i
 IDLE_INDEX = 0xFE
@@ -218,6 +220,7 @@ class Run:
         self.states = {}        # tid -> (state, reason)
         self.sems = {}          # sid -> count
         self.evflags = {}       # eid -> bits
+        self.msgqs = {}         # qid -> stored items, head first
         self.end = None         # ("done",) or ("fault", class, code)
         self.events_lost = 0
         self.exit_code = 0
@@ -283,6 +286,8 @@ def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
             r.sems[int(f[1])] = int(f[2])
         elif f[0] == "evflag":
             r.evflags[int(f[1])] = int(f[2])
+        elif f[0] == "msgq":
+            r.msgqs[int(f[1])] = tuple(int(x) for x in f[2:])
         elif f[0] == "events_lost":
             r.events_lost = int(f[1])
         elif f[0] == "end":
@@ -316,14 +321,15 @@ def kernel_canonical(run: Run):
             raise Divergence(f"kernel event names an unknown thread index {idx}")
         return tid_of[idx]
 
-    for (eid, _ctx, ticks, a0, a1, a2) in run.events:
+    for (eid, ctx, ticks, a0, a1, a2) in run.events:
         if eid == TR_SWITCH:
             out.append(("switch", thr(a1)))
         elif eid == TR_BLOCK:
             out.append(("wait_begin", thr(a0), KREASON_TO_REASON[a1], ("q", a2)))
         elif eid == TR_WAKE:
             out.append(("wake", thr(a0), KWAKE_TO_RESULT[a1]))
-        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT, TR_COND_WAIT):
+        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT, TR_COND_WAIT) or \
+                (eid in (TR_MSGQ_SEND, TR_MSGQ_RECEIVE) and ctx == CTX_THREAD):    # an ISR's call has no wait
             st = a1 if eid == TR_NOTIFY_WAIT else a2
             st = st - (1 << 64) if st >= (1 << 63) else st   # printed as unsigned long
             res = Result.SATISFIED if st == -7 else STATUS_TO_RESULT.get(st)
@@ -594,7 +600,8 @@ class Replay:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
-                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait)) and result == Result.SATISFIED \
+                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait, MsgRecv, MsgPeek)) \
+                        and result == Result.SATISFIED \
                         and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
             kstate = r.states.get(tid)
@@ -616,6 +623,9 @@ class Replay:
         for eid, e in k.events.items():
             if eid in r.evflags and not e.destroyed and r.evflags[eid] != e.bits:
                 raise Divergence(f"event flags {eid}: kernel bits {r.evflags[eid]:#x}, model {e.bits:#x}")
+        for qid, q in k.msgqs.items():
+            if not q.destroyed and r.msgqs.get(qid) != q.ring:
+                raise Divergence(f"message queue {qid}: kernel items {r.msgqs.get(qid)}, model {q.ring}")
         if k.enabled() and any(a[0] == "run" for a in k.enabled()):
             raise Divergence("the kernel finished while the model still has a thread to run")
 
@@ -678,7 +688,8 @@ def applicable(sc: Scenario, config: dict) -> tuple:
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"
         if any(cfg.get("policy") == Policy.FIFO
-               for cfg in list(sc.sems.values()) + list(sc.events.values()) + list(sc.conds.values())):
+               for cfg in list(sc.sems.values()) + list(sc.events.values()) + list(sc.conds.values())
+               + list(sc.msgqs.values())):
             return False, "FIFO queues need the base profile"
     elif bitmap:
         return False, "BITMAP queues need the tiny profile"
@@ -691,7 +702,8 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
         sems = {sid: dict(cfg, policy=Policy.BITMAP) for sid, cfg in sc.sems.items()}
         events = {eid: dict(cfg, policy=Policy.BITMAP) for eid, cfg in sc.events.items()}
         conds = {cid: dict(cfg, policy=Policy.BITMAP) for cid, cfg in sc.conds.items()}
-        sc = replace(sc, sems=sems, events=events, conds=conds)
+        msgqs = {qid: dict(cfg, policy=Policy.BITMAP) for qid, cfg in sc.msgqs.items()}
+        sc = replace(sc, sems=sems, events=events, conds=conds, msgqs=msgqs)
     # Historical native captures predate the clock-mode field and used tickless builds.
     return replace(sc, owner_death=config.get("owner_death", "release"),
                    tickless=config.get("tickless", "1") == "1")
