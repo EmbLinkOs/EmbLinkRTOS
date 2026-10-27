@@ -7,6 +7,9 @@
 #include <emb/compiler.h>
 #include <emb/config.h>
 #include <emb/context.h>
+#if CONFIG_EMB_EVENT
+#include <emb/event.h>
+#endif
 #include <emb/fault.h>
 #include <emb/irq.h>
 #include <emb/kernel.h>

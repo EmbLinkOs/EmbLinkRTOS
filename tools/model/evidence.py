@@ -24,17 +24,21 @@ OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.
        bridge.NotifySet, bridge.NotifyWait, bridge.Sleep, bridge.Yield, bridge.SetPrio,
        bridge.Suspend, bridge.Resume, bridge.Cancel, bridge.Destroy, bridge.SchedLock,
        bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join,
-       bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy)}
+       bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy,
+       bridge.EventSet, bridge.EventClear, bridge.EventWait, bridge.EventDestroy)}
 
 
 def scenario_data(sc):
     def program(ops):
         return [dict(op=type(op).__name__, args=asdict(op)) for op in ops]
-    return dict(name=sc.name, threads=[dict(tid=tid, priority=p, program=program(ops))
+    data = dict(name=sc.name, threads=[dict(tid=tid, priority=p, program=program(ops))
                 for tid, (p, ops) in sc.threads.items()],
                 sems=list(sc.sems.items()), mutexes=list(sc.mutexes.items()),
                 isrs=[program(ops) for ops in sc.isrs], inactive=list(sc.inactive),
                 owner_death=sc.owner_death, tickless=sc.tickless)
+    if sc.events:                                    # absent from bundles that predate event flags
+        data["events"] = list(sc.events.items())
+    return data
 
 
 def scenario_from_data(raw):
@@ -74,6 +78,7 @@ def scenario_from_data(raw):
     return bridge.Scenario(name=raw["name"], threads=threads,
                            sems=objects(raw["sems"], "policy", bridge.Policy),
                            mutexes=objects(raw["mutexes"], "protocol", Protocol),
+                           events=objects(raw.get("events", []), "policy", bridge.Policy),
                            isrs=tuple(program(ops) for ops in raw["isrs"]),
                            inactive=tuple(raw["inactive"]), owner_death=raw["owner_death"],
                            tickless=raw["tickless"])

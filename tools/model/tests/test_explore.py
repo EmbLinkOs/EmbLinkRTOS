@@ -272,3 +272,53 @@ class BindingLifetime(unittest.TestCase):
                              [Result.SATISFIED, Result.EXIST, Result.SATISFIED, Result.SATISFIED])
             self.assertEqual(d[2][0][1], Result.TIMEOUT)          # the old target is never signaled
         self.assertIn(Result.SATISFIED, {d[3][0][1] for d in outs})
+
+
+class EventFlags(unittest.TestCase):
+    """M2-05 (SPEC-005 §5): ANY/ALL/CLEAR, deterministic consumption, no lost bit, binding after waiters."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), dict(dict(o)["events"])) for o in explore(make()).outcomes]
+
+    def test_every_event_scenario_holds_invariants(self):
+        for make in S.EVENT:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_overlapping_clear_serves_each_waiter_once(self):
+        for d, ev in self.outcomes(S.event_overlapping_clear):
+            self.assertEqual((d[1][0][1], d[1][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual(ev[0], 0)
+
+    def test_all_waits_for_every_bit(self):
+        for d, ev in self.outcomes(S.event_all_and_any):
+            self.assertEqual(d[1][0][2], 0x3)
+            self.assertEqual(d[2][0][2], 0x1)
+            self.assertEqual(ev[0], 0x3)
+
+    def test_isr_set_is_consumed_or_kept(self):
+        seen = set()
+        for d, ev in self.outcomes(S.event_isr_set_vs_timed_wait):
+            r = d[1][0][1]
+            seen.add(r)
+            self.assertEqual(ev[0], 0 if r == Result.SATISFIED else 1)
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_destroy_and_cancel_results(self):
+        for d, _ in self.outcomes(S.event_destroy_and_cancel_waiters):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)
+            self.assertEqual(d[2][0][1], Result.CANCELED)
+
+    def test_binding_fires_for_what_waiters_left(self):
+        for d, ev in self.outcomes(S.event_binding_after_direct_waiters):
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual(ev[0], 0x2)
+        self.assertIn(Result.SATISFIED, {d[1][0][1] for d, _ in self.outcomes(S.event_binding_after_direct_waiters)})
+
+    def test_timeout_leaves_the_later_bit_set(self):
+        for d, ev in self.outcomes(S.event_timeout_then_set):
+            self.assertEqual(d[1][0][1], Result.TIMEOUT)
+            self.assertEqual(ev[0], 1)

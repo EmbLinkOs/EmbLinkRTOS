@@ -28,7 +28,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from embmodel import (BindNotify, Cancel, Destroy, Exit, Give, Join, Lock, ModelError,  # noqa: E402
+from embmodel import (BindNotify, Cancel, Destroy, EventClear, EventDestroy, EventSet,  # noqa: E402
+                      EventWait, Exit, Give, Join, Lock, ModelError,
                       NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
                       SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
                       UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT)
@@ -40,6 +41,7 @@ TR_SWITCH, TR_THREAD_INIT, TR_THREAD_START, TR_THREAD_EXIT, TR_THREAD_JOIN = 1, 
 TR_BLOCK, TR_WAKE, TR_TIMEOUT_ARM, TR_TIMEOUT_EXPIRE = 6, 7, 8, 9
 TR_MUTEX_LOCK, TR_MUTEX_UNLOCK, TR_SEM_TAKE, TR_SEM_GIVE = 16, 17, 18, 19
 TR_NOTIFY_SET, TR_NOTIFY_WAIT, TR_FAULT, TR_TICK = 20, 21, 25, 29
+TR_EVENT_SET, TR_EVENT_WAIT = 31, 32
 EV_ISR_MARK = 1000                     # the runner's own record: ISR body i starts
 EV_INDEX_MARK = 1001                   # the runner's record: thread tid now has index i
 IDLE_INDEX = 0xFE
@@ -133,6 +135,14 @@ def encode_op(op) -> str:
         return f"unbind {op.sem}"
     if isinstance(op, ThreadDestroy):
         return f"tdestroy {op.tid}"
+    if isinstance(op, EventSet):
+        return f"eset {op.event} {op.bits}"
+    if isinstance(op, EventClear):
+        return f"eclear {op.event} {op.bits}"
+    if isinstance(op, EventWait):
+        return f"ewait {op.event} {op.mask} {int(op.all)} {int(op.clear)} {_t(op.timeout)}"
+    if isinstance(op, EventDestroy):
+        return f"edestroy {op.event}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -149,6 +159,14 @@ def encode_scenario(sc: Scenario) -> str:
             tid, bit = cfg["binding"]
             attrs.append(f"bind={tid}.{bit}")
         parts.append(f"S{sid}=" + ",".join(attrs))
+    for eid, cfg in sc.events.items():
+        attrs = [str(cfg.get("bits", 0))]
+        if cfg.get("policy") == Policy.FIFO:
+            attrs.append("fifo")
+        if cfg.get("binding") is not None:
+            tid, bit = cfg["binding"]
+            attrs.append(f"bind={tid}.{bit}")
+        parts.append(f"E{eid}=" + ",".join(attrs))
     for mid, cfg in sc.mutexes.items():
         proto = int(cfg.get("protocol", 0))
         parts.append(f"M{mid}={proto},{cfg.get('ceiling', 0)},{int(bool(cfg.get('recursive', False)))}")
@@ -167,6 +185,7 @@ class Run:
         self.results = {}       # tid -> {op_index: (status, data)}
         self.states = {}        # tid -> (state, reason)
         self.sems = {}          # sid -> count
+        self.evflags = {}       # eid -> bits
         self.end = None         # ("done",) or ("fault", class, code)
         self.events_lost = 0
         self.exit_code = 0
@@ -230,6 +249,8 @@ def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
             r.states[int(f[1])] = (int(f[2]), int(f[3]))
         elif f[0] == "sem":
             r.sems[int(f[1])] = int(f[2])
+        elif f[0] == "evflag":
+            r.evflags[int(f[1])] = int(f[2])
         elif f[0] == "events_lost":
             r.events_lost = int(f[1])
         elif f[0] == "end":
@@ -270,7 +291,7 @@ def kernel_canonical(run: Run):
             out.append(("wait_begin", thr(a0), KREASON_TO_REASON[a1], ("q", a2)))
         elif eid == TR_WAKE:
             out.append(("wake", thr(a0), KWAKE_TO_RESULT[a1]))
-        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK):
+        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT):
             st = a1 if eid == TR_NOTIFY_WAIT else a2
             st = st - (1 << 64) if st >= (1 << 63) else st   # printed as unsigned long
             res = Result.SATISFIED if st == -7 else STATUS_TO_RESULT.get(st)
@@ -541,7 +562,7 @@ class Replay:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
-                if isinstance(op, (NotifyWait, Join, Lock)) and result == Result.SATISFIED and kdata != data:
+                if isinstance(op, (NotifyWait, Join, Lock, EventWait)) and result == Result.SATISFIED and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
             kstate = r.states.get(tid)
             if t.destroyed:
@@ -559,6 +580,9 @@ class Replay:
         for sid, s in k.sems.items():
             if sid in r.sems and not s.destroyed and r.sems[sid] != s.count:
                 raise Divergence(f"semaphore {sid}: kernel count {r.sems[sid]}, model {s.count}")
+        for eid, e in k.events.items():
+            if eid in r.evflags and not e.destroyed and r.evflags[eid] != e.bits:
+                raise Divergence(f"event flags {eid}: kernel bits {r.evflags[eid]:#x}, model {e.bits:#x}")
         if k.enabled() and any(a[0] == "run" for a in k.enabled()):
             raise Divergence("the kernel finished while the model still has a thread to run")
 
@@ -611,10 +635,12 @@ def applicable(sc: Scenario, config: dict) -> tuple:
     profile = config.get("profile", "base")
     bitmap = any(cfg.get("policy") == Policy.BITMAP for cfg in sc.sems.values())
     prios = [p for p, _ in sc.threads.values()]
+    if sc.events and config.get("events", "0") != "1":
+        return False, "event flags are not configured in this build"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"
-        if any(cfg.get("policy") == Policy.FIFO for cfg in sc.sems.values()):
+        if any(cfg.get("policy") == Policy.FIFO for cfg in list(sc.sems.values()) + list(sc.events.values())):
             return False, "FIFO queues need the base profile"
     elif bitmap:
         return False, "BITMAP queues need the tiny profile"
@@ -625,7 +651,8 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
     """The model's static configuration follows the runner's build."""
     if config.get("profile") == "tiny":
         sems = {sid: dict(cfg, policy=Policy.BITMAP) for sid, cfg in sc.sems.items()}
-        sc = replace(sc, sems=sems)
+        events = {eid: dict(cfg, policy=Policy.BITMAP) for eid, cfg in sc.events.items()}
+        sc = replace(sc, sems=sems, events=events)
     # Historical native captures predate the clock-mode field and used tickless builds.
     return replace(sc, owner_death=config.get("owner_death", "release"),
                    tickless=config.get("tickless", "1") == "1")

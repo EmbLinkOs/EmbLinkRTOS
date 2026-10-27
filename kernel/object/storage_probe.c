@@ -29,4 +29,7 @@ void embk_storage_probe(void)
 #if CONFIG_EMB_MUTEX
     PROBE(mutex, embk_mutex_t);
 #endif
+#if CONFIG_EMB_EVENT
+    PROBE(event, embk_event_t);
+#endif
 }

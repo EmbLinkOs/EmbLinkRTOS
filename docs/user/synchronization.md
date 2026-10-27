@@ -124,3 +124,24 @@ Inheritance changes effective priority, not base priority. It is bounded by `CON
 Unlock is owner-only. Recursion requires `EMB_MUTEX_RECURSIVE` and a matching unlock for every successful acquisition. For a ceiling mutex, choose a ceiling at least as high as each user's base priority and account for inherited effective priorities in schedulability analysis. A ceiling does not make arbitrary blocking while holding a mutex safe.
 
 `EMB_EOWNERDEAD` is special: the caller **owns** the mutex and must repair its protected state. After successful repair, call `emb_mutex_mark_consistent()` and unlock. If repair cannot be performed, use an application recovery/shutdown policy; do not continue with corrupted state. Owner-death behavior depends on configuration, and the current implementation does not provide a persistent “not recoverable” state. The tutorial's workers terminate only after releasing their locks.
+
+## Event flags
+
+Event flags (`CONFIG_EMB_EVENT`) hold a word of bits that several threads can wait on. A wait names a mask and `EMB_EVENT_ANY` or `EMB_EVENT_ALL`, optionally with `EMB_EVENT_CLEAR` to consume the bits that satisfied it:
+
+```c
+static emb_event_storage_t status_storage;
+static emb_event_t status;
+#define LINK_UP  ((emb_event_bits_t)0x01u)
+#define CONFIGURED ((emb_event_bits_t)0x02u)
+
+EMB_CHECK(emb_event_init(&status_storage, NULL, &status));
+/* producers, threads or interrupts: */
+EMB_CHECK(emb_event_set(status, LINK_UP));
+/* a consumer that needs both conditions: */
+emb_event_bits_t got;
+emb_status_t st = emb_event_wait(status, LINK_UP | CONFIGURED, EMB_EVENT_ALL,
+                                 EMB_TIMEOUT(EMB_MS(500)), &got);
+```
+
+`emb_event_set()` and `emb_event_clear()` are ISR-safe; waits are thread-only. A set serves waiters in priority order (arrival order with `EMB_OBJ_FIFO`). A `CLEAR` waiter removes the bits it was handed before the next waiter is examined, so two clearing waiters on the same bit are served one per set, highest priority first. `emb_event_clear()` never wakes anyone. A woken waiter receives the bits that satisfied it in `got` and does not re-read the word. A bound notification fires only for bits still set after the direct waiters were served; bind and unbind follow the semaphore rules above.

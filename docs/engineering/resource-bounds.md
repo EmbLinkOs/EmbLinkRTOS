@@ -25,6 +25,11 @@ Every cost input named by a public function's `@time` annotation, with how it is
 
 | Function | `@time` | Inputs |
 |---|---|---|
+| `emb_event_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
+| `emb_event_init()` | O(1); O(active event flags) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_event_set()` | O(waiters) in one section, one reschedule | waiters, batch_wake, timeouts, reschedule |
+| `emb_event_wait()` | O(1) check; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_event_wait_until()` | O(1) check; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_fault()` | O(1) preparation plus trace/hook and the non-returning port action | callbacks, port_action |
 | `emb_fault_hook()` | the application's | callbacks |
 | `emb_kernel_init()` | O(init table) | init_table |

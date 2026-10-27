@@ -233,14 +233,19 @@ emb_status_t emb_event_wait(emb_event_t e, emb_event_bits_t mask, uint8_t mode, 
                             emb_timeout_t timeout, emb_event_bits_t *out_satisfied);  /* @ctx thread  @blocks timeout */
 emb_status_t emb_event_wait_until(emb_event_t e, emb_event_bits_t mask, uint8_t mode, emb_instant_t deadline, emb_event_bits_t *out_satisfied);
 emb_status_t emb_event_bind_notify(emb_event_t e, emb_thread_t t, emb_notify_bits_t bit);
+emb_status_t emb_event_unbind_notify(emb_event_t e);
+void emb_event_attr_default(emb_event_attr_t *out);   /* name NULL, initial 0, flags 0 */
 ```
+
+Implemented in M2 (`CONFIG_EMB_EVENT`, `include/emb/event.h`). The attributes carry three explicit padding bytes; there is no `EMB_EVENT_DEFINE` yet, as for semaphores and mutexes (A40).
 
 ### 5.2 Semantics
 
-- Each waiter records its own `mask` and `mode` in its wait context (the TCB's `wake_data` word and one byte); a waiter is **satisfied** when `(bits & mask) != 0` for `ANY` or `(bits & mask) == mask` for `ALL`.
+- Each waiter records its own `mask` and `mode` in its wait context: the mask in the TCB's `wake_data` word until a waker replaces it with the handed-off bits, the mode in the thread's two bit-wait mode bits of `obj.flags`, which a notification wait uses the same way (A38); the control block does not grow. A waiter is **satisfied** when `(bits & mask) != 0` for `ANY` or `(bits & mask) == mask` for `ALL`.
 - `wait`: evaluate in section 1; if satisfied, apply `CLEAR` (clear `bits & mask`) and return the satisfied bits; else the protocol. On wake, `out_satisfied` holds the bits delivered by hand-off; the waiter does not re-read the group (KRN-WAIT-012).
 - `set`: `bits |= set_bits`; then walk the queue in order and, for every waiter now satisfied, hand it `bits & mask` and wake it; if that waiter asked for `CLEAR`, clear `bits & mask` **before** evaluating the next waiter. The walk is O(waiters) in one section (the bound is the number of waiters on this group, stated); satisfied waiters are readied as one batch with one reschedule (KRN-WAIT-013). If after the walk `bits` is nonzero and changed, the binding is signalled.
 - `clear`: `bits &= ~clear_bits`; never wakes anyone.
+- Arguments (A39): `wait` with a zero `mask` or a mode bit other than `ALL` and `CLEAR` is `EMB_FAULT_API_ARGUMENT` when checked and `EMB_EINVAL` in release; `set` and `clear` with zero bits succeed and change nothing. Event bits have no kernel-reserved part.
 - Deterministic consumption: because `CLEAR` is applied in queue order during `set`, two `ALL` waiters on overlapping bits with `CLEAR` see a defined outcome (the higher-priority one consumes; the other keeps waiting), unlike kernels that let woken waiters race for the bits.
 - Event flags are shared objects; a per-thread notification (SPEC-006) is the cheaper tool when exactly one thread consumes.
 

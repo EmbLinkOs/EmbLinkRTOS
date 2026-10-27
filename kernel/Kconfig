@@ -152,6 +152,17 @@ config EMB_SEM_COUNT_BITS
 	default 32
 	range 8 32
 
+config EMB_EVENT
+	bool "Event flags (SPEC-005 §5)"
+	default y
+
+config EMB_EVENT_BITS
+	int "Event flag word width: 8, 16, or 32"
+	depends on EMB_EVENT
+	default 8 if EMB_PROFILE_TINY
+	default 32
+	range 8 32
+
 config EMB_MUTEX
 	bool "Mutexes (SPEC-005 §3)"
 	default y

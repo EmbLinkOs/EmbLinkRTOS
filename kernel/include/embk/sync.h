@@ -4,6 +4,7 @@
 #ifndef EMBK_SYNC_H
 #define EMBK_SYNC_H
 
+#include <emb/event.h>
 #include <emb/sem.h>
 
 #include <embk/binding.h>
@@ -25,6 +26,24 @@ typedef struct embk_sem {
 
 #if CONFIG_EMB_OBJ_LIST
 extern embk_list_t embk_sem_all; /* every active semaphore (KRN-OBJ-011); lock: scheduler domain */
+#endif
+#endif
+
+#if CONFIG_EMB_EVENT
+typedef struct embk_event {
+    embk_obj_t obj; /* obj.flags: EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO */
+    embk_wait_queue_t waiters;
+    emb_event_bits_t bits;
+#if CONFIG_EMB_NOTIFY
+    embk_binding_t binding; /* signaled when a set leaves bits changed and nonzero */
+#endif
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_node_t all_node; /* in embk_event_all from init to destroy */
+#endif
+} embk_event_t;
+
+#if CONFIG_EMB_OBJ_LIST
+extern embk_list_t embk_event_all; /* every active event flags object; lock: scheduler domain */
 #endif
 #endif
 

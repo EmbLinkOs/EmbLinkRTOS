@@ -127,6 +127,12 @@ void emb_native_abi_probe(void)
     FIELD(binding_thread, embk_binding_t, thread);
     FIELD(binding_bit, embk_binding_t, bit);
 #endif
+#if CONFIG_EMB_EVENT
+    TYPE(event, embk_event_t);
+    FIELD(event_obj, embk_event_t, obj);
+    FIELD(event_waiters, embk_event_t, waiters);
+    FIELD(event_bits, embk_event_t, bits);
+#endif
 #if CONFIG_EMB_MUTEX
     TYPE(mutex, embk_mutex_t);
     FIELD(mutex_obj, embk_mutex_t, obj);

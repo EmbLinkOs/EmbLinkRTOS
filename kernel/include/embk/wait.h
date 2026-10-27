@@ -27,6 +27,20 @@ embk_wait_result_t embk_block_on(embk_wait_queue_t *q, uint8_t reason, emb_tick_
 
 /* Wakers, object lock held. */
 embk_thread_t *embk_wait_first(const embk_wait_queue_t *q);
+
+/* Walk @q's waiters in wake order while waking some of them (event flags, SPEC-005 §5.2):
+ * the cursor is taken before the waiter is returned, so waking it is safe. Waking other
+ * waiters during the walk is not. Object lock held. */
+typedef struct embk_wait_iter {
+#if CONFIG_EMB_SCHED_TABLE
+    embk_word_t rest; /* waiters not yet returned */
+#else
+    embk_list_node_t *next; /* the node after the one returned, or NULL */
+#endif
+} embk_wait_iter_t;
+
+void embk_wait_iter_begin(const embk_wait_queue_t *q, embk_wait_iter_t *it);
+embk_thread_t *embk_wait_iter_next(const embk_wait_queue_t *q, embk_wait_iter_t *it);
 bool embk_wait_wake(embk_thread_t *t, embk_wait_result_t result, uintptr_t data);
 unsigned embk_wait_wake_all(embk_wait_queue_t *q, embk_wait_result_t result, uintptr_t data);
 void embk_wait_requeue(embk_thread_t *t);
