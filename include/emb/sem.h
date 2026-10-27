@@ -74,20 +74,24 @@ void emb_sem_attr_binary(emb_sem_attr_t *out_attr, bool initially_available);
 
 /**
  * emb_sem_init() - Construct a semaphore in caller-provided storage.
- * @storage: Aligned caller-owned storage; retain it until successful destruction.
+ * @storage: Aligned caller-owned storage, never initialized or destroyed; retain it until
+ *           successful destruction.
  * @attr: Copied attributes; NULL selects defaults. Keep name storage alive.
  * @out_sem: Required output handle; cleared before argument validation.
  *
  * @ctx      prekernel thread
  * @blocks   no
- * @time     O(1)
+ * @time     O(1); O(active semaphores) list lookup with CONFIG_EMB_OBJ_LIST
  * @owns     borrows:storage
  * @config   CONFIG_EMB_SEM
- * @req      API-021 KRN-SYNC-028 KRN-OBJ-003
+ * @req      API-021 KRN-SYNC-028 KRN-OBJ-003 KRN-OBJ-007 KRN-OBJ-011
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_EINVAL for bad storage/output, max == 0 or initial > max.
+ * Return: EMB_OK; EMB_EINVAL for bad storage/output, max == 0 or initial > max;
+ *         EMB_EBUSY when @storage still holds a semaphore that was not destroyed
+ *         (misuse: storage is reused only through emb_sem_destroy()). The refusal is
+ *         exact with CONFIG_EMB_OBJ_LIST; without it such storage is undefined.
  */
 emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr,
                           emb_sem_t *out_sem);

@@ -58,21 +58,25 @@ void emb_mutex_attr_default(emb_mutex_attr_t *out_attr);
 
 /**
  * emb_mutex_init() - Construct a mutex in caller-provided storage.
- * @storage: Aligned caller-owned storage; retain it until successful destruction.
+ * @storage: Aligned caller-owned storage, never initialized or destroyed; retain it until
+ *           successful destruction.
  * @attr: Attributes copied during initialization; NULL selects defaults. Keep name storage alive.
  * @out_mutex: Required output handle; cleared before argument validation.
  *
  * @ctx      prekernel thread
  * @blocks   no
- * @time     O(1)
+ * @time     O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST
  * @owns     borrows:storage
  * @config   CONFIG_EMB_MUTEX
- * @req      API-020 API-021 KRN-OBJ-003 KRN-SYNC-003 KRN-SYNC-012
+ * @req      API-020 API-021 KRN-OBJ-003 KRN-OBJ-007 KRN-OBJ-011 KRN-SYNC-003 KRN-SYNC-012
  * @since    0.2
  * @stable   yes
  *
  * Return: EMB_OK; EMB_EINVAL for bad storage/output, protocol or ceiling;
- *         EMB_ENOTSUP for INHERIT when CONFIG_EMB_MUTEX_INHERIT is off.
+ *         EMB_ENOTSUP for INHERIT when CONFIG_EMB_MUTEX_INHERIT is off; EMB_EBUSY when
+ *         @storage still holds a mutex that was not destroyed (misuse: storage is reused
+ *         only through emb_mutex_destroy()). The refusal is exact with
+ *         CONFIG_EMB_OBJ_LIST; without it such storage is undefined.
  */
 emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t *attr,
                             emb_mutex_t *out_mutex);

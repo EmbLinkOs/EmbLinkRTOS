@@ -136,7 +136,7 @@ Objects whose state never changes could live in flash; 1.0 does not support it (
 UNINIT --init--> ACTIVE --destroy (no waiters, or ABORT_WAITERS: flush)--> DESTROYING --> UNINIT (generation + 1)
 ```
 
-- `init` on storage whose header reads `ACTIVE` is misuse in checked builds (`EMB_FAULT_API_LIFECYCLE`: double init) and `EMB_EEXIST` in release builds; storage must be zero or previously destroyed. `_DEFINE` storage is zero-initialized by the C runtime.
+- Storage is reused only through `destroy` followed by `init`. `init` on storage that still holds an active object of its type is misuse in checked builds (`EMB_FAULT_API_LIFECYCLE`: double init) and `EMB_EBUSY` in release builds (amended by ADR-045). Reading the header alone cannot tell live storage from uninitialized storage that happens to hold the same bytes, so detection uses the kernel's own records: exact with the per-type lists of §7 (`CONFIG_EMB_OBJ_LIST`, and `CONFIG_EMB_THREAD_LIST` for threads); for tiny threads, from the type tag, active state and reserved diagnostic identity together (SPEC-008 §12). Without a list, `init` on such semaphore or mutex storage is undefined; storage must be never initialized or destroyed. `_DEFINE` storage is zero-initialized by the C runtime.
 - `destroy` follows ADR-020 and KRN-OBJ-001: with waiters and without `ABORT_WAITERS`, misuse (`EMB_EBUSY`); with it, every waiter wakes with `EMB_EDESTROYED` (SPEC-004 §6.7); type-specific rules apply (an owned mutex, a pool with outstanding blocks, a timer with a pending callback, a work queue with items, a running thread: all `EMB_EBUSY`). The object passes through `DESTROYING` so that a concurrent operation on another CPU observes `EMB_ESTATE` instead of racing, then becomes `UNINIT` with its generation bumped (KRN-OBJ-002) and its registry or table slots released.
 - **Freeze.** `emb_system_freeze()` (KRN-OBJ-004) sets a kernel flag; afterwards every `init`, `destroy`, `cap_grant`, `cap_derive`, `cap_delete`, and `cap_revoke` returns `EMB_EPERM` (fault in checked builds). Partition restart re-initializes a partition's objects through the kernel's own path, which the flag does not block. The isolated reference configuration calls it at the end of initialization; the `safety` profile attribute (ADR-035) requires it.
 - **Partition restart** (SPEC-010) bumps the generation of every object the partition owns and of the partition itself, re-initializes their storage from the image, and rebuilds the partition's capability table from the generated initial table; other partitions' capabilities to the restarted partition's objects fail with `EMB_ESTALE` until re-granted, and waiters on them are flushed with `STALE` (ADR-032, KRN-OBJ-005).
@@ -144,7 +144,7 @@ UNINIT --init--> ACTIVE --destroy (no waiters, or ABORT_WAITERS: flush)--> DESTR
 ## 7. Names, registry, and tooling
 
 - `CONFIG_EMB_OBJ_NAMES` keeps the `name` pointer from the attribute; `emb_obj_name(handle)` returns it. Names are for debugging and trace; the kernel never compares them.
-- `CONFIG_EMB_OBJ_LIST` links every active object into a per-type list; `emb_obj_foreach(type, cb, arg)` iterates under the scheduler lock. The debug descriptor (ADR-011) exports the list heads, the header offsets, the type tags, the registry (INDEXED), and the capability table layout (TABLE), so a debugger can list every object, its waiters, and its holders.
+- `CONFIG_EMB_OBJ_LIST` links every active object into a per-type list from `init` to `destroy`, under the scheduler lock; `init` looks its storage up there (§6). Implemented for semaphores and mutexes; threads use `CONFIG_EMB_THREAD_LIST`. `emb_obj_foreach(type, cb, arg)`, iterating under the scheduler lock, is not yet implemented. The debug descriptor (ADR-011) exports the list heads, the header offsets, the type tags, the registry (INDEXED), and the capability table layout (TABLE), so a debugger can list every object, its waiters, and its holders.
 - Type tags are small integers, not ASCII words: the descriptor maps them to names.
 
 ## 8. Misuse and checked-build diagnostics
@@ -154,7 +154,7 @@ UNINIT --init--> ACTIVE --destroy (no waiters, or ABORT_WAITERS: flush)--> DESTR
 | null handle; wrong type tag (POINTER); bad index, slot generation, or type (INDEXED, TABLE) | fault `EMB_FAULT_API_HANDLE` | `EMB_EINVAL` |
 | object generation mismatch (INDEXED, TABLE) | runtime condition | `EMB_ESTALE` |
 | missing right (TABLE) | fault `EMB_FAULT_API_HANDLE` for privileged callers | `EMB_EPERM` (always a status for unprivileged callers, KRN-CAP-002) |
-| `init` on active storage | fault `EMB_FAULT_API_LIFECYCLE` | `EMB_EEXIST` |
+| `init` on storage that holds an active object, where detected (§6) | fault `EMB_FAULT_API_LIFECYCLE` | `EMB_EBUSY` |
 | `destroy` with waiters, owner, outstanding blocks, pending callback, items, or a running thread | fault `EMB_FAULT_API_LIFECYCLE` | `EMB_EBUSY` |
 | operation on a `DESTROYING` object | runtime condition | `EMB_ESTATE` |
 | `init`, `destroy`, or capability change after freeze | fault `EMB_FAULT_API_LIFECYCLE` | `EMB_EPERM` |

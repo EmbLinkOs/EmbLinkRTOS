@@ -4,7 +4,14 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Changed
+
+- `emb_sem_init()` and `emb_mutex_init()` refuse storage that still holds an active object of their type (fault in checked builds, `EMB_EBUSY` in release) instead of overwriting it, when `CONFIG_EMB_OBJ_LIST` is on (default except on the tiny profile). Storage is reused only through destroy. Semaphore and mutex storage grows by one list node where the option is on. KRN-OBJ-007 now specifies `EMB_EBUSY` instead of `EMB_EEXIST` (ADR-045).
+
 ### Added
+
+- `CONFIG_EMB_OBJ_LIST`: per-type lists of active semaphores and mutexes (KRN-OBJ-011).
+- A `.clangd` and exported `compile_commands.json` for editor support; `.clang-tidy` disables, with reasons, the checks that contradict the coding standard.
 
 - Stable numeric IDs in public API misuse fault records, a generated header and downloadable decoder map, with checked-in assignments and compatibility checks. Shared helpers retain the public caller ID and location strings remain optional.
 
