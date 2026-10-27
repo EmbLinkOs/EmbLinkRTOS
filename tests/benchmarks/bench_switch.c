@@ -21,7 +21,6 @@
 
 static emb_thread_t ta;
 static emb_thread_t tb;
-static uint32_t rounds;
 static emb_cycle_t t_start;
 static emb_cycle_t t_end;
 
@@ -55,7 +54,6 @@ static void ping_b(void *arg)
     for (i = 0u; i < ITERATIONS; i++) {
         (void)emb_notify_set(ta, PING);
         (void)emb_notify_wait(PING, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_WAIT_FOREVER, NULL);
-        rounds++;
     }
     t_end = emb_arch_cycles();
     report("notify round trip (2 switches)", t_end - t_start, ITERATIONS * 2u);

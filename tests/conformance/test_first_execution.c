@@ -87,6 +87,9 @@ EMB_TEST(first_execution_sequence_repeats_reliably)
     EMB_ASSERT_OK(emb_thread_join(tt, EMB_WAIT_FOREVER, NULL));
     EMB_ASSERT_EQ(count_a, ROUNDS);
     EMB_ASSERT_EQ(count_b, ROUNDS);
+    emb_test_logf(EMB_TEST_STR("  ticks seen %lu, elapsed %lu, timer start +%lu, late %lu\n"),
+                  (unsigned long)ticks_seen, (unsigned long)(EMB_TEST_NOW() - t0),
+                  (unsigned long)(timer_start - t0), (unsigned long)timer_late);
 #if EMB_TEST_EXACT_TIME
     EMB_ASSERT_EQ(EMB_TEST_NOW() - t0,
                   ROUNDS / 100u + 1u);              /* one tick per hundred rounds, plus the stop */
@@ -96,9 +99,6 @@ EMB_TEST(first_execution_sequence_repeats_reliably)
         /* real time: the timer thread may start up to one tick after t0, and one tick may
          * pass between its last wake and this read; it never counts more than elapsed */
         uint32_t el = EMB_TEST_NOW() - t0;
-        emb_test_logf(EMB_TEST_STR("  ticks seen %lu, elapsed %lu, timer start +%lu, late %lu\n"),
-                      (unsigned long)ticks_seen, (unsigned long)el,
-                      (unsigned long)(timer_start - t0), (unsigned long)timer_late);
         EMB_ASSERT_TRUE(el >= ROUNDS / 100u);
         EMB_ASSERT_TRUE(ticks_seen <= el && ticks_seen + 2u >= el);
     }

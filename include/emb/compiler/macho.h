@@ -17,9 +17,11 @@
 
 #define EMB_TABLE_SECTION(name) "__DATA_CONST," name
 
+/* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_TABLE_BOUNDS(type, name)                                                   \
     extern type emb_table_start_##name[] __asm__("section$start$__DATA_CONST$" #name); \
     extern type emb_table_stop_##name[] __asm__("section$end$__DATA_CONST$" #name)
+/* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 #define EMB_TABLE_START(name) emb_table_start_##name
 #define EMB_TABLE_STOP(name)  emb_table_stop_##name
 

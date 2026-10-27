@@ -37,13 +37,19 @@ EMB_TEST(irq_priority_port_rejects_invalid_inputs)
 #if CONFIG_EMB_ARCH_NATIVE
 #include <emb_native.h>
 
-static emb_status_t context_status;
+#if !CONFIG_EMB_CHECKED
+static emb_status_t context_status; /* a checked build faults instead of returning */
+#endif
 
 static void priority_from_isr(void *arg)
 {
     (void)arg;
     /* Context wins even when both arguments are invalid (API-013). */
+#if CONFIG_EMB_CHECKED
+    (void)emb_irq_set_level((emb_irq_t)EMB_ARCH_IRQ_COUNT, UINT8_MAX);
+#else
     context_status = emb_irq_set_level((emb_irq_t)EMB_ARCH_IRQ_COUNT, UINT8_MAX);
+#endif
 }
 
 #if CONFIG_EMB_CHECKED
@@ -82,10 +88,10 @@ EMB_TEST(irq_priority_context_precedes_argument_validation)
 {
     EMB_TEST_REQ("API-013", "API-015");
     emb_test_irq_connect(0u, priority_from_isr, NULL);
-    context_status = EMB_OK;
 #if CONFIG_EMB_CHECKED
     EXPECT_PRIORITY_FAULT(emb_test_irq_raise(0u), EMB_FAULT_API_CONTEXT, 0u);
 #else
+    context_status = EMB_OK;
     emb_test_irq_raise(0u);
     EMB_ASSERT_EQ(context_status, EMB_EPERM);
 #endif

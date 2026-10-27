@@ -15,6 +15,8 @@ set(EMB_SET "" CACHE STRING "Symbol overrides SYMBOL=value, semicolon separated,
 option(EMB_BUILD_TESTS "Build the test suites (native only)" ON)
 option(EMB_BUILD_SAMPLES "Build the samples" ON)
 option(EMB_WERROR "Treat warnings as errors (CODING-STANDARD CS-13.1)" ON)
+# compile_commands.json for clangd and clang-tidy; .clangd reads build/native-gcc's
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(emb_config)      # board lookup, embconfig run, CONFIG_EMB_* variables

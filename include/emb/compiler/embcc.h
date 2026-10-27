@@ -18,6 +18,7 @@
 #define EMB_COMPILER_VERSION 0
 #endif
 
+/* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_INLINE             inline
 #define EMB_ALWAYS_INLINE      inline __attribute__((always_inline))
 #define EMB_NOINLINE           __attribute__((noinline))
@@ -34,6 +35,7 @@
 #define EMB_UNLIKELY(x)        __builtin_expect(!!(x), 0)
 #define EMB_COMPILER_BARRIER() __asm__ __volatile__("" ::: "memory")
 #define EMB_TRAP()             __builtin_trap()
+/* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 
 #define EMB_MEMCPY(d, s, n) __builtin_memcpy((d), (s), (n))
 #define EMB_MEMSET(d, c, n) __builtin_memset((d), (c), (n))
@@ -44,9 +46,11 @@
 /* The storage probe writes sizes/alignment as text in the object, never executing
  * these bytes. Immediate operands and %c keep the marker target-independent;
  * realign subsequent instructions after the variable-length text. */
+/* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_LAYOUT_MARKER(name, size, align)                                        \
     __asm__ __volatile__("\n.ascii \"->EMB_PROBE " #name " %c0 %c1\"\n.p2align 2\n" \
                          :                                                          \
                          : "i"(size), "i"(align))
+/* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 
 #endif /* EMB_COMPILER_EMBCC_H */
