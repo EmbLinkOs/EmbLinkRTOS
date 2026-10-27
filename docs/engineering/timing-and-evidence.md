@@ -66,6 +66,8 @@ The model explores interleavings at section granularity for finite scenario prog
 
 For deep replay failures, save the exact runner/model build, full trace, scenario, seed and interrupt/tick schedule; minimize the case and classify it as a kernel defect, model defect, bridge limitation or unsupported scenario with a regression test when resolved. Keep unresolved cases visible in release notes and [Project status](../STATUS.md).
 
+A historical report whose input and build cannot be recovered cannot be classified. After a bounded, recorded reproduction attempt, a maintainer may close it with the disposition **not reproducible: input unavailable, cause unknown**. This is not one of the four classifications, not a fix, and not evidence that the reported behavior cannot occur. The closing record states the attempt's scope, names the triggers that reopen it, and keeps the report listed among the known limits in Project status and release notes.
+
 ## Memory and reproducibility evidence
 
 Report kernel, architecture, board, application and runtime subtotals alongside the complete linked flash image. Include `.data` initialization images in flash, live `.data`/`.bss`, alignment/padding, metadata and retained sections. Distinguish reserved from loaded sections.
