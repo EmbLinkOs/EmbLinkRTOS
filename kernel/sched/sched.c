@@ -18,7 +18,9 @@
 #include <embk/sched.h>
 #include <embk/thread.h>
 
-embk_thread_t embk_idle_thread;
+#if !EMBK_IDLE_SLIM
+embk_thread_t embk_idle_thread; /* slim: sched/idle_context.c allocates the prefix only */
+#endif
 
 #if CONFIG_EMB_SCHED_TABLE
 embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT];
@@ -65,7 +67,7 @@ void embk_sched_init(void)
     ready_summary = 0u;
 #endif
 #endif
-    embk_thread_init_idle(&embk_idle_thread, NULL, 0u);
+    embk_thread_init_idle(EMBK_IDLE, NULL, 0u);
 }
 
 /* ---- the structure ------------------------------------------------------------ */
@@ -173,7 +175,7 @@ bool embk_sched_should_preempt(uint8_t prio)
     if (cur == NULL) {
         return false; /* prekernel: the start launches the highest */
     }
-    if (cur == &embk_idle_thread || !thread_runnable(cur)) {
+    if (cur == EMBK_IDLE || !thread_runnable(cur)) {
         return true;
     }
     return prio > cur->eff_prio;
@@ -182,7 +184,7 @@ bool embk_sched_should_preempt(uint8_t prio)
 void embk_sched_make_ready(embk_thread_t *t, bool ahead)
 {
     EMBK_ASSERT(!embk_sched_is_ready(t));
-    EMBK_ASSERT(t != &embk_idle_thread);
+    EMBK_ASSERT(t != EMBK_IDLE);
     insert(t, ahead);
     if (embk_sched_should_preempt(t->eff_prio)) {
         embk_cpu.reschedule_pending = 1u;
@@ -196,7 +198,7 @@ void embk_sched_make_ready(embk_thread_t *t, bool ahead)
 bool embk_sched_current_runnable(void)
 {
     const embk_thread_t *cur = embk_cpu.current;
-    return cur != &embk_idle_thread && thread_runnable(cur);
+    return cur != EMBK_IDLE && thread_runnable(cur);
 }
 
 /* ---- the decision --------------------------------------------------------------- */
@@ -205,6 +207,11 @@ static void check_stack(const embk_thread_t *t)
 {
 #if CONFIG_EMB_STACK_CHECK
     unsigned i;
+#if EMBK_IDLE_SLIM
+    if (t == EMBK_IDLE) {
+        return; /* it runs on the pre-kernel stack and keeps no stack record (ADR-050) */
+    }
+#endif
     if (t->stack_base != NULL) {
         /* bounded: EMBK_STACK_GUARD_BYTES */
         for (i = 0u; i < EMBK_STACK_GUARD_BYTES; i++) {
@@ -225,7 +232,7 @@ embk_thread_t *embk_sched_select(bool yield)
 {
     embk_thread_t *cur = embk_cpu.current;
     embk_thread_t *next = embk_sched_peek();
-    bool runnable = cur != &embk_idle_thread && thread_runnable(cur);
+    bool runnable = cur != EMBK_IDLE && thread_runnable(cur);
 
     embk_cpu.reschedule_pending = 0u;
     if (runnable) {
@@ -238,7 +245,7 @@ embk_thread_t *embk_sched_select(bool yield)
     if (next != NULL) {
         embk_sched_remove_ready(next);
     } else {
-        next = &embk_idle_thread;
+        next = EMBK_IDLE;
     }
     if (next == cur) {
         return NULL;

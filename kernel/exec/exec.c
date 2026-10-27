@@ -65,7 +65,7 @@ void emb_kernel_start(void)
     if (first != NULL) {
         embk_sched_remove_ready(first);
     } else {
-        first = &embk_idle_thread;
+        first = EMBK_IDLE;
     }
     embk_cpu.current = first;
     embk_cpu.reschedule_pending = 0u;
@@ -76,7 +76,7 @@ void emb_kernel_start(void)
 #endif
     EMBK_TRACE(EMB_TRACE_SWITCH, 0xFFu, embk_thread_index(first), 0u);
     (void)key; /* the launch restores the first thread's own interrupt state (P3) */
-    emb_arch_kernel_start(first, &embk_idle_thread);
+    emb_arch_kernel_start(first, EMBK_IDLE);
 }
 
 void embk_idle_loop(void)

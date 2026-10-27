@@ -35,6 +35,7 @@
 
 /* ---- object header (SPEC-009) ------------------------------------------------- */
 
+#define EMBK_OBJ_IDLE   ((uint8_t)0x50u) /* the idle context: no handle resolves to it */
 #define EMBK_OBJ_THREAD ((uint8_t)0x51u)
 #define EMBK_OBJ_SEM    ((uint8_t)0x52u)
 #define EMBK_OBJ_MUTEX  ((uint8_t)0x53u)

@@ -104,8 +104,12 @@ static void idle_entry(void *arg)
 
 void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size)
 {
+#if EMBK_IDLE_SLIM
+    (void)EMB_MEMSET(t, 0, EMBK_IDLE_BYTES); /* the prefix is all there is (ADR-050) */
+#else
     tcb_reset(t);
-    embk_obj_init(&t->obj, EMBK_OBJ_THREAD, 0u, "idle");
+#endif
+    embk_obj_init(&t->obj, EMBK_OBJ_IDLE, 0u, "idle"); /* no handle resolves to it */
     t->base_prio = EMB_PRIORITY_IDLE;
     t->eff_prio = EMB_PRIORITY_IDLE;
     t->wait_state = EMBK_WAIT_READY;
@@ -122,6 +126,9 @@ void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size)
     t->stack_size = sizeof(idle_stack);
     (void)EMB_MEMSET(idle_stack, EMB_STACK_FILL, sizeof(idle_stack));
     emb_arch_context_init(t, idle_stack, sizeof(idle_stack), idle_entry, NULL, true);
+#elif EMBK_IDLE_SLIM
+    (void)stack; /* the port supplies the pre-kernel stack at start (SPEC-012 §3) */
+    (void)stack_size;
 #else
     t->stack_base =
         (uint8_t *)stack; /* the port supplies the pre-kernel stack at start (SPEC-012 §3) */
@@ -264,7 +271,7 @@ emb_thread_t emb_thread_self(void)
 {
     emb_thread_t h;
     h.raw = 0u;
-    if (embk_in_thread()) {
+    if (embk_in_thread() && embk_cpu.current != EMBK_IDLE) { /* idle is not a thread (§11) */
         h = embk_thread_handle(embk_cpu.current);
     }
     return h;
@@ -278,7 +285,7 @@ void emb_thread_exit(int code)
     embk_thread_t *joiner;
     emb_irq_key_t key;
 
-    if (!embk_in_thread() || embk_cpu.current == &embk_idle_thread) {
+    if (!embk_in_thread() || embk_cpu.current == EMBK_IDLE) {
         embk_fault_raise_api(EMB_API_ID_THREAD_EXIT, EMB_FAULT_API_CONTEXT, 0u, 0u, EMBK_WHERE);
     }
     self = embk_cpu.current;

@@ -184,10 +184,10 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 **Trace.** SPEC-008 §3, §13
 
 ### KRN-THR-026  Kernel threads
-**Statement.** The idle thread and work queue threads shall be kernel threads: not suspendable, cancelable, joinable, or re-prioritizable by the application (`EMB_EPERM`), invisible to `foreach` unless asked for.
-**Rationale.** The kernel's own progress must not depend on application calls.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `misuse/kernel_thread_ops`.
+**Statement.** The idle context shall not be reachable through any thread handle, and `emb_thread_self()` shall return `EMB_HANDLE_NULL` in it. Work queue threads shall be kernel threads: not suspendable, cancelable, joinable, or re-prioritizable by the application (`EMB_EPERM`), invisible to `foreach` unless asked for.
+**Rationale.** The kernel's own progress must not depend on application calls. An idle context that no handle names cannot be operated on at all, and need not be a full control block (ADR-050).
+**Status.** Accepted 2026-10-07; amended 2026-10-27 (ADR-050): the idle context is unreachable instead of refusing operations with `EMB_EPERM`.
+**Verification.** Test: `misuse/kernel_thread_ops`, `idle_context_is_not_an_application_thread`.
 **Trace.** SPEC-008 §11
 
 ### KRN-THR-027  Isolated profile rules

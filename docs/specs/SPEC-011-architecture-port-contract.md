@@ -69,7 +69,7 @@ The thread's register context lives **on its own stack**; the TCB holds only the
 |---|---|---|
 | `void emb_arch_early_init(void)` | SoC startup, before `main()` | vector table base, FPU enable and lazy stacking, stack limit registers for the pre-kernel stack, cache enable where the SoC asks, trap vector (`mtvec`) |
 | `void emb_arch_init(void)` | `emb_kernel_init()` | interrupt stack installation, priority grouping, PendSV and SVC priorities (SPEC-002 §13), timer source selection, cycle counter start |
-| `EMB_NORETURN void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)` | `emb_kernel_start()` at P3 | switches from the pre-kernel stack to the first thread's context and never returns; afterwards the pre-kernel stack is the interrupt stack (ports with `interrupt_stack`) or the idle thread's stack (AVR), per SPEC-008 §10 |
+| `EMB_NORETURN void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)` | `emb_kernel_start()` at P3 | switches from the pre-kernel stack to the first thread's context and never returns; afterwards the pre-kernel stack is the interrupt stack (ports with `interrupt_stack`) or the idle thread's stack (AVR), per SPEC-008 §10. The port touches only `idle->arch`: on the tiny profile the idle context ends shortly after it (ADR-050) |
 
 Startup forms per target follow 09 §8: C `Reset_Handler` on Cortex-M, a `.S` entry on RISC-V and AVR; the SoC layer owns clocks and memory setup and calls `emb_arch_early_init` before touching anything interrupt-related.
 

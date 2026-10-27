@@ -139,6 +139,9 @@ emb_status_t emb_thread_start(emb_thread_t thread);
  * @req      KRN-THR-008
  * @since    0.2
  * @stable   yes
+ *
+ * Return: the caller's handle; EMB_HANDLE_NULL outside thread context and in the idle
+ *         context, which is not an application thread (SPEC-008 §11).
  */
 emb_thread_t emb_thread_self(void);
 

@@ -70,7 +70,7 @@ The [timing/evidence contract](timing-and-evidence.md) controls these artifacts.
 The `footprint_t1` reference build is at the R-003 T2 limit of 64 bytes of kernel static RAM, which includes the idle context's control block (R-003 §4, T2 accounting). This work is independent of the M2 order; until it lands, a change that adds tiny kernel RAM must remove as much in the same change.
 
 - [ ] Small savings of about 6 bytes: bind the fault hook at link time instead of through a RAM pointer, pack the per-CPU flags, and drop the idle slot from the priority-indexed thread table.
-- [ ] Slim idle context: idle never blocks, times out, takes notifications, joins or changes priority, so on the tiny profile it needs only its saved stack pointer and the fields the scheduler and switch path read. Expected to recover about 25 of its 32 bytes. Check every path that treats idle as a full `embk_thread_t` (switch, diagnostics, identity, trace) on native, AVR, Cortex-M and RV32 before changing its type.
+- [x] Slim idle context: idle never blocks, times out, takes notifications, joins or changes priority, so on the tiny profile it needs only its saved stack pointer and the fields the scheduler and switch path read. Expected to recover about 25 of its 32 bytes. Check every path that treats idle as a full `embk_thread_t` (switch, diagnostics, identity, trace) on native, AVR, Cortex-M and RV32 before changing its type. Done under ADR-050: an 11-byte prefix on AVR, `footprint_t1` kernel RAM 64 → 43 bytes; no handle resolves to idle and `emb_thread_self()` is null there.
 - [ ] Lower the `avr-uno-t1` RAM threshold to the new measured value so the recovered bytes are not silently spent.
 
 ## M2-05 through M2-09: Primitive acceptance

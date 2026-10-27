@@ -121,7 +121,7 @@ The exiting thread's stack is in use until step 5. Interrupts taken between step
 
 ## 11. Idle and kernel threads
 
-- The idle thread exists per CPU unless the tiny profile removes it (KRN-SCH-043, ADR-036); its priority is `0`, it is not visible as an application thread, cannot be suspended, canceled, joined, or re-prioritized (`EMB_EPERM`), and it runs the power core's idle hook (04 §4).
+- The idle thread exists per CPU unless the tiny profile removes it (KRN-SCH-043, ADR-036); its priority is `0` and it runs the power core's idle hook (04 §4). It is not an application thread: its object carries the idle type tag, so no handle resolves to it, and `emb_thread_self()` returns `EMB_HANDLE_NULL` in the idle context (KRN-THR-026). With the table scheduler and no idle thread, the inline idle context is slim: it never blocks, times out, takes notifications, joins or changes priority, so only the control block's prefix that the scheduler, the switch path and diagnostics read is allocated (ADR-050). Code running in the idle context, such as a port's idle hook, must not call thread-context API.
 - Work queue threads (SPEC-006) are kernel threads: created by `emb_workq_init`, destroyed with the queue, same restrictions as idle except priority, which is the queue's.
 - The supervisor partition's thread (03 §8) is an ordinary thread of a privileged partition.
 
