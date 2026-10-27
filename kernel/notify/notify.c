@@ -3,6 +3,7 @@
 /* Thread notifications (SPEC-006 §2): level-sensitive bits with hand-off on satisfaction. */
 #include <emb/notify.h>
 
+#include <embk/binding.h>
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/thread.h>
@@ -48,16 +49,64 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
     return EMB_OK;
 }
 
-void embk_notify_set_locked(embk_thread_t *t, emb_notify_bits_t bits)
+/* @source: the bound object, NULL for a direct set; only the trace reads it. */
+static void notify_set(embk_thread_t *t, emb_notify_bits_t bits, const void *source)
 {
+    (void)source;
     if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
         return; /* dropped: a terminated thread has no notification word (SPEC-008 §5) */
     }
     t->notify_bits |= bits;
-    EMBK_TRACE(EMB_TRACE_NOTIFY_SET, embk_thread_index(t), bits, 0u);
+    EMBK_TRACE(EMB_TRACE_NOTIFY_SET, embk_thread_index(t), bits, source);
     if (t->wait_queue == &t->self_q && t->wait_reason == EMB_WAIT_REASON_NOTIFY && satisfied(t)) {
         (void)embk_wait_wake(t, EMBK_WAKE_SATISFIED, (uintptr_t)consume(t));
     }
+}
+
+void embk_notify_set_locked(embk_thread_t *t, emb_notify_bits_t bits)
+{
+    notify_set(t, bits, NULL);
+}
+
+#if CONFIG_EMB_TRACE
+void embk_notify_set_bound(embk_thread_t *t, emb_notify_bits_t bits, const void *obj)
+{
+    notify_set(t, bits, obj);
+}
+#endif
+
+/* ---- bindings (SPEC-006 §3, ADR-046) --------------------------------------------- */
+
+emb_status_t embk_binding_bind(embk_binding_t *b, embk_thread_t *t, emb_notify_bits_t bit)
+{
+    if (b->thread != NULL) {
+        return EMB_EEXIST;
+    }
+    if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
+        return EMB_ESTATE; /* its sets would be dropped and its destroy would wait on us */
+    }
+    if ((t->tflags & EMBK_THREAD_KERNEL) != 0u) {
+        return EMB_EPERM; /* kernel threads own their notification bits */
+    }
+    if (t->bind_refs == UINT8_MAX) {
+        return EMB_ENOMEM;
+    }
+    t->bind_refs++;
+    b->thread = t;
+    b->bit = bit;
+    return EMB_OK;
+}
+
+bool embk_binding_unbind(embk_binding_t *b)
+{
+    if (b->thread == NULL) {
+        return false;
+    }
+    EMBK_ASSERT(b->thread->bind_refs != 0u);
+    b->thread->bind_refs--;
+    b->thread = NULL;
+    b->bit = 0u;
+    return true;
 }
 
 static emb_status_t wait_common(uint16_t api_id, emb_notify_bits_t mask, uint8_t mode,

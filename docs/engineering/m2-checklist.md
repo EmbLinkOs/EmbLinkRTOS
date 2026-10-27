@@ -50,11 +50,11 @@ The current docs disclose these gaps. Correcting one must update its contract, r
 
 ## M2-03: Binding and object lifetimes
 
-- [ ] Decide the Proposed KRN-NOTIF-012 initial-readiness contract: binding's current one-bit mask and explicit initial drain must remain unambiguous.
-- [ ] Define and implement unbind/teardown with a bound target, racing give/set, suspended/terminated target, destruction and storage reuse.
-- [ ] Preserve direct waiters and no-lost-wakeup recheck semantics; model the bind/unbind/destroy transitions.
-- [ ] Specify admission/static storage reuse and any M2 freeze behavior needed by the supported controller. Distinguish the unimplemented TABLE/partition generation mechanism from POINTER lifetime responsibility.
-- [ ] Establish shutdown ownership and producer quiescence before object/target storage is invalidated; test deterministic waiter outcomes.
+- [x] Decide the Proposed KRN-NOTIF-012 initial-readiness contract: binding's current one-bit mask and explicit initial drain must remain unambiguous. Accepted: no initial edge, one validated bit.
+- [x] Define and implement unbind/teardown with a bound target, racing give/set, suspended/terminated target, destruction and storage reuse. `emb_sem_unbind_notify()`; the target cannot be destroyed while bound (ADR-046, KRN-NOTIF-013/014).
+- [x] Preserve direct waiters and no-lost-wakeup recheck semantics; model the bind/unbind/destroy transitions. Model operations `BindNotify`, `UnbindNotify`, `ThreadDestroy`, the BINDING scenario group and the "no binding names a destroyed thread" invariant; the bridge agrees on all native presets.
+- [x] Specify admission/static storage reuse and any M2 freeze behavior needed by the supported controller. Distinguish the unimplemented TABLE/partition generation mechanism from POINTER lifetime responsibility. Storage is reused only through destroy (ADR-045); a bound thread cannot be destroyed (ADR-046); the controller needs no freeze in M2 (KRN-OBJ-004 stays with the isolated configuration). POINTER handles carry no generation.
+- [x] Establish shutdown ownership and producer quiescence before object/target storage is invalidated; test deterministic waiter outcomes. The teardown order is SPEC-006 §3.2; `destroy_bound_sem_releases_target` checks the waiter's `EMB_EDESTROYED` and the released target.
 
 ## M2-04: Executed cases and bounded costs
 

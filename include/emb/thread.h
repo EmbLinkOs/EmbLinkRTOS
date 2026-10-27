@@ -539,11 +539,12 @@ void emb_thread_foreach(emb_thread_visit_t cb, void *arg);
  * @time     O(1)
  * @owns     gives:storage
  * @config
- * @req      KRN-OBJ-001 KRN-THR-024
+ * @req      KRN-OBJ-001 KRN-THR-024 KRN-NOTIF-014
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_EBUSY (misuse) for any other state; EMB_EINVAL.
+ * Return: EMB_OK; EMB_EBUSY (misuse) for any other state, or while a notification binding
+ *         names the thread (unbind or destroy the bound object first, ADR-046); EMB_EINVAL.
  */
 emb_status_t emb_thread_destroy(emb_thread_t thread);
 

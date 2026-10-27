@@ -149,7 +149,13 @@ struct embk_thread {
 #if CONFIG_EMB_CHECKED
     uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
 #endif
-    embk_wait_gen_t wait_gen;
+    /* the slim idle context ends here (EMBK_IDLE_BYTES, ADR-050) */
+#if !CONFIG_EMB_SCHED_TABLE
+    embk_wait_gen_t wait_gen; /* the table profile is uniprocessor only: nothing reads it (A15) */
+#endif
+#if CONFIG_EMB_NOTIFY
+    uint8_t bind_refs; /* objects whose notification binding names this thread (ADR-046) */
+#endif
     uintptr_t wake_data; /* the waker's datum; the exit code once TERMINATED (SPEC-008 §5) */
     embk_wait_queue_t *wait_queue; /* the queue the thread waits in, or NULL */
 #if !CONFIG_EMB_SCHED_TABLE
@@ -177,6 +183,16 @@ struct embk_thread {
 };
 
 #define EMBK_STACK_GUARD_BYTES 8u
+
+/* The prefix of a control block the idle context uses (ADR-050). Defined for the table
+ * profile, the only one with a slim idle context. */
+#if CONFIG_EMB_SCHED_TABLE
+#if CONFIG_EMB_NOTIFY
+#define EMBK_IDLE_BYTES offsetof(embk_thread_t, bind_refs)
+#else
+#define EMBK_IDLE_BYTES offsetof(embk_thread_t, wake_data)
+#endif
+#endif
 
 static EMB_INLINE uint8_t embk_thread_index(const embk_thread_t *t)
 {

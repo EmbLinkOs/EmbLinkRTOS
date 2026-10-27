@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Notification conformance (SPEC-006 §2, §3; KRN-NOTIF-001 to 006). */
+/* Notification conformance (SPEC-006 §2, §3; KRN-NOTIF-001 to 006, 009, 013, 014). */
 #include <emb_test.h>
 
 #define B0    EMB_NOTIFY_BIT(0)
@@ -117,6 +117,65 @@ EMB_TEST(notify_semaphore_binding_signals_ready_transition)
     EMB_ASSERT_STATUS(emb_notify_wait(B1, EMB_NOTIFY_ANY, EMB_NO_WAIT, &got), EMB_ETIMEDOUT);
     EMB_ASSERT_OK(emb_sem_take(sem, EMB_NO_WAIT));
     EMB_ASSERT_OK(emb_sem_take(sem, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
+}
+
+EMB_TEST(notify_unbind_stops_signals)
+{
+    emb_sem_t sem;
+    emb_notify_bits_t got = 0u;
+    EMB_TEST_REQ("KRN-NOTIF-009", "KRN-NOTIF-013");
+    EMB_ASSERT_OK(emb_sem_init(&sem_storage, NULL, &sem));
+    EMB_ASSERT_STATUS(emb_sem_unbind_notify(sem), EMB_ENOENT);
+    EMB_ASSERT_OK(emb_sem_bind_notify(sem, emb_thread_self(), B0));
+    EMB_ASSERT_OK(emb_sem_unbind_notify(sem));
+    EMB_ASSERT_STATUS(emb_sem_unbind_notify(sem), EMB_ENOENT);
+    EMB_ASSERT_OK(emb_sem_give(sem)); /* 0 -> 1 while unbound: no bit */
+    EMB_ASSERT_STATUS(emb_notify_wait(B0, EMB_NOTIFY_ANY, EMB_NO_WAIT, &got), EMB_ETIMEDOUT);
+    EMB_ASSERT_OK(emb_sem_take(sem, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_sem_bind_notify(sem, emb_thread_self(), B1)); /* rebind */
+    EMB_ASSERT_OK(emb_sem_give(sem));
+    EMB_ASSERT_OK(emb_notify_wait(B1, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_NO_WAIT, &got));
+    EMB_ASSERT_EQ(got, B1);
+    EMB_ASSERT_OK(emb_sem_take(sem, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
+}
+
+static void wait_b0(void *arg)
+{
+    emb_notify_bits_t got = 0u;
+    (void)arg;
+    emb_test_mark(emb_notify_wait(B0, EMB_NOTIFY_ANY | EMB_NOTIFY_CLEAR, EMB_TIMEOUT(EMB_TICKS(5)),
+                                  &got) == EMB_OK
+                      ? 1
+                      : 2);
+}
+
+EMB_TEST(notify_bound_target_cannot_be_destroyed)
+{
+    emb_sem_t sem;
+    emb_thread_t h;
+    EMB_TEST_REQ("KRN-NOTIF-014", "KRN-NOTIF-009");
+    EMB_ASSERT_OK(emb_sem_init(&sem_storage, NULL, &sem));
+    h = emb_test_thread(EMB_TEST_NAME("w"), 3u, 0u, wait_b0, NULL); /* blocks on B0 */
+    EMB_ASSERT_OK(emb_sem_bind_notify(sem, h, B0));
+    EMB_ASSERT_OK(emb_sem_give(sem)); /* the binding wakes it, and it exits */
+    EMB_ASSERT_MARKS(1);
+    EMB_ASSERT_OK(emb_thread_join(h, EMB_WAIT_FOREVER, NULL));
+    EMB_ASSERT_MISUSE(emb_thread_destroy(h), EMB_EBUSY); /* the semaphore still names it */
+    EMB_ASSERT_STATUS(emb_sem_bind_notify(sem, h, B0), EMB_EEXIST);
+    EMB_ASSERT_OK(emb_sem_destroy(sem)); /* destroying the object releases the target */
+    EMB_ASSERT_OK(emb_test_thread_destroy(h));
+}
+
+EMB_TEST(notify_bind_refuses_a_terminated_target)
+{
+    emb_sem_t sem;
+    emb_thread_t h = emb_test_thread(EMB_TEST_NAME("x"), 3u, 0u, exits, NULL);
+    EMB_TEST_REQ("KRN-NOTIF-014");
+    EMB_ASSERT_OK(emb_sem_init(&sem_storage, NULL, &sem));
+    EMB_ASSERT_STATUS(emb_sem_bind_notify(sem, h, B0), EMB_ESTATE);
+    EMB_ASSERT_STATUS(emb_sem_unbind_notify(sem), EMB_ENOENT);
     EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 #endif

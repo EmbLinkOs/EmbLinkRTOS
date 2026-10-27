@@ -146,7 +146,9 @@ bool embk_wait_wake(embk_thread_t *t, embk_wait_result_t result, uintptr_t data)
     t->wait_queue = NULL;
     embk_thread_set_wake_result(t, result); /* KRN-WAIT-005: result before READY */
     t->wake_data = data;
+#if !CONFIG_EMB_SCHED_TABLE
     t->wait_gen++; /* every later timeout, cancel, or flush for this wait is stale */
+#endif
     was = t->wait_state;
     t->wait_state = EMBK_WAIT_READY;
 #if CONFIG_EMB_MUTEX

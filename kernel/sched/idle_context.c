@@ -15,18 +15,16 @@
 
 #include <stdalign.h>
 
-#define IDLE_BYTES offsetof(embk_thread_t, wait_gen)
-
 /* Every field the kernel or a port reads or writes for the idle context lies in front. */
 EMB_STATIC_ASSERT(offsetof(embk_thread_t, arch) == 0u, "idle prefix: arch");
-EMB_STATIC_ASSERT(offsetof(embk_thread_t, obj) < IDLE_BYTES, "idle prefix: obj");
-EMB_STATIC_ASSERT(offsetof(embk_thread_t, tflags) < IDLE_BYTES, "idle prefix: tflags");
-EMB_STATIC_ASSERT(offsetof(embk_thread_t, cancel_disable) < IDLE_BYTES, "idle prefix");
+EMB_STATIC_ASSERT(offsetof(embk_thread_t, obj) < EMBK_IDLE_BYTES, "idle prefix: obj");
+EMB_STATIC_ASSERT(offsetof(embk_thread_t, tflags) < EMBK_IDLE_BYTES, "idle prefix: tflags");
+EMB_STATIC_ASSERT(offsetof(embk_thread_t, cancel_disable) < EMBK_IDLE_BYTES, "idle prefix");
 #if !EMBK_THREAD_INDEX_PACKED
-EMB_STATIC_ASSERT(offsetof(embk_thread_t, index) < IDLE_BYTES, "idle prefix: index");
+EMB_STATIC_ASSERT(offsetof(embk_thread_t, index) < EMBK_IDLE_BYTES, "idle prefix: index");
 #endif
 #if CONFIG_EMB_CHECKED
-EMB_STATIC_ASSERT(offsetof(embk_thread_t, lock_depth) < IDLE_BYTES, "idle prefix: lock_depth");
+EMB_STATIC_ASSERT(offsetof(embk_thread_t, lock_depth) < EMBK_IDLE_BYTES, "idle prefix: lock_depth");
 #endif
 
-alignas(embk_thread_t) unsigned char embk_idle_thread[IDLE_BYTES];
+alignas(embk_thread_t) unsigned char embk_idle_thread[EMBK_IDLE_BYTES];

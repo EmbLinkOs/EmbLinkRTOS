@@ -21,6 +21,10 @@ extern embk_list_t embk_thread_all; /* lock: scheduler domain */
 #if CONFIG_EMB_NOTIFY
 /* OR @bits into @t's word and wake it if satisfied; lock held; kernel bits allowed. */
 void embk_notify_set_locked(embk_thread_t *t, emb_notify_bits_t bits);
+#if CONFIG_EMB_TRACE
+/* The same for a binding: the trace record names the bound object @obj (SPEC-006 §7). */
+void embk_notify_set_bound(embk_thread_t *t, emb_notify_bits_t bits, const void *obj);
+#endif
 #endif
 
 #endif /* EMBK_THREAD_H */

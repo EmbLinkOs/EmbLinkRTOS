@@ -552,3 +552,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Status.** Implemented for review, 2026-10-27, as part of the M2 tiny-RAM headroom work; awaiting project-owner review.
 
+## ADR-046 A bound thread outlives its bindings
+
+**Context.** A notification binding (ADR-027) stores a raw pointer to its target thread. Before M2-03 nothing tied the target's lifetime to the binding: there was no unbind, and a thread could be destroyed, and its storage reinitialized, while a semaphore still pointed at it, so the next give wrote into whatever the storage had become. SPEC-006 §3.2 left the obligation with the caller.
+
+**Decision.** Each thread counts the bindings that name it (`bind_refs`, one byte). `bind` increments it and refuses a terminated target (`EMB_ESTATE`), a kernel thread (`EMB_EPERM`) and a full count (`EMB_ENOMEM`). `unbind` and destroying the bound object decrement it. `emb_thread_destroy()` is misuse while it is nonzero, so a binding can never refer to destroyed thread storage. Signals to a terminated, not yet destroyed, target are still dropped. The teardown order is documented in SPEC-006 §3.2. On the table profile the byte comes from the per-thread wait generation, which nothing reads on a uniprocessor (A34).
+
+**Alternatives.** Scanning every object at thread destroy needs a registry, which the tiny profile does not have, and runs with interrupts masked. Unbinding automatically at thread exit would need a list of the thread's bindings. Binding by scheduler table index (SPEC-006 §8) would make a reused priority slot notify the wrong thread. Generation-tagged handles belong to the INDEXED and TABLE models.
+
+**Consequences.** Thread destroy costs one byte comparison; bind and unbind are O(1). The base TCB size is unchanged (the byte fills padding) and the tiny TCB stays at 32 bytes on AVR. Code that destroyed a bound thread before must now unbind or destroy the object first; checked builds fault where they used to corrupt silently. The reference model checks that no binding names a destroyed thread, and its bind, unbind and thread-destroy transitions agree with the kernel in the differential bridge.
+
+**Status.** Implemented for review, 2026-10-27, as M2-03; awaiting project-owner review.
+

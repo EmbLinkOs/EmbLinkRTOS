@@ -106,7 +106,7 @@ The exiting thread's stack is in use until step 5. Interrupts taken between step
 
 ## 8. Destroy
 
-`destroy(t)` requires `INACTIVE` (never started), or `TERMINATED` and reusable (joined or detached, switch-out complete). Anything else is misuse (`EMB_EBUSY`). Destroy removes the thread from the all-threads list, bumps the handle generation (KRN-OBJ-002), and returns the storage to the owner. A thread that is still a mutex owner cannot be `TERMINATED` (step 2 of §5 released them), so no ownership survives destroy. After destroy, stale handles fail with `EMB_ESTALE` in profiles that check generations and are undefined in the tiny profile, as for every object (SPEC-009).
+`destroy(t)` requires `INACTIVE` (never started), or `TERMINATED` and reusable (joined or detached, switch-out complete), and no notification binding naming the thread (SPEC-006 §3.2, ADR-046). Anything else is misuse (`EMB_EBUSY`). Destroy removes the thread from the all-threads list, bumps the handle generation (KRN-OBJ-002), and returns the storage to the owner. A thread that is still a mutex owner cannot be `TERMINATED` (step 2 of §5 released them), so no ownership survives destroy. After destroy, stale handles fail with `EMB_ESTALE` in profiles that check generations and are undefined in the tiny profile, as for every object (SPEC-009).
 
 ## 9. Thread-local storage slots
 

@@ -6,6 +6,7 @@
 
 #include <emb/sem.h>
 
+#include <embk/binding.h>
 #include <embk/kernel.h>
 
 #if CONFIG_EMB_SEM
@@ -15,8 +16,7 @@ typedef struct embk_sem {
     emb_sem_count_t count;
     emb_sem_count_t max;
 #if CONFIG_EMB_NOTIFY
-    embk_thread_t *bind_thread; /* ADR-027: NULL when unbound */
-    emb_notify_bits_t bind_bit;
+    embk_binding_t binding; /* ADR-027: signaled on the 0 to 1 transition */
 #endif
 #if CONFIG_EMB_OBJ_LIST
     embk_list_node_t all_node; /* in embk_sem_all from init to destroy */

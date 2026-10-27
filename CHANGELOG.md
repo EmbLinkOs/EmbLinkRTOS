@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- `emb_sem_unbind_notify()` (KRN-NOTIF-013). A thread counts the bindings that name it, and `emb_thread_destroy()` refuses it while any does; `emb_sem_bind_notify()` refuses terminated (`EMB_ESTATE`) and kernel (`EMB_EPERM`) targets (KRN-NOTIF-014, ADR-046). The reference model and the differential bridge cover bind, unbind and thread destroy.
+
 - `CONFIG_EMB_OBJ_LIST`: per-type lists of active semaphores and mutexes (KRN-OBJ-011).
 - A `.clangd` and exported `compile_commands.json` for editor support; `.clang-tidy` disables, with reasons, the checks that contradict the coding standard.
 
