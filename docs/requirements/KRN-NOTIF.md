@@ -69,7 +69,7 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 ### KRN-NOTIF-009  Binding lifecycle
 **Statement.** `bind` on an already bound object shall return `EMB_EEXIST`; `unbind` shall remove the binding; destroying the object shall not touch the thread's bits; a set to a terminated or restarted thread shall be dropped (detected by generation where generations are checked).
 **Rationale.** Deterministic ownership of the single binding slot; no dangling-pointer action.
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07. Partially implemented (A33): `EMB_EEXIST` for a second bind and dropping a set to a terminated thread; `unbind` and the target-lifetime rules are M2-03 work.
 **Verification.** Test: `notif/bind_twice`, `notif/unbind_rebind`, `notif/bind_target_restarted` (isolated profile).
 **Trace.** SPEC-006 §3.1, §3.2
 
@@ -91,5 +91,5 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 **Statement.** Public binding operations shall take one nonzero application-bit mask, reject zero, multiple bits, and kernel bits, and preserve the object's existing readiness. A caller shall bind before producers start or check and drain existing readiness before its first notification wait; edge-driven consumers shall drain their selected sources before waiting again.
 **Rationale.** Matches the M1 semaphore API and prevents confusing a bit index with a mask or waiting for an edge that already occurred.
 **Status.** Proposed 2026-10-14; mask validation is implemented for semaphore binding, broader lifecycle validation is pending.
-**Verification.** Existing `tests/conformance/test_sem.c` binding cases; planned initial-ready, multi-item drain, and invalid-mask cases mapped individually in the traceability matrix.
+**Verification.** Existing `tests/conformance/test_notify.c` case `notify_semaphore_binding_signals_ready_transition` (A32); planned initial-ready, multi-item drain, and invalid-mask cases mapped individually in the traceability matrix.
 **Trace.** SPEC-006 §3; A18; A23

@@ -249,8 +249,8 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 **Trace.** SPEC-003 §11, §13
 
 ### KRN-TIM-035  Checked-build detection for time
-**Statement.** Checked builds shall detect and raise a kernel fault for arming an already armed timeout node, a blocking call from an `ISR_CONTEXT` timer callback, destroying a timer with a pending or running callback, and `emb_timer_stop_sync` from the timer's own callback; a `_until` deadline out of the 32-bit profile's range shall return `EMB_EOVERFLOW` in both build kinds.
-**Rationale.** These are the time-related misuses that corrupt state silently in release builds.
-**Status.** Accepted 2026-10-07
+**Statement.** Checked builds shall detect and raise a kernel fault for arming an already armed timeout node, a blocking call from an `ISR_CONTEXT` timer callback, destroying a timer with a pending or running callback, and `emb_timer_stop_sync` from the timer's own callback.
+**Rationale.** These are the time-related misuses that corrupt state silently in release builds. A `_until` deadline beyond the 32-bit profile's window is not among them: it is indistinguishable from a past instant and takes the past-deadline path (A2, KRN-TIM-022).
+**Status.** Accepted 2026-10-07; amended 2026-10-27 (A29): the `EMB_EOVERFLOW` clause for out-of-range `_until` deadlines removed.
 **Verification.** Test: `tests/conformance/misuse/time/` on the native port in both build kinds.
 **Trace.** SPEC-003 §12; API-015
