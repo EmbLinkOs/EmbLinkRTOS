@@ -65,6 +65,7 @@ PI_MAX_DEPTH = 8                # CONFIG_EMB_PI_MAX_DEPTH default
 MUTEX_QID_BASE = 100            # queue ids: semaphores 0..99, mutexes 100.., thread pseudo-queues negative
 EVENT_QID_BASE = 200            # event flags 200..
 COND_QID_BASE = 300             # condition variables 300..
+MSGQ_QID_BASE = 400             # message queues: receivers 400 + 2i, senders 401 + 2i
 
 
 class ModelError(AssertionError):
@@ -254,6 +255,40 @@ class CondDestroy:
     cond: int
 
 
+@dataclass(frozen=True)
+class MsgSend:
+    """emb_msgq_send(q, &value, timeout): to a waiting receiver, else the tail, else wait for a slot (SPEC-007 §2)."""
+    q: int
+    value: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class MsgSendFront:
+    """emb_msgq_send_front(q, &value): never waits; to a waiting receiver, else the head, else TIMEOUT."""
+    q: int
+    value: int
+
+
+@dataclass(frozen=True)
+class MsgRecv:
+    """emb_msgq_receive(q, &out, timeout): the head, refilled from a waiting sender, else wait."""
+    q: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class MsgPeek:
+    """emb_msgq_peek(q, &out): a copy of the head without removing it; TIMEOUT when empty."""
+    q: int
+
+
+@dataclass(frozen=True)
+class MsgDestroy:
+    """emb_msgq_destroy(q) with EMB_OBJ_ABORT_WAITERS: waiters leave with DESTROYED, items are dropped."""
+    q: int
+
+
 def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     got = bits & mask
     if all_:
@@ -261,7 +296,10 @@ def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     return got
 
 
-ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear)   # SPEC-001 §5.2: signal-type operations are `thread isr`
+NONWAIT_DATA_OPS = (MsgSendFront, MsgPeek)                        # record a result and data, never wait
+ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear,  # SPEC-001 §5.2: signal-type operations are `thread isr`
+                MsgSendFront, MsgPeek, MsgSend, MsgRecv)
+ISR_NO_WAIT_ONLY = (MsgSend, MsgRecv)                             # with EMB_NO_WAIT only (SPEC-007 §1)
 
 
 # ----------------------------------------------------------------------------------------
@@ -300,6 +338,7 @@ class Thread:
     cond_phase: int = 0                       # CondWait: 0 waiting, 1 relocking, 2 relocked (reporting)
     cond_result: Optional[Result] = None      # the condition wait's result, then the final one
     cond_data: int = 0                        # the final result's data (OWNERDEAD_FLAG)
+    msg_value: int = 0                        # a blocked sender's item (the kernel keeps its pointer)
     cancel_deferred: bool = False             # cancellation is not delivered (the relock, A41)
 
     def key(self):
@@ -311,7 +350,7 @@ class Thread:
                 self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner,
                 self.collected, self.destroyed, self.cond_phase,
                 None if self.cond_result is None else int(self.cond_result), self.cond_data,
-                self.cancel_deferred)
+                self.cancel_deferred, self.msg_value)
 
 
 @dataclass
@@ -365,6 +404,24 @@ class Cond:
 
 
 @dataclass
+class Msgq:
+    qid: int
+    capacity: int
+    recv_qid: int
+    send_qid: int
+    ring: tuple = ()
+    destroyed: bool = False
+    binding: Optional[tuple] = None
+    accepted: int = 0                         # items the queue took: handed to a receiver or stored
+    received: int = 0                         # items delivered to receivers
+    dropped: int = 0                          # items discarded by destroy
+
+    def key(self):
+        return (self.qid, self.capacity, self.ring, self.destroyed, self.binding, self.accepted, self.received,
+                self.dropped)
+
+
+@dataclass
 class Mutex:
     mid: int
     qid: int
@@ -388,6 +445,7 @@ class Scenario:
     mutexes: dict = field(default_factory=dict)  # mid -> dict(protocol=, ceiling=, recursive=)
     events: dict = field(default_factory=dict)   # eid -> dict(bits=, policy=, binding=)
     conds: dict = field(default_factory=dict)    # cid -> dict(policy=)
+    msgqs: dict = field(default_factory=dict)    # qid -> dict(capacity=, policy=, binding=)
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
@@ -409,6 +467,12 @@ def build(sc: Scenario) -> "Kernel":
         k.queues[sid] = WaitQueue(qid=sid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
         k.sems[sid] = Semaphore(sid=sid, count=cfg.get("count", 0), initial=cfg.get("count", 0), qid=sid,
                                 binding=cfg.get("binding"))
+    for mq, cfg in sc.msgqs.items():
+        rq, wq = MSGQ_QID_BASE + 2 * mq, MSGQ_QID_BASE + 2 * mq + 1
+        k.queues[rq] = WaitQueue(qid=rq, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
+        k.queues[wq] = WaitQueue(qid=wq, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
+        k.msgqs[mq] = Msgq(qid=mq, capacity=cfg.get("capacity", 1), recv_qid=rq, send_qid=wq,
+                           binding=cfg.get("binding"))
     for cid, cfg in sc.conds.items():
         qid = COND_QID_BASE + cid
         k.queues[qid] = WaitQueue(qid=qid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
@@ -453,6 +517,7 @@ class Kernel:
     mutexes: dict = field(default_factory=dict)
     events: dict = field(default_factory=dict)
     conds: dict = field(default_factory=dict)
+    msgqs: dict = field(default_factory=dict)
     qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
     ready: dict = field(default_factory=dict)
     current: Optional[int] = None
@@ -477,6 +542,7 @@ class Kernel:
                 tuple(m.key() for _, m in sorted(self.mutexes.items())),
                 tuple(e.key() for _, e in sorted(self.events.items())),
                 tuple(c.key() for _, c in sorted(self.conds.items())),
+                tuple(q.key() for _, q in sorted(self.msgqs.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
@@ -492,6 +558,7 @@ class Kernel:
         k.mutexes = {i: copy.copy(m) for i, m in self.mutexes.items()}
         k.events = {i: copy.copy(e) for i, e in self.events.items()}
         k.conds = {i: copy.copy(c) for i, c in self.conds.items()}
+        k.msgqs = {i: copy.copy(q) for i, q in self.msgqs.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -1074,7 +1141,92 @@ class Kernel:
 
     def _bound_to(self, tid: int) -> bool:
         return any(o.binding is not None and o.binding[0] == tid
-                   for o in list(self.sems.values()) + list(self.events.values()))
+                   for o in list(self.sems.values()) + list(self.events.values()) + list(self.msgqs.values()))
+
+    # ------------------------------------------------------------------ message queues (SPEC-007 §2, M2-07)
+    def _msgq_store(self, q: Msgq, value: int, front: bool):
+        was_empty = not q.ring
+        q.ring = (value,) + q.ring if front else q.ring + (value,)
+        q.accepted += 1
+        if was_empty and q.binding is not None:                           # empty to non-empty, receive side
+            tid, bit = q.binding
+            self._notify_set(self.threads[tid], 1 << bit)
+
+    def _msgq_put(self, q: Msgq, value: int, front: bool) -> bool:
+        """The non-blocking part of send: a waiting receiver, else a free slot. False when full."""
+        rq = self.queues[q.recv_qid]
+        w = self.wait_first(rq)
+        if w is not None:
+            q.accepted += 1
+            q.received += 1
+            self.wake(w, Result.SATISFIED, value, rq, handoff=True)        # copied into its buffer
+            return True
+        if len(q.ring) < q.capacity:
+            self._msgq_store(q, value, front)
+            return True
+        return False
+
+    def _msgq_take(self, q: Msgq) -> Optional[int]:
+        """The non-blocking part of receive: the head, with the first waiting sender's item moved in."""
+        if not q.ring:
+            return None
+        value, q.ring = q.ring[0], q.ring[1:]
+        q.received += 1
+        sq = self.queues[q.send_qid]
+        w = self.wait_first(sq)
+        if w is not None:
+            q.ring = q.ring + (w.msg_value,)                              # the slot hand-off
+            q.accepted += 1
+            self.wake(w, Result.SATISFIED, 0, sq, handoff=True)
+        return value
+
+    def _op_msg_send(self, t: Optional[Thread], op: MsgSend) -> bool:
+        q = self.msgqs[op.q]
+        if t is None:                                                     # ISR, EMB_NO_WAIT only
+            if not q.destroyed:
+                self._msgq_put(q, op.value, front=False)
+            return True
+        if t.pc == 0 and q.destroyed:
+            self._finish(t, Result.STALE)
+            return True
+        if t.pc == 0:
+            t.msg_value = op.value
+        sq = self.queues[q.send_qid]
+        return self._block_section(t, sq, Reason.OBJECT, op.timeout,
+                                   lambda: self._msgq_room(q), lambda: self._msgq_put(q, op.value, False) and 0)
+
+    def _msgq_room(self, q: Msgq) -> bool:
+        return self.wait_first(self.queues[q.recv_qid]) is not None or len(q.ring) < q.capacity
+
+    def _op_msg_recv(self, t: Optional[Thread], op: MsgRecv) -> bool:
+        q = self.msgqs[op.q]
+        if t is None:
+            if not q.destroyed:
+                self._msgq_take(q)
+            return True
+        if t.pc == 0 and q.destroyed:
+            self._finish(t, Result.STALE)
+            return True
+        rq = self.queues[q.recv_qid]
+        return self._block_section(t, rq, Reason.OBJECT, op.timeout, lambda: bool(q.ring), lambda: self._msgq_take(q))
+
+    def _op_msg_nowait(self, op) -> tuple:
+        """send_front and peek: (result, data); neither waits."""
+        q = self.msgqs[op.q]
+        if q.destroyed:
+            return Result.STALE, 0
+        if isinstance(op, MsgSendFront):
+            return (Result.SATISFIED, 0) if self._msgq_put(q, op.value, front=True) else (Result.TIMEOUT, 0)
+        return (Result.SATISFIED, q.ring[0]) if q.ring else (Result.TIMEOUT, 0)
+
+    def _op_msg_destroy(self, op: MsgDestroy):
+        q = self.msgqs[op.q]
+        if q.destroyed:
+            return
+        self.wake_all(self.queues[q.recv_qid], Result.DESTROYED)
+        self.wake_all(self.queues[q.send_qid], Result.DESTROYED)
+        q.dropped += len(q.ring)
+        q.ring, q.destroyed, q.binding = (), True, None
 
     # ------------------------------------------------------------------ event flags (SPEC-005 §5, M2-05)
     def _op_event_set(self, op: EventSet):
@@ -1285,6 +1437,19 @@ class Kernel:
             self._op_event_wait(t, op)
         elif isinstance(op, CondWait):
             self._op_cond_wait(t, op)
+        elif isinstance(op, MsgSend):
+            self._op_msg_send(t, op)
+        elif isinstance(op, MsgRecv):
+            self._op_msg_recv(t, op)
+        elif isinstance(op, NONWAIT_DATA_OPS):
+            res, data = self._op_msg_nowait(op)
+            t.results = t.results + ((t.op_index, res, data),)
+            self._advance(t)
+            self.reschedule_if_needed()
+        elif isinstance(op, MsgDestroy):
+            self._op_msg_destroy(op)
+            self._advance(t)
+            self.reschedule_if_needed()
         elif isinstance(op, (CondSignal, CondBroadcast, CondDestroy)):
             self._op_cond_wake(op)
             self._advance(t)
@@ -1339,6 +1504,8 @@ class Kernel:
         for op in self.isr_bodies[index]:
             if not isinstance(op, ISR_SAFE_OPS):
                 raise ModelError(f"{op!r} is not ISR-safe (SPEC-001 §5.2)")
+            if isinstance(op, ISR_NO_WAIT_ONLY) and op.timeout != NO_WAIT:
+                raise ModelError(f"{op!r} may wait, which an ISR must not (SPEC-007 §1)")
             if isinstance(op, Give):
                 self._op_give(op)
             elif isinstance(op, Resume):
@@ -1351,6 +1518,12 @@ class Kernel:
                 self._op_event_clear(op)
             elif isinstance(op, Start):
                 self._op_start(op)
+            elif isinstance(op, MsgSend):
+                self._op_msg_send(None, op)
+            elif isinstance(op, MsgRecv):
+                self._op_msg_recv(None, op)
+            elif isinstance(op, NONWAIT_DATA_OPS):
+                self._op_msg_nowait(op)
         self.irq_nesting -= 1
         self._p1()
 
@@ -1402,6 +1575,16 @@ class Kernel:
         for s in self.sems.values():                                      # ADR-046: no binding outlives its target
             if s.binding is not None and self.threads[s.binding[0]].destroyed:
                 raise ModelError(f"semaphore {s.sid} is bound to destroyed thread {s.binding[0]}")
+        for q in self.msgqs.values():                                     # SPEC-007 §2.2
+            if self.queues[q.recv_qid].waiters and q.ring:
+                raise ModelError(f"message queue {q.qid}: receivers wait while {len(q.ring)} items are stored")
+            if self.queues[q.send_qid].waiters and len(q.ring) < q.capacity and not q.destroyed:
+                raise ModelError(f"message queue {q.qid}: senders wait while a slot is free")
+            if len(q.ring) > q.capacity:
+                raise ModelError(f"message queue {q.qid}: {len(q.ring)} items exceed capacity {q.capacity}")
+            if q.accepted != q.received + len(q.ring) + q.dropped:            # every item once (KRN-IPC-022)
+                raise ModelError(f"message queue {q.qid}: {q.accepted} accepted != {q.received} received "
+                                 f"+ {len(q.ring)} stored + {q.dropped} dropped")
         for e in self.events.values():                                    # SPEC-005 §5.2: a set served every waiter it satisfied
             for tid, _ in self.queues[e.qid].waiters:
                 w = self.threads[tid]
@@ -1500,4 +1683,5 @@ class Kernel:
                 ("blocked", tuple(tid for tid, t in sorted(self.threads.items()) if t.wait_state == WaitState.BLOCKED)),
                 ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))),
                 ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))),
-                ("events", tuple((eid, e.bits) for eid, e in sorted(self.events.items()))))
+                ("events", tuple((eid, e.bits) for eid, e in sorted(self.events.items()))),
+                ("msgqs", tuple((qid, q.ring) for qid, q in sorted(self.msgqs.items()))))

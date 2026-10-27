@@ -19,7 +19,7 @@ This page is the authoritative inventory of implementation and available evidenc
 | Observability | M1 trace sink and fault reporting | CTF rings/metadata, deferred log decoder, retained crash records, debug descriptor and worst-case monitors remain planned |
 | Documentation | Sphinx/MyST manuals and native tutorials, Doxygen/Breathe C API, Sphinx Needs design catalog, JSON/CSV downloads and annotation audit | Strict local HTML build, complete extracted function annotations, source-preservation and catalog-integrity checks; merged `37887c9` Pages deployment and served evidence-workflow page independently observed successful |
 | Repository process | Issue forms, PR checklist, changelog, release/M2 work checklists, stable CI merge checks, authored-commit DCO checker and a main ruleset policy | Local syntax and DCO/gate failure checks; GitHub's effective main rules report PRs, resolved conversations, the three strict CI checks and deletion/non-fast-forward protection; no remote rejection experiment claimed |
-| Semantic model | UP scheduler/wait/mutex/notification/lifecycle scenarios, exhaustive section-level exploration and randomized walks | Scenario-scoped exploration, not a proof of all C execution, arbitrary programs, SMP or hardware protection |
+| Semantic model | UP scheduler/wait/mutex/notification/lifecycle scenarios; message queues modeled ahead of their implementation (KRN-IPC-022); exhaustive section-level exploration and randomized walks | Scenario-scoped exploration, not a proof of all C execution, arbitrary programs, SMP or hardware protection |
 
 ## Specified but unimplemented
 
