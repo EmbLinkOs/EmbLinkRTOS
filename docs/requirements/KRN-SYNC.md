@@ -216,8 +216,8 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 ### KRN-SYNC-030  Condition variable semantics
 **Statement.** `cond_wait` shall require ownership with recursion count 1, shall enqueue and then fully unlock the mutex atomically with respect to `signal`, and shall relock the mutex before returning on every result; `signal` shall wake the highest waiter and `broadcast` all; the kernel shall never wake a condition waiter without a signal or broadcast.
 **Rationale.** Classic, analyzable semantics; the relock-always rule is what callers can reason about.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `sync/cond_*` including relock after timeout; `misuse/cond_wait_not_owner`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-06).
+**Verification.** Test: `cond_signal_wakes_one_waiter_which_owns_the_mutex`, `cond_broadcast_wakes_all_in_priority_order`, `cond_signal_is_not_stored`, `cond_relock_after_timeout_waits_for_the_mutex`, `cond_cancel_returns_with_the_mutex_owned`, `cond_destroy_aborts_waiters_which_relock`, `cond_wait_requires_single_ownership`; model scenarios of the COND group (no lost signal, deferred cancel during the relock); differential agreement on the native base presets.
 **Trace.** SPEC-005 §6
 
 ### KRN-SYNC-031  Barrier semantics

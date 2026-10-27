@@ -64,6 +64,7 @@ CANCELABLE = frozenset({Reason.SLEEP, Reason.OBJECT, Reason.JOIN, Reason.NOTIFY}
 PI_MAX_DEPTH = 8                # CONFIG_EMB_PI_MAX_DEPTH default
 MUTEX_QID_BASE = 100            # queue ids: semaphores 0..99, mutexes 100.., thread pseudo-queues negative
 EVENT_QID_BASE = 200            # event flags 200..
+COND_QID_BASE = 300             # condition variables 300..
 
 
 class ModelError(AssertionError):
@@ -229,6 +230,30 @@ class EventDestroy:
     event: int
 
 
+@dataclass(frozen=True)
+class CondWait:
+    """emb_cond_wait(cond, mutex, timeout): release the mutex with the enqueue, wait, relock (SPEC-005 §6)."""
+    cond: int
+    mutex: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class CondSignal:
+    cond: int
+
+
+@dataclass(frozen=True)
+class CondBroadcast:
+    cond: int
+
+
+@dataclass(frozen=True)
+class CondDestroy:
+    """emb_cond_destroy(cond) with EMB_OBJ_ABORT_WAITERS: waiters leave with DESTROYED, after relocking."""
+    cond: int
+
+
 def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     got = bits & mask
     if all_:
@@ -272,6 +297,10 @@ class Thread:
     joiner: Optional[int] = None              # the one joiner's tid, while blocked (SPEC-008 §6)
     collected: bool = False                   # the exit code was joined: destroy is allowed (SPEC-008 §8)
     destroyed: bool = False                   # emb_thread_destroy succeeded; no handle names it any more
+    cond_phase: int = 0                       # CondWait: 0 waiting, 1 relocking, 2 relocked (reporting)
+    cond_result: Optional[Result] = None      # the condition wait's result, then the final one
+    cond_data: int = 0                        # the final result's data (OWNERDEAD_FLAG)
+    cancel_deferred: bool = False             # cancellation is not delivered (the relock, A41)
 
     def key(self):
         return (self.tid, self.prio, self.base_prio, int(self.wait_state), self.wait_gen,
@@ -280,7 +309,9 @@ class Thread:
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
                 self.saved_gen, self.deadline, self.results, self.notify_bits, self.notify_mask, self.notify_all,
                 self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner,
-                self.collected, self.destroyed)
+                self.collected, self.destroyed, self.cond_phase,
+                None if self.cond_result is None else int(self.cond_result), self.cond_data,
+                self.cancel_deferred)
 
 
 @dataclass
@@ -324,6 +355,16 @@ class Event:
 
 
 @dataclass
+class Cond:
+    cid: int
+    qid: int
+    destroyed: bool = False
+
+    def key(self):
+        return (self.cid, self.qid, self.destroyed)
+
+
+@dataclass
 class Mutex:
     mid: int
     qid: int
@@ -346,6 +387,7 @@ class Scenario:
     sems: dict = field(default_factory=dict)   # sid -> dict(count=, policy=, binding=)
     mutexes: dict = field(default_factory=dict)  # mid -> dict(protocol=, ceiling=, recursive=)
     events: dict = field(default_factory=dict)   # eid -> dict(bits=, policy=, binding=)
+    conds: dict = field(default_factory=dict)    # cid -> dict(policy=)
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
@@ -367,6 +409,10 @@ def build(sc: Scenario) -> "Kernel":
         k.queues[sid] = WaitQueue(qid=sid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
         k.sems[sid] = Semaphore(sid=sid, count=cfg.get("count", 0), initial=cfg.get("count", 0), qid=sid,
                                 binding=cfg.get("binding"))
+    for cid, cfg in sc.conds.items():
+        qid = COND_QID_BASE + cid
+        k.queues[qid] = WaitQueue(qid=qid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
+        k.conds[cid] = Cond(cid=cid, qid=qid)
     for eid, cfg in sc.events.items():
         qid = EVENT_QID_BASE + eid
         k.queues[qid] = WaitQueue(qid=qid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
@@ -406,6 +452,7 @@ class Kernel:
     sems: dict = field(default_factory=dict)
     mutexes: dict = field(default_factory=dict)
     events: dict = field(default_factory=dict)
+    conds: dict = field(default_factory=dict)
     qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
     ready: dict = field(default_factory=dict)
     current: Optional[int] = None
@@ -429,6 +476,7 @@ class Kernel:
                 tuple(s.key() for _, s in sorted(self.sems.items())),
                 tuple(m.key() for _, m in sorted(self.mutexes.items())),
                 tuple(e.key() for _, e in sorted(self.events.items())),
+                tuple(c.key() for _, c in sorted(self.conds.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
@@ -443,6 +491,7 @@ class Kernel:
         k.sems = {i: copy.copy(s) for i, s in self.sems.items()}
         k.mutexes = {i: copy.copy(m) for i, m in self.mutexes.items()}
         k.events = {i: copy.copy(e) for i, e in self.events.items()}
+        k.conds = {i: copy.copy(c) for i, c in self.conds.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -694,31 +743,34 @@ class Kernel:
         t.pc = 0
 
     def _block_section(self, t: Thread, q: WaitQueue, reason: Reason, timeout: Optional[int],
-                       satisfied, consume, pre_nowait=None, pre_block=None, on_enqueue=None) -> bool:
+                       satisfied, consume, pre_nowait=None, pre_block=None, on_enqueue=None,
+                       finish=None) -> bool:
         """Sections 1 to 3 of SPEC-004 §5.1 driven by `t.pc`. `pre_nowait` runs before the
         EMB_NO_WAIT check and `pre_block` after it; either may return a Result to finish with
         (SPEC-005 §3.2: self-relock, then cycle detection). `on_enqueue` runs after the enqueue
-        inside section 1 (the inheritance walk). Returns True when the op completed."""
+        inside section 1 (the inheritance walk). `finish` replaces _finish (a condition wait's
+        two phases). Returns True when the op completed."""
+        finish = finish or self._finish
         if t.pc == 0:
-            if t.cancel_pending:
+            if t.cancel_pending and not t.cancel_deferred:
                 t.cancel_pending = False
-                self._finish(t, Result.CANCELED)
+                finish(t, Result.CANCELED)
                 return True
             if satisfied():
-                self._finish(t, Result.SATISFIED, consume())
+                finish(t, Result.SATISFIED, consume())
                 return True
             if pre_nowait is not None:
                 r = pre_nowait()
                 if r is not None:
-                    self._finish(t, r)
+                    finish(t, r)
                     return True
             if timeout == NO_WAIT:
-                self._finish(t, Result.TIMEOUT)
+                finish(t, Result.TIMEOUT)
                 return True
             if pre_block is not None:
                 r = pre_block()
                 if r is not None:
-                    self._finish(t, r)
+                    finish(t, r)
                     return True
             if self.irq_nesting > 0 or self.sched_lock_depth > 0:
                 raise ModelError("blocking with a nonzero timeout from ISR or under the scheduler lock (SPEC-001 §5.3)")
@@ -730,10 +782,10 @@ class Kernel:
             t.wait_queue = q.qid
             self._enqueue(q, t)
             t.wait_state = WaitState.INTEND_TO_BLOCK
+            self._event("wait_begin", t.tid, q.qid, int(reason))      # traced by embk_wait_prepare()
             if on_enqueue is not None:
-                on_enqueue()
+                on_enqueue()                                          # after it, in the same section
             t.pc = 1
-            self._event("wait_begin", t.tid, q.qid, int(reason))
             return False
         if t.pc == 1:
             if t.deadline is not None:
@@ -755,7 +807,7 @@ class Kernel:
             t.pc = 3
         if t.wait_state != WaitState.READY or t.wake_result is None:
             raise ModelError(f"thread {t.tid} resumed without a result")
-        self._finish(t, t.wake_result, t.wake_data)
+        finish(t, t.wake_result, t.wake_data)
         return True
 
     # ------------------------------------------------------------------ semaphore (SPEC-005 §4)
@@ -836,9 +888,10 @@ class Kernel:
         self._event("mutex_lock", t.tid, m.mid)
         return OWNERDEAD_FLAG if m.inconsistent else 0
 
-    def _op_lock(self, t: Thread, op: Lock) -> bool:
+    def _op_lock(self, t: Thread, op: Lock, finish=None) -> bool:
         m = self.mutexes[op.mutex]
         q = self.queues[m.qid]
+        finish = finish or self._finish
 
         def satisfied():
             return m.owner is None or (m.owner == t.tid and m.recursive)
@@ -866,10 +919,10 @@ class Kernel:
                 self.propagate(self.threads[m.owner])                     # raise the owner's chain
 
         if t.pc == 0 and m.owner is None and m.protocol == Protocol.CEILING and t.base_prio > m.ceiling:
-            self._finish(t, Result.EPERM)                                  # ceiling violation (release build)
+            finish(t, Result.EPERM)                                       # ceiling violation (release build)
             return True
         return self._block_section(t, q, Reason.OBJECT, op.timeout, satisfied, consume,
-                                   pre_nowait, pre_block, on_enqueue)
+                                   pre_nowait, pre_block, on_enqueue, finish)
 
     def _release(self, t: Thread, m: Mutex, dead: bool):
         """Give `m` up on behalf of `t`: hand-off to the highest waiter or free it (SPEC-005 §3.3, §3.6)."""
@@ -999,7 +1052,8 @@ class Kernel:
         t = self.threads[op.tid]
         if t.terminated:
             return
-        if t.wait_state != WaitState.READY and t.wait_reason in CANCELABLE and t.wait_queue is not None:
+        if t.wait_state != WaitState.READY and t.wait_reason in CANCELABLE and t.wait_queue is not None \
+                and not t.cancel_deferred:
             self.wake(t, Result.CANCELED, 0, self.queues[t.wait_queue])
             return
         t.cancel_pending = True
@@ -1064,6 +1118,73 @@ class Kernel:
                 e.bits &= ~got
             return got
         return self._block_section(t, self.queues[e.qid], Reason.OBJECT, op.timeout, satisfied, consume)
+
+    # ------------------------------------------------------------------ condition variables (SPEC-005 §6, M2-06)
+    def _op_cond_wait(self, t: Thread, op: CondWait) -> bool:
+        c, m = self.conds[op.cond], self.mutexes[op.mutex]
+        if t.cond_phase == 0:
+            if t.pc == 0:
+                if c.destroyed:
+                    self._finish(t, Result.STALE)
+                    return True
+                if m.owner != t.tid:
+                    self._finish(t, Result.EPERM)                         # misuse: a fault when checked
+                    return True
+                if m.count != 1:
+                    self._finish(t, Result.STATE)                         # a recursive hold
+                    return True
+                if t.cancel_pending:
+                    t.cancel_pending = False
+                    self._finish(t, Result.CANCELED)                      # the mutex was never released
+                    return True
+                if op.timeout == NO_WAIT:
+                    self._finish(t, Result.TIMEOUT)                       # no stored signal; the mutex is kept
+                    return True
+
+            def release():
+                self._release(t, m, dead=False)                           # the same section as the enqueue
+
+            def to_relock(tt, result, data=0):
+                t.cond_result, t.cond_phase, t.pc = result, 1, 0
+                t.wait_reason, t.wake_result, t.wake_data = None, None, 0
+            self._block_section(t, self.queues[c.qid], Reason.OBJECT, op.timeout, lambda: False, lambda: 0,
+                                on_enqueue=release, finish=to_relock)
+            return False
+        if t.cond_phase == 2:                                             # the report follows the lock section
+            result, data = t.cond_result, t.cond_data
+            t.cond_result, t.cond_data, t.cond_phase = None, 0, 0
+            self._finish(t, result, data)
+            return True
+        t.cancel_deferred = True
+
+        def relocked(tt, result, data=0):
+            t.cancel_deferred = False
+            self._event("wait_end", t.tid, int(result), "Lock")          # the relock's own record
+            if result == Result.SATISFIED and m.owner != t.tid:
+                raise ModelError(f"thread {t.tid} returns from a condition wait without its mutex")
+            if result == Result.SATISFIED and data & OWNERDEAD_FLAG:
+                t.cond_result, t.cond_data = Result.SATISFIED, OWNERDEAD_FLAG   # EMB_EOWNERDEAD wins
+            elif result != Result.SATISFIED:
+                t.cond_result = result                                    # the relock failed: no mutex
+            t.cond_phase, t.pc = 2, 0
+            t.wait_reason, t.wake_result, t.wake_data = None, None, 0
+        return self._op_lock(t, Lock(op.mutex, FOREVER), finish=relocked)
+
+    def _op_cond_wake(self, op):
+        c = self.conds[op.cond]
+        if c.destroyed:
+            return
+        q = self.queues[c.qid]
+        if isinstance(op, CondDestroy):
+            self.wake_all(q, Result.DESTROYED)
+            c.destroyed = True
+        elif isinstance(op, CondBroadcast):
+            while q.waiters:
+                self.wake(self.threads[q.waiters[0][0]], Result.SATISFIED, 0, q, handoff=True)
+        else:
+            w = self.wait_first(q)
+            if w is not None:
+                self.wake(w, Result.SATISFIED, 0, q, handoff=True)
 
     def _op_event_destroy(self, op: EventDestroy):
         e = self.events[op.event]
@@ -1162,6 +1283,12 @@ class Kernel:
             self.reschedule_if_needed()
         elif isinstance(op, EventWait):
             self._op_event_wait(t, op)
+        elif isinstance(op, CondWait):
+            self._op_cond_wait(t, op)
+        elif isinstance(op, (CondSignal, CondBroadcast, CondDestroy)):
+            self._op_cond_wake(op)
+            self._advance(t)
+            self.reschedule_if_needed()
         elif isinstance(op, (EventSet, EventClear, EventDestroy)):
             if isinstance(op, EventSet):
                 self._op_event_set(op)

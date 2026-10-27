@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Condition variables (`CONFIG_EMB_COND`, `include/emb/cond.h`, M2-06): an atomic enqueue-and-release wait, signal and broadcast, and a mandatory, non-cancelable relock on every result, with `EMB_EOWNERDEAD` and relock failures taking precedence. The reference model, the differential bridge and a conformance suite cover them; they are off on the tiny profile.
+
 - Event flags (`CONFIG_EMB_EVENT`, `include/emb/event.h`, M2-05): ANY/ALL waits with optional CLEAR, deterministic consumption in queue order, ISR-safe set and clear, timeouts, cancellation, destroy with ABORT_WAITERS, and notification binding with unbind. The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.
 
 - A reviewed resource-bound inventory (`docs/engineering/resource-bounds.json` and its page) for every cost input in the public `@time` annotations, with `tools/evidence/check_bounds.py` failing CI when a non-constant cost has no entry (M2-04).

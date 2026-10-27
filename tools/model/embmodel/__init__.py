@@ -9,7 +9,7 @@ sections. The explorer in `explore.py` enumerates every interleaving at that
 granularity and checks the invariants of SPEC-004 §5.4 after every step.
 """
 from .kernel import (  # noqa: F401
-    BindNotify, Cancel, Destroy, EventClear, EventDestroy, EventSet, EventWait, Exit, Give, Join,
+    BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal, CondWait, Destroy, EventClear, EventDestroy, EventSet, EventWait, Exit, Give, Join,
     NONWAIT_RESULT_OPS, ThreadDestroy, UnbindNotify, Kernel, Lock, ModelError, Mutex, NotifySet, NotifyWait, Policy,
     Protocol, Reason, Result, Resume, Start, SchedLock, SchedUnlock, Scenario, SetPrio, Sleep, Suspend, Take, Thread,
     Unlock, WaitState, Yield, FOREVER, NO_WAIT, OWNERDEAD_FLAG, PI_MAX_DEPTH, build,

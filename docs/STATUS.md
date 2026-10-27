@@ -10,7 +10,7 @@ This page is the authoritative inventory of implementation and available evidenc
 |---|---|---|
 | Execution and scheduling | UP fixed priority, base bitmap/FIFO scheduler, tiny thread table, scheduler lock, thread lifecycle; idle context unreachable through handles, and slim (control-block prefix only) on tiny without an idle thread (ADR-050) | Common conformance cases; tiny has unique base priorities and restricted scheduling semantics |
 | Waiting and time | Shared wait protocol, sleep, deadlines, cancellation, suspend overlay, ordered timeouts | Native virtual time exercises periodic and tickless modes; embedded ports currently reject tickless |
-| Synchronization | Semaphores, mutexes with inheritance, ceiling, recursion and owner-death policy; event flags with ANY/ALL/CLEAR waits and binding (M2-05) | Conformance and native differential bridge; inheritance and deadlock detection have a configured depth limit |
+| Synchronization | Semaphores, mutexes with inheritance, ceiling, recursion and owner-death policy; event flags with ANY/ALL/CLEAR waits and binding (M2-05); condition variables with the mandatory relock (M2-06) | Conformance and native differential bridge; inheritance and deadlock detection have a configured depth limit |
 | Notifications | Per-thread bits and one semaphore-to-thread binding, with unbind; a bound thread cannot be destroyed (ADR-046) | Binding takes a one-bit mask; other objects' bindings arrive with those objects; restart generations need the isolated profile |
 | Objects | Caller-owned generated storage and POINTER handles; per-type active-object lists for semaphores and mutexes (`CONFIG_EMB_OBJ_LIST`) used by init | No INDEXED or TABLE handles, capability rights, partition restart, system freeze, `emb_obj_foreach()` or debug-descriptor export |
 | Native port | POSIX host-thread gate, deterministic IRQ injection, virtual time | Base/tiny development workflow; no current wall-clock, asynchronous signal stress, simulated isolated profile or Win32 backend |
@@ -23,7 +23,7 @@ This page is the authoritative inventory of implementation and available evidenc
 
 ## Specified but unimplemented
 
-Condition variables, barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; statement/branch coverage reports and the support matrix (executed-case requirement traceability exists, see [case evidence](engineering/case-evidence.md)); fuzz/HIL campaigns; SMP/AMP ports and transports.
+Barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; statement/branch coverage reports and the support matrix (executed-case requirement traceability exists, see [case evidence](engineering/case-evidence.md)); fuzz/HIL campaigns; SMP/AMP ports and transports.
 
 An API or path named in a design or a requirement's verification field may be a planned deliverable. Check this inventory and the filesystem before treating it as available.
 

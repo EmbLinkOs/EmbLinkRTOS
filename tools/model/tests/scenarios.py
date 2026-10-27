@@ -469,3 +469,54 @@ def event_timeout_then_set():
 EVENT = [event_overlapping_clear, event_all_and_any, event_isr_set_vs_timed_wait, event_destroy_and_cancel_waiters,
          event_binding_after_direct_waiters, event_timeout_then_set]
 ALL = ALL + EVENT
+
+
+# ---------------------------------------------------------------------------------------
+# M2-06: condition variables (SPEC-005 §6)
+# ---------------------------------------------------------------------------------------
+from embmodel import CondBroadcast, CondDestroy, CondSignal, CondWait  # noqa: E402
+
+
+def cond_signal_not_lost():
+    """The release and the enqueue are one section: the signal after it always finds the waiter."""
+    return Scenario(name="cond_signal_not_lost",
+                    threads={1: (2, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (1, (Lock(0), CondSignal(0), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_timeout_relocks():
+    """The wait times out while another thread holds the mutex; the relock waits for its unlock."""
+    return Scenario(name="cond_timeout_relocks",
+                    threads={1: (2, (Lock(0), CondWait(0, 0, timeout=2), Unlock(0))),
+                             2: (1, (Lock(0), Sleep(4), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_cancel_during_relock():
+    """A cancel sent while the signaled waiter relocks is deferred: the wait still reports the signal."""
+    return Scenario(name="cond_cancel_during_relock",
+                    threads={1: (3, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (2, (Lock(0), CondSignal(0), Cancel(1), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_broadcast_wakes_all():
+    """A broadcast wakes both waiters; each returns owning the mutex in turn."""
+    return Scenario(name="cond_broadcast_wakes_all",
+                    threads={1: (4, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (3, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             3: (1, (Lock(0), CondBroadcast(0), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_destroy_aborts_waiter():
+    """Destroying the condition variable aborts its waiter, which still relocks the mutex."""
+    return Scenario(name="cond_destroy_aborts_waiter",
+                    threads={1: (3, (Lock(0), CondWait(0, 0), Unlock(0))), 2: (2, (CondDestroy(0),))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+COND = [cond_signal_not_lost, cond_timeout_relocks, cond_cancel_during_relock, cond_broadcast_wakes_all,
+        cond_destroy_aborts_waiter]
+ALL = ALL + COND

@@ -45,10 +45,12 @@ enum emb_trace_id {
     EMB_TRACE_PI_DEPTH = 26,     /* a0 = index, a1 = depth reached */
     EMB_TRACE_IDLE_ENTER = 27,
     EMB_TRACE_IDLE_EXIT = 28,
-    EMB_TRACE_TICK = 29,      /* a0 = ticks low word */
-    EMB_TRACE_SLEEP = 30,     /* a0 = index, a1 = deadline low word */
-    EMB_TRACE_EVENT_SET = 31, /* a0 = waiters woken, a1 = event address, a2 = bits after */
-    EMB_TRACE_EVENT_WAIT = 32 /* a0 = index, a1 = event address, a2 = status */
+    EMB_TRACE_TICK = 29,       /* a0 = ticks low word */
+    EMB_TRACE_SLEEP = 30,      /* a0 = index, a1 = deadline low word */
+    EMB_TRACE_EVENT_SET = 31,  /* a0 = waiters woken, a1 = event address, a2 = bits after */
+    EMB_TRACE_EVENT_WAIT = 32, /* a0 = index, a1 = event address, a2 = status */
+    EMB_TRACE_COND_WAIT = 33,  /* a0 = index, a1 = cond address, a2 = status after the relock */
+    EMB_TRACE_COND_SIGNAL = 34 /* a0 = waiters woken, a1 = cond address, a2 = 1 for broadcast */
 };
 
 typedef struct emb_trace_event {

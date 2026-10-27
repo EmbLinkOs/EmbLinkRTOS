@@ -4,6 +4,7 @@
 #ifndef EMBK_SYNC_H
 #define EMBK_SYNC_H
 
+#include <emb/cond.h>
 #include <emb/event.h>
 #include <emb/sem.h>
 
@@ -81,6 +82,33 @@ void embk_mutex_on_waiters_changed(embk_mutex_t *m);
 
 /* Thread exit (SPEC-005 §3.6, SPEC-008 §5 step 2), lock held. */
 void embk_mutex_release_all_on_exit(embk_thread_t *t);
+
+/* The lock path of emb_mutex_lock() with an explicit public entry for misuse faults;
+ * condition variables relock through it (SPEC-005 §6). */
+emb_status_t embk_mutex_lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t deadline,
+                                    bool nowait);
+
+/* Full release of a mutex @self owns once, with hand-off and inheritance; lock held. */
+void embk_mutex_release_locked(embk_mutex_t *m, embk_thread_t *self);
+
+static EMB_INLINE embk_mutex_t *embk_mutex_from_handle(emb_mutex_t h)
+{
+    return (embk_mutex_t *)embk_obj_from_raw(h.raw, EMBK_OBJ_MUTEX, offsetof(embk_mutex_t, obj));
+}
+
+#if CONFIG_EMB_COND
+typedef struct embk_cond {
+    embk_obj_t obj; /* obj.flags: EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO */
+    embk_wait_queue_t waiters;
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_node_t all_node; /* in embk_cond_all from init to destroy */
+#endif
+} embk_cond_t;
+
+#if CONFIG_EMB_OBJ_LIST
+extern embk_list_t embk_cond_all; /* every active condition variable; lock: scheduler domain */
+#endif
+#endif
 #else
 static EMB_INLINE bool embk_prio_recompute(embk_thread_t *t)
 {
