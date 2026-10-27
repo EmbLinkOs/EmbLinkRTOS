@@ -63,6 +63,9 @@ extern "C" {
 #endif
 #ifndef EMB_WEAK
 #define EMB_WEAK
+#define EMB_HAS_WEAK 0 /* a default definition cannot be overridden */
+#else
+#define EMB_HAS_WEAK 1
 #endif
 #ifndef EMB_ALIAS
 #define EMB_ALIAS(sym)

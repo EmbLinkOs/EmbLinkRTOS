@@ -116,9 +116,6 @@ void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size)
     t->tflags = EMBK_THREAD_STARTED | EMBK_THREAD_KERNEL | EMBK_THREAD_DETACHED;
     t->cancel_disable = UINT8_MAX;
     embk_thread_set_index(t, IDLE_INDEX);
-#if CONFIG_EMB_SCHED_TABLE
-    embk_thread_table[EMB_PRIORITY_IDLE] = t;
-#endif
 #if CONFIG_EMB_IDLE_THREAD
     (void)stack;
     (void)stack_size;
@@ -200,7 +197,7 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
         EMBK_API_MISUSE(EMB_API_ID_THREAD_INIT, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
     }
 #if CONFIG_EMB_SCHED_TABLE
-    if (embk_thread_table[attr->priority] != NULL) {
+    if (EMBK_TABLE_SLOT(attr->priority) != NULL) {
         embk_unlock_sched(key);
         return EMB_EBUSY; /* one thread per priority (ADR-036) */
     }
@@ -234,7 +231,7 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
 #endif
     emb_arch_context_init(t, attr->stack, attr->stack_size, entry, arg, false);
 #if CONFIG_EMB_SCHED_TABLE
-    embk_thread_table[attr->priority] = t;
+    EMBK_TABLE_SLOT(attr->priority) = t;
 #endif
 #if CONFIG_EMB_THREAD_LIST
     embk_list_append(&embk_thread_all, &t->all_node);
@@ -562,7 +559,7 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
 #if CONFIG_EMB_SCHED_TABLE
     if (priority != t->base_prio) {
         uint8_t old = t->base_prio;
-        if (embk_thread_table[priority] != NULL) {
+        if (EMBK_TABLE_SLOT(priority) != NULL) {
             embk_unlock_sched(key);
             return EMB_EBUSY;
         }
@@ -576,8 +573,8 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
             if (q != NULL) {
                 q->set &= (embk_word_t)~EMBK_WORD_BIT(old);
             }
-            embk_thread_table[old] = NULL;
-            embk_thread_table[priority] = t;
+            EMBK_TABLE_SLOT(old) = NULL;
+            EMBK_TABLE_SLOT(priority) = t;
             t->base_prio = priority;
             if (q != NULL) {
                 q->set |= EMBK_WORD_BIT(priority);
@@ -829,7 +826,7 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
     embk_list_remove(&t->all_node);
 #endif
 #if CONFIG_EMB_SCHED_TABLE
-    embk_thread_table[t->base_prio] = NULL;
+    EMBK_TABLE_SLOT(t->base_prio) = NULL;
 #endif
     index_release(embk_thread_index(t));
     t->obj.state = EMBK_OBJ_UNINIT;

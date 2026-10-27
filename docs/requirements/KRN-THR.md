@@ -205,7 +205,7 @@ KRN-THR-001 to 008 originate in the v0.1 specification (§3.3); KRN-THR-009 to 0
 **Trace.** SPEC-008 §13
 
 ### KRN-THR-029  Tiny profile
-**Statement.** With the table scheduler a thread's slot shall be its unique priority, up to 16 threads including idle; `start`, `suspend`, `resume`, and `join` shall be bit operations; TLS and stack statistics shall default off; destroy shall be allowed only before freeze.
+**Statement.** With the table scheduler a thread's slot shall be determined by its unique priority, up to 16 priority levels including idle's level 0, which has no slot; `start`, `suspend`, `resume`, and `join` shall be bit operations; TLS and stack statistics shall default off; destroy shall be allowed only before freeze.
 **Rationale.** ADR-036; targets T1 and T2.
 **Status.** Accepted 2026-10-07
 **Verification.** Footprint test of the tiny reference configuration; `thr/` conformance group on it.
