@@ -124,6 +124,11 @@ static EMB_INLINE bool embk_list_contains(const embk_list_t *l, const embk_list_
 }
 
 /* A static initializer for an empty list, for lists used before any init code runs. */
-#define EMBK_LIST_INITIALIZER(l) {{&(l).head, &(l).head}}
+#define EMBK_LIST_INITIALIZER(l) \
+    {                            \
+        {                        \
+            &(l).head, &(l).head \
+        }                        \
+    }
 
 #endif /* EMBK_LIST_H */
