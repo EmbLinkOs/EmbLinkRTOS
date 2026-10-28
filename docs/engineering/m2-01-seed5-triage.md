@@ -1,6 +1,6 @@
 # M2-01: Bounded historical seed-5 triage
 
-**Evidence date:** 2026-10-14. **Current source:** `37887c9e92e2242ff4d11cfa58c6972fce4b0e0e`. **Disposition:** the historical `cancel_waiter_disinherits` seed-5 report remains unconfirmed and its cause is unknown. No cancellation/disinheritance correction is claimed. The bounded investigation is complete; the historical finding remains an unresolved evidence item.
+**Evidence date:** 2026-10-14. **Current source:** `37887c9e92e2242ff4d11cfa58c6972fce4b0e0e`. **Disposition:** the historical `cancel_waiter_disinherits` seed-5 report is closed as **not reproducible: input unavailable, cause unknown** ([timing and evidence](timing-and-evidence.md); maintainer decision, 2026-10-27). No cancellation/disinheritance correction is claimed and no classification is made. The bounded investigation is complete; the report stays listed among the known limits.
 
 The [initial investigation](m2-01-investigation.md) recovered seed 3, the [timer correction](m2-01-timer-correction.md) addressed that model gap, and the [capture workflow](differential-evidence.md) now preserves future failures. This follow-up broadens the captured campaign and checks the source that first recorded the report. It changes no kernel, architecture, runner or model implementation.
 
@@ -59,6 +59,8 @@ These individual commands preserve the input parameters; they do not by themselv
 
 ## Remaining uncertainty and next gate
 
-Keep the historical finding open with the explicit disposition **unconfirmed; original input/build unavailable; root cause unknown**. Reopen reproduction work when an original trace, encoded scenario, placement/build record or a new captured cancellation failure is available. A new failure must be replayed, reduced within recorded budgets and classified against the contracts; do not assume it shares the seed-3 cause.
+The original input and build cannot be recovered, and the bounded campaigns above found no current divergence. On 2026-10-27 the project owner closed the report as **not reproducible: input unavailable, cause unknown**. This closes the M2-01 checklist item; it does not classify the report or claim it fixed.
 
-The reproduced seed-3 correction, capture tooling and this bounded triage can be reviewed independently. M2-01's historical classification checkbox remains unchecked. Read-only [M2-02 contract preparation](m2-02-contract-review.md) can proceed while retaining this limitation; that is not a release waiver or a declaration that all M2-01 evidence is complete. Subsequent coding sessions must keep the unresolved finding visible and retain the diagnostic capture/regression checks.
+Reopen when any of these appears: an original trace, encoded scenario, placement or build record for the report; or a new captured cancellation failure. A new failure must be replayed, reduced within recorded budgets and classified against the contracts; do not assume it shares the seed-3 cause. The automatic failure bundles of the [evidence workflow](differential-evidence.md), the `differential_bridge`, `differential_timer_regressions` and `differential_evidence` checks and the archived regressions stay in place to catch one.
+
+The report stays listed among the known limits in [Project status](../STATUS.md) and in the notes of any release that includes the affected code. Closing it is not a release waiver for any other required failure.

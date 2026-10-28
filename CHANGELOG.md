@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- The historical M2-01 `cancel_waiter_disinherits` seed-5 report is closed as not reproducible (input unavailable, cause unknown) after bounded triage: not fixed, not classified, still listed among the known limits, with named reopen triggers. `timing-and-evidence.md` defines that disposition.
+
 - `emb_sem_init()` and `emb_mutex_init()` refuse storage that still holds an active object of their type (fault in checked builds, `EMB_EBUSY` in release) instead of overwriting it, when `CONFIG_EMB_OBJ_LIST` is on (default except on the tiny profile). Storage is reused only through destroy. Semaphore and mutex storage grows by one list node where the option is on. KRN-OBJ-007 now specifies `EMB_EBUSY` instead of `EMB_EEXIST` (ADR-045).
 
 ### Added
