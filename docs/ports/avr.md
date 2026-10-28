@@ -50,7 +50,7 @@ Periodic tick on Timer1 CTC: prescaler `CONFIG_EMB_AVR_TIMER1_PRESCALER` (64), `
 
 ## Footprint (avr-gcc 7.3 `-Os -mrelax -mcall-prologues`, tiny profile)
 
-Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only. The R-003 reference is `samples/footprint_t1` under `configs/footprint-t1.conf` (the T1 feature set: scheduler, notifications, sleep and timeouts, one semaphore; no mutex, no trace), gated per commit on the `avr-uno-t1` preset with the targets as hard limits. The two `first_execution` rows link the mutex as well and are gated at their baseline plus 10 percent.
+Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only. The TCB figure is `EMB_THREAD_STORAGE_SIZE` from the build's generated `<emb/storage.h>` (the layout probe, SPEC-012 §13); the idle context is reported beside it and counts in kernel static RAM. The R-003 reference is `samples/footprint_t1` under `configs/footprint-t1.conf` (the T1 feature set: scheduler, notifications, sleep and timeouts, one semaphore; no mutex, no trace), gated per commit on the `avr-uno-t1` preset with the targets as hard limits. The two `first_execution` rows link the mutex as well and are gated at their baseline plus 10 percent.
 
 | preset | program | kernel text | kernel static RAM | thread control block | R-003 target |
 |---|---|---:|---:|---:|---|
