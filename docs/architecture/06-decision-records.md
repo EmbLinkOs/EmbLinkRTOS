@@ -527,3 +527,15 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** Firmware requires no API-name lookup table or new mutable state. Export the decoder map with firmware; it can be consumed by future EmbDebug integration without claiming that integration exists. Checked/release policies, argument numbering and error precedence are preserved. CI checks generated output, declaration coverage and compatibility with the PR/push baseline. Retained crash serialization remains separate.
 
 **Status.** Implementation for review, 2026-10-21, authorized by the project owner. See the fault attribution report for executed validation and exclusions.
+
+## ADR-045 Exact live-storage detection through per-type object lists
+
+**Context.** KRN-OBJ-007 required `init` on active storage to fail with `EMB_EEXIST`, and SPEC-009 §6 detected it by reading the header. Semaphore and mutex init instead reset any storage, silently discarding waiters, an owner or a binding. The M2-02 review rejected header reads: uninitialized automatic storage can hold an `ACTIVE` header by accident, and refusing it would fail a correct program. Thread init already refuses undestroyed storage with `EMB_EBUSY` (SPEC-008 §12).
+
+**Decision.** Implement the per-type lists of KRN-OBJ-011 as `CONFIG_EMB_OBJ_LIST`, default on except on the tiny profile. An active semaphore or mutex is on its type's list from `init` to `destroy`; `init` compares the storage's list node with the list's members under the scheduler lock and refuses a match, faulting in checked builds and returning `EMB_EBUSY` in release builds, before touching the storage. The lists are statically initialized, so prekernel construction works before `emb_kernel_init()`. Use `EMB_EBUSY` for every type, matching thread init and the in-use destroy refusals of KRN-OBJ-010; `EMB_EEXIST` stays the status of a duplicate binding. Without a list, `init` on live storage is undefined and documented as such.
+
+**Alternatives.** Header plausibility checks (type, state, field ranges or self-pointers) reduce but cannot remove false refusals of uninitialized storage, and dereferencing a garbage queue pointer could crash. Requiring zeroed storage would add an obligation to every automatic or heap object. A generation word per object belongs to the INDEXED/TABLE models (SPEC-009 §3) and does not by itself identify live storage.
+
+**Consequences.** Each semaphore and mutex grows by one list node (two pointers) where the list is configured; the generated storage types follow automatically. Init costs a walk of the active objects of its type with interrupts masked. Tiny keeps its RAM, flash and init cost, and its semaphore/mutex double init stays undefined. New object types (event flags, condition variables, queues, work queues, timers) join the same scheme. POINTER handles still carry no generation: a stale copy of a handle to destroyed and re-initialized storage refers to the new object (SPEC-009 §3.1).
+
+**Status.** Implemented for review, 2026-10-27, as part of completing M2-02; awaiting project-owner review.

@@ -20,6 +20,10 @@
 
 EMB_STATIC_ASSERT(sizeof(embk_mutex_t) <= EMB_MUTEX_STORAGE_SIZE, "generated storage too small");
 
+#if CONFIG_EMB_OBJ_LIST
+embk_list_t embk_mutex_all = EMBK_LIST_INITIALIZER(embk_mutex_all); /* usable before kernel init */
+#endif
+
 static EMB_INLINE embk_mutex_t *mutex_from_handle(emb_mutex_t h)
 {
     return (embk_mutex_t *)embk_obj_from_raw(h.raw, EMBK_OBJ_MUTEX, offsetof(embk_mutex_t, obj));
@@ -134,6 +138,9 @@ emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t
 {
     embk_mutex_t *m;
     emb_mutex_attr_t def;
+#if CONFIG_EMB_OBJ_LIST
+    emb_irq_key_t key;
+#endif
     if (out_mutex != NULL) {
         out_mutex->raw = 0u;
     }
@@ -161,6 +168,14 @@ emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t
     }
 #endif
     m = (embk_mutex_t *)(void *)storage;
+#if CONFIG_EMB_OBJ_LIST
+    /* storage is reused only through destroy (SPEC-009 §6, KRN-OBJ-007) */
+    key = embk_lock_sched();
+    if (embk_list_contains(&embk_mutex_all, &m->all_node)) {
+        embk_unlock_sched(key);
+        EMBK_API_MISUSE(EMB_API_ID_MUTEX_INIT, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+    }
+#endif
     embk_obj_init(&m->obj, EMBK_OBJ_MUTEX,
                   attr->flags & (EMB_MUTEX_RECURSIVE | EMB_OBJ_ABORT_WAITERS), attr->name);
     embk_wait_queue_init(&m->waiters,
@@ -171,6 +186,10 @@ emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t
     m->ceiling = attr->ceiling;
     m->count = 0u;
     m->reserved_ = 0u;
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_append(&embk_mutex_all, &m->all_node);
+    embk_unlock_sched(key);
+#endif
     out_mutex->raw = embk_obj_to_raw(m);
     return EMB_OK;
 }
@@ -199,6 +218,9 @@ emb_status_t emb_mutex_destroy(emb_mutex_t mutex)
         m->owner = NULL;
         embk_prio_propagate(embk_cpu.current);
     }
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_remove(&m->all_node);
+#endif
     m->obj.state = EMBK_OBJ_UNINIT;
     embk_sched_reschedule_if_needed();
     embk_unlock_object(m, key);

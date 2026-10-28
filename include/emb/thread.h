@@ -92,7 +92,8 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  *
  * @ctx      prekernel thread
  * @blocks   no
- * @time     bounded scan of at most 254 IDs + stack fill when configured
+ * @time     bounded scan of at most 254 IDs + O(live threads) with CONFIG_EMB_THREAD_LIST
+ *           + stack fill when configured
  * @owns     borrows:storage borrows:attr->stack
  * @config
  * @req      API-021 KRN-THR-004 KRN-THR-007 KRN-THR-015 KRN-THR-023
