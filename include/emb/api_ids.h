@@ -86,5 +86,6 @@
 #define EMB_API_ID_DURATION_IS_SATURATED         0x0050u
 #define EMB_API_ID_TRACE_SET_SINK                0x0051u
 #define EMB_API_ID_VERSION_STRING                0x0052u
+#define EMB_API_ID_FAULT_HOOK                    0x0053u
 
 #endif /* EMB_API_IDS_H */

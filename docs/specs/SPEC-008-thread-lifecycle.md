@@ -145,7 +145,7 @@ Trace events: `thread_init(t, prio, partition)`, `thread_start`, `thread_exit(t,
 
 ## 14. Tiny profile
 
-With the table scheduler (ADR-036), `init` binds the thread to the table slot equal to its priority (unique priorities, up to 16 including idle); `start`, `suspend`, `resume`, `join` are bit operations; no all-threads list is needed (the table is the list); `CONFIG_EMB_TLS_SLOTS=0`, `CONFIG_EMB_STACK_STATS` off by default, `destroy` is allowed only before freeze. Everything else is identical.
+With the table scheduler (ADR-036), `init` binds the thread to the table slot of its priority (slot p − 1 for priority p; unique priorities, up to 16 levels including idle's level 0, which has no slot); `start`, `suspend`, `resume`, `join` are bit operations; no all-threads list is needed (the table is the list); `CONFIG_EMB_TLS_SLOTS=0`, `CONFIG_EMB_STACK_STATS` off by default, `destroy` is allowed only before freeze. Everything else is identical.
 
 ## 15. Reference model
 

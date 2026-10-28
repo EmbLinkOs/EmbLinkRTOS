@@ -50,17 +50,19 @@ Periodic tick on Timer1 CTC: prescaler `CONFIG_EMB_AVR_TIMER1_PRESCALER` (64), `
 
 ## Footprint (avr-gcc 7.3 `-Os -mrelax -mcall-prologues`, tiny profile)
 
-Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only. The TCB figure is `EMB_THREAD_STORAGE_SIZE` from the build's generated `<emb/storage.h>` (the layout probe, SPEC-012 §13); the idle context is reported beside it and counts in kernel static RAM. The R-003 reference is `samples/footprint_t1` under `configs/footprint-t1.conf` (the T1 feature set: scheduler, notifications, sleep and timeouts, one semaphore; no mutex, no trace), gated per commit on the `avr-uno-t1` preset with the targets as hard limits. The two `first_execution` rows link the mutex as well and are gated at their baseline plus 10 percent.
+Measured with `tools/footprint/footprint.py` from the link map; the kernel total counts the `kernel/` objects only. The TCB figure is `EMB_THREAD_STORAGE_SIZE` from the build's generated `<emb/storage.h>` (the layout probe, SPEC-012 §13); the idle context is reported beside it and counts in kernel static RAM. The R-003 reference is `samples/footprint_t1` under `configs/footprint-t1.conf` (the T1 feature set: scheduler, notifications, sleep and timeouts, one semaphore; no mutex, no trace), gated per commit on the `avr-uno-t1` preset with the text and TCB targets as hard limits and kernel static RAM at its measured value. The two `first_execution` rows link the mutex as well and are gated at their baseline plus 10 percent.
 
 | preset | program | kernel text | kernel static RAM | thread control block | R-003 target |
 |---|---|---:|---:|---:|---|
-| avr-uno-t1 (release) | `footprint_t1` | 4029 | 64 | 32 | 4096 / 64 / 32 (T1, T2): met, no RAM margin |
-| avr-uno-release | `first_execution` | 4131 | 67 | 34 | — |
-| avr-uno (checked) | `first_execution` | 5013 | 69 | 35 | — |
+| avr-uno-t1 (release) | `footprint_t1` | 4029 | 39 | 32 | 4096 / 64 / 32 (T1, T2): met, 25 bytes of RAM margin |
+| avr-uno-release | `first_execution` | 4131 | 42 | 34 | — |
+| avr-uno (checked) | `first_execution` | 5013 | 44 | 35 | — |
+
+The kernel text column is the gcc-avr 7.3 measurement before the M2 RAM headroom work; the RAM column is after it (avr-gcc 14.4.0, which lays out the same data: its kernel text is larger, 4064 bytes for `footprint_t1`, and only the CI compiler's text is gated).
 
 What the pass changed (amendments A15 to A17): linker relaxation and shared prologues in the reference build; no padding byte in the object header; the exit code in `wake_data`; the wake result and notification mode in the thread's `obj.flags` bits; a singly linked timeout list without a generation field on the tiny profile; the clock sequence counter only where the port reads the clock through it; the raised-priority count only with mutexes; one table scan shared by the scheduler and the wait queues. The first M1 baseline, for the record, was 4577 / 84 / 42 (release, `first_execution`).
 
-The `footprint_t1` kernel static RAM was at the T2 limit of 64 bytes, 32 of them the idle context's full control block. The slim idle context (ADR-050) keeps only the 11-byte prefix the scheduler and the switch path read: the reference build measures 43 bytes. These are the idle context 11, the priority-indexed thread table 16, the tick count and timeout list head 6, the per-CPU state 6, the fault hook pointer 2, and the ready set and the diagnostic index bitmap 1 each (avr-gcc 14.4.0, source of the slim-idle change; the CI gate's gcc-avr 7.3 lays out the same data). The idle context stays in the kernel's fixed cost (R-003 §4, T2 accounting); the remaining headroom work is in the [M2 work order](../engineering/m2-checklist.md#tiny-profile-ram-headroom).
+The `footprint_t1` kernel static RAM was at the T2 limit of 64 bytes, 32 of them the idle context's full control block. The M2 headroom work brought it to 39 bytes. The slim idle context (ADR-050) keeps only the 11-byte prefix the scheduler and the switch path read. The priority-indexed thread table no longer has a slot for idle, whose priority 0 is never in a ready or wait set. The reference configuration binds the fault hook at link time (`CONFIG_EMB_FAULT_HOOK_RUNTIME=n`), so no hook pointer is kept. The 39 bytes are the idle context 11, the thread table 14, the tick count and timeout list head 6, the per-CPU state 6, and the ready set and the diagnostic index bitmap 1 each. The idle context stays in the kernel's fixed cost (R-003 §4, T2 accounting). Packing the per-CPU flags into one byte was evaluated and not done: the reads it adds a mask to are inlined into every public entry, so it would cost more flash than the one or two RAM bytes it saves.
 
 ## Skipped conformance tests
 

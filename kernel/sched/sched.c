@@ -23,8 +23,8 @@ embk_thread_t embk_idle_thread; /* slim: sched/idle_context.c allocates the pref
 #endif
 
 #if CONFIG_EMB_SCHED_TABLE
-embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT];
-static embk_word_t ready_set; /* bit i: embk_thread_table[i] is READY */
+embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT - 1];
+static embk_word_t ready_set; /* bit p: EMBK_TABLE_SLOT(p) is READY; bit 0 is never set */
 #if CONFIG_EMB_MUTEX
 uint8_t embk_sched_raised_count; /* threads whose eff_prio != base_prio (lock: sched) */
 #endif
@@ -48,7 +48,7 @@ void embk_sched_init(void)
 {
 #if CONFIG_EMB_SCHED_TABLE
     unsigned i;
-    for (i = 0u; i < (unsigned)CONFIG_EMB_PRIORITY_COUNT; i++) {
+    for (i = 0u; i < (unsigned)CONFIG_EMB_PRIORITY_COUNT - 1u; i++) {
         embk_thread_table[i] = NULL;
     }
     ready_set = 0u;
@@ -76,7 +76,7 @@ static void insert(embk_thread_t *t, bool ahead)
 {
 #if CONFIG_EMB_SCHED_TABLE
     (void)ahead; /* one thread per level: no order within a level */
-    EMBK_ASSERT(embk_thread_table[t->base_prio] == t);
+    EMBK_ASSERT(EMBK_TABLE_SLOT(t->base_prio) == t);
     ready_set |= EMBK_WORD_BIT(t->base_prio);
 #else
     unsigned p = t->eff_prio;
@@ -114,7 +114,7 @@ void embk_sched_remove_ready(embk_thread_t *t)
 bool embk_sched_is_ready(const embk_thread_t *t)
 {
 #if CONFIG_EMB_SCHED_TABLE
-    return (ready_set & EMBK_WORD_BIT(t->base_prio)) != 0u && embk_thread_table[t->base_prio] == t;
+    return (ready_set & EMBK_WORD_BIT(t->base_prio)) != 0u && EMBK_TABLE_SLOT(t->base_prio) == t;
 #else
     return embk_list_node_is_linked(&t->ready_node);
 #endif
@@ -127,14 +127,15 @@ embk_thread_t *embk_sched_table_best(embk_word_t set)
     if (set == 0u) {
         return NULL;
     }
-    best = embk_thread_table[embk_word_highest(set)];
+    EMBK_ASSERT((set & EMBK_WORD_BIT(0u)) == 0u); /* idle is never in a set */
+    best = EMBK_TABLE_SLOT(embk_word_highest(set));
 #if CONFIG_EMB_MUTEX
     if (embk_sched_raised_count != 0u) {
         /* bounded by CONFIG_EMB_PRIORITY_COUNT: find the highest effective priority */
         embk_word_t rest = set & (embk_word_t)~EMBK_WORD_BIT(best->base_prio);
         while (rest != 0u) {
             unsigned i = embk_word_highest(rest);
-            embk_thread_t *c = embk_thread_table[i];
+            embk_thread_t *c = EMBK_TABLE_SLOT(i);
             if (c->eff_prio > best->eff_prio) {
                 best = c;
             }
