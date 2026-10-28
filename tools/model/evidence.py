@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parents[2]
 OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.Unlock,
        bridge.NotifySet, bridge.NotifyWait, bridge.Sleep, bridge.Yield, bridge.SetPrio,
        bridge.Suspend, bridge.Resume, bridge.Cancel, bridge.Destroy, bridge.SchedLock,
-       bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join)}
+       bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join,
+       bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy)}
 
 
 def scenario_data(sc):

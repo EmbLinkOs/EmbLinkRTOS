@@ -107,7 +107,7 @@ Binding takes a **one-bit mask**, such as `EMB_NOTIFY_BIT(0)`, rather than the i
 
 Drain with `emb_sem_take(..., EMB_NO_WAIT)` until `EMB_ETIMEDOUT`, then wait on the notification with CLEAR. A give between the empty check and the wait leaves the bit set, so the wait observes it. A previously set bit can cause a harmless extra pass; recheck the semaphore after every wake. The count is the source of truth. A notification is not proof that a unit is still available, and `emb_sem_count()` does not reserve one. Direct semaphore waiters retain their direct hand-off behavior.
 
-There is no unbind API yet. Keep the bound target's storage and lifetime valid until the semaphore is destroyed; do not destroy/reinitialize it while another caller can give to the bound semaphore. Destroying the semaphore does not clear the target's notification bits. Planned binding/restart guarantees are listed in [Project status](../STATUS.md).
+`emb_sem_unbind_notify()` removes the binding. While a binding names a thread, `emb_thread_destroy()` refuses it (a fault in checked builds, `EMB_EBUSY` in release), so tear down in this order: stop the producers, unbind or destroy the semaphore, let the consumer exit and join it, then destroy the thread. Neither unbinding nor destroying the semaphore clears the target's notification bits. Binding a thread that has already terminated returns `EMB_ESTATE`.
 
 ## Wait results and execution context
 

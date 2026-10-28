@@ -16,7 +16,7 @@
  * Operations (t: -1 forever, 0 no wait, n ticks):
  *   take s t | give s | lock m t | unlock m | nset tid bits | nwait mask all clear t |
  *   sleep t | yield | setprio tid prio | suspend tid | resume tid | cancel tid | destroy s |
- *   slock | sunlock | exit code | start tid | join tid t
+ *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s | tdestroy tid
  * A schedule entry fires right after the n-th trace event (or in idle, if that event
  * never comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
@@ -66,7 +66,10 @@ enum op_kind {
     OP_SUNLOCK,
     OP_EXIT,
     OP_START,
-    OP_JOIN
+    OP_JOIN,
+    OP_BIND,
+    OP_UNBIND,
+    OP_TDESTROY
 };
 
 struct op {
@@ -92,6 +95,7 @@ struct thread_desc {
     int status[MAX_OPS];
     unsigned long data[MAX_OPS];
     unsigned done;
+    bool destroyed; /* emb_thread_destroy succeeded: the handle is stale */
 };
 
 struct sem_desc {
@@ -265,6 +269,17 @@ static void parse_op(char *text, struct op *op)
         op->kind = OP_JOIN;
         op->a = num(args[0]);
         op->b = num(args[1]);
+    } else if (strcmp(name, "bind") == 0) {
+        op->kind = OP_BIND;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "unbind") == 0) {
+        op->kind = OP_UNBIND;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "tdestroy") == 0) {
+        op->kind = OP_TDESTROY;
+        op->a = num(args[0]);
     } else {
         die("unknown operation");
     }
@@ -580,6 +595,21 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             data = (unsigned long)(long)code;
             break;
         }
+        case OP_BIND:
+            st = emb_sem_bind_notify(sem_by_sid(op->a), thread_by_tid(op->b)->handle,
+                                     EMB_NOTIFY_BIT((unsigned)op->c));
+            break;
+        case OP_UNBIND:
+            st = emb_sem_unbind_notify(sem_by_sid(op->a));
+            break;
+        case OP_TDESTROY: {
+            struct thread_desc *d = thread_by_tid(op->a);
+            st = emb_thread_destroy(d->handle);
+            if (st == EMB_OK) {
+                d->destroyed = true;
+            }
+            break;
+        }
         default:
             die("bad operation kind");
             break;
@@ -640,7 +670,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
             (void)printf("res %ld %u %d %lu\n", threads[i].tid, k, (int)threads[i].status[k],
                          threads[i].data[k]);
         }
-        if (!EMB_HANDLE_IS_NULL(threads[i].handle) &&
+        if (!EMB_HANDLE_IS_NULL(threads[i].handle) && !threads[i].destroyed &&
             emb_thread_state(threads[i].handle, &state, &reason) == EMB_OK) {
             (void)printf("state %ld %u %u\n", threads[i].tid, (unsigned)state, (unsigned)reason);
         }

@@ -28,9 +28,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from embmodel import (Cancel, Destroy, Exit, Give, Join, Lock, ModelError, NotifySet,  # noqa: E402
-                      NotifyWait, Policy, Reason, Result, Resume, Scenario, SchedLock, SchedUnlock,
-                      SetPrio, Sleep, Start, Suspend, Take, Unlock, Yield, build, FOREVER, NO_WAIT)
+from embmodel import (BindNotify, Cancel, Destroy, Exit, Give, Join, Lock, ModelError,  # noqa: E402
+                      NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
+                      SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
+                      UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT)
 from tests import scenarios as catalogue  # noqa: E402
 
 # ---- the kernel's trace vocabulary (include/emb/trace.h, M1 subset) ------------------------
@@ -48,6 +49,9 @@ KERNEL_START_FROM = 0xFF
 STATUS_TO_RESULT = {0: Result.SATISFIED, -4: Result.TIMEOUT, -5: Result.CANCELED, -6: Result.DESTROYED,
                     -16: Result.STALE, -32: Result.DEADLOCK, -1: Result.EPERM, -3: Result.EPERM,
                     -2: Result.STALE}   # EINVAL on a wait: the pointer handle of a destroyed object
+# emb_status_t -> Result for the non-wait operations whose status is compared (M2-03 binding lifetime)
+NONWAIT_STATUS_TO_RESULT = {0: Result.SATISFIED, -1: Result.EPERM, -2: Result.STALE, -3: Result.BUSY,
+                            -12: Result.NOENT, -13: Result.EXIST, -14: Result.STATE}
 # EMB_WAIT_REASON_* (thread.h: NONE 0, START 1, SUSPEND 2, SLEEP 3, OBJECT 4, JOIN 5, NOTIFY 6) -> Reason
 KREASON_TO_REASON = {1: Reason.START, 2: Reason.SUSPEND, 3: Reason.SLEEP, 4: Reason.OBJECT,
                      5: Reason.JOIN, 6: Reason.NOTIFY}
@@ -70,6 +74,14 @@ def fault_result(fault_class, code):
     if fault_class == 3:                   # EMB_FAULT_API_HANDLE: a destroyed object's handle
         return Result.STALE
     return STATUS_TO_RESULT.get(-code)     # EMB_FAULT_API_OWNER etc.: the status the call carries
+
+
+def fault_results(fault_class, code) -> set:
+    """Every model result the fault may stand for, waits and non-wait operations alike."""
+    out = {fault_result(fault_class, code)}
+    if fault_class != 3:
+        out.add(NONWAIT_STATUS_TO_RESULT.get(-code))
+    return out - {None}
 
 
 # ---- scenario encoding for the runner -------------------------------------------------------
@@ -115,6 +127,12 @@ def encode_op(op) -> str:
         return f"start {op.tid}"
     if isinstance(op, Join):
         return f"join {op.tid} {_t(op.timeout)}"
+    if isinstance(op, BindNotify):
+        return f"bind {op.sem} {op.tid} {op.bit}"
+    if isinstance(op, UnbindNotify):
+        return f"unbind {op.sem}"
+    if isinstance(op, ThreadDestroy):
+        return f"tdestroy {op.tid}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -418,9 +436,9 @@ class Replay:
                     continue
                 if nxt[0] == "fault":
                     # a checked build faults on misuse where the model records the error result
-                    want = fault_result(nxt[1], nxt[2])
+                    want = fault_results(nxt[1], nxt[2])
                     new = [res for tid, t in n.threads.items() for res in t.results[before[tid]:]]
-                    if want is not None and any(res[1] == want for res in new):
+                    if any(res[1] in want for res in new):
                         candidates.append((n, pos + 1, qmap, mmap, path + (act, "fault"), last_ticks))
                     elif not model_canonical(k.current, n.trace, act):
                         candidates.append((n, pos, qmap, mmap, path + (act,), last_ticks))
@@ -517,7 +535,8 @@ class Replay:
                 if op_index not in kres:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel has no result")
                 kstatus, kdata = kres[op_index]
-                kres_mapped = STATUS_TO_RESULT.get(kstatus)
+                kmap = NONWAIT_STATUS_TO_RESULT if isinstance(op, NONWAIT_RESULT_OPS) else STATUS_TO_RESULT
+                kres_mapped = kmap.get(kstatus)
                 if isinstance(op, Sleep) and kstatus == 0:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
@@ -525,6 +544,10 @@ class Replay:
                 if isinstance(op, (NotifyWait, Join, Lock)) and result == Result.SATISFIED and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
             kstate = r.states.get(tid)
+            if t.destroyed:
+                if kstate is not None:
+                    raise Divergence(f"thread {tid}: destroyed in the model, the kernel reports state {kstate}")
+                continue                                  # no handle names it any more
             if kstate is None:
                 raise Divergence(f"thread {tid}: no final state from the kernel")
             k_blocked = kstate[0] == STATE_BLOCKED and kstate[1] != REASON_SUSPEND_K

@@ -818,6 +818,9 @@ emb_status_t emb_thread_destroy(emb_thread_t thread)
     ok = (t->tflags & EMBK_THREAD_STARTED) == 0u ||
          ((t->tflags & EMBK_THREAD_TERMINATED) != 0u && (t->tflags & EMBK_THREAD_JOINED) != 0u &&
           emb_arch_switch_out_done(t));
+#if CONFIG_EMB_NOTIFY
+    ok = ok && t->bind_refs == 0u; /* a binding still names it: unbind first (ADR-046) */
+#endif
     if (!ok) {
         embk_unlock_sched(key);
         EMBK_API_MISUSE(EMB_API_ID_THREAD_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);

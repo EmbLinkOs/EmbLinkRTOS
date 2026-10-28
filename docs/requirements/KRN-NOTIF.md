@@ -69,8 +69,8 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 ### KRN-NOTIF-009  Binding lifecycle
 **Statement.** `bind` on an already bound object shall return `EMB_EEXIST`; `unbind` shall remove the binding; destroying the object shall not touch the thread's bits; a set to a terminated or restarted thread shall be dropped (detected by generation where generations are checked).
 **Rationale.** Deterministic ownership of the single binding slot; no dangling-pointer action.
-**Status.** Accepted 2026-10-07. Partially implemented (A33): `EMB_EEXIST` for a second bind and dropping a set to a terminated thread; `unbind` and the target-lifetime rules are M2-03 work.
-**Verification.** Test: `notif/bind_twice`, `notif/unbind_rebind`, `notif/bind_target_restarted` (isolated profile).
+**Status.** Accepted 2026-10-07. Implemented for semaphores 2026-10-27 (M2-03): `EMB_EEXIST`, `emb_sem_unbind_notify()`, sets to a terminated target dropped, and the target held until unbind (KRN-NOTIF-014). Restart generations belong to the isolated profile.
+**Verification.** Test: `notify_semaphore_binding_signals_ready_transition` (bind twice), `notify_unbind_stops_signals` (unbind, rebind), `notify_bound_target_cannot_be_destroyed`; model scenarios of the BINDING group; `notif/bind_target_restarted` (isolated profile, planned).
 **Trace.** SPEC-006 §3.1, §3.2
 
 ### KRN-NOTIF-010  Rights in isolated profiles
@@ -83,13 +83,28 @@ KRN-NOTIF-001 to 006 originate in `docs/architecture/03-kernel-architecture.md` 
 ### KRN-NOTIF-011  Trace
 **Statement.** Notification set (with whether it woke the owner), wait begin and result, and binding signals shall be trace events compiled out when tracing is disabled.
 **Rationale.** "Who set my bit" is the first debugging question of event-driven code.
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07. A binding signal is recorded as `notify_set` whose third argument names the bound object, zero for a direct set (A35).
 **Verification.** Test: trace decoder reconstructs every set of the conformance run.
 **Trace.** SPEC-006 §7; OBS-005
 
 ### KRN-NOTIF-012  Binding mask and initial readiness
 **Statement.** Public binding operations shall take one nonzero application-bit mask, reject zero, multiple bits, and kernel bits, and preserve the object's existing readiness. A caller shall bind before producers start or check and drain existing readiness before its first notification wait; edge-driven consumers shall drain their selected sources before waiting again.
 **Rationale.** Matches the M1 semaphore API and prevents confusing a bit index with a mask or waiting for an edge that already occurred.
-**Status.** Proposed 2026-10-14; mask validation is implemented for semaphore binding, broader lifecycle validation is pending.
-**Verification.** Existing `tests/conformance/test_notify.c` case `notify_semaphore_binding_signals_ready_transition` (A32); planned initial-ready, multi-item drain, and invalid-mask cases mapped individually in the traceability matrix.
+**Status.** Proposed 2026-10-14; accepted 2026-10-27 (M2-03): binding never emits an initial edge, and the mask is validated as stated.
+**Verification.** `tests/conformance/test_notify.c` case `notify_semaphore_binding_signals_ready_transition` (A32), which binds before any give and observes that a 1 to 2 give sets no bit; planned initial-ready, multi-item drain, and invalid-mask cases mapped individually in the traceability matrix.
 **Trace.** SPEC-006 §3; A18; A23
+
+### KRN-NOTIF-013  Unbind
+**Statement.** `emb_<obj>_unbind_notify()` shall remove the object's binding in prekernel or thread context, return `EMB_ENOENT` when nothing is bound, and leave bits already set in the target unchanged; after it returns, no later ready transition of the object shall set the bit.
+**Rationale.** A consumer can stop listening to a source, or move it to another thread, without destroying the object.
+**Status.** Accepted 2026-10-27; implemented for semaphores.
+**Verification.** Test: `notify_unbind_stops_signals`; model scenarios `unbind_then_give`, `isr_give_vs_unbind`, `rebind_to_another_thread`.
+**Trace.** SPEC-006 §3.1; ADR-046
+
+### KRN-NOTIF-014  Bound target lifetime
+**Statement.** A thread shall count the bindings that name it; `bind` shall refuse a terminated target with `EMB_ESTATE`, a kernel thread with `EMB_EPERM` and a full count with `EMB_ENOMEM`; `emb_thread_destroy()` shall be misuse (`EMB_EBUSY`) while the count is nonzero; unbinding or destroying the bound object shall release the target.
+**Rationale.** In the POINTER model a binding is a raw thread reference; refusing destroy while one exists is the only way to make a dangling target impossible without a registry.
+**Status.** Accepted 2026-10-27; implemented for semaphores.
+**Verification.** Test: `notify_bound_target_cannot_be_destroyed`, `notify_bind_refuses_a_terminated_target`; model invariant "no binding names a destroyed thread" and scenarios `destroy_target_while_bound`, `destroy_bound_sem_releases_target`, `bind_terminated_target`.
+**Trace.** SPEC-006 §3.2; SPEC-008 §8; ADR-046
+

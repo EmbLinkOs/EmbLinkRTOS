@@ -28,6 +28,10 @@ class Result(IntEnum):
     STALE = 4
     DEADLOCK = 10        # EMB_EDEADLK: self-relock of a non-recursive mutex, or a detected cycle
     EPERM = 11           # EMB_EPERM: unlock by a non-owner, ceiling violation (release-build outcome)
+    BUSY = 12            # EMB_EBUSY from a non-wait operation (destroying a bound or live thread)
+    NOENT = 13           # EMB_ENOENT: unbind with no binding
+    EXIST = 14           # EMB_EEXIST: a second binding
+    STATE = 15           # EMB_ESTATE: binding a terminated thread
 
 
 OWNERDEAD_FLAG = 2       # hand-off word flag: the previous owner died (EMB_EOWNERDEAD)
@@ -171,6 +175,28 @@ class Join:
     timeout: Optional[int] = FOREVER
 
 
+@dataclass(frozen=True)
+class BindNotify:
+    """emb_sem_bind_notify(sem, tid, 1 << bit) from thread context (SPEC-006 §3, ADR-046)."""
+    sem: int
+    tid: int
+    bit: int
+
+
+@dataclass(frozen=True)
+class UnbindNotify:
+    """emb_sem_unbind_notify(sem): later ready transitions set no bit (KRN-NOTIF-013)."""
+    sem: int
+
+
+@dataclass(frozen=True)
+class ThreadDestroy:
+    """emb_thread_destroy(tid): INACTIVE, or TERMINATED and collected, and no binding names it."""
+    tid: int
+
+
+NONWAIT_RESULT_OPS = (BindNotify, UnbindNotify, ThreadDestroy)   # record a result although they never wait
+
 ISR_SAFE_OPS = (Give, Resume, NotifySet, Start)   # SPEC-001 §5.2: signal-type operations are `thread isr`
 
 
@@ -205,6 +231,8 @@ class Thread:
     inactive: bool = False                    # INACTIVE: initialized, not started (SPEC-008 §4)
     exit_code: Optional[int] = None           # set at termination (SPEC-008 §5)
     joiner: Optional[int] = None              # the one joiner's tid, while blocked (SPEC-008 §6)
+    collected: bool = False                   # the exit code was joined: destroy is allowed (SPEC-008 §8)
+    destroyed: bool = False                   # emb_thread_destroy succeeded; no handle names it any more
 
     def key(self):
         return (self.tid, self.prio, self.base_prio, int(self.wait_state), self.wait_gen,
@@ -212,7 +240,8 @@ class Thread:
                 None if self.wake_result is None else int(self.wake_result), self.wake_data,
                 self.suspended, self.cancel_pending, self.terminated, self.op_index, self.pc,
                 self.saved_gen, self.deadline, self.results, self.notify_bits, self.notify_mask, self.notify_all,
-                self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner)
+                self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner,
+                self.collected, self.destroyed)
 
 
 @dataclass
@@ -709,6 +738,8 @@ class Kernel:
     def _notify_set(self, t: Thread, bits: int):
         """emb_notify_set: OR the bits; hand over and wake the owner if its wait is now satisfied.
         A set to a terminated thread is dropped (SPEC-006 §3.2, SPEC-008 §5)."""
+        if t.destroyed:
+            raise ModelError(f"notification set to destroyed thread {t.tid}: a dangling binding (ADR-046)")
         if t.terminated:
             self._event("notify_dropped", t.tid, bits)
             return
@@ -827,6 +858,7 @@ class Kernel:
         if w is not None:
             self.wake(w, Result.SATISFIED, code, jq, handoff=True)
             t.joiner = None
+            t.collected = True
         t.notify_bits = 0
         t.cancel_pending = False
         t.terminated = True
@@ -857,6 +889,7 @@ class Kernel:
             return target.terminated
 
         def consume():
+            target.collected = True
             return target.exit_code if target.exit_code is not None else 0
 
         def on_enqueue():
@@ -919,6 +952,50 @@ class Kernel:
         self.wake_all(self.queues[sem.qid], Result.DESTROYED)
         sem.destroyed = True
         sem.gen += 1
+        sem.binding = None                                                # releases the target (ADR-046)
+
+    # ------------------------------------------------------------------ binding lifetime (M2-03)
+    def _record(self, t: Thread, result: Result):
+        """The status of a non-wait operation that the bridge compares."""
+        t.results = t.results + ((t.op_index, result, 0),)
+
+    def _bound_to(self, tid: int) -> bool:
+        return any(s.binding is not None and s.binding[0] == tid for s in self.sems.values())
+
+    def _op_bind(self, t: Thread, op: BindNotify) -> Result:
+        sem, target = self.sems[op.sem], self.threads[op.tid]
+        if sem.destroyed or target.destroyed:
+            return Result.STALE                                           # a stale POINTER handle
+        if sem.binding is not None:
+            return Result.EXIST
+        if target.terminated:
+            return Result.STATE
+        sem.binding = (op.tid, op.bit)
+        return Result.SATISFIED
+
+    def _op_unbind(self, op: UnbindNotify) -> Result:
+        sem = self.sems[op.sem]
+        if sem.destroyed:
+            return Result.STALE
+        if sem.binding is None:
+            return Result.NOENT
+        sem.binding = None
+        return Result.SATISFIED
+
+    def _op_thread_destroy(self, op: ThreadDestroy) -> Result:
+        target = self.threads[op.tid]
+        if target.destroyed:
+            return Result.STALE
+        reusable = target.inactive or (target.terminated and target.collected)
+        if not reusable or self._bound_to(op.tid):
+            return Result.BUSY                                            # misuse: a fault when checked
+        if target.inactive:                                               # never started: leaves its START wait
+            q = self.queues[target.wait_queue]
+            q.waiters = [(tid, s) for tid, s in q.waiters if tid != target.tid]
+            target.wait_queue, target.wait_reason, target.wait_state = None, None, WaitState.READY
+            target.inactive, target.terminated = False, True
+        target.destroyed = True
+        return Result.SATISFIED
 
     def step_thread(self) -> bool:
         if self.current is None:
@@ -972,6 +1049,15 @@ class Kernel:
             self._op_destroy(op)
             self._advance(t)
             self.reschedule_if_needed()
+        elif isinstance(op, NONWAIT_RESULT_OPS):
+            if isinstance(op, BindNotify):
+                res = self._op_bind(t, op)
+            elif isinstance(op, UnbindNotify):
+                res = self._op_unbind(op)
+            else:
+                res = self._op_thread_destroy(op)
+            self._record(t, res)
+            self._advance(t)
         elif isinstance(op, SchedLock):
             self.sched_lock_depth += 1
             self._advance(t)
@@ -1058,6 +1144,11 @@ class Kernel:
             jq = self.queues[-(1000 + t.tid)]
             if len(jq.waiters) > 1:
                 raise ModelError(f"thread {t.tid} has {len(jq.waiters)} joiners (KRN-THR-018)")
+            if t.destroyed and not t.terminated:
+                raise ModelError(f"destroyed thread {t.tid} is not terminated")
+        for s in self.sems.values():                                      # ADR-046: no binding outlives its target
+            if s.binding is not None and self.threads[s.binding[0]].destroyed:
+                raise ModelError(f"semaphore {s.sid} is bound to destroyed thread {s.binding[0]}")
             if t.terminated and jq.waiters:
                 raise ModelError(f"terminated thread {t.tid} still has a blocked joiner")
             if t.wait_state == WaitState.BLOCKED and t.wait_reason == Reason.NOTIFY and self._notify_satisfied(t):

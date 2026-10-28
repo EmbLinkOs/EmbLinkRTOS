@@ -216,3 +216,59 @@ class LifecycleExhaustive(unittest.TestCase):
             d = dict(dict(outcome)["threads"])
             self.assertEqual(d[1][0][1], Result.CANCELED)
             self.assertIn(d[1][1][1], (Result.TIMEOUT, Result.SATISFIED))   # NO_WAIT join: T2 may or may not have exited
+
+
+class BindingLifetime(unittest.TestCase):
+    """M2-03 (ADR-046): no binding outlives its target; unbind stops signals deterministically."""
+
+    @staticmethod
+    def results(make):
+        rep = explore(make())
+        return rep, [dict(dict(o)["threads"]) for o in rep.outcomes]
+
+    def test_every_binding_scenario_holds_invariants(self):
+        for make in S.BINDING:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_unbind_before_give_never_signals(self):
+        _, outs = self.results(S.unbind_then_give)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1] if r[0] < 3], [Result.SATISFIED, Result.SATISFIED, Result.NOENT])
+            self.assertEqual(d[2][0][1], Result.TIMEOUT)
+
+    def test_isr_give_races_unbind_both_ways(self):
+        _, outs = self.results(S.isr_give_vs_unbind)
+        self.assertEqual({d[2][0][1] for d in outs}, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_bound_target_is_destroyed_only_after_unbind(self):
+        _, outs = self.results(S.destroy_target_while_bound)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1]],
+                             [Result.SATISFIED, Result.SATISFIED, Result.BUSY, Result.SATISFIED, Result.SATISFIED])
+
+    def test_destroying_the_object_releases_the_target(self):
+        _, outs = self.results(S.destroy_bound_sem_releases_target)
+        for d in outs:
+            self.assertEqual(d[1][-1][1], Result.SATISFIED)
+            self.assertIn(d[3][0][1], (Result.DESTROYED, Result.TIMEOUT))
+
+    def test_terminated_target_refused_inactive_target_released_by_unbind(self):
+        _, outs = self.results(S.bind_terminated_target)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1]][1:],
+                             [Result.STATE, Result.SATISFIED, Result.BUSY, Result.SATISFIED, Result.SATISFIED])
+
+    def test_suspended_target_receives_the_bit_at_resume(self):
+        _, outs = self.results(S.suspended_target_accumulates)
+        for d in outs:
+            self.assertEqual(d[2][0][1], Result.SATISFIED)
+
+    def test_rebind_signals_the_new_target_only(self):
+        _, outs = self.results(S.rebind_to_another_thread)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1] if r[0] < 4],
+                             [Result.SATISFIED, Result.EXIST, Result.SATISFIED, Result.SATISFIED])
+            self.assertEqual(d[2][0][1], Result.TIMEOUT)          # the old target is never signaled
+        self.assertIn(Result.SATISFIED, {d[3][0][1] for d in outs})

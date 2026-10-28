@@ -32,7 +32,9 @@ void emb_native_abi_probe(void)
 #if !EMBK_THREAD_INDEX_PACKED
     FIELD(thread_index, embk_thread_t, index);
 #endif
+#if !CONFIG_EMB_SCHED_TABLE
     FIELD(thread_wait_gen, embk_thread_t, wait_gen);
+#endif
     FIELD(thread_wake_data, embk_thread_t, wake_data);
     FIELD(thread_wait_queue, embk_thread_t, wait_queue);
     FIELD(thread_timeout, embk_thread_t, timeout);
@@ -53,6 +55,7 @@ void emb_native_abi_probe(void)
     TYPE(thread_notify, embk_thread_t);
     FIELD(thread_notify_notify_bits, embk_thread_t, notify_bits);
     FIELD(thread_notify_notify_mask, embk_thread_t, notify_mask);
+    FIELD(thread_notify_bind_refs, embk_thread_t, bind_refs);
 #endif
 #if CONFIG_EMB_MUTEX
     TYPE(thread_mutex, embk_thread_t);
@@ -119,8 +122,10 @@ void emb_native_abi_probe(void)
 #endif
 #if CONFIG_EMB_SEM && CONFIG_EMB_NOTIFY
     TYPE(sem_notify, embk_sem_t);
-    FIELD(sem_notify_bind_thread, embk_sem_t, bind_thread);
-    FIELD(sem_notify_bind_bit, embk_sem_t, bind_bit);
+    FIELD(sem_notify_binding, embk_sem_t, binding);
+    TYPE(binding, embk_binding_t);
+    FIELD(binding_thread, embk_binding_t, thread);
+    FIELD(binding_bit, embk_binding_t, bit);
 #endif
 #if CONFIG_EMB_MUTEX
     TYPE(mutex, embk_mutex_t);

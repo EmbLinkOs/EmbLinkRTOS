@@ -187,7 +187,8 @@ emb_sem_count_t emb_sem_count(emb_sem_t sem);
 /**
  * emb_sem_bind_notify() - Set @bit in @thread when the count goes from 0 to 1 (ADR-027).
  * @sem: Initialized semaphore with no existing binding.
- * @thread: Initialized target retained for the entire binding lifetime; no unbind API exists yet.
+ * @thread: Initialized, not terminated, application thread. It cannot be destroyed while
+ *          the binding exists: unbind or destroy the semaphore first (ADR-046).
  * @bit: One application-bit mask, e.g. EMB_NOTIFY_BIT(0), not a bit index.
  *
  * @ctx      prekernel thread
@@ -195,16 +196,37 @@ emb_sem_count_t emb_sem_count(emb_sem_t sem);
  * @time     O(1)
  * @owns     none
  * @config   CONFIG_EMB_SEM CONFIG_EMB_NOTIFY
- * @req      KRN-SYNC-035 KRN-NOTIF-005 KRN-NOTIF-009
+ * @req      KRN-SYNC-035 KRN-NOTIF-005 KRN-NOTIF-009 KRN-NOTIF-014
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_EEXIST when already bound; EMB_EINVAL for bad handles,
- *         a zero/multi-bit mask or a kernel bit. Binding does not signal an
- *         already-positive count: inspect/drain initial readiness before waiting.
- *         Keep the target thread alive until the semaphore is destroyed.
+ * Return: EMB_OK; EMB_EEXIST when already bound; EMB_ESTATE for a terminated target;
+ *         EMB_EPERM for a kernel thread; EMB_ENOMEM when 255 bindings already name the
+ *         target; EMB_EINVAL for bad handles, a zero/multi-bit mask or a kernel bit.
+ *         Binding does not signal an already-positive count: inspect/drain initial
+ *         readiness before waiting.
  */
 emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_bits_t bit);
+
+/**
+ * emb_sem_unbind_notify() - Remove the semaphore's notification binding.
+ * @sem: Initialized semaphore. Later 0 to 1 transitions set no bit; bits already set in
+ *       the target stay set.
+ *
+ * @ctx      prekernel thread
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_SEM CONFIG_EMB_NOTIFY
+ * @req      KRN-NOTIF-009 KRN-NOTIF-013
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: EMB_OK; EMB_ENOENT when not bound; EMB_EINVAL for a bad handle. Unbinding
+ *         releases the target thread for emb_thread_destroy(); destroying the semaphore
+ *         does too.
+ */
+emb_status_t emb_sem_unbind_notify(emb_sem_t sem);
 #endif
 
 #ifdef __cplusplus

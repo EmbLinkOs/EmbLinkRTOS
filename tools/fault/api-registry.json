@@ -498,6 +498,12 @@
       "name": "emb_fault_hook",
       "header": "fault.h",
       "state": "active"
+    },
+    {
+      "id": 84,
+      "name": "emb_sem_unbind_notify",
+      "header": "sem.h",
+      "state": "active"
     }
   ]
 }

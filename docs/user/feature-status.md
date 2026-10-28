@@ -8,7 +8,7 @@ This guide describes the current 0.2 development implementation. The authoritati
 | Protect or signal work | Mutexes, semaphores, per-thread notifications | Event groups, condition variables, barriers |
 | Transfer payloads | Application-owned data with an explicit synchronization protocol | Message queues, pipes, buffer pools |
 | Run periodic work | A thread using absolute sleep deadlines | Software timers and system work queues |
-| Wait on several readiness sources | Semaphore binding plus notification bits and rechecking | General object bindings, unbind, restart-safe target lifetime |
+| Wait on several readiness sources | Semaphore binding and unbind plus notification bits and rechecking; a bound thread cannot be destroyed | General object bindings, restart-safe target lifetime |
 | Diagnose failures | State/priority queries, optional stack estimates, synchronous trace and fault hooks | Retained crash formats, CTF rings, full host tooling |
 | Develop without a board | Native Linux/POSIX virtual time and conformance suite | Physical-board timing, peripheral drivers and HIL evidence |
 | Deploy a controller platform | Embedded kernel ports and QEMU configurations | Complete board/peripheral/application integration and release qualification |

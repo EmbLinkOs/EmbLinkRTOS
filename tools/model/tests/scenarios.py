@@ -336,3 +336,78 @@ def exit_owning_mutex_joined():
 JOIN = [join_before_exit, join_after_exit, join_timeout_then_exit, join_second_ebusy, cancel_joiner,
         start_inactive, exit_owning_mutex_joined]
 ALL = ALL + JOIN
+
+
+# ---------------------------------------------------------------------------------------
+# M2-03: binding lifetime (SPEC-006 §3, ADR-046)
+# ---------------------------------------------------------------------------------------
+from embmodel import BindNotify, ThreadDestroy, UnbindNotify  # noqa: E402
+
+
+def unbind_then_give():
+    """T1 binds S0 to T2 and unbinds before giving: T2's notification wait times out."""
+    return Scenario(name="unbind_then_give",
+                    threads={1: (3, (BindNotify(0, 2, 0), UnbindNotify(0), UnbindNotify(0), Sleep(1), Give(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),))},
+                    sems={0: dict(count=0)})
+
+
+def isr_give_vs_unbind():
+    """An ISR gives S0 around T1's unbind: T2 gets the bit only if the give came first."""
+    return Scenario(name="isr_give_vs_unbind",
+                    threads={1: (3, (BindNotify(0, 2, 0), Sleep(1), UnbindNotify(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),))},
+                    sems={0: dict(count=0)},
+                    isrs=((Give(0),),))
+
+
+def destroy_target_while_bound():
+    """T1 binds S0 to T2, joins it, and may destroy it only after unbinding."""
+    return Scenario(name="destroy_target_while_bound",
+                    threads={1: (3, (BindNotify(0, 2, 0), Join(2), ThreadDestroy(2), UnbindNotify(0),
+                                     ThreadDestroy(2))),
+                             2: (2, (Sleep(1), Exit(4)))},
+                    sems={0: dict(count=0)})
+
+
+def destroy_bound_sem_releases_target():
+    """Destroying the bound semaphore releases the target; a waiter leaves with DESTROYED."""
+    return Scenario(name="destroy_bound_sem_releases_target",
+                    threads={1: (1, (BindNotify(0, 2, 0), Join(2), Destroy(0), ThreadDestroy(2))),
+                             2: (2, (Exit(1),)),
+                             3: (3, (Take(0, 2),))},
+                    sems={0: dict(count=0)})
+
+
+def bind_terminated_target():
+    """Binding a terminated thread is refused; an INACTIVE one can be bound and then destroyed after unbind."""
+    return Scenario(name="bind_terminated_target",
+                    threads={1: (1, (Join(2), BindNotify(0, 2, 0), BindNotify(0, 3, 0), ThreadDestroy(3),
+                                     UnbindNotify(0), ThreadDestroy(3))),
+                             2: (2, (Exit(0),)),
+                             3: (3, (Exit(0),))},
+                    sems={0: dict(count=0)},
+                    inactive=(3,))
+
+
+def suspended_target_accumulates():
+    """A bound target suspended while waiting keeps the handed-off bit and returns it at resume."""
+    return Scenario(name="suspended_target_accumulates",
+                    threads={1: (1, (BindNotify(0, 2, 0), Suspend(2), Give(0), Resume(2))),
+                             2: (2, (NotifyWait(0x1),))},
+                    sems={0: dict(count=0)})
+
+
+def rebind_to_another_thread():
+    """A second bind is refused until unbind; the rebound thread receives the next ready transition."""
+    return Scenario(name="rebind_to_another_thread",
+                    threads={1: (4, (BindNotify(0, 2, 0), BindNotify(0, 3, 1), UnbindNotify(0),
+                                     BindNotify(0, 3, 1), Sleep(1), Give(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),)),
+                             3: (3, (NotifyWait(0x2, timeout=3),))},
+                    sems={0: dict(count=0)})
+
+
+BINDING = [unbind_then_give, isr_give_vs_unbind, destroy_target_while_bound, destroy_bound_sem_releases_target,
+           bind_terminated_target, suspended_target_accumulates, rebind_to_another_thread]
+ALL = ALL + BINDING
