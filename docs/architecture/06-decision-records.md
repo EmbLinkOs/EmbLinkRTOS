@@ -324,7 +324,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Alternatives.** Queue sets (extra copy, sets are queues of handles); a poll object with per-object poller lists (global lock, memory per poller); pend-multi arrays (O(objects) per wait, removed by its own authors).
 
-**Consequences.** Multi-object wait costs nothing per object beyond a thread pointer and a bit index; no new kernel object; works from the tiny profile upward; the notification width must leave bits for the application (KRN-NOTIF-006, answers Q7). Edge semantics (set on every transition to ready, thread re-checks) mean no lost wakeups and at most one spurious pass.
+**Consequences.** Multi-object wait costs nothing per object beyond a thread pointer and a one-bit mask (A31); no new kernel object; works from the tiny profile upward; the notification width must leave bits for the application (KRN-NOTIF-006, answers Q7). Edge semantics (set on every transition to ready, thread re-checks) mean no lost wakeups and at most one spurious pass.
 
 **Status.** Accepted 2026-10-07 (proposed by R-003).
 

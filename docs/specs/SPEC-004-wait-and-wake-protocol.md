@@ -272,7 +272,7 @@ Order: object, then scheduler, then timeout; never the reverse. Consequences: th
 
 | Condition | Checked build | Release build |
 |---|---|---|
-| `block_on` with nonzero timeout from ISR, with the scheduler locked, or inside a caller's critical section | fault `EMB_FAULT_API_CONTEXT` (SPEC-001 §5.3, KRN-IRQ-001, 021) | `EMB_EINVAL` |
+| `block_on` with nonzero timeout from ISR, with the scheduler locked, or inside a caller's critical section | fault `EMB_FAULT_API_CONTEXT` (SPEC-001 §5.3, KRN-IRQ-001, 021) | `EMB_EPERM` (A30) |
 | `block_on` while `wait_state != READY` | fault `EMB_FAULT_KERNEL_INVARIANT` | undefined (cannot happen without corruption) |
 | `embk_wait_wake` asserting a thread that does not wait on the given queue | fault `EMB_FAULT_KERNEL_INVARIANT` | returns false |
 | queue order violated after insert (`prev.prio < node.prio` in `PRIORITY_FIFO`) | fault | not checked |
