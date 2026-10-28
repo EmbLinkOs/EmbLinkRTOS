@@ -9,14 +9,18 @@ Checks: >
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-reserved-identifier,
+  -bugprone-signed-bitwise,
   cert-*,
   -cert-dcl37-c,
   -cert-dcl51-cpp,
   clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
   misc-*,
   -misc-no-recursion,
   -misc-include-cleaner,
+  -misc-use-internal-linkage,
   performance-*,
+  -performance-no-int-to-ptr,
   portability-*,
   readability-*,
   -readability-magic-numbers,
@@ -25,6 +29,12 @@ Checks: >
   -readability-avoid-nested-conditional-operator,
   -readability-else-after-return,
   -readability-math-missing-parentheses,
+  -readability-uppercase-literal-suffix,
+  -readability-implicit-bool-conversion,
+  -readability-redundant-casting,
+  -readability-trailing-comma,
+  -readability-use-concise-preprocessor-directives,
+  -readability-non-const-parameter,
   hicpp-multiway-paths-covered,
   hicpp-no-assembler,
   misc-no-recursion
@@ -40,6 +50,26 @@ Checks: >
 #   readability-identifier-length: short names (t, q, m, sp) are idiomatic in the
 #     kernel and defined by the specifications.
 #   readability-else-after-return: conflicts with the fast-path shape of CS-7.2.
+#   readability-uppercase-literal-suffix: CS-3.4 spells the suffix `u`, throughout.
+#   readability-implicit-bool-conversion: in C, comparisons and logical operators
+#     yield int, so every bool assigned or returned from one is reported. Essentially
+#     Boolean conditions (MISRA C 14.4) are checked by cppcheck's MISRA addon (§12).
+#   bugprone-signed-bitwise: reports every uint8_t/uint16_t operand, promoted to
+#     int; operand signedness follows MISRA's essential types instead (CS-3).
+#   readability-redundant-casting: a cast that is redundant in one configuration
+#     is required in another (8-bit notification words, 32-bit ticks).
+#   misc-use-internal-linkage: the layout probes and EMB_*_DEFINE objects are
+#     external by design (read from object files and by debuggers); unintended
+#     external linkage is caught by -Wmissing-prototypes/-Wmissing-declarations.
+#   performance-no-int-to-ptr: POINTER handles and thread arguments convert
+#     integers to pointers by design (SPEC-009, MISRA Dev CS-12: 11.4).
+#   clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling: asks for
+#     C11 Annex K (memset_s) where the host libc advertises it (macOS); the targets'
+#     freestanding libraries have no Annex K, and EMB_MEMSET is the portable form.
+#   readability-non-const-parameter: reports out-parameters whose element type is a
+#     pointer typedef (pthread_t) as const-able although they are written.
+#   readability-trailing-comma, readability-use-concise-preprocessor-directives:
+#     layout choices that clang-format and the #if defined/#elif chains already fix.
 #   misc-no-recursion is listed twice: removed from the wildcard, then re-enabled
 #     explicitly so it is applied to every file (CS-4.2).
 WarningsAsErrors: '*'
@@ -66,16 +96,16 @@ CheckOptions:
     value: UPPER_CASE
   - key: readability-identifier-naming.MacroDefinitionCase
     value: UPPER_CASE
+  # the lock-domain aliases read as the functions SMP will make them (SPEC-004 §8), and
+  # EMB_*_ are the compound-literal helpers behind the public time macros
+  - key: readability-identifier-naming.MacroDefinitionIgnoredRegexp
+    value: '^(embk_(un)?lock_(object|sched|timeout)|EMB_[A-Z0-9_]+_)$'
   - key: readability-identifier-naming.GlobalConstantCase
     value: lower_case
   - key: readability-identifier-naming.GlobalVariableCase
     value: lower_case
   - key: readability-braces-around-statements.ShortStatementLines
     value: 0
-  - key: readability-implicit-bool-conversion.AllowIntegerConditions
-    value: false
-  - key: readability-implicit-bool-conversion.AllowPointerConditions
-    value: false
   - key: bugprone-narrowing-conversions.WarnOnIntegerNarrowingConversion
     value: true
   - key: hicpp-multiway-paths-covered.WarnOnMissingElse

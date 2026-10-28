@@ -12,6 +12,7 @@
 #define EMB_COMPILER_VERSION \
     ((__clang_major__ * 10000) + (__clang_minor__ * 100) + __clang_patchlevel__)
 
+/* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_INLINE             inline
 #define EMB_ALWAYS_INLINE      inline __attribute__((always_inline))
 #define EMB_NOINLINE           __attribute__((noinline))
@@ -33,6 +34,7 @@
 #define EMB_TRAP()             __builtin_trap()
 #define EMB_IS_CONSTANT(x)     __builtin_constant_p(x)
 #define EMB_FALLTHROUGH        __attribute__((fallthrough))
+/* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 
 #ifndef __cplusplus
 #define EMB_IF_CONSTANT(x, a, b) __builtin_choose_expr(__builtin_constant_p(x), (a), (b))
@@ -64,9 +66,11 @@
  * every target (no '$' or '#'). The text sits in the code section, so .p2align 2 puts
  * the next instruction back on a 4-byte boundary (Thumb, ARM, and RISC-V refuse odd
  * offsets). Read by tools/storage/gen_storage.py. */
+/* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_LAYOUT_MARKER(name, size, align)                                        \
     __asm__ __volatile__("\n.ascii \"->EMB_PROBE " #name " %c0 %c1\"\n.p2align 2\n" \
                          :                                                          \
                          : "i"(size), "i"(align))
+/* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 
 #endif /* EMB_COMPILER_CLANG_H */

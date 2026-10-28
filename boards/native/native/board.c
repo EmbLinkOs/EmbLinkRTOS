@@ -5,16 +5,13 @@
 
 #include <emb_board.h>
 
-static unsigned led_state;
-
 void emb_board_init(void)
 {
-    led_state = 0u;
 }
 
 void emb_board_led_toggle(void)
 {
-    led_state ^= 1u;
+    /* the host has no LED */
 }
 
 void emb_board_puts(const char *s)

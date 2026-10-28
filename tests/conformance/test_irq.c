@@ -9,7 +9,9 @@
 static emb_thread_t waiter_handle;
 static emb_context_t seen_context;
 static unsigned seen_depth;
-static emb_status_t isr_status;
+#if !CONFIG_EMB_CHECKED
+static emb_status_t isr_status; /* a checked build faults instead of returning */
+#endif
 
 EMB_TEST_ISR(isr_notify)
 {
@@ -105,17 +107,21 @@ EMB_TEST(irq_disabled_source_stays_pending)
 EMB_TEST_ISR(isr_blocks)
 {
     (void)emb_isr_arg_;
+#if CONFIG_EMB_CHECKED
+    (void)emb_thread_sleep(EMB_TICKS(1));
+#else
     isr_status = emb_thread_sleep(EMB_TICKS(1));
+#endif
 }
 
 EMB_TEST(irq_blocking_call_from_isr_is_misuse)
 {
     EMB_TEST_REQ("API-013", "KRN-IRQ-014");
     emb_test_irq_connect(IRQ_B, isr_blocks, NULL);
-    isr_status = EMB_OK;
 #if CONFIG_EMB_CHECKED
     EMB_ASSERT_FAULTS(emb_test_irq_raise(IRQ_B));
 #else
+    isr_status = EMB_OK;
     emb_test_irq_raise(IRQ_B);
     EMB_ASSERT_EQ(isr_status, EMB_EPERM);
 #endif

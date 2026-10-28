@@ -47,6 +47,8 @@ Hardware descriptions, scripts, and other files use the same two lines in their 
 
 Use the bug/feature issue forms and PR checklist. The required GitHub check names are **CI merge gate**, **Documentation build**, and **Repository policy**; the first aggregates the full existing compiler/port matrix plus lint/model/configuration jobs. See [Repository workflow](docs/engineering/repository-workflow.md) for DCO checks, limitations and activation of the `main` ruleset. A policy file alone does not enable branch protection.
 
+For editor support, run `cmake --preset native-gcc` once: every configure writes `compile_commands.json`, and the repository's `.clangd` points clangd at that build so it sees the include paths, the generated headers and the `.clang-tidy` checks. Format with clang-format 18, the version the lint job runs; later versions lay out some existing files differently.
+
 User-visible changes update [CHANGELOG.md](CHANGELOG.md) under Unreleased. The [ordered M2 checklist](docs/engineering/m2-checklist.md) starts with known failures and contract gaps before new primitives. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
 
 ## Hardware data and licences

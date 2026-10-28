@@ -547,6 +547,7 @@ emb_status_t emb_thread_destroy(emb_thread_t thread);
  * the handle variable `sym`, and an init-table entry that constructs the thread in
  * emb_kernel_init() and starts it unless EMB_THREAD_NO_AUTOSTART is in flags
  * (SPEC-008 §4). MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
 #define EMB_THREAD_DEFINE(sym, entry, arg, priority_, stack_size_, flags_)                     \
     static emb_thread_storage_t sym##_storage_;                                                \
     EMB_THREAD_STACK(sym##_stack_, (stack_size_));                                             \
@@ -567,6 +568,7 @@ emb_status_t emb_thread_destroy(emb_thread_t thread);
         }                                                                                      \
     }                                                                                          \
     EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }
