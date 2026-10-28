@@ -63,6 +63,7 @@ NO_WAIT = 0                     # EMB_NO_WAIT
 CANCELABLE = frozenset({Reason.SLEEP, Reason.OBJECT, Reason.JOIN, Reason.NOTIFY})   # KRN-WAIT-015
 PI_MAX_DEPTH = 8                # CONFIG_EMB_PI_MAX_DEPTH default
 MUTEX_QID_BASE = 100            # queue ids: semaphores 0..99, mutexes 100.., thread pseudo-queues negative
+EVENT_QID_BASE = 200            # event flags 200..
 
 
 class ModelError(AssertionError):
@@ -197,7 +198,45 @@ class ThreadDestroy:
 
 NONWAIT_RESULT_OPS = (BindNotify, UnbindNotify, ThreadDestroy)   # record a result although they never wait
 
-ISR_SAFE_OPS = (Give, Resume, NotifySet, Start)   # SPEC-001 §5.2: signal-type operations are `thread isr`
+
+@dataclass(frozen=True)
+class EventSet:
+    """emb_event_set(event, bits): thread or ISR context (SPEC-005 §5.2)."""
+    event: int
+    bits: int
+
+
+@dataclass(frozen=True)
+class EventClear:
+    """emb_event_clear(event, bits): never wakes anyone."""
+    event: int
+    bits: int
+
+
+@dataclass(frozen=True)
+class EventWait:
+    """emb_event_wait(event, mask, mode, timeout): ANY unless all=True; clear consumes the satisfying bits."""
+    event: int
+    mask: int
+    all: bool = False
+    clear: bool = False
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class EventDestroy:
+    """emb_event_destroy(event) with EMB_OBJ_ABORT_WAITERS: waiters leave with DESTROYED."""
+    event: int
+
+
+def event_satisfying(bits: int, mask: int, all_: bool) -> int:
+    got = bits & mask
+    if all_:
+        return got if got == mask else 0
+    return got
+
+
+ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear)   # SPEC-001 §5.2: signal-type operations are `thread isr`
 
 
 # ----------------------------------------------------------------------------------------
@@ -273,6 +312,18 @@ class Semaphore:
 
 
 @dataclass
+class Event:
+    eid: int
+    bits: int
+    qid: int
+    destroyed: bool = False
+    binding: Optional[tuple] = None
+
+    def key(self):
+        return (self.eid, self.bits, self.qid, self.destroyed, self.binding)
+
+
+@dataclass
 class Mutex:
     mid: int
     qid: int
@@ -294,6 +345,7 @@ class Scenario:
     threads: dict                              # tid -> (prio, program tuple)
     sems: dict = field(default_factory=dict)   # sid -> dict(count=, policy=, binding=)
     mutexes: dict = field(default_factory=dict)  # mid -> dict(protocol=, ceiling=, recursive=)
+    events: dict = field(default_factory=dict)   # eid -> dict(bits=, policy=, binding=)
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
@@ -315,6 +367,10 @@ def build(sc: Scenario) -> "Kernel":
         k.queues[sid] = WaitQueue(qid=sid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
         k.sems[sid] = Semaphore(sid=sid, count=cfg.get("count", 0), initial=cfg.get("count", 0), qid=sid,
                                 binding=cfg.get("binding"))
+    for eid, cfg in sc.events.items():
+        qid = EVENT_QID_BASE + eid
+        k.queues[qid] = WaitQueue(qid=qid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
+        k.events[eid] = Event(eid=eid, bits=cfg.get("bits", 0), qid=qid, binding=cfg.get("binding"))
     for mid, cfg in sc.mutexes.items():
         qid = MUTEX_QID_BASE + mid
         k.queues[qid] = WaitQueue(qid=qid, policy=Policy.BITMAP if bitmap else Policy.PRIORITY_FIFO)
@@ -349,6 +405,7 @@ class Kernel:
     queues: dict = field(default_factory=dict)
     sems: dict = field(default_factory=dict)
     mutexes: dict = field(default_factory=dict)
+    events: dict = field(default_factory=dict)
     qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
     ready: dict = field(default_factory=dict)
     current: Optional[int] = None
@@ -371,6 +428,7 @@ class Kernel:
                 tuple(q.key() for _, q in sorted(self.queues.items())),
                 tuple(s.key() for _, s in sorted(self.sems.items())),
                 tuple(m.key() for _, m in sorted(self.mutexes.items())),
+                tuple(e.key() for _, e in sorted(self.events.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
@@ -384,6 +442,7 @@ class Kernel:
         k.queues = {i: WaitQueue(q.qid, q.policy, list(q.waiters)) for i, q in self.queues.items()}
         k.sems = {i: copy.copy(s) for i, s in self.sems.items()}
         k.mutexes = {i: copy.copy(m) for i, m in self.mutexes.items()}
+        k.events = {i: copy.copy(e) for i, e in self.events.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -960,7 +1019,59 @@ class Kernel:
         t.results = t.results + ((t.op_index, result, 0),)
 
     def _bound_to(self, tid: int) -> bool:
-        return any(s.binding is not None and s.binding[0] == tid for s in self.sems.values())
+        return any(o.binding is not None and o.binding[0] == tid
+                   for o in list(self.sems.values()) + list(self.events.values()))
+
+    # ------------------------------------------------------------------ event flags (SPEC-005 §5, M2-05)
+    def _op_event_set(self, op: EventSet):
+        e = self.events[op.event]
+        if e.destroyed:
+            return
+        before = e.bits
+        e.bits |= op.bits
+        q = self.queues[e.qid]
+        for tid, _ in list(q.waiters):                                    # queue order, one section
+            w = self.threads[tid]
+            got = event_satisfying(e.bits, w.notify_mask, w.notify_all)
+            if got:
+                if w.notify_clear:
+                    e.bits &= ~got                                        # before the next waiter (§5.2)
+                self.wake(w, Result.SATISFIED, got, q, handoff=True)
+        self._event("event_set", op.event, e.bits)
+        if e.binding is not None and e.bits != 0 and e.bits != before:  # what direct waiters left
+            tid, bit = e.binding
+            self._notify_set(self.threads[tid], 1 << bit)
+
+    def _op_event_clear(self, op: EventClear):
+        e = self.events[op.event]
+        if not e.destroyed:
+            e.bits &= ~op.bits
+
+    def _op_event_wait(self, t: Thread, op: EventWait) -> bool:
+        e = self.events[op.event]
+        if t.pc == 0:
+            if e.destroyed:
+                self._finish(t, Result.STALE)
+                return True
+            t.notify_mask, t.notify_all, t.notify_clear = op.mask, op.all, op.clear   # the wait's arguments
+
+        def satisfied():
+            return event_satisfying(e.bits, op.mask, op.all) != 0
+
+        def consume():
+            got = event_satisfying(e.bits, op.mask, op.all)
+            if op.clear:
+                e.bits &= ~got
+            return got
+        return self._block_section(t, self.queues[e.qid], Reason.OBJECT, op.timeout, satisfied, consume)
+
+    def _op_event_destroy(self, op: EventDestroy):
+        e = self.events[op.event]
+        if e.destroyed:
+            return
+        self.wake_all(self.queues[e.qid], Result.DESTROYED)
+        e.destroyed = True
+        e.binding = None
 
     def _op_bind(self, t: Thread, op: BindNotify) -> Result:
         sem, target = self.sems[op.sem], self.threads[op.tid]
@@ -1049,6 +1160,17 @@ class Kernel:
             self._op_destroy(op)
             self._advance(t)
             self.reschedule_if_needed()
+        elif isinstance(op, EventWait):
+            self._op_event_wait(t, op)
+        elif isinstance(op, (EventSet, EventClear, EventDestroy)):
+            if isinstance(op, EventSet):
+                self._op_event_set(op)
+            elif isinstance(op, EventClear):
+                self._op_event_clear(op)
+            else:
+                self._op_event_destroy(op)
+            self._advance(t)
+            self.reschedule_if_needed()
         elif isinstance(op, NONWAIT_RESULT_OPS):
             if isinstance(op, BindNotify):
                 res = self._op_bind(t, op)
@@ -1096,6 +1218,10 @@ class Kernel:
                 self._op_resume(op)
             elif isinstance(op, NotifySet):
                 self._notify_set(self.threads[op.tid], op.bits)
+            elif isinstance(op, EventSet):
+                self._op_event_set(op)
+            elif isinstance(op, EventClear):
+                self._op_event_clear(op)
             elif isinstance(op, Start):
                 self._op_start(op)
         self.irq_nesting -= 1
@@ -1149,6 +1275,11 @@ class Kernel:
         for s in self.sems.values():                                      # ADR-046: no binding outlives its target
             if s.binding is not None and self.threads[s.binding[0]].destroyed:
                 raise ModelError(f"semaphore {s.sid} is bound to destroyed thread {s.binding[0]}")
+        for e in self.events.values():                                    # SPEC-005 §5.2: a set served every waiter it satisfied
+            for tid, _ in self.queues[e.qid].waiters:
+                w = self.threads[tid]
+                if event_satisfying(e.bits, w.notify_mask, w.notify_all):
+                    raise ModelError(f"event {e.eid} bits {e.bits:#x} satisfy queued waiter {tid}")
             if t.terminated and jq.waiters:
                 raise ModelError(f"terminated thread {t.tid} still has a blocked joiner")
             if t.wait_state == WaitState.BLOCKED and t.wait_reason == Reason.NOTIFY and self._notify_satisfied(t):
@@ -1241,4 +1372,5 @@ class Kernel:
                 ("sems", tuple((sid, s.count) for sid, s in sorted(self.sems.items()))),
                 ("blocked", tuple(tid for tid, t in sorted(self.threads.items()) if t.wait_state == WaitState.BLOCKED)),
                 ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))),
-                ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))))
+                ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))),
+                ("events", tuple((eid, e.bits) for eid, e in sorted(self.events.items()))))

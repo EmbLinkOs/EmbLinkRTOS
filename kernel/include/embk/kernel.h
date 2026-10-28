@@ -39,6 +39,7 @@
 #define EMBK_OBJ_THREAD ((uint8_t)0x51u)
 #define EMBK_OBJ_SEM    ((uint8_t)0x52u)
 #define EMBK_OBJ_MUTEX  ((uint8_t)0x53u)
+#define EMBK_OBJ_EVENT  ((uint8_t)0x54u)
 
 #define EMBK_OBJ_UNINIT     ((uint8_t)0u)
 #define EMBK_OBJ_ACTIVE     ((uint8_t)1u)
@@ -120,8 +121,9 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_THREAD_KERNEL         ((uint8_t)0x40u) /* idle or work-queue thread */
 #define EMBK_THREAD_CRITICAL       ((uint8_t)0x80u)
 
-/* A thread's type-specific obj.flags bits (SPEC-009 §2): the notification mode of the
- * current wait (bits 0 to 1) and the wake result (bits 2 to 4). */
+/* A thread's type-specific obj.flags bits (SPEC-009 §2): the mode of the current bit wait,
+ * notification or event flags (bits 0 to 1, ANY/ALL and CLEAR), and the wake result
+ * (bits 2 to 4). An event flag wait keeps its mask in wake_data until woken (A38). */
 #define EMBK_TOBJ_NOTIFY_MASK  ((uint8_t)0x03u)
 #define EMBK_TOBJ_RESULT_SHIFT 2u
 #define EMBK_TOBJ_RESULT_MASK  ((uint8_t)0x1Cu)

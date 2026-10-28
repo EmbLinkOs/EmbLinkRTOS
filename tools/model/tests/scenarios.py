@@ -411,3 +411,61 @@ def rebind_to_another_thread():
 BINDING = [unbind_then_give, isr_give_vs_unbind, destroy_target_while_bound, destroy_bound_sem_releases_target,
            bind_terminated_target, suspended_target_accumulates, rebind_to_another_thread]
 ALL = ALL + BINDING
+
+
+# ---------------------------------------------------------------------------------------
+# M2-05: event flags (SPEC-005 §5)
+# ---------------------------------------------------------------------------------------
+from embmodel import EventDestroy, EventSet, EventWait  # noqa: E402
+
+
+def event_overlapping_clear():
+    """Two CLEAR waiters on the same bit: the higher one consumes the first set, the other the second."""
+    return Scenario(name="event_overlapping_clear",
+                    threads={1: (3, (EventWait(0, 0x1, clear=True),)), 2: (2, (EventWait(0, 0x1, clear=True),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x1)))},
+                    events={0: dict(bits=0)})
+
+
+def event_all_and_any():
+    """An ALL waiter wakes only when both bits are set; an ANY waiter at the first one."""
+    return Scenario(name="event_all_and_any",
+                    threads={1: (3, (EventWait(0, 0x3, all=True),)), 2: (2, (EventWait(0, 0x1),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x2)))},
+                    events={0: dict(bits=0)})
+
+
+def event_isr_set_vs_timed_wait():
+    """An ISR sets the bit at any point around a timed CLEAR wait: the bit is consumed or still set, never lost."""
+    return Scenario(name="event_isr_set_vs_timed_wait",
+                    threads={1: (2, (EventWait(0, 0x1, clear=True, timeout=3),))},
+                    events={0: dict(bits=0)},
+                    isrs=((EventSet(0, 0x1),),))
+
+
+def event_destroy_and_cancel_waiters():
+    """One waiter leaves with DESTROYED, another with CANCELED."""
+    return Scenario(name="event_destroy_and_cancel_waiters",
+                    threads={1: (4, (EventWait(0, 0x1),)), 2: (3, (EventWait(1, 0x1),)),
+                             3: (1, (Sleep(1), Cancel(2), EventDestroy(0)))},
+                    events={0: dict(bits=0), 1: dict(bits=0)})
+
+
+def event_binding_after_direct_waiters():
+    """The bound thread is notified only for bits the direct waiter left set."""
+    return Scenario(name="event_binding_after_direct_waiters",
+                    threads={1: (3, (NotifyWait(0x1, timeout=4),)), 2: (2, (EventWait(0, 0x1, clear=True),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x2)))},
+                    events={0: dict(bits=0, binding=(1, 0))})
+
+
+def event_timeout_then_set():
+    """A waiter times out before the set; the bit stays set for later."""
+    return Scenario(name="event_timeout_then_set",
+                    threads={1: (2, (EventWait(0, 0x1, timeout=1),)), 2: (1, (Sleep(2), EventSet(0, 0x1)))},
+                    events={0: dict(bits=0)})
+
+
+EVENT = [event_overlapping_clear, event_all_and_any, event_isr_set_vs_timed_wait, event_destroy_and_cancel_waiters,
+         event_binding_after_direct_waiters, event_timeout_then_set]
+ALL = ALL + EVENT

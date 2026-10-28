@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Event flags (`CONFIG_EMB_EVENT`, `include/emb/event.h`, M2-05): ANY/ALL waits with optional CLEAR, deterministic consumption in queue order, ISR-safe set and clear, timeouts, cancellation, destroy with ABORT_WAITERS, and notification binding with unbind. The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.
+
 - A reviewed resource-bound inventory (`docs/engineering/resource-bounds.json` and its page) for every cost input in the public `@time` annotations, with `tools/evidence/check_bounds.py` failing CI when a non-constant cost has no entry (M2-04).
 
 - Executed case evidence (M2-04): conformance runs print each case's requirement citations and outcome with assertion and skip counts; `tools/evidence/collect.py` gathers them from the CTest log of any port, CI uploads them per configuration, and `tools/evidence/matrix.py` derives the requirement-by-configuration matrix from executed, asserting cases only.

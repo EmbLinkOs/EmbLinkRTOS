@@ -12,13 +12,15 @@
  *   T<tid>=<prio>[,inactive]:<op>;<op>...     a thread and its program
  *   S<sid>=<count>[,fifo][,bind=<tid>.<bit>]  a semaphore
  *   M<mid>=<protocol>,<ceiling>,<recursive>   a mutex (protocol 0 inherit, 1 ceiling, 2 none)
- *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start only)
+ *   E<eid>=<bits>[,fifo][,bind=<tid>.<bit>]   event flags
+ *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear)
  * Operations (t: -1 forever, 0 no wait, n ticks):
  *   take s t | give s | lock m t | unlock m | nset tid bits | nwait mask all clear t |
  *   sleep t | yield | setprio tid prio | suspend tid | resume tid | cancel tid | destroy s |
  *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s | tdestroy tid
- * A schedule entry fires right after the n-th trace event (or in idle, if that event
- * never comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
+ * | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e A schedule entry fires
+ * right after the n-th trace event (or in idle, if that event never comes): "isr<i>@n" raises ISR
+ * i, "tick@n" advances virtual time by one tick.
  */
 #include <emb/emb.h>
 
@@ -37,6 +39,7 @@
 #define MAX_OPS      16u
 #define MAX_SEMS     4u
 #define MAX_MUTEXES  4u
+#define MAX_EVFLAGS  4u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -69,7 +72,11 @@ enum op_kind {
     OP_JOIN,
     OP_BIND,
     OP_UNBIND,
-    OP_TDESTROY
+    OP_TDESTROY,
+    OP_ESET,
+    OP_ECLEAR,
+    OP_EWAIT,
+    OP_EDESTROY
 };
 
 struct op {
@@ -108,6 +115,18 @@ struct sem_desc {
     emb_sem_t handle;
 };
 
+struct evflag_desc {
+    long eid;
+    long bits;
+    bool fifo;
+    long bind_tid;
+    long bind_bit;
+#if CONFIG_EMB_EVENT
+    emb_event_storage_t storage;
+    emb_event_t handle;
+#endif
+};
+
 struct mutex_desc {
     long mid;
     long protocol;
@@ -136,6 +155,8 @@ static struct thread_desc threads[MAX_THREADS];
 static unsigned thread_count;
 static struct sem_desc sems[MAX_SEMS];
 static unsigned sem_count;
+static struct evflag_desc evflags[MAX_EVFLAGS];
+static unsigned evflag_count;
 static struct mutex_desc mutexes[MAX_MUTEXES];
 static unsigned mutex_count;
 static struct program isrs[MAX_ISRS];
@@ -201,9 +222,9 @@ static void parse_op(char *text, struct op *op)
 {
     char *p = text;
     const char *name = cut(&p, ' ');
-    const char *args[4] = {NULL, NULL, NULL, NULL};
+    const char *args[5] = {NULL, NULL, NULL, NULL, NULL};
     unsigned n = 0u;
-    while (p != NULL && n < 4u) {
+    while (p != NULL && n < 5u) {
         args[n++] = cut(&p, ' ');
     }
     op->a = 0;
@@ -280,6 +301,19 @@ static void parse_op(char *text, struct op *op)
     } else if (strcmp(name, "tdestroy") == 0) {
         op->kind = OP_TDESTROY;
         op->a = num(args[0]);
+    } else if (strcmp(name, "eset") == 0 || strcmp(name, "eclear") == 0) {
+        op->kind = (name[1] == 's') ? OP_ESET : OP_ECLEAR;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "ewait") == 0) {
+        op->kind = OP_EWAIT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]) | (num(args[3]) << 1); /* all | clear << 1 */
+        op->d = num(args[4]);
+    } else if (strcmp(name, "edestroy") == 0) {
+        op->kind = OP_EDESTROY;
+        op->a = num(args[0]);
     } else {
         die("unknown operation");
     }
@@ -337,6 +371,29 @@ static void parse_section(char *sec)
                 s->bind_bit = num(b);
             } else {
                 die("bad semaphore attribute");
+            }
+        }
+    } else if (kind == 'E') {
+        struct evflag_desc *e;
+        char *attrs;
+        if (evflag_count >= MAX_EVFLAGS) {
+            die("too many event flags");
+        }
+        e = &evflags[evflag_count++];
+        e->eid = num(cut(&p, '='));
+        attrs = p;
+        e->bits = num(cut(&attrs, ','));
+        e->bind_tid = -1;
+        while (attrs != NULL && *attrs != '\0') {
+            char *a = cut(&attrs, ',');
+            if (strcmp(a, "fifo") == 0) {
+                e->fifo = true;
+            } else if (strncmp(a, "bind=", 5) == 0) {
+                char *b = a + 5;
+                e->bind_tid = num(cut(&b, '.'));
+                e->bind_bit = num(b);
+            } else {
+                die("bad event flag attribute");
             }
         }
     } else if (kind == 'M') {
@@ -420,6 +477,20 @@ static emb_sem_t sem_by_sid(long sid)
     die("unknown semaphore id");
     return sems[0].handle;
 }
+
+#if CONFIG_EMB_EVENT
+static emb_event_t evflag_by_eid(long eid)
+{
+    unsigned i;
+    for (i = 0u; i < evflag_count; i++) {
+        if (evflags[i].eid == eid) {
+            return evflags[i].handle;
+        }
+    }
+    die("unknown event flags id");
+    return evflags[0].handle;
+}
+#endif
 
 static emb_mutex_t mutex_by_mid(long mid)
 {
@@ -610,6 +681,33 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             }
             break;
         }
+#if CONFIG_EMB_EVENT
+        case OP_ESET:
+            st = emb_event_set(evflag_by_eid(op->a), (emb_event_bits_t)op->b);
+            break;
+        case OP_ECLEAR:
+            st = emb_event_clear(evflag_by_eid(op->a), (emb_event_bits_t)op->b);
+            break;
+        case OP_EWAIT: {
+            emb_event_bits_t got = 0u;
+            uint8_t mode = (uint8_t)(((op->c & 1) != 0 ? EMB_EVENT_ALL : EMB_EVENT_ANY) |
+                                     ((op->c & 2) != 0 ? EMB_EVENT_CLEAR : 0u));
+            st = emb_event_wait(evflag_by_eid(op->a), (emb_event_bits_t)op->b, mode,
+                                timeout_of(op->d), &got);
+            data = got;
+            break;
+        }
+        case OP_EDESTROY:
+            st = emb_event_destroy(evflag_by_eid(op->a));
+            break;
+#else
+        case OP_ESET:
+        case OP_ECLEAR:
+        case OP_EWAIT:
+        case OP_EDESTROY:
+            die("event flags are not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -644,14 +742,15 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
         return;
     }
     dumped = 1u;
-    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254\n",
-                 CONFIG_EMB_PROFILE,
+    (void)printf(
+        "config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d\n",
+        CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
-                 "fault",
+        "fault",
 #else
-                 "release",
+        "release",
 #endif
-                 (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS);
+        (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -678,6 +777,12 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     for (i = 0u; i < sem_count; i++) {
         (void)printf("sem %ld %lu\n", sems[i].sid, (unsigned long)emb_sem_count(sems[i].handle));
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        (void)printf("evflag %ld %lu\n", evflags[i].eid,
+                     (unsigned long)emb_event_get(evflags[i].handle));
+    }
+#endif
     (void)printf("end %s %lu %lu\n", end, e0, e1);
     (void)fflush(stdout);
 }
@@ -737,6 +842,19 @@ static void construct(void)
         attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (sems[i].fifo ? EMB_OBJ_FIFO : 0u));
         EMB_CHECK(emb_sem_init(&sems[i].storage, &attr, &sems[i].handle));
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        emb_event_attr_t attr;
+        emb_event_attr_default(&attr);
+        attr.initial = (emb_event_bits_t)evflags[i].bits;
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (evflags[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_event_init(&evflags[i].storage, &attr, &evflags[i].handle));
+    }
+#else
+    if (evflag_count != 0u) {
+        die("event flags are not configured");
+    }
+#endif
     for (i = 0u; i < mutex_count; i++) {
         emb_mutex_attr_t attr;
         emb_mutex_attr_default(&attr);
@@ -761,6 +879,15 @@ static void construct(void)
                                           EMB_NOTIFY_BIT(sems[i].bind_bit)));
         }
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        if (evflags[i].bind_tid >= 0) {
+            EMB_CHECK(emb_event_bind_notify(evflags[i].handle,
+                                            thread_by_tid(evflags[i].bind_tid)->handle,
+                                            EMB_NOTIFY_BIT(evflags[i].bind_bit)));
+        }
+    }
+#endif
     for (i = 0u; i < isr_count; i++) {
         EMB_CHECK(emb_irq_connect((emb_irq_t)(ISR_IRQ_BASE + i), isr_body, (void *)(uintptr_t)i));
     }

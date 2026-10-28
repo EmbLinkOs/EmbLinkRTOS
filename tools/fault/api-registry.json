@@ -504,6 +504,66 @@
       "name": "emb_sem_unbind_notify",
       "header": "sem.h",
       "state": "active"
+    },
+    {
+      "id": 85,
+      "name": "emb_event_attr_default",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 86,
+      "name": "emb_event_init",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 87,
+      "name": "emb_event_destroy",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 88,
+      "name": "emb_event_set",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 89,
+      "name": "emb_event_clear",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 90,
+      "name": "emb_event_get",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 91,
+      "name": "emb_event_wait",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 92,
+      "name": "emb_event_wait_until",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 93,
+      "name": "emb_event_bind_notify",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 94,
+      "name": "emb_event_unbind_notify",
+      "header": "event.h",
+      "state": "active"
     }
   ]
 }

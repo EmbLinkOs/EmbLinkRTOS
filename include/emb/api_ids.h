@@ -88,5 +88,15 @@
 #define EMB_API_ID_VERSION_STRING                0x0052u
 #define EMB_API_ID_FAULT_HOOK                    0x0053u
 #define EMB_API_ID_SEM_UNBIND_NOTIFY             0x0054u
+#define EMB_API_ID_EVENT_ATTR_DEFAULT            0x0055u
+#define EMB_API_ID_EVENT_INIT                    0x0056u
+#define EMB_API_ID_EVENT_DESTROY                 0x0057u
+#define EMB_API_ID_EVENT_SET                     0x0058u
+#define EMB_API_ID_EVENT_CLEAR                   0x0059u
+#define EMB_API_ID_EVENT_GET                     0x005Au
+#define EMB_API_ID_EVENT_WAIT                    0x005Bu
+#define EMB_API_ID_EVENT_WAIT_UNTIL              0x005Cu
+#define EMB_API_ID_EVENT_BIND_NOTIFY             0x005Du
+#define EMB_API_ID_EVENT_UNBIND_NOTIFY           0x005Eu
 
 #endif /* EMB_API_IDS_H */

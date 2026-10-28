@@ -3,103 +3,271 @@
   "version": 1,
   "_comment": "The reviewed inventory of every cost input in the public API's @time annotations (M2-04). tools/evidence/check_bounds.py checks that every public function whose @time is not O(1) maps to entries here and renders resource-bounds.md from this file. Enforcement: 'configuration' (a Kconfig limit), 'admission' (the kernel refuses beyond it), 'structural' (follows from another bound) or 'application' (the kernel does not limit it; the application must). 'masked' says whether the cost runs with interrupts masked.",
   "bounds": [
-    {"id": "waiters", "input": "threads waiting on one wait queue",
-     "bound": "at most the live threads: a thread waits on at most one queue",
-     "limit": "base: 254 thread IDs; tiny: CONFIG_EMB_PRIORITY_COUNT - 1 threads", "enforcement": "structural",
-     "masked": true,
-     "profiles": "base: PRIORITY_FIFO insert walks from the tail, O(waiters), FIFO O(1); tiny: bitmap set O(1), first waiter O(1) or the raised-thread scan",
-     "evidence": "SPEC-004 §11; the reference model's queue-order invariant"},
-    {"id": "timeouts", "input": "armed timeouts",
-     "bound": "at most one per thread, so at most the live threads",
-     "limit": "as for waiters", "enforcement": "structural", "masked": true,
-     "profiles": "base: doubly linked list, insert O(armed) from the tail, removal O(1); tiny: singly linked list, insert and removal O(armed)",
-     "evidence": "SPEC-003 §5.1, SPEC-012 §13; the model's one-timeout-per-thread invariant"},
-    {"id": "owned", "input": "mutexes one thread owns",
-     "bound": "not limited by the kernel: at most the mutex objects the application creates",
-     "limit": "application", "enforcement": "application", "masked": true,
-     "profiles": "the same singly linked owned list on every profile; acquisition appends, release and recomputation walk it",
-     "evidence": "SPEC-005 §2.3; A25"},
-    {"id": "pi_depth", "input": "inheritance chain hops (PI work)",
-     "bound": "CONFIG_EMB_PI_MAX_DEPTH hops; each hop recomputes O(owned) and requeues O(waiters)",
-     "limit": "CONFIG_EMB_PI_MAX_DEPTH (default 8, 1 to 32)", "enforcement": "configuration", "masked": true,
-     "profiles": "checked builds fault at the limit, release builds stop propagating (no complete inheritance beyond it); deadlock detection inspects the same number of links",
-     "evidence": "SPEC-005 §2.2, A25; m2-02-contract-review.md; model PI_MAX_DEPTH"},
-    {"id": "table_scan", "input": "tiny raised-priority scan",
-     "bound": "CONFIG_EMB_PRIORITY_COUNT - 1 slots, only while some thread runs above its base priority",
-     "limit": "CONFIG_EMB_PRIORITY_COUNT, at most the architecture word width", "enforcement": "configuration",
-     "masked": true, "profiles": "tiny only; base selects through the per-priority bitmap",
-     "evidence": "ADR-036; kernel/sched/sched.c embk_sched_table_best"},
-    {"id": "reschedule", "input": "a scheduling decision",
-     "bound": "O(1) on base (bitmap and per-priority lists); the table scan on tiny",
-     "limit": "see table_scan", "enforcement": "structural", "masked": true,
-     "profiles": "one decision per preemption point; batch wakes reschedule once",
-     "evidence": "SPEC-002 §6; KRN-WAIT-013"},
-    {"id": "batch_wake", "input": "waiters woken at once (destroy with EMB_OBJ_ABORT_WAITERS)",
-     "bound": "the waiters of the destroyed object",
-     "limit": "as for waiters", "enforcement": "structural", "masked": true,
-     "profiles": "one section, one reschedule at the end",
-     "evidence": "SPEC-004 §6.7; KRN-OBJ-001"},
-    {"id": "thread_ids", "input": "diagnostic identity scan at thread init",
-     "bound": "254 IDs on list profiles, CONFIG_EMB_PRIORITY_COUNT - 1 on tiny",
-     "limit": "fixed per profile; EMB_ENOMEM beyond it", "enforcement": "admission", "masked": true,
-     "profiles": "bitmap scan from the lowest ID",
-     "evidence": "ADR-043; m2-02-thread-identity.md"},
-    {"id": "live_threads", "input": "threads on the all-threads list",
-     "bound": "at most 254 (the ID space)",
-     "limit": "CONFIG_EMB_THREAD_LIST; the ID admission", "enforcement": "admission", "masked": true,
-     "profiles": "base only (no list on tiny); walked by thread init and emb_thread_foreach",
-     "evidence": "SPEC-008 §12; ADR-045"},
-    {"id": "active_objects", "input": "active semaphores or mutexes of one type",
-     "bound": "not limited by the kernel: the objects the application initializes",
-     "limit": "application", "enforcement": "application", "masked": true,
-     "profiles": "with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init",
-     "evidence": "ADR-045; m2-02-object-lifecycle.md"},
-    {"id": "stack", "input": "bytes of one thread's stack",
-     "bound": "the stack size the application supplied",
-     "limit": "application", "enforcement": "application", "masked": false,
-     "profiles": "the high-water scan exists only with CONFIG_EMB_STACK_STATS; init fills the stack in checked and statistics builds",
-     "evidence": "SPEC-008 §10; KRN-MEM-009"},
-    {"id": "init_table", "input": "entries of the initialization table",
-     "bound": "the EMB_*_DEFINE objects linked into the image",
-     "limit": "application, fixed at link time", "enforcement": "application", "masked": false,
-     "profiles": "prekernel only",
-     "evidence": "KRN-OBJ-009"},
-    {"id": "callbacks", "input": "application callbacks the kernel calls (fault hook, trace sink, foreach visitor)",
-     "bound": "not bounded by the kernel",
-     "limit": "application", "enforcement": "application", "masked": true,
-     "profiles": "the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock",
-     "evidence": "API-017; SPEC-015"},
-    {"id": "port_action", "input": "the port's fault action (halt or reset)",
-     "bound": "does not return",
-     "limit": "port", "enforcement": "structural", "masked": true,
-     "profiles": "CONFIG_EMB_FAULT_ACTION",
-     "evidence": "03 §10; SPEC-011 §14"}
+    {
+      "id": "waiters",
+      "input": "threads waiting on one wait queue",
+      "bound": "at most the live threads: a thread waits on at most one queue",
+      "limit": "base: 254 thread IDs; tiny: CONFIG_EMB_PRIORITY_COUNT - 1 threads",
+      "enforcement": "structural",
+      "masked": true,
+      "profiles": "base: PRIORITY_FIFO insert walks from the tail, O(waiters), FIFO O(1); tiny: bitmap set O(1), first waiter O(1) or the raised-thread scan",
+      "evidence": "SPEC-004 \u00a711; the reference model's queue-order invariant"
+    },
+    {
+      "id": "timeouts",
+      "input": "armed timeouts",
+      "bound": "at most one per thread, so at most the live threads",
+      "limit": "as for waiters",
+      "enforcement": "structural",
+      "masked": true,
+      "profiles": "base: doubly linked list, insert O(armed) from the tail, removal O(1); tiny: singly linked list, insert and removal O(armed)",
+      "evidence": "SPEC-003 \u00a75.1, SPEC-012 \u00a713; the model's one-timeout-per-thread invariant"
+    },
+    {
+      "id": "owned",
+      "input": "mutexes one thread owns",
+      "bound": "not limited by the kernel: at most the mutex objects the application creates",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "the same singly linked owned list on every profile; acquisition appends, release and recomputation walk it",
+      "evidence": "SPEC-005 \u00a72.3; A25"
+    },
+    {
+      "id": "pi_depth",
+      "input": "inheritance chain hops (PI work)",
+      "bound": "CONFIG_EMB_PI_MAX_DEPTH hops; each hop recomputes O(owned) and requeues O(waiters)",
+      "limit": "CONFIG_EMB_PI_MAX_DEPTH (default 8, 1 to 32)",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "checked builds fault at the limit, release builds stop propagating (no complete inheritance beyond it); deadlock detection inspects the same number of links",
+      "evidence": "SPEC-005 \u00a72.2, A25; m2-02-contract-review.md; model PI_MAX_DEPTH"
+    },
+    {
+      "id": "table_scan",
+      "input": "tiny raised-priority scan",
+      "bound": "CONFIG_EMB_PRIORITY_COUNT - 1 slots, only while some thread runs above its base priority",
+      "limit": "CONFIG_EMB_PRIORITY_COUNT, at most the architecture word width",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "tiny only; base selects through the per-priority bitmap",
+      "evidence": "ADR-036; kernel/sched/sched.c embk_sched_table_best"
+    },
+    {
+      "id": "reschedule",
+      "input": "a scheduling decision",
+      "bound": "O(1) on base (bitmap and per-priority lists); the table scan on tiny",
+      "limit": "see table_scan",
+      "enforcement": "structural",
+      "masked": true,
+      "profiles": "one decision per preemption point; batch wakes reschedule once",
+      "evidence": "SPEC-002 \u00a76; KRN-WAIT-013"
+    },
+    {
+      "id": "batch_wake",
+      "input": "waiters woken at once (destroy with EMB_OBJ_ABORT_WAITERS)",
+      "bound": "the waiters of the destroyed object",
+      "limit": "as for waiters",
+      "enforcement": "structural",
+      "masked": true,
+      "profiles": "one section, one reschedule at the end",
+      "evidence": "SPEC-004 \u00a76.7; KRN-OBJ-001"
+    },
+    {
+      "id": "thread_ids",
+      "input": "diagnostic identity scan at thread init",
+      "bound": "254 IDs on list profiles, CONFIG_EMB_PRIORITY_COUNT - 1 on tiny",
+      "limit": "fixed per profile; EMB_ENOMEM beyond it",
+      "enforcement": "admission",
+      "masked": true,
+      "profiles": "bitmap scan from the lowest ID",
+      "evidence": "ADR-043; m2-02-thread-identity.md"
+    },
+    {
+      "id": "live_threads",
+      "input": "threads on the all-threads list",
+      "bound": "at most 254 (the ID space)",
+      "limit": "CONFIG_EMB_THREAD_LIST; the ID admission",
+      "enforcement": "admission",
+      "masked": true,
+      "profiles": "base only (no list on tiny); walked by thread init and emb_thread_foreach",
+      "evidence": "SPEC-008 \u00a712; ADR-045"
+    },
+    {
+      "id": "active_objects",
+      "input": "active semaphores or mutexes of one type",
+      "bound": "not limited by the kernel: the objects the application initializes",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init",
+      "evidence": "ADR-045; m2-02-object-lifecycle.md"
+    },
+    {
+      "id": "stack",
+      "input": "bytes of one thread's stack",
+      "bound": "the stack size the application supplied",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "the high-water scan exists only with CONFIG_EMB_STACK_STATS; init fills the stack in checked and statistics builds",
+      "evidence": "SPEC-008 \u00a710; KRN-MEM-009"
+    },
+    {
+      "id": "init_table",
+      "input": "entries of the initialization table",
+      "bound": "the EMB_*_DEFINE objects linked into the image",
+      "limit": "application, fixed at link time",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "prekernel only",
+      "evidence": "KRN-OBJ-009"
+    },
+    {
+      "id": "callbacks",
+      "input": "application callbacks the kernel calls (fault hook, trace sink, foreach visitor)",
+      "bound": "not bounded by the kernel",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock",
+      "evidence": "API-017; SPEC-015"
+    },
+    {
+      "id": "port_action",
+      "input": "the port's fault action (halt or reset)",
+      "bound": "does not return",
+      "limit": "port",
+      "enforcement": "structural",
+      "masked": true,
+      "profiles": "CONFIG_EMB_FAULT_ACTION",
+      "evidence": "03 \u00a710; SPEC-011 \u00a714"
+    }
   ],
   "apis": {
-    "emb_fault_hook": ["callbacks"],
-    "emb_fault": ["callbacks", "port_action"],
-    "emb_kernel_init": ["init_table"],
-    "emb_mutex_init": ["active_objects"],
-    "emb_mutex_destroy": ["batch_wake", "owned", "pi_depth", "timeouts", "reschedule"],
-    "emb_mutex_lock": ["owned", "waiters", "pi_depth", "timeouts"],
-    "emb_mutex_lock_until": ["owned", "waiters", "pi_depth", "timeouts"],
-    "emb_mutex_unlock": ["owned", "pi_depth", "timeouts", "reschedule"],
-    "emb_notify_set": ["timeouts", "reschedule"],
-    "emb_notify_wait": ["timeouts"],
-    "emb_notify_wait_until": ["timeouts"],
-    "emb_sched_unlock": ["reschedule"],
-    "emb_sem_init": ["active_objects"],
-    "emb_sem_destroy": ["batch_wake", "reschedule"],
-    "emb_sem_take": ["waiters", "timeouts"],
-    "emb_sem_take_until": ["waiters", "timeouts"],
-    "emb_sem_give": ["timeouts", "reschedule"],
-    "emb_thread_init": ["thread_ids", "live_threads", "stack"],
-    "emb_thread_exit": ["owned", "pi_depth", "timeouts"],
-    "emb_thread_join": ["timeouts"],
-    "emb_thread_set_priority": ["pi_depth", "waiters", "reschedule", "table_scan"],
-    "emb_thread_sleep": ["timeouts"],
-    "emb_thread_sleep_until": ["timeouts"],
-    "emb_thread_stack_info": ["stack"],
-    "emb_thread_foreach": ["live_threads", "callbacks", "reschedule"]
+    "emb_fault_hook": [
+      "callbacks"
+    ],
+    "emb_fault": [
+      "callbacks",
+      "port_action"
+    ],
+    "emb_kernel_init": [
+      "init_table"
+    ],
+    "emb_mutex_init": [
+      "active_objects"
+    ],
+    "emb_mutex_destroy": [
+      "batch_wake",
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_mutex_lock": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_mutex_lock_until": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_mutex_unlock": [
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_notify_set": [
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_notify_wait": [
+      "timeouts"
+    ],
+    "emb_notify_wait_until": [
+      "timeouts"
+    ],
+    "emb_sched_unlock": [
+      "reschedule"
+    ],
+    "emb_sem_init": [
+      "active_objects"
+    ],
+    "emb_sem_destroy": [
+      "batch_wake",
+      "reschedule"
+    ],
+    "emb_sem_take": [
+      "waiters",
+      "timeouts"
+    ],
+    "emb_sem_take_until": [
+      "waiters",
+      "timeouts"
+    ],
+    "emb_sem_give": [
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_thread_init": [
+      "thread_ids",
+      "live_threads",
+      "stack"
+    ],
+    "emb_thread_exit": [
+      "owned",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_thread_join": [
+      "timeouts"
+    ],
+    "emb_thread_set_priority": [
+      "pi_depth",
+      "waiters",
+      "reschedule",
+      "table_scan"
+    ],
+    "emb_thread_sleep": [
+      "timeouts"
+    ],
+    "emb_thread_sleep_until": [
+      "timeouts"
+    ],
+    "emb_thread_stack_info": [
+      "stack"
+    ],
+    "emb_thread_foreach": [
+      "live_threads",
+      "callbacks",
+      "reschedule"
+    ],
+    "emb_event_init": [
+      "active_objects"
+    ],
+    "emb_event_destroy": [
+      "batch_wake",
+      "reschedule"
+    ],
+    "emb_event_set": [
+      "waiters",
+      "batch_wake",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_event_wait": [
+      "waiters",
+      "timeouts"
+    ],
+    "emb_event_wait_until": [
+      "waiters",
+      "timeouts"
+    ]
   }
 }
