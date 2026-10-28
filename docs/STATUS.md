@@ -8,7 +8,7 @@ This page is the authoritative inventory of implementation and available evidenc
 
 | Area | Current implementation | Evidence and limits |
 |---|---|---|
-| Execution and scheduling | UP fixed priority, base bitmap/FIFO scheduler, tiny thread table, scheduler lock, thread lifecycle | Common conformance cases; tiny has unique base priorities and restricted scheduling semantics |
+| Execution and scheduling | UP fixed priority, base bitmap/FIFO scheduler, tiny thread table, scheduler lock, thread lifecycle; idle context unreachable through handles, and slim (control-block prefix only) on tiny without an idle thread (ADR-050) | Common conformance cases; tiny has unique base priorities and restricted scheduling semantics |
 | Waiting and time | Shared wait protocol, sleep, deadlines, cancellation, suspend overlay, ordered timeouts | Native virtual time exercises periodic and tickless modes; embedded ports currently reject tickless |
 | Synchronization | Semaphores, mutexes with inheritance, ceiling, recursion and owner-death policy | Conformance and native differential bridge; inheritance and deadlock detection have a configured depth limit |
 | Notifications | Per-thread bits and one semaphore-to-thread binding | Binding takes a one-bit mask; no unbind implementation; pointer lifetime remains caller responsibility |

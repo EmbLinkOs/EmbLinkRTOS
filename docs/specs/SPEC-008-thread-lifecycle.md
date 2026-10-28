@@ -121,7 +121,7 @@ The exiting thread's stack is in use until step 5. Interrupts taken between step
 
 ## 11. Idle and kernel threads
 
-- The idle thread exists per CPU unless the tiny profile removes it (KRN-SCH-043, ADR-036); its priority is `0`, it is not visible as an application thread, cannot be suspended, canceled, joined, or re-prioritized (`EMB_EPERM`), and it runs the power core's idle hook (04 §4).
+- The idle thread exists per CPU unless the tiny profile removes it (KRN-SCH-043, ADR-036); its priority is `0` and it runs the power core's idle hook (04 §4). It is not an application thread: its object carries the idle type tag, so no handle resolves to it, and `emb_thread_self()` returns `EMB_HANDLE_NULL` in the idle context (KRN-THR-026). With the table scheduler and no idle thread, the inline idle context is slim: it never blocks, times out, takes notifications, joins or changes priority, so only the control block's prefix that the scheduler, the switch path and diagnostics read is allocated (ADR-050). Code running in the idle context, such as a port's idle hook, must not call thread-context API.
 - Work queue threads (SPEC-006) are kernel threads: created by `emb_workq_init`, destroyed with the queue, same restrictions as idle except priority, which is the queue's.
 - The supervisor partition's thread (03 §8) is an ordinary thread of a privileged partition.
 
@@ -145,7 +145,7 @@ Trace events: `thread_init(t, prio, partition)`, `thread_start`, `thread_exit(t,
 
 ## 14. Tiny profile
 
-With the table scheduler (ADR-036), `init` binds the thread to the table slot equal to its priority (unique priorities, up to 16 including idle); `start`, `suspend`, `resume`, `join` are bit operations; no all-threads list is needed (the table is the list); `CONFIG_EMB_TLS_SLOTS=0`, `CONFIG_EMB_STACK_STATS` off by default, `destroy` is allowed only before freeze. Everything else is identical.
+With the table scheduler (ADR-036), `init` binds the thread to the table slot of its priority (slot p − 1 for priority p; unique priorities, up to 16 levels including idle's level 0, which has no slot); `start`, `suspend`, `resume`, `join` are bit operations; no all-threads list is needed (the table is the list); `CONFIG_EMB_TLS_SLOTS=0`, `CONFIG_EMB_STACK_STATS` off by default, `destroy` is allowed only before freeze. Everything else is identical.
 
 ## 15. Reference model
 

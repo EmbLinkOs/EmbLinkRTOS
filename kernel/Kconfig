@@ -309,6 +309,14 @@ config EMB_FAULT_HALT_FOR_DEBUG
 	default y if EMB_CHECKED && !EMB_ARCH_AVR
 	default n
 
+config EMB_FAULT_HOOK_RUNTIME
+	bool "Register the fault hook at run time with emb_fault_set_hook()"
+	default y
+	help
+	  API-017. Off: the kernel calls emb_fault_hook(), which the application
+	  defines (a weak empty default exists where the compiler has weak
+	  symbols), and keeps no hook pointer in RAM.
+
 endmenu
 
 menu "Observability"
