@@ -18,6 +18,7 @@ m2-02-irq-priority
 m2-02-thread-identity
 m2-02-fault-api-ids
 m2-02-object-lifecycle
+case-evidence
 embcc-capability-review
 embcc-layout-marker
 embcc-native-linux

@@ -58,10 +58,10 @@ The current docs disclose these gaps. Correcting one must update its contract, r
 
 ## M2-04: Executed cases and bounded costs
 
-- [ ] Export individual conformance outcomes with requirement IDs, assertions/analyses, configuration hash, source SHA, skips and unrun reasons.
-- [ ] Validate declared mappings against actual executed cases rather than counting header/test ID strings. Migrate legacy requirement definitions deliberately when their owning subsystem needs them.
+- [x] Export individual conformance outcomes with requirement IDs, assertions/analyses, configuration hash, source SHA, skips and unrun reasons. The framework prints `EVIDENCE`, `req` and `CASE` lines; `tools/evidence/collect.py` records them with the source identity, and every CI test job uploads them (see [case evidence](case-evidence.md)).
+- [x] Validate declared mappings against actual executed cases rather than counting header/test ID strings. Migrate legacy requirement definitions deliberately when their owning subsystem needs them. `tools/evidence/matrix.py` counts only citations printed by executed, asserting cases. The fourteen cited `KRN-SCH`/`KRN-MEM` identifiers of groups pending migration stay visible as uncataloged rows; their v0.1 text is not in the repository, so their migration waits for the scheduler and memory requirement work rather than being reconstructed.
 - [ ] Inventory admitted waiters, armed timeouts, owned mutexes, inheritance depth, tiny table scans and callbacks/batch wakes.
-- [ ] Define feature/configuration applicability for each case and analysis. Accepted design status remains separate from evidence outcome.
+- [x] Define feature/configuration applicability for each case and analysis. Accepted design status remains separate from evidence outcome. A case applies where its feature gate compiles it; `tools/evidence/configurations.json` gives every configuration its execution scope or unrun reason, and the matrix keeps design status and evidence outcome in separate columns. Telling an out-of-scope `no case` from a gap automatically is not yet done.
 
 The [timing/evidence contract](timing-and-evidence.md) controls these artifacts. Physical timing and full release reproducibility remain the subsequent hardware/release gates, not inferred results of this export.
 

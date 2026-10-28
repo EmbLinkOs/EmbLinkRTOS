@@ -23,7 +23,7 @@ This page is the authoritative inventory of implementation and available evidenc
 
 ## Specified but unimplemented
 
-Event flags, condition variables, barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; executed-case requirement traceability/coverage reports and support matrix; fuzz/HIL campaigns; SMP/AMP ports and transports.
+Event flags, condition variables, barriers, software timers, work queues, message queues, pipes and buffer pools; indexed handles and capability tables; static partitions, syscall marshallers and supervisor restart; execution budgets and partition shares; full SoC/board/system schema validation and generation; reusable driver classes; power management; boot/update services; full observability formats; statement/branch coverage reports and the support matrix (executed-case requirement traceability exists, see [case evidence](engineering/case-evidence.md)); fuzz/HIL campaigns; SMP/AMP ports and transports.
 
 An API or path named in a design or a requirement's verification field may be a planned deliverable. Check this inventory and the filesystem before treating it as available.
 

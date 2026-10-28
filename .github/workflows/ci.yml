@@ -39,6 +39,16 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Numeric fault IDs without location strings
         if: matrix.preset == 'native-gcc'
         run: |
@@ -73,6 +83,16 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Single-level non-nesting IRQ conformance
         if: matrix.preset == 'cm3-an385'
         run: |
@@ -111,6 +131,16 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -147,6 +177,16 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Footprint
         run: |
           python3 -I tools/footprint/footprint.py \
@@ -186,6 +226,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Footprint report tool
         run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
+      - name: Case evidence tools
+        run: python3 -I -m unittest discover -s tools/evidence -p 'test_*.py' -v
       - name: Configuration tool self-check
         run: |
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
@@ -226,6 +268,16 @@ jobs:
         run: cmake --build --preset avr-uno-embsim
       - name: Test on EmbSIM
         run: ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/avr-uno-embsim --preset avr-uno-embsim --out case-evidence-avr-uno-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-avr-uno-embsim
+          path: case-evidence-avr-uno-embsim.json
+          if-no-files-found: warn
 
   cm4-embsim:
     # the conformance suite on EmbSIM's NUCLEO-F446RE (SIM-002), built as for the board
@@ -255,6 +307,16 @@ jobs:
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
         run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-cm4-nucleo-embsim
+          path: case-evidence-cm4-nucleo-embsim.json
+          if-no-files-found: warn
 
   rv32-embsim:
     # the conformance suite on EmbSIM's ESP32-C3-DevKitM-1 (SIM-002): each image turned into the
@@ -285,6 +347,16 @@ jobs:
         run: cmake --build --preset rv32-c3-embsim
       - name: Test on EmbSIM
         run: ctest --preset rv32-c3-embsim --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/rv32-c3-embsim --preset rv32-c3-embsim --out case-evidence-rv32-c3-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-rv32-c3-embsim
+          path: case-evidence-rv32-c3-embsim.json
+          if-no-files-found: warn
 
   merge_gate:
     name: CI merge gate
