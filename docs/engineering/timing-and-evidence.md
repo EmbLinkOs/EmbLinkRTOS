@@ -68,6 +68,8 @@ For deep replay failures, save the exact runner/model build, full trace, scenari
 
 A historical report whose input and build cannot be recovered cannot be classified. After a bounded, recorded reproduction attempt, a maintainer may close it with the disposition **not reproducible: input unavailable, cause unknown**. This is not one of the four classifications, not a fix, and not evidence that the reported behavior cannot occur. The closing record states the attempt's scope, names the triggers that reopen it, and keeps the report listed among the known limits in Project status and release notes.
 
+The bounded inputs those annotations name, with their limits and how each is enforced, are listed in the [resource-bound inventory](resource-bounds.md), which the lint job checks for completeness against the public headers.
+
 ## Memory and reproducibility evidence
 
 Report kernel, architecture, board, application and runtime subtotals alongside the complete linked flash image. Include `.data` initialization images in flash, live `.data`/`.bss`, alignment/padding, metadata and retained sections. Distinguish reserved from loaded sections.

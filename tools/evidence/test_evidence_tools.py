@@ -92,3 +92,30 @@ class Matrix(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+import check_bounds  # noqa: E402
+
+
+class Bounds(unittest.TestCase):
+    BOUND = {"id": "waiters", "input": "x", "bound": "y", "limit": "z", "enforcement": "structural",
+             "masked": True, "profiles": "p", "evidence": "e"}
+
+    def test_every_non_constant_cost_needs_known_inputs(self):
+        inv = {"bounds": [self.BOUND], "apis": {"emb_a": ["waiters"], "emb_b": ["nonsense"], "emb_c": ["waiters"]}}
+        errs = check_bounds.problems(inv, {"emb_a": "O(waiters)", "emb_b": "O(n)", "emb_d": "O(n)"})
+        self.assertTrue(any("emb_d" in e and "no inventory entry" in e for e in errs))
+        self.assertTrue(any("emb_b" in e and "nonsense" in e for e in errs))
+        self.assertTrue(any("emb_c" in e and "O(1) or it is not public" in e for e in errs))
+        self.assertFalse(any("emb_a" in e for e in errs))
+
+    def test_entries_need_every_field_and_a_known_enforcement(self):
+        bad = dict(self.BOUND, enforcement="hope", limit="")
+        errs = check_bounds.problems({"bounds": [bad], "apis": {}}, {})
+        self.assertTrue(any("missing limit" in e for e in errs))
+        self.assertTrue(any("enforcement 'hope'" in e for e in errs))
+
+    def test_the_repository_inventory_is_complete(self):
+        import json
+        inv = json.loads(check_bounds.INVENTORY.read_text(encoding="utf-8"))
+        self.assertEqual(check_bounds.problems(inv, check_bounds.annotated_costs()), [])
