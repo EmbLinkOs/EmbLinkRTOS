@@ -343,5 +343,8 @@ void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
         if (top != NULL && top->eff_prio > t->eff_prio) {
             embk_cpu.reschedule_pending = 1u;
         }
+    } else if (embk_cpu.current != NULL && t->eff_prio > embk_cpu.current->eff_prio &&
+               embk_sched_is_ready(t)) {
+        embk_cpu.reschedule_pending = 1u; /* a ready thread raised above the running one */
     }
 }
