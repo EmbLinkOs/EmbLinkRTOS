@@ -25,8 +25,8 @@ KRN-WQ-001 to 004 originate in `docs/architecture/03-kernel-architecture.md` §6
 ### KRN-WQ-003  Delayed work over software timers
 **Statement.** Delayed work shall be implemented over software timers, not a separate timing mechanism.
 **Rationale.** One timeout structure (ADR-010); one set of accuracy rules.
-**Status.** Accepted 2026-10-07
-**Verification.** Analysis: `emb_dwork_t` embeds `emb_timer_storage_t`; no other timing code in `kernel/work/`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-30 (M2-09).
+**Verification.** Analysis: `emb_dwork_t` holds a public work item and an internal ISR_CONTEXT software timer (`kernel/work/dwork.c`); no other timing code in `kernel/work/`.
 **Trace.** SPEC-006 §4.1, §4.3; SPEC-003 §7
 
 ### KRN-WQ-004  Cancellation reports the state
@@ -53,8 +53,8 @@ KRN-WQ-001 to 004 originate in `docs/architecture/03-kernel-architecture.md` §6
 ### KRN-WQ-007  Delayed work scheduling
 **Statement.** `dwork_schedule` on a pending item shall return `EMB_EEXIST` and change nothing; `reschedule` shall replace a pending delay; cancel shall stop an armed timer or remove a queued item and report `PENDING` for both; the timer's expiry shall submit the item in O(1) from the expiry path.
 **Rationale.** One queue hop per delayed item; deterministic re-arm semantics.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `wq/dwork_schedule_pending`, `wq/dwork_reschedule`, `wq/dwork_cancel_states`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-30 (M2-09).
+**Verification.** Test: `dwork_runs_after_its_delay_and_schedule_is_idempotent`, `dwork_reschedule_replaces_the_delay`, `dwork_cancel_reports_pending_for_a_delay_and_a_queued_item`, `dwork_cancel_sync_waits_for_a_running_handler`; model scenarios of the DWORK group; differential agreement on the native presets.
 **Trace.** SPEC-006 §4.3, §12.6, §12.7
 
 ### KRN-WQ-008  System work queue

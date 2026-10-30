@@ -100,6 +100,25 @@ void embk_timer_expired(embk_timer_t *t, emb_tick_t now, emb_irq_key_t *key)
     t->in_callback = 0u;
 }
 
+void embk_timer_init_isr(embk_timer_t *t, void (*fn)(struct emb_timer_t timer, void *arg),
+                         void *arg)
+{
+    embk_obj_init(&t->obj, EMBK_OBJ_TIMER, EMB_TIMER_ISR_CONTEXT, NULL);
+    embk_list_node_init(&t->node.node);
+    t->period = 0u;
+    t->interval = 0u;
+    t->expiries = 0u;
+    t->overruns = 0u;
+    t->fn = fn;
+    t->arg = arg;
+    t->pass = 0u;
+    t->in_callback = 0u;
+#if CONFIG_EMB_WORKQ
+    t->queue = NULL;
+    embk_work_init(&t->work, timer_work);
+#endif
+}
+
 void emb_timer_attr_default(emb_timer_attr_t *out_attr)
 {
     if (out_attr == NULL) {
@@ -194,7 +213,7 @@ emb_status_t emb_timer_init(emb_timer_storage_t *storage, const emb_timer_attr_t
 }
 
 /* The state stop finds and leaves: disarmed, a queued callback dropped; lock held. */
-static emb_timer_state_t stop_locked(embk_timer_t *t)
+uint8_t embk_timer_stop_locked(embk_timer_t *t)
 {
     emb_timer_state_t st = EMB_TIMER_IDLE;
     if (embk_list_node_is_linked(&t->node.node)) {
@@ -249,7 +268,8 @@ emb_status_t emb_timer_destroy(emb_timer_t timer)
 }
 
 /* (Re)arm at @deadline; lock held. The counts are kept. */
-static void arm_locked(embk_timer_t *t, emb_tick_t deadline, emb_tick_t period, emb_tick_t interval)
+void embk_timer_arm_locked(embk_timer_t *t, emb_tick_t deadline, emb_tick_t period,
+                           emb_tick_t interval)
 {
     embk_timer_node_disarm(&t->node);
     t->period = period;
@@ -268,7 +288,8 @@ static emb_status_t start_common(uint16_t api_id, emb_timer_t timer, emb_tick_t 
     EMBK_API_REQUIRE(api_id, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     after.ticks = first;
     key = embk_lock_timeout();
-    arm_locked(t, embk_deadline_from_timeout(after), period, (period != 0u) ? period : first);
+    embk_timer_arm_locked(t, embk_deadline_from_timeout(after), period,
+                          (period != 0u) ? period : first);
     embk_unlock_timeout(key);
     return EMB_OK;
 }
@@ -286,8 +307,8 @@ emb_status_t emb_timer_start_at(emb_timer_t timer, emb_instant_t at)
     EMBK_API_REQUIRE(EMB_API_ID_TIMER_START_AT, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_timeout();
     now = embk_time_ticks_locked();
-    arm_locked(t, at.ticks, 0u,
-               embk_tick_before(now, at.ticks) ? (emb_tick_t)(at.ticks - now) : 0u);
+    embk_timer_arm_locked(t, at.ticks, 0u,
+                          embk_tick_before(now, at.ticks) ? (emb_tick_t)(at.ticks - now) : 0u);
     embk_unlock_timeout(key);
     return EMB_OK;
 }
@@ -313,7 +334,7 @@ emb_status_t emb_timer_restart(emb_timer_t timer)
         return EMB_ESTATE;
     }
     after.ticks = t->interval;
-    arm_locked(t, embk_deadline_from_timeout(after), t->period, t->interval);
+    embk_timer_arm_locked(t, embk_deadline_from_timeout(after), t->period, t->interval);
     embk_unlock_timeout(key);
     return EMB_OK;
 }
@@ -330,7 +351,7 @@ emb_status_t emb_timer_stop(emb_timer_t timer, emb_timer_state_t *out_state)
     emb_timer_state_t st;
     EMBK_API_REQUIRE(EMB_API_ID_TIMER_STOP, t != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_timeout();
-    st = stop_locked(t);
+    st = embk_timer_stop_locked(t);
     EMBK_TRACE(EMB_TRACE_TIMER_STOP, caller_index(), t, st);
     embk_unlock_timeout(key);
     if (out_state != NULL) {
@@ -359,7 +380,7 @@ emb_status_t emb_timer_stop_sync(emb_timer_t timer, emb_timeout_t timeout)
         EMBK_API_MISUSE(EMB_API_ID_TIMER_STOP_SYNC, EMB_FAULT_API_CONTEXT, EMB_EPERM, 1u);
     }
 #endif
-    st = stop_locked(t);
+    st = embk_timer_stop_locked(t);
     EMBK_TRACE(EMB_TRACE_TIMER_STOP, embk_thread_index(embk_cpu.current), t, st);
     embk_unlock_timeout(key);
 #if CONFIG_EMB_WORKQ

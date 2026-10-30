@@ -125,6 +125,8 @@ emb_work_init(&job.work, process);
 
 An item is never queued twice and never runs concurrently with itself; submitting it while its handler runs queues it once more for after the handler returns. `emb_work_cancel()` reports whether the item was pending (now removed), running (it completes) or idle. Before reusing an item's storage, call `emb_work_cancel_sync()`, which also waits for a running handler. `emb_workq_flush()` waits until everything queued before the call has run. Calling either from the queue's own handlers would wait forever and is misuse, as is returning from a handler with a mutex held. The queue's thread belongs to the kernel: thread calls on it are refused and it cannot be notified directly. `emb_workq_destroy()` needs an idle queue and returns after the thread has exited. Referencing `emb_workq_system()` links in a shared system queue at a high priority; keep its handlers short.
 
+For work that should run later, an `emb_dwork_t` adds a delay: `emb_dwork_init(&dw, fn)`, then `emb_dwork_schedule(queue, &dw, EMB_MS(50))` submits it when the delay expires. Scheduling it again while the delay runs returns `EMB_EEXIST`; `emb_dwork_reschedule()` replaces the delay instead. `emb_dwork_cancel()` stops the delay or removes the queued item, and `emb_dwork_cancel_sync()` also waits for a running handler. The handler receives `&dw.work`.
+
 ## Periodic work with a software timer
 
 A software timer (`CONFIG_EMB_TIMER`, like work queues not available with the tiny profile in this milestone) calls a function after a delay, once or periodically. By default the callback runs on a work queue you name, in thread context; with `EMB_TIMER_ISR_CONTEXT` it runs in the timer interrupt and must be short and ISR-safe:

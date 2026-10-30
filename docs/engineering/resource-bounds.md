@@ -33,6 +33,10 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_cond_signal()` | O(1) selection, plus profile-specific timeout removal and scheduling | timeouts, reschedule |
 | `emb_cond_wait()` | O(waiters + timeouts) enqueue, a full mutex release, then the cost of emb_mutex_lock() | waiters, timeouts, owned, pi_depth, reschedule |
 | `emb_cond_wait_until()` | as emb_cond_wait() | waiters, timeouts, owned, pi_depth, reschedule |
+| `emb_dwork_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_dwork_reschedule()` | O(armed timers) insertion | armed_timers, timeouts |
+| `emb_dwork_schedule()` | O(armed timers) insertion | armed_timers, timeouts |
+| `emb_dwork_schedule_at()` | O(armed timers) insertion | armed_timers, timeouts |
 | `emb_event_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
 | `emb_event_init()` | O(1); O(active event flags) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_event_set()` | O(waiters) in one section, one reschedule | waiters, batch_wake, timeouts, reschedule |

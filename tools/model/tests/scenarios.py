@@ -739,3 +739,43 @@ def timer_periodic_overrun_on_long_callback():
 TIMER = [timer_one_shot_isr_context, timer_periodic_isr_stopped_by_thread, timer_equal_deadlines_thread_first,
          timer_work_queue_callback, timer_stop_running_callback_and_stop_sync, timer_periodic_overrun_on_long_callback]
 ALL = ALL + TIMER
+
+
+# ---------------------------------------------------------------------------------------
+# M2-09: delayed work (SPEC-006 §4.3, KRN-WQ-003, KRN-WQ-007): an internal ISR_CONTEXT timer
+# submits the item to the queue named at schedule time
+# ---------------------------------------------------------------------------------------
+from embmodel import DworkCancel, DworkSchedule  # noqa: E402
+
+
+def dwork_runs_after_its_delay():
+    """A scheduled item runs after its delay; a second schedule while it waits is EEXIST."""
+    return Scenario(name="dwork_runs_after_its_delay",
+                    threads={1: (1, (DworkSchedule(0, 0, 2), DworkSchedule(0, 0, 1), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)})
+
+
+def dwork_reschedule_and_cancel():
+    """reschedule replaces the delay; cancel reports PENDING for a running delay, then IDLE."""
+    return Scenario(name="dwork_reschedule_and_cancel",
+                    threads={1: (1, (DworkSchedule(0, 0, 5), DworkSchedule(0, 0, 1, replace=True), Take(0),
+                                     DworkSchedule(0, 0, 3), DworkCancel(0), DworkCancel(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)})
+
+
+def dwork_isr_schedule():
+    """An ISR schedules the item at any point; the thread's timed take sees it or times out."""
+    return Scenario(name="dwork_isr_schedule",
+                    threads={1: (1, (Take(0, 4),))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)},
+                    isrs=((DworkSchedule(0, 0, 1),),))
+
+
+DWORK = [dwork_runs_after_its_delay, dwork_reschedule_and_cancel, dwork_isr_schedule]
+ALL = ALL + DWORK

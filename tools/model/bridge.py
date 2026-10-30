@@ -32,7 +32,7 @@ from embmodel import (BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal
                       Destroy, EventClear, EventDestroy, EventSet,
                       EventWait, Exit, Give, Join, Lock, ModelError, MsgDestroy, MsgPeek, MsgRecv,
                       MsgSend, MsgSendFront, Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy,
-                      TimerStart, TimerStop, TimerStopSync,
+                      TimerStart, TimerStop, TimerStopSync, DworkSchedule, DworkCancel, DWORK_TIMER_BASE,
                       NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
                       SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
                       UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT, TIMER_WORK_BASE)
@@ -186,6 +186,10 @@ def encode_op(op) -> str:
         return f"tstop {op.timer}"
     if isinstance(op, TimerStopSync):
         return f"tsync {op.timer} {_t(op.timeout)}"
+    if isinstance(op, DworkSchedule):
+        return f"{'dresched' if op.replace else 'dsched'} {op.q} {op.w} {op.delay}"
+    if isinstance(op, DworkCancel):
+        return f"dcancel {op.w}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -223,7 +227,8 @@ def encode_scenario(sc: Scenario) -> str:
     for q, cfg in sc.workqs.items():
         parts.append(f"W{q}={cfg['tid']},{cfg['prio']}")
     for w, cfg in sc.works.items():
-        parts.append(f"H{w}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
+        kind = "K" if cfg.get("delayed") else "H"                    # K: an emb_dwork_t
+        parts.append(f"{kind}{w}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
     for t, cfg in sc.timers.items():
         mode = "isr" if cfg.get("isr") else f"q{cfg['q']}"
         parts.append(f"R{t}={mode}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
@@ -657,7 +662,7 @@ class Replay:
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
                 if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait, MsgRecv, MsgPeek, WorkCancel,
-                                   TimerStop)) \
+                                   TimerStop, DworkCancel)) \
                         and result == Result.SATISFIED \
                         and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
@@ -681,6 +686,8 @@ class Replay:
             if eid in r.evflags and not e.destroyed and r.evflags[eid] != e.bits:
                 raise Divergence(f"event flags {eid}: kernel bits {r.evflags[eid]:#x}, model {e.bits:#x}")
         for tm, t in k.timers.items():
+            if tm >= DWORK_TIMER_BASE:
+                continue                                  # a delayed item's internal timer: its events cover it
             if r.timers.get(tm) != (t.expiries, t.overruns, t.deadline is not None):
                 raise Divergence(f"timer {tm}: kernel (expiries, overruns, armed) {r.timers.get(tm)}, "
                                  f"model {(t.expiries, t.overruns, t.deadline is not None)}")

@@ -399,6 +399,22 @@
     "emb_timer_stop_sync": [
       "waiters",
       "timeouts"
+    ],
+    "emb_dwork_schedule": [
+      "armed_timers",
+      "timeouts"
+    ],
+    "emb_dwork_schedule_at": [
+      "armed_timers",
+      "timeouts"
+    ],
+    "emb_dwork_reschedule": [
+      "armed_timers",
+      "timeouts"
+    ],
+    "emb_dwork_cancel_sync": [
+      "waiters",
+      "timeouts"
     ]
   }
 }

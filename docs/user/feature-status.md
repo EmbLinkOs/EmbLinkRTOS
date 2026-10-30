@@ -7,7 +7,7 @@ This guide describes the current 0.2 development implementation. The authoritati
 | Start and coordinate threads | Static storage, priorities, start, sleep, join/detach, cooperative cancellation | Isolated partitions, budgets, restart, SMP |
 | Protect or signal work | Mutexes, semaphores, per-thread notifications, event flags, condition variables | Barriers |
 | Transfer payloads | Copy-by-value message queues; application-owned data with an explicit synchronization protocol | Pipes, buffer pools, zero-copy ownership queues |
-| Run periodic work | A thread using absolute sleep deadlines; one-shot and drift-free periodic software timers; work queues and the system work queue for deferred work (not with the tiny profile) | Delayed work items, timers on the tiny profile |
+| Run periodic work | A thread using absolute sleep deadlines; one-shot and drift-free periodic software timers; work queues, delayed work items and the system work queue for deferred work (not with the tiny profile) | Timers and work queues on the tiny profile |
 | Wait on several readiness sources | Semaphore, event flag and message queue bindings, with unbind, plus notification bits and rechecking; a bound thread cannot be destroyed | Pipe and pool bindings, restart-safe target lifetime |
 | Diagnose failures | State/priority queries, optional stack estimates, synchronous trace and fault hooks | Retained crash formats, CTF rings, full host tooling |
 | Develop without a board | Native Linux/POSIX virtual time and conformance suite | Physical-board timing, peripheral drivers and HIL evidence |

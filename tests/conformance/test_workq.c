@@ -227,3 +227,106 @@ EMB_TEST(workq_system_queue_runs_items)
     EMB_ASSERT_MARKS(7, 17);
 }
 #endif
+
+#if CONFIG_EMB_TIMER
+/* Delayed work (KRN-WQ-003, KRN-WQ-007). */
+typedef struct {
+    emb_dwork_t dw;
+    uint32_t ran_at;
+    uint32_t sleep_ticks;
+    unsigned runs;
+} dw_item_t;
+
+static dw_item_t dwi;
+
+static void dw_handler(emb_work_t *work)
+{
+    dw_item_t *it = EMB_CONTAINER_OF(work, dw_item_t, dw.work);
+    it->ran_at = EMB_TEST_NOW();
+    it->runs++;
+    emb_test_mark(50 + (int)it->runs);
+    if (it->sleep_ticks != 0u) {
+        EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(it->sleep_ticks)));
+    }
+}
+
+static void make_dwork(void)
+{
+    emb_dwork_init(&dwi.dw, dw_handler);
+    dwi.ran_at = 0u;
+    dwi.sleep_ticks = 0u;
+    dwi.runs = 0u;
+}
+
+EMB_TEST(dwork_runs_after_its_delay_and_schedule_is_idempotent)
+{
+    uint32_t t0;
+    EMB_TEST_REQ("KRN-WQ-003", "KRN-WQ-007");
+    make(2u);
+    make_dwork();
+    t0 = EMB_TEST_NOW();
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(3)));
+    EMB_ASSERT_STATUS(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(1)), EMB_EEXIST); /* unchanged */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(5)));
+    EMB_ASSERT_MARKS(51);
+    emb_test_check_elapsed(__LINE__, dwi.ran_at - t0, 3u);
+    EMB_ASSERT_OK(emb_workq_destroy(wq)); /* the fired delay released the queue */
+}
+
+EMB_TEST(dwork_reschedule_replaces_the_delay)
+{
+    uint32_t t0;
+    EMB_TEST_REQ("KRN-WQ-007");
+    make(2u);
+    make_dwork();
+    t0 = EMB_TEST_NOW();
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(10)));
+    EMB_ASSERT_OK(emb_dwork_reschedule(wq, &dwi.dw, EMB_TICKS(2)));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(12)));
+    EMB_ASSERT_MARKS(51); /* once, at the new deadline */
+    emb_test_check_elapsed(__LINE__, dwi.ran_at - t0, 2u);
+    EMB_ASSERT_OK(emb_workq_destroy(wq));
+}
+
+EMB_TEST(dwork_cancel_reports_pending_for_a_delay_and_a_queued_item)
+{
+    emb_work_state_t st = EMB_WORK_IDLE;
+    EMB_TEST_REQ("KRN-WQ-007", "KRN-WQ-004");
+    make(2u);
+    make_dwork();
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(5)));
+    EMB_ASSERT_MISUSE(emb_workq_destroy(wq), EMB_EBUSY); /* the delay holds the queue */
+    EMB_ASSERT_OK(emb_dwork_cancel(&dwi.dw, &st));
+    EMB_ASSERT_EQ(st, EMB_WORK_PENDING); /* the delay stopped */
+    EMB_ASSERT_OK(emb_dwork_cancel(&dwi.dw, &st));
+    EMB_ASSERT_EQ(st, EMB_WORK_IDLE);
+    items[0].sleep_ticks = 4u;
+    EMB_ASSERT_OK(emb_work_submit(wq, &items[0].work)); /* keeps the queue's thread busy */
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(1)));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(2))); /* fired: queued behind item 1 */
+    EMB_ASSERT_EQ(emb_work_state(&dwi.dw.work), EMB_WORK_PENDING);
+    EMB_ASSERT_STATUS(emb_dwork_reschedule(wq, &dwi.dw, EMB_TICKS(1)), EMB_EEXIST);
+    EMB_ASSERT_OK(emb_dwork_cancel(&dwi.dw, &st));
+    EMB_ASSERT_EQ(st, EMB_WORK_PENDING); /* removed from the queue */
+    EMB_ASSERT_OK(emb_workq_flush(wq, EMB_WAIT_FOREVER));
+    EMB_ASSERT_MARKS(1, 11); /* only item 1 ran */
+    EMB_ASSERT_EQ(dwi.runs, 0u);
+    EMB_ASSERT_OK(emb_workq_destroy(wq));
+}
+
+EMB_TEST(dwork_cancel_sync_waits_for_a_running_handler)
+{
+    EMB_TEST_REQ("KRN-WQ-007", "KRN-WQ-006");
+    make(2u);
+    make_dwork();
+    dwi.sleep_ticks = 3u;
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(1)));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(2))); /* the handler runs and sleeps */
+    EMB_ASSERT_EQ(emb_work_state(&dwi.dw.work), EMB_WORK_RUNNING);
+    EMB_ASSERT_STATUS(emb_dwork_cancel_sync(&dwi.dw, EMB_NO_WAIT), EMB_ETIMEDOUT);
+    EMB_ASSERT_OK(emb_dwork_cancel_sync(&dwi.dw, EMB_WAIT_FOREVER));
+    EMB_ASSERT_EQ(emb_work_state(&dwi.dw.work), EMB_WORK_IDLE);
+    EMB_ASSERT_MARKS(51);
+    EMB_ASSERT_OK(emb_workq_destroy(wq));
+}
+#endif

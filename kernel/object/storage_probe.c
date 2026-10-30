@@ -48,4 +48,7 @@ void embk_storage_probe(void)
 #if CONFIG_EMB_TIMER
     PROBE(timer, embk_timer_t);
 #endif
+#if CONFIG_EMB_TIMER && CONFIG_EMB_WORKQ
+    PROBE(dwork, embk_dwork_t);
+#endif
 }

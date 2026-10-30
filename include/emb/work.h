@@ -253,6 +253,132 @@ emb_status_t emb_work_cancel_sync(emb_work_t *work, emb_timeout_t timeout);
  */
 emb_work_state_t emb_work_state(const emb_work_t *work);
 
+#if CONFIG_EMB_TIMER
+/* Delayed work (SPEC-006 §4.3, KRN-WQ-003): a work item and the internal timer whose
+ * expiry submits it. The handler receives &dwork->work. */
+typedef struct emb_dwork {
+    emb_work_t work;            /* EMB_CONTAINER_OF(work, emb_dwork_t, work) in the handler */
+    emb_dwork_storage_t timer_; /* internal */
+} emb_dwork_t;
+
+/**
+ * emb_dwork_init() - Initialize a delayed work item that runs @fn.
+ * @dwork: Caller-owned item, not scheduled, queued or running; NULL is a no-op.
+ * @fn:    Handler, run on the queue's thread with &dwork->work.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-003
+ * @since    0.3
+ * @stable   no
+ */
+void emb_dwork_init(emb_dwork_t *dwork, emb_work_fn_t fn);
+
+/**
+ * emb_dwork_schedule() - Submit the item to @workq after @delay.
+ * @workq: Initialized work queue; it cannot be destroyed while the delay runs.
+ * @dwork: Initialized delayed work item.
+ * @delay: Delay; it saturates to EMB_TIMEOUT_MAX_TICKS, and 0 submits at the next pass.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(armed timers) insertion
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-003 KRN-WQ-007
+ * @since    0.3
+ * @stable   no
+ *
+ * The expiry submits the item in O(1) from the expiry path, as emb_work_submit() would.
+ *
+ * Return: EMB_OK; EMB_EEXIST when the delay already runs or the item is queued (nothing
+ *         changes); EMB_EBUSY while its handler runs on another queue; EMB_ESTATE while
+ *         @workq is being destroyed; EMB_ENOMEM when 255 timers name @workq; EMB_EINVAL for
+ *         a bad handle or an item that was not initialized.
+ */
+emb_status_t emb_dwork_schedule(emb_workq_t workq, emb_dwork_t *dwork, emb_duration_t delay);
+
+/**
+ * emb_dwork_schedule_at() - Submit the item to @workq at an absolute instant.
+ * @workq: Initialized work queue.
+ * @dwork: Initialized delayed work item.
+ * @at:    Kernel-clock instant; a past one submits at the next pass.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(armed timers) insertion
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-007 KRN-TIM-011
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: the statuses of emb_dwork_schedule().
+ */
+emb_status_t emb_dwork_schedule_at(emb_workq_t workq, emb_dwork_t *dwork, emb_instant_t at);
+
+/**
+ * emb_dwork_reschedule() - Replace a running delay, or schedule.
+ * @workq: Initialized work queue.
+ * @dwork: Initialized delayed work item.
+ * @delay: The new delay, from now.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(armed timers) insertion
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-007
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: the statuses of emb_dwork_schedule(), except that a running delay is replaced;
+ *         EMB_EEXIST when the item is already queued (it stays queued).
+ */
+emb_status_t emb_dwork_reschedule(emb_workq_t workq, emb_dwork_t *dwork, emb_duration_t delay);
+
+/**
+ * emb_dwork_cancel() - Stop the delay or remove the queued item; never waits.
+ * @dwork:     Initialized delayed work item.
+ * @out_state: Receives EMB_WORK_PENDING for a stopped delay or a removed item,
+ *             EMB_WORK_RUNNING when the handler runs (it completes), else EMB_WORK_IDLE;
+ *             may be NULL.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-007 KRN-WQ-004
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: EMB_OK; EMB_EINVAL for an item that was not initialized.
+ */
+emb_status_t emb_dwork_cancel(emb_dwork_t *dwork, emb_work_state_t *out_state);
+
+/**
+ * emb_dwork_cancel_sync() - Cancel, then wait until a running handler has returned.
+ * @dwork:   Initialized delayed work item.
+ * @timeout: EMB_NO_WAIT, EMB_WAIT_FOREVER or EMB_TIMEOUT(duration).
+ *
+ * @ctx      thread
+ * @blocks   timeout
+ * @time     O(1); O(waiters + timeouts) finite wait enqueue
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ CONFIG_EMB_TIMER
+ * @req      KRN-WQ-007 KRN-WQ-006
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: the statuses of emb_work_cancel_sync().
+ */
+emb_status_t emb_dwork_cancel_sync(emb_dwork_t *dwork, emb_timeout_t timeout);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
