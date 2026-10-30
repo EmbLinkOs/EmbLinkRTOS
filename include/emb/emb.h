@@ -27,6 +27,9 @@
 #include <emb/storage.h>
 #include <emb/thread.h>
 #include <emb/time.h>
+#if CONFIG_EMB_TIMER
+#include <emb/timer.h>
+#endif
 #include <emb/trace.h>
 #include <emb/types.h>
 #include <emb/version.h>

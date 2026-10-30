@@ -179,8 +179,8 @@ typedef struct emb_timer_attr {
     const char    *name;
     emb_timer_fn_t fn;            /* required */
     void          *arg;
-    emb_workq_t    workq;         /* EMB_HANDLE_NULL = system work queue */
-    uint8_t        flags;         /* EMB_TIMER_PERIODIC | EMB_TIMER_ISR_CONTEXT */
+    emb_workq_t    workq;         /* required unless ISR_CONTEXT, e.g. emb_workq_system() (A55) */
+    uint8_t        flags;         /* EMB_TIMER_ISR_CONTEXT; periodic only via start_periodic (A54) */
 } emb_timer_attr_t;
 ```
 
@@ -300,4 +300,4 @@ The timeout structure, the expiry ordering, periodic re-arm with overrun countin
 
 ## 16. Pending timer implementation constraints
 
-Software timers remain unimplemented. Periodic catch-up must compute missed periods with checked arithmetic rather than loop once per missed period; the §7.4 loop expresses semantics, not an acceptable unbounded ISR algorithm. State the maximum number of due callbacks and any deferred batch policy, preserving expiry order. Arming-overhead compensation must define clock resolution, calibration uncertainty, and already-due deadlines; no accuracy guarantee exists until measured on hardware. `stop_sync` and delayed-work cancellation need tests for pending, running, resubmitted, and timed-out callbacks.
+Implemented in M2-09 (A54 to A60, ADR-047): catch-up is one division, at most one expiry per timer per pass, and the measured arming overhead below remains open. The original constraints: periodic catch-up must compute missed periods with checked arithmetic rather than loop once per missed period; the §7.4 loop expresses semantics, not an acceptable unbounded ISR algorithm. State the maximum number of due callbacks and any deferred batch policy, preserving expiry order. Arming-overhead compensation must define clock resolution, calibration uncertainty, and already-due deadlines; no accuracy guarantee exists until measured on hardware. `stop_sync` and delayed-work cancellation need tests for pending, running, resubmitted, and timed-out callbacks.

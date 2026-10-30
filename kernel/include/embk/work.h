@@ -31,6 +31,7 @@ typedef struct embk_workq {
     embk_wait_queue_t done_q; /* cancel_sync and flush; wake_data holds the awaited item */
     embk_work_t *running;     /* the item whose handler runs, or NULL */
     uint8_t stopping;         /* destroy has begun: the thread exits at an empty FIFO */
+    uint8_t timer_refs;       /* timers whose callbacks run here: destroy is refused */
 #if CONFIG_EMB_OBJ_LIST
     embk_list_node_t all_node; /* in embk_workq_all from init to destroy */
 #endif
@@ -39,6 +40,19 @@ typedef struct embk_workq {
 #if CONFIG_EMB_OBJ_LIST
 extern embk_list_t embk_workq_all; /* every active work queue; lock: scheduler domain */
 #endif
+
+/* The queue a handle's raw value names, or NULL. */
+embk_workq_t *embk_workq_from_raw(uintptr_t raw);
+/* Initialize @w to run @fn (emb_work_init()). */
+void embk_work_init(embk_work_t *w, void (*fn)(struct emb_work *work));
+/* emb_work_submit() on resolved objects, lock held; the caller reschedules. */
+emb_status_t embk_work_submit_locked(embk_workq_t *q, embk_work_t *w);
+/* emb_work_cancel() on a resolved item, lock held; returns the state it was in. */
+uint8_t embk_work_cancel_locked(embk_work_t *w);
+/* emb_work_cancel_sync() on a resolved item, with faults and traces naming @api_id and the
+ * deadline fixed by the caller; thread context. */
+emb_status_t embk_work_cancel_sync(uint16_t api_id, embk_work_t *w, emb_tick_t deadline,
+                                   bool nowait);
 #endif
 
 #endif /* EMBK_WORK_H */

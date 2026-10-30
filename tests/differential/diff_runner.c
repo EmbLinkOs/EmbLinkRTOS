@@ -17,6 +17,7 @@
  *   Q<qid>=<capacity>[,fifo][,bind=<tid>.<bit>] a message queue of 32-bit items
  *   W<q>=<tid>,<prio>                         a work queue whose thread the trace calls tid
  *   H<w>:<op>;<op>...                         a work item and its handler's operations
+ *   R<t>=isr|q<q>:<op>;<op>...                a timer and its callback's operations
  *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear,
  *                                             and qsend, qfront, qrecv, qpeek with no wait)
  * Operations (t: -1 forever, 0 no wait, n ticks):
@@ -26,7 +27,7 @@
  *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
  *   cwait c m t | csignal c | cbcast c | cdestroy c | qsend q value t | qfront q value |
  *   qrecv q t | qpeek q | qdestroy q | submit q w | wcancel w | wcsync w t | wflush q t |
- *   wqdestroy q
+ *   wqdestroy q | tstart t first period | tstop t | tsync t t
  * A schedule entry fires right after the n-th trace event (or in idle, if that event never
  * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
@@ -59,6 +60,7 @@
 #define MAX_MSGQ_CAP 8u
 #define MAX_WORKQS   2u
 #define MAX_WORKS    4u
+#define MAX_TIMERS   2u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -109,7 +111,10 @@ enum op_kind {
     OP_WCANCEL,
     OP_WCSYNC,
     OP_WFLUSH,
-    OP_WQDESTROY
+    OP_WQDESTROY,
+    OP_TSTART,
+    OP_TSTOP,
+    OP_TSYNC
 };
 
 struct op {
@@ -201,6 +206,17 @@ struct work_desc {
 #endif
 };
 
+struct timer_desc {
+    long t;
+    bool isr;
+    long q;
+    struct program body;
+#if CONFIG_EMB_TIMER
+    emb_timer_storage_t storage;
+    emb_timer_t handle;
+#endif
+};
+
 struct mutex_desc {
     long mid;
     long protocol;
@@ -239,6 +255,8 @@ static struct workq_desc workqs[MAX_WORKQS];
 static unsigned workq_count;
 static struct work_desc works[MAX_WORKS];
 static unsigned work_count;
+static struct timer_desc timers[MAX_TIMERS];
+static unsigned timer_count;
 #if CONFIG_EMB_WORKQ
 EMB_THREAD_STACK(workq_stacks[MAX_WORKQS], STACK_SIZE);
 #endif
@@ -432,6 +450,18 @@ static void parse_op(char *text, struct op *op)
     } else if (strcmp(name, "wcancel") == 0 || strcmp(name, "wqdestroy") == 0) {
         op->kind = (name[1] == 'c') ? OP_WCANCEL : OP_WQDESTROY;
         op->a = num(args[0]);
+    } else if (strcmp(name, "tstart") == 0) {
+        op->kind = OP_TSTART;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "tstop") == 0) {
+        op->kind = OP_TSTOP;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "tsync") == 0) {
+        op->kind = OP_TSYNC;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
     } else {
         die("unknown operation");
     }
@@ -567,6 +597,18 @@ static void parse_section(char *sec)
         w = &works[work_count++];
         w->w = num(cut(&p, ':'));
         parse_program(p, &w->body);
+    } else if (kind == 'R') {
+        struct timer_desc *t;
+        char *mode;
+        if (timer_count >= MAX_TIMERS) {
+            die("too many timers");
+        }
+        t = &timers[timer_count++];
+        t->t = num(cut(&p, '='));
+        mode = cut(&p, ':');
+        t->isr = strcmp(mode, "isr") == 0;
+        t->q = t->isr ? -1 : num(mode + 1);
+        parse_program(p, &t->body);
     } else if (kind == 'M') {
         struct mutex_desc *m;
         char *attrs;
@@ -714,6 +756,20 @@ static emb_work_t *work_by_w(long w)
     }
     die("unknown work item id");
     return &works[0].work;
+}
+#endif
+
+#if CONFIG_EMB_TIMER
+static emb_timer_t timer_by_t(long t)
+{
+    unsigned i;
+    for (i = 0u; i < timer_count; i++) {
+        if (timers[i].t == t) {
+            return timers[i].handle;
+        }
+    }
+    die("unknown timer id");
+    return timers[0].handle;
 }
 #endif
 
@@ -1023,6 +1079,29 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             die("work queues are not configured");
             break;
 #endif
+#if CONFIG_EMB_TIMER
+        case OP_TSTART:
+            st = (op->c == 0)
+                     ? emb_timer_start(timer_by_t(op->a), EMB_TICKS((emb_tick_t)op->b))
+                     : emb_timer_start_periodic(timer_by_t(op->a), EMB_TICKS((emb_tick_t)op->b),
+                                                EMB_TICKS((emb_tick_t)op->c));
+            break;
+        case OP_TSTOP: {
+            emb_timer_state_t was = EMB_TIMER_IDLE;
+            st = emb_timer_stop(timer_by_t(op->a), &was);
+            data = was;
+            break;
+        }
+        case OP_TSYNC:
+            st = emb_timer_stop_sync(timer_by_t(op->a), timeout_of(op->b));
+            break;
+#else
+        case OP_TSTART:
+        case OP_TSTOP:
+        case OP_TSYNC:
+            die("software timers are not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -1039,6 +1118,14 @@ static void thread_entry(void *arg)
 {
     run_ops(&((struct thread_desc *)arg)->prog, (struct thread_desc *)arg);
 }
+
+#if CONFIG_EMB_TIMER
+static void timer_callback(emb_timer_t timer, void *arg)
+{
+    (void)timer;
+    run_ops(&((struct timer_desc *)arg)->body, NULL); /* results unrecorded */
+}
+#endif
 
 #if CONFIG_EMB_WORKQ
 static void work_handler(emb_work_t *work)
@@ -1065,7 +1152,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     }
     dumped = 1u;
     (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
-                 "conds=%d msgqs=%d workqs=%d\n",
+                 "conds=%d msgqs=%d workqs=%d timers=%d\n",
                  CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
@@ -1073,7 +1160,8 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
                  "release",
 #endif
                  (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
-                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ, (int)CONFIG_EMB_WORKQ);
+                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ, (int)CONFIG_EMB_WORKQ,
+                 (int)CONFIG_EMB_TIMER);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -1104,6 +1192,15 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     for (i = 0u; i < evflag_count; i++) {
         (void)printf("evflag %ld %lu\n", evflags[i].eid,
                      (unsigned long)emb_event_get(evflags[i].handle));
+    }
+#endif
+#if CONFIG_EMB_TIMER
+    for (i = 0u; i < timer_count; i++) {
+        uint32_t exp = 0u;
+        uint32_t over = 0u;
+        (void)emb_timer_get_counts(timers[i].handle, &exp, &over);
+        (void)printf("timer %ld %lu %lu %d\n", timers[i].t, (unsigned long)exp, (unsigned long)over,
+                     emb_timer_is_running(timers[i].handle) ? 1 : 0);
     }
 #endif
 #if CONFIG_EMB_WORKQ
@@ -1244,6 +1341,28 @@ static void construct(void)
 #else
     if (workq_count != 0u || work_count != 0u) {
         die("work queues are not configured");
+    }
+#endif
+#if CONFIG_EMB_TIMER
+    for (i = 0u; i < timer_count; i++) {
+        emb_timer_attr_t attr;
+        emb_timer_attr_default(&attr);
+        attr.fn = timer_callback;
+        attr.arg = &timers[i];
+        if (timers[i].isr) {
+            attr.flags = EMB_TIMER_ISR_CONTEXT;
+        } else {
+#if CONFIG_EMB_WORKQ
+            attr.workq = workq_by_q(timers[i].q);
+#else
+            die("work queue timers are not configured");
+#endif
+        }
+        EMB_CHECK(emb_timer_init(&timers[i].storage, &attr, &timers[i].handle));
+    }
+#else
+    if (timer_count != 0u) {
+        die("software timers are not configured");
     }
 #endif
     for (i = 0u; i < mutex_count; i++) {

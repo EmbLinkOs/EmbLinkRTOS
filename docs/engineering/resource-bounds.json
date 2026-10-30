@@ -95,7 +95,7 @@
     },
     {
       "id": "active_objects",
-      "input": "active objects of one type (semaphores, mutexes, event flags, condition variables, message queues, work queues)",
+      "input": "active objects of one type (semaphores, mutexes, event flags, condition variables, message queues, work queues, timers)",
       "bound": "not limited by the kernel: the objects the application initializes",
       "limit": "application",
       "enforcement": "application",
@@ -112,6 +112,16 @@
       "masked": true,
       "profiles": "a byte loop under the object lock on every profile",
       "evidence": "SPEC-007 \u00a72.2, KRN-IPC-011; tests/conformance/test_msgq.c"
+    },
+    {
+      "id": "armed_timers",
+      "input": "armed software timers",
+      "bound": "not limited by the kernel: the timers the application starts",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "list scheduler only; insertion walks from the tail of the timer list (ADR-047), removal O(1); an expiry pass handles each due timer once",
+      "evidence": "SPEC-003 \u00a77, ADR-047; tests/conformance/test_timer.c"
     },
     {
       "id": "stack",
@@ -368,6 +378,25 @@
       "reschedule"
     ],
     "emb_work_cancel_sync": [
+      "waiters",
+      "timeouts"
+    ],
+    "emb_timer_init": [
+      "active_objects"
+    ],
+    "emb_timer_start": [
+      "armed_timers"
+    ],
+    "emb_timer_start_at": [
+      "armed_timers"
+    ],
+    "emb_timer_start_periodic": [
+      "armed_timers"
+    ],
+    "emb_timer_restart": [
+      "armed_timers"
+    ],
+    "emb_timer_stop_sync": [
       "waiters",
       "timeouts"
     ]

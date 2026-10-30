@@ -124,3 +124,28 @@ emb_work_init(&job.work, process);
 ```
 
 An item is never queued twice and never runs concurrently with itself; submitting it while its handler runs queues it once more for after the handler returns. `emb_work_cancel()` reports whether the item was pending (now removed), running (it completes) or idle. Before reusing an item's storage, call `emb_work_cancel_sync()`, which also waits for a running handler. `emb_workq_flush()` waits until everything queued before the call has run. Calling either from the queue's own handlers would wait forever and is misuse, as is returning from a handler with a mutex held. The queue's thread belongs to the kernel: thread calls on it are refused and it cannot be notified directly. `emb_workq_destroy()` needs an idle queue and returns after the thread has exited. Referencing `emb_workq_system()` links in a shared system queue at a high priority; keep its handlers short.
+
+## Periodic work with a software timer
+
+A software timer (`CONFIG_EMB_TIMER`, like work queues not available with the tiny profile in this milestone) calls a function after a delay, once or periodically. By default the callback runs on a work queue you name, in thread context; with `EMB_TIMER_ISR_CONTEXT` it runs in the timer interrupt and must be short and ISR-safe:
+
+```c
+static emb_timer_storage_t blink_storage;
+static emb_timer_t blink;
+
+static void toggle(emb_timer_t timer, void *arg)
+{
+    (void)timer;
+    (void)arg;
+    /* thread context on the system work queue */
+}
+
+emb_timer_attr_t attr;
+emb_timer_attr_default(&attr);
+attr.fn = toggle;
+attr.workq = emb_workq_system(); /* or a queue of your own */
+EMB_CHECK(emb_timer_init(&blink_storage, &attr, &blink));
+EMB_CHECK(emb_timer_start_periodic(blink, EMB_MS(100), EMB_MS(500)));
+```
+
+A periodic timer re-arms from its previous deadline, so expiry k falls at the first delay plus k periods however late the callbacks run. Periods missed entirely, for example while interrupts were masked, are skipped and counted, and so is an expiry that finds the previous callback still waiting; read both with `emb_timer_get_counts()`. `emb_timer_stop()` reports whether the callback was idle, pending or running, and is how a callback ends its own periodic timer. Before destroying a timer, call `emb_timer_stop_sync()`, which also waits for a running callback. A queue that a timer names cannot be destroyed until the timer is.

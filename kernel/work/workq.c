@@ -27,9 +27,14 @@ EMB_STATIC_ASSERT(sizeof(embk_work_t) <= sizeof(emb_work_t), "generated storage 
 embk_list_t embk_workq_all = EMBK_LIST_INITIALIZER(embk_workq_all); /* usable before kernel init */
 #endif
 
+embk_workq_t *embk_workq_from_raw(uintptr_t raw)
+{
+    return (embk_workq_t *)embk_obj_from_raw(raw, EMBK_OBJ_WORKQ, offsetof(embk_workq_t, obj));
+}
+
 static EMB_INLINE embk_workq_t *workq_from_handle(emb_workq_t h)
 {
-    return (embk_workq_t *)embk_obj_from_raw(h.raw, EMBK_OBJ_WORKQ, offsetof(embk_workq_t, obj));
+    return embk_workq_from_raw(h.raw);
 }
 
 static EMB_INLINE embk_work_t *work_of(const emb_work_t *work)
@@ -170,6 +175,7 @@ emb_status_t emb_workq_init(emb_workq_storage_t *storage, const emb_workq_attr_t
     embk_wait_queue_init(&q->done_q, 0u);
     q->running = NULL;
     q->stopping = 0u;
+    q->timer_refs = 0u;
     emb_thread_attr_default(&ta);
     ta.name = attr->name;
     ta.stack = attr->stack;
@@ -205,7 +211,7 @@ emb_status_t emb_workq_destroy(emb_workq_t workq)
     }
     key = embk_lock_object(q);
     if (self == &q->thread || !embk_list_is_empty(&q->fifo) || q->running != NULL ||
-        q->stopping != 0u || !embk_wait_queue_is_empty(&q->done_q)) {
+        q->stopping != 0u || q->timer_refs != 0u || !embk_wait_queue_is_empty(&q->done_q)) {
         EMBK_TRACE(EMB_TRACE_WORK_WAIT, embk_thread_index(self), q, EMB_EBUSY);
         embk_unlock_object(q, key);
         EMBK_API_MISUSE(EMB_API_ID_WORKQ_DESTROY, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
@@ -300,12 +306,8 @@ emb_status_t emb_workq_flush(emb_workq_t workq, emb_timeout_t timeout)
     return st;
 }
 
-void emb_work_init(emb_work_t *work, emb_work_fn_t fn)
+void embk_work_init(embk_work_t *w, void (*fn)(struct emb_work *work))
 {
-    embk_work_t *w = (embk_work_t *)(void *)work;
-    if (w == NULL) {
-        return;
-    }
     embk_list_node_init(&w->node);
     w->fn = fn;
     w->queue = NULL;
@@ -314,16 +316,16 @@ void emb_work_init(emb_work_t *work, emb_work_fn_t fn)
     w->flags = 0u;
 }
 
-emb_status_t emb_work_submit(emb_workq_t workq, emb_work_t *work)
+void emb_work_init(emb_work_t *work, emb_work_fn_t fn)
 {
-    embk_workq_t *q = workq_from_handle(workq);
-    embk_work_t *w = work_of(work);
-    emb_irq_key_t key;
+    if (work != NULL) {
+        embk_work_init((embk_work_t *)(void *)work, fn);
+    }
+}
+
+emb_status_t embk_work_submit_locked(embk_workq_t *q, embk_work_t *w)
+{
     emb_status_t st = EMB_OK;
-    EMBK_API_REQUIRE(EMB_API_ID_WORK_SUBMIT, q != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
-    EMBK_API_REQUIRE(EMB_API_ID_WORK_SUBMIT, w != NULL && w->fn != NULL, EMB_FAULT_API_ARGUMENT,
-                     EMB_EINVAL, 2u);
-    key = embk_lock_object(q);
     if (q->stopping != 0u) {
         st = EMB_ESTATE; /* being destroyed */
     } else if (w->state == EMB_WORK_PENDING) {
@@ -341,9 +343,37 @@ emb_status_t emb_work_submit(emb_workq_t workq, emb_work_t *work)
         embk_notify_set_locked(&q->thread, EMB_NOTIFY_K_WORK);
     }
     EMBK_TRACE(EMB_TRACE_WORK_SUBMIT, embk_thread_index(&q->thread), w, st);
+    return st;
+}
+
+emb_status_t emb_work_submit(emb_workq_t workq, emb_work_t *work)
+{
+    embk_workq_t *q = workq_from_handle(workq);
+    embk_work_t *w = work_of(work);
+    emb_irq_key_t key;
+    emb_status_t st;
+    EMBK_API_REQUIRE(EMB_API_ID_WORK_SUBMIT, q != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_WORK_SUBMIT, w != NULL && w->fn != NULL, EMB_FAULT_API_ARGUMENT,
+                     EMB_EINVAL, 2u);
+    key = embk_lock_object(q);
+    st = embk_work_submit_locked(q, w);
     embk_sched_reschedule_if_needed();
     embk_unlock_object(q, key);
     return st;
+}
+
+uint8_t embk_work_cancel_locked(embk_work_t *w)
+{
+    uint8_t was = w->state;
+    if (was == EMB_WORK_PENDING) {
+        unlink_locked(w);
+    } else if (was == EMB_WORK_RUNNING) {
+        w->flags &= (uint8_t)~EMBK_WORK_RESUBMITTED; /* the handler completes */
+    } else {
+        /* idle: nothing to cancel */
+    }
+    EMBK_TRACE(EMB_TRACE_WORK_CANCEL, caller_index(), w, was);
+    return was;
 }
 
 emb_status_t emb_work_cancel(emb_work_t *work, emb_work_state_t *out_state)
@@ -353,15 +383,7 @@ emb_status_t emb_work_cancel(emb_work_t *work, emb_work_state_t *out_state)
     emb_work_state_t was;
     EMBK_API_REQUIRE(EMB_API_ID_WORK_CANCEL, w != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     key = embk_lock_sched();
-    was = w->state;
-    if (was == EMB_WORK_PENDING) {
-        unlink_locked(w);
-    } else if (was == EMB_WORK_RUNNING) {
-        w->flags &= (uint8_t)~EMBK_WORK_RESUBMITTED; /* the handler completes */
-    } else {
-        /* idle: nothing to cancel */
-    }
-    EMBK_TRACE(EMB_TRACE_WORK_CANCEL, caller_index(), w, was);
+    was = embk_work_cancel_locked(w);
     embk_unlock_sched(key);
     if (out_state != NULL) {
         *out_state = was;
@@ -369,31 +391,23 @@ emb_status_t emb_work_cancel(emb_work_t *work, emb_work_state_t *out_state)
     return EMB_OK;
 }
 
-emb_status_t emb_work_cancel_sync(emb_work_t *work, emb_timeout_t timeout)
+emb_status_t embk_work_cancel_sync(uint16_t api_id, embk_work_t *w, emb_tick_t deadline,
+                                   bool nowait)
 {
-    embk_work_t *w = work_of(work);
-    embk_thread_t *self;
+    embk_thread_t *self = embk_cpu.current;
     embk_workq_t *q;
     emb_irq_key_t key;
     embk_wait_result_t r;
     uintptr_t data;
     emb_status_t st;
     bool must_wait;
-    emb_tick_t deadline = embk_deadline_from_timeout(timeout); /* fixed at the call */
-    EMBK_API_REQUIRE_THREAD(EMB_API_ID_WORK_CANCEL_SYNC);
-    self = embk_cpu.current;
-    if (w == NULL) {
-        EMBK_TRACE(EMB_TRACE_WORK_WAIT, embk_thread_index(self), 0u, EMB_EINVAL);
-        EMBK_API_MISUSE(EMB_API_ID_WORK_CANCEL_SYNC, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    }
-    EMBK_API_REQUIRE_CAN_BLOCK(EMB_API_ID_WORK_CANCEL_SYNC,
-                               EMB_TIMEOUT_IS_NO_WAIT(timeout) ? 0u : 1u);
+    EMBK_API_REQUIRE_CAN_BLOCK(api_id, nowait ? 0u : 1u);
     key = embk_lock_sched();
     q = w->queue;
     if (q != NULL && self == &q->thread) {
         EMBK_TRACE(EMB_TRACE_WORK_WAIT, embk_thread_index(self), w, EMB_EPERM);
         embk_unlock_sched(key);
-        EMBK_API_MISUSE(EMB_API_ID_WORK_CANCEL_SYNC, EMB_FAULT_API_CONTEXT, EMB_EPERM, 1u);
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_CONTEXT, EMB_EPERM, 1u);
     }
     must_wait = false;
     if (embk_thread_take_cancel_locked(self)) {
@@ -405,7 +419,7 @@ emb_status_t emb_work_cancel_sync(emb_work_t *work, emb_timeout_t timeout)
         st = EMB_OK;
     } else {
         w->flags &= (uint8_t)~EMBK_WORK_RESUBMITTED;
-        st = EMB_TIMEOUT_IS_NO_WAIT(timeout) ? EMB_ETIMEDOUT : EMB_OK;
+        st = nowait ? EMB_ETIMEDOUT : EMB_OK;
         must_wait = st == EMB_OK;
     }
     if (!must_wait) {
@@ -419,6 +433,19 @@ emb_status_t emb_work_cancel_sync(emb_work_t *work, emb_timeout_t timeout)
     st = embk_wait_result_status(r);
     EMBK_TRACE(EMB_TRACE_WORK_WAIT, embk_thread_index(self), w, st);
     return st;
+}
+
+emb_status_t emb_work_cancel_sync(emb_work_t *work, emb_timeout_t timeout)
+{
+    embk_work_t *w = work_of(work);
+    emb_tick_t deadline = embk_deadline_from_timeout(timeout); /* fixed at the call */
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_WORK_CANCEL_SYNC);
+    if (w == NULL) {
+        EMBK_TRACE(EMB_TRACE_WORK_WAIT, embk_thread_index(embk_cpu.current), 0u, EMB_EINVAL);
+        EMBK_API_MISUSE(EMB_API_ID_WORK_CANCEL_SYNC, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
+    }
+    return embk_work_cancel_sync(EMB_API_ID_WORK_CANCEL_SYNC, w, deadline,
+                                 EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_work_state_t emb_work_state(const emb_work_t *work)

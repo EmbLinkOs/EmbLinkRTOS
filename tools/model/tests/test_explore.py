@@ -1,7 +1,7 @@
 """Exhaustive exploration of every scenario (KRN-WAIT-007, KRN-WAIT-022) and outcome checks."""
 import unittest
 
-from embmodel import Result, explore
+from embmodel import Result, build, explore
 from tests import scenarios as S
 
 
@@ -506,3 +506,67 @@ class WorkQueues(unittest.TestCase):
             self.assertEqual([(r[1], r[2]) for r in d[1]],
                              [(Result.SATISFIED, 0), (Result.SATISFIED, 0), (Result.SATISFIED, 0)])  # idle after
             self.assertEqual(w[0], (0, 1))
+
+
+class SoftwareTimers(unittest.TestCase):
+    """M2-09 (SPEC-003 §7): one-shot and periodic expiry on a drift-free grid, ISR and work queue
+    callbacks, thread timeouts first on equal deadlines, stop states, stop_sync and overruns."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {t: (e, v, a) for t, e, v, a in dict(o)["timers"]}, dict(dict(o)["sems"]))
+                for o in explore(make()).outcomes]
+
+    def test_every_timer_scenario_holds_invariants(self):
+        for make in S.TIMER:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_one_shot_and_work_queue_callbacks(self):
+        for make in (S.timer_one_shot_isr_context, S.timer_work_queue_callback):
+            for d, tm, _ in self.outcomes(make):
+                self.assertEqual(d[1][1][1], Result.SATISFIED)
+                self.assertEqual(tm[0], (1, 0, False))
+
+    def test_periodic_until_stopped(self):
+        seen = set()
+        for d, tm, sems in self.outcomes(S.timer_periodic_isr_stopped_by_thread):
+            exp = tm[0][0]
+            seen.add(exp)
+            self.assertEqual(sems[0], exp - 2)                         # every expiry gave once
+            self.assertFalse(tm[0][2])
+        self.assertIn(2, seen)
+
+    def test_equal_deadline_wakes_the_sleeper_first(self):
+        k = build(S.timer_equal_deadlines_thread_first())
+        while k.enabled() and ("run",) in k.enabled():
+            k.apply(("run",))
+        k.apply(("tick",))
+        k.trace = []
+        k.apply(("tick",))
+        wakes = [ev[1] for ev in k.trace if ev[0] == "wake"]
+        self.assertEqual(wakes, [1, 2])                                # the sleeper, then the giver's taker
+
+    def test_stop_sync_waits_for_the_running_callback(self):
+        seen = set()
+        for d, tm, _ in self.outcomes(S.timer_stop_running_callback_and_stop_sync):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            seen.add(res[2][1])                                        # RUNNING; PENDING or IDLE when ticks race
+            self.assertEqual(res[3][0], Result.SATISFIED)
+        self.assertIn(2, seen)
+
+    def test_long_callbacks_count_overruns(self):
+        for d, tm, _ in self.outcomes(S.timer_periodic_overrun_on_long_callback):
+            self.assertEqual(d[1][-1][1], Result.SATISFIED)
+            self.assertFalse(tm[0][2])
+
+    def test_closed_form_catch_up(self):
+        from embmodel.kernel import Timer
+        k = build(S.timer_one_shot_isr_context())
+        tm = Timer(tmid=7, isr=True, period=2, origin=2)
+        k.timers[7], k.timer_bodies[7] = tm, ()
+        k._timer_arm(tm, 2)
+        k.now = 9                                                      # 4, 6 and 8 were missed
+        k._expire_due()
+        self.assertEqual((tm.expiries, tm.overruns, tm.deadline), (1, 3, 10))

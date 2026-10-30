@@ -22,4 +22,13 @@ bool embk_timeout_next(emb_tick_t *out_deadline);
 /* Tickless: reprogram the hardware deadline from the next timeout, lock held. */
 void embk_time_program(void);
 
+#if CONFIG_EMB_TIMER
+/* The timer list (ADR-047), lock held: thread timeouts and timers expire together in
+ * deadline order, threads first on equal deadlines. The arm records the current pass. */
+void embk_timer_node_arm(embk_timeout_t *node, emb_tick_t deadline);
+void embk_timer_node_disarm(embk_timeout_t *node);
+/* The expiry pass in progress, or the last one; a node armed in it waits for the next. */
+uint8_t embk_time_pass(void);
+#endif
+
 #endif /* EMBK_TIME_H */
