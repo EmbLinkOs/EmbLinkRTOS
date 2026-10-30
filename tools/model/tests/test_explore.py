@@ -610,3 +610,40 @@ class DelayedWork(unittest.TestCase):
         for d, w in self.outcomes(S.dwork_isr_schedule):
             seen.add(d[1][0][1])
         self.assertIn(Result.SATISFIED, seen)
+
+
+class Combined(unittest.TestCase):
+    """M2-10: mechanisms combined at section boundaries. Every invariant of every group holds in
+    every explored state; these tests pin the end results that matter."""
+
+    def test_every_combined_scenario_holds_invariants(self):
+        for make in S.COMBINED:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_suspended_canceled_receiver_gets_the_item_or_leaves_it(self):
+        seen = set()
+        for o in explore(S.combined_suspend_cancel_msgq_receiver()).outcomes:
+            d, q = dict(dict(o)["threads"]), dict(dict(o)["msgqs"])
+            r = d[1][0]
+            seen.add(r[1])
+            if r[1] == Result.SATISFIED:
+                self.assertEqual((r[2], q[0]), (5, ()))
+            else:
+                self.assertIn(r[1], (Result.CANCELED, Result.TIMEOUT))     # the item, if sent, is stored
+        self.assertTrue({Result.SATISFIED, Result.CANCELED} <= seen)
+
+    def test_destroy_timeout_and_give(self):
+        seen = {dict(dict(o)["threads"])[1][0][1] for o in explore(S.combined_destroy_timeout_and_isr_give()).outcomes}
+        self.assertTrue(seen <= {Result.SATISFIED, Result.TIMEOUT, Result.DESTROYED})
+        self.assertIn(Result.SATISFIED, seen)
+
+    def test_dwork_cancel_racing_expiry_runs_at_most_once(self):
+        seen = set()
+        for o in explore(S.combined_dwork_cancel_races_expiry()).outcomes:
+            d, w = dict(dict(o)["threads"]), {wid: n for wid, _, n in dict(o)["works"]}
+            seen.add(w[0])
+            if w[0] == 0:
+                self.assertNotEqual(d[1][1][1], Result.SATISFIED)          # canceled: nothing gave
+        self.assertEqual(seen, {0, 1})
