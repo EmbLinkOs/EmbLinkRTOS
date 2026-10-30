@@ -69,6 +69,7 @@ MSGQ_QID_BASE = 400             # message queues: receivers 400 + 2i, senders 40
 WORK_QID_BASE = 500             # work queues: the completion queue of queue q is 500 + q
 K_WORK = 1 << 31                # EMB_NOTIFY_K_WORK with 32-bit notification words (SPEC-006 §2.1)
 TIMER_WORK_BASE = 1000          # the work item embedded in timer t is item 1000 + t
+DWORK_TIMER_BASE = 2000         # the internal timer of delayed item w is timer 2000 + w
 WORK_IDLE, WORK_PENDING, WORK_RUNNING = 0, 1, 2   # emb_work_state_t; PENDING is "queued"
 
 
@@ -359,6 +360,21 @@ class TimerStopSync:
     timeout: Optional[int] = FOREVER
 
 
+@dataclass(frozen=True)
+class DworkSchedule:
+    """emb_dwork_schedule(q, w, delay), or emb_dwork_reschedule() when replace is set."""
+    q: int
+    w: int
+    delay: int
+    replace: bool = False
+
+
+@dataclass(frozen=True)
+class DworkCancel:
+    """emb_dwork_cancel(w): stop the delay or unlink the queued item; data is the state found."""
+    w: int
+
+
 def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     got = bits & mask
     if all_:
@@ -366,10 +382,11 @@ def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     return got
 
 
-NONWAIT_RESULT_OPS = NONWAIT_RESULT_OPS + (Submit, TimerStart)
+NONWAIT_RESULT_OPS = NONWAIT_RESULT_OPS + (Submit, TimerStart, DworkSchedule)
 NONWAIT_DATA_OPS = (MsgSendFront, MsgPeek)                        # record a result and data, never wait
 ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear,  # SPEC-001 §5.2: signal-type operations are `thread isr`
-                MsgSendFront, MsgPeek, MsgSend, MsgRecv, Submit, WorkCancel, TimerStart, TimerStop)
+                MsgSendFront, MsgPeek, MsgSend, MsgRecv, Submit, WorkCancel, TimerStart, TimerStop,
+                DworkSchedule, DworkCancel)
 ISR_NO_WAIT_ONLY = (MsgSend, MsgRecv)                             # with EMB_NO_WAIT only (SPEC-007 §1)
 
 
@@ -520,10 +537,12 @@ class Timer:
     overruns: int = 0
     armed_in_pass: bool = False               # armed by this expiry pass: the next pass expires it
     in_callback: bool = False                 # an ISR_CONTEXT callback runs
+    dwork: Optional[int] = None               # a delayed item's internal timer: the item it submits
+    target: Optional[int] = None              # and the queue, while the delay runs
 
     def key(self):
         return (self.tmid, self.deadline, self.seq, self.period, self.origin, self.expiries, self.overruns,
-                self.armed_in_pass, self.in_callback)
+                self.armed_in_pass, self.in_callback, self.target)
 
 
 @dataclass
@@ -604,6 +623,9 @@ def build(sc: Scenario) -> "Kernel":
     for w, cfg in sc.works.items():
         k.works[w] = Work(wid=w)
         k.work_bodies[w] = tuple(cfg.get("body", ()))
+        if cfg.get("delayed"):                                        # emb_dwork_t: an internal timer
+            k.timers[DWORK_TIMER_BASE + w] = Timer(tmid=DWORK_TIMER_BASE + w, isr=True, dwork=w)
+            k.timer_bodies[DWORK_TIMER_BASE + w] = ()
     for tm, cfg in sc.timers.items():
         isr = bool(cfg.get("isr", False))
         k.timers[tm] = Timer(tmid=tm, isr=isr, q=None if isr else cfg["q"])
@@ -1527,7 +1549,8 @@ class Kernel:
             if wq.destroyed:
                 self._finish(t, Result.STALE)
                 return True
-            busy = wq.fifo or wq.running is not None or wq.stopping or self.queues[wq.done_qid].waiters
+            busy = (wq.fifo or wq.running is not None or wq.stopping or self.queues[wq.done_qid].waiters
+                    or any((not tm.isr and tm.q == wq.q) or tm.target == wq.q for tm in self.timers.values()))
             if t.tid == wq.tid or busy:
                 self._finish(t, Result.EPERM)                             # misuse: a fault when checked
                 return True
@@ -1807,6 +1830,8 @@ class Kernel:
                 res = self._op_submit(op)
             elif isinstance(op, TimerStart):
                 res = self._op_timer_start(op)
+            elif isinstance(op, DworkSchedule):
+                res = self._op_dwork_schedule(op)
             else:
                 res = self._op_thread_destroy(op)
             self._record(t, res)
@@ -1815,6 +1840,9 @@ class Kernel:
                 self.reschedule_if_needed()
         elif isinstance(op, TimerStop):
             self._record(t, Result.SATISFIED, self._op_timer_stop(op))
+            self._advance(t)
+        elif isinstance(op, DworkCancel):
+            self._record(t, Result.SATISFIED, self._op_dwork_cancel(op))
             self._advance(t)
         elif isinstance(op, TimerStopSync):
             if self._op_timer_stop_sync(t, op):
@@ -1902,6 +1930,10 @@ class Kernel:
                 self._op_timer_start(op)
             elif isinstance(op, TimerStop):
                 self._op_timer_stop(op)
+            elif isinstance(op, DworkSchedule):
+                self._op_dwork_schedule(op)
+            elif isinstance(op, DworkCancel):
+                self._op_dwork_cancel(op)
 
     def tick(self):
         self.now += 1
@@ -1957,6 +1989,11 @@ class Kernel:
         else:
             tm.deadline = None
         self._event("timer_expire", tm.tmid)
+        if tm.dwork is not None:                                      # the O(1) submit (KRN-WQ-007)
+            if tm.target is not None:
+                q, tm.target = tm.target, None
+                self._op_submit(Submit(q, tm.dwork))
+            return
         if tm.isr:
             tm.in_callback, self.in_expiry = True, True
             for op in self.timer_bodies[tm.tmid]:
@@ -1968,6 +2005,28 @@ class Kernel:
             tm.overruns += 1                                          # coalesced
         else:
             self._op_submit(Submit(tm.q, w.wid))
+
+    def _op_dwork_schedule(self, op: DworkSchedule) -> Result:
+        wq, w, tm = self.workqs[op.q], self.works[op.w], self.timers[DWORK_TIMER_BASE + op.w]
+        if wq.destroyed:
+            return Result.STALE
+        if wq.stopping:
+            return Result.STATE
+        if w.state == WORK_PENDING or (tm.target is not None and not op.replace):
+            return Result.EXIST                                       # nothing changes
+        if w.state == WORK_RUNNING and w.queue != op.q:
+            return Result.BUSY
+        tm.deadline, tm.target = None, op.q
+        self._timer_arm(tm, self.now + op.delay)
+        self._event("timer_start", tm.tmid)
+        return Result.SATISFIED
+
+    def _op_dwork_cancel(self, op: DworkCancel) -> int:
+        tm = self.timers[DWORK_TIMER_BASE + op.w]
+        if tm.target is not None:
+            tm.deadline, tm.target = None, None
+            return WORK_PENDING                                       # the delay stopped
+        return self._op_work_cancel(WorkCancel(op.w))
 
     def _op_timer_start(self, op: TimerStart) -> Result:
         tm = self.timers[op.timer]
@@ -2050,6 +2109,8 @@ class Kernel:
         for tm in self.timers.values():                                   # SPEC-003 §7.4, KRN-TIM-015
             if tm.period and tm.deadline is not None and (tm.deadline - tm.origin) % tm.period != 0:
                 raise ModelError(f"timer {tm.tmid}: deadline {tm.deadline} drifted off {tm.origin} + k * {tm.period}")
+            if tm.dwork is not None and (tm.target is None) != (tm.deadline is None):
+                raise ModelError(f"delayed item {tm.dwork}: target {tm.target} but deadline {tm.deadline}")
             if tm.deadline is not None and tm.armed_in_pass:
                 raise ModelError(f"timer {tm.tmid}: the pass marker survived its expiry pass")
         for w in self.works.values():                                     # SPEC-006 §4.3

@@ -39,9 +39,27 @@ typedef struct embk_timer {
 extern embk_list_t embk_timer_all; /* every active timer; lock: scheduler domain */
 #endif
 
+#if CONFIG_EMB_WORKQ
+/* The internal part of a delayed work item (KRN-WQ-003); its work item is public. */
+typedef struct embk_dwork {
+    embk_timer_t timer;   /* ISR_CONTEXT: its expiry submits the item */
+    embk_workq_t *target; /* the queue it submits to while scheduled, holding a timer reference */
+} embk_dwork_t;
+#endif
+
 /* An armed timer's deadline passed (SPEC-003 §7.4); called by the expiry pass with the
  * timeout lock held as *key, which an EMB_TIMER_ISR_CONTEXT callback runs without. */
 void embk_timer_expired(embk_timer_t *t, emb_tick_t now, emb_irq_key_t *key);
+
+/* Kernel-internal timers (delayed work, KRN-WQ-003): an ISR_CONTEXT timer that no handle
+ * names and the active-timer list does not hold. */
+void embk_timer_init_isr(embk_timer_t *t, void (*fn)(struct emb_timer_t timer, void *arg),
+                         void *arg);
+/* (Re)arm at @deadline with @period (0: one-shot); lock held; the counts are kept. */
+void embk_timer_arm_locked(embk_timer_t *t, emb_tick_t deadline, emb_tick_t period,
+                           emb_tick_t interval);
+/* Disarm and drop a queued callback; lock held; returns an emb_timer_state_t. */
+uint8_t embk_timer_stop_locked(embk_timer_t *t);
 #endif
 
 #endif /* EMBK_TIMER_H */

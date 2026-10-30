@@ -60,7 +60,8 @@ enum emb_trace_id {
                                     destroy, timer stop_sync) */
     EMB_TRACE_TIMER_EXPIRE = 41, /* a0 = periods skipped, a1 = timer address, a2 = expiries */
     EMB_TRACE_TIMER_START = 42,  /* a0 = deadline low word, a1 = timer address, a2 = period */
-    EMB_TRACE_TIMER_STOP = 43    /* a0 = index or 0xFF, a1 = timer address, a2 = state found */
+    EMB_TRACE_TIMER_STOP = 43,   /* a0 = index or 0xFF, a1 = timer address, a2 = state found */
+    EMB_TRACE_DWORK_SCHEDULE = 44 /* a0 = index or 0xFF, a1 = item address, a2 = status */
 };
 
 typedef struct emb_trace_event {

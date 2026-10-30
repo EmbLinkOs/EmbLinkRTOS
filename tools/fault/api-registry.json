@@ -816,6 +816,42 @@
       "name": "emb_timer_get_counts",
       "header": "timer.h",
       "state": "active"
+    },
+    {
+      "id": 137,
+      "name": "emb_dwork_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 138,
+      "name": "emb_dwork_schedule",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 139,
+      "name": "emb_dwork_schedule_at",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 140,
+      "name": "emb_dwork_reschedule",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 141,
+      "name": "emb_dwork_cancel",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 142,
+      "name": "emb_dwork_cancel_sync",
+      "header": "work.h",
+      "state": "active"
     }
   ]
 }

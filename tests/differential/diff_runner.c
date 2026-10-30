@@ -18,6 +18,7 @@
  *   W<q>=<tid>,<prio>                         a work queue whose thread the trace calls tid
  *   H<w>:<op>;<op>...                         a work item and its handler's operations
  *   R<t>=isr|q<q>:<op>;<op>...                a timer and its callback's operations
+ *   K<w>:<op>;<op>...                         a delayed work item and its handler's operations
  *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear,
  *                                             and qsend, qfront, qrecv, qpeek with no wait)
  * Operations (t: -1 forever, 0 no wait, n ticks):
@@ -27,7 +28,8 @@
  *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
  *   cwait c m t | csignal c | cbcast c | cdestroy c | qsend q value t | qfront q value |
  *   qrecv q t | qpeek q | qdestroy q | submit q w | wcancel w | wcsync w t | wflush q t |
- *   wqdestroy q | tstart t first period | tstop t | tsync t t
+ *   wqdestroy q | tstart t first period | tstop t | tsync t t | dsched q w delay |
+ *   dresched q w delay | dcancel w
  * A schedule entry fires right after the n-th trace event (or in idle, if that event never
  * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
@@ -114,7 +116,9 @@ enum op_kind {
     OP_WQDESTROY,
     OP_TSTART,
     OP_TSTOP,
-    OP_TSYNC
+    OP_TSYNC,
+    OP_DSCHED,
+    OP_DCANCEL
 };
 
 struct op {
@@ -200,9 +204,13 @@ struct workq_desc {
 
 struct work_desc {
     long w;
+    bool delayed;
     struct program body;
 #if CONFIG_EMB_WORKQ
     emb_work_t work;
+#if CONFIG_EMB_TIMER
+    emb_dwork_t dwork;
+#endif
 #endif
 };
 
@@ -458,6 +466,15 @@ static void parse_op(char *text, struct op *op)
     } else if (strcmp(name, "tstop") == 0) {
         op->kind = OP_TSTOP;
         op->a = num(args[0]);
+    } else if (strcmp(name, "dsched") == 0 || strcmp(name, "dresched") == 0) {
+        op->kind = OP_DSCHED;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+        op->d = name[1] == 'r'; /* reschedule */
+    } else if (strcmp(name, "dcancel") == 0) {
+        op->kind = OP_DCANCEL;
+        op->a = num(args[0]);
     } else if (strcmp(name, "tsync") == 0) {
         op->kind = OP_TSYNC;
         op->a = num(args[0]);
@@ -589,12 +606,13 @@ static void parse_section(char *sec)
         attrs = p;
         q->tid = num(cut(&attrs, ','));
         q->prio = (uint8_t)num(attrs);
-    } else if (kind == 'H') {
+    } else if (kind == 'H' || kind == 'K') {
         struct work_desc *w;
         if (work_count >= MAX_WORKS) {
             die("too many work items");
         }
         w = &works[work_count++];
+        w->delayed = kind == 'K';
         w->w = num(cut(&p, ':'));
         parse_program(p, &w->body);
     } else if (kind == 'R') {
@@ -746,16 +764,32 @@ static emb_workq_t workq_by_q(long q)
     return workqs[0].handle;
 }
 
-static emb_work_t *work_by_w(long w)
+/* The item a work id names: its own, or a delayed item's. */
+static emb_work_t *item_of(struct work_desc *d)
+{
+#if CONFIG_EMB_TIMER
+    if (d->delayed) {
+        return &d->dwork.work;
+    }
+#endif
+    return &d->work;
+}
+
+static struct work_desc *work_desc_by_w(long w)
 {
     unsigned i;
     for (i = 0u; i < work_count; i++) {
         if (works[i].w == w) {
-            return &works[i].work;
+            return &works[i];
         }
     }
     die("unknown work item id");
-    return &works[0].work;
+    return &works[0];
+}
+
+static emb_work_t *work_by_w(long w)
+{
+    return item_of(work_desc_by_w(w));
 }
 #endif
 
@@ -1102,6 +1136,34 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             die("software timers are not configured");
             break;
 #endif
+#if CONFIG_EMB_TIMER && CONFIG_EMB_WORKQ
+        case OP_DSCHED: {
+            struct work_desc *d = work_desc_by_w(op->b);
+            if (!d->delayed) {
+                die("dsched names an item that is not delayed");
+            }
+            st = (op->d != 0) ? emb_dwork_reschedule(workq_by_q(op->a), &d->dwork,
+                                                     EMB_TICKS((emb_tick_t)op->c))
+                              : emb_dwork_schedule(workq_by_q(op->a), &d->dwork,
+                                                   EMB_TICKS((emb_tick_t)op->c));
+            break;
+        }
+        case OP_DCANCEL: {
+            struct work_desc *d = work_desc_by_w(op->a);
+            emb_work_state_t was = EMB_WORK_IDLE;
+            if (!d->delayed) {
+                die("dcancel names an item that is not delayed");
+            }
+            st = emb_dwork_cancel(&d->dwork, &was);
+            data = was;
+            break;
+        }
+#else
+        case OP_DSCHED:
+        case OP_DCANCEL:
+            die("delayed work is not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -1130,7 +1192,14 @@ static void timer_callback(emb_timer_t timer, void *arg)
 #if CONFIG_EMB_WORKQ
 static void work_handler(emb_work_t *work)
 {
-    run_ops(&EMB_CONTAINER_OF(work, struct work_desc, work)->body, NULL); /* results unrecorded */
+    unsigned i;
+    for (i = 0u; i < work_count; i++) {
+        if (item_of(&works[i]) == work) {
+            run_ops(&works[i].body, NULL); /* results unrecorded */
+            return;
+        }
+    }
+    die("unknown work item");
 }
 #endif
 
@@ -1205,7 +1274,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
 #endif
 #if CONFIG_EMB_WORKQ
     for (i = 0u; i < work_count; i++) {
-        (void)printf("work %ld %u\n", works[i].w, (unsigned)emb_work_state(&works[i].work));
+        (void)printf("work %ld %u\n", works[i].w, (unsigned)emb_work_state(item_of(&works[i])));
     }
 #endif
 #if CONFIG_EMB_MSGQ
@@ -1336,7 +1405,15 @@ static void construct(void)
         EMB_CHECK(emb_workq_init(&workqs[i].storage, &attr, &workqs[i].handle));
     }
     for (i = 0u; i < work_count; i++) {
-        emb_work_init(&works[i].work, work_handler);
+        if (works[i].delayed) {
+#if CONFIG_EMB_TIMER
+            emb_dwork_init(&works[i].dwork, work_handler);
+#else
+            die("delayed work is not configured");
+#endif
+        } else {
+            emb_work_init(&works[i].work, work_handler);
+        }
     }
 #else
     if (workq_count != 0u || work_count != 0u) {

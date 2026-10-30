@@ -570,3 +570,43 @@ class SoftwareTimers(unittest.TestCase):
         k.now = 9                                                      # 4, 6 and 8 were missed
         k._expire_due()
         self.assertEqual((tm.expiries, tm.overruns, tm.deadline), (1, 3, 10))
+
+
+class DelayedWork(unittest.TestCase):
+    """M2-09 delayed work (KRN-WQ-003, KRN-WQ-007): runs after the delay, idempotent schedule,
+    reschedule, cancel states, ISR scheduling; the delay's target and its timer agree."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {w: (s, n) for w, s, n in dict(o)["works"]})
+                for o in explore(make()).outcomes]
+
+    def test_every_dwork_scenario_holds_invariants(self):
+        for make in S.DWORK:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_runs_after_delay_and_schedule_is_idempotent(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_runs_after_its_delay):
+            seen.add(d[1][1][1])                                         # EXIST, unless it already ran
+            self.assertEqual(d[1][2][1], Result.SATISFIED)
+            self.assertEqual(w[0][0], 0)
+        self.assertIn(Result.EXIST, seen)
+
+    def test_reschedule_and_cancel(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_reschedule_and_cancel):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            self.assertEqual(res[1][0], Result.SATISFIED)               # replaced or rescheduled
+            self.assertEqual(res[2][0], Result.SATISFIED)
+            seen.add((res[4][1], res[5][1]))
+            self.assertEqual(w[0][0], 0)                                # idle at the end
+        self.assertIn((1, 0), seen)                                     # PENDING, then IDLE
+
+    def test_isr_schedule(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_isr_schedule):
+            seen.add(d[1][0][1])
+        self.assertIn(Result.SATISFIED, seen)

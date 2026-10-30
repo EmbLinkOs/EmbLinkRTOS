@@ -140,5 +140,11 @@
 #define EMB_API_ID_TIMER_IS_RUNNING              0x0086u
 #define EMB_API_ID_TIMER_REMAINING               0x0087u
 #define EMB_API_ID_TIMER_GET_COUNTS              0x0088u
+#define EMB_API_ID_DWORK_INIT                    0x0089u
+#define EMB_API_ID_DWORK_SCHEDULE                0x008Au
+#define EMB_API_ID_DWORK_SCHEDULE_AT             0x008Bu
+#define EMB_API_ID_DWORK_RESCHEDULE              0x008Cu
+#define EMB_API_ID_DWORK_CANCEL                  0x008Du
+#define EMB_API_ID_DWORK_CANCEL_SYNC             0x008Eu
 
 #endif /* EMB_API_IDS_H */

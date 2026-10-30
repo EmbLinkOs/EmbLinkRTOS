@@ -29,7 +29,7 @@ OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.
        bridge.CondWait, bridge.CondSignal, bridge.CondBroadcast, bridge.CondDestroy,
        bridge.MsgSend, bridge.MsgSendFront, bridge.MsgRecv, bridge.MsgPeek, bridge.MsgDestroy,
        bridge.Submit, bridge.WorkCancel, bridge.WorkCancelSync, bridge.WorkFlush, bridge.WorkqDestroy,
-       bridge.TimerStart, bridge.TimerStop, bridge.TimerStopSync)}
+       bridge.TimerStart, bridge.TimerStop, bridge.TimerStopSync, bridge.DworkSchedule, bridge.DworkCancel)}
 
 
 def scenario_data(sc):
@@ -48,7 +48,8 @@ def scenario_data(sc):
         data["msgqs"] = list(sc.msgqs.items())
     if sc.workqs:                                    # and work queues with their items' handlers
         data["workqs"] = list(sc.workqs.items())
-        data["works"] = [(w, dict(body=program(cfg.get("body", ())))) for w, cfg in sc.works.items()]
+        data["works"] = [(w, dict({k: v for k, v in cfg.items() if k != "body"}, body=program(cfg.get("body", ()))))
+                         for w, cfg in sc.works.items()]
     if sc.timers:                                    # and software timers with their callbacks
         data["timers"] = [(t, dict({k: v for k, v in cfg.items() if k != "body"},
                                    body=program(cfg.get("body", ())))) for t, cfg in sc.timers.items()]
@@ -98,7 +99,7 @@ def scenario_from_data(raw):
                            conds=objects(raw.get("conds", []), "policy", bridge.Policy),
                            msgqs=objects(raw.get("msgqs", []), "policy", bridge.Policy),
                            workqs=objects(raw.get("workqs", [])),
-                           works={w: dict(body=program(cfg["body"])) for w, cfg in objects(raw.get("works", [])).items()},
+                           works={w: dict(cfg, body=program(cfg["body"])) for w, cfg in objects(raw.get("works", [])).items()},
                            timers={t: dict(cfg, body=program(cfg["body"]))
                                    for t, cfg in objects(raw.get("timers", [])).items()},
                            horizon=raw.get("horizon"),

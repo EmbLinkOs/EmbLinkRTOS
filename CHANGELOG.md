@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Delayed work (`emb_dwork_t`, M2-09, KRN-WQ-003/007): an item that an internal interrupt-context timer submits to a work queue after a delay or at an instant, with idempotent schedule, reschedule, cancel reporting a stopped delay or removed item as pending, and `cancel_sync`. The queue cannot be destroyed while a delay names it. The reference model, the differential bridge and the work queue conformance suite cover it.
+
 - Software timers (`CONFIG_EMB_TIMER`, `include/emb/timer.h`, M2-09): one-shot and periodic timers whose callbacks run on a named work queue or, with `EMB_TIMER_ISR_CONTEXT`, in the expiry interrupt. Periodic timers re-arm from the previous deadline, skip missed periods in closed form and count them with coalesced callbacks as overruns; `stop` reports the callback's state and `stop_sync` waits for it. Timers have their own deadline list, merged with thread timeouts at expiry (ADR-047). The reference model, the differential bridge and a conformance suite cover them; they require the list scheduler, so the tiny profile has none in this milestone.
 
 - The RISC-V reset code is in its own `.text.embn_rv_reset` section, so an application function named `reset` built with `-ffunction-sections` can no longer take the reset vector's place.
