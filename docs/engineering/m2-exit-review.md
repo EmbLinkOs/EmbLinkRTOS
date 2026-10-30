@@ -39,7 +39,7 @@
 
 ## CI
 
-At this review, #21 to #37 pass every required check. #38 and #39 were still running, and their results are recorded in the PRs. Three jobs that had hung in their tool installation until GitHub's six-hour limit (on #32, #34 and #35) were re-run and passed. No required check fails unexplained.
+At this review, #21 to #39 pass every required check, including the new `native-coverage` job. Three jobs that had hung in their tool installation until GitHub's six-hour limit (on #32, #34 and #35) were re-run and passed. No required check fails unexplained.
 
 ## Limits carried out of M2
 
