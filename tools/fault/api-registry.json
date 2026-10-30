@@ -684,6 +684,66 @@
       "name": "emb_msgq_unbind_notify",
       "header": "msgq.h",
       "state": "active"
+    },
+    {
+      "id": 115,
+      "name": "emb_workq_attr_default",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 116,
+      "name": "emb_workq_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 117,
+      "name": "emb_workq_destroy",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 118,
+      "name": "emb_workq_flush",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 119,
+      "name": "emb_workq_system",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 120,
+      "name": "emb_work_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 121,
+      "name": "emb_work_submit",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 122,
+      "name": "emb_work_cancel",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 123,
+      "name": "emb_work_cancel_sync",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 124,
+      "name": "emb_work_state",
+      "header": "work.h",
+      "state": "active"
     }
   ]
 }

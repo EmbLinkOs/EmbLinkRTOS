@@ -15,6 +15,8 @@
  *   E<eid>=<bits>[,fifo][,bind=<tid>.<bit>]   event flags
  *   C<cid>=<fifo>                             a condition variable (fifo 0 or 1)
  *   Q<qid>=<capacity>[,fifo][,bind=<tid>.<bit>] a message queue of 32-bit items
+ *   W<q>=<tid>,<prio>                         a work queue whose thread the trace calls tid
+ *   H<w>:<op>;<op>...                         a work item and its handler's operations
  *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear,
  *                                             and qsend, qfront, qrecv, qpeek with no wait)
  * Operations (t: -1 forever, 0 no wait, n ticks):
@@ -23,7 +25,8 @@
  *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s |
  *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
  *   cwait c m t | csignal c | cbcast c | cdestroy c | qsend q value t | qfront q value |
- *   qrecv q t | qpeek q | qdestroy q
+ *   qrecv q t | qpeek q | qdestroy q | submit q w | wcancel w | wcsync w t | wflush q t |
+ *   wqdestroy q
  * A schedule entry fires right after the n-th trace event (or in idle, if that event never
  * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
@@ -42,6 +45,9 @@
 #if CONFIG_EMB_MSGQ
 #include <embk/ipc.h> /* the final ring contents */
 #endif
+#if CONFIG_EMB_WORKQ
+#include <embk/work.h> /* the queue thread's index */
+#endif
 
 #define MAX_THREADS  8u
 #define MAX_OPS      16u
@@ -51,6 +57,8 @@
 #define MAX_CONDS    4u
 #define MAX_MSGQS    4u
 #define MAX_MSGQ_CAP 8u
+#define MAX_WORKQS   2u
+#define MAX_WORKS    4u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -96,7 +104,12 @@ enum op_kind {
     OP_QFRONT,
     OP_QRECV,
     OP_QPEEK,
-    OP_QDESTROY
+    OP_QDESTROY,
+    OP_SUBMIT,
+    OP_WCANCEL,
+    OP_WCSYNC,
+    OP_WFLUSH,
+    OP_WQDESTROY
 };
 
 struct op {
@@ -170,6 +183,24 @@ struct msgq_desc {
 #endif
 };
 
+struct workq_desc {
+    long q;
+    long tid;
+    uint8_t prio;
+#if CONFIG_EMB_WORKQ
+    emb_workq_storage_t storage;
+    emb_workq_t handle;
+#endif
+};
+
+struct work_desc {
+    long w;
+    struct program body;
+#if CONFIG_EMB_WORKQ
+    emb_work_t work;
+#endif
+};
+
 struct mutex_desc {
     long mid;
     long protocol;
@@ -204,6 +235,13 @@ static struct cond_desc conds[MAX_CONDS];
 static unsigned cond_count;
 static struct msgq_desc msgqs[MAX_MSGQS];
 static unsigned msgq_count;
+static struct workq_desc workqs[MAX_WORKQS];
+static unsigned workq_count;
+static struct work_desc works[MAX_WORKS];
+static unsigned work_count;
+#if CONFIG_EMB_WORKQ
+EMB_THREAD_STACK(workq_stacks[MAX_WORKQS], STACK_SIZE);
+#endif
 static struct mutex_desc mutexes[MAX_MUTEXES];
 static unsigned mutex_count;
 static struct program isrs[MAX_ISRS];
@@ -386,6 +424,14 @@ static void parse_op(char *text, struct op *op)
     } else if (strcmp(name, "qpeek") == 0 || strcmp(name, "qdestroy") == 0) {
         op->kind = (name[1] == 'p') ? OP_QPEEK : OP_QDESTROY;
         op->a = num(args[0]);
+    } else if (strcmp(name, "submit") == 0 || strcmp(name, "wcsync") == 0 ||
+               strcmp(name, "wflush") == 0) {
+        op->kind = (name[0] == 's') ? OP_SUBMIT : (name[1] == 'c') ? OP_WCSYNC : OP_WFLUSH;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "wcancel") == 0 || strcmp(name, "wqdestroy") == 0) {
+        op->kind = (name[1] == 'c') ? OP_WCANCEL : OP_WQDESTROY;
+        op->a = num(args[0]);
     } else {
         die("unknown operation");
     }
@@ -502,6 +548,25 @@ static void parse_section(char *sec)
                 die("bad message queue attribute");
             }
         }
+    } else if (kind == 'W') {
+        struct workq_desc *q;
+        char *attrs;
+        if (workq_count >= MAX_WORKQS) {
+            die("too many work queues");
+        }
+        q = &workqs[workq_count++];
+        q->q = num(cut(&p, '='));
+        attrs = p;
+        q->tid = num(cut(&attrs, ','));
+        q->prio = (uint8_t)num(attrs);
+    } else if (kind == 'H') {
+        struct work_desc *w;
+        if (work_count >= MAX_WORKS) {
+            die("too many work items");
+        }
+        w = &works[work_count++];
+        w->w = num(cut(&p, ':'));
+        parse_program(p, &w->body);
     } else if (kind == 'M') {
         struct mutex_desc *m;
         char *attrs;
@@ -623,6 +688,32 @@ static struct msgq_desc *msgq_by_qid(long qid)
     }
     die("unknown message queue id");
     return &msgqs[0];
+}
+#endif
+
+#if CONFIG_EMB_WORKQ
+static emb_workq_t workq_by_q(long q)
+{
+    unsigned i;
+    for (i = 0u; i < workq_count; i++) {
+        if (workqs[i].q == q) {
+            return workqs[i].handle;
+        }
+    }
+    die("unknown work queue id");
+    return workqs[0].handle;
+}
+
+static emb_work_t *work_by_w(long w)
+{
+    unsigned i;
+    for (i = 0u; i < work_count; i++) {
+        if (works[i].w == w) {
+            return &works[i].work;
+        }
+    }
+    die("unknown work item id");
+    return &works[0].work;
 }
 #endif
 
@@ -904,6 +995,34 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             die("message queues are not configured");
             break;
 #endif
+#if CONFIG_EMB_WORKQ
+        case OP_SUBMIT:
+            st = emb_work_submit(workq_by_q(op->a), work_by_w(op->b));
+            break;
+        case OP_WCANCEL: {
+            emb_work_state_t was = EMB_WORK_IDLE;
+            st = emb_work_cancel(work_by_w(op->a), &was);
+            data = was;
+            break;
+        }
+        case OP_WCSYNC:
+            st = emb_work_cancel_sync(work_by_w(op->a), timeout_of(op->b));
+            break;
+        case OP_WFLUSH:
+            st = emb_workq_flush(workq_by_q(op->a), timeout_of(op->b));
+            break;
+        case OP_WQDESTROY:
+            st = emb_workq_destroy(workq_by_q(op->a));
+            break;
+#else
+        case OP_SUBMIT:
+        case OP_WCANCEL:
+        case OP_WCSYNC:
+        case OP_WFLUSH:
+        case OP_WQDESTROY:
+            die("work queues are not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -920,6 +1039,13 @@ static void thread_entry(void *arg)
 {
     run_ops(&((struct thread_desc *)arg)->prog, (struct thread_desc *)arg);
 }
+
+#if CONFIG_EMB_WORKQ
+static void work_handler(emb_work_t *work)
+{
+    run_ops(&EMB_CONTAINER_OF(work, struct work_desc, work)->body, NULL); /* results unrecorded */
+}
+#endif
 
 static void isr_body(void *arg)
 {
@@ -939,7 +1065,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     }
     dumped = 1u;
     (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
-                 "conds=%d msgqs=%d\n",
+                 "conds=%d msgqs=%d workqs=%d\n",
                  CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
@@ -947,7 +1073,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
                  "release",
 #endif
                  (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
-                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ);
+                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ, (int)CONFIG_EMB_WORKQ);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -978,6 +1104,11 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     for (i = 0u; i < evflag_count; i++) {
         (void)printf("evflag %ld %lu\n", evflags[i].eid,
                      (unsigned long)emb_event_get(evflags[i].handle));
+    }
+#endif
+#if CONFIG_EMB_WORKQ
+    for (i = 0u; i < work_count; i++) {
+        (void)printf("work %ld %u\n", works[i].w, (unsigned)emb_work_state(&works[i].work));
     }
 #endif
 #if CONFIG_EMB_MSGQ
@@ -1097,6 +1228,24 @@ static void construct(void)
         die("message queues are not configured");
     }
 #endif
+#if CONFIG_EMB_WORKQ
+    for (i = 0u; i < workq_count; i++) {
+        emb_workq_attr_t attr;
+        emb_workq_attr_default(&attr);
+        attr.name = "diffwq";
+        attr.stack = workq_stacks[i];
+        attr.stack_size = sizeof(workq_stacks[i]);
+        attr.priority = workqs[i].prio;
+        EMB_CHECK(emb_workq_init(&workqs[i].storage, &attr, &workqs[i].handle));
+    }
+    for (i = 0u; i < work_count; i++) {
+        emb_work_init(&works[i].work, work_handler);
+    }
+#else
+    if (workq_count != 0u || work_count != 0u) {
+        die("work queues are not configured");
+    }
+#endif
     for (i = 0u; i < mutex_count; i++) {
         emb_mutex_attr_t attr;
         emb_mutex_attr_default(&attr);
@@ -1175,6 +1324,13 @@ int main(int argc, char **argv)
         (void)printf("thread %ld index %u\n", threads[i].tid,
                      (unsigned)emb_thread_index(threads[i].handle));
     }
+#if CONFIG_EMB_WORKQ
+    for (i = 0; (unsigned)i < workq_count; i++) {
+        const embk_workq_t *q = (const embk_workq_t *)(const void *)&workqs[i].storage;
+        (void)printf("thread %ld index %u\n", workqs[i].tid,
+                     (unsigned)embk_thread_index(&q->thread));
+    }
+#endif
     started = 1u;
     emb_kernel_start();
 }

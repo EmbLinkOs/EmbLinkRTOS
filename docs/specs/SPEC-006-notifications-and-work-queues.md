@@ -116,11 +116,8 @@ for (;;) {
 typedef void (*emb_work_fn_t)(emb_work_t *work);
 
 typedef struct emb_work {                 /* intrusive, caller-owned, statically allocatable (KRN-WQ-001) */
-    embk_list_node_t node;
-    emb_work_fn_t    fn;
-    emb_workq_t      queue;               /* the queue it is pending on or running on, else EMB_HANDLE_NULL */
-    uint8_t          state;               /* EMB_WORK_IDLE | EMB_WORK_QUEUED | EMB_WORK_RUNNING, plus the RESUBMITTED flag */
-} emb_work_t;
+    emb_work_storage_t opaque_;           /* node, handler, queue, state and the RESUBMITTED flag (A48) */
+} emb_work_t;                             /* emb_work_state_t: EMB_WORK_IDLE | EMB_WORK_PENDING | EMB_WORK_RUNNING */
 
 typedef struct emb_dwork {                /* delayed work: a work item plus an embedded timer (SPEC-003 §7) */
     emb_work_t            work;
@@ -168,7 +165,7 @@ emb_status_t emb_dwork_cancel_sync(emb_dwork_t *dw, emb_timeout_t timeout);
 - **Flush.** Submits an internal marker item and waits for it: everything queued before the call has run when it returns. Flushing a queue from one of its own handlers is misuse.
 - **Delayed work.** `schedule` arms the embedded timer (SPEC-003 §7) whose callback is "submit the work item to `q`"; the timer itself runs in `ISR_CONTEXT` because its only action is the O(1) submit, so no second queue hop is paid. `schedule` on a pending delayed item (timer armed or work queued) returns `EMB_EEXIST` and changes nothing; `reschedule` replaces the delay (or, if the work is already queued, leaves it queued and returns `EMB_EEXIST`). `cancel` stops the timer if armed, else cancels the work; it reports `PENDING` for either pending form. Delayed work is the only timing mechanism work queues have (KRN-WQ-003).
 - **System work queue.** Exists when `CONFIG_EMB_SYSTEM_WORKQ=y` (default in `base` and above, off in `tiny`); priority `CONFIG_EMB_SYSTEM_WORKQ_PRIO` (default: the second-highest priority, because software timer callbacks run on it, SPEC-003 §7.3), stack `CONFIG_EMB_SYSTEM_WORKQ_STACK`. Applications should not block on it for long; the kernel's own uses are timer callbacks, deferred logging flush, and driver completion bottom halves (04 §3).
-- **Destroy.** A queue with queued or running items: misuse (`EMB_EBUSY`). The queue's thread is terminated as part of destroy.
+- **Destroy.** A queue with queued or running items: misuse (`EMB_EBUSY`). The queue's thread is terminated as part of destroy: destroy waits, not cancelably, until it has exited (A49, ADR-048).
 
 ### 4.4 Priorities and latency
 
@@ -214,7 +211,7 @@ A UART driver's receive ISR fills a buffer and submits its bottom-half work item
 
 ## 11. Reference model
 
-`tools/model/` gains `NotifySet(tid, bits)` (thread and ISR) and `NotifyWait(mask, mode, clear, timeout)` over the same `_block_section`, with the one-slot pseudo-queue, hand-off of satisfied bits, and `CLEAR` applied at wake; the semaphore binding already present now signals through the same `set` path. New invariants: a thread blocked with reason `NOTIFY` has an unsatisfied mask; a `set` that satisfies a waiting owner always wakes it in the same step. New scenarios: set in the window, set before wait (level), `ALL` across two sets, and the multi-source pattern of §3.3 with two bound semaphores (property: every given unit is eventually taken by the bound thread or remains in the count; at most one spurious pass per transition). Work queues are a thread pattern over notifications and are not modeled separately; their FIFO and state machine are tested in conformance.
+`tools/model/` gains `NotifySet(tid, bits)` (thread and ISR) and `NotifyWait(mask, mode, clear, timeout)` over the same `_block_section`, with the one-slot pseudo-queue, hand-off of satisfied bits, and `CLEAR` applied at wake; the semaphore binding already present now signals through the same `set` path. New invariants: a thread blocked with reason `NOTIFY` has an unsatisfied mask; a `set` that satisfies a waiting owner always wakes it in the same step. New scenarios: set in the window, set before wait (level), `ALL` across two sets, and the multi-source pattern of §3.3 with two bound semaphores (property: every given unit is eventually taken by the bound thread or remains in the count; at most one spurious pass per transition). Work queues were first left to conformance tests; M2 models them too (A53): a queue thread drains a FIFO of items whose handlers run model operations, with invariants on the item states and the completion waiters.
 
 ## 12. Decisions taken at acceptance (2026-10-07)
 

@@ -30,5 +30,8 @@
 #include <emb/trace.h>
 #include <emb/types.h>
 #include <emb/version.h>
+#if CONFIG_EMB_WORKQ
+#include <emb/work.h>
+#endif
 
 #endif /* EMB_EMB_H */

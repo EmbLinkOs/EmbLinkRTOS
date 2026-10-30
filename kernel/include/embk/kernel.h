@@ -42,6 +42,7 @@
 #define EMBK_OBJ_EVENT  ((uint8_t)0x54u)
 #define EMBK_OBJ_COND   ((uint8_t)0x55u)
 #define EMBK_OBJ_MSGQ   ((uint8_t)0x56u)
+#define EMBK_OBJ_WORKQ  ((uint8_t)0x57u)
 
 #define EMBK_OBJ_UNINIT     ((uint8_t)0u)
 #define EMBK_OBJ_ACTIVE     ((uint8_t)1u)

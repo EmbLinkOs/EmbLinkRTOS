@@ -95,7 +95,7 @@
     },
     {
       "id": "active_objects",
-      "input": "active objects of one type (semaphores, mutexes, event flags, condition variables, message queues)",
+      "input": "active objects of one type (semaphores, mutexes, event flags, condition variables, message queues, work queues)",
       "bound": "not limited by the kernel: the objects the application initializes",
       "limit": "application",
       "enforcement": "application",
@@ -347,6 +347,29 @@
     ],
     "emb_msgq_peek": [
       "item_copy"
+    ],
+    "emb_workq_init": [
+      "thread_ids",
+      "live_threads",
+      "stack",
+      "active_objects"
+    ],
+    "emb_workq_destroy": [
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_workq_flush": [
+      "waiters",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_work_submit": [
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_work_cancel_sync": [
+      "waiters",
+      "timeouts"
     ]
   }
 }

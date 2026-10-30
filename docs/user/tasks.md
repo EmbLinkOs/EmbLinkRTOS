@@ -89,3 +89,38 @@ Advancing `next` from the previous deadline keeps the schedule anchored. Sleepin
 Join waits for termination; it does not itself destroy the object or free caller storage. Use `emb_thread_destroy()` after a successful join when storage must be reused. A detached thread cannot be joined. Destroy can return `EMB_EBUSY` until the native port has completed switching the terminated thread out. Keep retry logic outside a critical section and do not reuse storage before success. A copied POINTER handle must not be used after destruction/reinitialization; generation-based stale-handle protection is planned.
 
 Cancellation is cooperative: `emb_thread_cancel()` requests it, and a cancellation point or cancelable wait returns `EMB_ECANCELED`. It does not kill the thread, destroy its objects, or repair shared state. Handle cancellation by releasing resources and choosing an exit result. In this closed example no one requests cancellation; the checked configuration faults on unexpected statuses through `EMB_CHECK`. In release, the macro returns the expression value without faulting, so a real worker must explicitly handle errors as well as expected cancellation/timeouts. See [Synchronization](synchronization.md) for ownership and [Debugging](debugging.md) for fault handling.
+
+## Deferred work on a work queue
+
+A work queue (`CONFIG_EMB_WORKQ`, not available with the tiny profile's table scheduler in this milestone) runs short jobs on a kernel thread, one at a time and in submission order. Submitting is O(1) and ISR-safe, so an interrupt can hand its slow part to a thread:
+
+```c
+typedef struct {
+    emb_work_t work;
+    uint16_t sample;
+} sensor_job_t;
+
+static emb_workq_storage_t jobs_storage;
+EMB_THREAD_STACK(jobs_stack, 1024);
+static emb_workq_t jobs;
+static sensor_job_t job;
+
+static void process(emb_work_t *work)
+{
+    sensor_job_t *j = EMB_CONTAINER_OF(work, sensor_job_t, work);
+    /* thread context, at the queue's priority: may block, delays later jobs on this queue */
+    (void)j->sample;
+}
+
+emb_workq_attr_t attr;
+emb_workq_attr_default(&attr);
+attr.stack = jobs_stack;
+attr.stack_size = sizeof(jobs_stack);
+attr.priority = 4;
+EMB_CHECK(emb_workq_init(&jobs_storage, &attr, &jobs));
+emb_work_init(&job.work, process);
+/* in the interrupt handler: */
+(void)emb_work_submit(jobs, &job.work); /* EMB_EEXIST if it is already queued */
+```
+
+An item is never queued twice and never runs concurrently with itself; submitting it while its handler runs queues it once more for after the handler returns. `emb_work_cancel()` reports whether the item was pending (now removed), running (it completes) or idle. Before reusing an item's storage, call `emb_work_cancel_sync()`, which also waits for a running handler. `emb_workq_flush()` waits until everything queued before the call has run. Calling either from the queue's own handlers would wait forever and is misuse, as is returning from a handler with a mutex held. The queue's thread belongs to the kernel: thread calls on it are refused and it cannot be notified directly. `emb_workq_destroy()` needs an idle queue and returns after the thread has exited. Referencing `emb_workq_system()` links in a shared system queue at a high priority; keep its handlers short.

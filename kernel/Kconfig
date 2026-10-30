@@ -241,6 +241,35 @@ config EMB_IPC_SMALL
 
 endmenu
 
+menu "Work queues"
+
+config EMB_WORKQ
+	bool "Work queues (SPEC-006 §4)"
+	depends on EMB_NOTIFY && !EMB_SCHED_TABLE
+	default y
+	help
+	  A kernel thread per queue runs submitted items in order. The tiny profile's table
+	  scheduler has no work queues in M2.
+
+config EMB_SYSTEM_WORKQ
+	bool "The system work queue, linked only when referenced (ADR-048)"
+	depends on EMB_WORKQ
+	default y
+
+config EMB_SYSTEM_WORKQ_PRIO
+	int "System work queue priority; 0 selects the second-highest priority"
+	depends on EMB_SYSTEM_WORKQ
+	default 0
+	range 0 255
+
+config EMB_SYSTEM_WORKQ_STACK
+	int "System work queue stack size, bytes"
+	depends on EMB_SYSTEM_WORKQ
+	default 2048
+	range EMB_ARCH_STACK_MIN 65536
+
+endmenu
+
 menu "Objects"
 
 choice EMB_HANDLE_MODEL_CHOICE

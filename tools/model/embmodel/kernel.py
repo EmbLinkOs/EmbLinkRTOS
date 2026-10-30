@@ -66,6 +66,9 @@ MUTEX_QID_BASE = 100            # queue ids: semaphores 0..99, mutexes 100.., th
 EVENT_QID_BASE = 200            # event flags 200..
 COND_QID_BASE = 300             # condition variables 300..
 MSGQ_QID_BASE = 400             # message queues: receivers 400 + 2i, senders 401 + 2i
+WORK_QID_BASE = 500             # work queues: the completion queue of queue q is 500 + q
+K_WORK = 1 << 31                # EMB_NOTIFY_K_WORK with 32-bit notification words (SPEC-006 §2.1)
+WORK_IDLE, WORK_PENDING, WORK_RUNNING = 0, 1, 2   # emb_work_state_t; PENDING is "queued"
 
 
 class ModelError(AssertionError):
@@ -289,6 +292,51 @@ class MsgDestroy:
     q: int
 
 
+@dataclass(frozen=True)
+class Submit:
+    """emb_work_submit(q, w): queue an idle item, mark a running one for resubmission (SPEC-006 §4.3)."""
+    q: int
+    w: int
+
+
+@dataclass(frozen=True)
+class WorkCancel:
+    """emb_work_cancel(w): unlink a queued item; the result's data is the state it was in."""
+    w: int
+
+
+@dataclass(frozen=True)
+class WorkCancelSync:
+    """emb_work_cancel_sync(w, timeout): cancel, then wait until a running handler returns."""
+    w: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class WorkFlush:
+    """emb_workq_flush(q, timeout): wait until every item queued before the call has run."""
+    q: int
+    timeout: Optional[int] = FOREVER
+
+
+@dataclass(frozen=True)
+class WorkqDestroy:
+    """emb_workq_destroy(q): stop an idle queue and wait, not cancelably, for its thread to exit."""
+    q: int
+
+
+@dataclass(frozen=True)
+class WorkPop:
+    """The queue thread's section that takes the next FIFO entry (internal)."""
+    q: int
+
+
+@dataclass(frozen=True)
+class WorkDone:
+    """The queue thread's section after a handler returns (internal)."""
+    q: int
+
+
 def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     got = bits & mask
     if all_:
@@ -296,9 +344,10 @@ def event_satisfying(bits: int, mask: int, all_: bool) -> int:
     return got
 
 
+NONWAIT_RESULT_OPS = NONWAIT_RESULT_OPS + (Submit,)
 NONWAIT_DATA_OPS = (MsgSendFront, MsgPeek)                        # record a result and data, never wait
 ISR_SAFE_OPS = (Give, Resume, NotifySet, Start, EventSet, EventClear,  # SPEC-001 §5.2: signal-type operations are `thread isr`
-                MsgSendFront, MsgPeek, MsgSend, MsgRecv)
+                MsgSendFront, MsgPeek, MsgSend, MsgRecv, Submit, WorkCancel)
 ISR_NO_WAIT_ONLY = (MsgSend, MsgRecv)                             # with EMB_NO_WAIT only (SPEC-007 §1)
 
 
@@ -339,6 +388,8 @@ class Thread:
     cond_result: Optional[Result] = None      # the condition wait's result, then the final one
     cond_data: int = 0                        # the final result's data (OWNERDEAD_FLAG)
     msg_value: int = 0                        # a blocked sender's item (the kernel keeps its pointer)
+    wq_item: Optional[int] = None             # a queue thread: the item whose handler it runs
+    work_target: Optional[tuple] = None       # a completion wait: ("w", item) or ("m", flusher tid)
     cancel_deferred: bool = False             # cancellation is not delivered (the relock, A41)
 
     def key(self):
@@ -350,7 +401,7 @@ class Thread:
                 self.notify_clear, tuple(self.owned), self.inactive, self.exit_code, self.joiner,
                 self.collected, self.destroyed, self.cond_phase,
                 None if self.cond_result is None else int(self.cond_result), self.cond_data,
-                self.cancel_deferred, self.msg_value)
+                self.cancel_deferred, self.msg_value, self.wq_item, self.work_target)
 
 
 @dataclass
@@ -422,6 +473,32 @@ class Msgq:
 
 
 @dataclass
+class Work:
+    wid: int
+    state: int = WORK_IDLE
+    queue: Optional[int] = None               # the queue it is queued or running on
+    resubmitted: bool = False
+    runs: int = 0                             # handlers that returned
+
+    def key(self):
+        return (self.wid, self.state, self.queue, self.resubmitted, self.runs)
+
+
+@dataclass
+class Workq:
+    q: int
+    tid: int                                  # the queue's thread
+    done_qid: int
+    fifo: tuple = ()                          # ("w", item) and ("m", flusher tid) entries, head first
+    running: Optional[int] = None
+    stopping: bool = False
+    destroyed: bool = False
+
+    def key(self):
+        return (self.q, self.tid, self.fifo, self.running, self.stopping, self.destroyed)
+
+
+@dataclass
 class Mutex:
     mid: int
     qid: int
@@ -446,6 +523,8 @@ class Scenario:
     events: dict = field(default_factory=dict)   # eid -> dict(bits=, policy=, binding=)
     conds: dict = field(default_factory=dict)    # cid -> dict(policy=)
     msgqs: dict = field(default_factory=dict)    # qid -> dict(capacity=, policy=, binding=)
+    workqs: dict = field(default_factory=dict)   # q -> dict(tid=, prio=): the queue thread
+    works: dict = field(default_factory=dict)    # w -> dict(body=ops the handler runs)
     isrs: tuple = ()
     owner_death: str = "release"               # CONFIG_EMB_MUTEX_OWNER_DEATH: "release" | "fault"
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
@@ -467,6 +546,20 @@ def build(sc: Scenario) -> "Kernel":
         k.queues[sid] = WaitQueue(qid=sid, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
         k.sems[sid] = Semaphore(sid=sid, count=cfg.get("count", 0), initial=cfg.get("count", 0), qid=sid,
                                 binding=cfg.get("binding"))
+    for q, cfg in sc.workqs.items():
+        tid = cfg["tid"]
+        if tid in sc.threads:
+            raise ModelError(f"work queue {q}: thread id {tid} is taken")
+        k.threads[tid] = Thread(tid=tid, prio=cfg["prio"], base_prio=cfg["prio"])
+        k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)
+        k.queues[-(1000 + tid)] = WaitQueue(qid=-(1000 + tid), policy=Policy.FIFO)
+        k.queues[WORK_QID_BASE + q] = WaitQueue(qid=WORK_QID_BASE + q, policy=Policy.PRIORITY_FIFO)
+        k.workqs[q] = Workq(q=q, tid=tid, done_qid=WORK_QID_BASE + q)
+        k.wq_of_tid[tid] = q
+        k.programs[tid] = ()
+    for w, cfg in sc.works.items():
+        k.works[w] = Work(wid=w)
+        k.work_bodies[w] = tuple(cfg.get("body", ()))
     for mq, cfg in sc.msgqs.items():
         rq, wq = MSGQ_QID_BASE + 2 * mq, MSGQ_QID_BASE + 2 * mq + 1
         k.queues[rq] = WaitQueue(qid=rq, policy=cfg.get("policy", Policy.PRIORITY_FIFO))
@@ -518,6 +611,10 @@ class Kernel:
     events: dict = field(default_factory=dict)
     conds: dict = field(default_factory=dict)
     msgqs: dict = field(default_factory=dict)
+    workqs: dict = field(default_factory=dict)
+    works: dict = field(default_factory=dict)
+    wq_of_tid: dict = field(default_factory=dict)   # static: queue thread tid -> queue
+    work_bodies: dict = field(default_factory=dict)  # static: item -> handler ops
     qid_mutex: dict = field(default_factory=dict)   # static map, not part of the key
     ready: dict = field(default_factory=dict)
     current: Optional[int] = None
@@ -543,6 +640,8 @@ class Kernel:
                 tuple(e.key() for _, e in sorted(self.events.items())),
                 tuple(c.key() for _, c in sorted(self.conds.items())),
                 tuple(q.key() for _, q in sorted(self.msgqs.items())),
+                tuple(q.key() for _, q in sorted(self.workqs.items())),
+                tuple(w.key() for _, w in sorted(self.works.items())),
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
@@ -559,6 +658,8 @@ class Kernel:
         k.events = {i: copy.copy(e) for i, e in self.events.items()}
         k.conds = {i: copy.copy(c) for i, c in self.conds.items()}
         k.msgqs = {i: copy.copy(q) for i, q in self.msgqs.items()}
+        k.workqs = {i: copy.copy(q) for i, q in self.workqs.items()}
+        k.works = {i: copy.copy(w) for i, w in self.works.items()}
         k.ready = {p: list(v) for p, v in self.ready.items()}
         k.timeouts = list(self.timeouts)
         k.trace = []
@@ -794,10 +895,20 @@ class Kernel:
     def _current_thread(self) -> Thread:
         return self.threads[self.current]
 
+    def _program(self, t: Thread) -> tuple:
+        """A queue thread's program follows its state: the drain loop, or a handler's body."""
+        q = self.wq_of_tid.get(t.tid)
+        if q is None:
+            return self.programs[t.tid]
+        if t.wq_item is None:
+            return (WorkPop(q), NotifyWait(K_WORK, clear=True, timeout=FOREVER))
+        return self.work_bodies[t.wq_item] + (WorkDone(q),)
+
     def _finish(self, t: Thread, result: Result, data: int = 0):
-        prog = self.programs[t.tid]
+        prog = self._program(t)
         op = prog[t.op_index] if t.op_index < len(prog) else Exit()
-        t.results = t.results + ((t.op_index, result, data),)
+        if t.tid not in self.wq_of_tid:                                   # a queue thread has no program results
+            t.results = t.results + ((t.op_index, result, data),)
         t.op_index += 1
         t.pc = 0
         t.wait_reason = None
@@ -1135,9 +1246,10 @@ class Kernel:
         sem.binding = None                                                # releases the target (ADR-046)
 
     # ------------------------------------------------------------------ binding lifetime (M2-03)
-    def _record(self, t: Thread, result: Result):
+    def _record(self, t: Thread, result: Result, data: int = 0):
         """The status of a non-wait operation that the bridge compares."""
-        t.results = t.results + ((t.op_index, result, 0),)
+        if t.tid not in self.wq_of_tid:
+            t.results = t.results + ((t.op_index, result, data),)
 
     def _bound_to(self, tid: int) -> bool:
         return any(o.binding is not None and o.binding[0] == tid
@@ -1218,6 +1330,166 @@ class Kernel:
         if isinstance(op, MsgSendFront):
             return (Result.SATISFIED, 0) if self._msgq_put(q, op.value, front=True) else (Result.TIMEOUT, 0)
         return (Result.SATISFIED, q.ring[0]) if q.ring else (Result.TIMEOUT, 0)
+
+    # ------------------------------------------------------------------ work queues (SPEC-006 §4, M2-08)
+    def _op_submit(self, op: Submit) -> Result:
+        wq, w = self.workqs[op.q], self.works[op.w]
+        if wq.destroyed:
+            return Result.STALE
+        if wq.stopping:
+            return Result.STATE                                           # being destroyed
+        if w.state == WORK_PENDING:
+            return Result.EXIST                                           # idempotent
+        if w.state == WORK_RUNNING:
+            if w.queue != op.q:
+                return Result.BUSY                                        # one queue at a time
+            w.resubmitted = True                                          # appended again when it returns
+            return Result.SATISFIED
+        w.state, w.queue = WORK_PENDING, op.q
+        wq.fifo = wq.fifo + (("w", op.w),)
+        self._notify_set(self.threads[wq.tid], K_WORK)
+        return Result.SATISFIED
+
+    def _op_work_cancel(self, op: WorkCancel) -> int:
+        w = self.works[op.w]
+        if w.state == WORK_PENDING:
+            wq = self.workqs[w.queue]
+            wq.fifo = tuple(e for e in wq.fifo if e != ("w", op.w))
+            w.state, w.queue = WORK_IDLE, None
+            return WORK_PENDING
+        if w.state == WORK_RUNNING:
+            w.resubmitted = False                                         # the handler completes
+            return WORK_RUNNING
+        return WORK_IDLE
+
+    def _wake_done(self, wq: Workq, target: tuple):
+        """Wake every completion waiter for @target, in queue order."""
+        dq = self.queues[wq.done_qid]
+        for tid, _ in list(dq.waiters):
+            if self.threads[tid].work_target == target:
+                self.wake(self.threads[tid], Result.SATISFIED, 0, dq, handoff=True)
+
+    def _op_work_pop(self, t: Thread, op: WorkPop):
+        wq = self.workqs[op.q]
+        if wq.fifo:
+            entry, wq.fifo = wq.fifo[0], wq.fifo[1:]
+            if entry[0] == "m":                                           # a flush marker: never run
+                self._wake_done(wq, entry)
+                self.reschedule_if_needed()
+                return
+            w = self.works[entry[1]]
+            w.state = WORK_RUNNING
+            wq.running = w.wid
+            t.wq_item, t.op_index, t.pc = w.wid, 0, 0                     # the handler's body follows
+            return
+        if wq.stopping:
+            self._exit(t, 0)
+            return
+        self._advance(t)                                                  # wait for K_WORK
+
+    def _op_work_done(self, t: Thread, op: WorkDone):
+        wq, w = self.workqs[op.q], self.works[t.wq_item]
+        if t.owned:
+            raise ModelError(f"work item {w.wid} returned owning mutexes {t.owned} (SPEC-006 §6)")
+        wq.running = None
+        w.runs += 1
+        if w.resubmitted:
+            w.resubmitted = False
+            w.state = WORK_PENDING
+            wq.fifo = wq.fifo + (("w", w.wid),)
+        else:
+            w.state, w.queue = WORK_IDLE, None
+        self._wake_done(wq, ("w", w.wid))
+        t.wq_item, t.op_index, t.pc = None, 0, 0
+        self.reschedule_if_needed()
+
+    def _op_work_cancel_sync(self, t: Thread, op: WorkCancelSync) -> bool:
+        w = self.works[op.w]
+        if t.pc == 0 and w.state != WORK_IDLE and self.wq_of_tid.get(t.tid) == w.queue:
+            self._finish(t, Result.EPERM)                                 # it would wait for itself: misuse
+            return True
+        dq = self.queues[self.workqs[w.queue].done_qid] if w.queue is not None else None
+
+        def satisfied():
+            return w.state != WORK_RUNNING
+
+        def consume():
+            self._op_work_cancel(WorkCancel(op.w))
+            return 0
+
+        def pre_nowait():
+            w.resubmitted = False
+            return None
+
+        def on_enqueue():
+            t.work_target = ("w", op.w)
+
+        def finish(t_, result, data=0):
+            t_.work_target = None
+            self._finish(t_, result, data)
+        return self._block_section(t, dq, Reason.OBJECT, op.timeout, satisfied, consume, pre_nowait=pre_nowait,
+                                   on_enqueue=on_enqueue, finish=finish)
+
+    def _op_work_flush(self, t: Thread, op: WorkFlush) -> bool:
+        wq = self.workqs[op.q]
+        if t.pc == 0:
+            if wq.destroyed:
+                self._finish(t, Result.STALE)
+                return True
+            if t.tid == wq.tid:
+                self._finish(t, Result.EPERM)                             # it would wait for itself: misuse
+                return True
+            if wq.stopping:
+                self._finish(t, Result.STATE)
+                return True
+        marker = ("m", t.tid)
+
+        def pre_block():
+            wq.fifo = wq.fifo + (marker,)
+            self._notify_set(self.threads[wq.tid], K_WORK)
+            return None
+
+        def on_enqueue():
+            t.work_target = marker
+
+        def finish(t_, result, data=0):
+            if result != Result.SATISFIED:
+                wq.fifo = tuple(e for e in wq.fifo if e != marker)        # unlinked on timeout or cancel
+            t_.work_target = None
+            self._finish(t_, result, data)
+        return self._block_section(t, self.queues[wq.done_qid], Reason.OBJECT, op.timeout,
+                                   lambda: not wq.fifo and wq.running is None, lambda: 0,
+                                   pre_block=pre_block, on_enqueue=on_enqueue, finish=finish)
+
+    def _op_workq_destroy(self, t: Thread, op: WorkqDestroy) -> bool:
+        wq = self.workqs[op.q]
+        qt = self.threads[wq.tid]
+        if t.pc == 0:
+            if wq.destroyed:
+                self._finish(t, Result.STALE)
+                return True
+            busy = wq.fifo or wq.running is not None or wq.stopping or self.queues[wq.done_qid].waiters
+            if t.tid == wq.tid or busy:
+                self._finish(t, Result.EPERM)                             # misuse: a fault when checked
+                return True
+            t.cancel_deferred = True                                      # the join is not cancelable (E6)
+
+        def pre_block():
+            wq.stopping = True
+            self._notify_set(qt, K_WORK)
+            return None
+
+        def on_enqueue():
+            qt.joiner = t.tid
+
+        def finish(t_, result, data=0):
+            t_.cancel_deferred = False
+            qt.joiner, qt.collected, qt.destroyed = None, True, True
+            wq.destroyed = True
+            self._finish(t_, result, 0)
+        return self._block_section(t, self.queues[-(1000 + wq.tid)], Reason.JOIN, FOREVER,
+                                   lambda: qt.terminated, lambda: 0, pre_block=pre_block,
+                                   on_enqueue=on_enqueue, finish=finish)
 
     def _op_msg_destroy(self, op: MsgDestroy):
         q = self.msgqs[op.q]
@@ -1385,7 +1657,7 @@ class Kernel:
         if self.current is None:
             return False
         t = self._current_thread()
-        prog = self.programs[t.tid]
+        prog = self._program(t)
         op = prog[t.op_index] if t.op_index < len(prog) else Exit()
         if isinstance(op, Take):
             self._op_take(t, op)
@@ -1398,7 +1670,8 @@ class Kernel:
         elif isinstance(op, Sleep):
             self._op_sleep(t, op)
         elif isinstance(op, NotifyWait):
-            self._op_notify_wait(t, op)
+            if self._op_notify_wait(t, op) and t.tid in self.wq_of_tid and t.wq_item is None:
+                t.op_index = 0                                            # back to the FIFO
         elif isinstance(op, NotifySet):
             self._notify_set(self.threads[op.tid], op.bits)
             self._advance(t)
@@ -1471,10 +1744,30 @@ class Kernel:
                 res = self._op_bind(t, op)
             elif isinstance(op, UnbindNotify):
                 res = self._op_unbind(op)
+            elif isinstance(op, Submit):
+                res = self._op_submit(op)
             else:
                 res = self._op_thread_destroy(op)
             self._record(t, res)
             self._advance(t)
+            if isinstance(op, Submit):
+                self.reschedule_if_needed()
+        elif isinstance(op, WorkCancel):
+            self._record(t, Result.SATISFIED, self._op_work_cancel(op))
+            self._advance(t)
+        elif isinstance(op, WorkPop):
+            self._op_work_pop(t, op)
+        elif isinstance(op, WorkDone):
+            self._op_work_done(t, op)
+        elif isinstance(op, (WorkCancelSync, WorkFlush, WorkqDestroy)):
+            if isinstance(op, WorkCancelSync):
+                done = self._op_work_cancel_sync(t, op)
+            elif isinstance(op, WorkFlush):
+                done = self._op_work_flush(t, op)
+            else:
+                done = self._op_workq_destroy(t, op)
+            if done:
+                self.reschedule_if_needed()
         elif isinstance(op, SchedLock):
             self.sched_lock_depth += 1
             self._advance(t)
@@ -1527,6 +1820,10 @@ class Kernel:
                 self._op_msg_recv(None, op)
             elif isinstance(op, NONWAIT_DATA_OPS):
                 self._op_msg_nowait(op)
+            elif isinstance(op, Submit):
+                self._op_submit(op)
+            elif isinstance(op, WorkCancel):
+                self._op_work_cancel(op)
         self.irq_nesting -= 1
         self._p1()
 
@@ -1578,6 +1875,29 @@ class Kernel:
         for s in self.sems.values():                                      # ADR-046: no binding outlives its target
             if s.binding is not None and self.threads[s.binding[0]].destroyed:
                 raise ModelError(f"semaphore {s.sid} is bound to destroyed thread {s.binding[0]}")
+        for w in self.works.values():                                     # SPEC-006 §4.3
+            places = [(wq.q, e) for wq in self.workqs.values() for e in wq.fifo if e == ("w", w.wid)]
+            if (w.state == WORK_PENDING) != (len(places) == 1) or len(places) > 1:
+                raise ModelError(f"work item {w.wid}: state {w.state} but queued {len(places)} times")
+            if places and places[0][0] != w.queue:
+                raise ModelError(f"work item {w.wid}: queued on {places[0][0]}, owned by {w.queue}")
+            running_on = [wq.q for wq in self.workqs.values() if wq.running == w.wid]
+            if (w.state == WORK_RUNNING) != bool(running_on) or (running_on and running_on != [w.queue]):
+                raise ModelError(f"work item {w.wid}: state {w.state}, running on {running_on}")
+            if w.resubmitted and w.state != WORK_RUNNING:
+                raise ModelError(f"work item {w.wid}: resubmitted while not running")
+            if w.state == WORK_IDLE and w.queue is not None:
+                raise ModelError(f"work item {w.wid}: idle but on queue {w.queue}")
+        for wq in self.workqs.values():
+            if wq.running != self.threads[wq.tid].wq_item:
+                raise ModelError(f"work queue {wq.q}: running {wq.running}, thread runs {self.threads[wq.tid].wq_item}")
+            for tid, _ in self.queues[wq.done_qid].waiters:
+                target = self.threads[tid].work_target
+                ok = (target is not None and
+                      (self.works[target[1]].state == WORK_RUNNING and self.works[target[1]].queue == wq.q
+                       if target[0] == "w" else target in wq.fifo))
+                if not ok:
+                    raise ModelError(f"work queue {wq.q}: thread {tid} waits for {target}, which cannot complete")
         for q in self.msgqs.values():                                     # SPEC-007 §2.2
             if self.queues[q.recv_qid].waiters and q.ring:
                 raise ModelError(f"message queue {q.qid}: receivers wait while {len(q.ring)} items are stored")
@@ -1687,4 +2007,5 @@ class Kernel:
                 ("mutex_owners", tuple((mid, m.owner) for mid, m in sorted(self.mutexes.items()))),
                 ("notify_bits", tuple((tid, t.notify_bits) for tid, t in sorted(self.threads.items()))),
                 ("events", tuple((eid, e.bits) for eid, e in sorted(self.events.items()))),
-                ("msgqs", tuple((qid, q.ring) for qid, q in sorted(self.msgqs.items()))))
+                ("msgqs", tuple((qid, q.ring) for qid, q in sorted(self.msgqs.items()))),
+                ("works", tuple((wid, w.state, w.runs) for wid, w in sorted(self.works.items()))))
