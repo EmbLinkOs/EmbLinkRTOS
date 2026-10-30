@@ -15,7 +15,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **batch_wake**: waiters woken at once (destroy with EMB_OBJ_ABORT_WAITERS) | the waiters of the destroyed object | as for waiters | structural | yes | one section, one reschedule at the end | SPEC-004 §6.7; KRN-OBJ-001 |
 | **thread_ids**: diagnostic identity scan at thread init | 254 IDs on list profiles, CONFIG_EMB_PRIORITY_COUNT - 1 on tiny | fixed per profile; EMB_ENOMEM beyond it | admission | yes | bitmap scan from the lowest ID | ADR-043; m2-02-thread-identity.md |
 | **live_threads**: threads on the all-threads list | at most 254 (the ID space) | CONFIG_EMB_THREAD_LIST; the ID admission | admission | yes | base only (no list on tiny); walked by thread init and emb_thread_foreach | SPEC-008 §12; ADR-045 |
-| **active_objects**: active semaphores or mutexes of one type | not limited by the kernel: the objects the application initializes | application | application | yes | with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init | ADR-045; m2-02-object-lifecycle.md |
+| **active_objects**: active objects of one type (semaphores, mutexes, event flags, condition variables, message queues) | not limited by the kernel: the objects the application initializes | application | application | yes | with CONFIG_EMB_OBJ_LIST only (not on tiny); walked by init | ADR-045; m2-02-object-lifecycle.md |
+| **item_copy**: bytes copied for one message queue operation | at most two items (a receive that refills from a waiting sender), each item_size bytes | CONFIG_EMB_MSGQ_MAX_ITEM (default 64, tiny 16); init refuses a larger item_size | configuration | yes | a byte loop under the object lock on every profile | SPEC-007 §2.2, KRN-IPC-011; tests/conformance/test_msgq.c |
 | **stack**: bytes of one thread's stack | the stack size the application supplied | application | application | no | the high-water scan exists only with CONFIG_EMB_STACK_STATS; init fills the stack in checked and statistics builds | SPEC-008 §10; KRN-MEM-009 |
 | **init_table**: entries of the initialization table | the EMB_*_DEFINE objects linked into the image | application, fixed at link time | application | no | prekernel only | KRN-OBJ-009 |
 | **callbacks**: application callbacks the kernel calls (fault hook, trace sink, foreach visitor) | not bounded by the kernel | application | application | yes | the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock | API-017; SPEC-015 |
@@ -39,6 +40,14 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_fault()` | O(1) preparation plus trace/hook and the non-returning port action | callbacks, port_action |
 | `emb_fault_hook()` | the application's | callbacks |
 | `emb_kernel_init()` | O(init table) | init_table |
+| `emb_msgq_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
+| `emb_msgq_init()` | O(1); O(active message queues) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_msgq_peek()` | O(1) plus an item copy | item_copy |
+| `emb_msgq_receive()` | O(1) plus up to two item copies; O(waiters + timeouts) finite wait enqueue | item_copy, waiters, timeouts, reschedule |
+| `emb_msgq_receive_until()` | as emb_msgq_receive() | item_copy, waiters, timeouts, reschedule |
+| `emb_msgq_send()` | O(1) plus an item copy; O(waiters + timeouts) finite wait enqueue | item_copy, waiters, timeouts, reschedule |
+| `emb_msgq_send_front()` | O(1) plus an item copy | item_copy, timeouts, reschedule |
+| `emb_msgq_send_until()` | as emb_msgq_send() | item_copy, waiters, timeouts, reschedule |
 | `emb_mutex_destroy()` | O(waiters + owned + PI work), plus profile-specific timeout removals | batch_wake, owned, pi_depth, timeouts, reschedule |
 | `emb_mutex_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_mutex_lock()` | O(owned) acquisition; O(waiters + PI work + timeouts) finite contended wait | owned, waiters, pi_depth, timeouts |

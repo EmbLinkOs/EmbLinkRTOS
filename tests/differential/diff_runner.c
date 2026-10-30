@@ -14,13 +14,16 @@
  *   M<mid>=<protocol>,<ceiling>,<recursive>   a mutex (protocol 0 inherit, 1 ceiling, 2 none)
  *   E<eid>=<bits>[,fifo][,bind=<tid>.<bit>]   event flags
  *   C<cid>=<fifo>                             a condition variable (fifo 0 or 1)
- *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear)
+ *   Q<qid>=<capacity>[,fifo][,bind=<tid>.<bit>] a message queue of 32-bit items
+ *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear,
+ *                                             and qsend, qfront, qrecv, qpeek with no wait)
  * Operations (t: -1 forever, 0 no wait, n ticks):
  *   take s t | give s | lock m t | unlock m | nset tid bits | nwait mask all clear t |
  *   sleep t | yield | setprio tid prio | suspend tid | resume tid | cancel tid | destroy s |
  *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s |
  *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
- *   cwait c m t | csignal c | cbcast c | cdestroy c
+ *   cwait c m t | csignal c | cbcast c | cdestroy c | qsend q value t | qfront q value |
+ *   qrecv q t | qpeek q | qdestroy q
  * A schedule entry fires right after the n-th trace event (or in idle, if that event never
  * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
@@ -36,6 +39,9 @@
 #if !CONFIG_EMB_TICKLESS
 #include <embk/time.h>
 #endif
+#if CONFIG_EMB_MSGQ
+#include <embk/ipc.h> /* the final ring contents */
+#endif
 
 #define MAX_THREADS  8u
 #define MAX_OPS      16u
@@ -43,6 +49,8 @@
 #define MAX_MUTEXES  4u
 #define MAX_EVFLAGS  4u
 #define MAX_CONDS    4u
+#define MAX_MSGQS    4u
+#define MAX_MSGQ_CAP 8u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -83,7 +91,12 @@ enum op_kind {
     OP_CWAIT,
     OP_CSIGNAL,
     OP_CBCAST,
-    OP_CDESTROY
+    OP_CDESTROY,
+    OP_QSEND,
+    OP_QFRONT,
+    OP_QRECV,
+    OP_QPEEK,
+    OP_QDESTROY
 };
 
 struct op {
@@ -143,6 +156,20 @@ struct cond_desc {
 #endif
 };
 
+struct msgq_desc {
+    long qid;
+    long capacity;
+    bool fifo;
+    long bind_tid;
+    long bind_bit;
+    bool destroyed;
+#if CONFIG_EMB_MSGQ
+    emb_msgq_storage_t storage;
+    emb_msgq_t handle;
+    EMB_MSGQ_RING(ring, sizeof(uint32_t), MAX_MSGQ_CAP);
+#endif
+};
+
 struct mutex_desc {
     long mid;
     long protocol;
@@ -175,6 +202,8 @@ static struct evflag_desc evflags[MAX_EVFLAGS];
 static unsigned evflag_count;
 static struct cond_desc conds[MAX_CONDS];
 static unsigned cond_count;
+static struct msgq_desc msgqs[MAX_MSGQS];
+static unsigned msgq_count;
 static struct mutex_desc mutexes[MAX_MUTEXES];
 static unsigned mutex_count;
 static struct program isrs[MAX_ISRS];
@@ -341,6 +370,22 @@ static void parse_op(char *text, struct op *op)
                strcmp(name, "cdestroy") == 0) {
         op->kind = (name[1] == 's') ? OP_CSIGNAL : (name[1] == 'b') ? OP_CBCAST : OP_CDESTROY;
         op->a = num(args[0]);
+    } else if (strcmp(name, "qsend") == 0) {
+        op->kind = OP_QSEND;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "qfront") == 0) {
+        op->kind = OP_QFRONT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "qrecv") == 0) {
+        op->kind = OP_QRECV;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "qpeek") == 0 || strcmp(name, "qdestroy") == 0) {
+        op->kind = (name[1] == 'p') ? OP_QPEEK : OP_QDESTROY;
+        op->a = num(args[0]);
     } else {
         die("unknown operation");
     }
@@ -431,6 +476,32 @@ static void parse_section(char *sec)
         c = &conds[cond_count++];
         c->cid = num(cut(&p, '='));
         c->fifo = num(p) != 0;
+    } else if (kind == 'Q') {
+        struct msgq_desc *q;
+        char *attrs;
+        if (msgq_count >= MAX_MSGQS) {
+            die("too many message queues");
+        }
+        q = &msgqs[msgq_count++];
+        q->qid = num(cut(&p, '='));
+        attrs = p;
+        q->capacity = num(cut(&attrs, ','));
+        if (q->capacity < 1 || q->capacity > (long)MAX_MSGQ_CAP) {
+            die("bad message queue capacity");
+        }
+        q->bind_tid = -1;
+        while (attrs != NULL && *attrs != '\0') {
+            char *a = cut(&attrs, ',');
+            if (strcmp(a, "fifo") == 0) {
+                q->fifo = true;
+            } else if (strncmp(a, "bind=", 5) == 0) {
+                char *b = a + 5;
+                q->bind_tid = num(cut(&b, '.'));
+                q->bind_bit = num(b);
+            } else {
+                die("bad message queue attribute");
+            }
+        }
     } else if (kind == 'M') {
         struct mutex_desc *m;
         char *attrs;
@@ -538,6 +609,20 @@ static emb_cond_t cond_by_cid(long cid)
     }
     die("unknown condition variable id");
     return conds[0].handle;
+}
+#endif
+
+#if CONFIG_EMB_MSGQ
+static struct msgq_desc *msgq_by_qid(long qid)
+{
+    unsigned i;
+    for (i = 0u; i < msgq_count; i++) {
+        if (msgqs[i].qid == qid) {
+            return &msgqs[i];
+        }
+    }
+    die("unknown message queue id");
+    return &msgqs[0];
 }
 #endif
 
@@ -782,6 +867,43 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             die("condition variables are not configured");
             break;
 #endif
+#if CONFIG_EMB_MSGQ
+        case OP_QSEND: {
+            uint32_t v = (uint32_t)op->b;
+            st = emb_msgq_send(msgq_by_qid(op->a)->handle, &v, timeout_of(op->c));
+            break;
+        }
+        case OP_QFRONT: {
+            uint32_t v = (uint32_t)op->b;
+            st = emb_msgq_send_front(msgq_by_qid(op->a)->handle, &v);
+            break;
+        }
+        case OP_QRECV:
+        case OP_QPEEK: {
+            uint32_t v = 0u;
+            st = (op->kind == OP_QRECV)
+                     ? emb_msgq_receive(msgq_by_qid(op->a)->handle, &v, timeout_of(op->b))
+                     : emb_msgq_peek(msgq_by_qid(op->a)->handle, &v);
+            data = (st == EMB_OK) ? v : 0u;
+            break;
+        }
+        case OP_QDESTROY: {
+            struct msgq_desc *q = msgq_by_qid(op->a);
+            st = emb_msgq_destroy(q->handle);
+            if (st == EMB_OK) {
+                q->destroyed = true;
+            }
+            break;
+        }
+#else
+        case OP_QSEND:
+        case OP_QFRONT:
+        case OP_QRECV:
+        case OP_QPEEK:
+        case OP_QDESTROY:
+            die("message queues are not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -817,7 +939,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     }
     dumped = 1u;
     (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
-                 "conds=%d\n",
+                 "conds=%d msgqs=%d\n",
                  CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
@@ -825,7 +947,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
                  "release",
 #endif
                  (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
-                 (int)CONFIG_EMB_COND);
+                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -856,6 +978,23 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     for (i = 0u; i < evflag_count; i++) {
         (void)printf("evflag %ld %lu\n", evflags[i].eid,
                      (unsigned long)emb_event_get(evflags[i].handle));
+    }
+#endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        const embk_msgq_t *q = (const embk_msgq_t *)(const void *)&msgqs[i].storage;
+        unsigned k;
+        if (msgqs[i].destroyed) {
+            continue;
+        }
+        (void)printf("msgq %ld", msgqs[i].qid);
+        for (k = 0u; k < q->count; k++) {
+            uint32_t v;
+            unsigned slot = (q->head + k) % q->capacity;
+            (void)memcpy(&v, q->ring + ((size_t)slot * q->item_size), sizeof(v));
+            (void)printf(" %lu", (unsigned long)v);
+        }
+        (void)printf("\n");
     }
 #endif
     (void)printf("end %s %lu %lu\n", end, e0, e1);
@@ -942,6 +1081,22 @@ static void construct(void)
         die("condition variables are not configured");
     }
 #endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        emb_msgq_attr_t attr;
+        emb_msgq_attr_default(&attr);
+        attr.ring = msgqs[i].ring;
+        attr.ring_size = sizeof(msgqs[i].ring);
+        attr.item_size = sizeof(uint32_t);
+        attr.capacity = (uint16_t)msgqs[i].capacity;
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (msgqs[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_msgq_init(&msgqs[i].storage, &attr, &msgqs[i].handle));
+    }
+#else
+    if (msgq_count != 0u) {
+        die("message queues are not configured");
+    }
+#endif
     for (i = 0u; i < mutex_count; i++) {
         emb_mutex_attr_t attr;
         emb_mutex_attr_default(&attr);
@@ -972,6 +1127,15 @@ static void construct(void)
             EMB_CHECK(emb_event_bind_notify(evflags[i].handle,
                                             thread_by_tid(evflags[i].bind_tid)->handle,
                                             EMB_NOTIFY_BIT(evflags[i].bind_bit)));
+        }
+    }
+#endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        if (msgqs[i].bind_tid >= 0) {
+            EMB_CHECK(emb_msgq_bind_notify(msgqs[i].handle,
+                                           thread_by_tid(msgqs[i].bind_tid)->handle,
+                                           EMB_NOTIFY_BIT(msgqs[i].bind_bit)));
         }
     }
 #endif

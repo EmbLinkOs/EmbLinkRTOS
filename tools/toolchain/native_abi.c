@@ -5,6 +5,7 @@
  * by the existing storage generator. Member widths are compared separately.
  * This is a maintained layout inventory, supplemented by executed ABI crossings.
  */
+#include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
 
@@ -137,6 +138,14 @@ void emb_native_abi_probe(void)
     TYPE(cond, embk_cond_t);
     FIELD(cond_obj, embk_cond_t, obj);
     FIELD(cond_waiters, embk_cond_t, waiters);
+#endif
+#if CONFIG_EMB_MSGQ
+    TYPE(msgq, embk_msgq_t);
+    FIELD(msgq_obj, embk_msgq_t, obj);
+    FIELD(msgq_receivers, embk_msgq_t, receivers);
+    FIELD(msgq_senders, embk_msgq_t, senders);
+    FIELD(msgq_ring, embk_msgq_t, ring);
+    FIELD(msgq_count, embk_msgq_t, count);
 #endif
 #if CONFIG_EMB_MUTEX
     TYPE(mutex, embk_mutex_t);

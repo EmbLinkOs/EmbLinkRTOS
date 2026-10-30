@@ -163,3 +163,35 @@ EMB_CHECK(emb_mutex_unlock(lock));
 ```
 
 The waiter relocks the mutex before every return, including timeouts, cancellation and destruction, so the relock can take longer than the timeout. The relock is not a cancellation point. A signal with no waiter is lost, and there are no spurious wakeups, but recheck the predicate anyway: another thread can change it between the signal and the relock. The caller must hold the mutex exactly once; a recursively held mutex returns `EMB_ESTATE`. `emb_cond_signal()` wakes the highest-priority waiter and `emb_cond_broadcast()` wakes all of them. Both are thread-only.
+
+## Message queues
+
+A message queue (`CONFIG_EMB_MSGQ`) carries fixed-size items by value through a ring that you provide. Declare the ring with `EMB_MSGQ_RING()`, which gives it the size and alignment the kernel checks:
+
+```c
+typedef struct {
+    uint8_t channel;
+    uint16_t sample;
+} reading_t;
+
+static emb_msgq_storage_t readings_storage;
+static EMB_MSGQ_RING(readings_ring, sizeof(reading_t), 8);
+static emb_msgq_t readings;
+
+emb_msgq_attr_t attr;
+emb_msgq_attr_default(&attr);
+attr.ring = readings_ring;
+attr.ring_size = sizeof(readings_ring);
+attr.item_size = sizeof(reading_t);
+attr.capacity = 8;
+EMB_CHECK(emb_msgq_init(&readings_storage, &attr, &readings));
+
+/* a producer thread, or an interrupt with EMB_NO_WAIT: */
+reading_t r = {.channel = 2, .sample = 517};
+emb_status_t st = emb_msgq_send(readings, &r, EMB_NO_WAIT); /* EMB_ETIMEDOUT when full */
+/* a consumer: */
+reading_t got;
+st = emb_msgq_receive(readings, &got, EMB_TIMEOUT(EMB_MS(100)));
+```
+
+Items are received in send order, except that `emb_msgq_send_front()` puts an urgent item at the head. A send to a queue with a waiting receiver copies straight into that receiver's buffer. A receive from a full queue with a waiting sender moves that sender's item into the freed slot before the sender wakes, so neither side re-checks. A full queue never drops an item silently: `send` waits or returns `EMB_ETIMEDOUT`. Interrupts may call `send`, `send_front`, `receive` and `peek` with `EMB_NO_WAIT` only. Each copy runs with interrupts masked, so `CONFIG_EMB_MSGQ_MAX_ITEM` (64 bytes, 16 on tiny) bounds the item size; pass larger payloads by pointer under a protocol of your own until buffer pools exist. Destroying a queue drops its items, and with `EMB_OBJ_ABORT_WAITERS` wakes both receivers and senders with `EMB_EDESTROYED`. A bound notification fires when the queue goes from empty to nonempty, not when an item is handed to a waiting receiver; bind and unbind follow the semaphore rules above.

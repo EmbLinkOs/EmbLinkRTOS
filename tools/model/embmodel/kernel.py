@@ -1437,15 +1437,18 @@ class Kernel:
             self._op_event_wait(t, op)
         elif isinstance(op, CondWait):
             self._op_cond_wait(t, op)
-        elif isinstance(op, MsgSend):
-            self._op_msg_send(t, op)
-        elif isinstance(op, MsgRecv):
-            self._op_msg_recv(t, op)
-        elif isinstance(op, NONWAIT_DATA_OPS):
+        elif isinstance(op, (MsgSend, MsgRecv)):
+            done = self._op_msg_send(t, op) if isinstance(op, MsgSend) else self._op_msg_recv(t, op)
+            if done:
+                self.reschedule_if_needed()                               # a hand-off may preempt
+        elif isinstance(op, MsgSendFront):
             res, data = self._op_msg_nowait(op)
-            t.results = t.results + ((t.op_index, res, data),)
-            self._advance(t)
+            self._finish(t, res, data)                                    # traced like a send
             self.reschedule_if_needed()
+        elif isinstance(op, MsgPeek):
+            res, data = self._op_msg_nowait(op)
+            t.results = t.results + ((t.op_index, res, data),)            # a snapshot: not traced
+            self._advance(t)
         elif isinstance(op, MsgDestroy):
             self._op_msg_destroy(op)
             self._advance(t)

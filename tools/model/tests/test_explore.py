@@ -437,3 +437,9 @@ class MessageQueues(unittest.TestCase):
                 self.assertEqual(d[1][0][2], 1)                                 # storing 2 signaled bit 0
             self.assertEqual(q[0], (2, 3))
         self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_refill_from_a_waiting_sender_does_not_signal(self):
+        for d, q in self.outcomes(S.msgq_refill_does_not_signal_binding):
+            self.assertEqual([(r[1], r[2]) for r in d[2]],
+                             [(Result.SATISFIED, 1), (Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], (2,))

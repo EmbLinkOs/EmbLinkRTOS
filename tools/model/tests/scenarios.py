@@ -591,7 +591,16 @@ def msgq_binding_on_empty_to_nonempty():
                     msgqs={0: dict(capacity=2, binding=(1, 0))})
 
 
+def msgq_refill_does_not_signal_binding():
+    """A receive that refills the freed slot from a waiting sender never leaves the queue empty:
+    the bound thread is not notified again."""
+    return Scenario(name="msgq_refill_does_not_signal_binding",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2))),
+                             2: (1, (NotifyWait(0x1, clear=True), MsgRecv(0), NotifyWait(0x1, timeout=NO_WAIT)))},
+                    msgqs={0: dict(capacity=1, binding=(2, 0))})
+
+
 MSGQ = [msgq_fifo_order, msgq_receiver_handoff, msgq_send_front_and_peek, msgq_isr_send_vs_timed_recv,
         msgq_isr_recv_frees_a_slot, msgq_sender_timeout_and_cancel, msgq_destroy_aborts_both_sides,
-        msgq_binding_on_empty_to_nonempty]
+        msgq_binding_on_empty_to_nonempty, msgq_refill_does_not_signal_binding]
 ALL = ALL + MSGQ
