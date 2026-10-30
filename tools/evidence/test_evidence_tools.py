@@ -86,8 +86,9 @@ class Matrix(unittest.TestCase):
 
     def test_pending_groups_come_from_the_requirements_readme(self):
         pending = matrix.pending_groups()
-        self.assertIn("KRN-SCH", pending)
+        self.assertIn("KRN-RQ", pending)
         self.assertNotIn("KRN-SYNC", pending)
+        self.assertNotIn("KRN-SCH", pending)  # migrated 2026-10-31
 
 
 if __name__ == "__main__":

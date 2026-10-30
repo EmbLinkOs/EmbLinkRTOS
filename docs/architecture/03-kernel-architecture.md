@@ -70,7 +70,7 @@ All of v0.1 §4 and §5 stand: highest effective priority wins, FIFO among equal
 
 Additions:
 
-**KRN-SCH-036** Priority count shall be configurable from 4 to 256; the ready bitmap shall be one word for up to the word width and two-level above that.
+**KRN-SCH-036** Priority count shall be configurable from 2 to 256 (A62); the ready bitmap shall be one word for up to the word width and two-level above that.
 **KRN-SCH-037** Time slicing shall apply only to threads at or below a configured threshold priority level (`CONFIG_EMB_TIMESLICE_PRIORITY`), with one configurable quantum, so that round robin can be enabled for background levels only without a per-level table (revised per R-003 §3.1; answers 08 Q8).
 **KRN-SCH-041** A thread preempted by a higher-priority thread shall be placed ahead of its equal-priority peers when it becomes eligible again, because its quantum is unspent; a thread that yields or exhausts its quantum shall be placed behind them.
 **KRN-SCH-042** The tiny profile may implement the fixed-priority class as a priority-indexed thread table with unique priorities and bitmap wait sets (ADR-036); the public API and the conformance suite are unchanged within the tiny profile's documented restrictions.

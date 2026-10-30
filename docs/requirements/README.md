@@ -40,7 +40,7 @@ Rules:
 |---|---|---|---|
 | API | Public API conventions, status codes, time types, context classes | [`API.md`](API.md) | Complete; Accepted 2026-10-07 (work item 1) |
 | KRN-THR | Threads | [`KRN-THR.md`](KRN-THR.md) | Complete; Accepted 2026-10-07 (work item 7). v0.1 §3.3 and 03 §1.1 identifiers restated |
-| KRN-SCH | Scheduler | pending | 03 §2, v0.1 §4 |
+| KRN-SCH | Scheduler | [`KRN-SCH.md`](KRN-SCH.md) | Complete; 03 §2 identifiers restated, cited v0.1 §4 identifiers restated and accepted 2026-10-31, the rest reserved |
 | KRN-RQ, KRN-TCB | Ready queues and thread control block | pending | v0.1 §5 |
 | KRN-IRQ | Interrupts, exceptions, critical sections, scheduler lock, preemption points | [`KRN-IRQ.md`](KRN-IRQ.md) | Complete; Accepted 2026-10-07 (work item 2). v0.1 identifiers restated |
 | KRN-MM | Memory ordering | pending | 03 §1.3 |
@@ -53,7 +53,7 @@ Rules:
 | KRN-OBJ | Objects, lifecycle, storage | [`KRN-OBJ.md`](KRN-OBJ.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.4 identifiers restated |
 | KRN-CAP | Handles and capabilities | [`KRN-CAP.md`](KRN-CAP.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.2 identifiers restated |
 | KRN-PART | Partitions and the syscall boundary | [`KRN-PART.md`](KRN-PART.md) | Complete; Accepted 2026-10-07 (work item 9). 03 §8 identifiers restated |
-| KRN-MEM | Memory | pending | 03 §9, v0.1 §11 |
+| KRN-MEM | Memory | [`KRN-MEM.md`](KRN-MEM.md) | Complete; 03 §9 identifiers restated, cited v0.1 §11 identifiers restated and accepted 2026-10-31, the rest reserved |
 | KRN-TP | Temporal protection | pending | 03 §2.3 |
 | KRN-SMP, MC | Multicore | pending | v0.1 §13, 04 §8 |
 | FLT | Fault management | pending | 03 §10 |
