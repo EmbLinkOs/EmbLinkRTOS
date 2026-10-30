@@ -538,7 +538,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Each semaphore and mutex grows by one list node (two pointers) where the list is configured; the generated storage types follow automatically. Init costs a walk of the active objects of its type with interrupts masked. Tiny keeps its RAM, flash and init cost, and its semaphore/mutex double init stays undefined. New object types (event flags, condition variables, queues, work queues, timers) join the same scheme. POINTER handles still carry no generation: a stale copy of a handle to destroyed and re-initialized storage refers to the new object (SPEC-009 §3.1).
 
-**Status.** Implemented for review, 2026-10-27, as part of completing M2-02; awaiting project-owner review.
+**Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-02.
 
 ## ADR-050 Slim idle context on the table profile
 
@@ -550,7 +550,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** AVR `footprint_t1` kernel static RAM falls from 64 to 43 bytes and its kernel text by 44 bytes (avr-gcc 14.4.0); Cortex-M, RV32 and native tiny builds shrink by their own prefix sizes. The definition's type differs from the declaration on purpose, a recorded MISRA rule 8.3/8.4 deviation that requires the kernel not to be built with LTO (which would report it). KRN-THR-026 now makes idle unreachable rather than refusing operations with `EMB_EPERM`. Code running in the idle context, such as a port's idle hook, must not call thread-context API, which would reach fields the slim idle context does not have. Traces and fault records still name idle by index 0xFE. A field moved in front of `wait_gen`, or a new idle access, must keep the static assertions in `idle_context.c` true.
 
-**Status.** Implemented for review, 2026-10-27, as part of the M2 tiny-RAM headroom work; awaiting project-owner review.
+**Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in the M2 tiny-RAM headroom work.
 
 ## ADR-046 A bound thread outlives its bindings
 
@@ -562,7 +562,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Thread destroy costs one byte comparison; bind and unbind are O(1). The base TCB size is unchanged (the byte fills padding) and the tiny TCB stays at 32 bytes on AVR. Code that destroyed a bound thread before must now unbind or destroy the object first; checked builds fault where they used to corrupt silently. The reference model checks that no binding names a destroyed thread, and its bind, unbind and thread-destroy transitions agree with the kernel in the differential bridge.
 
-**Status.** Implemented for review, 2026-10-27, as M2-03; awaiting project-owner review.
+**Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-03.
 
 ## ADR-048 Work queue threads are kernel threads; the system queue is linked only when used
 
@@ -574,7 +574,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** M1 images and traces are unchanged, and the footprint of an image that does not use work queues does not grow. An application that references the system queue from a translation unit also gets its stack; one that only creates its own queues does not. Work queue destroy blocks until the thread has switched out, so it is thread-only. KRN-WQ-008's "exists from kernel start" holds for every image that can name the queue. The table scheduler has no work queues in M2 (A53).
 
-**Status.** Implemented for review, 2026-10-27, as part of M2-08; awaiting project-owner review.
+**Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-08.
 
 ## ADR-047 Software timers keep their own deadline list
 
@@ -586,4 +586,4 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** With `CONFIG_EMB_TIMER=n` the thread timeout path is the M1 code. Arming a timer is O(armed timers); stopping is O(1). A timer restarted already due from its own ISR-context callback expires one pass later: at the next tick in periodic mode, at once by the reprogrammed compare in tickless mode. The table scheduler's singly linked list has no timer list, and timers are off with it in M2.
 
-**Status.** Implemented for review, 2026-10-27, as part of M2-09; awaiting project-owner review.
+**Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-09.

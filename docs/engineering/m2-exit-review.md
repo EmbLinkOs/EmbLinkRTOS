@@ -1,6 +1,6 @@
 # M2 exit review
 
-**Date:** 2026-10-30. **Delivered as:** the stacked pull requests #21 to #39 (one logical change each, every one with its own validation), awaiting the project owner's review and merge. **Not done:** anything that needs the NUCLEO-F446RE board.
+**Date:** 2026-10-30. **Delivered as:** the stacked pull requests #21 to #39 (one logical change each, every one with its own validation), reviewed and merged by the project owner; the stack reaches `main` through #40. **Not done:** anything that needs the NUCLEO-F446RE board.
 
 ## Checklist items
 
@@ -25,7 +25,7 @@
 - **Configuration.** Each primitive has a Kconfig symbol, a documented default per profile ([configuration](../user/configuration.md)) and, where it is off on tiny, a dependency or a `footprint-t1.conf` line. The T1 reference image stays at 4,056 bytes of kernel text, 39 bytes of kernel RAM and a 32-byte control block on AVR.
 - **Model.** Every delivered primitive has a model group and is followed by the differential bridge: 122 model tests, the catalogue on five native runners.
 - **Requirements.** The cards of the delivered requirements say "implemented" with their executed cases; the two implemented ones without a case (KRN-IPC-022, KRN-WQ-011) say what verifies them instead.
-- **Contract changes.** Amendments A29 to A61 ([M2 amendments](../specs/AMENDMENTS-M2.md)) and ADR-045 to ADR-048 and ADR-050 record every deviation from the accepted specifications. They are implemented for review: the project owner may still revise them.
+- **Contract changes.** Amendments A29 to A61 ([M2 amendments](../specs/AMENDMENTS-M2.md)) and ADR-045 to ADR-048 and ADR-050 record every deviation from the accepted specifications. The project owner reviewed and accepted all of them, as written, on 2026-10-31.
 
 ## Defects found during M2
 
@@ -54,4 +54,3 @@ At this review, #21 to #39 pass every required check, including the new `native-
 2. Measure the masked copy time of a maximum-size message, timer arming overhead and jitter, and work queue latency (KRN-IPC-011, KRN-TIM-006, KRN-WQ-011).
 3. Retained crash records and their decoder, trace and debug metadata (SPEC-015).
 4. The hardware description generator with one SoC and two boards.
-5. Decide, with the project owner, on the amendments and ADRs of M2 before any API is marked stable.

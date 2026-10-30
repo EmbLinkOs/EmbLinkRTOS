@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The M2 contract decisions are accepted: amendments A29 to A61 and ADR-045 to ADR-048 and ADR-050 (project-owner review, 2026-10-31).
+
 - The M2 exit review (`docs/engineering/m2-exit-review.md`): every checklist item with its pull requests and evidence, the reconciliation of APIs, configuration, model and requirements, the defects found, and the remaining M3a hardware work.
 
 - The M2-10 integrated campaign: combined model scenarios across primitives, a `native-coverage` preset with `tools/coverage/report.py` (statement and branch coverage, run in CI), and `tools/model/campaign.py`, whose 158,800-run summaries are archived under `tools/model/evidence/m2-10/` (see `docs/engineering/m2-10-campaign.md`).

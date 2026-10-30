@@ -2,6 +2,8 @@
 
 Corrections found while preparing the M2 primitives, where an accepted specification, requirement or decision record contradicts another or the implemented behavior. Each is applied in the affected document; this page keeps the audit trail. Numbering continues from the [M1 record](AMENDMENTS-M1.md). Decisions about the new M2 primitives themselves are recorded separately, as they are taken.
 
+**Accepted:** A29 to A61 were reviewed by topic with the project owner on 2026-10-31 and accepted as written, including A55's explicit timer queue (a null queue stays `EMB_ENOTSUP` rather than meaning the system queue). ADR-045 to ADR-048 and ADR-050 were accepted at the same review.
+
 | # | Document | Amendment | Where in the code |
 |---|---|---|---|
 | A29 | KRN-TIM-035, SPEC-003 §12 | The requirement's last clause, `EMB_EOVERFLOW` for a `_until` deadline out of the 32-bit profile's range, contradicts A2 and KRN-TIM-022: such a deadline is indistinguishable from a past instant and takes the past-deadline path. The clause is removed; the checked-build timer detections remain. | `kernel/thread/thread.c`, `kernel/sync/*.c`, `kernel/notify/notify.c` |
