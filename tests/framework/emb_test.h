@@ -31,11 +31,11 @@ typedef struct EMB_ALIGNED(sizeof(void *) * 4) emb_test_case {
 } emb_test_case_t;
 
 /* Defines a test and registers it. MISRA Dev CS-12: rule 20.7, `name` is a token. */
-#define EMB_TEST(name)                                                                        \
-    static void name(void);                                                                   \
-    static EMB_FLASH_CONST char name##_name_[] = #name;                                       \
-    static EMB_TABLE_CONST emb_test_case_t name##_case_                                       \
-        EMB_USED EMB_SECTION(EMB_TABLE_SECTION("emb_test_table")) = {name##_name_, name, ""}; \
+#define EMB_TEST(name)                                                                             \
+    static void name(void);                                                                        \
+    static EMB_FLASH_CONST char name##_name_[] = #name;                                            \
+    static EMB_TABLE_CONST emb_test_case_t name##_case_ EMB_USED EMB_TABLE_ENTRY_ATTR EMB_SECTION( \
+        EMB_TABLE_SECTION("emb_test_table")) = {name##_name_, name, ""};                           \
     static void name(void)
 
 /* Requirement citation inside a test body: printed as the case's "req" line. */

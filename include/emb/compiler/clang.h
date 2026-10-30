@@ -13,15 +13,22 @@
     ((__clang_major__ * 10000) + (__clang_minor__ * 100) + __clang_patchlevel__)
 
 /* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
-#define EMB_INLINE             inline
-#define EMB_ALWAYS_INLINE      inline __attribute__((always_inline))
-#define EMB_NOINLINE           __attribute__((noinline))
-#define EMB_NORETURN           __attribute__((noreturn))
-#define EMB_UNUSED             __attribute__((unused))
-#define EMB_USED               __attribute__((used))
-#define EMB_WEAK               __attribute__((weak))
-#define EMB_ALIAS(sym)         __attribute__((alias(#sym)))
-#define EMB_SECTION(name)      __attribute__((section(name)))
+#define EMB_INLINE        inline
+#define EMB_ALWAYS_INLINE inline __attribute__((always_inline))
+#define EMB_NOINLINE      __attribute__((noinline))
+#define EMB_NORETURN      __attribute__((noreturn))
+#define EMB_UNUSED        __attribute__((unused))
+#define EMB_USED          __attribute__((used))
+#define EMB_WEAK          __attribute__((weak))
+#define EMB_ALIAS(sym)    __attribute__((alias(#sym)))
+#define EMB_SECTION(name) __attribute__((section(name)))
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+/* Mach-O AddressSanitizer pads section globals with redzones, which a table walk would
+ * read as entries; ELF builds leave section globals alone. */
+#define EMB_TABLE_ENTRY_ATTR __attribute__((no_sanitize("address")))
+#endif
+#endif
 #define EMB_ALIGNED(n)         __attribute__((aligned(n)))
 #define EMB_PACKED             __attribute__((packed))
 #define EMB_NAKED              __attribute__((naked))
