@@ -87,8 +87,8 @@ For each new public API: complete annotations and parameter/lifetime docs, gener
 
 - [x] Combine timeout, cancel, suspend, destroy, hand-off, priority change and callback delivery at section boundaries, with boundary resource counts and adversarial IRQ/tick placement.
 - [x] Execute applicable misuse/property/sanitizer campaigns and report statement/branch coverage with exclusions and actual case identity. See the [M2-10 campaign report](m2-10-campaign.md).
-- [ ] Reconcile every delivered API's docs, configuration, model, current complexity and implemented requirement scope.
-- [ ] Require green current CI plus the scoped individual evidence; no unexplained required failure and no unsupported feature advertised as working.
-- [ ] Update STATUS, Unreleased changelog and tutorials, then record the M2 exit review and remaining M3a hardware/release work.
+- [x] Reconcile every delivered API's docs, configuration, model, current complexity and implemented requirement scope. See the [M2 exit review](m2-exit-review.md).
+- [x] Require green current CI plus the scoped individual evidence; no unexplained required failure and no unsupported feature advertised as working. CI state is recorded in the [exit review](m2-exit-review.md).
+- [x] Update STATUS, Unreleased changelog and tutorials, then record the M2 exit review and remaining M3a hardware/release work.
 
 Barriers, pipes, buffer pools and INDEXED handles have separate feature gates unless the reference application's agreed scope requires them. TABLE capabilities, partitions/restart, budgets, SMP/AMP and a full driver platform remain later gates. Completing M2 is not a 1.0 release or hardware-support qualification; use the [release checklist](releases.md) when that stage is reached.

@@ -19,6 +19,7 @@ m2-02-thread-identity
 m2-02-fault-api-ids
 m2-02-object-lifecycle
 m2-10-campaign
+m2-exit-review
 case-evidence
 resource-bounds
 embcc-capability-review

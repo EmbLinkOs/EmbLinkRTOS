@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The M2 exit review (`docs/engineering/m2-exit-review.md`): every checklist item with its pull requests and evidence, the reconciliation of APIs, configuration, model and requirements, the defects found, and the remaining M3a hardware work.
+
 - The M2-10 integrated campaign: combined model scenarios across primitives, a `native-coverage` preset with `tools/coverage/report.py` (statement and branch coverage, run in CI), and `tools/model/campaign.py`, whose 158,800-run summaries are archived under `tools/model/evidence/m2-10/` (see `docs/engineering/m2-10-campaign.md`).
 
 - Delayed work (`emb_dwork_t`, M2-09, KRN-WQ-003/007): an item that an internal interrupt-context timer submits to a work queue after a delay or at an instant, with idempotent schedule, reschedule, cancel reporting a stopped delay or removed item as pending, and `cancel_sync`. The queue cannot be destroyed while a delay names it. The reference model, the differential bridge and the work queue conformance suite cover it.
