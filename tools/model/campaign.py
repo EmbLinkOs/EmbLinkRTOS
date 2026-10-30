@@ -50,8 +50,8 @@ def main(argv=None):
                                 capture_output=True, text=True).stdout.strip())
     result = dict(schema="emblink-campaign", version=1, started=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                   git_sha=git, tracked_dirty=dirty, runs_per_scenario=args.runs, seeds=[first, last], runners=[])
-    for runner in args.runner:
-        entry = dict(runner=str(runner.relative_to(ROOT)) if runner.resolve().is_relative_to(ROOT) else str(runner),
+    for runner in (r.resolve() for r in args.runner):
+        entry = dict(runner=str(runner.relative_to(ROOT)) if runner.is_relative_to(ROOT) else str(runner),
                      runner_sha256=hashlib.sha256(runner.read_bytes()).hexdigest(), seeds={})
         for seed in range(first, last + 1):
             entry["seeds"][seed] = bridge(runner, "--runs", args.runs, "--seed", seed, timeout=args.timeout)
