@@ -1,0 +1,116 @@
+{
+  "schema": "emblink-campaign",
+  "version": 1,
+  "started": "2026-10-30T22:14:22+00:00",
+  "git_sha": "f563ef5ca99cda5898bfcfb328d5e84afc8df257",
+  "tracked_dirty": false,
+  "runs_per_scenario": 40,
+  "seeds": [
+    1,
+    10
+  ],
+  "runners": [
+    {
+      "runner": "build/native-tiny/tests/differential/diff_runner",
+      "runner_sha256": "eabefa0a305663b524f837add5beafdab83a8dc9a7fb8bb7f08c846c4817e7a7",
+      "seeds": {
+        "1": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "2": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "3": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "4": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "5": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "6": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "7": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "8": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "9": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "10": {
+          "agree": 2440,
+          "runs": 2440,
+          "skipped": 24,
+          "divergences": 0,
+          "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        }
+      },
+      "regressions": {
+        "agree": 4,
+        "runs": 4,
+        "skipped": 1,
+        "divergences": 0,
+        "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+        "exit": 0
+      },
+      "config": "profile=tiny owner_death=fault checked=1 tickless=1;",
+      "total": {
+        "runs": 24400,
+        "agree": 24400,
+        "divergences": 0
+      }
+    }
+  ],
+  "finished": "2026-10-30T22:15:36+00:00",
+  "divergences": 0
+}

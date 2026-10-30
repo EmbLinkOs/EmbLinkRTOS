@@ -1,0 +1,211 @@
+{
+ "summary": {
+  "avr-uno": {
+   "passed": 98,
+   "failed": 0,
+   "skipped": 1,
+   "no assertion": 0,
+   "no case": 278,
+   "not run": 0
+  },
+  "avr-uno-embsim": {
+   "passed": 98,
+   "failed": 0,
+   "skipped": 1,
+   "no assertion": 0,
+   "no case": 278,
+   "not run": 0
+  },
+  "avr-uno-release": {
+   "passed": 99,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 278,
+   "not run": 0
+  },
+  "avr-uno-t1": {
+   "passed": 77,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 300,
+   "not run": 0
+  },
+  "cm3-an385": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 251,
+   "not run": 0
+  },
+  "cm4-an386": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 251,
+   "not run": 0
+  },
+  "cm4-an386-release": {
+   "passed": 126,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 251,
+   "not run": 0
+  },
+  "cm4-an386-tiny": {
+   "passed": 100,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 275,
+   "not run": 0
+  },
+  "cm4-nucleo-embsim": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 251,
+   "not run": 0
+  },
+  "native-asan": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-clang": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-coverage": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-gcc": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-periodic": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-release": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "native-tiny": {
+   "passed": 101,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 276,
+   "not run": 0
+  },
+  "native-tsan": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "nucleo-f446re-hil": {
+   "passed": 0,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 0,
+   "not run": 377
+  },
+  "rv32-c3-embsim": {
+   "passed": 122,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "rv32-virt": {
+   "passed": 122,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "rv32-virt-release": {
+   "passed": 124,
+   "failed": 0,
+   "skipped": 0,
+   "no assertion": 0,
+   "no case": 253,
+   "not run": 0
+  },
+  "rv32-virt-tiny": {
+   "passed": 98,
+   "failed": 0,
+   "skipped": 2,
+   "no assertion": 0,
+   "no case": 277,
+   "not run": 0
+  }
+ },
+ "uncataloged": [
+  "KRN-MEM-009",
+  "KRN-SCH-001",
+  "KRN-SCH-002",
+  "KRN-SCH-003",
+  "KRN-SCH-004",
+  "KRN-SCH-008",
+  "KRN-SCH-009",
+  "KRN-SCH-016",
+  "KRN-SCH-017",
+  "KRN-SCH-018",
+  "KRN-SCH-019",
+  "KRN-SCH-021",
+  "KRN-SCH-041",
+  "KRN-SCH-043"
+ ],
+ "gaps": {
+  "requirements": 377,
+  "passing": 127,
+  "implemented": 39,
+  "implemented_without_case": [
+   "KRN-CAP-013",
+   "KRN-IPC-021",
+   "KRN-IPC-022",
+   "KRN-PART-024",
+   "KRN-PART-025",
+   "KRN-PART-026",
+   "KRN-PART-027",
+   "KRN-WQ-011"
+  ]
+ }
+}

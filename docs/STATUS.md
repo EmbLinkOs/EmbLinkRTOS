@@ -32,6 +32,8 @@ An API or path named in a design or a requirement's verification field may be a 
 
 ## Validation recorded in this workspace
 
+The [M2-10 integrated campaign](engineering/m2-10-campaign.md), source `f563ef5`, passed 158,800 differential runs across seeds 1–10 on native checked/clang/periodic/release/tiny with no divergence; all 21 local configurations (native, sanitizers, coverage, QEMU, AVR, EmbSIM) passed; kernel coverage was 91.4% of lines and 72.5% of branches. Hardware-in-the-loop and physical timing remain unrun.
+
 The onboarding runs on the baseline used GCC 14.2.0, Python 3.12.14, CMake 3.31.10 and Ninja 1.13.0 on Linux. `native-gcc`, `native-release`, and `native-tiny` each passed ten CTest targets, including nine conformance executables and the differential bridge. Those are runner targets, not ten individual assertions. The base checked run reported 82 internal conformance cases with zero skips, and 210/210 bridge runs agreed with the model with one scenario excluded for that configuration. Counts for other configurations must be read from their own logs.
 
 The reference model passed 44 pytest tests with Hypothesis installed. The banned-construct check reported zero findings. Configuration generation for native/base passed. A repeat setup run reused build outputs and passed. These are current-workspace observations, not archived release artifacts or evidence of a new machine, compiler matrix, physical board, or published environment.

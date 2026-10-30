@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The M2-10 integrated campaign: combined model scenarios across primitives, a `native-coverage` preset with `tools/coverage/report.py` (statement and branch coverage, run in CI), and `tools/model/campaign.py`, whose 158,800-run summaries are archived under `tools/model/evidence/m2-10/` (see `docs/engineering/m2-10-campaign.md`).
+
 - Delayed work (`emb_dwork_t`, M2-09, KRN-WQ-003/007): an item that an internal interrupt-context timer submits to a work queue after a delay or at an instant, with idempotent schedule, reschedule, cancel reporting a stopped delay or removed item as pending, and `cancel_sync`. The queue cannot be destroyed while a delay names it. The reference model, the differential bridge and the work queue conformance suite cover it.
 
 - Software timers (`CONFIG_EMB_TIMER`, `include/emb/timer.h`, M2-09): one-shot and periodic timers whose callbacks run on a named work queue or, with `EMB_TIMER_ISR_CONTEXT`, in the expiry interrupt. Periodic timers re-arm from the previous deadline, skip missed periods in closed form and count them with coalesced callbacks as overruns; `stop` reports the callback's state and `stop_sync` waits for it. Timers have their own deadline list, merged with thread timeouts at expiry (ADR-047). The reference model, the differential bridge and a conformance suite cover them; they require the list scheduler, so the tiny profile has none in this milestone.
@@ -72,6 +74,10 @@ User-visible changes are recorded here. There are no released versions or releas
 - Pinned EmbCC ten-item capability review, scoped local compiler/tool/EmbSim evidence and current RTOS integration findings.
 
 ### Fixed
+
+- Raising a ready thread's priority above the running thread with `emb_thread_set_priority()` now preempts at once; before, the caller ran on until its next block or yield (found by the M2-10 campaign).
+
+- The conformance suites run under AddressSanitizer on macOS: registration-table entries no longer get Mach-O redzones that the table walk read as entries.
 
 - Thread diagnostic IDs remain stable across priority changes on tiny and unique among live objects on every profile. IDs are released only by successful destroy; exhaustion returns `EMB_ENOMEM` without partial construction.
 

@@ -294,3 +294,19 @@ EMB_TEST(msgq_storage_reuse_requires_destroy)
     EMB_ASSERT_OK(emb_msgq_destroy(mq));
 }
 #endif
+
+#if CONFIG_EMB_IPC_SMALL
+EMB_TEST(msgq_small_counts_refuse_a_capacity_above_255)
+{
+    static EMB_MSGQ_RING(big_ring, 1u, 1u);
+    emb_msgq_attr_t attr;
+    emb_msgq_t q;
+    EMB_TEST_REQ("KRN-IPC-021");
+    emb_msgq_attr_default(&attr);
+    attr.ring = big_ring;
+    attr.ring_size = 256u; /* claimed: the capacity check comes first */
+    attr.item_size = 1u;
+    attr.capacity = 256u;
+    EMB_ASSERT_MISUSE(emb_msgq_init(&storage, &attr, &q), EMB_EINVAL); /* 8-bit counts (A45) */
+}
+#endif
