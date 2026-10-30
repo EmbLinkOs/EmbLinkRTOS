@@ -85,8 +85,8 @@ For each new public API: complete annotations and parameter/lifetime docs, gener
 
 ## M2-10 and M2-11: Integrated exit
 
-- [ ] Combine timeout, cancel, suspend, destroy, hand-off, priority change and callback delivery at section boundaries, with boundary resource counts and adversarial IRQ/tick placement.
-- [ ] Execute applicable misuse/property/sanitizer campaigns and report statement/branch coverage with exclusions and actual case identity.
+- [x] Combine timeout, cancel, suspend, destroy, hand-off, priority change and callback delivery at section boundaries, with boundary resource counts and adversarial IRQ/tick placement.
+- [x] Execute applicable misuse/property/sanitizer campaigns and report statement/branch coverage with exclusions and actual case identity. See the [M2-10 campaign report](m2-10-campaign.md).
 - [ ] Reconcile every delivered API's docs, configuration, model, current complexity and implemented requirement scope.
 - [ ] Require green current CI plus the scoped individual evidence; no unexplained required failure and no unsupported feature advertised as working.
 - [ ] Update STATUS, Unreleased changelog and tutorials, then record the M2 exit review and remaining M3a hardware/release work.

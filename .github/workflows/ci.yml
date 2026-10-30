@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [native-gcc, native-clang, native-release, native-tiny, native-periodic, native-asan, native-tsan]
+        preset: [native-gcc, native-clang, native-release, native-tiny, native-periodic, native-asan, native-tsan, native-coverage]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
@@ -39,6 +39,15 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Coverage report
+        if: matrix.preset == 'native-coverage'
+        run: python3 -I tools/coverage/report.py --json coverage.json --markdown coverage.md && cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage
+        if: matrix.preset == 'native-coverage'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: coverage.*
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
@@ -228,6 +237,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
       - name: Case evidence tools
         run: python3 -I -m unittest discover -s tools/evidence -p 'test_*.py' -v
+      - name: Coverage report tool tests
+        run: python3 -I -m unittest discover -s tools/coverage -p 'test_*.py' -v
       - name: Resource-bound inventory covers every non-constant cost
         run: python3 -I tools/evidence/check_bounds.py
       - name: Configuration tool self-check

@@ -779,3 +779,73 @@ def dwork_isr_schedule():
 
 DWORK = [dwork_runs_after_its_delay, dwork_reschedule_and_cancel, dwork_isr_schedule]
 ALL = ALL + DWORK
+
+
+# ---------------------------------------------------------------------------------------
+# M2-10: combined scenarios: several mechanisms meeting at section boundaries, with the ISR
+# and tick placement left to the explorer and the bridge
+# ---------------------------------------------------------------------------------------
+
+
+def combined_suspend_cancel_msgq_receiver():
+    """A receiver suspended, canceled and resumed while an ISR's send may hand it the item:
+    it receives the item, or is canceled and the item stays stored, never both or neither."""
+    return Scenario(name="combined_suspend_cancel_msgq_receiver",
+                    threads={1: (3, (MsgRecv(0, 6),)), 2: (2, (Suspend(1), Cancel(1), Resume(1)))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgSend(0, 5, NO_WAIT),),))
+
+
+def combined_inheritance_priority_change_event_timeout():
+    """An inheriting owner whose base priority changes while a third thread's event wait races
+    an ISR set and its own timeout."""
+    return Scenario(name="combined_inheritance_priority_change_event_timeout",
+                    threads={1: (1, (Lock(0), Sleep(2), Unlock(0))), 2: (4, (Sleep(1), Lock(0, 3))),
+                             3: (2, (Sleep(1), SetPrio(1, 3), EventWait(0, 0x1, timeout=2)))},
+                    mutexes={0: {}}, events={0: dict(bits=0)},
+                    isrs=((EventSet(0, 0x1),),))
+
+
+def combined_destroy_timeout_and_isr_give():
+    """A timed take whose timeout, another thread's give and the semaphore's destroy meet at the
+    same ticks. (A give after destroy is a stale handle: checked builds fault, so no ISR gives.)"""
+    return Scenario(name="combined_destroy_timeout_and_isr_give",
+                    threads={1: (3, (Take(0, 2),)), 2: (1, (Sleep(2), Destroy(0))), 3: (2, (Sleep(1), Give(0)))},
+                    sems={0: dict(count=0)})
+
+
+def combined_bindings_two_sources():
+    """One thread bound to a message queue and to event flags waits for either; the queue's
+    binding fires on empty to nonempty only, the event's for bits left set."""
+    return Scenario(name="combined_bindings_two_sources",
+                    threads={1: (3, (NotifyWait(0x3, timeout=5), MsgRecv(0, NO_WAIT), NotifyWait(0x3, timeout=3))),
+                             2: (1, (MsgSend(0, 1), EventSet(0, 0x1)))},
+                    msgqs={0: dict(capacity=2, binding=(1, 0))},
+                    events={0: dict(bits=0, binding=(1, 1))})
+
+
+def combined_timer_feeds_handler_queue():
+    """An ISR-context timer sends into a message queue a work handler receives from, while the
+    thread flushes the work queue and stops the timer."""
+    return Scenario(name="combined_timer_feeds_handler_queue",
+                    threads={1: (1, (TimerStart(0, 1), Submit(0, 0), WorkFlush(0), TimerStop(0)))},
+                    msgqs={0: dict(capacity=1)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(MsgRecv(0, 3),))},
+                    timers={0: dict(isr=True, body=(MsgSend(0, 7, NO_WAIT),))})
+
+
+def combined_dwork_cancel_races_expiry():
+    """An ISR cancels a delayed item at any point around its expiry: it ran once or not at all."""
+    return Scenario(name="combined_dwork_cancel_races_expiry",
+                    threads={1: (1, (DworkSchedule(0, 0, 2), Take(0, 4)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)},
+                    isrs=((DworkCancel(0),),))
+
+
+COMBINED = [combined_suspend_cancel_msgq_receiver, combined_inheritance_priority_change_event_timeout,
+            combined_destroy_timeout_and_isr_give, combined_bindings_two_sources,
+            combined_timer_feeds_handler_queue, combined_dwork_cancel_races_expiry]
+ALL = ALL + COMBINED

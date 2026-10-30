@@ -565,8 +565,15 @@ void emb_arch_breakpoint(void)
 {
 }
 
+#ifdef EMB_NATIVE_COVERAGE
+void __gcov_dump(void); /* the gcov runtime: _exit() skips its exit-time flush */
+#endif
+
 void emb_native_exit(int code)
 {
     (void)fflush(NULL);
+#ifdef EMB_NATIVE_COVERAGE
+    __gcov_dump();
+#endif
     _exit(code);
 }

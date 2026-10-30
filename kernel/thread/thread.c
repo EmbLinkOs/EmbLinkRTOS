@@ -625,6 +625,10 @@ emb_status_t emb_thread_set_priority(emb_thread_t thread, uint8_t priority)
     t->base_prio = priority;
 #endif
     embk_prio_propagate(t);
+    if (t != embk_cpu.current && embk_sched_is_ready(t) &&
+        t->eff_prio > embk_cpu.current->eff_prio) {
+        embk_cpu.reschedule_pending = 1u; /* also where no recomputation runs (tiny, no mutexes) */
+    }
     EMBK_TRACE(EMB_TRACE_PRIORITY, embk_thread_index(t), t->base_prio, t->eff_prio);
     embk_sched_reschedule_if_needed();
     embk_unlock_sched(key);
