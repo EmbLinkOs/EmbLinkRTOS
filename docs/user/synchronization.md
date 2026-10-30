@@ -145,3 +145,21 @@ emb_status_t st = emb_event_wait(status, LINK_UP | CONFIGURED, EMB_EVENT_ALL,
 ```
 
 `emb_event_set()` and `emb_event_clear()` are ISR-safe; waits are thread-only. A set serves waiters in priority order (arrival order with `EMB_OBJ_FIFO`). A `CLEAR` waiter removes the bits it was handed before the next waiter is examined, so two clearing waiters on the same bit are served one per set, highest priority first. `emb_event_clear()` never wakes anyone. A woken waiter receives the bits that satisfied it in `got` and does not re-read the word. A bound notification fires only for bits still set after the direct waiters were served; bind and unbind follow the semaphore rules above.
+
+## Condition variables
+
+A condition variable (`CONFIG_EMB_COND`) lets a thread wait for a predicate over state that a mutex protects. Check the predicate in a loop with the mutex held; `emb_cond_wait()` releases the mutex and enqueues the caller in one step, so a signal sent after the release is never missed:
+
+```c
+EMB_CHECK(emb_mutex_lock(lock, EMB_WAIT_FOREVER));
+while (!ready) {
+    emb_status_t st = emb_cond_wait(changed, lock, EMB_TIMEOUT(EMB_MS(100)));
+    if (st != EMB_OK && st != EMB_ETIMEDOUT) {
+        break; /* canceled, destroyed, or EMB_EOWNERDEAD: still the owner except on a failed relock */
+    }
+}
+/* ... use the protected state ... */
+EMB_CHECK(emb_mutex_unlock(lock));
+```
+
+The waiter relocks the mutex before every return, including timeouts, cancellation and destruction, so the relock can take longer than the timeout. The relock is not a cancellation point. A signal with no waiter is lost, and there are no spurious wakeups, but recheck the predicate anyway: another thread can change it between the signal and the relock. The caller must hold the mutex exactly once; a recursively held mutex returns `EMB_ESTATE`. `emb_cond_signal()` wakes the highest-priority waiter and `emb_cond_broadcast()` wakes all of them. Both are thread-only.

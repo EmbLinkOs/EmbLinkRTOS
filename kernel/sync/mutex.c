@@ -248,7 +248,8 @@ static bool chain_reaches(const embk_thread_t *owner, const embk_thread_t *self)
     return false;
 }
 
-static emb_status_t lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t deadline, bool nowait)
+emb_status_t embk_mutex_lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t deadline,
+                                    bool nowait)
 {
     embk_thread_t *self;
     emb_irq_key_t key;
@@ -331,15 +332,16 @@ static emb_status_t lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t dea
 
 emb_status_t emb_mutex_lock(emb_mutex_t mutex, emb_timeout_t timeout)
 {
-    return lock_common(EMB_API_ID_MUTEX_LOCK, mutex_from_handle(mutex),
-                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
+    return embk_mutex_lock_common(EMB_API_ID_MUTEX_LOCK, mutex_from_handle(mutex),
+                                  embk_deadline_from_timeout(timeout),
+                                  EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_mutex_lock_until(emb_mutex_t mutex, emb_instant_t deadline)
 {
     bool nowait = deadline.ticks != EMB_TICK_MAX && embk_deadline_passed(deadline.ticks);
-    return lock_common(EMB_API_ID_MUTEX_LOCK_UNTIL, mutex_from_handle(mutex), deadline.ticks,
-                       nowait);
+    return embk_mutex_lock_common(EMB_API_ID_MUTEX_LOCK_UNTIL, mutex_from_handle(mutex),
+                                  deadline.ticks, nowait);
 }
 
 /* ---- unlock (§3.3) ------------------------------------------------------------------------ */
@@ -375,6 +377,12 @@ static void hand_over(embk_mutex_t *m, embk_thread_t *from, bool dead)
     }
 }
 
+void embk_mutex_release_locked(embk_mutex_t *m, embk_thread_t *self)
+{
+    hand_over(m, self, false);
+    embk_prio_propagate(self); /* KRN-SYNC-010: over the still-owned list */
+}
+
 emb_status_t emb_mutex_unlock(emb_mutex_t mutex)
 {
     embk_mutex_t *m = mutex_from_handle(mutex);
@@ -394,8 +402,7 @@ emb_status_t emb_mutex_unlock(emb_mutex_t mutex)
         embk_unlock_object(m, key);
         return EMB_OK;
     }
-    hand_over(m, self, false);
-    embk_prio_propagate(self); /* KRN-SYNC-010: over the still-owned list */
+    embk_mutex_release_locked(m, self);
     embk_sched_reschedule_if_needed();
     embk_unlock_object(m, key);
     return EMB_OK;

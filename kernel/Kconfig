@@ -167,6 +167,12 @@ config EMB_MUTEX
 	bool "Mutexes (SPEC-005 §3)"
 	default y
 
+config EMB_COND
+	bool "Condition variables (SPEC-005 §6)"
+	depends on EMB_MUTEX
+	default n if EMB_PROFILE_TINY
+	default y
+
 config EMB_MUTEX_INHERIT
 	bool "Priority inheritance protocol"
 	depends on EMB_MUTEX

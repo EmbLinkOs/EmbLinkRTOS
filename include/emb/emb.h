@@ -6,6 +6,9 @@
 
 #include <emb/compiler.h>
 #include <emb/config.h>
+#if CONFIG_EMB_COND
+#include <emb/cond.h>
+#endif
 #include <emb/context.h>
 #if CONFIG_EMB_EVENT
 #include <emb/event.h>

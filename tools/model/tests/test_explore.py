@@ -322,3 +322,42 @@ class EventFlags(unittest.TestCase):
         for d, ev in self.outcomes(S.event_timeout_then_set):
             self.assertEqual(d[1][0][1], Result.TIMEOUT)
             self.assertEqual(ev[0], 1)
+
+
+class ConditionVariables(unittest.TestCase):
+    """M2-06 (SPEC-005 §6): no lost signal, mandatory relock, deferred cancel, broadcast, destroy."""
+
+    @staticmethod
+    def cond_results(make):
+        out = []
+        for o in explore(make()).outcomes:
+            d = dict(dict(o)["threads"])
+            out.append({tid: [r for r in res if r[0] == 1] for tid, res in d.items()})   # op 1 is the CondWait
+        return out
+
+    def test_every_cond_scenario_holds_invariants(self):
+        for make in S.COND:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                rep = explore(sc)
+                self.assertGreater(rep.terminals, 0)
+                for o in rep.outcomes:
+                    self.assertEqual(dict(dict(o)["mutex_owners"])[0], None)   # every caller unlocked again
+
+    def test_signal_after_release_is_never_lost(self):
+        for d in self.cond_results(S.cond_signal_not_lost):
+            self.assertEqual(d[1][0][1], Result.SATISFIED)
+
+    def test_timeout_still_returns_with_the_mutex(self):
+        for d in self.cond_results(S.cond_timeout_relocks):
+            self.assertEqual(d[1][0][1], Result.TIMEOUT)
+
+    def test_cancel_during_relock_is_deferred(self):
+        for d in self.cond_results(S.cond_cancel_during_relock):
+            self.assertEqual(d[1][0][1], Result.SATISFIED)
+
+    def test_broadcast_and_destroy(self):
+        for d in self.cond_results(S.cond_broadcast_wakes_all):
+            self.assertEqual((d[1][0][1], d[2][0][1]), (Result.SATISFIED, Result.SATISFIED))
+        for d in self.cond_results(S.cond_destroy_aborts_waiter):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)

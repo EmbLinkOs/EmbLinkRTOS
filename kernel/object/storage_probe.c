@@ -32,4 +32,7 @@ void embk_storage_probe(void)
 #if CONFIG_EMB_EVENT
     PROBE(event, embk_event_t);
 #endif
+#if CONFIG_EMB_COND
+    PROBE(cond, embk_cond_t);
+#endif
 }

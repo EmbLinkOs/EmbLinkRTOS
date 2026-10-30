@@ -258,10 +258,14 @@ emb_status_t emb_cond_wait(emb_cond_t c, emb_mutex_t m, emb_timeout_t timeout); 
 emb_status_t emb_cond_wait_until(emb_cond_t c, emb_mutex_t m, emb_instant_t deadline);
 emb_status_t emb_cond_signal(emb_cond_t c);        /* @ctx thread  @blocks no  O(1) */
 emb_status_t emb_cond_broadcast(emb_cond_t c);     /* @ctx thread  @blocks no  O(waiters) */
+void emb_cond_attr_default(emb_cond_attr_t *out);  /* emb_cond_attr_t: name, flags (ABORT_WAITERS | FIFO) */
 ```
 
+Implemented in M2 (`CONFIG_EMB_COND`, default on except the tiny profile; requires mutexes).
+
 - `wait` requires the caller to own `m` with recursion count 1 (`EMB_EPERM` if not owner, `EMB_ESTATE` if count > 1). In section 1 it enqueues on `c`, then performs a full `unlock(m)` (§3.3, including hand-off to a mutex waiter) before releasing the object lock; the enqueue-then-unlock order makes the release and the wait atomic with respect to any `signal`.
-- On any wake result the caller re-locks `m` with `EMB_WAIT_FOREVER` before returning, so the caller always owns `m` on return, including after `EMB_ETIMEDOUT`, `EMB_ECANCELED`, and `EMB_EDESTROYED`. The relock may block beyond the timeout; this is documented, and the relock is itself an inheritance-aware mutex lock.
+- On any wake result the caller re-locks `m` with `EMB_WAIT_FOREVER` before returning, so the caller always owns `m` on return, including after `EMB_ETIMEDOUT`, `EMB_ECANCELED`, and `EMB_EDESTROYED`. The relock may block beyond the timeout; this is documented, and the relock is itself an inheritance-aware mutex lock. The relock is not a cancellation point: a cancel that arrives during it stays pending for the next one (A41).
+- Result precedence (A42): `EMB_EOWNERDEAD` from the relock wins over the wait's result, since the caller owns an inconsistent mutex either way; a failed relock (`EMB_EDEADLK` in a cycle, `EMB_EDESTROYED` when the mutex is destroyed with `ABORT_WAITERS`) also wins, and then the caller does not own `m`. A pending cancel before the enqueue returns `EMB_ECANCELED` without releasing `m`, and `EMB_NO_WAIT` returns `EMB_ETIMEDOUT` at once with `m` kept, since there is no stored signal to find.
 - `signal` wakes the highest waiter (hand-off word 0); `broadcast` wakes all in queue order with one reschedule. Both may be called with or without the mutex held; calling them while holding it avoids the "woken, then blocks on the mutex" bounce, and the documentation recommends it. Neither is ISR-safe: a condition variable pairs with a mutex, and a mutex is never touched from an ISR.
 - The kernel never generates spurious wakeups (a wake without a signal or broadcast); callers still re-check their predicate in a loop, because another thread may change it between the signal and the relock.
 - `cond_wait` on a `CEILING` or `NONE` mutex is allowed; the relock follows that mutex's protocol.

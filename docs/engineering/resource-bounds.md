@@ -25,6 +25,12 @@ Every cost input named by a public function's `@time` annotation, with how it is
 
 | Function | `@time` | Inputs |
 |---|---|---|
+| `emb_cond_broadcast()` | O(waiters) in one section | batch_wake, timeouts, reschedule |
+| `emb_cond_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
+| `emb_cond_init()` | O(1); O(active condition variables) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_cond_signal()` | O(1) selection, plus profile-specific timeout removal and scheduling | timeouts, reschedule |
+| `emb_cond_wait()` | O(waiters + timeouts) enqueue, a full mutex release, then the cost of emb_mutex_lock() | waiters, timeouts, owned, pi_depth, reschedule |
+| `emb_cond_wait_until()` | as emb_cond_wait() | waiters, timeouts, owned, pi_depth, reschedule |
 | `emb_event_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
 | `emb_event_init()` | O(1); O(active event flags) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_event_set()` | O(waiters) in one section, one reschedule | waiters, batch_wake, timeouts, reschedule |

@@ -98,5 +98,12 @@
 #define EMB_API_ID_EVENT_WAIT_UNTIL              0x005Cu
 #define EMB_API_ID_EVENT_BIND_NOTIFY             0x005Du
 #define EMB_API_ID_EVENT_UNBIND_NOTIFY           0x005Eu
+#define EMB_API_ID_COND_ATTR_DEFAULT             0x005Fu
+#define EMB_API_ID_COND_INIT                     0x0060u
+#define EMB_API_ID_COND_DESTROY                  0x0061u
+#define EMB_API_ID_COND_WAIT                     0x0062u
+#define EMB_API_ID_COND_WAIT_UNTIL               0x0063u
+#define EMB_API_ID_COND_SIGNAL                   0x0064u
+#define EMB_API_ID_COND_BROADCAST                0x0065u
 
 #endif /* EMB_API_IDS_H */

@@ -28,7 +28,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from embmodel import (BindNotify, Cancel, Destroy, EventClear, EventDestroy, EventSet,  # noqa: E402
+from embmodel import (BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal, CondWait,  # noqa: E402
+                      Destroy, EventClear, EventDestroy, EventSet,
                       EventWait, Exit, Give, Join, Lock, ModelError,
                       NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
                       SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
@@ -42,6 +43,7 @@ TR_BLOCK, TR_WAKE, TR_TIMEOUT_ARM, TR_TIMEOUT_EXPIRE = 6, 7, 8, 9
 TR_MUTEX_LOCK, TR_MUTEX_UNLOCK, TR_SEM_TAKE, TR_SEM_GIVE = 16, 17, 18, 19
 TR_NOTIFY_SET, TR_NOTIFY_WAIT, TR_FAULT, TR_TICK = 20, 21, 25, 29
 TR_EVENT_SET, TR_EVENT_WAIT = 31, 32
+TR_COND_WAIT, TR_COND_SIGNAL = 33, 34
 EV_ISR_MARK = 1000                     # the runner's own record: ISR body i starts
 EV_INDEX_MARK = 1001                   # the runner's record: thread tid now has index i
 IDLE_INDEX = 0xFE
@@ -50,7 +52,8 @@ KERNEL_START_FROM = 0xFF
 # emb_status_t -> Result (status.h; the model's EPERM stands in for EBUSY at a second joiner)
 STATUS_TO_RESULT = {0: Result.SATISFIED, -4: Result.TIMEOUT, -5: Result.CANCELED, -6: Result.DESTROYED,
                     -16: Result.STALE, -32: Result.DEADLOCK, -1: Result.EPERM, -3: Result.EPERM,
-                    -2: Result.STALE}   # EINVAL on a wait: the pointer handle of a destroyed object
+                    -2: Result.STALE,   # EINVAL on a wait: the pointer handle of a destroyed object
+                    -14: Result.STATE}  # ESTATE: a condition wait on a recursively held mutex
 # emb_status_t -> Result for the non-wait operations whose status is compared (M2-03 binding lifetime)
 NONWAIT_STATUS_TO_RESULT = {0: Result.SATISFIED, -1: Result.EPERM, -2: Result.STALE, -3: Result.BUSY,
                             -12: Result.NOENT, -13: Result.EXIST, -14: Result.STATE}
@@ -143,6 +146,14 @@ def encode_op(op) -> str:
         return f"ewait {op.event} {op.mask} {int(op.all)} {int(op.clear)} {_t(op.timeout)}"
     if isinstance(op, EventDestroy):
         return f"edestroy {op.event}"
+    if isinstance(op, CondWait):
+        return f"cwait {op.cond} {op.mutex} {_t(op.timeout)}"
+    if isinstance(op, CondSignal):
+        return f"csignal {op.cond}"
+    if isinstance(op, CondBroadcast):
+        return f"cbcast {op.cond}"
+    if isinstance(op, CondDestroy):
+        return f"cdestroy {op.cond}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -159,6 +170,8 @@ def encode_scenario(sc: Scenario) -> str:
             tid, bit = cfg["binding"]
             attrs.append(f"bind={tid}.{bit}")
         parts.append(f"S{sid}=" + ",".join(attrs))
+    for cid, cfg in sc.conds.items():
+        parts.append(f"C{cid}={int(cfg.get('policy') == Policy.FIFO)}")
     for eid, cfg in sc.events.items():
         attrs = [str(cfg.get("bits", 0))]
         if cfg.get("policy") == Policy.FIFO:
@@ -291,7 +304,7 @@ def kernel_canonical(run: Run):
             out.append(("wait_begin", thr(a0), KREASON_TO_REASON[a1], ("q", a2)))
         elif eid == TR_WAKE:
             out.append(("wake", thr(a0), KWAKE_TO_RESULT[a1]))
-        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT):
+        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT, TR_COND_WAIT):
             st = a1 if eid == TR_NOTIFY_WAIT else a2
             st = st - (1 << 64) if st >= (1 << 63) else st   # printed as unsigned long
             res = Result.SATISFIED if st == -7 else STATUS_TO_RESULT.get(st)
@@ -562,7 +575,8 @@ class Replay:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
-                if isinstance(op, (NotifyWait, Join, Lock, EventWait)) and result == Result.SATISFIED and kdata != data:
+                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait)) and result == Result.SATISFIED \
+                        and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
             kstate = r.states.get(tid)
             if t.destroyed:
@@ -637,10 +651,13 @@ def applicable(sc: Scenario, config: dict) -> tuple:
     prios = [p for p, _ in sc.threads.values()]
     if sc.events and config.get("events", "0") != "1":
         return False, "event flags are not configured in this build"
+    if sc.conds and config.get("conds", "0") != "1":
+        return False, "condition variables are not configured in this build"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"
-        if any(cfg.get("policy") == Policy.FIFO for cfg in list(sc.sems.values()) + list(sc.events.values())):
+        if any(cfg.get("policy") == Policy.FIFO
+               for cfg in list(sc.sems.values()) + list(sc.events.values()) + list(sc.conds.values())):
             return False, "FIFO queues need the base profile"
     elif bitmap:
         return False, "BITMAP queues need the tiny profile"
@@ -652,7 +669,8 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
     if config.get("profile") == "tiny":
         sems = {sid: dict(cfg, policy=Policy.BITMAP) for sid, cfg in sc.sems.items()}
         events = {eid: dict(cfg, policy=Policy.BITMAP) for eid, cfg in sc.events.items()}
-        sc = replace(sc, sems=sems, events=events)
+        conds = {cid: dict(cfg, policy=Policy.BITMAP) for cid, cfg in sc.conds.items()}
+        sc = replace(sc, sems=sems, events=events, conds=conds)
     # Historical native captures predate the clock-mode field and used tickless builds.
     return replace(sc, owner_death=config.get("owner_death", "release"),
                    tickless=config.get("tickless", "1") == "1")

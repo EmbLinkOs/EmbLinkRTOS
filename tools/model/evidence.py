@@ -25,7 +25,8 @@ OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.
        bridge.Suspend, bridge.Resume, bridge.Cancel, bridge.Destroy, bridge.SchedLock,
        bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join,
        bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy,
-       bridge.EventSet, bridge.EventClear, bridge.EventWait, bridge.EventDestroy)}
+       bridge.EventSet, bridge.EventClear, bridge.EventWait, bridge.EventDestroy,
+       bridge.CondWait, bridge.CondSignal, bridge.CondBroadcast, bridge.CondDestroy)}
 
 
 def scenario_data(sc):
@@ -38,6 +39,8 @@ def scenario_data(sc):
                 owner_death=sc.owner_death, tickless=sc.tickless)
     if sc.events:                                    # absent from bundles that predate event flags
         data["events"] = list(sc.events.items())
+    if sc.conds:                                     # and condition variables
+        data["conds"] = list(sc.conds.items())
     return data
 
 
@@ -79,6 +82,7 @@ def scenario_from_data(raw):
                            sems=objects(raw["sems"], "policy", bridge.Policy),
                            mutexes=objects(raw["mutexes"], "protocol", Protocol),
                            events=objects(raw.get("events", []), "policy", bridge.Policy),
+                           conds=objects(raw.get("conds", []), "policy", bridge.Policy),
                            isrs=tuple(program(ops) for ops in raw["isrs"]),
                            inactive=tuple(raw["inactive"]), owner_death=raw["owner_death"],
                            tickless=raw["tickless"])

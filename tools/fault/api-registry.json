@@ -564,6 +564,48 @@
       "name": "emb_event_unbind_notify",
       "header": "event.h",
       "state": "active"
+    },
+    {
+      "id": 95,
+      "name": "emb_cond_attr_default",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 96,
+      "name": "emb_cond_init",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 97,
+      "name": "emb_cond_destroy",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 98,
+      "name": "emb_cond_wait",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 99,
+      "name": "emb_cond_wait_until",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 100,
+      "name": "emb_cond_signal",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 101,
+      "name": "emb_cond_broadcast",
+      "header": "cond.h",
+      "state": "active"
     }
   ]
 }

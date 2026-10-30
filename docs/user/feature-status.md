@@ -5,7 +5,7 @@ This guide describes the current 0.2 development implementation. The authoritati
 | Goal | Available now | Still planned or limited |
 |---|---|---|
 | Start and coordinate threads | Static storage, priorities, start, sleep, join/detach, cooperative cancellation | Isolated partitions, budgets, restart, SMP |
-| Protect or signal work | Mutexes, semaphores, per-thread notifications, event flags | Condition variables, barriers |
+| Protect or signal work | Mutexes, semaphores, per-thread notifications, event flags, condition variables | Barriers |
 | Transfer payloads | Application-owned data with an explicit synchronization protocol | Message queues, pipes, buffer pools |
 | Run periodic work | A thread using absolute sleep deadlines | Software timers and system work queues |
 | Wait on several readiness sources | Semaphore and event flag bindings, with unbind, plus notification bits and rechecking; a bound thread cannot be destroyed | Message queue bindings, restart-safe target lifetime |

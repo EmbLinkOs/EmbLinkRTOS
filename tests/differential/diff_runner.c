@@ -13,14 +13,16 @@
  *   S<sid>=<count>[,fifo][,bind=<tid>.<bit>]  a semaphore
  *   M<mid>=<protocol>,<ceiling>,<recursive>   a mutex (protocol 0 inherit, 1 ceiling, 2 none)
  *   E<eid>=<bits>[,fifo][,bind=<tid>.<bit>]   event flags
+ *   C<cid>=<fifo>                             a condition variable (fifo 0 or 1)
  *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear)
  * Operations (t: -1 forever, 0 no wait, n ticks):
  *   take s t | give s | lock m t | unlock m | nset tid bits | nwait mask all clear t |
  *   sleep t | yield | setprio tid prio | suspend tid | resume tid | cancel tid | destroy s |
- *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s | tdestroy tid
- * | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e A schedule entry fires
- * right after the n-th trace event (or in idle, if that event never comes): "isr<i>@n" raises ISR
- * i, "tick@n" advances virtual time by one tick.
+ *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s |
+ *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
+ *   cwait c m t | csignal c | cbcast c | cdestroy c
+ * A schedule entry fires right after the n-th trace event (or in idle, if that event never
+ * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
 #include <emb/emb.h>
 
@@ -40,6 +42,7 @@
 #define MAX_SEMS     4u
 #define MAX_MUTEXES  4u
 #define MAX_EVFLAGS  4u
+#define MAX_CONDS    4u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -76,7 +79,11 @@ enum op_kind {
     OP_ESET,
     OP_ECLEAR,
     OP_EWAIT,
-    OP_EDESTROY
+    OP_EDESTROY,
+    OP_CWAIT,
+    OP_CSIGNAL,
+    OP_CBCAST,
+    OP_CDESTROY
 };
 
 struct op {
@@ -127,6 +134,15 @@ struct evflag_desc {
 #endif
 };
 
+struct cond_desc {
+    long cid;
+    bool fifo;
+#if CONFIG_EMB_COND
+    emb_cond_storage_t storage;
+    emb_cond_t handle;
+#endif
+};
+
 struct mutex_desc {
     long mid;
     long protocol;
@@ -157,6 +173,8 @@ static struct sem_desc sems[MAX_SEMS];
 static unsigned sem_count;
 static struct evflag_desc evflags[MAX_EVFLAGS];
 static unsigned evflag_count;
+static struct cond_desc conds[MAX_CONDS];
+static unsigned cond_count;
 static struct mutex_desc mutexes[MAX_MUTEXES];
 static unsigned mutex_count;
 static struct program isrs[MAX_ISRS];
@@ -314,6 +332,15 @@ static void parse_op(char *text, struct op *op)
     } else if (strcmp(name, "edestroy") == 0) {
         op->kind = OP_EDESTROY;
         op->a = num(args[0]);
+    } else if (strcmp(name, "cwait") == 0) {
+        op->kind = OP_CWAIT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "csignal") == 0 || strcmp(name, "cbcast") == 0 ||
+               strcmp(name, "cdestroy") == 0) {
+        op->kind = (name[1] == 's') ? OP_CSIGNAL : (name[1] == 'b') ? OP_CBCAST : OP_CDESTROY;
+        op->a = num(args[0]);
     } else {
         die("unknown operation");
     }
@@ -396,6 +423,14 @@ static void parse_section(char *sec)
                 die("bad event flag attribute");
             }
         }
+    } else if (kind == 'C') {
+        struct cond_desc *c;
+        if (cond_count >= MAX_CONDS) {
+            die("too many condition variables");
+        }
+        c = &conds[cond_count++];
+        c->cid = num(cut(&p, '='));
+        c->fifo = num(p) != 0;
     } else if (kind == 'M') {
         struct mutex_desc *m;
         char *attrs;
@@ -489,6 +524,20 @@ static emb_event_t evflag_by_eid(long eid)
     }
     die("unknown event flags id");
     return evflags[0].handle;
+}
+#endif
+
+#if CONFIG_EMB_COND
+static emb_cond_t cond_by_cid(long cid)
+{
+    unsigned i;
+    for (i = 0u; i < cond_count; i++) {
+        if (conds[i].cid == cid) {
+            return conds[i].handle;
+        }
+    }
+    die("unknown condition variable id");
+    return conds[0].handle;
 }
 #endif
 
@@ -708,6 +757,31 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             die("event flags are not configured");
             break;
 #endif
+#if CONFIG_EMB_COND
+        case OP_CWAIT:
+            st = emb_cond_wait(cond_by_cid(op->a), mutex_by_mid(op->b), timeout_of(op->c));
+            if (st == EMB_EOWNERDEAD) {
+                data = 2u; /* the model's OWNERDEAD_FLAG, as for lock */
+                st = EMB_OK;
+            }
+            break;
+        case OP_CSIGNAL:
+            st = emb_cond_signal(cond_by_cid(op->a));
+            break;
+        case OP_CBCAST:
+            st = emb_cond_broadcast(cond_by_cid(op->a));
+            break;
+        case OP_CDESTROY:
+            st = emb_cond_destroy(cond_by_cid(op->a));
+            break;
+#else
+        case OP_CWAIT:
+        case OP_CSIGNAL:
+        case OP_CBCAST:
+        case OP_CDESTROY:
+            die("condition variables are not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -742,15 +816,16 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
         return;
     }
     dumped = 1u;
-    (void)printf(
-        "config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d\n",
-        CONFIG_EMB_PROFILE,
+    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
+                 "conds=%d\n",
+                 CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
-        "fault",
+                 "fault",
 #else
-        "release",
+                 "release",
 #endif
-        (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT);
+                 (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
+                 (int)CONFIG_EMB_COND);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -853,6 +928,18 @@ static void construct(void)
 #else
     if (evflag_count != 0u) {
         die("event flags are not configured");
+    }
+#endif
+#if CONFIG_EMB_COND
+    for (i = 0u; i < cond_count; i++) {
+        emb_cond_attr_t attr;
+        emb_cond_attr_default(&attr);
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (conds[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_cond_init(&conds[i].storage, &attr, &conds[i].handle));
+    }
+#else
+    if (cond_count != 0u) {
+        die("condition variables are not configured");
     }
 #endif
     for (i = 0u; i < mutex_count; i++) {
