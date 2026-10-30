@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The reference model covers copy-by-value message queues ahead of their implementation (KRN-IPC-022, M2-07): send, send_front, receive and peek, ISR calls with `EMB_NO_WAIT`, hand-off to a waiting receiver, refill from a waiting sender, destroy, and the empty-to-nonempty binding, checking in every explored state that each accepted item is received once, still stored or dropped by destroy, and that no side waits while the other could proceed.
+
 - Condition variables (`CONFIG_EMB_COND`, `include/emb/cond.h`, M2-06): an atomic enqueue-and-release wait, signal and broadcast, and a mandatory, non-cancelable relock on every result, with `EMB_EOWNERDEAD` and relock failures taking precedence. The reference model, the differential bridge and a conformance suite cover them; they are off on the tiny profile.
 
 - Event flags (`CONFIG_EMB_EVENT`, `include/emb/event.h`, M2-05): ANY/ALL waits with optional CLEAR, deterministic consumption in queue order, ISR-safe set and clear, timeouts, cancellation, destroy with ABORT_WAITERS, and notification binding with unbind. The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.

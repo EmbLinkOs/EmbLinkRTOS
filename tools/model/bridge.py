@@ -30,7 +30,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from embmodel import (BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal, CondWait,  # noqa: E402
                       Destroy, EventClear, EventDestroy, EventSet,
-                      EventWait, Exit, Give, Join, Lock, ModelError,
+                      EventWait, Exit, Give, Join, Lock, ModelError, MsgDestroy, MsgPeek, MsgRecv,
+                      MsgSend, MsgSendFront,
                       NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
                       SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
                       UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT)
@@ -154,6 +155,16 @@ def encode_op(op) -> str:
         return f"cbcast {op.cond}"
     if isinstance(op, CondDestroy):
         return f"cdestroy {op.cond}"
+    if isinstance(op, MsgSend):
+        return f"qsend {op.q} {op.value} {_t(op.timeout)}"
+    if isinstance(op, MsgSendFront):
+        return f"qfront {op.q} {op.value}"
+    if isinstance(op, MsgRecv):
+        return f"qrecv {op.q} {_t(op.timeout)}"
+    if isinstance(op, MsgPeek):
+        return f"qpeek {op.q}"
+    if isinstance(op, MsgDestroy):
+        return f"qdestroy {op.q}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -180,6 +191,14 @@ def encode_scenario(sc: Scenario) -> str:
             tid, bit = cfg["binding"]
             attrs.append(f"bind={tid}.{bit}")
         parts.append(f"E{eid}=" + ",".join(attrs))
+    for qid, cfg in sc.msgqs.items():
+        attrs = [str(cfg.get("capacity", 1))]
+        if cfg.get("policy") == Policy.FIFO:
+            attrs.append("fifo")
+        if cfg.get("binding") is not None:
+            tid, bit = cfg["binding"]
+            attrs.append(f"bind={tid}.{bit}")
+        parts.append(f"Q{qid}=" + ",".join(attrs))
     for mid, cfg in sc.mutexes.items():
         proto = int(cfg.get("protocol", 0))
         parts.append(f"M{mid}={proto},{cfg.get('ceiling', 0)},{int(bool(cfg.get('recursive', False)))}")
@@ -653,6 +672,8 @@ def applicable(sc: Scenario, config: dict) -> tuple:
         return False, "event flags are not configured in this build"
     if sc.conds and config.get("conds", "0") != "1":
         return False, "condition variables are not configured in this build"
+    if sc.msgqs and config.get("msgqs", "0") != "1":
+        return False, "message queues are not configured in this build"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"

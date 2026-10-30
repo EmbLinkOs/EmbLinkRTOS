@@ -26,7 +26,8 @@ OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.
        bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join,
        bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy,
        bridge.EventSet, bridge.EventClear, bridge.EventWait, bridge.EventDestroy,
-       bridge.CondWait, bridge.CondSignal, bridge.CondBroadcast, bridge.CondDestroy)}
+       bridge.CondWait, bridge.CondSignal, bridge.CondBroadcast, bridge.CondDestroy,
+       bridge.MsgSend, bridge.MsgSendFront, bridge.MsgRecv, bridge.MsgPeek, bridge.MsgDestroy)}
 
 
 def scenario_data(sc):
@@ -41,6 +42,8 @@ def scenario_data(sc):
         data["events"] = list(sc.events.items())
     if sc.conds:                                     # and condition variables
         data["conds"] = list(sc.conds.items())
+    if sc.msgqs:                                     # and message queues
+        data["msgqs"] = list(sc.msgqs.items())
     return data
 
 
@@ -83,6 +86,7 @@ def scenario_from_data(raw):
                            mutexes=objects(raw["mutexes"], "protocol", Protocol),
                            events=objects(raw.get("events", []), "policy", bridge.Policy),
                            conds=objects(raw.get("conds", []), "policy", bridge.Policy),
+                           msgqs=objects(raw.get("msgqs", []), "policy", bridge.Policy),
                            isrs=tuple(program(ops) for ops in raw["isrs"]),
                            inactive=tuple(raw["inactive"]), owner_death=raw["owner_death"],
                            tickless=raw["tickless"])

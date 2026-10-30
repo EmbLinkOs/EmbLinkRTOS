@@ -520,3 +520,78 @@ def cond_destroy_aborts_waiter():
 COND = [cond_signal_not_lost, cond_timeout_relocks, cond_cancel_during_relock, cond_broadcast_wakes_all,
         cond_destroy_aborts_waiter]
 ALL = ALL + COND
+
+
+# ---------------------------------------------------------------------------------------
+# M2-07: message queues (SPEC-007 §2, KRN-IPC-022): modeled before the implementation
+# ---------------------------------------------------------------------------------------
+from embmodel import MsgDestroy, MsgPeek, MsgRecv, MsgSend, MsgSendFront  # noqa: E402
+
+
+def msgq_fifo_order():
+    """Capacity 2, three sends: the third waits for a slot; the receiver gets 1, 2, 3 in order."""
+    return Scenario(name="msgq_fifo_order",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2), MsgSend(0, 3))),
+                             2: (1, (MsgRecv(0), MsgRecv(0), MsgRecv(0)))},
+                    msgqs={0: dict(capacity=2)})
+
+
+def msgq_receiver_handoff():
+    """A waiting receiver gets the item directly; the ring stays empty."""
+    return Scenario(name="msgq_receiver_handoff",
+                    threads={1: (2, (MsgRecv(0),)), 2: (1, (MsgSend(0, 7),))},
+                    msgqs={0: dict(capacity=1)})
+
+
+def msgq_send_front_and_peek():
+    """send_front puts an urgent item at the head and never waits; peek copies the head without removing it."""
+    return Scenario(name="msgq_send_front_and_peek",
+                    threads={1: (1, (MsgPeek(0), MsgSend(0, 1), MsgSendFront(0, 2), MsgSendFront(0, 3),
+                                     MsgPeek(0), MsgRecv(0), MsgRecv(0), MsgRecv(0, NO_WAIT)))},
+                    msgqs={0: dict(capacity=2)})
+
+
+def msgq_isr_send_vs_timed_recv():
+    """An ISR sends with EMB_NO_WAIT at any point around a timed receive: received or stored, never lost."""
+    return Scenario(name="msgq_isr_send_vs_timed_recv",
+                    threads={1: (2, (MsgRecv(0, 3),))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgSend(0, 5, NO_WAIT),),))
+
+
+def msgq_isr_recv_frees_a_slot():
+    """An ISR receive moves the waiting sender's item into the freed slot in the same section."""
+    return Scenario(name="msgq_isr_recv_frees_a_slot",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2, 4)))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgRecv(0, NO_WAIT),),))
+
+
+def msgq_sender_timeout_and_cancel():
+    """A full queue: one sender times out and one is canceled; neither item is ever stored."""
+    return Scenario(name="msgq_sender_timeout_and_cancel",
+                    threads={1: (3, (MsgSend(0, 1), MsgSend(0, 2, 2))), 2: (2, (MsgSend(0, 3),)),
+                             3: (1, (Cancel(2), Sleep(3), MsgRecv(0), MsgRecv(0, NO_WAIT)))},
+                    msgqs={0: dict(capacity=1)})
+
+
+def msgq_destroy_aborts_both_sides():
+    """Destroy wakes a waiting receiver and a waiting sender with DESTROYED and drops the stored item."""
+    return Scenario(name="msgq_destroy_aborts_both_sides",
+                    threads={1: (4, (MsgRecv(0),)), 2: (3, (MsgSend(1, 1), MsgSend(1, 2))),
+                             3: (1, (MsgDestroy(0), MsgDestroy(1)))},
+                    msgqs={0: dict(capacity=1), 1: dict(capacity=1)})
+
+
+def msgq_binding_on_empty_to_nonempty():
+    """The bound thread is notified when the ring goes from empty to nonempty, not on a hand-off."""
+    return Scenario(name="msgq_binding_on_empty_to_nonempty",
+                    threads={1: (3, (NotifyWait(0x1, timeout=4),)), 2: (2, (MsgRecv(0),)),
+                             3: (1, (MsgSend(0, 1), MsgSend(0, 2), MsgSend(0, 3)))},
+                    msgqs={0: dict(capacity=2, binding=(1, 0))})
+
+
+MSGQ = [msgq_fifo_order, msgq_receiver_handoff, msgq_send_front_and_peek, msgq_isr_send_vs_timed_recv,
+        msgq_isr_recv_frees_a_slot, msgq_sender_timeout_and_cancel, msgq_destroy_aborts_both_sides,
+        msgq_binding_on_empty_to_nonempty]
+ALL = ALL + MSGQ

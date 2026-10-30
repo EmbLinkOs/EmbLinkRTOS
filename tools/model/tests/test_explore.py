@@ -361,3 +361,79 @@ class ConditionVariables(unittest.TestCase):
             self.assertEqual((d[1][0][1], d[2][0][1]), (Result.SATISFIED, Result.SATISFIED))
         for d in self.cond_results(S.cond_destroy_aborts_waiter):
             self.assertEqual(d[1][0][1], Result.DESTROYED)
+
+
+class MessageQueues(unittest.TestCase):
+    """M2-07 (SPEC-007 §2, KRN-IPC-022): FIFO copy semantics, hand-off both ways, send_front, peek,
+    ISR no-wait calls, timeouts and cancellation, destroy, and the empty-to-nonempty binding. The
+    every-item-once and waiting-side invariants are checked in every explored state."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), dict(dict(o)["msgqs"])) for o in explore(make()).outcomes]
+
+    def test_every_msgq_scenario_holds_invariants(self):
+        for make in S.MSGQ:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_items_arrive_in_send_order(self):
+        for d, q in self.outcomes(S.msgq_fifo_order):
+            self.assertEqual([r[2] for r in d[2]], [1, 2, 3])
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 3)
+            self.assertEqual(q[0], ())
+
+    def test_waiting_receiver_gets_the_item_directly(self):
+        for d, q in self.outcomes(S.msgq_receiver_handoff):
+            self.assertEqual((d[1][0][1], d[1][0][2]), (Result.SATISFIED, 7))
+            self.assertEqual(q[0], ())
+
+    def test_send_front_and_peek(self):
+        for d, q in self.outcomes(S.msgq_send_front_and_peek):
+            self.assertEqual([(r[1], r[2]) for r in d[1]],
+                             [(Result.TIMEOUT, 0), (Result.SATISFIED, 0), (Result.SATISFIED, 0),
+                              (Result.TIMEOUT, 0), (Result.SATISFIED, 2), (Result.SATISFIED, 2),
+                              (Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], ())
+
+    def test_isr_send_is_received_or_kept(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_isr_send_vs_timed_recv):
+            r = d[1][0][1]
+            seen.add(r)
+            self.assertEqual(q[0], () if r == Result.SATISFIED else (5,))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_isr_receive_refills_from_the_waiting_sender(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_isr_recv_frees_a_slot):
+            r = d[1][1][1]
+            seen.add(r)
+            # SATISFIED: the ISR freed the slot before or during the wait, and item 2 took it;
+            # TIMEOUT: the ISR ran first (nothing to take) or after the timeout (took item 1).
+            self.assertIn(q[0], ((2,),) if r == Result.SATISFIED else ((1,), ()))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_timed_out_and_canceled_items_are_never_stored(self):
+        for d, q in self.outcomes(S.msgq_sender_timeout_and_cancel):
+            self.assertEqual(d[1][1][1], Result.TIMEOUT)
+            self.assertEqual(d[2][0][1], Result.CANCELED)
+            self.assertEqual([(r[1], r[2]) for r in d[3] if r[0] >= 2], [(Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], ())
+
+    def test_destroy_aborts_receivers_and_senders(self):
+        for d, q in self.outcomes(S.msgq_destroy_aborts_both_sides):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)
+            self.assertEqual([r[1] for r in d[2]], [Result.SATISFIED, Result.DESTROYED])
+            self.assertEqual(q, {0: (), 1: ()})
+
+    def test_binding_fires_on_the_ready_transition_only(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_binding_on_empty_to_nonempty):
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))   # hand-off: no signal
+            seen.add(d[1][0][1])
+            if d[1][0][1] == Result.SATISFIED:
+                self.assertEqual(d[1][0][2], 1)                                 # storing 2 signaled bit 0
+            self.assertEqual(q[0], (2, 3))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
