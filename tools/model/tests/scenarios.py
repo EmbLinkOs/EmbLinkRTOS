@@ -849,3 +849,55 @@ COMBINED = [combined_suspend_cancel_msgq_receiver, combined_inheritance_priority
             combined_destroy_timeout_and_isr_give, combined_bindings_two_sources,
             combined_timer_feeds_handler_queue, combined_dwork_cancel_races_expiry]
 ALL = ALL + COMBINED
+
+
+# ---------------------------------------------------------------------------------------
+# M2 leftover: round-robin time slicing (KRN-SCH-007, KRN-SCH-026, KRN-SCH-037, SPEC-003 §8).
+# The quantum and the threshold are the scenario's static configuration; the bridge replaces
+# them with the build's, so on builds without slicing these run unsliced.
+# ---------------------------------------------------------------------------------------
+from dataclasses import replace  # noqa: E402
+
+
+def timeslice_rotates_equal_priority():
+    """Two threads at one level: once the first's quantum expires the second may run before
+    the first has given, so its no-wait take can fail; without ticks it never does."""
+    return Scenario(name="timeslice_rotates_equal_priority",
+                    threads={1: (2, (Give(0), Give(0), Give(0))), 2: (2, (Take(0, NO_WAIT),))},
+                    sems={0: dict(count=0)}, quantum=1, horizon=4)
+
+
+def timeslice_threshold_exempts_higher_levels():
+    """The same threads above the threshold level are never sliced (KRN-SCH-037)."""
+    return replace(timeslice_rotates_equal_priority(), name="timeslice_threshold_exempts_higher_levels",
+                   slice_prio=1)
+
+
+def timeslice_no_peer_renews_the_quantum():
+    """Expiry without an equal-priority peer renews the quantum: the lower thread waits."""
+    return Scenario(name="timeslice_no_peer_renews_the_quantum",
+                    threads={1: (2, (Give(0), Give(0), Give(0))), 2: (1, (Take(0, NO_WAIT),))},
+                    sems={0: dict(count=0)}, quantum=1, horizon=4)
+
+
+def timeslice_preempted_thread_keeps_its_place():
+    """A sliced thread preempted by a sleeper's wake goes back ahead of its peer (KRN-SCH-041);
+    a fresh quantum starts when it runs again."""
+    return Scenario(name="timeslice_preempted_thread_keeps_its_place",
+                    threads={1: (2, (Give(0), Give(0))), 2: (2, (Take(0, NO_WAIT), Take(0, NO_WAIT))),
+                             3: (3, (Sleep(1), Give(1)))},
+                    sems={0: dict(count=0), 1: dict(count=0)}, quantum=2, horizon=4)
+
+
+def timeslice_yield_and_isr_wake_at_expiry():
+    """A yield, an ISR-made-ready peer and an expiring quantum at the same instants."""
+    return Scenario(name="timeslice_yield_and_isr_wake_at_expiry",
+                    threads={1: (2, (Give(0), Yield(), Give(0))), 2: (2, (Take(0), Take(0, 2)))},
+                    sems={0: dict(count=0)}, quantum=1, horizon=3,
+                    isrs=((Give(0),),))
+
+
+TIMESLICE = [timeslice_rotates_equal_priority, timeslice_threshold_exempts_higher_levels,
+             timeslice_no_peer_renews_the_quantum, timeslice_preempted_thread_keeps_its_place,
+             timeslice_yield_and_isr_wake_at_expiry]
+ALL = ALL + TIMESLICE

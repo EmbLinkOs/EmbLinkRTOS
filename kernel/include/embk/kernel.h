@@ -233,6 +233,9 @@ typedef struct embk_cpu {
     uint8_t sched_lock_depth;
     uint8_t reschedule_pending;
     uint8_t kernel_state; /* EMBK_KERNEL_* */
+#if CONFIG_EMB_TIME_SLICING
+    uint8_t rotate; /* the current thread's quantum expired: the next decision rotates it */
+#endif
 #if CONFIG_EMB_CHECKED
     uint8_t irq_lock_depth; /* critical-section nesting */
 #endif

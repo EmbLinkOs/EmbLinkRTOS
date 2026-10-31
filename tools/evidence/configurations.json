@@ -6,6 +6,8 @@
     "native-release": {"target": "native", "scope": "host", "profile": "base", "checked": false},
     "native-tiny": {"target": "native", "scope": "host", "profile": "tiny", "checked": true},
     "native-periodic": {"target": "native", "scope": "host", "profile": "base", "checked": true},
+    "native-timeslice": {"target": "native", "scope": "host", "profile": "base", "checked": true},
+    "native-timeslice-tickless": {"target": "native", "scope": "host", "profile": "base", "checked": true},
     "native-asan": {"target": "native", "scope": "host", "profile": "base", "checked": true},
     "native-tsan": {"target": "native", "scope": "host", "profile": "base", "checked": true},
     "native-coverage": {"target": "native", "scope": "host", "profile": "base", "checked": true},

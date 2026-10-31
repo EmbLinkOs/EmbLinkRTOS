@@ -593,11 +593,14 @@ class Scenario:
     inactive: tuple = ()                       # tids created INACTIVE (must be started by another thread or an ISR)
     name: str = ""
     tickless: bool = True                      # already-due compares request a timer interrupt
+    quantum: Optional[int] = None              # CONFIG_EMB_TIMESLICE_TICKS; None: no time slicing
+    slice_prio: int = 255                      # CONFIG_EMB_TIMESLICE_PRIORITY (KRN-SCH-037)
 
 
 def build(sc: Scenario) -> "Kernel":
     k = Kernel(programs={tid: tuple(p) for tid, (_, p) in sc.threads.items()}, isr_bodies=tuple(sc.isrs),
-               owner_death=sc.owner_death, tickless=sc.tickless, horizon=sc.horizon)
+               owner_death=sc.owner_death, tickless=sc.tickless, horizon=sc.horizon,
+               quantum=sc.quantum, slice_prio=sc.slice_prio)
     for tid, (prio, _) in sc.threads.items():
         k.threads[tid] = Thread(tid=tid, prio=prio, base_prio=prio, inactive=(tid in sc.inactive))
         k.queues[-(tid + 1)] = WaitQueue(qid=-(tid + 1), policy=Policy.FIFO)        # SLEEP / NOTIFY / START
@@ -707,6 +710,10 @@ class Kernel:
     trace: list = field(default_factory=list)
     in_expiry: bool = False                         # transient: inside a timer's expiry, not part of the key
     horizon: Optional[int] = None                   # static: the scenario's tick bound for periodic timers
+    quantum: Optional[int] = None                   # static: the time-slice quantum, None when off
+    slice_prio: int = 255                           # static: the highest sliced level
+    slice_deadline: Optional[int] = None            # the running thread's quantum end (SPEC-003 §8)
+    rotate: bool = False                            # the quantum expired: the next decision rotates
 
     # ------------------------------------------------------------------ state identity
     def key(self):
@@ -723,7 +730,8 @@ class Kernel:
                 tuple((p, tuple(v)) for p, v in sorted(self.ready.items()) if v),
                 self.current, self.now, self.irq_nesting, self.sched_lock_depth,
                 self.reschedule_pending, tuple(self.timeouts), self.timer_pending, self.dequeued,
-                self.stale_timeouts, self.isr_fired, self.pi_depth_max)
+                self.stale_timeouts, self.isr_fired, self.pi_depth_max) + \
+            (((self.slice_deadline, self.rotate),) if self.quantum else ())
 
     def clone(self) -> "Kernel":
         k = copy.copy(self)
@@ -783,18 +791,41 @@ class Kernel:
     def dispatch(self):
         cur = self.threads.get(self.current) if self.current is not None else None
         best_tid = self._best_ready()
+        rotate, self.rotate = self.rotate, False          # an exhausted quantum goes behind its peers
         if cur is not None and self.runnable(cur):
-            if best_tid is None or self.threads[best_tid].prio <= cur.prio:
+            best = self.threads[best_tid] if best_tid is not None else None
+            if best is None or best.prio < cur.prio or (best.prio == cur.prio and not rotate):
                 self.reschedule_pending = False
                 return
-            self._make_ready(cur, preempted=True)
+            self._make_ready(cur, preempted=not rotate)
         if best_tid is None:
             self.current = None
         else:
             self.ready[self.threads[best_tid].prio].pop(0)
             self.current = best_tid
         self.reschedule_pending = False
+        self._slice_start()
         self._event("switch", self.current)
+
+    def _slice_start(self):
+        """At dispatch: the quantum of a thread at or below the threshold (KRN-SCH-037)."""
+        cur = self.threads.get(self.current) if self.current is not None else None
+        sliced = self.quantum and cur is not None and cur.prio <= self.slice_prio
+        self.slice_deadline = self.now + self.quantum if sliced else None
+
+    def _slice_check(self):
+        """After the expiry pass: renew an exhausted quantum, and rotate with a READY peer
+        (KRN-SCH-026); a thread raised above the threshold since dispatch stops being sliced."""
+        if self.slice_deadline is None or self.now < self.slice_deadline:
+            return
+        cur = self.threads.get(self.current) if self.current is not None else None
+        if cur is None or cur.prio > self.slice_prio:
+            self.slice_deadline = None
+            return
+        self.slice_deadline = self.now + self.quantum
+        if self.runnable(cur) and self.ready.get(cur.prio):
+            self.rotate = True
+            self.reschedule_pending = True
 
     def reschedule_if_needed(self):
         if self.reschedule_pending and self.sched_lock_depth == 0:
@@ -1277,9 +1308,12 @@ class Kernel:
         return self._block_section(t, q, Reason.SLEEP, op.ticks, lambda: False, lambda: 0)
 
     def _op_yield(self, t: Thread):
+        deadline = self.slice_deadline
         self._make_ready(t, preempted=False)
         self.current = None
         self.dispatch()
+        if self.current == t.tid:
+            self.slice_deadline = deadline            # no peer: no switch, the quantum runs on
         self._advance(t)
 
     def _op_setprio(self, op: SetPrio):
@@ -1965,6 +1999,7 @@ class Kernel:
             self.wake_timeout(th[2], th[3])
         for t in self.timers.values():
             t.armed_in_pass = False
+        self._slice_check()
         self.irq_nesting -= 1
         self._p1()
 
@@ -2221,9 +2256,12 @@ class Kernel:
         # A periodic timer keeps a tick enabled forever. The runner advances time only when
         # idle or by one of its few scheduled ticks, so past the scenario's horizon the model
         # ticks only while idle.
+        # A running quantum does the same.
         periodic = any(t.deadline is not None and t.period for t in self.timers.values())
-        past = periodic and self.horizon is not None and self.now >= self.horizon
-        if (self.timeouts or any(t.deadline is not None for t in self.timers.values())) and \
+        unbounded = periodic or self.slice_deadline is not None
+        past = unbounded and self.horizon is not None and self.now >= self.horizon
+        if (self.timeouts or self.slice_deadline is not None or
+                any(t.deadline is not None for t in self.timers.values())) and \
                 not (past and self.current is not None):
             acts.append(("tick",))
         return acts

@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Round-robin time slicing (`CONFIG_EMB_TIME_SLICING`, off by default): a thread at or below `CONFIG_EMB_TIMESLICE_PRIORITY` that runs for `CONFIG_EMB_TIMESLICE_TICKS` without blocking moves behind its READY equal-priority peers; without a peer its quantum is renewed (KRN-SCH-007, 026, 037; A63). The quantum is a deadline in the tickless computation and a comparison in the periodic tick. The reference model implements it, the new `native-timeslice` preset checks it through the differential bridge, and `native-timeslice-tickless` runs the conformance cases with the tickless clock. List scheduler only.
+
 - The M2 contract decisions are accepted: amendments A29 to A61 and ADR-045 to ADR-048 and ADR-050 (project-owner review, 2026-10-31).
 
 - The M2 exit review (`docs/engineering/m2-exit-review.md`): every checklist item with its pull requests and evidence, the reconciliation of APIs, configuration, model and requirements, the defects found, and the remaining M3a hardware work.

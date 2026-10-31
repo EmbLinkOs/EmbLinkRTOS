@@ -209,8 +209,8 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 ### KRN-TIM-029  Time slicing quantum as a deadline
 **Statement.** When time slicing is enabled for the running thread's priority level, the kernel shall track its quantum expiry as a per-CPU deadline included in the next-deadline computation, and at expiry shall move the thread to the tail of its class only if another READY thread exists at the same effective priority.
 **Rationale.** Round-robin without a timer object per thread, and v0.1 §5.8's rule that an uncontested quantum does not rotate.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: round-robin ordering tests in both clock modes; uncontested quantum does not cause a switch.
+**Status.** Accepted 2026-10-07; implemented (A63): the quantum is a per-CPU deadline in the tickless next-deadline computation and a comparison in the periodic tick.
+**Verification.** Test: the time-slicing cases of `tests/conformance/test_sched.c` on `native-timeslice` (periodic) and `native-timeslice-tickless`; uncontested expiry: `sched_quantum_expiry_without_a_peer_renews`.
 **Trace.** SPEC-003 §8; KRN-SCH-007, KRN-SCH-026, KRN-SCH-037
 
 ### KRN-TIM-030  Cycle counter API

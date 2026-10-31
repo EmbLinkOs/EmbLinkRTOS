@@ -13,6 +13,8 @@ The configuration pipeline resolves Kconfig defaults seeded by a port manifest, 
 | `native-clang` | Clang compiler coverage; requires Clang |
 | `native-asan` / `native-tsan` | Sanitizer configurations; require supported compiler runtimes |
 | `native-coverage` | GCC `--coverage` build; after CTest, `tools/coverage/report.py` prints kernel statement and branch coverage |
+| `native-timeslice` | GCC, checked base with round-robin time slicing (quantum 2 ticks, levels up to 20) and a periodic clock, so the differential bridge checks rotation |
+| `native-timeslice-tickless` | The same slicing with the tickless clock; conformance only |
 
 Use the same preset name for configure, build and CTest. A tiny result does not verify base-only features; a release result does not exercise checked-build faults. Embedded presets additionally require their cross-compiler, libc and emulator; do not interpret a build with no registered tests as conformance.
 
@@ -32,6 +34,14 @@ The later [timer-delivery validation](../engineering/m2-01-timer-correction.md) 
 | `CONFIG_EMB_SYSTEM_WORKQ`, `_PRIO`, `_STACK` | y; 0 (second-highest priority); 2048 bytes | the system work queue, linked only when `emb_workq_system()` is referenced |
 | `CONFIG_EMB_TIMER` | y | software timers; not available with the table scheduler |
 | `CONFIG_EMB_OBJ_LIST` | y (n on tiny) | exact refusal of init on live storage |
+
+## Scheduler options
+
+| Option | Default | Notes |
+|---|---|---|
+| `CONFIG_EMB_TIME_SLICING` | n | round robin among equal effective priorities; not available with the table scheduler |
+| `CONFIG_EMB_TIMESLICE_TICKS` | 10 | the quantum, started at each dispatch |
+| `CONFIG_EMB_TIMESLICE_PRIORITY` | 255 | the highest sliced level; higher levels run until they block or yield |
 
 The tiny `footprint_t1` reference configuration turns event flags and message queues off.
 

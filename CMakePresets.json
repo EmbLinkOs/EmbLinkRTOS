@@ -38,6 +38,24 @@
       }
     },
     {
+      "name": "native-timeslice",
+      "displayName": "native, GCC, base profile, checked, round-robin time slicing",
+      "inherits": "native-gcc",
+      "binaryDir": "${sourceDir}/build/native-timeslice",
+      "cacheVariables": {
+        "EMB_CONF": "configs/native-timeslice.conf"
+      }
+    },
+    {
+      "name": "native-timeslice-tickless",
+      "displayName": "native, GCC, base profile, checked, time slicing with the tickless clock",
+      "inherits": "native-gcc",
+      "binaryDir": "${sourceDir}/build/native-timeslice-tickless",
+      "cacheVariables": {
+        "EMB_CONF": "configs/native-timeslice-tickless.conf"
+      }
+    },
+    {
       "name": "native-release",
       "displayName": "native, GCC, base profile, release build kind",
       "generator": "Ninja",
@@ -271,6 +289,14 @@
       "configurePreset": "native-periodic"
     },
     {
+      "name": "native-timeslice",
+      "configurePreset": "native-timeslice"
+    },
+    {
+      "name": "native-timeslice-tickless",
+      "configurePreset": "native-timeslice-tickless"
+    },
+    {
       "name": "native-gcc",
       "configurePreset": "native-gcc"
     },
@@ -371,6 +397,20 @@
     {
       "name": "native-periodic",
       "configurePreset": "native-periodic",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-timeslice",
+      "configurePreset": "native-timeslice",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-timeslice-tickless",
+      "configurePreset": "native-timeslice-tickless",
       "output": {
         "outputOnFailure": true
       }

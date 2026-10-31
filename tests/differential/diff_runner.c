@@ -1212,6 +1212,17 @@ static void isr_body(void *arg)
 
 /* ---- the dump ------------------------------------------------------------------------ */
 
+/* Only time-slicing builds print the fields, so other captures stay byte-identical. */
+#if CONFIG_EMB_TIME_SLICING
+#define TIMESLICE_STR_(x) #x
+#define TIMESLICE_STR(x)  TIMESLICE_STR_(x)
+#define TIMESLICE_CONFIG                                                                      \
+    " timeslice=" TIMESLICE_STR(CONFIG_EMB_TIMESLICE_TICKS) " timeslice_prio=" TIMESLICE_STR( \
+        CONFIG_EMB_TIMESLICE_PRIORITY)
+#else
+#define TIMESLICE_CONFIG ""
+#endif
+
 static void dump(const char *end, unsigned long e0, unsigned long e1)
 {
     unsigned i;
@@ -1221,7 +1232,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     }
     dumped = 1u;
     (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
-                 "conds=%d msgqs=%d workqs=%d timers=%d\n",
+                 "conds=%d msgqs=%d workqs=%d timers=%d%s\n",
                  CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
@@ -1230,7 +1241,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
 #endif
                  (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
                  (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ, (int)CONFIG_EMB_WORKQ,
-                 (int)CONFIG_EMB_TIMER);
+                 (int)CONFIG_EMB_TIMER, TIMESLICE_CONFIG);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,

@@ -39,8 +39,8 @@ KRN-SCH-036 to 043 originate in 03 §2 and are restated verbatim. KRN-SCH-001 to
 ### KRN-SCH-007  Optional round robin
 **Statement.** Round-robin time slicing among threads of equal effective priority shall be optional, selected by `CONFIG_EMB_TIME_SLICING`.
 **Rationale.** 03 §2.1 ("optional round-robin"); KRN-SCH-037 restricts where it applies.
-**Status.** Accepted 2026-10-31 (restated); not implemented.
-**Verification.** Test: planned round-robin rotation and quantum cases.
+**Status.** Accepted 2026-10-31 (restated); implemented (A63), list scheduler only.
+**Verification.** Test: `sched_quantum_expiry_rotates_behind_all_peers`, `sched_two_spinners_share_their_level` on `native-timeslice` and `native-timeslice-tickless`; model: the TIMESLICE scenarios, explored and checked by the differential bridge on `native-timeslice`.
 **Trace.** 03 §2.1; SPEC-003 §8; KRN-TIM-029; v0.1 §4
 
 ### KRN-SCH-008  Yield never to lower priority
@@ -102,8 +102,8 @@ KRN-SCH-036 to 043 originate in 03 §2 and are restated verbatim. KRN-SCH-001 to
 ### KRN-SCH-026  Quantum expiry rotates only among peers
 **Statement.** When a running thread's quantum expires, it shall move behind its equal-priority peers only if one is READY; otherwise its quantum shall be renewed.
 **Rationale.** SPEC-003 §8 (v0.1 §5.8).
-**Status.** Accepted 2026-10-31 (restated); not implemented.
-**Verification.** Test: planned quantum expiry cases with and without a peer.
+**Status.** Accepted 2026-10-31 (restated); implemented (A63).
+**Verification.** Test: `sched_quantum_expiry_rotates_behind_all_peers`, `sched_quantum_expiry_without_a_peer_renews`; model: `timeslice_rotates_equal_priority`, `timeslice_no_peer_renews_the_quantum`.
 **Trace.** SPEC-003 §8; KRN-TIM-029; v0.1 §5.8
 
 ### KRN-SCH-036  Configurable priority count
@@ -116,8 +116,8 @@ KRN-SCH-036 to 043 originate in 03 §2 and are restated verbatim. KRN-SCH-001 to
 ### KRN-SCH-037  Time slicing below a threshold
 **Statement.** Time slicing shall apply only to threads at or below a configured threshold priority level (`CONFIG_EMB_TIMESLICE_PRIORITY`), with one configurable quantum, so that round robin can be enabled for background levels only without a per-level table.
 **Rationale.** Revised per R-003 §3.1; answers 08 Q8.
-**Status.** Accepted (03 §2.1); not implemented.
-**Verification.** Test: planned quantum cases above and below the threshold.
+**Status.** Accepted (03 §2.1); implemented with `CONFIG_EMB_TIMESLICE_PRIORITY` (A63).
+**Verification.** Test: `sched_levels_above_the_threshold_are_not_sliced` and the cases at level 3 below the threshold; model: `timeslice_threshold_exempts_higher_levels`.
 **Trace.** 03 §2.1; R-003 §3.1
 
 ### KRN-SCH-038  Class interface for the ready structure
@@ -145,7 +145,7 @@ KRN-SCH-036 to 043 originate in 03 §2 and are restated verbatim. KRN-SCH-001 to
 **Statement.** A thread preempted by a higher-priority thread shall be placed ahead of its equal-priority peers when it becomes eligible again, because its quantum is unspent; a thread that yields or exhausts its quantum shall be placed behind them.
 **Rationale.** 03 §2.1.
 **Status.** Accepted (03 §2.1); implemented.
-**Verification.** Test: `sched_preempted_thread_goes_ahead_of_its_peers`; model.
+**Verification.** Test: `sched_preempted_thread_goes_ahead_of_its_peers`, `sched_quantum_expiry_rotates_behind_all_peers`; model: `timeslice_preempted_thread_keeps_its_place`.
 **Trace.** 03 §2.1
 
 ### KRN-SCH-042  Tiny thread table

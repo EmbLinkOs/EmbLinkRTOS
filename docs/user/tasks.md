@@ -78,7 +78,7 @@ Expected output is `periodic: 5 iterations, exit=7`, followed by process exit st
 
 ## Choose priorities and deadlines deliberately
 
-Application priorities are `1 .. EMB_PRIORITY_MAX`; larger is more urgent. A high-priority thread must block when it has no work. Yield rotates equal-priority peers and cannot let a lower-priority thread run. Tiny uses unique base-priority slots, so these two priorities also avoid a slot collision there.
+Application priorities are `1 .. EMB_PRIORITY_MAX`; larger is more urgent. A high-priority thread must block when it has no work. Yield rotates equal-priority peers and cannot let a lower-priority thread run. With `CONFIG_EMB_TIME_SLICING`, a thread at or below `CONFIG_EMB_TIMESLICE_PRIORITY` that runs for a whole quantum without blocking also moves behind its READY equal-priority peers; it never lets a lower priority run either. Tiny uses unique base-priority slots, so these two priorities also avoid a slot collision there.
 
 Advancing `next` from the previous deadline keeps the schedule anchored. Sleeping for a relative period after each iteration adds the work time to the period. If work overruns an absolute deadline, `sleep_until()` yields and the next iteration catches up; it does not count misses, skip periods or impose an execution budget. Define an application policy for overruns. In a 32-bit time configuration, compare instants using `emb_instant_before()` and keep scheduled deadlines within `EMB_TIMEOUT_MAX_TICKS` ahead. Avoid the maximum tick value as a finite object-wait deadline: it is the current forever sentinel.
 

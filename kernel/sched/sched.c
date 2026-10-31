@@ -17,6 +17,9 @@
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/thread.h>
+#if CONFIG_EMB_TIME_SLICING
+#include <embk/time.h>
+#endif
 
 #if !EMBK_IDLE_SLIM
 embk_thread_t embk_idle_thread; /* slim: sched/idle_context.c allocates the prefix only */
@@ -236,6 +239,10 @@ embk_thread_t *embk_sched_select(bool yield)
     bool runnable = cur != EMBK_IDLE && thread_runnable(cur);
 
     embk_cpu.reschedule_pending = 0u;
+#if CONFIG_EMB_TIME_SLICING
+    yield = yield || embk_cpu.rotate != 0u; /* an exhausted quantum goes behind its peers */
+    embk_cpu.rotate = 0u;
+#endif
     if (runnable) {
         if (next == NULL || next->eff_prio < cur->eff_prio ||
             (next->eff_prio == cur->eff_prio && !yield)) {
@@ -260,6 +267,9 @@ embk_thread_t *embk_sched_select(bool yield)
     embk_cpu.irq_lock_depth = next->lock_depth;
 #endif
     embk_cpu.current = next;
+#if CONFIG_EMB_TIME_SLICING
+    embk_time_slice_start(next);
+#endif
     return next;
 }
 
@@ -305,6 +315,21 @@ void embk_sched_yield_locked(void)
         emb_arch_switch_to(next);
     }
 }
+
+#if CONFIG_EMB_TIME_SLICING
+void embk_sched_slice_expired(void)
+{
+    const embk_thread_t *cur = embk_cpu.current;
+    if (cur == EMBK_IDLE || !thread_runnable(cur) ||
+        embk_list_is_empty(&ready_lists[cur->eff_prio])) {
+        return; /* no peer: the quantum is renewed */
+    }
+    embk_cpu.rotate = 1u;
+    embk_cpu.reschedule_pending = 1u;
+    emb_arch_reschedule_pend(); /* SPEC-002 §6.2 step 2: decided at the outermost exit */
+    EMBK_TRACE(EMB_TRACE_RESCHED_PEND, embk_thread_index(cur), 0u, 0u);
+}
+#endif
 
 void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
 {

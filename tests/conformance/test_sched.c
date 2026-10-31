@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Scheduler conformance (03 §2, SPEC-002 §5, §6; KRN-SCH-001 to 008, 016 to 019, 041). */
+/* Scheduler conformance (03 §2, SPEC-002 §5, §6; KRN-SCH-001 to 008, 016 to 019, 026, 037,
+ * 041). */
 #include <emb_test.h>
 
 static void mark_and_exit(void *arg)
@@ -99,6 +100,70 @@ EMB_TEST(sched_preempted_thread_goes_ahead_of_its_peers)
      * continues ahead of w2, which has not run yet */
     EMB_ASSERT_MARKS(1, 5, 11, 2, 12, 9);
 }
+#endif
+
+#if CONFIG_EMB_TIME_SLICING
+/* One quantum and a tick of margin: a sliced spinner is rotated before it finishes. */
+#define SLICE_SPIN ((uint32_t)CONFIG_EMB_TIMESLICE_TICKS + 1u)
+
+static void spinner(void *arg)
+{
+    int id = (int)(intptr_t)arg;
+    emb_test_mark(id);
+    emb_test_spin_ticks(SLICE_SPIN);
+    emb_test_mark(id + 10);
+}
+
+EMB_TEST(sched_quantum_expiry_rotates_behind_all_peers)
+{
+    EMB_TEST_REQ("KRN-SCH-007", "KRN-SCH-026", "KRN-SCH-041");
+    emb_sched_lock();
+    (void)emb_test_thread(EMB_TEST_NAME("s1"), 3u, 0u, spinner, (void *)1);
+    (void)emb_test_thread(EMB_TEST_NAME("m2"), 3u, 0u, mark_and_exit, (void *)2);
+    (void)emb_test_thread(EMB_TEST_NAME("m3"), 3u, 0u, mark_and_exit, (void *)3);
+    emb_sched_unlock();
+    emb_test_mark(9);
+    /* s1's quantum expires mid-spin: it goes behind both peers, which run first */
+    EMB_ASSERT_MARKS(1, 2, 3, 11, 9);
+}
+
+EMB_TEST(sched_quantum_expiry_without_a_peer_renews)
+{
+    EMB_TEST_REQ("KRN-SCH-026");
+    emb_sched_lock();
+    (void)emb_test_thread(EMB_TEST_NAME("s1"), 3u, 0u, spinner, (void *)1);
+    (void)emb_test_thread(EMB_TEST_NAME("m2"), 2u, 0u, mark_and_exit, (void *)2);
+    emb_sched_unlock();
+    emb_test_mark(9);
+    /* expiry finds no READY thread at level 3: no switch, the lower thread waits */
+    EMB_ASSERT_MARKS(1, 11, 2, 9);
+}
+
+EMB_TEST(sched_two_spinners_share_their_level)
+{
+    EMB_TEST_REQ("KRN-SCH-007", "KRN-SCH-026");
+    emb_sched_lock();
+    (void)emb_test_thread(EMB_TEST_NAME("s1"), 3u, 0u, spinner, (void *)1);
+    (void)emb_test_thread(EMB_TEST_NAME("s2"), 3u, 0u, spinner, (void *)2);
+    emb_sched_unlock();
+    emb_test_mark(9);
+    /* each spins past its quantum, so each is rotated once before it finishes */
+    EMB_ASSERT_MARKS(1, 2, 11, 12, 9);
+}
+
+#if CONFIG_EMB_TIMESLICE_PRIORITY < CONFIG_EMB_PRIORITY_COUNT - 1
+EMB_TEST(sched_levels_above_the_threshold_are_not_sliced)
+{
+    uint8_t p = (uint8_t)(CONFIG_EMB_TIMESLICE_PRIORITY + 1);
+    EMB_TEST_REQ("KRN-SCH-037");
+    emb_sched_lock();
+    (void)emb_test_thread(EMB_TEST_NAME("s1"), p, 0u, spinner, (void *)1);
+    (void)emb_test_thread(EMB_TEST_NAME("m2"), p, 0u, mark_and_exit, (void *)2);
+    emb_sched_unlock();
+    emb_test_mark(9);
+    EMB_ASSERT_MARKS(1, 11, 2, 9); /* FIFO only: the spinner keeps the processor */
+}
+#endif
 #endif
 
 EMB_TEST(sched_blocking_under_scheduler_lock_is_misuse)

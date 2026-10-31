@@ -81,6 +81,12 @@ extern uint8_t embk_sched_raised_count; /* threads with eff_prio != base_prio; l
 #endif
 #endif
 
+#if CONFIG_EMB_TIME_SLICING
+/* The current thread's quantum expired, timer interrupt: with an equal-priority peer READY,
+ * the next decision moves it behind its peers (KRN-SCH-026). */
+void embk_sched_slice_expired(void);
+#endif
+
 /* A thread became runnable at priority @prio: should it preempt the current thread? */
 bool embk_sched_should_preempt(uint8_t prio);
 
