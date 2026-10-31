@@ -229,6 +229,26 @@ emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_
 emb_status_t emb_sem_unbind_notify(emb_sem_t sem);
 #endif
 
+/* EMB_SEM_DEFINE(sym, initial, max): storage, the handle variable `sym`, and an
+ * init-table entry that constructs the semaphore in emb_kernel_init() (SPEC-001 §6.4,
+ * A64); a failure faults. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_SEM_DEFINE(sym, initial_, max_)                                 \
+    static emb_sem_storage_t sym##_storage_;                                \
+    emb_sem_t sym;                                                          \
+    static void sym##_init_(void)                                           \
+    {                                                                       \
+        emb_sem_attr_t attr_;                                               \
+        emb_sem_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                \
+        attr_.initial = (emb_sem_count_t)(initial_);                        \
+        attr_.max = (emb_sem_count_t)(max_);                                \
+        (void)emb_check_status(emb_sem_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_SEM_DEFINE(" #sym ")");                 \
+    }                                                                       \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
+
 #ifdef __cplusplus
 }
 #endif

@@ -146,5 +146,7 @@
 #define EMB_API_ID_DWORK_RESCHEDULE              0x008Cu
 #define EMB_API_ID_DWORK_CANCEL                  0x008Du
 #define EMB_API_ID_DWORK_CANCEL_SYNC             0x008Eu
+#define EMB_API_ID_WORKQ_GET_STATS               0x008Fu
+#define EMB_API_ID_WORKQ_RESET_STATS             0x0090u
 
 #endif /* EMB_API_IDS_H */

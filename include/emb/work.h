@@ -4,8 +4,10 @@
 #ifndef EMB_WORK_H
 #define EMB_WORK_H
 
+#include <emb/kernel.h>
 #include <emb/status.h>
 #include <emb/storage.h>
+#include <emb/thread.h>
 #include <emb/time.h>
 #include <emb/types.h>
 
@@ -128,6 +130,58 @@ emb_status_t emb_workq_destroy(emb_workq_t workq);
  *         itself) or outside thread context; EMB_EINVAL for a bad handle.
  */
 emb_status_t emb_workq_flush(emb_workq_t workq, emb_timeout_t timeout);
+
+#if CONFIG_EMB_WORKQ_STATS
+/* A queue's statistics (KRN-WQ-011): maxima since init or the last reset. */
+typedef struct emb_workq_stats {
+    emb_duration_t max_latency;    /* worst time from a submit to its handler's start */
+    emb_duration_t max_duration;   /* longest handler run */
+    emb_work_fn_t max_duration_fn; /* the handler that took it; NULL before the first run */
+    uint16_t pending;              /* items queued now */
+    uint16_t max_pending;          /* most items queued at once */
+} emb_workq_stats_t;
+
+/**
+ * emb_workq_get_stats() - Read a queue's statistics.
+ * @workq:     Initialized work queue.
+ * @out_stats: Receives the statistics.
+ *
+ * @ctx      thread isr
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ_STATS
+ * @req      KRN-WQ-011
+ * @since    0.3
+ * @stable   no
+ *
+ * Times are kernel-clock ticks. A submit while the item's handler runs starts the latency
+ * of the run it queues. Flush markers are not items.
+ *
+ * Return: EMB_OK; EMB_EINVAL for a bad handle or a NULL @out_stats.
+ */
+emb_status_t emb_workq_get_stats(emb_workq_t workq, emb_workq_stats_t *out_stats);
+
+/**
+ * emb_workq_reset_stats() - Restart a queue's maxima from now.
+ * @workq: Initialized work queue.
+ *
+ * @ctx      thread isr
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ_STATS
+ * @req      KRN-WQ-011
+ * @since    0.3
+ * @stable   no
+ *
+ * The latency and duration maxima return to zero and the pending maximum to the items
+ * queued now.
+ *
+ * Return: EMB_OK; EMB_EINVAL for a bad handle.
+ */
+emb_status_t emb_workq_reset_stats(emb_workq_t workq);
+#endif
 
 #if CONFIG_EMB_SYSTEM_WORKQ
 /**
@@ -378,6 +432,29 @@ emb_status_t emb_dwork_cancel(emb_dwork_t *dwork, emb_work_state_t *out_state);
  */
 emb_status_t emb_dwork_cancel_sync(emb_dwork_t *dwork, emb_timeout_t timeout);
 #endif
+
+/* EMB_WORKQ_DEFINE(sym, priority, stack_size): storage, the queue thread's stack, the
+ * handle variable `sym`, and an init-table entry that constructs the queue in
+ * emb_kernel_init() (SPEC-001 §6.4, A64); a failure faults. Entries run in link order, so
+ * another entry must not rely on the queue. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_WORKQ_DEFINE(sym, priority_, stack_size_)                         \
+    static emb_workq_storage_t sym##_storage_;                                \
+    EMB_THREAD_STACK(sym##_stack_, (stack_size_));                            \
+    emb_workq_t sym;                                                          \
+    static void sym##_init_(void)                                             \
+    {                                                                         \
+        emb_workq_attr_t attr_;                                               \
+        emb_workq_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                  \
+        attr_.stack = sym##_stack_;                                           \
+        attr_.stack_size = sizeof(sym##_stack_);                              \
+        attr_.priority = (uint8_t)(priority_);                                \
+        (void)emb_check_status(emb_workq_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_WORKQ_DEFINE(" #sym ")");                 \
+    }                                                                         \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }
