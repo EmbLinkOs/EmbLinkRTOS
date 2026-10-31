@@ -28,6 +28,10 @@ typedef struct embk_time_state {
     embk_list_t timers; /* software timers, ordered by deadline (ADR-047); lock: timeout domain */
     uint8_t pass;       /* counts expiry passes */
 #endif
+#if CONFIG_EMB_TIME_SLICING
+    emb_tick_t slice_deadline; /* the running thread's quantum end (SPEC-003 §8) */
+    uint8_t slice_armed;
+#endif
 #if CONFIG_EMB_TICKLESS
     emb_arch_timer_raw_t last_raw; /* counter value at which ticks was last exact */
     uint32_t raw_per_tick;
@@ -293,6 +297,62 @@ bool embk_timeout_next(emb_tick_t *out_deadline)
     return true;
 }
 
+#if CONFIG_EMB_TIME_SLICING
+/* KRN-SCH-037: is @t's level sliced? */
+#if CONFIG_EMB_TIMESLICE_PRIORITY >= 255
+#define SLICED(t) ((t) != EMBK_IDLE)
+#else
+#define SLICED(t) ((t) != EMBK_IDLE && (t)->eff_prio <= CONFIG_EMB_TIMESLICE_PRIORITY)
+#endif
+
+void embk_time_slice_start(const embk_thread_t *t)
+{
+    uint8_t was = ts.slice_armed;
+    ts.slice_armed = SLICED(t) ? 1u : 0u;
+    if (ts.slice_armed != 0u) {
+        ts.slice_deadline = embk_time_ticks_locked() + (emb_tick_t)CONFIG_EMB_TIMESLICE_TICKS;
+    }
+#if CONFIG_EMB_TICKLESS
+    if ((was | ts.slice_armed) != 0u) {
+        embk_time_program();
+    }
+#else
+    (void)was;
+#endif
+}
+
+/* After the expiry pass: an exhausted quantum is renewed, and the scheduler rotates the
+ * thread if it has a peer (KRN-SCH-026); a rotation starts the next thread's quantum. A
+ * thread raised above the threshold since its dispatch stops being sliced. */
+static void slice_check(emb_tick_t now)
+{
+    if (ts.slice_armed == 0u || embk_tick_before(now, ts.slice_deadline)) {
+        return;
+    }
+    if (!SLICED(embk_cpu.current)) {
+        ts.slice_armed = 0u;
+        return;
+    }
+    ts.slice_deadline = now + (emb_tick_t)CONFIG_EMB_TIMESLICE_TICKS;
+    embk_sched_slice_expired();
+}
+#endif
+
+#if CONFIG_EMB_TICKLESS
+/* The earliest deadline the hardware must wake for: a timeout, a timer or the quantum. */
+static bool next_deadline(emb_tick_t *out_deadline)
+{
+    bool armed = embk_timeout_next(out_deadline);
+#if CONFIG_EMB_TIME_SLICING
+    if (ts.slice_armed != 0u && (!armed || embk_tick_before(ts.slice_deadline, *out_deadline))) {
+        *out_deadline = ts.slice_deadline;
+        armed = true;
+    }
+#endif
+    return armed;
+}
+#endif
+
 /* Expire every node whose deadline is at or before @now, in deadline order (§5.3): the
  * earlier of the two lists' heads first, a thread timeout first on equal deadlines, and
  * each timer at most once per pass (ADR-047). @key is the timeout lock, which an
@@ -357,7 +417,7 @@ void embk_time_program(void)
     emb_tick_t next;
     emb_tick_t delta;
     emb_tick_t max = emb_arch_timer_max_ticks();
-    if (!embk_timeout_next(&next)) {
+    if (!next_deadline(&next)) {
         emb_arch_timer_cancel();
         return;
     }
@@ -388,6 +448,9 @@ void embk_time_init(void)
 #if CONFIG_EMB_TIMER
     embk_list_init(&ts.timers);
     ts.pass = 0u;
+#endif
+#if CONFIG_EMB_TIME_SLICING
+    ts.slice_armed = 0u;
 #endif
 }
 
@@ -420,6 +483,9 @@ void embk_time_timer_isr(void)
     EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
 #endif
     expire(ts.ticks, &key);
+#if CONFIG_EMB_TIME_SLICING
+    slice_check(ts.ticks);
+#endif
     embk_time_program();
     embk_unlock_timeout(key);
 }

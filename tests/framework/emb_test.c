@@ -5,6 +5,9 @@
 
 #include <emb_board.h>
 #include <emb_test.h>
+#if CONFIG_EMB_ARCH_NATIVE
+#include <emb_native.h>
+#endif
 
 EMB_TABLE_BOUNDS(const emb_test_case_t, emb_test_table);
 
@@ -84,6 +87,17 @@ void emb_test_check_elapsed(unsigned line, uint32_t elapsed, uint32_t expected)
         emb_test_logf(EMB_TEST_STR("  elapsed %lu, expected %lu"), (unsigned long)elapsed,
                       (unsigned long)expected);
         emb_test_fail(line, EMB_TEST_STR("elapsed ticks"));
+    }
+}
+
+void emb_test_spin_ticks(uint32_t n)
+{
+    uint32_t t0 = EMB_TEST_NOW();
+    /* bounded by @n ticks of the kernel clock */
+    while ((uint32_t)(EMB_TEST_NOW() - t0) < n) {
+#if CONFIG_EMB_ARCH_NATIVE
+        emb_native_tick();
+#endif
     }
 }
 

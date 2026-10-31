@@ -70,6 +70,10 @@ void emb_kernel_start(void)
     embk_cpu.current = first;
     embk_cpu.reschedule_pending = 0u;
     embk_cpu.kernel_state = EMBK_KERNEL_RUNNING;
+#if CONFIG_EMB_TIME_SLICING
+    embk_cpu.rotate = 0u;
+    embk_time_slice_start(first);
+#endif
 #if CONFIG_EMB_CHECKED
     embk_cpu.irq_lock_depth =
         0u; /* the first thread is a fresh context; the idle record is 0 too */

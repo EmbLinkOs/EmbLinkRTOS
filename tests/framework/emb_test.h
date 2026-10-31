@@ -135,6 +135,11 @@ void emb_test_check_elapsed(unsigned line, uint32_t elapsed, uint32_t expected);
 #define EMB_ASSERT_ELAPSED(t0, n) \
     emb_test_check_elapsed(__LINE__, (uint32_t)(EMB_TEST_NOW() - (uint32_t)(t0)), (uint32_t)(n))
 
+/* Run without blocking until @n ticks have passed since the call: a busy thread that a
+ * time slice can rotate. Native time is virtual and advances only in idle, so there the
+ * helper raises the ticks itself. */
+void emb_test_spin_ticks(uint32_t n);
+
 /* Software interrupts for the tests: a handler bound to a slot, raised on demand.
  * Delivery follows the port's rules: at once when unmasked, at the unlock when masked,
  * held while the slot is disabled. */

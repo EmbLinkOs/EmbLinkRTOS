@@ -55,6 +55,8 @@ def scenario_data(sc):
                                    body=program(cfg.get("body", ())))) for t, cfg in sc.timers.items()]
     if sc.horizon is not None:
         data["horizon"] = sc.horizon
+    if sc.quantum is not None:                       # and time slicing
+        data["timeslice"] = dict(quantum=sc.quantum, priority=sc.slice_prio)
     return data
 
 
@@ -92,6 +94,11 @@ def scenario_from_data(raw):
     if not threads:
         raise ValueError("a scenario needs at least one thread")
     from embmodel import Protocol
+    timeslice = raw.get("timeslice", {"quantum": None, "priority": 255})
+    if set(timeslice) != {"quantum", "priority"} or \
+            (timeslice["quantum"] is not None and type(timeslice["quantum"]) is not int) or \
+            type(timeslice["priority"]) is not int:
+        raise ValueError("invalid time-slicing configuration")
     return bridge.Scenario(name=raw["name"], threads=threads,
                            sems=objects(raw["sems"], "policy", bridge.Policy),
                            mutexes=objects(raw["mutexes"], "protocol", Protocol),
@@ -105,7 +112,8 @@ def scenario_from_data(raw):
                            horizon=raw.get("horizon"),
                            isrs=tuple(program(ops) for ops in raw["isrs"]),
                            inactive=tuple(raw["inactive"]), owner_death=raw["owner_death"],
-                           tickless=raw["tickless"])
+                           tickless=raw["tickless"], quantum=timeslice["quantum"],
+                           slice_prio=timeslice["priority"])
 
 
 def sha256(path):

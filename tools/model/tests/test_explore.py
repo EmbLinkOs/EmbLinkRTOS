@@ -1,5 +1,6 @@
 """Exhaustive exploration of every scenario (KRN-WAIT-007, KRN-WAIT-022) and outcome checks."""
 import unittest
+from dataclasses import replace
 
 from embmodel import Result, build, explore
 from tests import scenarios as S
@@ -647,3 +648,51 @@ class Combined(unittest.TestCase):
             if w[0] == 0:
                 self.assertNotEqual(d[1][1][1], Result.SATISFIED)          # canceled: nothing gave
         self.assertEqual(seen, {0, 1})
+
+
+class TimeSlicing(unittest.TestCase):
+    """Round-robin time slicing (KRN-SCH-007, KRN-SCH-026, KRN-SCH-037, KRN-SCH-041)."""
+
+    @staticmethod
+    def takes(make):
+        return {dict(dict(o)["threads"])[2][0][1] for o in explore(make()).outcomes}
+
+    def test_every_timeslice_scenario_holds_invariants(self):
+        for make in S.TIMESLICE:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_expiry_rotates_to_an_equal_priority_peer(self):
+        self.assertEqual(self.takes(S.timeslice_rotates_equal_priority), {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_levels_above_the_threshold_are_not_sliced(self):
+        self.assertEqual(self.takes(S.timeslice_threshold_exempts_higher_levels), {Result.SATISFIED})
+
+    def test_expiry_without_a_peer_renews(self):
+        self.assertEqual(self.takes(S.timeslice_no_peer_renews_the_quantum), {Result.SATISFIED})
+
+    def test_without_slicing_the_first_thread_runs_to_completion(self):
+        sc = S.timeslice_rotates_equal_priority()
+        self.assertEqual({dict(dict(o)["threads"])[2][0][1] for o in explore(replace(sc, quantum=None)).outcomes},
+                         {Result.SATISFIED})
+
+    def test_rotation_goes_behind_peers_and_preemption_ahead(self):
+        k = build(S.timeslice_preempted_thread_keeps_its_place())
+        while k.current == 3:                                            # 3 sleeps; 1 runs
+            k.apply(("run",))
+        self.assertEqual((k.current, k.slice_deadline, k.ready[2]), (1, k.now + 2, [2]))
+        k.apply(("tick",))                                               # 3 wakes and preempts 1
+        self.assertEqual((k.current, k.ready[2]), (3, [1, 2]))           # 1 ahead of its peer
+        while k.current == 3:                                            # 3 gives and exits
+            k.apply(("run",))
+        self.assertEqual((k.current, k.slice_deadline), (1, k.now + 2))  # a fresh quantum
+        k.apply(("tick",))
+        k.apply(("tick",))                                               # expiry: behind 2
+        self.assertEqual((k.current, k.ready[2]), (2, [1]))
+
+    def test_yield_without_a_peer_keeps_the_quantum(self):
+        k = build(S.timeslice_no_peer_renews_the_quantum())
+        k.slice_deadline = 5
+        k._op_yield(k.threads[1])
+        self.assertEqual((k.current, k.slice_deadline), (1, 5))

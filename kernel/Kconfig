@@ -46,14 +46,29 @@ config EMB_PRIORITY_COUNT
 	  With the table scheduler the count is bounded by the architecture word width.
 
 config EMB_TIME_SLICING
-	bool "Round-robin time slicing among equal priorities (KRN-SCH-037)"
+	bool "Round-robin time slicing among equal priorities (KRN-SCH-007, KRN-SCH-037)"
+	depends on !EMB_SCHED_TABLE
 	default n
+	help
+	  A thread at or below EMB_TIMESLICE_PRIORITY that runs for EMB_TIMESLICE_TICKS
+	  without blocking, yielding or being preempted moves behind its equal-priority
+	  peers (KRN-SCH-026). The quantum starts at dispatch. The table scheduler has one
+	  thread per level, so it has no peers to rotate among.
 
 config EMB_TIMESLICE_TICKS
-	int "Default quantum in ticks"
+	int "Quantum in ticks"
 	depends on EMB_TIME_SLICING
 	default 10
 	range 1 65535
+
+config EMB_TIMESLICE_PRIORITY
+	int "Highest priority level that is time sliced"
+	depends on EMB_TIME_SLICING
+	default 255
+	range 1 255
+	help
+	  KRN-SCH-037: slicing applies to threads whose effective priority is at or below
+	  this level; 255 slices every level. Higher levels run until they block or yield.
 
 config EMB_IDLE_THREAD
 	bool "Dedicated idle thread (off: inline idle context, ADR-036)"

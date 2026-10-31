@@ -761,6 +761,10 @@ def applicable(sc: Scenario, config: dict) -> tuple:
         return False, "work queues are not configured in this build"
     if sc.timers and config.get("timers", "0") != "1":
         return False, "software timers are not configured in this build"
+    if config.get("timeslice", "0") != "0" and config.get("tickless", "1") == "1":
+        # A tickless quantum starts from the free-running counter, which can run ahead of the
+        # delivered ticks the model counts; native-timeslice checks slicing with a periodic clock.
+        return False, "time slicing is modeled with a periodic clock only"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"
@@ -782,8 +786,11 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
         msgqs = {qid: dict(cfg, policy=Policy.BITMAP) for qid, cfg in sc.msgqs.items()}
         sc = replace(sc, sems=sems, events=events, conds=conds, msgqs=msgqs)
     # Historical native captures predate the clock-mode field and used tickless builds.
+    # Time slicing follows the build too; captures without the field had none.
+    quantum = int(config.get("timeslice", "0"))
     return replace(sc, owner_death=config.get("owner_death", "release"),
-                   tickless=config.get("tickless", "1") == "1")
+                   tickless=config.get("tickless", "1") == "1",
+                   quantum=quantum or None, slice_prio=int(config.get("timeslice_prio", "255")))
 
 
 def timer_regressions() -> list:
