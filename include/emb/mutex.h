@@ -10,6 +10,7 @@
 #ifndef EMB_MUTEX_H
 #define EMB_MUTEX_H
 
+#include <emb/kernel.h>
 #include <emb/status.h>
 #include <emb/time.h>
 #include <emb/types.h>
@@ -188,6 +189,27 @@ bool emb_mutex_is_owner(emb_mutex_t mutex);
  * Return: EMB_OK; EMB_EPERM when the caller is not the owner.
  */
 emb_status_t emb_mutex_mark_consistent(emb_mutex_t mutex);
+
+/* EMB_MUTEX_DEFINE(sym, protocol, ceiling, flags): storage, the handle variable `sym`,
+ * and an init-table entry that constructs the mutex in emb_kernel_init() (SPEC-001 §6.4,
+ * A64); a failure faults. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_MUTEX_DEFINE(sym, protocol_, ceiling_, flags_)                    \
+    static emb_mutex_storage_t sym##_storage_;                                \
+    emb_mutex_t sym;                                                          \
+    static void sym##_init_(void)                                             \
+    {                                                                         \
+        emb_mutex_attr_t attr_;                                               \
+        emb_mutex_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                  \
+        attr_.protocol = (uint8_t)(protocol_);                                \
+        attr_.ceiling = (uint8_t)(ceiling_);                                  \
+        attr_.flags = (uint8_t)(flags_);                                      \
+        (void)emb_check_status(emb_mutex_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_MUTEX_DEFINE(" #sym ")");                 \
+    }                                                                         \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }

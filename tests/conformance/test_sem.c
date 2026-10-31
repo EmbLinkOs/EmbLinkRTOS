@@ -184,3 +184,16 @@ EMB_TEST(sem_blocking_take_from_prekernel_or_isr_rejected)
     EMB_ASSERT_OK(emb_sem_take(sem, EMB_WAIT_FOREVER)); /* satisfied without blocking */
     EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
+
+EMB_SEM_DEFINE(defined_sem, 1u, 2u);
+
+EMB_TEST(sem_define_constructs_in_init_table)
+{
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_OK(emb_sem_take(defined_sem, EMB_NO_WAIT)); /* initial 1 */
+    EMB_ASSERT_STATUS(emb_sem_take(defined_sem, EMB_NO_WAIT), EMB_ETIMEDOUT);
+    EMB_ASSERT_OK(emb_sem_give(defined_sem));
+    EMB_ASSERT_OK(emb_sem_give(defined_sem));
+    EMB_ASSERT_STATUS(emb_sem_give(defined_sem), EMB_EOVERFLOW); /* max 2 */
+    EMB_ASSERT_OK(emb_sem_take(defined_sem, EMB_NO_WAIT));
+}

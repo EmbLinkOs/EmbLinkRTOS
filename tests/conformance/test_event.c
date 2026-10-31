@@ -187,3 +187,11 @@ EMB_TEST(event_storage_reuse_requires_destroy)
     EMB_ASSERT_OK(emb_event_destroy(ev));
 }
 #endif
+
+EMB_EVENT_DEFINE(defined_event, 0x5u, 0u);
+
+EMB_TEST(event_define_constructs_in_init_table)
+{
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_EQ(emb_event_get(defined_event), 0x5u);
+}
