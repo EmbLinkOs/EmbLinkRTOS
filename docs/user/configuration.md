@@ -13,7 +13,7 @@ The configuration pipeline resolves Kconfig defaults seeded by a port manifest, 
 | `native-clang` | Clang compiler coverage; requires Clang |
 | `native-asan` / `native-tsan` | Sanitizer configurations; require supported compiler runtimes |
 | `native-coverage` | GCC `--coverage` build; after CTest, `tools/coverage/report.py` prints kernel statement and branch coverage |
-| `native-timeslice` | GCC, checked base with round-robin time slicing (quantum 2 ticks, levels up to 20) and a periodic clock, so the differential bridge checks rotation |
+| `native-timeslice` | GCC, checked base with round-robin time slicing (quantum 2 ticks, levels up to 20) and a periodic clock, so the differential bridge checks rotation; also builds the work-queue statistics |
 | `native-timeslice-tickless` | The same slicing with the tickless clock; conformance only |
 
 Use the same preset name for configure, build and CTest. A tiny result does not verify base-only features; a release result does not exercise checked-build faults. Embedded presets additionally require their cross-compiler, libc and emulator; do not interpret a build with no registered tests as conformance.
@@ -31,6 +31,7 @@ The later [timer-delivery validation](../engineering/m2-01-timer-correction.md) 
 | `CONFIG_EMB_MSGQ`, `CONFIG_EMB_MSGQ_MAX_ITEM` | y; 64 bytes (16 on tiny) | message queues; the item bound limits the copy made with interrupts masked |
 | `CONFIG_EMB_IPC_SMALL` | n (y on tiny) | 8-bit queue counts, at most 255 items |
 | `CONFIG_EMB_WORKQ` | y | work queues and, with timers, delayed work; not available with the tiny profile's table scheduler |
+| `CONFIG_EMB_WORKQ_STATS` | n | per-queue maximum backlog, worst latency and longest handler (`emb_workq_get_stats()`) |
 | `CONFIG_EMB_SYSTEM_WORKQ`, `_PRIO`, `_STACK` | y; 0 (second-highest priority); 2048 bytes | the system work queue, linked only when `emb_workq_system()` is referenced |
 | `CONFIG_EMB_TIMER` | y | software timers; not available with the table scheduler |
 | `CONFIG_EMB_OBJ_LIST` | y (n on tiny) | exact refusal of init on live storage |

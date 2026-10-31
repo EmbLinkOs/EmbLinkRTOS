@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Work-queue statistics (`CONFIG_EMB_WORKQ_STATS`, off by default; KRN-WQ-011, A65): `emb_workq_get_stats()` reports the worst submit-to-start latency, the longest handler with its function and the deepest backlog per queue, in ticks; `emb_workq_reset_stats()` restarts them.
+
 - Static definitions for the other object types (A64): `EMB_SEM_DEFINE`, `EMB_MUTEX_DEFINE`, `EMB_EVENT_DEFINE`, `EMB_COND_DEFINE`, `EMB_MSGQ_DEFINE`, `EMB_WORKQ_DEFINE` and, for interrupt-context callbacks, `EMB_TIMER_DEFINE` declare storage (with the ring or stack) and the handle and construct the object in `emb_kernel_init()`.
 
 - Round-robin time slicing (`CONFIG_EMB_TIME_SLICING`, off by default): a thread at or below `CONFIG_EMB_TIMESLICE_PRIORITY` that runs for `CONFIG_EMB_TIMESLICE_TICKS` without blocking moves behind its READY equal-priority peers; without a peer its quantum is renewed (KRN-SCH-007, 026, 037; A63). The quantum is a deadline in the tickless computation and a comparison in the periodic tick. The reference model implements it, the new `native-timeslice` preset checks it through the differential bridge, and `native-timeslice-tickless` runs the conformance cases with the tickless clock. List scheduler only.

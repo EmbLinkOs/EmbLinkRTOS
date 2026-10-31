@@ -15,6 +15,7 @@
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/thread.h>
+#include <embk/time.h>
 #include <embk/wait.h>
 #include <embk/work.h>
 
@@ -62,9 +63,33 @@ static void wake_done_locked(embk_workq_t *q, const embk_work_t *w)
     }
 }
 
+#if CONFIG_EMB_WORKQ_STATS
+/* An item joined @q's FIFO. Lock held. */
+static void stats_queued(embk_workq_t *q)
+{
+    if (q->pending != UINT16_MAX) {
+        q->pending++;
+    }
+    if (q->pending > q->max_pending) {
+        q->max_pending = q->pending;
+    }
+}
+
+static void stats_reset(embk_workq_t *q)
+{
+    q->max_pending = q->pending;
+    q->max_latency = 0u;
+    q->max_duration = 0u;
+    q->max_duration_fn = NULL;
+}
+#endif
+
 /* Unlink a pending item: it will not run. Lock held. */
 static void unlink_locked(embk_work_t *w)
 {
+#if CONFIG_EMB_WORKQ_STATS
+    w->queue->pending--;
+#endif
     embk_list_remove(&w->node);
     w->state = EMB_WORK_IDLE;
     w->queue = NULL;
@@ -74,6 +99,10 @@ static void unlink_locked(embk_work_t *w)
 static void workq_main(void *arg)
 {
     embk_workq_t *q = (embk_workq_t *)arg;
+#if CONFIG_EMB_WORKQ_STATS
+    emb_tick_t start;
+    void (*fn)(struct emb_work *work);
+#endif
     for (;;) {
         emb_irq_key_t key = embk_lock_object(q);
         embk_list_node_t *n = embk_list_pop_first(&q->fifo);
@@ -98,11 +127,26 @@ static void workq_main(void *arg)
         }
         w->state = EMB_WORK_RUNNING;
         q->running = w;
+#if CONFIG_EMB_WORKQ_STATS
+        q->pending--;
+        start = embk_time_ticks_locked();
+        if ((emb_tick_t)(start - w->submitted) > q->max_latency) {
+            q->max_latency = start - w->submitted;
+        }
+        fn = w->fn;
+#endif
         EMBK_TRACE(EMB_TRACE_WORK_RUN, embk_thread_index(&q->thread), w, 0u);
         embk_unlock_object(q, key);
         w->fn((emb_work_t *)(void *)w);
         key = embk_lock_object(q);
         EMBK_TRACE(EMB_TRACE_WORK_RUN, embk_thread_index(&q->thread), w, 1u);
+#if CONFIG_EMB_WORKQ_STATS
+        start = embk_time_ticks_locked() - start; /* now the handler's duration */
+        if (start > q->max_duration) {
+            q->max_duration = start;
+            q->max_duration_fn = fn;
+        }
+#endif
 #if CONFIG_EMB_MUTEX
         if (q->thread.owned != NULL) {
             /* the next handler would inherit the lock (SPEC-006 §6) */
@@ -115,6 +159,9 @@ static void workq_main(void *arg)
             w->flags &= (uint8_t)~EMBK_WORK_RESUBMITTED;
             w->state = EMB_WORK_PENDING;
             embk_list_append(&q->fifo, &w->node);
+#if CONFIG_EMB_WORKQ_STATS
+            stats_queued(q); /* its latency runs from the resubmitting call */
+#endif
         } else {
             w->state = EMB_WORK_IDLE;
             w->queue = NULL;
@@ -176,6 +223,10 @@ emb_status_t emb_workq_init(emb_workq_storage_t *storage, const emb_workq_attr_t
     q->running = NULL;
     q->stopping = 0u;
     q->timer_refs = 0u;
+#if CONFIG_EMB_WORKQ_STATS
+    q->pending = 0u;
+    stats_reset(q);
+#endif
     emb_thread_attr_default(&ta);
     ta.name = attr->name;
     ta.stack = attr->stack;
@@ -306,6 +357,36 @@ emb_status_t emb_workq_flush(emb_workq_t workq, emb_timeout_t timeout)
     return st;
 }
 
+#if CONFIG_EMB_WORKQ_STATS
+emb_status_t emb_workq_get_stats(emb_workq_t workq, emb_workq_stats_t *out_stats)
+{
+    embk_workq_t *q = workq_from_handle(workq);
+    emb_irq_key_t key;
+    EMBK_API_REQUIRE(EMB_API_ID_WORKQ_GET_STATS, q != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    EMBK_API_REQUIRE(EMB_API_ID_WORKQ_GET_STATS, out_stats != NULL, EMB_FAULT_API_ARGUMENT,
+                     EMB_EINVAL, 2u);
+    key = embk_lock_object(q);
+    out_stats->max_latency.ticks = q->max_latency;
+    out_stats->max_duration.ticks = q->max_duration;
+    out_stats->max_duration_fn = q->max_duration_fn;
+    out_stats->pending = q->pending;
+    out_stats->max_pending = q->max_pending;
+    embk_unlock_object(q, key);
+    return EMB_OK;
+}
+
+emb_status_t emb_workq_reset_stats(emb_workq_t workq)
+{
+    embk_workq_t *q = workq_from_handle(workq);
+    emb_irq_key_t key;
+    EMBK_API_REQUIRE(EMB_API_ID_WORKQ_RESET_STATS, q != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    key = embk_lock_object(q);
+    stats_reset(q);
+    embk_unlock_object(q, key);
+    return EMB_OK;
+}
+#endif
+
 void embk_work_init(embk_work_t *w, void (*fn)(struct emb_work *work))
 {
     embk_list_node_init(&w->node);
@@ -333,6 +414,9 @@ emb_status_t embk_work_submit_locked(embk_workq_t *q, embk_work_t *w)
     } else if (w->state == EMB_WORK_RUNNING) {
         if (w->queue == q) {
             w->flags |= EMBK_WORK_RESUBMITTED; /* queued again when the handler returns */
+#if CONFIG_EMB_WORKQ_STATS
+            w->submitted = embk_time_ticks_locked();
+#endif
         } else {
             st = EMB_EBUSY; /* an item belongs to one queue at a time */
         }
@@ -340,6 +424,10 @@ emb_status_t embk_work_submit_locked(embk_workq_t *q, embk_work_t *w)
         w->state = EMB_WORK_PENDING;
         w->queue = q;
         embk_list_append(&q->fifo, &w->node);
+#if CONFIG_EMB_WORKQ_STATS
+        w->submitted = embk_time_ticks_locked();
+        stats_queued(q);
+#endif
         embk_notify_set_locked(&q->thread, EMB_NOTIFY_K_WORK);
     }
     EMBK_TRACE(EMB_TRACE_WORK_SUBMIT, embk_thread_index(&q->thread), w, st);

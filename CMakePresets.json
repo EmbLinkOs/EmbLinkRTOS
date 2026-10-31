@@ -39,7 +39,7 @@
     },
     {
       "name": "native-timeslice",
-      "displayName": "native, GCC, base profile, checked, round-robin time slicing",
+      "displayName": "native, GCC, base profile, checked, time slicing and work-queue statistics",
       "inherits": "native-gcc",
       "binaryDir": "${sourceDir}/build/native-timeslice",
       "cacheVariables": {

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Work queue conformance (SPEC-006 §4; KRN-WQ-001, 002, 004 to 006, 008 to 010). */
+/* Work queue conformance (SPEC-006 §4; KRN-WQ-001, 002, 004 to 006, 008 to 011). */
 #include <emb_test.h>
 
 #define IRQ_W 2u /* software interrupt slot */
@@ -348,3 +348,35 @@ EMB_TEST(workq_define_constructs_in_init_table)
     emb_test_mark(1);
     EMB_ASSERT_MARKS(4, 1);
 }
+
+#if CONFIG_EMB_WORKQ_STATS
+EMB_TEST(workq_stats_record_depth_latency_and_longest_handler)
+{
+    emb_workq_stats_t st;
+    EMB_TEST_REQ("KRN-WQ-011");
+    make(2u);
+    items[0].sleep_ticks = 2u; /* the others wait behind it */
+    emb_sched_lock();
+    EMB_ASSERT_OK(emb_work_submit(wq, &items[0].work));
+    EMB_ASSERT_OK(emb_work_submit(wq, &items[1].work));
+    EMB_ASSERT_OK(emb_work_submit(wq, &items[2].work));
+    EMB_ASSERT_OK(emb_workq_get_stats(wq, &st));
+    EMB_ASSERT_EQ(st.pending, 3u);
+    emb_sched_unlock();
+    EMB_ASSERT_OK(emb_workq_flush(wq, EMB_WAIT_FOREVER));
+    EMB_ASSERT_OK(emb_workq_get_stats(wq, &st));
+    EMB_ASSERT_EQ(st.pending, 0u);
+    EMB_ASSERT_EQ(st.max_pending, 3u); /* the flush marker is not an item */
+    emb_test_check_elapsed(__LINE__, (uint32_t)st.max_latency.ticks, 2u);
+    emb_test_check_elapsed(__LINE__, (uint32_t)st.max_duration.ticks, 2u);
+    EMB_ASSERT_TRUE(st.max_duration_fn == handler);
+    EMB_ASSERT_OK(emb_workq_reset_stats(wq));
+    EMB_ASSERT_OK(emb_workq_get_stats(wq, &st));
+    EMB_ASSERT_EQ(st.max_pending, 0u);
+    EMB_ASSERT_EQ(st.max_latency.ticks, 0u);
+    EMB_ASSERT_EQ(st.max_duration.ticks, 0u);
+    EMB_ASSERT_TRUE(st.max_duration_fn == NULL);
+    EMB_ASSERT_MISUSE(emb_workq_get_stats(wq, NULL), EMB_EINVAL);
+    EMB_ASSERT_OK(emb_workq_destroy(wq));
+}
+#endif
