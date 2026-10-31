@@ -4,6 +4,7 @@
 #ifndef EMB_TIMER_H
 #define EMB_TIMER_H
 
+#include <emb/kernel.h>
 #include <emb/status.h>
 #include <emb/time.h>
 #include <emb/types.h>
@@ -280,6 +281,29 @@ emb_status_t emb_timer_remaining(emb_timer_t timer, emb_duration_t *out_rem);
  */
 emb_status_t emb_timer_get_counts(emb_timer_t timer, uint32_t *out_expiries,
                                   uint32_t *out_overruns);
+
+/* EMB_TIMER_DEFINE(sym, fn, arg): storage, the handle variable `sym`, and an init-table
+ * entry that constructs a stopped EMB_TIMER_ISR_CONTEXT timer in emb_kernel_init()
+ * (SPEC-001 §6.4, A64); a failure faults. A timer whose callback runs on a work queue is
+ * constructed with emb_timer_init() once its queue exists: init-table entries, the system
+ * queue's included, run in link order. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_TIMER_DEFINE(sym, fn_, arg_)                                      \
+    static emb_timer_storage_t sym##_storage_;                                \
+    emb_timer_t sym;                                                          \
+    static void sym##_init_(void)                                             \
+    {                                                                         \
+        emb_timer_attr_t attr_;                                               \
+        emb_timer_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                  \
+        attr_.fn = (fn_);                                                     \
+        attr_.arg = (arg_);                                                   \
+        attr_.flags = EMB_TIMER_ISR_CONTEXT;                                  \
+        (void)emb_check_status(emb_timer_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_TIMER_DEFINE(" #sym ")");                 \
+    }                                                                         \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }

@@ -236,6 +236,26 @@ emb_status_t emb_event_bind_notify(emb_event_t event, emb_thread_t thread, emb_n
 emb_status_t emb_event_unbind_notify(emb_event_t event);
 #endif
 
+/* EMB_EVENT_DEFINE(sym, initial, flags): storage, the handle variable `sym`, and an
+ * init-table entry that constructs the event flags in emb_kernel_init() (SPEC-001 §6.4,
+ * A64); a failure faults. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_EVENT_DEFINE(sym, initial_, flags_)                               \
+    static emb_event_storage_t sym##_storage_;                                \
+    emb_event_t sym;                                                          \
+    static void sym##_init_(void)                                             \
+    {                                                                         \
+        emb_event_attr_t attr_;                                               \
+        emb_event_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                  \
+        attr_.initial = (emb_event_bits_t)(initial_);                         \
+        attr_.flags = (uint8_t)(flags_);                                      \
+        (void)emb_check_status(emb_event_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_EVENT_DEFINE(" #sym ")");                 \
+    }                                                                         \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
+
 #ifdef __cplusplus
 }
 #endif

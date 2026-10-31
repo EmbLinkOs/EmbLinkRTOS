@@ -81,6 +81,6 @@ KRN-WQ-001 to 004 originate in `docs/architecture/03-kernel-architecture.md` §6
 ### KRN-WQ-011  Trace and statistics
 **Statement.** Submit, start with submit-to-start latency, end with duration, cancel, and delayed scheduling shall be trace events; maximum FIFO length, worst latency, and longest handler with its address shall be optional statistics per queue.
 **Rationale.** Work queue latency is the latency of every timer callback and bottom half.
-**Status.** Accepted 2026-10-07; trace records implemented (A52); statistics are not.
-**Verification.** Test: trace decoder (not written); statistics API test (no API).
+**Status.** Accepted 2026-10-07; trace records implemented (A52); statistics implemented with `CONFIG_EMB_WORKQ_STATS` (A65).
+**Verification.** Test: `workq_stats_record_depth_latency_and_longest_handler` on `native-timeslice`; trace decoder (not written).
 **Trace.** SPEC-006 §7; OBS-005

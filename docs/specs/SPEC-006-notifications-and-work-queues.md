@@ -195,7 +195,7 @@ Handler latency is the sum of the queue thread's dispatch latency at its priorit
 
 ## 7. Observability
 
-Trace events: `notify_set(target, bits, woke)`, `notify_wait(thread, mask, mode, result)`, `bind_signal(object, thread, bit)`, `work_submit(queue, item, result)`, `work_start(queue, item, latency)`, `work_end(queue, item, duration)`, `work_cancel(item, state)`, `dwork_schedule(item, deadline)`. Statistics (optional): per queue, maximum FIFO length, worst submit-to-start latency, longest handler with its address; per thread, notification sets received. The debug descriptor (ADR-011) exports the work item layout so a debugger can list a queue's pending items.
+Trace events: `notify_set(target, bits, woke)`, `notify_wait(thread, mask, mode, result)`, `bind_signal(object, thread, bit)`, `work_submit(queue, item, result)`, `work_start(queue, item, latency)`, `work_end(queue, item, duration)`, `work_cancel(item, state)`, `dwork_schedule(item, deadline)`. Statistics (optional): per queue, maximum FIFO length, worst submit-to-start latency, longest handler with its address, read with `emb_workq_get_stats()` and restarted with `emb_workq_reset_stats()` under `CONFIG_EMB_WORKQ_STATS` (A65); per thread, notification sets received (not implemented). The debug descriptor (ADR-011) exports the work item layout so a debugger can list a queue's pending items.
 
 ## 8. Tiny profile
 

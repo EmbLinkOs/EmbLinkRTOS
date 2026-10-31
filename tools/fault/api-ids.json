@@ -853,6 +853,18 @@
       "name": "emb_dwork_cancel_sync",
       "header": "work.h",
       "state": "active"
+    },
+    {
+      "id": 143,
+      "name": "emb_workq_get_stats",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 144,
+      "name": "emb_workq_reset_stats",
+      "header": "work.h",
+      "state": "active"
     }
   ]
 }
