@@ -53,7 +53,7 @@ Local runs of this change, on macOS with the toolchains of the earlier M2 report
 | cm4-nucleo-embsim | 85 passed, 10 skipped | 94 / 2 / 281 |
 | avr-uno (QEMU) | 73 passed, 9 skipped | 87 / 1 / 289 |
 
-Most catalog requirements have no executed case: they describe planned features (event flags, queues, timers, isolation, hardware generation) or are verified by analysis that is not yet reported. Fourteen cited identifiers, `KRN-SCH-001` to `KRN-SCH-043` (thirteen) and `KRN-MEM-009`, belong to groups whose migration into `docs/requirements/` is still pending; their v0.1 statements are not in the repository, so the matrix keeps their evidence in rows marked `uncataloged (migration pending)` instead of inventing catalog text. A citation outside every known group fails the matrix.
+Most catalog requirements have no executed case: they describe planned features (event flags, queues, timers, isolation, hardware generation) or are verified by analysis that is not yet reported. The scheduler (`KRN-SCH`) and memory (`KRN-MEM`) groups were migrated into `docs/requirements/` on 2026-10-31: their 03 identifiers verbatim, and the v0.1 identifiers that cases cite restated from the specifications that fix their meaning. Groups still pending migration keep their evidence in rows marked `uncataloged (migration pending)` instead of inventing catalog text. A citation outside every known group fails the matrix.
 
 ## Limits
 
