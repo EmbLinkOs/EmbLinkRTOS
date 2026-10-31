@@ -212,6 +212,7 @@ EMB_TEST(thread_wake_while_suspended_is_applied_at_resume)
     EMB_ASSERT_OK(emb_thread_resume(h));
     EMB_ASSERT_MARKS(1);
     EMB_ASSERT_OK(emb_thread_join(h, EMB_WAIT_FOREVER, NULL));
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 
 static void sleeper_reports(void *arg)
@@ -252,6 +253,7 @@ EMB_TEST(thread_cancel_pending_delivered_at_next_point)
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_OK(emb_thread_join(h, EMB_WAIT_FOREVER, NULL));
     EMB_ASSERT_MARKS(1, 3, 5);
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 
 EMB_TEST(thread_cancel_point_and_counts)
@@ -283,6 +285,7 @@ EMB_TEST(thread_priority_change_requeues_waiter)
     EMB_ASSERT_OK(emb_sem_give(sem)); /* a is now first */
     EMB_ASSERT_OK(emb_sem_give(sem));
     EMB_ASSERT_MARKS(2, 3);
+    EMB_ASSERT_OK(emb_sem_destroy(sem));
 }
 
 EMB_TEST(thread_state_reports_lifecycle)

@@ -4,7 +4,7 @@ This directory holds the normative requirements of EmbLinkRTOS, one file per ide
 
 ## Format
 
-Every requirement is one block with a fixed shape so `tools/docs/build.py` can generate the design catalog and exports. The executed-case/profile traceability matrix remains a separate planned tool; source extraction alone does not produce it.
+Every requirement is one block with a fixed shape so `tools/docs/build.py` can generate the design catalog and exports. The executed-case/profile traceability matrix is `tools/evidence/matrix.py`, built from executed case reports ([case evidence](../engineering/case-evidence.md)); source extraction alone does not produce it.
 
 ```markdown
 ### GROUP-NNN  Short title
@@ -15,7 +15,7 @@ Every requirement is one block with a fixed shape so `tools/docs/build.py` can g
 **Trace.** Design and decision references (SPEC-001 §4, ADR-002), and parent requirements if any.
 ```
 
-The verification fields below mix existing cases, analysis obligations and planned paths. They are not execution results. [Project status](../STATUS.md) inventories current tools; the Sphinx Needs design catalog is implemented, while the executed-evidence matrix is unimplemented. [Timing and evidence](../engineering/timing-and-evidence.md) defines its required profile/configuration scope and outcome fields. A test identifier mention alone does not establish coverage. New safety/security constraints from the documentation review are Proposed and unimplemented until their evidence exists.
+The verification fields below mix existing cases, analysis obligations and planned paths. They are not execution results. [Project status](../STATUS.md) inventories current tools; the Sphinx Needs design catalog and the executed-evidence matrix are implemented. [Timing and evidence](../engineering/timing-and-evidence.md) defines its required profile/configuration scope and outcome fields. A test identifier mention alone does not establish coverage. New safety/security constraints from the documentation review are Proposed and unimplemented until their evidence exists.
 
 Rules:
 

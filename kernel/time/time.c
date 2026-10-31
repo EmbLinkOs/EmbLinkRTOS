@@ -10,6 +10,7 @@
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/time.h>
+#include <embk/timer.h>
 #include <embk/wait.h>
 
 typedef struct embk_time_state {
@@ -22,6 +23,10 @@ typedef struct embk_time_state {
     embk_timeout_t *head; /* the earliest armed deadline, NULL when none; lock: timeout domain */
 #else
     embk_list_t timeouts; /* ordered by deadline; lock: timeout domain */
+#endif
+#if CONFIG_EMB_TIMER
+    embk_list_t timers; /* software timers, ordered by deadline (ADR-047); lock: timeout domain */
+    uint8_t pass;       /* counts expiry passes */
 #endif
 #if CONFIG_EMB_TICKLESS
     emb_arch_timer_raw_t last_raw; /* counter value at which ticks was last exact */
@@ -152,10 +157,15 @@ static void tl_remove(embk_timeout_t *node)
     node->next = NULL;
 }
 #else
+static EMB_INLINE embk_timeout_t *tl_first_in(const embk_list_t *l)
+{
+    embk_list_node_t *n = embk_list_first(l);
+    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_timeout_t, node);
+}
+
 static EMB_INLINE embk_timeout_t *tl_first(void)
 {
-    embk_list_node_t *n = embk_list_first(&ts.timeouts);
-    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_timeout_t, node);
+    return tl_first_in(&ts.timeouts);
 }
 
 static EMB_INLINE bool tl_is_linked(const embk_timeout_t *n)
@@ -163,19 +173,24 @@ static EMB_INLINE bool tl_is_linked(const embk_timeout_t *n)
     return embk_list_node_is_linked(&n->node);
 }
 
-static void tl_insert(embk_timeout_t *node)
+static void tl_insert_in(embk_list_t *l, embk_timeout_t *node)
 {
     /* from the tail: a new deadline is most often later than most; bounded by the armed nodes */
-    embk_list_node_t *p = embk_list_last(&ts.timeouts);
+    embk_list_node_t *p = embk_list_last(l);
     while (p != NULL &&
            embk_tick_before(node->deadline, EMB_CONTAINER_OF(p, embk_timeout_t, node)->deadline)) {
-        p = embk_list_prev(&ts.timeouts, p);
+        p = embk_list_prev(l, p);
     }
     if (p == NULL) {
-        embk_list_prepend(&ts.timeouts, &node->node);
+        embk_list_prepend(l, &node->node);
     } else {
         embk_list_insert_after(p, &node->node); /* equal deadlines expire in arming order */
     }
+}
+
+static EMB_INLINE void tl_insert(embk_timeout_t *node)
+{
+    tl_insert_in(&ts.timeouts, node);
 }
 
 static EMB_INLINE void tl_remove(embk_timeout_t *node)
@@ -223,9 +238,54 @@ bool embk_timeout_is_armed(const embk_timeout_t *node)
     return tl_is_linked(node);
 }
 
+#if CONFIG_EMB_TIMER
+void embk_timer_node_arm(embk_timeout_t *node, emb_tick_t deadline)
+{
+    EMBK_ASSERT(!tl_is_linked(node));
+    node->deadline = deadline;
+    EMB_CONTAINER_OF(node, embk_timer_t, node)->pass = ts.pass;
+    tl_insert_in(&ts.timers, node);
+#if CONFIG_EMB_TICKLESS
+    if (tl_first_in(&ts.timers) == node) {
+        embk_time_program();
+    }
+#endif
+}
+
+void embk_timer_node_disarm(embk_timeout_t *node)
+{
+#if CONFIG_EMB_TICKLESS
+    bool was_head;
+#endif
+    if (!tl_is_linked(node)) {
+        return;
+    }
+#if CONFIG_EMB_TICKLESS
+    was_head = tl_first_in(&ts.timers) == node;
+#endif
+    embk_list_remove(&node->node);
+#if CONFIG_EMB_TICKLESS
+    if (was_head) {
+        embk_time_program();
+    }
+#endif
+}
+
+uint8_t embk_time_pass(void)
+{
+    return ts.pass;
+}
+#endif
+
 bool embk_timeout_next(emb_tick_t *out_deadline)
 {
     const embk_timeout_t *n = tl_first();
+#if CONFIG_EMB_TIMER
+    const embk_timeout_t *m = tl_first_in(&ts.timers);
+    if (m != NULL && (n == NULL || embk_tick_before(m->deadline, n->deadline))) {
+        n = m;
+    }
+#endif
     if (n == NULL) {
         return false;
     }
@@ -233,13 +293,39 @@ bool embk_timeout_next(emb_tick_t *out_deadline)
     return true;
 }
 
-/* Expire every node whose deadline is at or before @now, in deadline order (§5.3). */
-static void expire(emb_tick_t now)
+/* Expire every node whose deadline is at or before @now, in deadline order (§5.3): the
+ * earlier of the two lists' heads first, a thread timeout first on equal deadlines, and
+ * each timer at most once per pass (ADR-047). @key is the timeout lock, which an
+ * EMB_TIMER_ISR_CONTEXT callback runs without. */
+static void expire(emb_tick_t now, emb_irq_key_t *key)
 {
     embk_timeout_t *node;
-    /* bounded by the number of expired nodes */
-    while ((node = tl_first()) != NULL) {
-        if (embk_tick_before(now, node->deadline)) {
+#if CONFIG_EMB_TIMER
+    bool timers_done = false;
+    ts.pass++;
+#endif
+    (void)key;
+    /* bounded by the number of expired nodes; a timer re-armed in this pass waits */
+    for (;;) {
+        node = tl_first();
+#if CONFIG_EMB_TIMER
+        if (!timers_done) {
+            embk_timeout_t *m = tl_first_in(&ts.timers);
+            if (m != NULL && !embk_tick_before(now, m->deadline) &&
+                (node == NULL || embk_tick_before(m->deadline, node->deadline) ||
+                 embk_tick_before(now, node->deadline))) {
+                embk_timer_t *t = EMB_CONTAINER_OF(m, embk_timer_t, node);
+                if (t->pass == ts.pass) {
+                    timers_done = true; /* armed in this pass: the next one expires it */
+                    continue;
+                }
+                embk_list_remove(&m->node);
+                embk_timer_expired(t, now, key);
+                continue;
+            }
+        }
+#endif
+        if (node == NULL || embk_tick_before(now, node->deadline)) {
             break;
         }
         tl_remove(node);
@@ -299,6 +385,10 @@ void embk_time_init(void)
 #else
     embk_list_init(&ts.timeouts);
 #endif
+#if CONFIG_EMB_TIMER
+    embk_list_init(&ts.timers);
+    ts.pass = 0u;
+#endif
 }
 
 void embk_time_start(void)
@@ -329,7 +419,7 @@ void embk_time_timer_isr(void)
     clock_write_end();
     EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
 #endif
-    expire(ts.ticks);
+    expire(ts.ticks, &key);
     embk_time_program();
     embk_unlock_timeout(key);
 }
@@ -339,7 +429,7 @@ void embk_time_on_wake(void)
 #if CONFIG_EMB_TICKLESS
     emb_irq_key_t key = embk_lock_timeout();
     (void)update();
-    expire(ts.ticks);
+    expire(ts.ticks, &key);
     embk_time_program();
     embk_unlock_timeout(key);
 #endif

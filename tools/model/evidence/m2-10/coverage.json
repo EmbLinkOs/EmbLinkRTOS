@@ -1,0 +1,139 @@
+{
+  "total": {
+    "lines": 2900,
+    "lines_hit": 2652,
+    "branches": 1472,
+    "branches_taken": 1067,
+    "line_pct": 91.4,
+    "branch_pct": 72.5
+  },
+  "files": {
+    "kernel/exec/exec.c": {
+      "lines": 108,
+      "lines_hit": 87,
+      "branches": 50,
+      "branches_taken": 32,
+      "executed": true
+    },
+    "kernel/fault/fault.c": {
+      "lines": 38,
+      "lines_hit": 38,
+      "branches": 10,
+      "branches_taken": 9,
+      "executed": true
+    },
+    "kernel/ipc/msgq.c": {
+      "lines": 238,
+      "lines_hit": 220,
+      "branches": 144,
+      "branches_taken": 100,
+      "executed": true
+    },
+    "kernel/irq/irq.c": {
+      "lines": 32,
+      "lines_hit": 21,
+      "branches": 16,
+      "branches_taken": 13,
+      "executed": true
+    },
+    "kernel/notify/notify.c": {
+      "lines": 117,
+      "lines_hit": 111,
+      "branches": 66,
+      "branches_taken": 54,
+      "executed": true
+    },
+    "kernel/sched/sched.c": {
+      "lines": 143,
+      "lines_hit": 135,
+      "branches": 92,
+      "branches_taken": 73,
+      "executed": true
+    },
+    "kernel/sync/cond.c": {
+      "lines": 124,
+      "lines_hit": 113,
+      "branches": 62,
+      "branches_taken": 40,
+      "executed": true
+    },
+    "kernel/sync/event.c": {
+      "lines": 165,
+      "lines_hit": 152,
+      "branches": 92,
+      "branches_taken": 65,
+      "executed": true
+    },
+    "kernel/sync/mutex.c": {
+      "lines": 278,
+      "lines_hit": 242,
+      "branches": 152,
+      "branches_taken": 113,
+      "executed": true
+    },
+    "kernel/sync/sem.c": {
+      "lines": 144,
+      "lines_hit": 139,
+      "branches": 76,
+      "branches_taken": 54,
+      "executed": true
+    },
+    "kernel/thread/thread.c": {
+      "lines": 479,
+      "lines_hit": 442,
+      "branches": 266,
+      "branches_taken": 193,
+      "executed": true
+    },
+    "kernel/time/time.c": {
+      "lines": 197,
+      "lines_hit": 182,
+      "branches": 76,
+      "branches_taken": 64,
+      "executed": true
+    },
+    "kernel/time/timer.c": {
+      "lines": 257,
+      "lines_hit": 241,
+      "branches": 118,
+      "branches_taken": 83,
+      "executed": true
+    },
+    "kernel/trace/trace.c": {
+      "lines": 19,
+      "lines_hit": 19,
+      "branches": 2,
+      "branches_taken": 2,
+      "executed": true
+    },
+    "kernel/wait/wait.c": {
+      "lines": 157,
+      "lines_hit": 147,
+      "branches": 70,
+      "branches_taken": 54,
+      "executed": true
+    },
+    "kernel/work/dwork.c": {
+      "lines": 89,
+      "lines_hit": 79,
+      "branches": 48,
+      "branches_taken": 29,
+      "executed": true
+    },
+    "kernel/work/system_workq.c": {
+      "lines": 10,
+      "lines_hit": 10,
+      "branches": 0,
+      "branches_taken": 0,
+      "executed": true
+    },
+    "kernel/work/workq.c": {
+      "lines": 305,
+      "lines_hit": 274,
+      "branches": 132,
+      "branches_taken": 89,
+      "executed": true
+    }
+  },
+  "exclusions": {}
+}

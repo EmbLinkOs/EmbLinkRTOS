@@ -6,10 +6,19 @@
 
 #include <emb/compiler.h>
 #include <emb/config.h>
+#if CONFIG_EMB_COND
+#include <emb/cond.h>
+#endif
 #include <emb/context.h>
+#if CONFIG_EMB_EVENT
+#include <emb/event.h>
+#endif
 #include <emb/fault.h>
 #include <emb/irq.h>
 #include <emb/kernel.h>
+#if CONFIG_EMB_MSGQ
+#include <emb/msgq.h>
+#endif
 #include <emb/mutex.h>
 #include <emb/notify.h>
 #include <emb/sched.h>
@@ -18,8 +27,14 @@
 #include <emb/storage.h>
 #include <emb/thread.h>
 #include <emb/time.h>
+#if CONFIG_EMB_TIMER
+#include <emb/timer.h>
+#endif
 #include <emb/trace.h>
 #include <emb/types.h>
 #include <emb/version.h>
+#if CONFIG_EMB_WORKQ
+#include <emb/work.h>
+#endif
 
 #endif /* EMB_EMB_H */

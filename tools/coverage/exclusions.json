@@ -1,0 +1,4 @@
+{
+  "_comment": "Kernel files left out of the coverage totals, with the reason (M2-10). Only kernel .c files of the native-coverage build count; files of other profiles (the tiny slim idle context) are not built there. Nothing is excluded: every built kernel file counts.",
+  "files": {}
+}

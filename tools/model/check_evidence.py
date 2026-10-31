@@ -5,6 +5,7 @@
 import argparse
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -27,10 +28,12 @@ def main():
         return result.stdout
     with tempfile.TemporaryDirectory(prefix="emblink-evidence-") as temporary:
         folder = Path(temporary)
-        command("bridge.py", "--runner", args.runner, "--regressions", "--replay-steps", 1,
-                "--capture-dir", folder/"captures", expected=1)
+        out = command("bridge.py", "--runner", args.runner, "--regressions", "--replay-steps", 1,
+                      "--capture-dir", folder/"captures", expected=1)
         captures = sorted((folder/"captures").glob("*.json"))
-        assert len(captures) == 4
+        runs = re.search(r"bridge: 0/(\d+) runs agree", out)
+        assert runs and int(runs.group(1)) >= 4, out    # every applicable regression failed
+        assert len(captures) == int(runs.group(1))
         selected = None
         for path in captures:
             bundle, _sc, _schedule = evidence.read_bundle(path)

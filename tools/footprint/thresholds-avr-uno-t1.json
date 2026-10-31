@@ -1,6 +1,6 @@
 {
-  "_comment": "arduino_uno, tiny profile, release build, samples/footprint_t1 with configs/footprint-t1.conf: the R-003 targets T1 (kernel text <= 4 KB on AVR) and T2 (static RAM <= 64 bytes plus <= 32 bytes per thread) as hard limits. The 64 bytes include the idle context's control block (R-003 section 4, T2 accounting).",
+  "_comment": "arduino_uno, tiny profile, release build, samples/footprint_t1 with configs/footprint-t1.conf: the R-003 targets T1 (kernel text <= 4 KB on AVR) and T2 (<= 32 bytes per thread) as hard limits. Kernel static RAM, which includes the idle context (R-003 section 4, T2 accounting), is gated at its measured 39 bytes rather than the T2 target of 64, so the bytes recovered by ADR-050 and the M2 small savings are not spent silently: raise it only with the change that needs the RAM.",
   "kernel_text_max": 4096,
-  "kernel_ram_max": 64,
+  "kernel_ram_max": 39,
   "tcb_max": 32
 }

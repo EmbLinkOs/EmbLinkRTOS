@@ -17,7 +17,7 @@ MEMORY
 SECTIONS
 {
   .text : {
-    KEEP(*(.text.reset))
+    KEEP(*(.text.embn_rv_reset))
     *(.text .text.*)
   } > RAM
 

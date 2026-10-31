@@ -12,12 +12,28 @@ The configuration pipeline resolves Kconfig defaults seeded by a port manifest, 
 | `native-periodic` | GCC, checked base with a periodic clock for timer/wait validation |
 | `native-clang` | Clang compiler coverage; requires Clang |
 | `native-asan` / `native-tsan` | Sanitizer configurations; require supported compiler runtimes |
+| `native-coverage` | GCC `--coverage` build; after CTest, `tools/coverage/report.py` prints kernel statement and branch coverage |
 
 Use the same preset name for configure, build and CTest. A tiny result does not verify base-only features; a release result does not exercise checked-build faults. Embedded presets additionally require their cross-compiler, libc and emulator; do not interpret a build with no registered tests as conformance.
 
 Onboarding validated the first three GCC presets in this cloud machine. Clang/sanitizer and embedded toolchains are not installed here. CI definitions describe a broader matrix, whose successful outcomes must be recorded separately.
 
 The later [timer-delivery validation](../engineering/m2-01-timer-correction.md) also exercised `native-periodic` and added exact timer-boundary regressions to every applicable native CTest build. Its recorded outcomes distinguish periodic and tickless runs.
+
+## Kernel object options
+
+| Option | Default | Notes |
+|---|---|---|
+| `CONFIG_EMB_EVENT`, `CONFIG_EMB_EVENT_BITS` | y; 32 bits (8 on tiny) | event flags |
+| `CONFIG_EMB_COND` | y (n on tiny) | condition variables; needs `CONFIG_EMB_MUTEX` |
+| `CONFIG_EMB_MSGQ`, `CONFIG_EMB_MSGQ_MAX_ITEM` | y; 64 bytes (16 on tiny) | message queues; the item bound limits the copy made with interrupts masked |
+| `CONFIG_EMB_IPC_SMALL` | n (y on tiny) | 8-bit queue counts, at most 255 items |
+| `CONFIG_EMB_WORKQ` | y | work queues and, with timers, delayed work; not available with the tiny profile's table scheduler |
+| `CONFIG_EMB_SYSTEM_WORKQ`, `_PRIO`, `_STACK` | y; 0 (second-highest priority); 2048 bytes | the system work queue, linked only when `emb_workq_system()` is referenced |
+| `CONFIG_EMB_TIMER` | y | software timers; not available with the table scheduler |
+| `CONFIG_EMB_OBJ_LIST` | y (n on tiny) | exact refusal of init on live storage |
+
+The tiny `footprint_t1` reference configuration turns event flags and message queues off.
 
 ## Add diagnostic options without changing the reference preset
 

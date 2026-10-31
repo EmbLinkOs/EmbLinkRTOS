@@ -47,6 +47,7 @@ typedef struct emb_fault_info {
 
 typedef void (*emb_fault_hook_t)(const emb_fault_info_t *info);
 
+#if CONFIG_EMB_FAULT_HOOK_RUNTIME
 /**
  * emb_fault_set_hook() - Register the function called on every kernel fault.
  * @hook: May run in any context with interrupts masked; NULL removes the hook.
@@ -57,12 +58,33 @@ typedef void (*emb_fault_hook_t)(const emb_fault_info_t *info);
  * @blocks   no
  * @time     O(1)
  * @owns     none
- * @config
+ * @config   CONFIG_EMB_FAULT_HOOK_RUNTIME
  * @req      API-017
  * @since    0.2
  * @stable   yes
  */
 void emb_fault_set_hook(emb_fault_hook_t hook);
+#else
+/**
+ * emb_fault_hook() - The fault hook the application defines when it is bound at link time.
+ * @info: The fault; the same contract as a hook given to emb_fault_set_hook(): it runs
+ *        in any context with interrupts masked, must be bounded and ISR-safe, and @info
+ *        is a temporary record.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     the application's
+ * @owns     none
+ * @config   !CONFIG_EMB_FAULT_HOOK_RUNTIME
+ * @req      API-017
+ * @since    0.2
+ * @stable   no
+ *
+ * The kernel calls it on every fault, and keeps no hook pointer in RAM. Where the
+ * compiler supports weak symbols, an empty default applies when none is defined.
+ */
+void emb_fault_hook(const emb_fault_info_t *info);
+#endif
 
 /**
  * emb_fault() - Raise a kernel fault from application or subsystem code.

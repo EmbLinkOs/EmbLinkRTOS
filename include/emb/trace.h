@@ -36,7 +36,7 @@ enum emb_trace_id {
     EMB_TRACE_MUTEX_UNLOCK = 17, /* a0 = index, a1 = mutex address, a2 = new owner index */
     EMB_TRACE_SEM_TAKE = 18,     /* a0 = index, a1 = sem address, a2 = status */
     EMB_TRACE_SEM_GIVE = 19,     /* a0 = index or 0xFF, a1 = sem address, a2 = count after */
-    EMB_TRACE_NOTIFY_SET = 20,   /* a0 = target index, a1 = bits */
+    EMB_TRACE_NOTIFY_SET = 20,   /* a0 = target index, a1 = bits, a2 = bound object or 0 (A35) */
     EMB_TRACE_NOTIFY_WAIT = 21,  /* a0 = index, a1 = status, a2 = bits */
     EMB_TRACE_SUSPEND = 22,      /* a0 = index */
     EMB_TRACE_RESUME = 23,       /* a0 = index */
@@ -45,8 +45,23 @@ enum emb_trace_id {
     EMB_TRACE_PI_DEPTH = 26,     /* a0 = index, a1 = depth reached */
     EMB_TRACE_IDLE_ENTER = 27,
     EMB_TRACE_IDLE_EXIT = 28,
-    EMB_TRACE_TICK = 29, /* a0 = ticks low word */
-    EMB_TRACE_SLEEP = 30 /* a0 = index, a1 = deadline low word */
+    EMB_TRACE_TICK = 29,         /* a0 = ticks low word */
+    EMB_TRACE_SLEEP = 30,        /* a0 = index, a1 = deadline low word */
+    EMB_TRACE_EVENT_SET = 31,    /* a0 = waiters woken, a1 = event address, a2 = bits after */
+    EMB_TRACE_EVENT_WAIT = 32,   /* a0 = index, a1 = event address, a2 = status */
+    EMB_TRACE_COND_WAIT = 33,    /* a0 = index, a1 = cond address, a2 = status after the relock */
+    EMB_TRACE_COND_SIGNAL = 34,  /* a0 = waiters woken, a1 = cond address, a2 = 1 for broadcast */
+    EMB_TRACE_MSGQ_SEND = 35,    /* a0 = index, a1 = queue address, a2 = status (send, front) */
+    EMB_TRACE_MSGQ_RECEIVE = 36, /* a0 = index, a1 = queue address, a2 = status */
+    EMB_TRACE_WORK_SUBMIT = 37,  /* a0 = queue thread index, a1 = item address, a2 = status */
+    EMB_TRACE_WORK_RUN = 38, /* a0 = queue thread index, a1 = item address, a2 = 0 start, 1 end */
+    EMB_TRACE_WORK_CANCEL = 39,  /* a0 = index or 0xFF, a1 = item address, a2 = state it was in */
+    EMB_TRACE_WORK_WAIT = 40,    /* a0 = index, a1 = item or queue, a2 = status (cancel_sync, flush,
+                                    destroy, timer stop_sync) */
+    EMB_TRACE_TIMER_EXPIRE = 41, /* a0 = periods skipped, a1 = timer address, a2 = expiries */
+    EMB_TRACE_TIMER_START = 42,  /* a0 = deadline low word, a1 = timer address, a2 = period */
+    EMB_TRACE_TIMER_STOP = 43,   /* a0 = index or 0xFF, a1 = timer address, a2 = state found */
+    EMB_TRACE_DWORK_SCHEDULE = 44 /* a0 = index or 0xFF, a1 = item address, a2 = status */
 };
 
 typedef struct emb_trace_event {

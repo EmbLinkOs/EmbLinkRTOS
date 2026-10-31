@@ -1,0 +1,116 @@
+{
+  "schema": "emblink-campaign",
+  "version": 1,
+  "started": "2026-10-30T22:14:22+00:00",
+  "git_sha": "f563ef5ca99cda5898bfcfb328d5e84afc8df257",
+  "tracked_dirty": false,
+  "runs_per_scenario": 40,
+  "seeds": [
+    1,
+    10
+  ],
+  "runners": [
+    {
+      "runner": "build/native-clang/tests/differential/diff_runner",
+      "runner_sha256": "ee53d5980b9ba4af4f00ff013d0030f96b59ee7e4a355283fcde950d70dbd66a",
+      "seeds": {
+        "1": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "2": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "3": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "4": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "5": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "6": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "7": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "8": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "9": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        },
+        "10": {
+          "agree": 3360,
+          "runs": 3360,
+          "skipped": 1,
+          "divergences": 0,
+          "config": "profile=base owner_death=fault checked=1 tickless=1;",
+          "exit": 0
+        }
+      },
+      "regressions": {
+        "agree": 5,
+        "runs": 5,
+        "skipped": 0,
+        "divergences": 0,
+        "config": "profile=base owner_death=fault checked=1 tickless=1;",
+        "exit": 0
+      },
+      "config": "profile=base owner_death=fault checked=1 tickless=1;",
+      "total": {
+        "runs": 33600,
+        "agree": 33600,
+        "divergences": 0
+      }
+    }
+  ],
+  "finished": "2026-10-30T22:16:02+00:00",
+  "divergences": 0
+}

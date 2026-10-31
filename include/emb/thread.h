@@ -92,7 +92,8 @@ void emb_thread_attr_default(emb_thread_attr_t *out_attr);
  *
  * @ctx      prekernel thread
  * @blocks   no
- * @time     bounded scan of at most 254 IDs + stack fill when configured
+ * @time     bounded scan of at most 254 IDs + O(live threads) with CONFIG_EMB_THREAD_LIST
+ *           + stack fill when configured
  * @owns     borrows:storage borrows:attr->stack
  * @config
  * @req      API-021 KRN-THR-004 KRN-THR-007 KRN-THR-015 KRN-THR-023
@@ -138,6 +139,9 @@ emb_status_t emb_thread_start(emb_thread_t thread);
  * @req      KRN-THR-008
  * @since    0.2
  * @stable   yes
+ *
+ * Return: the caller's handle; EMB_HANDLE_NULL outside thread context and in the idle
+ *         context, which is not an application thread (SPEC-008 §11).
  */
 emb_thread_t emb_thread_self(void);
 
@@ -535,11 +539,12 @@ void emb_thread_foreach(emb_thread_visit_t cb, void *arg);
  * @time     O(1)
  * @owns     gives:storage
  * @config
- * @req      KRN-OBJ-001 KRN-THR-024
+ * @req      KRN-OBJ-001 KRN-THR-024 KRN-NOTIF-014
  * @since    0.2
  * @stable   yes
  *
- * Return: EMB_OK; EMB_EBUSY (misuse) for any other state; EMB_EINVAL.
+ * Return: EMB_OK; EMB_EBUSY (misuse) for any other state, or while a notification binding
+ *         names the thread (unbind or destroy the bound object first, ADR-046); EMB_EINVAL.
  */
 emb_status_t emb_thread_destroy(emb_thread_t thread);
 

@@ -18,11 +18,13 @@
 #include <embk/sched.h>
 #include <embk/thread.h>
 
-embk_thread_t embk_idle_thread;
+#if !EMBK_IDLE_SLIM
+embk_thread_t embk_idle_thread; /* slim: sched/idle_context.c allocates the prefix only */
+#endif
 
 #if CONFIG_EMB_SCHED_TABLE
-embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT];
-static embk_word_t ready_set; /* bit i: embk_thread_table[i] is READY */
+embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT - 1];
+static embk_word_t ready_set; /* bit p: EMBK_TABLE_SLOT(p) is READY; bit 0 is never set */
 #if CONFIG_EMB_MUTEX
 uint8_t embk_sched_raised_count; /* threads whose eff_prio != base_prio (lock: sched) */
 #endif
@@ -46,7 +48,7 @@ void embk_sched_init(void)
 {
 #if CONFIG_EMB_SCHED_TABLE
     unsigned i;
-    for (i = 0u; i < (unsigned)CONFIG_EMB_PRIORITY_COUNT; i++) {
+    for (i = 0u; i < (unsigned)CONFIG_EMB_PRIORITY_COUNT - 1u; i++) {
         embk_thread_table[i] = NULL;
     }
     ready_set = 0u;
@@ -65,7 +67,7 @@ void embk_sched_init(void)
     ready_summary = 0u;
 #endif
 #endif
-    embk_thread_init_idle(&embk_idle_thread, NULL, 0u);
+    embk_thread_init_idle(EMBK_IDLE, NULL, 0u);
 }
 
 /* ---- the structure ------------------------------------------------------------ */
@@ -74,7 +76,7 @@ static void insert(embk_thread_t *t, bool ahead)
 {
 #if CONFIG_EMB_SCHED_TABLE
     (void)ahead; /* one thread per level: no order within a level */
-    EMBK_ASSERT(embk_thread_table[t->base_prio] == t);
+    EMBK_ASSERT(EMBK_TABLE_SLOT(t->base_prio) == t);
     ready_set |= EMBK_WORD_BIT(t->base_prio);
 #else
     unsigned p = t->eff_prio;
@@ -112,7 +114,7 @@ void embk_sched_remove_ready(embk_thread_t *t)
 bool embk_sched_is_ready(const embk_thread_t *t)
 {
 #if CONFIG_EMB_SCHED_TABLE
-    return (ready_set & EMBK_WORD_BIT(t->base_prio)) != 0u && embk_thread_table[t->base_prio] == t;
+    return (ready_set & EMBK_WORD_BIT(t->base_prio)) != 0u && EMBK_TABLE_SLOT(t->base_prio) == t;
 #else
     return embk_list_node_is_linked(&t->ready_node);
 #endif
@@ -125,14 +127,15 @@ embk_thread_t *embk_sched_table_best(embk_word_t set)
     if (set == 0u) {
         return NULL;
     }
-    best = embk_thread_table[embk_word_highest(set)];
+    EMBK_ASSERT((set & EMBK_WORD_BIT(0u)) == 0u); /* idle is never in a set */
+    best = EMBK_TABLE_SLOT(embk_word_highest(set));
 #if CONFIG_EMB_MUTEX
     if (embk_sched_raised_count != 0u) {
         /* bounded by CONFIG_EMB_PRIORITY_COUNT: find the highest effective priority */
         embk_word_t rest = set & (embk_word_t)~EMBK_WORD_BIT(best->base_prio);
         while (rest != 0u) {
             unsigned i = embk_word_highest(rest);
-            embk_thread_t *c = embk_thread_table[i];
+            embk_thread_t *c = EMBK_TABLE_SLOT(i);
             if (c->eff_prio > best->eff_prio) {
                 best = c;
             }
@@ -173,7 +176,7 @@ bool embk_sched_should_preempt(uint8_t prio)
     if (cur == NULL) {
         return false; /* prekernel: the start launches the highest */
     }
-    if (cur == &embk_idle_thread || !thread_runnable(cur)) {
+    if (cur == EMBK_IDLE || !thread_runnable(cur)) {
         return true;
     }
     return prio > cur->eff_prio;
@@ -182,7 +185,7 @@ bool embk_sched_should_preempt(uint8_t prio)
 void embk_sched_make_ready(embk_thread_t *t, bool ahead)
 {
     EMBK_ASSERT(!embk_sched_is_ready(t));
-    EMBK_ASSERT(t != &embk_idle_thread);
+    EMBK_ASSERT(t != EMBK_IDLE);
     insert(t, ahead);
     if (embk_sched_should_preempt(t->eff_prio)) {
         embk_cpu.reschedule_pending = 1u;
@@ -196,7 +199,7 @@ void embk_sched_make_ready(embk_thread_t *t, bool ahead)
 bool embk_sched_current_runnable(void)
 {
     const embk_thread_t *cur = embk_cpu.current;
-    return cur != &embk_idle_thread && thread_runnable(cur);
+    return cur != EMBK_IDLE && thread_runnable(cur);
 }
 
 /* ---- the decision --------------------------------------------------------------- */
@@ -205,6 +208,11 @@ static void check_stack(const embk_thread_t *t)
 {
 #if CONFIG_EMB_STACK_CHECK
     unsigned i;
+#if EMBK_IDLE_SLIM
+    if (t == EMBK_IDLE) {
+        return; /* it runs on the pre-kernel stack and keeps no stack record (ADR-050) */
+    }
+#endif
     if (t->stack_base != NULL) {
         /* bounded: EMBK_STACK_GUARD_BYTES */
         for (i = 0u; i < EMBK_STACK_GUARD_BYTES; i++) {
@@ -225,7 +233,7 @@ embk_thread_t *embk_sched_select(bool yield)
 {
     embk_thread_t *cur = embk_cpu.current;
     embk_thread_t *next = embk_sched_peek();
-    bool runnable = cur != &embk_idle_thread && thread_runnable(cur);
+    bool runnable = cur != EMBK_IDLE && thread_runnable(cur);
 
     embk_cpu.reschedule_pending = 0u;
     if (runnable) {
@@ -238,7 +246,7 @@ embk_thread_t *embk_sched_select(bool yield)
     if (next != NULL) {
         embk_sched_remove_ready(next);
     } else {
-        next = &embk_idle_thread;
+        next = EMBK_IDLE;
     }
     if (next == cur) {
         return NULL;
@@ -335,5 +343,8 @@ void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
         if (top != NULL && top->eff_prio > t->eff_prio) {
             embk_cpu.reschedule_pending = 1u;
         }
+    } else if (embk_cpu.current != NULL && t->eff_prio > embk_cpu.current->eff_prio &&
+               embk_sched_is_ready(t)) {
+        embk_cpu.reschedule_pending = 1u; /* a ready thread raised above the running one */
     }
 }

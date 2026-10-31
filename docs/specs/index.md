@@ -4,6 +4,7 @@
 :maxdepth: 1
 
 AMENDMENTS-M1
+AMENDMENTS-M2
 SPEC-001-api-conventions
 SPEC-002-interrupts-and-critical-sections
 SPEC-003-time-timeouts-and-timers

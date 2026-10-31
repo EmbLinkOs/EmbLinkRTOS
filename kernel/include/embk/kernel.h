@@ -35,9 +35,15 @@
 
 /* ---- object header (SPEC-009) ------------------------------------------------- */
 
+#define EMBK_OBJ_IDLE   ((uint8_t)0x50u) /* the idle context: no handle resolves to it */
 #define EMBK_OBJ_THREAD ((uint8_t)0x51u)
 #define EMBK_OBJ_SEM    ((uint8_t)0x52u)
 #define EMBK_OBJ_MUTEX  ((uint8_t)0x53u)
+#define EMBK_OBJ_EVENT  ((uint8_t)0x54u)
+#define EMBK_OBJ_COND   ((uint8_t)0x55u)
+#define EMBK_OBJ_MSGQ   ((uint8_t)0x56u)
+#define EMBK_OBJ_WORKQ  ((uint8_t)0x57u)
+#define EMBK_OBJ_TIMER  ((uint8_t)0x58u)
 
 #define EMBK_OBJ_UNINIT     ((uint8_t)0u)
 #define EMBK_OBJ_ACTIVE     ((uint8_t)1u)
@@ -119,8 +125,9 @@ typedef uint8_t embk_wait_result_t;
 #define EMBK_THREAD_KERNEL         ((uint8_t)0x40u) /* idle or work-queue thread */
 #define EMBK_THREAD_CRITICAL       ((uint8_t)0x80u)
 
-/* A thread's type-specific obj.flags bits (SPEC-009 §2): the notification mode of the
- * current wait (bits 0 to 1) and the wake result (bits 2 to 4). */
+/* A thread's type-specific obj.flags bits (SPEC-009 §2): the mode of the current bit wait,
+ * notification or event flags (bits 0 to 1, ANY/ALL and CLEAR), and the wake result
+ * (bits 2 to 4). An event flag wait keeps its mask in wake_data until woken (A38). */
 #define EMBK_TOBJ_NOTIFY_MASK  ((uint8_t)0x03u)
 #define EMBK_TOBJ_RESULT_SHIFT 2u
 #define EMBK_TOBJ_RESULT_MASK  ((uint8_t)0x1Cu)
@@ -148,7 +155,13 @@ struct embk_thread {
 #if CONFIG_EMB_CHECKED
     uint8_t lock_depth; /* the critical-section depth of this thread's context while switched out */
 #endif
-    embk_wait_gen_t wait_gen;
+    /* the slim idle context ends here (EMBK_IDLE_BYTES, ADR-050) */
+#if !CONFIG_EMB_SCHED_TABLE
+    embk_wait_gen_t wait_gen; /* the table profile is uniprocessor only: nothing reads it (A15) */
+#endif
+#if CONFIG_EMB_NOTIFY
+    uint8_t bind_refs; /* objects whose notification binding names this thread (ADR-046) */
+#endif
     uintptr_t wake_data; /* the waker's datum; the exit code once TERMINATED (SPEC-008 §5) */
     embk_wait_queue_t *wait_queue; /* the queue the thread waits in, or NULL */
 #if !CONFIG_EMB_SCHED_TABLE
@@ -176,6 +189,16 @@ struct embk_thread {
 };
 
 #define EMBK_STACK_GUARD_BYTES 8u
+
+/* The prefix of a control block the idle context uses (ADR-050). Defined for the table
+ * profile, the only one with a slim idle context. */
+#if CONFIG_EMB_SCHED_TABLE
+#if CONFIG_EMB_NOTIFY
+#define EMBK_IDLE_BYTES offsetof(embk_thread_t, bind_refs)
+#else
+#define EMBK_IDLE_BYTES offsetof(embk_thread_t, wake_data)
+#endif
+#endif
 
 static EMB_INLINE uint8_t embk_thread_index(const embk_thread_t *t)
 {

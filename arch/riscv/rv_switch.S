@@ -173,7 +173,7 @@ embn_rv_vectors:
 /* Reset (QEMU virt with -bios none starts here in machine mode; the ESP32-C3's boot ROM
  * jumps here once it has loaded the image): interrupts off, the
  * stack, .bss cleared, then C. Everything is loaded in RAM, so .data needs no copy. */
-        .section .text.reset, "ax"
+        .section .text.embn_rv_reset, "ax" /* the one function this name can belong to */
         .globl  embn_rv_reset
         .align  2
 embn_rv_reset:

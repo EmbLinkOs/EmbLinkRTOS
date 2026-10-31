@@ -63,6 +63,9 @@ extern "C" {
 #endif
 #ifndef EMB_WEAK
 #define EMB_WEAK
+#define EMB_HAS_WEAK 0 /* a default definition cannot be overridden */
+#else
+#define EMB_HAS_WEAK 1
 #endif
 #ifndef EMB_ALIAS
 #define EMB_ALIAS(sym)
@@ -141,6 +144,10 @@ extern "C" {
 /* A registration-table entry: placed by its section name alone, never by a
  * program-memory attribute (which overrides the section on GCC for AVR). */
 #define EMB_TABLE_CONST const
+/* What a table entry needs so that its section stays a dense array (sanitizers). */
+#ifndef EMB_TABLE_ENTRY_ATTR
+#define EMB_TABLE_ENTRY_ATTR
+#endif
 
 /* The bounds of a bracketed registration table (09 §7): declare once per file with
  * EMB_TABLE_BOUNDS, read with EMB_TABLE_START and EMB_TABLE_STOP. The fallback is the

@@ -4,7 +4,48 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Changed
+
+- The tiny thread table has no slot for idle, and `CONFIG_EMB_FAULT_HOOK_RUNTIME=n` binds the fault hook at link time through an application-defined `emb_fault_hook()` (weak empty default), keeping no hook pointer in RAM. The `footprint_t1` reference configuration uses it; AVR `footprint_t1` kernel static RAM is 39 bytes and its gate is lowered from 64 to that value.
+
+- The idle context is no longer reachable through a thread handle, and `emb_thread_self()` returns `EMB_HANDLE_NULL` in it (KRN-THR-026, ADR-050). On the tiny profile without an idle thread only the prefix of its control block is allocated: AVR `footprint_t1` kernel static RAM drops from 64 to 43 bytes.
+
+- The historical M2-01 `cancel_waiter_disinherits` seed-5 report is closed as not reproducible (input unavailable, cause unknown) after bounded triage: not fixed, not classified, still listed among the known limits, with named reopen triggers. `timing-and-evidence.md` defines that disposition.
+
+- `emb_sem_init()` and `emb_mutex_init()` refuse storage that still holds an active object of their type (fault in checked builds, `EMB_EBUSY` in release) instead of overwriting it, when `CONFIG_EMB_OBJ_LIST` is on (default except on the tiny profile). Storage is reused only through destroy. Semaphore and mutex storage grows by one list node where the option is on. KRN-OBJ-007 now specifies `EMB_EBUSY` instead of `EMB_EEXIST` (ADR-045).
+
 ### Added
+
+- The M2 contract decisions are accepted: amendments A29 to A61 and ADR-045 to ADR-048 and ADR-050 (project-owner review, 2026-10-31).
+
+- The M2 exit review (`docs/engineering/m2-exit-review.md`): every checklist item with its pull requests and evidence, the reconciliation of APIs, configuration, model and requirements, the defects found, and the remaining M3a hardware work.
+
+- The M2-10 integrated campaign: combined model scenarios across primitives, a `native-coverage` preset with `tools/coverage/report.py` (statement and branch coverage, run in CI), and `tools/model/campaign.py`, whose 158,800-run summaries are archived under `tools/model/evidence/m2-10/` (see `docs/engineering/m2-10-campaign.md`).
+
+- Delayed work (`emb_dwork_t`, M2-09, KRN-WQ-003/007): an item that an internal interrupt-context timer submits to a work queue after a delay or at an instant, with idempotent schedule, reschedule, cancel reporting a stopped delay or removed item as pending, and `cancel_sync`. The queue cannot be destroyed while a delay names it. The reference model, the differential bridge and the work queue conformance suite cover it.
+
+- Software timers (`CONFIG_EMB_TIMER`, `include/emb/timer.h`, M2-09): one-shot and periodic timers whose callbacks run on a named work queue or, with `EMB_TIMER_ISR_CONTEXT`, in the expiry interrupt. Periodic timers re-arm from the previous deadline, skip missed periods in closed form and count them with coalesced callbacks as overruns; `stop` reports the callback's state and `stop_sync` waits for it. Timers have their own deadline list, merged with thread timeouts at expiry (ADR-047). The reference model, the differential bridge and a conformance suite cover them; they require the list scheduler, so the tiny profile has none in this milestone.
+
+- The RISC-V reset code is in its own `.text.embn_rv_reset` section, so an application function named `reset` built with `-ffunction-sections` can no longer take the reset vector's place.
+
+- Work queues (`CONFIG_EMB_WORKQ`, `include/emb/work.h`, M2-08): a kernel thread per queue runs submitted items one at a time in FIFO order. Submit is O(1) and ISR-safe, idempotent while queued and kept while running; cancel reports the state, `cancel_sync` and `flush` wait for completion, and destroy joins the queue's thread. The system work queue (`CONFIG_EMB_SYSTEM_WORKQ`) is linked only into images that reference `emb_workq_system()`. The reference model, the differential bridge and a conformance suite cover them; they require the list scheduler, so the tiny profile has none in this milestone.
+
+- Message queues (`CONFIG_EMB_MSGQ`, `include/emb/msgq.h`, M2-07): fixed-size items copied by value through a caller-provided ring declared with `EMB_MSGQ_RING()`, with direct hand-off to a waiting receiver, slot hand-off from a waiting sender, `send_front`, `peek`, `count` and `free`, `EMB_NO_WAIT` calls from interrupts, timeouts and absolute deadlines, cancellation, destroy with ABORT_WAITERS, and a receive-side notification binding. Items are bounded by `CONFIG_EMB_MSGQ_MAX_ITEM` (64 bytes, 16 on tiny, where `CONFIG_EMB_IPC_SMALL` keeps 8-bit counts). The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.
+
+- The reference model covers copy-by-value message queues ahead of their implementation (KRN-IPC-022, M2-07): send, send_front, receive and peek, ISR calls with `EMB_NO_WAIT`, hand-off to a waiting receiver, refill from a waiting sender, destroy, and the empty-to-nonempty binding, checking in every explored state that each accepted item is received once, still stored or dropped by destroy, and that no side waits while the other could proceed.
+
+- Condition variables (`CONFIG_EMB_COND`, `include/emb/cond.h`, M2-06): an atomic enqueue-and-release wait, signal and broadcast, and a mandatory, non-cancelable relock on every result, with `EMB_EOWNERDEAD` and relock failures taking precedence. The reference model, the differential bridge and a conformance suite cover them; they are off on the tiny profile.
+
+- Event flags (`CONFIG_EMB_EVENT`, `include/emb/event.h`, M2-05): ANY/ALL waits with optional CLEAR, deterministic consumption in queue order, ISR-safe set and clear, timeouts, cancellation, destroy with ABORT_WAITERS, and notification binding with unbind. The reference model, the differential bridge and a conformance suite cover them; they are off in the tiny `footprint_t1` reference configuration.
+
+- A reviewed resource-bound inventory (`docs/engineering/resource-bounds.json` and its page) for every cost input in the public `@time` annotations, with `tools/evidence/check_bounds.py` failing CI when a non-constant cost has no entry (M2-04).
+
+- Executed case evidence (M2-04): conformance runs print each case's requirement citations and outcome with assertion and skip counts; `tools/evidence/collect.py` gathers them from the CTest log of any port, CI uploads them per configuration, and `tools/evidence/matrix.py` derives the requirement-by-configuration matrix from executed, asserting cases only.
+
+- `emb_sem_unbind_notify()` (KRN-NOTIF-013). A thread counts the bindings that name it, and `emb_thread_destroy()` refuses it while any does; `emb_sem_bind_notify()` refuses terminated (`EMB_ESTATE`) and kernel (`EMB_EPERM`) targets (KRN-NOTIF-014, ADR-046). The reference model and the differential bridge cover bind, unbind and thread destroy.
+
+- `CONFIG_EMB_OBJ_LIST`: per-type lists of active semaphores and mutexes (KRN-OBJ-011).
+- A `.clangd` and exported `compile_commands.json` for editor support; `.clang-tidy` disables, with reasons, the checks that contradict the coding standard.
 
 - Stable numeric IDs in public API misuse fault records, a generated header and downloadable decoder map, with checked-in assignments and compatibility checks. Shared helpers retain the public caller ID and location strings remain optional.
 
@@ -37,6 +78,10 @@ User-visible changes are recorded here. There are no released versions or releas
 - Pinned EmbCC ten-item capability review, scoped local compiler/tool/EmbSim evidence and current RTOS integration findings.
 
 ### Fixed
+
+- Raising a ready thread's priority above the running thread with `emb_thread_set_priority()` now preempts at once; before, the caller ran on until its next block or yield (found by the M2-10 campaign).
+
+- The conformance suites run under AddressSanitizer on macOS: registration-table entries no longer get Mach-O redzones that the table walk read as entries.
 
 - Thread diagnostic IDs remain stable across priority changes on tiny and unique among live objects on every profile. IDs are released only by successful destroy; exhaustion returns `EMB_ENOMEM` without partial construction.
 

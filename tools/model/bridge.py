@@ -28,9 +28,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from embmodel import (Cancel, Destroy, Exit, Give, Join, Lock, ModelError, NotifySet,  # noqa: E402
-                      NotifyWait, Policy, Reason, Result, Resume, Scenario, SchedLock, SchedUnlock,
-                      SetPrio, Sleep, Start, Suspend, Take, Unlock, Yield, build, FOREVER, NO_WAIT)
+from embmodel import (BindNotify, Cancel, CondBroadcast, CondDestroy, CondSignal, CondWait,  # noqa: E402
+                      Destroy, EventClear, EventDestroy, EventSet,
+                      EventWait, Exit, Give, Join, Lock, ModelError, MsgDestroy, MsgPeek, MsgRecv,
+                      MsgSend, MsgSendFront, Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy,
+                      TimerStart, TimerStop, TimerStopSync, DworkSchedule, DworkCancel, DWORK_TIMER_BASE,
+                      NONWAIT_RESULT_OPS, NotifySet, NotifyWait, Policy, Reason, Result, Resume, Scenario,
+                      SchedLock, SchedUnlock, SetPrio, Sleep, Start, Suspend, Take, ThreadDestroy,
+                      UnbindNotify, Unlock, Yield, build, FOREVER, NO_WAIT, TIMER_WORK_BASE)
 from tests import scenarios as catalogue  # noqa: E402
 
 # ---- the kernel's trace vocabulary (include/emb/trace.h, M1 subset) ------------------------
@@ -39,6 +44,12 @@ TR_SWITCH, TR_THREAD_INIT, TR_THREAD_START, TR_THREAD_EXIT, TR_THREAD_JOIN = 1, 
 TR_BLOCK, TR_WAKE, TR_TIMEOUT_ARM, TR_TIMEOUT_EXPIRE = 6, 7, 8, 9
 TR_MUTEX_LOCK, TR_MUTEX_UNLOCK, TR_SEM_TAKE, TR_SEM_GIVE = 16, 17, 18, 19
 TR_NOTIFY_SET, TR_NOTIFY_WAIT, TR_FAULT, TR_TICK = 20, 21, 25, 29
+TR_EVENT_SET, TR_EVENT_WAIT = 31, 32
+TR_COND_WAIT, TR_COND_SIGNAL = 33, 34
+TR_MSGQ_SEND, TR_MSGQ_RECEIVE = 35, 36
+TR_WORK_RUN, TR_WORK_WAIT = 38, 40
+TR_TIMER_EXPIRE, TR_TIMER_START, TR_TIMER_STOP = 41, 42, 43
+CTX_THREAD = 0                         # emb_context_t
 EV_ISR_MARK = 1000                     # the runner's own record: ISR body i starts
 EV_INDEX_MARK = 1001                   # the runner's record: thread tid now has index i
 IDLE_INDEX = 0xFE
@@ -47,7 +58,11 @@ KERNEL_START_FROM = 0xFF
 # emb_status_t -> Result (status.h; the model's EPERM stands in for EBUSY at a second joiner)
 STATUS_TO_RESULT = {0: Result.SATISFIED, -4: Result.TIMEOUT, -5: Result.CANCELED, -6: Result.DESTROYED,
                     -16: Result.STALE, -32: Result.DEADLOCK, -1: Result.EPERM, -3: Result.EPERM,
-                    -2: Result.STALE}   # EINVAL on a wait: the pointer handle of a destroyed object
+                    -2: Result.STALE,   # EINVAL on a wait: the pointer handle of a destroyed object
+                    -14: Result.STATE}  # ESTATE: a condition wait on a recursively held mutex
+# emb_status_t -> Result for the non-wait operations whose status is compared (M2-03 binding lifetime)
+NONWAIT_STATUS_TO_RESULT = {0: Result.SATISFIED, -1: Result.EPERM, -2: Result.STALE, -3: Result.BUSY,
+                            -12: Result.NOENT, -13: Result.EXIST, -14: Result.STATE}
 # EMB_WAIT_REASON_* (thread.h: NONE 0, START 1, SUSPEND 2, SLEEP 3, OBJECT 4, JOIN 5, NOTIFY 6) -> Reason
 KREASON_TO_REASON = {1: Reason.START, 2: Reason.SUSPEND, 3: Reason.SLEEP, 4: Reason.OBJECT,
                      5: Reason.JOIN, 6: Reason.NOTIFY}
@@ -70,6 +85,14 @@ def fault_result(fault_class, code):
     if fault_class == 3:                   # EMB_FAULT_API_HANDLE: a destroyed object's handle
         return Result.STALE
     return STATUS_TO_RESULT.get(-code)     # EMB_FAULT_API_OWNER etc.: the status the call carries
+
+
+def fault_results(fault_class, code) -> set:
+    """Every model result the fault may stand for, waits and non-wait operations alike."""
+    out = {fault_result(fault_class, code)}
+    if fault_class != 3:
+        out.add(NONWAIT_STATUS_TO_RESULT.get(-code))
+    return out - {None}
 
 
 # ---- scenario encoding for the runner -------------------------------------------------------
@@ -115,6 +138,58 @@ def encode_op(op) -> str:
         return f"start {op.tid}"
     if isinstance(op, Join):
         return f"join {op.tid} {_t(op.timeout)}"
+    if isinstance(op, BindNotify):
+        return f"bind {op.sem} {op.tid} {op.bit}"
+    if isinstance(op, UnbindNotify):
+        return f"unbind {op.sem}"
+    if isinstance(op, ThreadDestroy):
+        return f"tdestroy {op.tid}"
+    if isinstance(op, EventSet):
+        return f"eset {op.event} {op.bits}"
+    if isinstance(op, EventClear):
+        return f"eclear {op.event} {op.bits}"
+    if isinstance(op, EventWait):
+        return f"ewait {op.event} {op.mask} {int(op.all)} {int(op.clear)} {_t(op.timeout)}"
+    if isinstance(op, EventDestroy):
+        return f"edestroy {op.event}"
+    if isinstance(op, CondWait):
+        return f"cwait {op.cond} {op.mutex} {_t(op.timeout)}"
+    if isinstance(op, CondSignal):
+        return f"csignal {op.cond}"
+    if isinstance(op, CondBroadcast):
+        return f"cbcast {op.cond}"
+    if isinstance(op, CondDestroy):
+        return f"cdestroy {op.cond}"
+    if isinstance(op, MsgSend):
+        return f"qsend {op.q} {op.value} {_t(op.timeout)}"
+    if isinstance(op, MsgSendFront):
+        return f"qfront {op.q} {op.value}"
+    if isinstance(op, MsgRecv):
+        return f"qrecv {op.q} {_t(op.timeout)}"
+    if isinstance(op, MsgPeek):
+        return f"qpeek {op.q}"
+    if isinstance(op, MsgDestroy):
+        return f"qdestroy {op.q}"
+    if isinstance(op, Submit):
+        return f"submit {op.q} {op.w}"
+    if isinstance(op, WorkCancel):
+        return f"wcancel {op.w}"
+    if isinstance(op, WorkCancelSync):
+        return f"wcsync {op.w} {_t(op.timeout)}"
+    if isinstance(op, WorkFlush):
+        return f"wflush {op.q} {_t(op.timeout)}"
+    if isinstance(op, WorkqDestroy):
+        return f"wqdestroy {op.q}"
+    if isinstance(op, TimerStart):
+        return f"tstart {op.timer} {op.first} {op.period}"
+    if isinstance(op, TimerStop):
+        return f"tstop {op.timer}"
+    if isinstance(op, TimerStopSync):
+        return f"tsync {op.timer} {_t(op.timeout)}"
+    if isinstance(op, DworkSchedule):
+        return f"{'dresched' if op.replace else 'dsched'} {op.q} {op.w} {op.delay}"
+    if isinstance(op, DworkCancel):
+        return f"dcancel {op.w}"
     raise ValueError(f"unknown op {op!r}")
 
 
@@ -131,6 +206,32 @@ def encode_scenario(sc: Scenario) -> str:
             tid, bit = cfg["binding"]
             attrs.append(f"bind={tid}.{bit}")
         parts.append(f"S{sid}=" + ",".join(attrs))
+    for cid, cfg in sc.conds.items():
+        parts.append(f"C{cid}={int(cfg.get('policy') == Policy.FIFO)}")
+    for eid, cfg in sc.events.items():
+        attrs = [str(cfg.get("bits", 0))]
+        if cfg.get("policy") == Policy.FIFO:
+            attrs.append("fifo")
+        if cfg.get("binding") is not None:
+            tid, bit = cfg["binding"]
+            attrs.append(f"bind={tid}.{bit}")
+        parts.append(f"E{eid}=" + ",".join(attrs))
+    for qid, cfg in sc.msgqs.items():
+        attrs = [str(cfg.get("capacity", 1))]
+        if cfg.get("policy") == Policy.FIFO:
+            attrs.append("fifo")
+        if cfg.get("binding") is not None:
+            tid, bit = cfg["binding"]
+            attrs.append(f"bind={tid}.{bit}")
+        parts.append(f"Q{qid}=" + ",".join(attrs))
+    for q, cfg in sc.workqs.items():
+        parts.append(f"W{q}={cfg['tid']},{cfg['prio']}")
+    for w, cfg in sc.works.items():
+        kind = "K" if cfg.get("delayed") else "H"                    # K: an emb_dwork_t
+        parts.append(f"{kind}{w}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
+    for t, cfg in sc.timers.items():
+        mode = "isr" if cfg.get("isr") else f"q{cfg['q']}"
+        parts.append(f"R{t}={mode}:" + ";".join(encode_op(op) for op in cfg.get("body", ())))
     for mid, cfg in sc.mutexes.items():
         proto = int(cfg.get("protocol", 0))
         parts.append(f"M{mid}={proto},{cfg.get('ceiling', 0)},{int(bool(cfg.get('recursive', False)))}")
@@ -149,6 +250,10 @@ class Run:
         self.results = {}       # tid -> {op_index: (status, data)}
         self.states = {}        # tid -> (state, reason)
         self.sems = {}          # sid -> count
+        self.evflags = {}       # eid -> bits
+        self.msgqs = {}         # qid -> stored items, head first
+        self.works = {}         # w -> emb_work_state_t
+        self.timers = {}        # t -> (expiries, overruns, armed)
         self.end = None         # ("done",) or ("fault", class, code)
         self.events_lost = 0
         self.exit_code = 0
@@ -212,6 +317,14 @@ def parse_run(stdout: str, stderr: str = "", exit_code: int = 0) -> Run:
             r.states[int(f[1])] = (int(f[2]), int(f[3]))
         elif f[0] == "sem":
             r.sems[int(f[1])] = int(f[2])
+        elif f[0] == "evflag":
+            r.evflags[int(f[1])] = int(f[2])
+        elif f[0] == "msgq":
+            r.msgqs[int(f[1])] = tuple(int(x) for x in f[2:])
+        elif f[0] == "work":
+            r.works[int(f[1])] = int(f[2])
+        elif f[0] == "timer":
+            r.timers[int(f[1])] = (int(f[2]), int(f[3]), f[4] == "1")
         elif f[0] == "events_lost":
             r.events_lost = int(f[1])
         elif f[0] == "end":
@@ -245,14 +358,15 @@ def kernel_canonical(run: Run):
             raise Divergence(f"kernel event names an unknown thread index {idx}")
         return tid_of[idx]
 
-    for (eid, _ctx, ticks, a0, a1, a2) in run.events:
+    for (eid, ctx, ticks, a0, a1, a2) in run.events:
         if eid == TR_SWITCH:
             out.append(("switch", thr(a1)))
         elif eid == TR_BLOCK:
             out.append(("wait_begin", thr(a0), KREASON_TO_REASON[a1], ("q", a2)))
         elif eid == TR_WAKE:
             out.append(("wake", thr(a0), KWAKE_TO_RESULT[a1]))
-        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK):
+        elif eid in (TR_SEM_TAKE, TR_NOTIFY_WAIT, TR_MUTEX_LOCK, TR_EVENT_WAIT, TR_COND_WAIT) or \
+                (eid in (TR_MSGQ_SEND, TR_MSGQ_RECEIVE, TR_WORK_WAIT) and ctx == CTX_THREAD):  # ISR calls never wait
             st = a1 if eid == TR_NOTIFY_WAIT else a2
             st = st - (1 << 64) if st >= (1 << 63) else st   # printed as unsigned long
             res = Result.SATISFIED if st == -7 else STATUS_TO_RESULT.get(st)
@@ -264,6 +378,12 @@ def kernel_canonical(run: Run):
             out.append(("wait_end", thr(a0), STATUS_TO_RESULT[st]))
         elif eid == TR_NOTIFY_SET:
             out.append(("notify_set", thr(a0), a1))
+        elif eid in (TR_TIMER_START, TR_TIMER_EXPIRE):            # the only record of a silent start
+            out.append(("timer_start" if eid == TR_TIMER_START else "timer_expire", ("t", a1)))
+        elif eid == TR_TIMER_STOP:                                # and of what a stop found
+            out.append(("timer_stop", ("t", a1), a2))
+        elif eid == TR_WORK_RUN:                                  # a handler's start (0) and end (1)
+            out.append(("work_run", ("w", a1), a2))
         elif eid == TR_MUTEX_UNLOCK:
             out.append(("mutex_unlock", thr(a0), ("m", a1), None if a2 == 0xFF else thr(a2)))
         elif eid == TR_THREAD_EXIT:
@@ -325,6 +445,12 @@ def model_canonical(cur, trace, act) -> list:
                 out.append(("thread_exit", ev[1], ev[2]))
         elif name == "thread_start":
             out.append(("thread_start", ev[1]))
+        elif name in ("timer_start", "timer_expire"):
+            out.append((name, ("t", ev[1])))
+        elif name == "timer_stop":
+            out.append((name, ("t", ev[1]), ev[2]))
+        elif name == "work_run":
+            out.append((name, ("w", ev[1]), ev[2]))
         # mutex_lock, notify_dropped, stale_timeout: no kernel counterpart
         i += 1
     return out
@@ -367,6 +493,16 @@ class Replay:
             if mm in mmap.values():
                 return False
             mmap[km] = mm
+            return True
+        if kev[0] in ("timer_start", "timer_expire", "timer_stop", "work_run"):
+            if kev[2:] != mev[2:]:
+                return False                                    # a stop's state, a run's phase
+            kt, mt = (kev[1][0], kev[1][1]), mev[1]            # learned like a queue address, tagged
+            if kt in qmap:
+                return qmap[kt] == mt
+            if mt in qmap.values():
+                return False
+            qmap[kt] = mt
             return True
         if kev[0] == "tick":
             return True                     # the tick count is compared through the events it causes
@@ -418,9 +554,9 @@ class Replay:
                     continue
                 if nxt[0] == "fault":
                     # a checked build faults on misuse where the model records the error result
-                    want = fault_result(nxt[1], nxt[2])
+                    want = fault_results(nxt[1], nxt[2])
                     new = [res for tid, t in n.threads.items() for res in t.results[before[tid]:]]
-                    if want is not None and any(res[1] == want for res in new):
+                    if any(res[1] in want for res in new):
                         candidates.append((n, pos + 1, qmap, mmap, path + (act, "fault"), last_ticks))
                     elif not model_canonical(k.current, n.trace, act):
                         candidates.append((n, pos, qmap, mmap, path + (act,), last_ticks))
@@ -508,6 +644,8 @@ class Replay:
         if path and path[-1] == "fault":
             raise Divergence("the model faulted where the kernel did not")
         for tid, t in k.threads.items():
+            if tid not in self.sc.threads:
+                continue                                  # a work queue's thread: no program, no handle
             kres = r.results.get(tid, {})
             prog = self.sc.threads[tid][1]
             for (op_index, result, data) in t.results:
@@ -517,14 +655,22 @@ class Replay:
                 if op_index not in kres:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel has no result")
                 kstatus, kdata = kres[op_index]
-                kres_mapped = STATUS_TO_RESULT.get(kstatus)
+                kmap = NONWAIT_STATUS_TO_RESULT if isinstance(op, NONWAIT_RESULT_OPS) else STATUS_TO_RESULT
+                kres_mapped = kmap.get(kstatus)
                 if isinstance(op, Sleep) and kstatus == 0:
                     kres_mapped = Result.TIMEOUT          # a completed sleep is EMB_OK in the kernel
                 if kres_mapped != result:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model {result.name}, kernel status {kstatus}")
-                if isinstance(op, (NotifyWait, Join, Lock)) and result == Result.SATISFIED and kdata != data:
+                if isinstance(op, (NotifyWait, Join, Lock, EventWait, CondWait, MsgRecv, MsgPeek, WorkCancel,
+                                   TimerStop, DworkCancel)) \
+                        and result == Result.SATISFIED \
+                        and kdata != data:
                     raise Divergence(f"thread {tid} op {op_index} {op!r}: model data {data}, kernel data {kdata}")
             kstate = r.states.get(tid)
+            if t.destroyed:
+                if kstate is not None:
+                    raise Divergence(f"thread {tid}: destroyed in the model, the kernel reports state {kstate}")
+                continue                                  # no handle names it any more
             if kstate is None:
                 raise Divergence(f"thread {tid}: no final state from the kernel")
             k_blocked = kstate[0] == STATE_BLOCKED and kstate[1] != REASON_SUSPEND_K
@@ -536,6 +682,23 @@ class Replay:
         for sid, s in k.sems.items():
             if sid in r.sems and not s.destroyed and r.sems[sid] != s.count:
                 raise Divergence(f"semaphore {sid}: kernel count {r.sems[sid]}, model {s.count}")
+        for eid, e in k.events.items():
+            if eid in r.evflags and not e.destroyed and r.evflags[eid] != e.bits:
+                raise Divergence(f"event flags {eid}: kernel bits {r.evflags[eid]:#x}, model {e.bits:#x}")
+        for tm, t in k.timers.items():
+            if tm >= DWORK_TIMER_BASE:
+                continue                                  # a delayed item's internal timer: its events cover it
+            if r.timers.get(tm) != (t.expiries, t.overruns, t.deadline is not None):
+                raise Divergence(f"timer {tm}: kernel (expiries, overruns, armed) {r.timers.get(tm)}, "
+                                 f"model {(t.expiries, t.overruns, t.deadline is not None)}")
+        for wid, w in k.works.items():
+            if wid >= TIMER_WORK_BASE:
+                continue                                  # a timer's embedded item: the timer line covers it
+            if r.works.get(wid) != w.state:
+                raise Divergence(f"work item {wid}: kernel state {r.works.get(wid)}, model {w.state}")
+        for qid, q in k.msgqs.items():
+            if not q.destroyed and r.msgqs.get(qid) != q.ring:
+                raise Divergence(f"message queue {qid}: kernel items {r.msgqs.get(qid)}, model {q.ring}")
         if k.enabled() and any(a[0] == "run" for a in k.enabled()):
             raise Divergence("the kernel finished while the model still has a thread to run")
 
@@ -588,10 +751,22 @@ def applicable(sc: Scenario, config: dict) -> tuple:
     profile = config.get("profile", "base")
     bitmap = any(cfg.get("policy") == Policy.BITMAP for cfg in sc.sems.values())
     prios = [p for p, _ in sc.threads.values()]
+    if sc.events and config.get("events", "0") != "1":
+        return False, "event flags are not configured in this build"
+    if sc.conds and config.get("conds", "0") != "1":
+        return False, "condition variables are not configured in this build"
+    if sc.msgqs and config.get("msgqs", "0") != "1":
+        return False, "message queues are not configured in this build"
+    if sc.workqs and config.get("workqs", "0") != "1":
+        return False, "work queues are not configured in this build"
+    if sc.timers and config.get("timers", "0") != "1":
+        return False, "software timers are not configured in this build"
     if profile == "tiny":
         if len(set(prios)) != len(prios):
             return False, "shared priorities need the base profile"
-        if any(cfg.get("policy") == Policy.FIFO for cfg in sc.sems.values()):
+        if any(cfg.get("policy") == Policy.FIFO
+               for cfg in list(sc.sems.values()) + list(sc.events.values()) + list(sc.conds.values())
+               + list(sc.msgqs.values())):
             return False, "FIFO queues need the base profile"
     elif bitmap:
         return False, "BITMAP queues need the tiny profile"
@@ -602,14 +777,17 @@ def adapt(sc: Scenario, config: dict) -> Scenario:
     """The model's static configuration follows the runner's build."""
     if config.get("profile") == "tiny":
         sems = {sid: dict(cfg, policy=Policy.BITMAP) for sid, cfg in sc.sems.items()}
-        sc = replace(sc, sems=sems)
+        events = {eid: dict(cfg, policy=Policy.BITMAP) for eid, cfg in sc.events.items()}
+        conds = {cid: dict(cfg, policy=Policy.BITMAP) for cid, cfg in sc.conds.items()}
+        msgqs = {qid: dict(cfg, policy=Policy.BITMAP) for qid, cfg in sc.msgqs.items()}
+        sc = replace(sc, sems=sems, events=events, conds=conds, msgqs=msgqs)
     # Historical native captures predate the clock-mode field and used tickless builds.
     return replace(sc, owner_death=config.get("owner_death", "release"),
                    tickless=config.get("tickless", "1") == "1")
 
 
 def timer_regressions() -> list:
-    """Exact native placements from M2-01; independent of catalogue RNG consumption."""
+    """Exact native placements (M2-01, M2-08); independent of catalogue RNG consumption."""
     return [
         (Scenario(name="due_sleep_arm", threads={1: (1, (Sleep(1),)), 2: (3, (Sleep(2),))}),
          [("tick", 0, 10), ("tick", 0, 13)]),
@@ -619,6 +797,9 @@ def timer_regressions() -> list:
          [("tick", 0, 1), ("tick", 0, 22), ("tick", 0, 24), ("isr", 0, 29)]),
         # This is the related canceled-lock/owner-fault trace, not the historical seed-5 case.
         (catalogue.cancel_waiter_disinherits(), [("tick", 0, 12), ("tick", 0, 15)]),
+        # M2-08: a tick inside the flush's first section must not move its deadline, which is
+        # fixed at the call (SPEC-003 §5.2). Skipped where work queues are not configured.
+        (catalogue.work_flush_and_timeout(), [("tick", 0, 8), ("tick", 0, 30)]),
     ]
 
 
@@ -635,7 +816,7 @@ def main() -> int:
     selection = ap.add_mutually_exclusive_group()
     selection.add_argument("--only", help="run the scenarios whose name contains this text")
     selection.add_argument("--regressions", action="store_true",
-                           help="run the four exact M2-01 timer-boundary inputs instead of a seeded campaign")
+                           help="run the exact timer-boundary inputs instead of a seeded campaign")
     ap.add_argument("--verbose", "-v", action="store_true")
     args = ap.parse_args()
     if args.runs < 1 or not math.isfinite(args.timeout) or args.timeout <= 0 or args.replay_steps < 1:

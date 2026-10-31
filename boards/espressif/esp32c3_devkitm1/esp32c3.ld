@@ -23,7 +23,7 @@ SECTIONS
 {
   .text : {
     KEEP(*(.text.embn_rv_vectors))
-    KEEP(*(.text.reset))
+    KEEP(*(.text.embn_rv_reset))
     *(.text .text.*)
   } > IRAM
 

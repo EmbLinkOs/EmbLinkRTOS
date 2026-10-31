@@ -493,6 +493,366 @@
       "name": "emb_version_string",
       "header": "version.h",
       "state": "active"
+    },
+    {
+      "id": 83,
+      "name": "emb_fault_hook",
+      "header": "fault.h",
+      "state": "active"
+    },
+    {
+      "id": 84,
+      "name": "emb_sem_unbind_notify",
+      "header": "sem.h",
+      "state": "active"
+    },
+    {
+      "id": 85,
+      "name": "emb_event_attr_default",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 86,
+      "name": "emb_event_init",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 87,
+      "name": "emb_event_destroy",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 88,
+      "name": "emb_event_set",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 89,
+      "name": "emb_event_clear",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 90,
+      "name": "emb_event_get",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 91,
+      "name": "emb_event_wait",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 92,
+      "name": "emb_event_wait_until",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 93,
+      "name": "emb_event_bind_notify",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 94,
+      "name": "emb_event_unbind_notify",
+      "header": "event.h",
+      "state": "active"
+    },
+    {
+      "id": 95,
+      "name": "emb_cond_attr_default",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 96,
+      "name": "emb_cond_init",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 97,
+      "name": "emb_cond_destroy",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 98,
+      "name": "emb_cond_wait",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 99,
+      "name": "emb_cond_wait_until",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 100,
+      "name": "emb_cond_signal",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 101,
+      "name": "emb_cond_broadcast",
+      "header": "cond.h",
+      "state": "active"
+    },
+    {
+      "id": 102,
+      "name": "emb_msgq_attr_default",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 103,
+      "name": "emb_msgq_init",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 104,
+      "name": "emb_msgq_destroy",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 105,
+      "name": "emb_msgq_send",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 106,
+      "name": "emb_msgq_send_until",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 107,
+      "name": "emb_msgq_send_front",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 108,
+      "name": "emb_msgq_receive",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 109,
+      "name": "emb_msgq_receive_until",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 110,
+      "name": "emb_msgq_peek",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 111,
+      "name": "emb_msgq_count",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 112,
+      "name": "emb_msgq_free",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 113,
+      "name": "emb_msgq_bind_notify",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 114,
+      "name": "emb_msgq_unbind_notify",
+      "header": "msgq.h",
+      "state": "active"
+    },
+    {
+      "id": 115,
+      "name": "emb_workq_attr_default",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 116,
+      "name": "emb_workq_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 117,
+      "name": "emb_workq_destroy",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 118,
+      "name": "emb_workq_flush",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 119,
+      "name": "emb_workq_system",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 120,
+      "name": "emb_work_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 121,
+      "name": "emb_work_submit",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 122,
+      "name": "emb_work_cancel",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 123,
+      "name": "emb_work_cancel_sync",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 124,
+      "name": "emb_work_state",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 125,
+      "name": "emb_timer_attr_default",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 126,
+      "name": "emb_timer_init",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 127,
+      "name": "emb_timer_destroy",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 128,
+      "name": "emb_timer_start",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 129,
+      "name": "emb_timer_start_at",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 130,
+      "name": "emb_timer_start_periodic",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 131,
+      "name": "emb_timer_restart",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 132,
+      "name": "emb_timer_stop",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 133,
+      "name": "emb_timer_stop_sync",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 134,
+      "name": "emb_timer_is_running",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 135,
+      "name": "emb_timer_remaining",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 136,
+      "name": "emb_timer_get_counts",
+      "header": "timer.h",
+      "state": "active"
+    },
+    {
+      "id": 137,
+      "name": "emb_dwork_init",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 138,
+      "name": "emb_dwork_schedule",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 139,
+      "name": "emb_dwork_schedule_at",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 140,
+      "name": "emb_dwork_reschedule",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 141,
+      "name": "emb_dwork_cancel",
+      "header": "work.h",
+      "state": "active"
+    },
+    {
+      "id": 142,
+      "name": "emb_dwork_cancel_sync",
+      "header": "work.h",
+      "state": "active"
     }
   ]
 }

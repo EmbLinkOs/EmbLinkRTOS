@@ -79,6 +79,34 @@ embk_thread_t *embk_wait_first(const embk_wait_queue_t *q)
 #endif
 }
 
+void embk_wait_iter_begin(const embk_wait_queue_t *q, embk_wait_iter_t *it)
+{
+#if CONFIG_EMB_SCHED_TABLE
+    it->rest = q->set;
+#else
+    it->next = embk_list_first(&q->waiters);
+#endif
+}
+
+embk_thread_t *embk_wait_iter_next(const embk_wait_queue_t *q, embk_wait_iter_t *it)
+{
+    embk_thread_t *t;
+#if CONFIG_EMB_SCHED_TABLE
+    (void)q;
+    t = embk_sched_table_best(it->rest); /* the order embk_wait_first() uses */
+    if (t != NULL) {
+        it->rest &= (embk_word_t)~EMBK_WORD_BIT(t->base_prio);
+    }
+#else
+    if (it->next == NULL) {
+        return NULL;
+    }
+    t = EMB_CONTAINER_OF(it->next, embk_thread_t, wait_node);
+    it->next = embk_list_next(&q->waiters, it->next);
+#endif
+    return t;
+}
+
 /* ---- blocking (§5.1) ------------------------------------------------------------ */
 
 void embk_wait_prepare(embk_wait_queue_t *q, uint8_t reason)
@@ -146,7 +174,9 @@ bool embk_wait_wake(embk_thread_t *t, embk_wait_result_t result, uintptr_t data)
     t->wait_queue = NULL;
     embk_thread_set_wake_result(t, result); /* KRN-WAIT-005: result before READY */
     t->wake_data = data;
+#if !CONFIG_EMB_SCHED_TABLE
     t->wait_gen++; /* every later timeout, cancel, or flush for this wait is stale */
+#endif
     was = t->wait_state;
     t->wait_state = EMBK_WAIT_READY;
 #if CONFIG_EMB_MUTEX

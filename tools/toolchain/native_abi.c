@@ -5,8 +5,11 @@
  * by the existing storage generator. Member widths are compared separately.
  * This is a maintained layout inventory, supplemented by executed ABI crossings.
  */
+#include <embk/ipc.h>
 #include <embk/kernel.h>
 #include <embk/sync.h>
+#include <embk/timer.h>
+#include <embk/work.h>
 
 #include <stdalign.h>
 #include <stddef.h>
@@ -32,7 +35,9 @@ void emb_native_abi_probe(void)
 #if !EMBK_THREAD_INDEX_PACKED
     FIELD(thread_index, embk_thread_t, index);
 #endif
+#if !CONFIG_EMB_SCHED_TABLE
     FIELD(thread_wait_gen, embk_thread_t, wait_gen);
+#endif
     FIELD(thread_wake_data, embk_thread_t, wake_data);
     FIELD(thread_wait_queue, embk_thread_t, wait_queue);
     FIELD(thread_timeout, embk_thread_t, timeout);
@@ -53,6 +58,7 @@ void emb_native_abi_probe(void)
     TYPE(thread_notify, embk_thread_t);
     FIELD(thread_notify_notify_bits, embk_thread_t, notify_bits);
     FIELD(thread_notify_notify_mask, embk_thread_t, notify_mask);
+    FIELD(thread_notify_bind_refs, embk_thread_t, bind_refs);
 #endif
 #if CONFIG_EMB_MUTEX
     TYPE(thread_mutex, embk_thread_t);
@@ -119,8 +125,44 @@ void emb_native_abi_probe(void)
 #endif
 #if CONFIG_EMB_SEM && CONFIG_EMB_NOTIFY
     TYPE(sem_notify, embk_sem_t);
-    FIELD(sem_notify_bind_thread, embk_sem_t, bind_thread);
-    FIELD(sem_notify_bind_bit, embk_sem_t, bind_bit);
+    FIELD(sem_notify_binding, embk_sem_t, binding);
+    TYPE(binding, embk_binding_t);
+    FIELD(binding_thread, embk_binding_t, thread);
+    FIELD(binding_bit, embk_binding_t, bit);
+#endif
+#if CONFIG_EMB_EVENT
+    TYPE(event, embk_event_t);
+    FIELD(event_obj, embk_event_t, obj);
+    FIELD(event_waiters, embk_event_t, waiters);
+    FIELD(event_bits, embk_event_t, bits);
+#endif
+#if CONFIG_EMB_COND
+    TYPE(cond, embk_cond_t);
+    FIELD(cond_obj, embk_cond_t, obj);
+    FIELD(cond_waiters, embk_cond_t, waiters);
+#endif
+#if CONFIG_EMB_TIMER
+    TYPE(timer, embk_timer_t);
+    FIELD(timer_node, embk_timer_t, node);
+    FIELD(timer_period, embk_timer_t, period);
+    FIELD(timer_expiries, embk_timer_t, expiries);
+#endif
+#if CONFIG_EMB_WORKQ
+    TYPE(work, embk_work_t);
+    FIELD(work_node, embk_work_t, node);
+    FIELD(work_state, embk_work_t, state);
+    TYPE(workq, embk_workq_t);
+    FIELD(workq_thread, embk_workq_t, thread);
+    FIELD(workq_fifo, embk_workq_t, fifo);
+    FIELD(workq_done_q, embk_workq_t, done_q);
+#endif
+#if CONFIG_EMB_MSGQ
+    TYPE(msgq, embk_msgq_t);
+    FIELD(msgq_obj, embk_msgq_t, obj);
+    FIELD(msgq_receivers, embk_msgq_t, receivers);
+    FIELD(msgq_senders, embk_msgq_t, senders);
+    FIELD(msgq_ring, embk_msgq_t, ring);
+    FIELD(msgq_count, embk_msgq_t, count);
 #endif
 #if CONFIG_EMB_MUTEX
     TYPE(mutex, embk_mutex_t);

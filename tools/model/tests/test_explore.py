@@ -1,7 +1,7 @@
 """Exhaustive exploration of every scenario (KRN-WAIT-007, KRN-WAIT-022) and outcome checks."""
 import unittest
 
-from embmodel import Result, explore
+from embmodel import Result, build, explore
 from tests import scenarios as S
 
 
@@ -216,3 +216,434 @@ class LifecycleExhaustive(unittest.TestCase):
             d = dict(dict(outcome)["threads"])
             self.assertEqual(d[1][0][1], Result.CANCELED)
             self.assertIn(d[1][1][1], (Result.TIMEOUT, Result.SATISFIED))   # NO_WAIT join: T2 may or may not have exited
+
+
+class BindingLifetime(unittest.TestCase):
+    """M2-03 (ADR-046): no binding outlives its target; unbind stops signals deterministically."""
+
+    @staticmethod
+    def results(make):
+        rep = explore(make())
+        return rep, [dict(dict(o)["threads"]) for o in rep.outcomes]
+
+    def test_every_binding_scenario_holds_invariants(self):
+        for make in S.BINDING:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_unbind_before_give_never_signals(self):
+        _, outs = self.results(S.unbind_then_give)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1] if r[0] < 3], [Result.SATISFIED, Result.SATISFIED, Result.NOENT])
+            self.assertEqual(d[2][0][1], Result.TIMEOUT)
+
+    def test_isr_give_races_unbind_both_ways(self):
+        _, outs = self.results(S.isr_give_vs_unbind)
+        self.assertEqual({d[2][0][1] for d in outs}, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_bound_target_is_destroyed_only_after_unbind(self):
+        _, outs = self.results(S.destroy_target_while_bound)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1]],
+                             [Result.SATISFIED, Result.SATISFIED, Result.BUSY, Result.SATISFIED, Result.SATISFIED])
+
+    def test_destroying_the_object_releases_the_target(self):
+        _, outs = self.results(S.destroy_bound_sem_releases_target)
+        for d in outs:
+            self.assertEqual(d[1][-1][1], Result.SATISFIED)
+            self.assertIn(d[3][0][1], (Result.DESTROYED, Result.TIMEOUT))
+
+    def test_terminated_target_refused_inactive_target_released_by_unbind(self):
+        _, outs = self.results(S.bind_terminated_target)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1]][1:],
+                             [Result.STATE, Result.SATISFIED, Result.BUSY, Result.SATISFIED, Result.SATISFIED])
+
+    def test_suspended_target_receives_the_bit_at_resume(self):
+        _, outs = self.results(S.suspended_target_accumulates)
+        for d in outs:
+            self.assertEqual(d[2][0][1], Result.SATISFIED)
+
+    def test_rebind_signals_the_new_target_only(self):
+        _, outs = self.results(S.rebind_to_another_thread)
+        for d in outs:
+            self.assertEqual([r[1] for r in d[1] if r[0] < 4],
+                             [Result.SATISFIED, Result.EXIST, Result.SATISFIED, Result.SATISFIED])
+            self.assertEqual(d[2][0][1], Result.TIMEOUT)          # the old target is never signaled
+        self.assertIn(Result.SATISFIED, {d[3][0][1] for d in outs})
+
+
+class EventFlags(unittest.TestCase):
+    """M2-05 (SPEC-005 §5): ANY/ALL/CLEAR, deterministic consumption, no lost bit, binding after waiters."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), dict(dict(o)["events"])) for o in explore(make()).outcomes]
+
+    def test_every_event_scenario_holds_invariants(self):
+        for make in S.EVENT:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_overlapping_clear_serves_each_waiter_once(self):
+        for d, ev in self.outcomes(S.event_overlapping_clear):
+            self.assertEqual((d[1][0][1], d[1][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual(ev[0], 0)
+
+    def test_all_waits_for_every_bit(self):
+        for d, ev in self.outcomes(S.event_all_and_any):
+            self.assertEqual(d[1][0][2], 0x3)
+            self.assertEqual(d[2][0][2], 0x1)
+            self.assertEqual(ev[0], 0x3)
+
+    def test_isr_set_is_consumed_or_kept(self):
+        seen = set()
+        for d, ev in self.outcomes(S.event_isr_set_vs_timed_wait):
+            r = d[1][0][1]
+            seen.add(r)
+            self.assertEqual(ev[0], 0 if r == Result.SATISFIED else 1)
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_destroy_and_cancel_results(self):
+        for d, _ in self.outcomes(S.event_destroy_and_cancel_waiters):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)
+            self.assertEqual(d[2][0][1], Result.CANCELED)
+
+    def test_binding_fires_for_what_waiters_left(self):
+        for d, ev in self.outcomes(S.event_binding_after_direct_waiters):
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))
+            self.assertEqual(ev[0], 0x2)
+        self.assertIn(Result.SATISFIED, {d[1][0][1] for d, _ in self.outcomes(S.event_binding_after_direct_waiters)})
+
+    def test_timeout_leaves_the_later_bit_set(self):
+        for d, ev in self.outcomes(S.event_timeout_then_set):
+            self.assertEqual(d[1][0][1], Result.TIMEOUT)
+            self.assertEqual(ev[0], 1)
+
+
+class ConditionVariables(unittest.TestCase):
+    """M2-06 (SPEC-005 §6): no lost signal, mandatory relock, deferred cancel, broadcast, destroy."""
+
+    @staticmethod
+    def cond_results(make):
+        out = []
+        for o in explore(make()).outcomes:
+            d = dict(dict(o)["threads"])
+            out.append({tid: [r for r in res if r[0] == 1] for tid, res in d.items()})   # op 1 is the CondWait
+        return out
+
+    def test_every_cond_scenario_holds_invariants(self):
+        for make in S.COND:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                rep = explore(sc)
+                self.assertGreater(rep.terminals, 0)
+                for o in rep.outcomes:
+                    self.assertEqual(dict(dict(o)["mutex_owners"])[0], None)   # every caller unlocked again
+
+    def test_signal_after_release_is_never_lost(self):
+        for d in self.cond_results(S.cond_signal_not_lost):
+            self.assertEqual(d[1][0][1], Result.SATISFIED)
+
+    def test_timeout_still_returns_with_the_mutex(self):
+        for d in self.cond_results(S.cond_timeout_relocks):
+            self.assertEqual(d[1][0][1], Result.TIMEOUT)
+
+    def test_cancel_during_relock_is_deferred(self):
+        for d in self.cond_results(S.cond_cancel_during_relock):
+            self.assertEqual(d[1][0][1], Result.SATISFIED)
+
+    def test_broadcast_and_destroy(self):
+        for d in self.cond_results(S.cond_broadcast_wakes_all):
+            self.assertEqual((d[1][0][1], d[2][0][1]), (Result.SATISFIED, Result.SATISFIED))
+        for d in self.cond_results(S.cond_destroy_aborts_waiter):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)
+
+
+class MessageQueues(unittest.TestCase):
+    """M2-07 (SPEC-007 §2, KRN-IPC-022): FIFO copy semantics, hand-off both ways, send_front, peek,
+    ISR no-wait calls, timeouts and cancellation, destroy, and the empty-to-nonempty binding. The
+    every-item-once and waiting-side invariants are checked in every explored state."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), dict(dict(o)["msgqs"])) for o in explore(make()).outcomes]
+
+    def test_every_msgq_scenario_holds_invariants(self):
+        for make in S.MSGQ:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_items_arrive_in_send_order(self):
+        for d, q in self.outcomes(S.msgq_fifo_order):
+            self.assertEqual([r[2] for r in d[2]], [1, 2, 3])
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 3)
+            self.assertEqual(q[0], ())
+
+    def test_waiting_receiver_gets_the_item_directly(self):
+        for d, q in self.outcomes(S.msgq_receiver_handoff):
+            self.assertEqual((d[1][0][1], d[1][0][2]), (Result.SATISFIED, 7))
+            self.assertEqual(q[0], ())
+
+    def test_send_front_and_peek(self):
+        for d, q in self.outcomes(S.msgq_send_front_and_peek):
+            self.assertEqual([(r[1], r[2]) for r in d[1]],
+                             [(Result.TIMEOUT, 0), (Result.SATISFIED, 0), (Result.SATISFIED, 0),
+                              (Result.TIMEOUT, 0), (Result.SATISFIED, 2), (Result.SATISFIED, 2),
+                              (Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], ())
+
+    def test_isr_send_is_received_or_kept(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_isr_send_vs_timed_recv):
+            r = d[1][0][1]
+            seen.add(r)
+            self.assertEqual(q[0], () if r == Result.SATISFIED else (5,))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_isr_receive_refills_from_the_waiting_sender(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_isr_recv_frees_a_slot):
+            r = d[1][1][1]
+            seen.add(r)
+            # SATISFIED: the ISR freed the slot before or during the wait, and item 2 took it;
+            # TIMEOUT: the ISR ran first (nothing to take) or after the timeout (took item 1).
+            self.assertIn(q[0], ((2,),) if r == Result.SATISFIED else ((1,), ()))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_timed_out_and_canceled_items_are_never_stored(self):
+        for d, q in self.outcomes(S.msgq_sender_timeout_and_cancel):
+            self.assertEqual(d[1][1][1], Result.TIMEOUT)
+            self.assertEqual(d[2][0][1], Result.CANCELED)
+            self.assertEqual([(r[1], r[2]) for r in d[3] if r[0] >= 2], [(Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], ())
+
+    def test_destroy_aborts_receivers_and_senders(self):
+        for d, q in self.outcomes(S.msgq_destroy_aborts_both_sides):
+            self.assertEqual(d[1][0][1], Result.DESTROYED)
+            self.assertEqual([r[1] for r in d[2]], [Result.SATISFIED, Result.DESTROYED])
+            self.assertEqual(q, {0: (), 1: ()})
+
+    def test_binding_fires_on_the_ready_transition_only(self):
+        seen = set()
+        for d, q in self.outcomes(S.msgq_binding_on_empty_to_nonempty):
+            self.assertEqual((d[2][0][1], d[2][0][2]), (Result.SATISFIED, 1))   # hand-off: no signal
+            seen.add(d[1][0][1])
+            if d[1][0][1] == Result.SATISFIED:
+                self.assertEqual(d[1][0][2], 1)                                 # storing 2 signaled bit 0
+            self.assertEqual(q[0], (2, 3))
+        self.assertEqual(seen, {Result.SATISFIED, Result.TIMEOUT})
+
+    def test_refill_from_a_waiting_sender_does_not_signal(self):
+        for d, q in self.outcomes(S.msgq_refill_does_not_signal_binding):
+            self.assertEqual([(r[1], r[2]) for r in d[2]],
+                             [(Result.SATISFIED, 1), (Result.SATISFIED, 1), (Result.TIMEOUT, 0)])
+            self.assertEqual(q[0], (2,))
+
+
+class WorkQueues(unittest.TestCase):
+    """M2-08 (SPEC-006 §4): serial FIFO execution, idempotent submit, resubmission while running,
+    cancel states, cancel_sync and flush completion, and destroy joining the queue thread. The
+    item-state invariants are checked in every explored state."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {w: (s, n) for w, s, n in dict(o)["works"]})
+                for o in explore(make()).outcomes]
+
+    def test_every_workq_scenario_holds_invariants(self):
+        for make in S.WORKQ:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_fifo_and_idempotent_submit(self):
+        for d, w in self.outcomes(S.work_fifo_and_idempotent_submit):
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED, Result.EXIST] + [Result.SATISFIED] * 3)
+            self.assertEqual(w, {0: (0, 1), 1: (0, 1)})
+
+    def test_resubmit_while_running_runs_again(self):
+        for d, w in self.outcomes(S.work_resubmit_while_running):
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 4)
+            self.assertEqual(w[0], (0, 2))
+
+    def test_cancel_reports_each_state(self):
+        seen = set()
+        for d, w in self.outcomes(S.work_cancel_states):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            self.assertEqual(res[1], (Result.SATISFIED, 1))           # PENDING: unlinked
+            self.assertEqual(res[2], (Result.SATISFIED, 0))           # IDLE
+            seen.add(res[5][1])                                       # RUNNING, or PENDING if T1 woke first
+            self.assertEqual(res[6][0], Result.SATISFIED)             # cancel_sync: done or waited for it
+            self.assertEqual(w[0], (0, 1 if res[5][1] == 2 else 0))
+        self.assertEqual(seen, {1, 2})
+
+    def test_flush_waits_and_a_timed_out_flush_leaves_no_marker(self):
+        for d, w in self.outcomes(S.work_flush_and_timeout):
+            res = {r[0]: r[1] for r in d[1]}
+            self.assertEqual(res[1], Result.TIMEOUT)
+            self.assertEqual(res[3], Result.SATISFIED)
+            self.assertEqual(w, {0: (0, 1), 1: (0, 1)})
+
+    def test_isr_submit_runs_once(self):
+        seen = set()
+        for d, w in self.outcomes(S.work_isr_submit):
+            seen.add(d[1][0][1])
+            self.assertEqual(w[0][1], 1)
+        self.assertIn(Result.SATISFIED, seen)
+
+    def test_destroy_joins_the_queue_thread(self):
+        for o in explore(S.workq_destroy_joins_its_thread()).outcomes:
+            d = dict(dict(o)["threads"])
+            self.assertEqual([r[1] for r in d[1]], [Result.SATISFIED] * 3 + [Result.STALE])
+
+    def test_flush_waits_for_a_running_handler(self):
+        for d, w in self.outcomes(S.work_flush_waits_for_running_handler):
+            self.assertEqual([(r[1], r[2]) for r in d[1]],
+                             [(Result.SATISFIED, 0), (Result.SATISFIED, 0), (Result.SATISFIED, 0)])  # idle after
+            self.assertEqual(w[0], (0, 1))
+
+
+class SoftwareTimers(unittest.TestCase):
+    """M2-09 (SPEC-003 §7): one-shot and periodic expiry on a drift-free grid, ISR and work queue
+    callbacks, thread timeouts first on equal deadlines, stop states, stop_sync and overruns."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {t: (e, v, a) for t, e, v, a in dict(o)["timers"]}, dict(dict(o)["sems"]))
+                for o in explore(make()).outcomes]
+
+    def test_every_timer_scenario_holds_invariants(self):
+        for make in S.TIMER:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_one_shot_and_work_queue_callbacks(self):
+        for make in (S.timer_one_shot_isr_context, S.timer_work_queue_callback):
+            for d, tm, _ in self.outcomes(make):
+                self.assertEqual(d[1][1][1], Result.SATISFIED)
+                self.assertEqual(tm[0], (1, 0, False))
+
+    def test_periodic_until_stopped(self):
+        seen = set()
+        for d, tm, sems in self.outcomes(S.timer_periodic_isr_stopped_by_thread):
+            exp = tm[0][0]
+            seen.add(exp)
+            self.assertEqual(sems[0], exp - 2)                         # every expiry gave once
+            self.assertFalse(tm[0][2])
+        self.assertIn(2, seen)
+
+    def test_equal_deadline_wakes_the_sleeper_first(self):
+        k = build(S.timer_equal_deadlines_thread_first())
+        while k.enabled() and ("run",) in k.enabled():
+            k.apply(("run",))
+        k.apply(("tick",))
+        k.trace = []
+        k.apply(("tick",))
+        wakes = [ev[1] for ev in k.trace if ev[0] == "wake"]
+        self.assertEqual(wakes, [1, 2])                                # the sleeper, then the giver's taker
+
+    def test_stop_sync_waits_for_the_running_callback(self):
+        seen = set()
+        for d, tm, _ in self.outcomes(S.timer_stop_running_callback_and_stop_sync):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            seen.add(res[2][1])                                        # RUNNING; PENDING or IDLE when ticks race
+            self.assertEqual(res[3][0], Result.SATISFIED)
+        self.assertIn(2, seen)
+
+    def test_long_callbacks_count_overruns(self):
+        for d, tm, _ in self.outcomes(S.timer_periodic_overrun_on_long_callback):
+            self.assertEqual(d[1][-1][1], Result.SATISFIED)
+            self.assertFalse(tm[0][2])
+
+    def test_closed_form_catch_up(self):
+        from embmodel.kernel import Timer
+        k = build(S.timer_one_shot_isr_context())
+        tm = Timer(tmid=7, isr=True, period=2, origin=2)
+        k.timers[7], k.timer_bodies[7] = tm, ()
+        k._timer_arm(tm, 2)
+        k.now = 9                                                      # 4, 6 and 8 were missed
+        k._expire_due()
+        self.assertEqual((tm.expiries, tm.overruns, tm.deadline), (1, 3, 10))
+
+
+class DelayedWork(unittest.TestCase):
+    """M2-09 delayed work (KRN-WQ-003, KRN-WQ-007): runs after the delay, idempotent schedule,
+    reschedule, cancel states, ISR scheduling; the delay's target and its timer agree."""
+
+    @staticmethod
+    def outcomes(make):
+        return [(dict(dict(o)["threads"]), {w: (s, n) for w, s, n in dict(o)["works"]})
+                for o in explore(make()).outcomes]
+
+    def test_every_dwork_scenario_holds_invariants(self):
+        for make in S.DWORK:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_runs_after_delay_and_schedule_is_idempotent(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_runs_after_its_delay):
+            seen.add(d[1][1][1])                                         # EXIST, unless it already ran
+            self.assertEqual(d[1][2][1], Result.SATISFIED)
+            self.assertEqual(w[0][0], 0)
+        self.assertIn(Result.EXIST, seen)
+
+    def test_reschedule_and_cancel(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_reschedule_and_cancel):
+            res = {r[0]: (r[1], r[2]) for r in d[1]}
+            self.assertEqual(res[1][0], Result.SATISFIED)               # replaced or rescheduled
+            self.assertEqual(res[2][0], Result.SATISFIED)
+            seen.add((res[4][1], res[5][1]))
+            self.assertEqual(w[0][0], 0)                                # idle at the end
+        self.assertIn((1, 0), seen)                                     # PENDING, then IDLE
+
+    def test_isr_schedule(self):
+        seen = set()
+        for d, w in self.outcomes(S.dwork_isr_schedule):
+            seen.add(d[1][0][1])
+        self.assertIn(Result.SATISFIED, seen)
+
+
+class Combined(unittest.TestCase):
+    """M2-10: mechanisms combined at section boundaries. Every invariant of every group holds in
+    every explored state; these tests pin the end results that matter."""
+
+    def test_every_combined_scenario_holds_invariants(self):
+        for make in S.COMBINED:
+            sc = make()
+            with self.subTest(scenario=sc.name):
+                self.assertGreater(explore(sc).terminals, 0)
+
+    def test_suspended_canceled_receiver_gets_the_item_or_leaves_it(self):
+        seen = set()
+        for o in explore(S.combined_suspend_cancel_msgq_receiver()).outcomes:
+            d, q = dict(dict(o)["threads"]), dict(dict(o)["msgqs"])
+            r = d[1][0]
+            seen.add(r[1])
+            if r[1] == Result.SATISFIED:
+                self.assertEqual((r[2], q[0]), (5, ()))
+            else:
+                self.assertIn(r[1], (Result.CANCELED, Result.TIMEOUT))     # the item, if sent, is stored
+        self.assertTrue({Result.SATISFIED, Result.CANCELED} <= seen)
+
+    def test_destroy_timeout_and_give(self):
+        seen = {dict(dict(o)["threads"])[1][0][1] for o in explore(S.combined_destroy_timeout_and_isr_give()).outcomes}
+        self.assertTrue(seen <= {Result.SATISFIED, Result.TIMEOUT, Result.DESTROYED})
+        self.assertIn(Result.SATISFIED, seen)
+
+    def test_dwork_cancel_racing_expiry_runs_at_most_once(self):
+        seen = set()
+        for o in explore(S.combined_dwork_cancel_races_expiry()).outcomes:
+            d, w = dict(dict(o)["threads"]), {wid: n for wid, _, n in dict(o)["works"]}
+            seen.add(w[0])
+            if w[0] == 0:
+                self.assertNotEqual(d[1][1][1], Result.SATISFIED)          # canceled: nothing gave
+        self.assertEqual(seen, {0, 1})

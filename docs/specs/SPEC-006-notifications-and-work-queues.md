@@ -78,10 +78,10 @@ Every waitable object type whose readiness is a state (semaphore count, event bi
 
 ```c
 emb_status_t emb_<obj>_bind_notify(emb_<obj>_t obj, emb_thread_t t, emb_notify_bits_t bit);   /* @ctx prekernel thread; one nonzero application bit */
-emb_status_t emb_<obj>_unbind_notify(emb_<obj>_t obj);                             /* @ctx thread */
+emb_status_t emb_<obj>_unbind_notify(emb_<obj>_t obj);                             /* @ctx prekernel thread (A37) */
 ```
 
-`bind` fails with `EMB_EEXIST` when the object is already bound (unbind first), `EMB_EINVAL` for a kernel bit, `EMB_EPERM` in isolated profiles when the caller lacks the object's `BIND` right or the thread's `NOTIFY` right. The binding is stored in the object: one thread reference and one nonzero single-bit mask within `EMB_NOTIFY_APP_MASK`. Public callers pass `UINT32_C(1) << index`, not the index; the model scenario encoding may use an index internally. M1 implements only semaphore binding; unbind and other object bindings remain planned.
+`bind` fails with `EMB_EEXIST` when the object is already bound (unbind first), `EMB_ESTATE` for a terminated target, `EMB_EPERM` for a kernel thread and, in isolated profiles, when the caller lacks the object's `BIND` right or the thread's `NOTIFY` right, `EMB_ENOMEM` when 255 bindings already name the target, and `EMB_EINVAL` for a kernel bit. `unbind` returns `EMB_OK`, or `EMB_ENOENT` when nothing is bound. The binding is stored in the object as an `embk_binding_t` (A36): one thread reference and one nonzero single-bit mask within `EMB_NOTIFY_APP_MASK`. Public callers pass `UINT32_C(1) << index`, not the index; the model scenario encoding may use an index internally. Semaphore binding and unbind are implemented (M2-03); each further ready-state object brings its binding with it.
 
 ### 3.2 Semantics
 
@@ -90,7 +90,8 @@ emb_status_t emb_<obj>_unbind_notify(emb_<obj>_t obj);                          
 - Binding does not signal an object that is already ready. Setup must bind before producers start or drain/recheck existing readiness before the first wait. Edge notifications require draining the selected source until not ready; consuming only one item can leave ready data without another edge. The bound thread waits on its mask, then performs the operation with `EMB_NO_WAIT` on each object whose bit is set and treats `EMB_ETIMEDOUT` as "another consumer was faster", clearing nothing it did not consume (the bit was already cleared by the `CLEAR` wait; the next transition sets it again). Edge semantics plus re-check give **no lost ready transition and at most one spurious pass per transition under the bind/check/drain protocol** (KRN-NOTIF-008).
 - Direct waiters on the object are unaffected (KRN-NOTIF-005): they are served first, by hand-off, and such a transition sets no bit.
 - One binding per object in 1.0 (§12.3); a second consumer of the same object uses a direct wait.
-- Destroying a bound object does not touch the thread's bits; a notification to a terminated target is dropped in M1, but its storage must remain valid while a binding references it. Pointer mode cannot safely detect freed or reused storage; it is not a stale-reference security mechanism. Planned unbind must precede reuse, and generation-checked profiles must reject a changed target incarnation. Rebinding after thread restart is the application's job.
+- **Target lifetime (ADR-046).** Each thread counts the bindings that name it; `emb_thread_destroy()` refuses a thread while that count is nonzero (fault `EMB_FAULT_API_LIFECYCLE` when checked, `EMB_EBUSY` in release), so a binding never refers to destroyed or reused thread storage. `unbind`, and destroying the bound object, release the target. Destroying a bound object does not touch the thread's bits. A notification to a terminated, not yet destroyed, target is dropped. Generation-checked profiles must still reject a changed target incarnation; rebinding after thread restart is the application's job.
+- **Teardown order.** (1) Quiesce the producers (interrupt sources, giving threads) or accept that their gives still count. (2) `unbind`, or destroy the object; with `EMB_OBJ_ABORT_WAITERS` its direct waiters leave with `EMB_EDESTROYED`. (3) Let the target exit, then join it (or have it detached). (4) Destroy the thread. A thread can be destroyed only after steps 2 and 3; the object only once no thread waits on it without `ABORT_WAITERS`. No freeze mechanism is needed for this order in M2 (KRN-OBJ-004 belongs to the isolated configuration).
 
 ### 3.3 Worked pattern: one thread, three sources
 
@@ -115,11 +116,8 @@ for (;;) {
 typedef void (*emb_work_fn_t)(emb_work_t *work);
 
 typedef struct emb_work {                 /* intrusive, caller-owned, statically allocatable (KRN-WQ-001) */
-    embk_list_node_t node;
-    emb_work_fn_t    fn;
-    emb_workq_t      queue;               /* the queue it is pending on or running on, else EMB_HANDLE_NULL */
-    uint8_t          state;               /* EMB_WORK_IDLE | EMB_WORK_QUEUED | EMB_WORK_RUNNING, plus the RESUBMITTED flag */
-} emb_work_t;
+    emb_work_storage_t opaque_;           /* node, handler, queue, state and the RESUBMITTED flag (A48) */
+} emb_work_t;                             /* emb_work_state_t: EMB_WORK_IDLE | EMB_WORK_PENDING | EMB_WORK_RUNNING */
 
 typedef struct emb_dwork {                /* delayed work: a work item plus an embedded timer (SPEC-003 §7) */
     emb_work_t            work;
@@ -167,7 +165,7 @@ emb_status_t emb_dwork_cancel_sync(emb_dwork_t *dw, emb_timeout_t timeout);
 - **Flush.** Submits an internal marker item and waits for it: everything queued before the call has run when it returns. Flushing a queue from one of its own handlers is misuse.
 - **Delayed work.** `schedule` arms the embedded timer (SPEC-003 §7) whose callback is "submit the work item to `q`"; the timer itself runs in `ISR_CONTEXT` because its only action is the O(1) submit, so no second queue hop is paid. `schedule` on a pending delayed item (timer armed or work queued) returns `EMB_EEXIST` and changes nothing; `reschedule` replaces the delay (or, if the work is already queued, leaves it queued and returns `EMB_EEXIST`). `cancel` stops the timer if armed, else cancels the work; it reports `PENDING` for either pending form. Delayed work is the only timing mechanism work queues have (KRN-WQ-003).
 - **System work queue.** Exists when `CONFIG_EMB_SYSTEM_WORKQ=y` (default in `base` and above, off in `tiny`); priority `CONFIG_EMB_SYSTEM_WORKQ_PRIO` (default: the second-highest priority, because software timer callbacks run on it, SPEC-003 §7.3), stack `CONFIG_EMB_SYSTEM_WORKQ_STACK`. Applications should not block on it for long; the kernel's own uses are timer callbacks, deferred logging flush, and driver completion bottom halves (04 §3).
-- **Destroy.** A queue with queued or running items: misuse (`EMB_EBUSY`). The queue's thread is terminated as part of destroy.
+- **Destroy.** A queue with queued or running items: misuse (`EMB_EBUSY`). The queue's thread is terminated as part of destroy: destroy waits, not cancelably, until it has exited (A49, ADR-048).
 
 ### 4.4 Priorities and latency
 
@@ -213,7 +211,7 @@ A UART driver's receive ISR fills a buffer and submits its bottom-half work item
 
 ## 11. Reference model
 
-`tools/model/` gains `NotifySet(tid, bits)` (thread and ISR) and `NotifyWait(mask, mode, clear, timeout)` over the same `_block_section`, with the one-slot pseudo-queue, hand-off of satisfied bits, and `CLEAR` applied at wake; the semaphore binding already present now signals through the same `set` path. New invariants: a thread blocked with reason `NOTIFY` has an unsatisfied mask; a `set` that satisfies a waiting owner always wakes it in the same step. New scenarios: set in the window, set before wait (level), `ALL` across two sets, and the multi-source pattern of §3.3 with two bound semaphores (property: every given unit is eventually taken by the bound thread or remains in the count; at most one spurious pass per transition). Work queues are a thread pattern over notifications and are not modeled separately; their FIFO and state machine are tested in conformance.
+`tools/model/` gains `NotifySet(tid, bits)` (thread and ISR) and `NotifyWait(mask, mode, clear, timeout)` over the same `_block_section`, with the one-slot pseudo-queue, hand-off of satisfied bits, and `CLEAR` applied at wake; the semaphore binding already present now signals through the same `set` path. New invariants: a thread blocked with reason `NOTIFY` has an unsatisfied mask; a `set` that satisfies a waiting owner always wakes it in the same step. New scenarios: set in the window, set before wait (level), `ALL` across two sets, and the multi-source pattern of §3.3 with two bound semaphores (property: every given unit is eventually taken by the bound thread or remains in the count; at most one spurious pass per transition). Work queues were first left to conformance tests; M2 models them too (A53): a queue thread drains a FIFO of items whose handlers run model operations, with invariants on the item states and the completion waiters.
 
 ## 12. Decisions taken at acceptance (2026-10-07)
 

@@ -152,8 +152,25 @@ config EMB_SEM_COUNT_BITS
 	default 32
 	range 8 32
 
+config EMB_EVENT
+	bool "Event flags (SPEC-005 §5)"
+	default y
+
+config EMB_EVENT_BITS
+	int "Event flag word width: 8, 16, or 32"
+	depends on EMB_EVENT
+	default 8 if EMB_PROFILE_TINY
+	default 32
+	range 8 32
+
 config EMB_MUTEX
 	bool "Mutexes (SPEC-005 §3)"
+	default y
+
+config EMB_COND
+	bool "Condition variables (SPEC-005 §6)"
+	depends on EMB_MUTEX
+	default n if EMB_PROFILE_TINY
 	default y
 
 config EMB_MUTEX_INHERIT
@@ -200,6 +217,72 @@ config EMB_MUTEX_CEILING_STATIC_ONLY
 
 endmenu
 
+menu "Inter-thread communication"
+
+config EMB_MSGQ
+	bool "Message queues (SPEC-007 §2)"
+	default y
+
+config EMB_MSGQ_MAX_ITEM
+	int "Largest message queue item in bytes (SPEC-007 §2.2)"
+	depends on EMB_MSGQ
+	default 16 if EMB_PROFILE_TINY
+	default 64
+	range 1 255 if EMB_IPC_SMALL
+	range 1 1024
+	help
+	  Bounds the copy each send or receive makes with interrupts masked (KRN-IPC-011).
+	  Larger payloads belong in a buffer pool, passed by pointer.
+
+config EMB_IPC_SMALL
+	bool "8-bit IPC counts: at most 255 items per queue (KRN-IPC-021)"
+	default y if EMB_PROFILE_TINY
+	default n
+
+endmenu
+
+menu "Software timers"
+
+config EMB_TIMER
+	bool "Software timers (SPEC-003 §7)"
+	depends on !EMB_SCHED_TABLE
+	default y
+	help
+	  One-shot and periodic timers whose callbacks run on a work queue, or in the expiry
+	  interrupt with EMB_TIMER_ISR_CONTEXT. The tiny profile's table scheduler has no
+	  timers in M2.
+
+endmenu
+
+menu "Work queues"
+
+config EMB_WORKQ
+	bool "Work queues (SPEC-006 §4)"
+	depends on EMB_NOTIFY && !EMB_SCHED_TABLE
+	default y
+	help
+	  A kernel thread per queue runs submitted items in order. The tiny profile's table
+	  scheduler has no work queues in M2.
+
+config EMB_SYSTEM_WORKQ
+	bool "The system work queue, linked only when referenced (ADR-048)"
+	depends on EMB_WORKQ
+	default y
+
+config EMB_SYSTEM_WORKQ_PRIO
+	int "System work queue priority; 0 selects the second-highest priority"
+	depends on EMB_SYSTEM_WORKQ
+	default 0
+	range 0 255
+
+config EMB_SYSTEM_WORKQ_STACK
+	int "System work queue stack size, bytes"
+	depends on EMB_SYSTEM_WORKQ
+	default 2048
+	range EMB_ARCH_STACK_MIN 65536
+
+endmenu
+
 menu "Objects"
 
 choice EMB_HANDLE_MODEL_CHOICE
@@ -214,6 +297,15 @@ endchoice
 config EMB_HANDLE_MODEL
 	string
 	default "POINTER" if EMB_HANDLE_MODEL_POINTER
+
+config EMB_OBJ_LIST
+	bool "Keep a per-type list of active objects (KRN-OBJ-011)"
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  SPEC-009 §6, §7. Init refuses storage that still holds an active
+	  object of its type, exactly, by looking it up in the list. Without
+	  the list, init on such storage is undefined.
 
 endmenu
 
@@ -299,6 +391,14 @@ config EMB_FAULT_HALT_FOR_DEBUG
 	bool "Execute a breakpoint before the fault action (SPEC-011 §14)"
 	default y if EMB_CHECKED && !EMB_ARCH_AVR
 	default n
+
+config EMB_FAULT_HOOK_RUNTIME
+	bool "Register the fault hook at run time with emb_fault_set_hook()"
+	default y
+	help
+	  API-017. Off: the kernel calls emb_fault_hook(), which the application
+	  defines (a weak empty default exists where the compiler has weak
+	  symbols), and keeps no hook pointer in RAM.
 
 endmenu
 

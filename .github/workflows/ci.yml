@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [native-gcc, native-clang, native-release, native-tiny, native-periodic, native-asan, native-tsan]
+        preset: [native-gcc, native-clang, native-release, native-tiny, native-periodic, native-asan, native-tsan, native-coverage]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
@@ -39,6 +39,25 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Coverage report
+        if: matrix.preset == 'native-coverage'
+        run: python3 -I tools/coverage/report.py --json coverage.json --markdown coverage.md && cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage
+        if: matrix.preset == 'native-coverage'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: coverage.*
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Numeric fault IDs without location strings
         if: matrix.preset == 'native-gcc'
         run: |
@@ -73,6 +92,16 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Single-level non-nesting IRQ conformance
         if: matrix.preset == 'cm3-an385'
         run: |
@@ -86,6 +115,7 @@ jobs:
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm arm-none-eabi-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -110,11 +140,22 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Footprint report
         run: |
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/first_execution/first_execution.elf.map \
             --elf build/${{ matrix.preset }}/samples/first_execution/first_execution.elf --nm riscv64-unknown-elf-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -145,11 +186,22 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
       - name: Footprint
         run: |
           python3 -I tools/footprint/footprint.py \
             build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf.map \
             --elf build/${{ matrix.preset }}/samples/${{ matrix.sample }}/${{ matrix.sample }}.elf --nm avr-nm \
+            --storage-h build/${{ matrix.preset }}/generated/include/emb/storage.h \
             --title "${{ matrix.preset }}" --json footprint-${{ matrix.preset }}.json \
             --thresholds tools/footprint/thresholds-${{ matrix.preset }}.json | tee footprint-${{ matrix.preset }}.md
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -181,6 +233,14 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
+      - name: Footprint report tool
+        run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
+      - name: Case evidence tools
+        run: python3 -I -m unittest discover -s tools/evidence -p 'test_*.py' -v
+      - name: Coverage report tool tests
+        run: python3 -I -m unittest discover -s tools/coverage -p 'test_*.py' -v
+      - name: Resource-bound inventory covers every non-constant cost
+        run: python3 -I tools/evidence/check_bounds.py
       - name: Configuration tool self-check
         run: |
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
@@ -221,6 +281,16 @@ jobs:
         run: cmake --build --preset avr-uno-embsim
       - name: Test on EmbSIM
         run: ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/avr-uno-embsim --preset avr-uno-embsim --out case-evidence-avr-uno-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-avr-uno-embsim
+          path: case-evidence-avr-uno-embsim.json
+          if-no-files-found: warn
 
   cm4-embsim:
     # the conformance suite on EmbSIM's NUCLEO-F446RE (SIM-002), built as for the board
@@ -250,6 +320,16 @@ jobs:
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
         run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-cm4-nucleo-embsim
+          path: case-evidence-cm4-nucleo-embsim.json
+          if-no-files-found: warn
 
   rv32-embsim:
     # the conformance suite on EmbSIM's ESP32-C3-DevKitM-1 (SIM-002): each image turned into the
@@ -280,6 +360,16 @@ jobs:
         run: cmake --build --preset rv32-c3-embsim
       - name: Test on EmbSIM
         run: ctest --preset rv32-c3-embsim --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/rv32-c3-embsim --preset rv32-c3-embsim --out case-evidence-rv32-c3-embsim.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-rv32-c3-embsim
+          path: case-evidence-rv32-c3-embsim.json
+          if-no-files-found: warn
 
   merge_gate:
     name: CI merge gate

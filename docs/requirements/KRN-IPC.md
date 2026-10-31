@@ -25,8 +25,8 @@ KRN-IPC-001 to 005 originate in the v0.1 specification (§9.4); KRN-IPC-006 to 0
 ### KRN-IPC-003  ISR-safe IPC never blocks
 **Statement.** ISR-safe IPC operations shall never block.
 **Rationale.** SPEC-001 §5.2.
-**Status.** Accepted 2026-10-07
-**Verification.** Analysis: `@ctx thread isr` forms accept only `EMB_NO_WAIT`; Test: `misuse/ipc_block_from_isr`.
+**Status.** Accepted 2026-10-07; implemented for message queues (M2-07).
+**Verification.** Analysis: `@ctx thread isr` forms accept only `EMB_NO_WAIT`; Test: `msgq_isr_send_and_receive_never_wait`; the model refuses an ISR send or receive that may wait. Pipes and pools are not implemented.
 **Trace.** SPEC-007 §1, §7
 
 ### KRN-IPC-004  Explicit zero-copy ownership
@@ -74,22 +74,22 @@ KRN-IPC-001 to 005 originate in the v0.1 specification (§9.4); KRN-IPC-006 to 0
 ### KRN-IPC-010  Message queue semantics
 **Statement.** A message queue shall copy fixed-size items by value into a caller-provided ring; send with a waiting receiver shall copy directly into the receiver and wake it; receive that frees a slot shall move a waiting sender's item into it and wake the sender; a woken thread shall not re-check; a full queue shall return `EMB_ETIMEDOUT` to a non-blocking sender and never drop.
 **Rationale.** Hand-off semantics (KRN-WAIT-012) applied to both sides; no silent drops (R-001 §6, RIOT).
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `ipc/msgq_*` including `msgq_direct_to_receiver`, `msgq_slot_handoff_to_sender`, `msgq_full_nowait_timedout`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-07).
+**Verification.** Test: `msgq_fifo_order_counts_and_peek`, `msgq_waiting_receivers_get_items_directly_in_priority_order`, `msgq_receive_refills_the_freed_slot_from_a_waiting_sender`, `msgq_waits_time_out_and_cancel_without_storing`, `msgq_destroy_aborts_receivers_and_senders`; model scenarios of the MSGQ group with the conservation and waiting-side invariants; differential agreement on the native presets.
 **Trace.** SPEC-007 §2.2
 
 ### KRN-IPC-011  Bounded item copy under the lock
 **Statement.** `item_size` shall be bounded by `CONFIG_EMB_MSGQ_MAX_ITEM` (default 64, tiny 16); the copy shall run inside the object's critical section and its cost shall be included in the masked-time budget.
 **Rationale.** Simplicity and bounded masking (R-003 T7) without a reservation protocol.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `misuse/msgq_item_too_large`; Benchmark: masked time of a maximum-size send.
+**Status.** Accepted 2026-10-07; implemented for message queues (M2-07); the masked-time benchmark is not run.
+**Verification.** Test: `msgq_init_validates_the_ring`; the `item_copy` entry of the resource-bound inventory; Benchmark: masked time of a maximum-size send (not run: no board).
 **Trace.** SPEC-007 §2.2, §2.3
 
 ### KRN-IPC-012  Send to front
 **Statement.** `send_front` shall place an item at the head, shall accept only `EMB_NO_WAIT`, and shall be ISR-safe.
 **Rationale.** Urgent messages without a second queue (03 §6.3).
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `ipc/msgq_send_front_order`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-07).
+**Verification.** Test: `msgq_send_front_is_received_first_and_never_waits`; model scenario `msgq_send_front_and_peek`.
 **Trace.** SPEC-007 §2.2
 
 ### KRN-IPC-013  Pipe semantics
@@ -130,15 +130,15 @@ KRN-IPC-001 to 005 originate in the v0.1 specification (§9.4); KRN-IPC-006 to 0
 ### KRN-IPC-018  Bindings on IPC objects
 **Statement.** Message queues (receive side, empty to non-empty), pipes (fill reaching `notify_trigger`), and pools (exhausted to available) shall support the notification binding, and a transition consumed by a hand-off shall not signal it.
 **Rationale.** KRN-NOTIF-004.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `notif/bind_msgq`, `notif/bind_pipe`, `notif/bind_pool`.
+**Status.** Accepted 2026-10-07; implemented for message queues (M2-07); pipes and pools are not implemented.
+**Verification.** Test: `msgq_binding_fires_on_empty_to_nonempty_only`; model scenarios `msgq_binding_on_empty_to_nonempty`, `msgq_refill_does_not_signal_binding`.
 **Trace.** SPEC-007 §2.2, §3.2, §4.2; SPEC-006 §3
 
 ### KRN-IPC-019  Storage declaration helpers
 **Statement.** `EMB_MSGQ_RING`, `EMB_POOL_STORAGE`, and the pipe buffer rules shall declare correctly sized and aligned caller storage; misaligned or undersized storage shall be misuse.
 **Rationale.** Word copies and intrusive free lists need alignment the application should not have to compute.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `misuse/ipc_storage_misaligned`; Analysis: macro review.
+**Status.** Accepted 2026-10-07; implemented for message queues (`EMB_MSGQ_RING`, M2-07).
+**Verification.** Test: `msgq_init_validates_the_ring` (missing, misaligned and undersized rings); Analysis: macro review.
 **Trace.** SPEC-007 §2.1, §4.1, §7
 
 ### KRN-IPC-020  Trace and statistics
@@ -151,13 +151,13 @@ KRN-IPC-001 to 005 originate in the v0.1 specification (§9.4); KRN-IPC-006 to 0
 ### KRN-IPC-021  Tiny profile
 **Statement.** The tiny profile shall offer message queues and pools with 8-bit counts under `CONFIG_EMB_IPC_SMALL`, a 16-byte default item bound, and pipes only when configured.
 **Rationale.** Footprint targets T1 and T2.
-**Status.** Accepted 2026-10-07
-**Verification.** Footprint test of the tiny reference configuration.
+**Status.** Accepted 2026-10-07; message queues implemented with `CONFIG_EMB_IPC_SMALL` and a 16-byte item default on tiny (A45); pools and pipes are not implemented.
+**Verification.** Footprint test of the tiny reference configuration, which excludes message queues; the native, QEMU, AVR and EmbSIM tiny presets run `test_msgq`.
 **Trace.** SPEC-007 §9
 
 ### KRN-IPC-022  Model coverage
 **Statement.** Message queues and pools shall be added to the reference model with their M2 conformance tests, with conservation properties (every item received exactly once or still in the ring; every block owned by one party or free).
 **Rationale.** The same evidence standard as semaphores and mutexes.
-**Status.** Accepted 2026-10-07
-**Verification.** Analysis: `tools/model` scenarios exist before the M2 implementation of queues and pools.
+**Status.** Accepted 2026-10-07; met for message queues, whose model scenarios preceded the implementation (M2-07); pools are not modeled.
+**Verification.** Analysis: the MSGQ scenario group and its invariants (`tools/model`) were merged before `kernel/ipc/msgq.c`.
 **Trace.** SPEC-007 §10; KRN-WAIT-007

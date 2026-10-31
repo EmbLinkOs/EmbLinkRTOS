@@ -23,17 +23,39 @@ ROOT = Path(__file__).resolve().parents[2]
 OPS = {op.__name__: op for op in (bridge.Take, bridge.Give, bridge.Lock, bridge.Unlock,
        bridge.NotifySet, bridge.NotifyWait, bridge.Sleep, bridge.Yield, bridge.SetPrio,
        bridge.Suspend, bridge.Resume, bridge.Cancel, bridge.Destroy, bridge.SchedLock,
-       bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join)}
+       bridge.SchedUnlock, bridge.Exit, bridge.Start, bridge.Join,
+       bridge.BindNotify, bridge.UnbindNotify, bridge.ThreadDestroy,
+       bridge.EventSet, bridge.EventClear, bridge.EventWait, bridge.EventDestroy,
+       bridge.CondWait, bridge.CondSignal, bridge.CondBroadcast, bridge.CondDestroy,
+       bridge.MsgSend, bridge.MsgSendFront, bridge.MsgRecv, bridge.MsgPeek, bridge.MsgDestroy,
+       bridge.Submit, bridge.WorkCancel, bridge.WorkCancelSync, bridge.WorkFlush, bridge.WorkqDestroy,
+       bridge.TimerStart, bridge.TimerStop, bridge.TimerStopSync, bridge.DworkSchedule, bridge.DworkCancel)}
 
 
 def scenario_data(sc):
     def program(ops):
         return [dict(op=type(op).__name__, args=asdict(op)) for op in ops]
-    return dict(name=sc.name, threads=[dict(tid=tid, priority=p, program=program(ops))
+    data = dict(name=sc.name, threads=[dict(tid=tid, priority=p, program=program(ops))
                 for tid, (p, ops) in sc.threads.items()],
                 sems=list(sc.sems.items()), mutexes=list(sc.mutexes.items()),
                 isrs=[program(ops) for ops in sc.isrs], inactive=list(sc.inactive),
                 owner_death=sc.owner_death, tickless=sc.tickless)
+    if sc.events:                                    # absent from bundles that predate event flags
+        data["events"] = list(sc.events.items())
+    if sc.conds:                                     # and condition variables
+        data["conds"] = list(sc.conds.items())
+    if sc.msgqs:                                     # and message queues
+        data["msgqs"] = list(sc.msgqs.items())
+    if sc.workqs:                                    # and work queues with their items' handlers
+        data["workqs"] = list(sc.workqs.items())
+        data["works"] = [(w, dict({k: v for k, v in cfg.items() if k != "body"}, body=program(cfg.get("body", ()))))
+                         for w, cfg in sc.works.items()]
+    if sc.timers:                                    # and software timers with their callbacks
+        data["timers"] = [(t, dict({k: v for k, v in cfg.items() if k != "body"},
+                                   body=program(cfg.get("body", ())))) for t, cfg in sc.timers.items()]
+    if sc.horizon is not None:
+        data["horizon"] = sc.horizon
+    return data
 
 
 def scenario_from_data(raw):
@@ -73,6 +95,14 @@ def scenario_from_data(raw):
     return bridge.Scenario(name=raw["name"], threads=threads,
                            sems=objects(raw["sems"], "policy", bridge.Policy),
                            mutexes=objects(raw["mutexes"], "protocol", Protocol),
+                           events=objects(raw.get("events", []), "policy", bridge.Policy),
+                           conds=objects(raw.get("conds", []), "policy", bridge.Policy),
+                           msgqs=objects(raw.get("msgqs", []), "policy", bridge.Policy),
+                           workqs=objects(raw.get("workqs", [])),
+                           works={w: dict(cfg, body=program(cfg["body"])) for w, cfg in objects(raw.get("works", [])).items()},
+                           timers={t: dict(cfg, body=program(cfg["body"]))
+                                   for t, cfg in objects(raw.get("timers", [])).items()},
+                           horizon=raw.get("horizon"),
                            isrs=tuple(program(ops) for ops in raw["isrs"]),
                            inactive=tuple(raw["inactive"]), owner_death=raw["owner_death"],
                            tickless=raw["tickless"])

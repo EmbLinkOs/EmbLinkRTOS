@@ -126,3 +126,27 @@ EMB_TEST(sched_thread_self_and_priorities)
     EMB_ASSERT_EQ(emb_thread_get_effective_priority(me), EMB_TEST_RUNNER_PRIORITY);
     EMB_ASSERT_EQ(emb_context(), EMB_CONTEXT_THREAD);
 }
+
+static emb_thread_t raised;
+
+static void raised_body(void *arg)
+{
+    (void)arg;
+    emb_test_mark(2);
+}
+
+static void raiser(void *arg)
+{
+    (void)arg;
+    raised = emb_test_thread(EMB_TEST_NAME("lo"), 2u, 0u, raised_body, NULL); /* ready, below us */
+    emb_test_mark(1);
+    EMB_ASSERT_OK(emb_thread_set_priority(raised, 4u)); /* now above us: it runs at once */
+    emb_test_mark(3);
+}
+
+EMB_TEST(sched_raising_a_ready_thread_above_the_caller_preempts)
+{
+    EMB_TEST_REQ("KRN-THR-022", "KRN-SYNC-032");
+    (void)emb_test_thread(EMB_TEST_NAME("hi"), 3u, 0u, raiser, NULL);
+    EMB_ASSERT_MARKS(1, 2, 3);
+}

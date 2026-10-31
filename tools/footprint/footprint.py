@@ -5,7 +5,10 @@
 
 Reads the input-section lines of a map file, attributes each to the object file that
 contributed it, and sums text, data and bss per component (kernel module, port, board,
-application, toolchain runtime). Optionally checks the sums against a thresholds file:
+application, toolchain runtime). The per-thread control block size comes from the
+generated <emb/storage.h> of the same build (EMB_THREAD_STORAGE_SIZE, the layout probe,
+SPEC-012 §13); the idle context is reported separately, as it is kernel static RAM and
+need not be a full control block. Optionally checks the sums against a thresholds file:
 
     {"kernel_text_max": 4096, "kernel_ram_max": 64, "tcb_max": 32}
 
@@ -86,14 +89,24 @@ def parse_map(path: str):
     return sums
 
 
-def tcb_size(elf: str, nm: str):
+STORAGE_SIZE = re.compile(r"^#define\s+EMB_THREAD_STORAGE_SIZE\s+(\d+)u?\s*$", re.MULTILINE)
+
+
+def thread_storage_size(storage_h: str):
+    """sizeof(embk_thread_t) as the layout probe measured it for this build."""
+    with open(storage_h, encoding="utf-8") as f:
+        m = STORAGE_SIZE.search(f.read())
+    return int(m.group(1)) if m else None
+
+
+def symbol_size(elf: str, nm: str, name: str):
     try:
         out = subprocess.run([nm, "--print-size", elf], check=True, capture_output=True, text=True).stdout
     except (OSError, subprocess.CalledProcessError):
         return None
     for line in out.splitlines():
         p = line.split()
-        if len(p) == 4 and p[3] == "embk_idle_thread":
+        if len(p) == 4 and p[3] == name:
             return int(p[1], 16)
     return None
 
@@ -101,8 +114,9 @@ def tcb_size(elf: str, nm: str):
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("map", help="GNU ld map file (-Wl,-Map)")
-    ap.add_argument("--elf", help="the image, for the control block size")
+    ap.add_argument("--elf", help="the image, for the idle context size")
     ap.add_argument("--nm", default="nm")
+    ap.add_argument("--storage-h", help="the build's generated emb/storage.h, for the control block size")
     ap.add_argument("--thresholds", help="JSON thresholds file")
     ap.add_argument("--json", help="write the report as JSON here")
     ap.add_argument("--title", default="")
@@ -116,7 +130,15 @@ def main(argv):
         if comp.startswith("kernel/"):
             for k in kernel:
                 kernel[k] += v[k]
-    tcb = tcb_size(args.elf, args.nm) if args.elf else None
+    idle = symbol_size(args.elf, args.nm, "embk_idle_thread") if args.elf else None
+    if args.storage_h:
+        tcb = thread_storage_size(args.storage_h)
+        if tcb is None:
+            print(f"footprint: no EMB_THREAD_STORAGE_SIZE in {args.storage_h}", file=sys.stderr)
+            return 2
+        tcb_source = "EMB_THREAD_STORAGE_SIZE"
+    else:
+        tcb, tcb_source = idle, "embk_idle_thread"  # earlier reports: idle was a full control block
     print(f"# Footprint {args.title}".rstrip())
     print()
     print("| component | text | data | bss |")
@@ -127,9 +149,12 @@ def main(argv):
     print()
     print(f"Kernel static RAM (data + bss): {kernel['data'] + kernel['bss']} bytes")
     if tcb is not None:
-        print(f"Thread control block (embk_idle_thread): {tcb} bytes")
+        print(f"Thread control block ({tcb_source}): {tcb} bytes")
+    if idle is not None and args.storage_h:
+        print(f"Idle context (embk_idle_thread, in kernel static RAM): {idle} bytes")
     report = {"components": {c: {"text": t, "data": d, "bss": b} for c, t, d, b in rows},
-              "kernel": kernel, "kernel_ram": kernel["data"] + kernel["bss"], "tcb": tcb}
+              "kernel": kernel, "kernel_ram": kernel["data"] + kernel["bss"], "tcb": tcb,
+              "tcb_source": tcb_source, "idle_context": idle}
     if args.json:
         with open(args.json, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)

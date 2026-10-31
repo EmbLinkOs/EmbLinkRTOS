@@ -12,13 +12,26 @@
  *   T<tid>=<prio>[,inactive]:<op>;<op>...     a thread and its program
  *   S<sid>=<count>[,fifo][,bind=<tid>.<bit>]  a semaphore
  *   M<mid>=<protocol>,<ceiling>,<recursive>   a mutex (protocol 0 inherit, 1 ceiling, 2 none)
- *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start only)
+ *   E<eid>=<bits>[,fifo][,bind=<tid>.<bit>]   event flags
+ *   C<cid>=<fifo>                             a condition variable (fifo 0 or 1)
+ *   Q<qid>=<capacity>[,fifo][,bind=<tid>.<bit>] a message queue of 32-bit items
+ *   W<q>=<tid>,<prio>                         a work queue whose thread the trace calls tid
+ *   H<w>:<op>;<op>...                         a work item and its handler's operations
+ *   R<t>=isr|q<q>:<op>;<op>...                a timer and its callback's operations
+ *   K<w>:<op>;<op>...                         a delayed work item and its handler's operations
+ *   I<index>:<op>;<op>...                     an ISR body (give, resume, nset, start, eset, eclear,
+ *                                             and qsend, qfront, qrecv, qpeek with no wait)
  * Operations (t: -1 forever, 0 no wait, n ticks):
  *   take s t | give s | lock m t | unlock m | nset tid bits | nwait mask all clear t |
  *   sleep t | yield | setprio tid prio | suspend tid | resume tid | cancel tid | destroy s |
- *   slock | sunlock | exit code | start tid | join tid t
- * A schedule entry fires right after the n-th trace event (or in idle, if that event
- * never comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
+ *   slock | sunlock | exit code | start tid | join tid t | bind s tid bit | unbind s |
+ *   tdestroy tid | eset e bits | eclear e bits | ewait e mask all clear t | edestroy e |
+ *   cwait c m t | csignal c | cbcast c | cdestroy c | qsend q value t | qfront q value |
+ *   qrecv q t | qpeek q | qdestroy q | submit q w | wcancel w | wcsync w t | wflush q t |
+ *   wqdestroy q | tstart t first period | tstop t | tsync t t | dsched q w delay |
+ *   dresched q w delay | dcancel w
+ * A schedule entry fires right after the n-th trace event (or in idle, if that event never
+ * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
  */
 #include <emb/emb.h>
 
@@ -32,11 +45,24 @@
 #if !CONFIG_EMB_TICKLESS
 #include <embk/time.h>
 #endif
+#if CONFIG_EMB_MSGQ
+#include <embk/ipc.h> /* the final ring contents */
+#endif
+#if CONFIG_EMB_WORKQ
+#include <embk/work.h> /* the queue thread's index */
+#endif
 
 #define MAX_THREADS  8u
 #define MAX_OPS      16u
 #define MAX_SEMS     4u
 #define MAX_MUTEXES  4u
+#define MAX_EVFLAGS  4u
+#define MAX_CONDS    4u
+#define MAX_MSGQS    4u
+#define MAX_MSGQ_CAP 8u
+#define MAX_WORKQS   2u
+#define MAX_WORKS    4u
+#define MAX_TIMERS   2u
 #define MAX_ISRS     4u
 #define MAX_EVENTS   16384u
 #define MAX_SCHED    64u
@@ -66,7 +92,33 @@ enum op_kind {
     OP_SUNLOCK,
     OP_EXIT,
     OP_START,
-    OP_JOIN
+    OP_JOIN,
+    OP_BIND,
+    OP_UNBIND,
+    OP_TDESTROY,
+    OP_ESET,
+    OP_ECLEAR,
+    OP_EWAIT,
+    OP_EDESTROY,
+    OP_CWAIT,
+    OP_CSIGNAL,
+    OP_CBCAST,
+    OP_CDESTROY,
+    OP_QSEND,
+    OP_QFRONT,
+    OP_QRECV,
+    OP_QPEEK,
+    OP_QDESTROY,
+    OP_SUBMIT,
+    OP_WCANCEL,
+    OP_WCSYNC,
+    OP_WFLUSH,
+    OP_WQDESTROY,
+    OP_TSTART,
+    OP_TSTOP,
+    OP_TSYNC,
+    OP_DSCHED,
+    OP_DCANCEL
 };
 
 struct op {
@@ -92,6 +144,7 @@ struct thread_desc {
     int status[MAX_OPS];
     unsigned long data[MAX_OPS];
     unsigned done;
+    bool destroyed; /* emb_thread_destroy succeeded: the handle is stale */
 };
 
 struct sem_desc {
@@ -102,6 +155,74 @@ struct sem_desc {
     long bind_bit;
     emb_sem_storage_t storage;
     emb_sem_t handle;
+};
+
+struct evflag_desc {
+    long eid;
+    long bits;
+    bool fifo;
+    long bind_tid;
+    long bind_bit;
+#if CONFIG_EMB_EVENT
+    emb_event_storage_t storage;
+    emb_event_t handle;
+#endif
+};
+
+struct cond_desc {
+    long cid;
+    bool fifo;
+#if CONFIG_EMB_COND
+    emb_cond_storage_t storage;
+    emb_cond_t handle;
+#endif
+};
+
+struct msgq_desc {
+    long qid;
+    long capacity;
+    bool fifo;
+    long bind_tid;
+    long bind_bit;
+    bool destroyed;
+#if CONFIG_EMB_MSGQ
+    emb_msgq_storage_t storage;
+    emb_msgq_t handle;
+    EMB_MSGQ_RING(ring, sizeof(uint32_t), MAX_MSGQ_CAP);
+#endif
+};
+
+struct workq_desc {
+    long q;
+    long tid;
+    uint8_t prio;
+#if CONFIG_EMB_WORKQ
+    emb_workq_storage_t storage;
+    emb_workq_t handle;
+#endif
+};
+
+struct work_desc {
+    long w;
+    bool delayed;
+    struct program body;
+#if CONFIG_EMB_WORKQ
+    emb_work_t work;
+#if CONFIG_EMB_TIMER
+    emb_dwork_t dwork;
+#endif
+#endif
+};
+
+struct timer_desc {
+    long t;
+    bool isr;
+    long q;
+    struct program body;
+#if CONFIG_EMB_TIMER
+    emb_timer_storage_t storage;
+    emb_timer_t handle;
+#endif
 };
 
 struct mutex_desc {
@@ -132,6 +253,21 @@ static struct thread_desc threads[MAX_THREADS];
 static unsigned thread_count;
 static struct sem_desc sems[MAX_SEMS];
 static unsigned sem_count;
+static struct evflag_desc evflags[MAX_EVFLAGS];
+static unsigned evflag_count;
+static struct cond_desc conds[MAX_CONDS];
+static unsigned cond_count;
+static struct msgq_desc msgqs[MAX_MSGQS];
+static unsigned msgq_count;
+static struct workq_desc workqs[MAX_WORKQS];
+static unsigned workq_count;
+static struct work_desc works[MAX_WORKS];
+static unsigned work_count;
+static struct timer_desc timers[MAX_TIMERS];
+static unsigned timer_count;
+#if CONFIG_EMB_WORKQ
+EMB_THREAD_STACK(workq_stacks[MAX_WORKQS], STACK_SIZE);
+#endif
 static struct mutex_desc mutexes[MAX_MUTEXES];
 static unsigned mutex_count;
 static struct program isrs[MAX_ISRS];
@@ -197,9 +333,9 @@ static void parse_op(char *text, struct op *op)
 {
     char *p = text;
     const char *name = cut(&p, ' ');
-    const char *args[4] = {NULL, NULL, NULL, NULL};
+    const char *args[5] = {NULL, NULL, NULL, NULL, NULL};
     unsigned n = 0u;
-    while (p != NULL && n < 4u) {
+    while (p != NULL && n < 5u) {
         args[n++] = cut(&p, ' ');
     }
     op->a = 0;
@@ -265,6 +401,84 @@ static void parse_op(char *text, struct op *op)
         op->kind = OP_JOIN;
         op->a = num(args[0]);
         op->b = num(args[1]);
+    } else if (strcmp(name, "bind") == 0) {
+        op->kind = OP_BIND;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "unbind") == 0) {
+        op->kind = OP_UNBIND;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "tdestroy") == 0) {
+        op->kind = OP_TDESTROY;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "eset") == 0 || strcmp(name, "eclear") == 0) {
+        op->kind = (name[1] == 's') ? OP_ESET : OP_ECLEAR;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "ewait") == 0) {
+        op->kind = OP_EWAIT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]) | (num(args[3]) << 1); /* all | clear << 1 */
+        op->d = num(args[4]);
+    } else if (strcmp(name, "edestroy") == 0) {
+        op->kind = OP_EDESTROY;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "cwait") == 0) {
+        op->kind = OP_CWAIT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "csignal") == 0 || strcmp(name, "cbcast") == 0 ||
+               strcmp(name, "cdestroy") == 0) {
+        op->kind = (name[1] == 's') ? OP_CSIGNAL : (name[1] == 'b') ? OP_CBCAST : OP_CDESTROY;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "qsend") == 0) {
+        op->kind = OP_QSEND;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "qfront") == 0) {
+        op->kind = OP_QFRONT;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "qrecv") == 0) {
+        op->kind = OP_QRECV;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "qpeek") == 0 || strcmp(name, "qdestroy") == 0) {
+        op->kind = (name[1] == 'p') ? OP_QPEEK : OP_QDESTROY;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "submit") == 0 || strcmp(name, "wcsync") == 0 ||
+               strcmp(name, "wflush") == 0) {
+        op->kind = (name[0] == 's') ? OP_SUBMIT : (name[1] == 'c') ? OP_WCSYNC : OP_WFLUSH;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+    } else if (strcmp(name, "wcancel") == 0 || strcmp(name, "wqdestroy") == 0) {
+        op->kind = (name[1] == 'c') ? OP_WCANCEL : OP_WQDESTROY;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "tstart") == 0) {
+        op->kind = OP_TSTART;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+    } else if (strcmp(name, "tstop") == 0) {
+        op->kind = OP_TSTOP;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "dsched") == 0 || strcmp(name, "dresched") == 0) {
+        op->kind = OP_DSCHED;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
+        op->c = num(args[2]);
+        op->d = name[1] == 'r'; /* reschedule */
+    } else if (strcmp(name, "dcancel") == 0) {
+        op->kind = OP_DCANCEL;
+        op->a = num(args[0]);
+    } else if (strcmp(name, "tsync") == 0) {
+        op->kind = OP_TSYNC;
+        op->a = num(args[0]);
+        op->b = num(args[1]);
     } else {
         die("unknown operation");
     }
@@ -324,6 +538,95 @@ static void parse_section(char *sec)
                 die("bad semaphore attribute");
             }
         }
+    } else if (kind == 'E') {
+        struct evflag_desc *e;
+        char *attrs;
+        if (evflag_count >= MAX_EVFLAGS) {
+            die("too many event flags");
+        }
+        e = &evflags[evflag_count++];
+        e->eid = num(cut(&p, '='));
+        attrs = p;
+        e->bits = num(cut(&attrs, ','));
+        e->bind_tid = -1;
+        while (attrs != NULL && *attrs != '\0') {
+            char *a = cut(&attrs, ',');
+            if (strcmp(a, "fifo") == 0) {
+                e->fifo = true;
+            } else if (strncmp(a, "bind=", 5) == 0) {
+                char *b = a + 5;
+                e->bind_tid = num(cut(&b, '.'));
+                e->bind_bit = num(b);
+            } else {
+                die("bad event flag attribute");
+            }
+        }
+    } else if (kind == 'C') {
+        struct cond_desc *c;
+        if (cond_count >= MAX_CONDS) {
+            die("too many condition variables");
+        }
+        c = &conds[cond_count++];
+        c->cid = num(cut(&p, '='));
+        c->fifo = num(p) != 0;
+    } else if (kind == 'Q') {
+        struct msgq_desc *q;
+        char *attrs;
+        if (msgq_count >= MAX_MSGQS) {
+            die("too many message queues");
+        }
+        q = &msgqs[msgq_count++];
+        q->qid = num(cut(&p, '='));
+        attrs = p;
+        q->capacity = num(cut(&attrs, ','));
+        if (q->capacity < 1 || q->capacity > (long)MAX_MSGQ_CAP) {
+            die("bad message queue capacity");
+        }
+        q->bind_tid = -1;
+        while (attrs != NULL && *attrs != '\0') {
+            char *a = cut(&attrs, ',');
+            if (strcmp(a, "fifo") == 0) {
+                q->fifo = true;
+            } else if (strncmp(a, "bind=", 5) == 0) {
+                char *b = a + 5;
+                q->bind_tid = num(cut(&b, '.'));
+                q->bind_bit = num(b);
+            } else {
+                die("bad message queue attribute");
+            }
+        }
+    } else if (kind == 'W') {
+        struct workq_desc *q;
+        char *attrs;
+        if (workq_count >= MAX_WORKQS) {
+            die("too many work queues");
+        }
+        q = &workqs[workq_count++];
+        q->q = num(cut(&p, '='));
+        attrs = p;
+        q->tid = num(cut(&attrs, ','));
+        q->prio = (uint8_t)num(attrs);
+    } else if (kind == 'H' || kind == 'K') {
+        struct work_desc *w;
+        if (work_count >= MAX_WORKS) {
+            die("too many work items");
+        }
+        w = &works[work_count++];
+        w->delayed = kind == 'K';
+        w->w = num(cut(&p, ':'));
+        parse_program(p, &w->body);
+    } else if (kind == 'R') {
+        struct timer_desc *t;
+        char *mode;
+        if (timer_count >= MAX_TIMERS) {
+            die("too many timers");
+        }
+        t = &timers[timer_count++];
+        t->t = num(cut(&p, '='));
+        mode = cut(&p, ':');
+        t->isr = strcmp(mode, "isr") == 0;
+        t->q = t->isr ? -1 : num(mode + 1);
+        parse_program(p, &t->body);
     } else if (kind == 'M') {
         struct mutex_desc *m;
         char *attrs;
@@ -405,6 +708,104 @@ static emb_sem_t sem_by_sid(long sid)
     die("unknown semaphore id");
     return sems[0].handle;
 }
+
+#if CONFIG_EMB_EVENT
+static emb_event_t evflag_by_eid(long eid)
+{
+    unsigned i;
+    for (i = 0u; i < evflag_count; i++) {
+        if (evflags[i].eid == eid) {
+            return evflags[i].handle;
+        }
+    }
+    die("unknown event flags id");
+    return evflags[0].handle;
+}
+#endif
+
+#if CONFIG_EMB_COND
+static emb_cond_t cond_by_cid(long cid)
+{
+    unsigned i;
+    for (i = 0u; i < cond_count; i++) {
+        if (conds[i].cid == cid) {
+            return conds[i].handle;
+        }
+    }
+    die("unknown condition variable id");
+    return conds[0].handle;
+}
+#endif
+
+#if CONFIG_EMB_MSGQ
+static struct msgq_desc *msgq_by_qid(long qid)
+{
+    unsigned i;
+    for (i = 0u; i < msgq_count; i++) {
+        if (msgqs[i].qid == qid) {
+            return &msgqs[i];
+        }
+    }
+    die("unknown message queue id");
+    return &msgqs[0];
+}
+#endif
+
+#if CONFIG_EMB_WORKQ
+static emb_workq_t workq_by_q(long q)
+{
+    unsigned i;
+    for (i = 0u; i < workq_count; i++) {
+        if (workqs[i].q == q) {
+            return workqs[i].handle;
+        }
+    }
+    die("unknown work queue id");
+    return workqs[0].handle;
+}
+
+/* The item a work id names: its own, or a delayed item's. */
+static emb_work_t *item_of(struct work_desc *d)
+{
+#if CONFIG_EMB_TIMER
+    if (d->delayed) {
+        return &d->dwork.work;
+    }
+#endif
+    return &d->work;
+}
+
+static struct work_desc *work_desc_by_w(long w)
+{
+    unsigned i;
+    for (i = 0u; i < work_count; i++) {
+        if (works[i].w == w) {
+            return &works[i];
+        }
+    }
+    die("unknown work item id");
+    return &works[0];
+}
+
+static emb_work_t *work_by_w(long w)
+{
+    return item_of(work_desc_by_w(w));
+}
+#endif
+
+#if CONFIG_EMB_TIMER
+static emb_timer_t timer_by_t(long t)
+{
+    unsigned i;
+    for (i = 0u; i < timer_count; i++) {
+        if (timers[i].t == t) {
+            return timers[i].handle;
+        }
+    }
+    die("unknown timer id");
+    return timers[0].handle;
+}
+#endif
 
 static emb_mutex_t mutex_by_mid(long mid)
 {
@@ -580,6 +981,189 @@ static void run_ops(const struct program *prog, struct thread_desc *self)
             data = (unsigned long)(long)code;
             break;
         }
+        case OP_BIND:
+            st = emb_sem_bind_notify(sem_by_sid(op->a), thread_by_tid(op->b)->handle,
+                                     EMB_NOTIFY_BIT((unsigned)op->c));
+            break;
+        case OP_UNBIND:
+            st = emb_sem_unbind_notify(sem_by_sid(op->a));
+            break;
+        case OP_TDESTROY: {
+            struct thread_desc *d = thread_by_tid(op->a);
+            st = emb_thread_destroy(d->handle);
+            if (st == EMB_OK) {
+                d->destroyed = true;
+            }
+            break;
+        }
+#if CONFIG_EMB_EVENT
+        case OP_ESET:
+            st = emb_event_set(evflag_by_eid(op->a), (emb_event_bits_t)op->b);
+            break;
+        case OP_ECLEAR:
+            st = emb_event_clear(evflag_by_eid(op->a), (emb_event_bits_t)op->b);
+            break;
+        case OP_EWAIT: {
+            emb_event_bits_t got = 0u;
+            uint8_t mode = (uint8_t)(((op->c & 1) != 0 ? EMB_EVENT_ALL : EMB_EVENT_ANY) |
+                                     ((op->c & 2) != 0 ? EMB_EVENT_CLEAR : 0u));
+            st = emb_event_wait(evflag_by_eid(op->a), (emb_event_bits_t)op->b, mode,
+                                timeout_of(op->d), &got);
+            data = got;
+            break;
+        }
+        case OP_EDESTROY:
+            st = emb_event_destroy(evflag_by_eid(op->a));
+            break;
+#else
+        case OP_ESET:
+        case OP_ECLEAR:
+        case OP_EWAIT:
+        case OP_EDESTROY:
+            die("event flags are not configured");
+            break;
+#endif
+#if CONFIG_EMB_COND
+        case OP_CWAIT:
+            st = emb_cond_wait(cond_by_cid(op->a), mutex_by_mid(op->b), timeout_of(op->c));
+            if (st == EMB_EOWNERDEAD) {
+                data = 2u; /* the model's OWNERDEAD_FLAG, as for lock */
+                st = EMB_OK;
+            }
+            break;
+        case OP_CSIGNAL:
+            st = emb_cond_signal(cond_by_cid(op->a));
+            break;
+        case OP_CBCAST:
+            st = emb_cond_broadcast(cond_by_cid(op->a));
+            break;
+        case OP_CDESTROY:
+            st = emb_cond_destroy(cond_by_cid(op->a));
+            break;
+#else
+        case OP_CWAIT:
+        case OP_CSIGNAL:
+        case OP_CBCAST:
+        case OP_CDESTROY:
+            die("condition variables are not configured");
+            break;
+#endif
+#if CONFIG_EMB_MSGQ
+        case OP_QSEND: {
+            uint32_t v = (uint32_t)op->b;
+            st = emb_msgq_send(msgq_by_qid(op->a)->handle, &v, timeout_of(op->c));
+            break;
+        }
+        case OP_QFRONT: {
+            uint32_t v = (uint32_t)op->b;
+            st = emb_msgq_send_front(msgq_by_qid(op->a)->handle, &v);
+            break;
+        }
+        case OP_QRECV:
+        case OP_QPEEK: {
+            uint32_t v = 0u;
+            st = (op->kind == OP_QRECV)
+                     ? emb_msgq_receive(msgq_by_qid(op->a)->handle, &v, timeout_of(op->b))
+                     : emb_msgq_peek(msgq_by_qid(op->a)->handle, &v);
+            data = (st == EMB_OK) ? v : 0u;
+            break;
+        }
+        case OP_QDESTROY: {
+            struct msgq_desc *q = msgq_by_qid(op->a);
+            st = emb_msgq_destroy(q->handle);
+            if (st == EMB_OK) {
+                q->destroyed = true;
+            }
+            break;
+        }
+#else
+        case OP_QSEND:
+        case OP_QFRONT:
+        case OP_QRECV:
+        case OP_QPEEK:
+        case OP_QDESTROY:
+            die("message queues are not configured");
+            break;
+#endif
+#if CONFIG_EMB_WORKQ
+        case OP_SUBMIT:
+            st = emb_work_submit(workq_by_q(op->a), work_by_w(op->b));
+            break;
+        case OP_WCANCEL: {
+            emb_work_state_t was = EMB_WORK_IDLE;
+            st = emb_work_cancel(work_by_w(op->a), &was);
+            data = was;
+            break;
+        }
+        case OP_WCSYNC:
+            st = emb_work_cancel_sync(work_by_w(op->a), timeout_of(op->b));
+            break;
+        case OP_WFLUSH:
+            st = emb_workq_flush(workq_by_q(op->a), timeout_of(op->b));
+            break;
+        case OP_WQDESTROY:
+            st = emb_workq_destroy(workq_by_q(op->a));
+            break;
+#else
+        case OP_SUBMIT:
+        case OP_WCANCEL:
+        case OP_WCSYNC:
+        case OP_WFLUSH:
+        case OP_WQDESTROY:
+            die("work queues are not configured");
+            break;
+#endif
+#if CONFIG_EMB_TIMER
+        case OP_TSTART:
+            st = (op->c == 0)
+                     ? emb_timer_start(timer_by_t(op->a), EMB_TICKS((emb_tick_t)op->b))
+                     : emb_timer_start_periodic(timer_by_t(op->a), EMB_TICKS((emb_tick_t)op->b),
+                                                EMB_TICKS((emb_tick_t)op->c));
+            break;
+        case OP_TSTOP: {
+            emb_timer_state_t was = EMB_TIMER_IDLE;
+            st = emb_timer_stop(timer_by_t(op->a), &was);
+            data = was;
+            break;
+        }
+        case OP_TSYNC:
+            st = emb_timer_stop_sync(timer_by_t(op->a), timeout_of(op->b));
+            break;
+#else
+        case OP_TSTART:
+        case OP_TSTOP:
+        case OP_TSYNC:
+            die("software timers are not configured");
+            break;
+#endif
+#if CONFIG_EMB_TIMER && CONFIG_EMB_WORKQ
+        case OP_DSCHED: {
+            struct work_desc *d = work_desc_by_w(op->b);
+            if (!d->delayed) {
+                die("dsched names an item that is not delayed");
+            }
+            st = (op->d != 0) ? emb_dwork_reschedule(workq_by_q(op->a), &d->dwork,
+                                                     EMB_TICKS((emb_tick_t)op->c))
+                              : emb_dwork_schedule(workq_by_q(op->a), &d->dwork,
+                                                   EMB_TICKS((emb_tick_t)op->c));
+            break;
+        }
+        case OP_DCANCEL: {
+            struct work_desc *d = work_desc_by_w(op->a);
+            emb_work_state_t was = EMB_WORK_IDLE;
+            if (!d->delayed) {
+                die("dcancel names an item that is not delayed");
+            }
+            st = emb_dwork_cancel(&d->dwork, &was);
+            data = was;
+            break;
+        }
+#else
+        case OP_DSCHED:
+        case OP_DCANCEL:
+            die("delayed work is not configured");
+            break;
+#endif
         default:
             die("bad operation kind");
             break;
@@ -596,6 +1180,28 @@ static void thread_entry(void *arg)
 {
     run_ops(&((struct thread_desc *)arg)->prog, (struct thread_desc *)arg);
 }
+
+#if CONFIG_EMB_TIMER
+static void timer_callback(emb_timer_t timer, void *arg)
+{
+    (void)timer;
+    run_ops(&((struct timer_desc *)arg)->body, NULL); /* results unrecorded */
+}
+#endif
+
+#if CONFIG_EMB_WORKQ
+static void work_handler(emb_work_t *work)
+{
+    unsigned i;
+    for (i = 0u; i < work_count; i++) {
+        if (item_of(&works[i]) == work) {
+            run_ops(&works[i].body, NULL); /* results unrecorded */
+            return;
+        }
+    }
+    die("unknown work item");
+}
+#endif
 
 static void isr_body(void *arg)
 {
@@ -614,14 +1220,17 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
         return;
     }
     dumped = 1u;
-    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254\n",
+    (void)printf("config profile=%s owner_death=%s checked=%d tickless=%d idle_index=254 events=%d "
+                 "conds=%d msgqs=%d workqs=%d timers=%d\n",
                  CONFIG_EMB_PROFILE,
 #if CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT && CONFIG_EMB_CHECKED
                  "fault",
 #else
                  "release",
 #endif
-                 (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS);
+                 (int)CONFIG_EMB_CHECKED, (int)CONFIG_EMB_TICKLESS, (int)CONFIG_EMB_EVENT,
+                 (int)CONFIG_EMB_COND, (int)CONFIG_EMB_MSGQ, (int)CONFIG_EMB_WORKQ,
+                 (int)CONFIG_EMB_TIMER);
     n = event_count;
     for (i = 0u; i < n; i++) {
         (void)printf("ev %u %u %lu %lu %lu %lu\n", (unsigned)events[i].id,
@@ -640,7 +1249,7 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
             (void)printf("res %ld %u %d %lu\n", threads[i].tid, k, (int)threads[i].status[k],
                          threads[i].data[k]);
         }
-        if (!EMB_HANDLE_IS_NULL(threads[i].handle) &&
+        if (!EMB_HANDLE_IS_NULL(threads[i].handle) && !threads[i].destroyed &&
             emb_thread_state(threads[i].handle, &state, &reason) == EMB_OK) {
             (void)printf("state %ld %u %u\n", threads[i].tid, (unsigned)state, (unsigned)reason);
         }
@@ -648,6 +1257,43 @@ static void dump(const char *end, unsigned long e0, unsigned long e1)
     for (i = 0u; i < sem_count; i++) {
         (void)printf("sem %ld %lu\n", sems[i].sid, (unsigned long)emb_sem_count(sems[i].handle));
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        (void)printf("evflag %ld %lu\n", evflags[i].eid,
+                     (unsigned long)emb_event_get(evflags[i].handle));
+    }
+#endif
+#if CONFIG_EMB_TIMER
+    for (i = 0u; i < timer_count; i++) {
+        uint32_t exp = 0u;
+        uint32_t over = 0u;
+        (void)emb_timer_get_counts(timers[i].handle, &exp, &over);
+        (void)printf("timer %ld %lu %lu %d\n", timers[i].t, (unsigned long)exp, (unsigned long)over,
+                     emb_timer_is_running(timers[i].handle) ? 1 : 0);
+    }
+#endif
+#if CONFIG_EMB_WORKQ
+    for (i = 0u; i < work_count; i++) {
+        (void)printf("work %ld %u\n", works[i].w, (unsigned)emb_work_state(item_of(&works[i])));
+    }
+#endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        const embk_msgq_t *q = (const embk_msgq_t *)(const void *)&msgqs[i].storage;
+        unsigned k;
+        if (msgqs[i].destroyed) {
+            continue;
+        }
+        (void)printf("msgq %ld", msgqs[i].qid);
+        for (k = 0u; k < q->count; k++) {
+            uint32_t v;
+            unsigned slot = (q->head + k) % q->capacity;
+            (void)memcpy(&v, q->ring + ((size_t)slot * q->item_size), sizeof(v));
+            (void)printf(" %lu", (unsigned long)v);
+        }
+        (void)printf("\n");
+    }
+#endif
     (void)printf("end %s %lu %lu\n", end, e0, e1);
     (void)fflush(stdout);
 }
@@ -707,6 +1353,95 @@ static void construct(void)
         attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (sems[i].fifo ? EMB_OBJ_FIFO : 0u));
         EMB_CHECK(emb_sem_init(&sems[i].storage, &attr, &sems[i].handle));
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        emb_event_attr_t attr;
+        emb_event_attr_default(&attr);
+        attr.initial = (emb_event_bits_t)evflags[i].bits;
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (evflags[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_event_init(&evflags[i].storage, &attr, &evflags[i].handle));
+    }
+#else
+    if (evflag_count != 0u) {
+        die("event flags are not configured");
+    }
+#endif
+#if CONFIG_EMB_COND
+    for (i = 0u; i < cond_count; i++) {
+        emb_cond_attr_t attr;
+        emb_cond_attr_default(&attr);
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (conds[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_cond_init(&conds[i].storage, &attr, &conds[i].handle));
+    }
+#else
+    if (cond_count != 0u) {
+        die("condition variables are not configured");
+    }
+#endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        emb_msgq_attr_t attr;
+        emb_msgq_attr_default(&attr);
+        attr.ring = msgqs[i].ring;
+        attr.ring_size = sizeof(msgqs[i].ring);
+        attr.item_size = sizeof(uint32_t);
+        attr.capacity = (uint16_t)msgqs[i].capacity;
+        attr.flags = (uint8_t)(EMB_OBJ_ABORT_WAITERS | (msgqs[i].fifo ? EMB_OBJ_FIFO : 0u));
+        EMB_CHECK(emb_msgq_init(&msgqs[i].storage, &attr, &msgqs[i].handle));
+    }
+#else
+    if (msgq_count != 0u) {
+        die("message queues are not configured");
+    }
+#endif
+#if CONFIG_EMB_WORKQ
+    for (i = 0u; i < workq_count; i++) {
+        emb_workq_attr_t attr;
+        emb_workq_attr_default(&attr);
+        attr.name = "diffwq";
+        attr.stack = workq_stacks[i];
+        attr.stack_size = sizeof(workq_stacks[i]);
+        attr.priority = workqs[i].prio;
+        EMB_CHECK(emb_workq_init(&workqs[i].storage, &attr, &workqs[i].handle));
+    }
+    for (i = 0u; i < work_count; i++) {
+        if (works[i].delayed) {
+#if CONFIG_EMB_TIMER
+            emb_dwork_init(&works[i].dwork, work_handler);
+#else
+            die("delayed work is not configured");
+#endif
+        } else {
+            emb_work_init(&works[i].work, work_handler);
+        }
+    }
+#else
+    if (workq_count != 0u || work_count != 0u) {
+        die("work queues are not configured");
+    }
+#endif
+#if CONFIG_EMB_TIMER
+    for (i = 0u; i < timer_count; i++) {
+        emb_timer_attr_t attr;
+        emb_timer_attr_default(&attr);
+        attr.fn = timer_callback;
+        attr.arg = &timers[i];
+        if (timers[i].isr) {
+            attr.flags = EMB_TIMER_ISR_CONTEXT;
+        } else {
+#if CONFIG_EMB_WORKQ
+            attr.workq = workq_by_q(timers[i].q);
+#else
+            die("work queue timers are not configured");
+#endif
+        }
+        EMB_CHECK(emb_timer_init(&timers[i].storage, &attr, &timers[i].handle));
+    }
+#else
+    if (timer_count != 0u) {
+        die("software timers are not configured");
+    }
+#endif
     for (i = 0u; i < mutex_count; i++) {
         emb_mutex_attr_t attr;
         emb_mutex_attr_default(&attr);
@@ -731,6 +1466,24 @@ static void construct(void)
                                           EMB_NOTIFY_BIT(sems[i].bind_bit)));
         }
     }
+#if CONFIG_EMB_EVENT
+    for (i = 0u; i < evflag_count; i++) {
+        if (evflags[i].bind_tid >= 0) {
+            EMB_CHECK(emb_event_bind_notify(evflags[i].handle,
+                                            thread_by_tid(evflags[i].bind_tid)->handle,
+                                            EMB_NOTIFY_BIT(evflags[i].bind_bit)));
+        }
+    }
+#endif
+#if CONFIG_EMB_MSGQ
+    for (i = 0u; i < msgq_count; i++) {
+        if (msgqs[i].bind_tid >= 0) {
+            EMB_CHECK(emb_msgq_bind_notify(msgqs[i].handle,
+                                           thread_by_tid(msgqs[i].bind_tid)->handle,
+                                           EMB_NOTIFY_BIT(msgqs[i].bind_bit)));
+        }
+    }
+#endif
     for (i = 0u; i < isr_count; i++) {
         EMB_CHECK(emb_irq_connect((emb_irq_t)(ISR_IRQ_BASE + i), isr_body, (void *)(uintptr_t)i));
     }
@@ -767,6 +1520,13 @@ int main(int argc, char **argv)
         (void)printf("thread %ld index %u\n", threads[i].tid,
                      (unsigned)emb_thread_index(threads[i].handle));
     }
+#if CONFIG_EMB_WORKQ
+    for (i = 0; (unsigned)i < workq_count; i++) {
+        const embk_workq_t *q = (const embk_workq_t *)(const void *)&workqs[i].storage;
+        (void)printf("thread %ld index %u\n", workqs[i].tid,
+                     (unsigned)embk_thread_index(&q->thread));
+    }
+#endif
     started = 1u;
     emb_kernel_start();
 }

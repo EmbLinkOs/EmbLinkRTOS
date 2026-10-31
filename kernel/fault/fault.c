@@ -10,12 +10,20 @@
 
 #include <embk/kernel.h>
 
+#if CONFIG_EMB_FAULT_HOOK_RUNTIME
 static emb_fault_hook_t fault_hook; /* lock: set before start or from thread context only */
 
 void emb_fault_set_hook(emb_fault_hook_t hook)
 {
     fault_hook = hook;
 }
+#elif EMB_HAS_WEAK
+/* Bound at link time: the application's definition replaces this one. */
+EMB_WEAK void emb_fault_hook(const emb_fault_info_t *info)
+{
+    (void)info;
+}
+#endif
 
 static EMB_NORETURN void act(const emb_fault_info_t *info)
 {
@@ -49,9 +57,13 @@ static EMB_NORETURN void raise_info(uint16_t api_id, uint8_t fault_class, uint16
     info.sp = sp;
     info.where = where;
     EMBK_TRACE(EMB_TRACE_FAULT, fault_class, code, 0u);
+#if CONFIG_EMB_FAULT_HOOK_RUNTIME
     if (fault_hook != NULL) {
         fault_hook(&info);
     }
+#else
+    emb_fault_hook(&info);
+#endif
     act(&info);
 }
 

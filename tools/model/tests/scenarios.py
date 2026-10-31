@@ -336,3 +336,516 @@ def exit_owning_mutex_joined():
 JOIN = [join_before_exit, join_after_exit, join_timeout_then_exit, join_second_ebusy, cancel_joiner,
         start_inactive, exit_owning_mutex_joined]
 ALL = ALL + JOIN
+
+
+# ---------------------------------------------------------------------------------------
+# M2-03: binding lifetime (SPEC-006 §3, ADR-046)
+# ---------------------------------------------------------------------------------------
+from embmodel import BindNotify, ThreadDestroy, UnbindNotify  # noqa: E402
+
+
+def unbind_then_give():
+    """T1 binds S0 to T2 and unbinds before giving: T2's notification wait times out."""
+    return Scenario(name="unbind_then_give",
+                    threads={1: (3, (BindNotify(0, 2, 0), UnbindNotify(0), UnbindNotify(0), Sleep(1), Give(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),))},
+                    sems={0: dict(count=0)})
+
+
+def isr_give_vs_unbind():
+    """An ISR gives S0 around T1's unbind: T2 gets the bit only if the give came first."""
+    return Scenario(name="isr_give_vs_unbind",
+                    threads={1: (3, (BindNotify(0, 2, 0), Sleep(1), UnbindNotify(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),))},
+                    sems={0: dict(count=0)},
+                    isrs=((Give(0),),))
+
+
+def destroy_target_while_bound():
+    """T1 binds S0 to T2, joins it, and may destroy it only after unbinding."""
+    return Scenario(name="destroy_target_while_bound",
+                    threads={1: (3, (BindNotify(0, 2, 0), Join(2), ThreadDestroy(2), UnbindNotify(0),
+                                     ThreadDestroy(2))),
+                             2: (2, (Sleep(1), Exit(4)))},
+                    sems={0: dict(count=0)})
+
+
+def destroy_bound_sem_releases_target():
+    """Destroying the bound semaphore releases the target; a waiter leaves with DESTROYED."""
+    return Scenario(name="destroy_bound_sem_releases_target",
+                    threads={1: (1, (BindNotify(0, 2, 0), Join(2), Destroy(0), ThreadDestroy(2))),
+                             2: (2, (Exit(1),)),
+                             3: (3, (Take(0, 2),))},
+                    sems={0: dict(count=0)})
+
+
+def bind_terminated_target():
+    """Binding a terminated thread is refused; an INACTIVE one can be bound and then destroyed after unbind."""
+    return Scenario(name="bind_terminated_target",
+                    threads={1: (1, (Join(2), BindNotify(0, 2, 0), BindNotify(0, 3, 0), ThreadDestroy(3),
+                                     UnbindNotify(0), ThreadDestroy(3))),
+                             2: (2, (Exit(0),)),
+                             3: (3, (Exit(0),))},
+                    sems={0: dict(count=0)},
+                    inactive=(3,))
+
+
+def suspended_target_accumulates():
+    """A bound target suspended while waiting keeps the handed-off bit and returns it at resume."""
+    return Scenario(name="suspended_target_accumulates",
+                    threads={1: (1, (BindNotify(0, 2, 0), Suspend(2), Give(0), Resume(2))),
+                             2: (2, (NotifyWait(0x1),))},
+                    sems={0: dict(count=0)})
+
+
+def rebind_to_another_thread():
+    """A second bind is refused until unbind; the rebound thread receives the next ready transition."""
+    return Scenario(name="rebind_to_another_thread",
+                    threads={1: (4, (BindNotify(0, 2, 0), BindNotify(0, 3, 1), UnbindNotify(0),
+                                     BindNotify(0, 3, 1), Sleep(1), Give(0))),
+                             2: (2, (NotifyWait(0x1, timeout=3),)),
+                             3: (3, (NotifyWait(0x2, timeout=3),))},
+                    sems={0: dict(count=0)})
+
+
+BINDING = [unbind_then_give, isr_give_vs_unbind, destroy_target_while_bound, destroy_bound_sem_releases_target,
+           bind_terminated_target, suspended_target_accumulates, rebind_to_another_thread]
+ALL = ALL + BINDING
+
+
+# ---------------------------------------------------------------------------------------
+# M2-05: event flags (SPEC-005 §5)
+# ---------------------------------------------------------------------------------------
+from embmodel import EventDestroy, EventSet, EventWait  # noqa: E402
+
+
+def event_overlapping_clear():
+    """Two CLEAR waiters on the same bit: the higher one consumes the first set, the other the second."""
+    return Scenario(name="event_overlapping_clear",
+                    threads={1: (3, (EventWait(0, 0x1, clear=True),)), 2: (2, (EventWait(0, 0x1, clear=True),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x1)))},
+                    events={0: dict(bits=0)})
+
+
+def event_all_and_any():
+    """An ALL waiter wakes only when both bits are set; an ANY waiter at the first one."""
+    return Scenario(name="event_all_and_any",
+                    threads={1: (3, (EventWait(0, 0x3, all=True),)), 2: (2, (EventWait(0, 0x1),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x2)))},
+                    events={0: dict(bits=0)})
+
+
+def event_isr_set_vs_timed_wait():
+    """An ISR sets the bit at any point around a timed CLEAR wait: the bit is consumed or still set, never lost."""
+    return Scenario(name="event_isr_set_vs_timed_wait",
+                    threads={1: (2, (EventWait(0, 0x1, clear=True, timeout=3),))},
+                    events={0: dict(bits=0)},
+                    isrs=((EventSet(0, 0x1),),))
+
+
+def event_destroy_and_cancel_waiters():
+    """One waiter leaves with DESTROYED, another with CANCELED."""
+    return Scenario(name="event_destroy_and_cancel_waiters",
+                    threads={1: (4, (EventWait(0, 0x1),)), 2: (3, (EventWait(1, 0x1),)),
+                             3: (1, (Sleep(1), Cancel(2), EventDestroy(0)))},
+                    events={0: dict(bits=0), 1: dict(bits=0)})
+
+
+def event_binding_after_direct_waiters():
+    """The bound thread is notified only for bits the direct waiter left set."""
+    return Scenario(name="event_binding_after_direct_waiters",
+                    threads={1: (3, (NotifyWait(0x1, timeout=4),)), 2: (2, (EventWait(0, 0x1, clear=True),)),
+                             3: (1, (EventSet(0, 0x1), EventSet(0, 0x2)))},
+                    events={0: dict(bits=0, binding=(1, 0))})
+
+
+def event_timeout_then_set():
+    """A waiter times out before the set; the bit stays set for later."""
+    return Scenario(name="event_timeout_then_set",
+                    threads={1: (2, (EventWait(0, 0x1, timeout=1),)), 2: (1, (Sleep(2), EventSet(0, 0x1)))},
+                    events={0: dict(bits=0)})
+
+
+EVENT = [event_overlapping_clear, event_all_and_any, event_isr_set_vs_timed_wait, event_destroy_and_cancel_waiters,
+         event_binding_after_direct_waiters, event_timeout_then_set]
+ALL = ALL + EVENT
+
+
+# ---------------------------------------------------------------------------------------
+# M2-06: condition variables (SPEC-005 §6)
+# ---------------------------------------------------------------------------------------
+from embmodel import CondBroadcast, CondDestroy, CondSignal, CondWait  # noqa: E402
+
+
+def cond_signal_not_lost():
+    """The release and the enqueue are one section: the signal after it always finds the waiter."""
+    return Scenario(name="cond_signal_not_lost",
+                    threads={1: (2, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (1, (Lock(0), CondSignal(0), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_timeout_relocks():
+    """The wait times out while another thread holds the mutex; the relock waits for its unlock."""
+    return Scenario(name="cond_timeout_relocks",
+                    threads={1: (2, (Lock(0), CondWait(0, 0, timeout=2), Unlock(0))),
+                             2: (1, (Lock(0), Sleep(4), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_cancel_during_relock():
+    """A cancel sent while the signaled waiter relocks is deferred: the wait still reports the signal."""
+    return Scenario(name="cond_cancel_during_relock",
+                    threads={1: (3, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (2, (Lock(0), CondSignal(0), Cancel(1), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_broadcast_wakes_all():
+    """A broadcast wakes both waiters; each returns owning the mutex in turn."""
+    return Scenario(name="cond_broadcast_wakes_all",
+                    threads={1: (4, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             2: (3, (Lock(0), CondWait(0, 0), Unlock(0))),
+                             3: (1, (Lock(0), CondBroadcast(0), Unlock(0)))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+def cond_destroy_aborts_waiter():
+    """Destroying the condition variable aborts its waiter, which still relocks the mutex."""
+    return Scenario(name="cond_destroy_aborts_waiter",
+                    threads={1: (3, (Lock(0), CondWait(0, 0), Unlock(0))), 2: (2, (CondDestroy(0),))},
+                    mutexes={0: {}}, conds={0: {}})
+
+
+COND = [cond_signal_not_lost, cond_timeout_relocks, cond_cancel_during_relock, cond_broadcast_wakes_all,
+        cond_destroy_aborts_waiter]
+ALL = ALL + COND
+
+
+# ---------------------------------------------------------------------------------------
+# M2-07: message queues (SPEC-007 §2, KRN-IPC-022): modeled before the implementation
+# ---------------------------------------------------------------------------------------
+from embmodel import MsgDestroy, MsgPeek, MsgRecv, MsgSend, MsgSendFront  # noqa: E402
+
+
+def msgq_fifo_order():
+    """Capacity 2, three sends: the third waits for a slot; the receiver gets 1, 2, 3 in order."""
+    return Scenario(name="msgq_fifo_order",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2), MsgSend(0, 3))),
+                             2: (1, (MsgRecv(0), MsgRecv(0), MsgRecv(0)))},
+                    msgqs={0: dict(capacity=2)})
+
+
+def msgq_receiver_handoff():
+    """A waiting receiver gets the item directly; the ring stays empty."""
+    return Scenario(name="msgq_receiver_handoff",
+                    threads={1: (2, (MsgRecv(0),)), 2: (1, (MsgSend(0, 7),))},
+                    msgqs={0: dict(capacity=1)})
+
+
+def msgq_send_front_and_peek():
+    """send_front puts an urgent item at the head and never waits; peek copies the head without removing it."""
+    return Scenario(name="msgq_send_front_and_peek",
+                    threads={1: (1, (MsgPeek(0), MsgSend(0, 1), MsgSendFront(0, 2), MsgSendFront(0, 3),
+                                     MsgPeek(0), MsgRecv(0), MsgRecv(0), MsgRecv(0, NO_WAIT)))},
+                    msgqs={0: dict(capacity=2)})
+
+
+def msgq_isr_send_vs_timed_recv():
+    """An ISR sends with EMB_NO_WAIT at any point around a timed receive: received or stored, never lost."""
+    return Scenario(name="msgq_isr_send_vs_timed_recv",
+                    threads={1: (2, (MsgRecv(0, 3),))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgSend(0, 5, NO_WAIT),),))
+
+
+def msgq_isr_recv_frees_a_slot():
+    """An ISR receive moves the waiting sender's item into the freed slot in the same section."""
+    return Scenario(name="msgq_isr_recv_frees_a_slot",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2, 4)))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgRecv(0, NO_WAIT),),))
+
+
+def msgq_sender_timeout_and_cancel():
+    """A full queue: one sender times out and one is canceled; neither item is ever stored."""
+    return Scenario(name="msgq_sender_timeout_and_cancel",
+                    threads={1: (3, (MsgSend(0, 1), MsgSend(0, 2, 2))), 2: (2, (MsgSend(0, 3),)),
+                             3: (1, (Cancel(2), Sleep(3), MsgRecv(0), MsgRecv(0, NO_WAIT)))},
+                    msgqs={0: dict(capacity=1)})
+
+
+def msgq_destroy_aborts_both_sides():
+    """Destroy wakes a waiting receiver and a waiting sender with DESTROYED and drops the stored item."""
+    return Scenario(name="msgq_destroy_aborts_both_sides",
+                    threads={1: (4, (MsgRecv(0),)), 2: (3, (MsgSend(1, 1), MsgSend(1, 2))),
+                             3: (1, (MsgDestroy(0), MsgDestroy(1)))},
+                    msgqs={0: dict(capacity=1), 1: dict(capacity=1)})
+
+
+def msgq_binding_on_empty_to_nonempty():
+    """The bound thread is notified when the ring goes from empty to nonempty, not on a hand-off."""
+    return Scenario(name="msgq_binding_on_empty_to_nonempty",
+                    threads={1: (3, (NotifyWait(0x1, timeout=4),)), 2: (2, (MsgRecv(0),)),
+                             3: (1, (MsgSend(0, 1), MsgSend(0, 2), MsgSend(0, 3)))},
+                    msgqs={0: dict(capacity=2, binding=(1, 0))})
+
+
+def msgq_refill_does_not_signal_binding():
+    """A receive that refills the freed slot from a waiting sender never leaves the queue empty:
+    the bound thread is not notified again."""
+    return Scenario(name="msgq_refill_does_not_signal_binding",
+                    threads={1: (2, (MsgSend(0, 1), MsgSend(0, 2))),
+                             2: (1, (NotifyWait(0x1, clear=True), MsgRecv(0), NotifyWait(0x1, timeout=NO_WAIT)))},
+                    msgqs={0: dict(capacity=1, binding=(2, 0))})
+
+
+MSGQ = [msgq_fifo_order, msgq_receiver_handoff, msgq_send_front_and_peek, msgq_isr_send_vs_timed_recv,
+        msgq_isr_recv_frees_a_slot, msgq_sender_timeout_and_cancel, msgq_destroy_aborts_both_sides,
+        msgq_binding_on_empty_to_nonempty, msgq_refill_does_not_signal_binding]
+ALL = ALL + MSGQ
+
+
+# ---------------------------------------------------------------------------------------
+# M2-08: work queues (SPEC-006 §4): a queue thread drains a FIFO of items whose handlers run
+# model operations; thread 9 is the queue's thread
+# ---------------------------------------------------------------------------------------
+from embmodel import Submit, WorkCancel, WorkCancelSync, WorkFlush, WorkqDestroy  # noqa: E402
+
+
+def work_fifo_and_idempotent_submit():
+    """Items run in submission order on the queue thread; a second submit of a queued item is EEXIST."""
+    return Scenario(name="work_fifo_and_idempotent_submit",
+                    threads={1: (2, (Submit(0, 0), Submit(0, 0), Submit(0, 1), Take(0), Take(1)))},
+                    sems={0: dict(count=0), 1: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Give(0),)), 1: dict(body=(Give(1),))})
+
+
+def work_resubmit_while_running():
+    """A submit while the handler runs is not lost: the item runs again after it returns."""
+    return Scenario(name="work_resubmit_while_running",
+                    threads={1: (1, (Submit(0, 0), Submit(0, 0), Take(0), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Sleep(1), Give(0)))})
+
+
+def work_cancel_states():
+    """cancel reports PENDING for a queued item, IDLE after, and RUNNING for a running handler;
+    cancel_sync then waits for that handler to return."""
+    return Scenario(name="work_cancel_states",
+                    threads={1: (2, (Submit(0, 0), WorkCancel(0), WorkCancel(0), Submit(0, 0), Sleep(1),
+                                     WorkCancel(0), WorkCancelSync(0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Sleep(3),))})
+
+
+def work_flush_and_timeout():
+    """A flush returns once everything queued before it ran; a timed-out flush leaves no marker."""
+    return Scenario(name="work_flush_and_timeout",
+                    threads={1: (2, (Submit(0, 0), WorkFlush(0, 1), Submit(0, 1), WorkFlush(0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Sleep(2),)), 1: dict(body=())})
+
+
+def work_isr_submit():
+    """An ISR submits at any point: the item runs exactly once."""
+    return Scenario(name="work_isr_submit",
+                    threads={1: (2, (Take(0, 4),))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=(Give(0),))},
+                    isrs=((Submit(0, 0),),))
+
+
+def workq_destroy_joins_its_thread():
+    """Destroy of an idle queue stops its thread and returns after the thread exited."""
+    return Scenario(name="workq_destroy_joins_its_thread",
+                    threads={1: (2, (Submit(0, 0), WorkFlush(0), WorkqDestroy(0), Submit(0, 0)))},
+                    workqs={0: dict(tid=9, prio=1)},
+                    works={0: dict(body=())})
+
+
+def work_flush_waits_for_running_handler():
+    """A flush while a handler runs and nothing else is queued waits for that handler."""
+    return Scenario(name="work_flush_waits_for_running_handler",
+                    threads={1: (1, (Submit(0, 0), WorkFlush(0), WorkCancel(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Sleep(2),))})
+
+
+WORKQ = [work_fifo_and_idempotent_submit, work_resubmit_while_running, work_cancel_states, work_flush_and_timeout,
+         work_isr_submit, workq_destroy_joins_its_thread, work_flush_waits_for_running_handler]
+ALL = ALL + WORKQ
+
+
+# ---------------------------------------------------------------------------------------
+# M2-09: software timers (SPEC-003 §7): ISR_CONTEXT callbacks run their operations in the
+# expiry pass; work queue callbacks run on queue 0's thread 9
+# ---------------------------------------------------------------------------------------
+from embmodel import TimerStart, TimerStop, TimerStopSync  # noqa: E402
+
+
+def timer_one_shot_isr_context():
+    """A one-shot ISR_CONTEXT timer gives the semaphore its thread waits on."""
+    return Scenario(name="timer_one_shot_isr_context",
+                    threads={1: (1, (TimerStart(0, 2), Take(0)))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))})
+
+
+def timer_periodic_isr_stopped_by_thread():
+    """A periodic timer expires on its grid until the thread stops it; a late stop sees one more."""
+    return Scenario(name="timer_periodic_isr_stopped_by_thread",
+                    threads={1: (1, (TimerStart(0, 1, 2), Take(0), Take(0), TimerStop(0)))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))}, horizon=10)
+
+
+def timer_equal_deadlines_thread_first():
+    """A thread timeout and a timer due at the same tick: the thread's expires first."""
+    return Scenario(name="timer_equal_deadlines_thread_first",
+                    threads={1: (1, (TimerStart(0, 2), Sleep(2))), 2: (3, (Take(0),))},
+                    sems={0: dict(count=0)},
+                    timers={0: dict(isr=True, body=(Give(0),))})
+
+
+def timer_work_queue_callback():
+    """A timer's callback runs on its work queue's thread."""
+    return Scenario(name="timer_work_queue_callback",
+                    threads={1: (1, (TimerStart(0, 2), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Give(0),))})
+
+
+def timer_stop_running_callback_and_stop_sync():
+    """stop reports a running callback; stop_sync waits until it returns."""
+    return Scenario(name="timer_stop_running_callback_and_stop_sync",
+                    threads={1: (1, (TimerStart(0, 1), Sleep(2), TimerStop(0), TimerStopSync(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Sleep(2),))})
+
+
+def timer_periodic_overrun_on_long_callback():
+    """Expiries that find the callback's rerun already due are overruns, not extra runs."""
+    return Scenario(name="timer_periodic_overrun_on_long_callback",
+                    threads={1: (1, (TimerStart(0, 1, 1), Sleep(4), TimerStopSync(0)))},
+                    workqs={0: dict(tid=9, prio=2)},
+                    timers={0: dict(q=0, body=(Sleep(2),))}, horizon=10)
+
+
+TIMER = [timer_one_shot_isr_context, timer_periodic_isr_stopped_by_thread, timer_equal_deadlines_thread_first,
+         timer_work_queue_callback, timer_stop_running_callback_and_stop_sync, timer_periodic_overrun_on_long_callback]
+ALL = ALL + TIMER
+
+
+# ---------------------------------------------------------------------------------------
+# M2-09: delayed work (SPEC-006 §4.3, KRN-WQ-003, KRN-WQ-007): an internal ISR_CONTEXT timer
+# submits the item to the queue named at schedule time
+# ---------------------------------------------------------------------------------------
+from embmodel import DworkCancel, DworkSchedule  # noqa: E402
+
+
+def dwork_runs_after_its_delay():
+    """A scheduled item runs after its delay; a second schedule while it waits is EEXIST."""
+    return Scenario(name="dwork_runs_after_its_delay",
+                    threads={1: (1, (DworkSchedule(0, 0, 2), DworkSchedule(0, 0, 1), Take(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)})
+
+
+def dwork_reschedule_and_cancel():
+    """reschedule replaces the delay; cancel reports PENDING for a running delay, then IDLE."""
+    return Scenario(name="dwork_reschedule_and_cancel",
+                    threads={1: (1, (DworkSchedule(0, 0, 5), DworkSchedule(0, 0, 1, replace=True), Take(0),
+                                     DworkSchedule(0, 0, 3), DworkCancel(0), DworkCancel(0)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)})
+
+
+def dwork_isr_schedule():
+    """An ISR schedules the item at any point; the thread's timed take sees it or times out."""
+    return Scenario(name="dwork_isr_schedule",
+                    threads={1: (1, (Take(0, 4),))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)},
+                    isrs=((DworkSchedule(0, 0, 1),),))
+
+
+DWORK = [dwork_runs_after_its_delay, dwork_reschedule_and_cancel, dwork_isr_schedule]
+ALL = ALL + DWORK
+
+
+# ---------------------------------------------------------------------------------------
+# M2-10: combined scenarios: several mechanisms meeting at section boundaries, with the ISR
+# and tick placement left to the explorer and the bridge
+# ---------------------------------------------------------------------------------------
+
+
+def combined_suspend_cancel_msgq_receiver():
+    """A receiver suspended, canceled and resumed while an ISR's send may hand it the item:
+    it receives the item, or is canceled and the item stays stored, never both or neither."""
+    return Scenario(name="combined_suspend_cancel_msgq_receiver",
+                    threads={1: (3, (MsgRecv(0, 6),)), 2: (2, (Suspend(1), Cancel(1), Resume(1)))},
+                    msgqs={0: dict(capacity=1)},
+                    isrs=((MsgSend(0, 5, NO_WAIT),),))
+
+
+def combined_inheritance_priority_change_event_timeout():
+    """An inheriting owner whose base priority changes while a third thread's event wait races
+    an ISR set and its own timeout."""
+    return Scenario(name="combined_inheritance_priority_change_event_timeout",
+                    threads={1: (1, (Lock(0), Sleep(2), Unlock(0))), 2: (4, (Sleep(1), Lock(0, 3))),
+                             3: (2, (Sleep(1), SetPrio(1, 3), EventWait(0, 0x1, timeout=2)))},
+                    mutexes={0: {}}, events={0: dict(bits=0)},
+                    isrs=((EventSet(0, 0x1),),))
+
+
+def combined_destroy_timeout_and_isr_give():
+    """A timed take whose timeout, another thread's give and the semaphore's destroy meet at the
+    same ticks. (A give after destroy is a stale handle: checked builds fault, so no ISR gives.)"""
+    return Scenario(name="combined_destroy_timeout_and_isr_give",
+                    threads={1: (3, (Take(0, 2),)), 2: (1, (Sleep(2), Destroy(0))), 3: (2, (Sleep(1), Give(0)))},
+                    sems={0: dict(count=0)})
+
+
+def combined_bindings_two_sources():
+    """One thread bound to a message queue and to event flags waits for either; the queue's
+    binding fires on empty to nonempty only, the event's for bits left set."""
+    return Scenario(name="combined_bindings_two_sources",
+                    threads={1: (3, (NotifyWait(0x3, timeout=5), MsgRecv(0, NO_WAIT), NotifyWait(0x3, timeout=3))),
+                             2: (1, (MsgSend(0, 1), EventSet(0, 0x1)))},
+                    msgqs={0: dict(capacity=2, binding=(1, 0))},
+                    events={0: dict(bits=0, binding=(1, 1))})
+
+
+def combined_timer_feeds_handler_queue():
+    """An ISR-context timer sends into a message queue a work handler receives from, while the
+    thread flushes the work queue and stops the timer."""
+    return Scenario(name="combined_timer_feeds_handler_queue",
+                    threads={1: (1, (TimerStart(0, 1), Submit(0, 0), WorkFlush(0), TimerStop(0)))},
+                    msgqs={0: dict(capacity=1)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(MsgRecv(0, 3),))},
+                    timers={0: dict(isr=True, body=(MsgSend(0, 7, NO_WAIT),))})
+
+
+def combined_dwork_cancel_races_expiry():
+    """An ISR cancels a delayed item at any point around its expiry: it ran once or not at all."""
+    return Scenario(name="combined_dwork_cancel_races_expiry",
+                    threads={1: (1, (DworkSchedule(0, 0, 2), Take(0, 4)))},
+                    sems={0: dict(count=0)},
+                    workqs={0: dict(tid=9, prio=2)},
+                    works={0: dict(body=(Give(0),), delayed=True)},
+                    isrs=((DworkCancel(0),),))
+
+
+COMBINED = [combined_suspend_cancel_msgq_receiver, combined_inheritance_priority_change_event_timeout,
+            combined_destroy_timeout_and_isr_give, combined_bindings_two_sources,
+            combined_timer_feeds_handler_queue, combined_dwork_cancel_races_expiry]
+ALL = ALL + COMBINED

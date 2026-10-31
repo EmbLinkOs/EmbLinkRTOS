@@ -209,15 +209,15 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 ### KRN-SYNC-029  Event flag semantics
 **Statement.** Each event waiter shall carry its own mask and mode; `set` shall wake every satisfied waiter in queue order, handing it the satisfied bits, and shall apply a waiter's `CLEAR` before evaluating the next waiter; `clear` shall never wake; `set` shall be ISR-safe and O(waiters on that group).
 **Rationale.** Deterministic consumption of overlapping bits; a single batch wake.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `sync/event_any_all_clear`, `sync/event_overlapping_clear_order`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-05).
+**Verification.** Test: `event_any_all_and_clear`, `event_overlapping_clear_serves_waiters_in_order`, `event_set_wakes_every_satisfied_waiter_in_one_pass`, `event_set_from_isr_wakes_at_exit`, `event_wait_times_out_cancels_and_ignores_clear`; model scenarios of the EVENT group with the invariant that no queued waiter is satisfied by the current bits; differential agreement on the native presets.
 **Trace.** SPEC-005 §5
 
 ### KRN-SYNC-030  Condition variable semantics
 **Statement.** `cond_wait` shall require ownership with recursion count 1, shall enqueue and then fully unlock the mutex atomically with respect to `signal`, and shall relock the mutex before returning on every result; `signal` shall wake the highest waiter and `broadcast` all; the kernel shall never wake a condition waiter without a signal or broadcast.
 **Rationale.** Classic, analyzable semantics; the relock-always rule is what callers can reason about.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `sync/cond_*` including relock after timeout; `misuse/cond_wait_not_owner`.
+**Status.** Accepted 2026-10-07; implemented 2026-10-27 (M2-06).
+**Verification.** Test: `cond_signal_wakes_one_waiter_which_owns_the_mutex`, `cond_broadcast_wakes_all_in_priority_order`, `cond_signal_is_not_stored`, `cond_relock_after_timeout_waits_for_the_mutex`, `cond_cancel_returns_with_the_mutex_owned`, `cond_destroy_aborts_waiters_which_relock`, `cond_wait_requires_single_ownership`; model scenarios of the COND group (no lost signal, deferred cancel during the relock); differential agreement on the native base presets.
 **Trace.** SPEC-005 §6
 
 ### KRN-SYNC-031  Barrier semantics
@@ -251,8 +251,8 @@ KRN-SYNC-001 to 007 originate in the v0.1 specification (§8.6); KRN-SYNC-008 to
 ### KRN-SYNC-035  Binding on semaphores and events
 **Statement.** Semaphores and event groups shall support the notification binding of ADR-027; a count transition from zero to one, or a set that leaves changed nonzero bits after serving direct waiters, shall signal the binding; a transition consumed by a hand-off shall not.
 **Rationale.** Multi-object wait without poll objects (KRN-NOTIF-004).
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `notif/bind_sem`, `notif/bind_event`; model scenario `binding_hook`.
+**Status.** Accepted 2026-10-07; implemented for semaphores and event flags.
+**Verification.** Test: `notify_semaphore_binding_signals_ready_transition`, `event_binding_fires_after_direct_waiters`; model scenarios `binding_hook`, `event_binding_after_direct_waiters`.
 **Trace.** SPEC-005 §4.2, §5.2; SPEC-004 §6.3
 
 ### KRN-SYNC-036  Trace and statistics

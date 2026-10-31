@@ -53,10 +53,10 @@ KRN-OBJ-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 **Trace.** SPEC-009 §2
 
 ### KRN-OBJ-007  Lifecycle states
-**Statement.** Objects shall move `UNINIT` to `ACTIVE` at init, `ACTIVE` to `DESTROYING` to `UNINIT` at destroy; init on active storage shall be `EMB_EEXIST` (fault in checked builds); operations on a `DESTROYING` object shall return `EMB_ESTATE`.
-**Rationale.** Double init and destroy races have defined outcomes.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `misuse/double_init`, SMP test `obj/op_during_destroy_estate`.
+**Statement.** Objects shall move `UNINIT` to `ACTIVE` at init, `ACTIVE` to `DESTROYING` to `UNINIT` at destroy; storage shall be reused only through destroy, and init on storage that still holds an active object of its type shall be `EMB_EBUSY` (fault in checked builds) wherever the configuration can tell such storage apart; operations on a `DESTROYING` object shall return `EMB_ESTATE`.
+**Rationale.** Double init and destroy races have defined outcomes. The refusal uses the status of the other in-use refusals (KRN-OBJ-010) and must not misread uninitialized storage as live.
+**Status.** Accepted 2026-10-07; amended 2026-10-27 (ADR-045): `EMB_EBUSY` instead of `EMB_EEXIST`, detection scope per configuration. Detection is exact with `CONFIG_EMB_THREAD_LIST` (threads) and `CONFIG_EMB_OBJ_LIST` (semaphores, mutexes); tiny threads use the type tag, active state and reserved identity; without a list, init on such semaphore or mutex storage is undefined. `DESTROYING` is not entered on uniprocessor builds.
+**Verification.** Test: `thread_storage_reuse_requires_destroy`, `sem_storage_reuse_requires_destroy`, `mutex_storage_reuse_requires_destroy`; SMP test `obj/op_during_destroy_estate`.
 **Trace.** SPEC-009 §6
 
 ### KRN-OBJ-008  Generated storage types
@@ -83,7 +83,7 @@ KRN-OBJ-001 to 005 originate in `docs/architecture/03-kernel-architecture.md` §
 ### KRN-OBJ-011  Names and registry
 **Statement.** With `CONFIG_EMB_OBJ_NAMES` objects shall keep their attribute name by pointer; with `CONFIG_EMB_OBJ_LIST` every active object shall be on a per-type list iterable under the scheduler lock; the debug descriptor shall export header offsets, type tags, list heads, and the registry or capability table layout.
 **Rationale.** Debuggers and statistics enumerate objects without symbols (ADR-011).
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07. Partially implemented 2026-10-27: `CONFIG_EMB_OBJ_LIST` keeps the semaphore and mutex lists (`embk_sem_all`, `embk_mutex_all`) that init uses for KRN-OBJ-007; threads keep `CONFIG_EMB_THREAD_LIST`. `emb_obj_foreach()` and the debug descriptor export are not implemented.
 **Verification.** Test: debug descriptor consumer lists every object of the conformance run.
 **Trace.** SPEC-009 §7; OBS-008
 

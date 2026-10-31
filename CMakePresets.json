@@ -83,6 +83,17 @@
       }
     },
     {
+      "name": "native-coverage",
+      "displayName": "native, GCC, gcov coverage, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-coverage",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/native-coverage.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "native",
+        "EMB_PROFILE": "base"
+      }
+    },
+    {
       "name": "avr-uno",
       "displayName": "Arduino Uno, avr-gcc, tiny profile, checked",
       "generator": "Ninja",
@@ -284,6 +295,10 @@
       "configurePreset": "native-tsan"
     },
     {
+      "name": "native-coverage",
+      "configurePreset": "native-coverage"
+    },
+    {
       "name": "avr-uno",
       "configurePreset": "avr-uno"
     },
@@ -398,6 +413,13 @@
     {
       "name": "native-tsan",
       "configurePreset": "native-tsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-coverage",
+      "configurePreset": "native-coverage",
       "output": {
         "outputOnFailure": true
       }

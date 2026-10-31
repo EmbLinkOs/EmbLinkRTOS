@@ -6,7 +6,8 @@
  * function creates the threads it needs at higher priorities and synchronizes with
  * kernel primitives only (CS-14.2). The same sources run on every port: the platform
  * layer (emb_test_platform.h) supplies output, the software interrupt, and the exit.
- * Requirement citations (EMB_TEST_REQ) are collected by the traceability generator.
+ * Requirement citations (EMB_TEST_REQ) are printed with each case, and every case ends
+ * with a machine-readable outcome line (M2-04, docs/engineering/case-evidence.md).
  */
 #ifndef EMB_TEST_H
 #define EMB_TEST_H
@@ -30,24 +31,29 @@ typedef struct EMB_ALIGNED(sizeof(void *) * 4) emb_test_case {
 } emb_test_case_t;
 
 /* Defines a test and registers it. MISRA Dev CS-12: rule 20.7, `name` is a token. */
-#define EMB_TEST(name)                                                                        \
-    static void name(void);                                                                   \
-    static EMB_FLASH_CONST char name##_name_[] = #name;                                       \
-    static EMB_TABLE_CONST emb_test_case_t name##_case_                                       \
-        EMB_USED EMB_SECTION(EMB_TABLE_SECTION("emb_test_table")) = {name##_name_, name, ""}; \
+#define EMB_TEST(name)                                                                             \
+    static void name(void);                                                                        \
+    static EMB_FLASH_CONST char name##_name_[] = #name;                                            \
+    static EMB_TABLE_CONST emb_test_case_t name##_case_ EMB_USED EMB_TABLE_ENTRY_ATTR EMB_SECTION( \
+        EMB_TABLE_SECTION("emb_test_table")) = {name##_name_, name, ""};                           \
     static void name(void)
 
-/* Requirement citation inside a test body: collected by the traceability tool. */
+/* Requirement citation inside a test body: printed as the case's "req" line. */
 #define EMB_TEST_REQ(...) emb_test_note_reqs(__VA_ARGS__, (const char *)0)
 
 void emb_test_note_reqs(const char *first, ...);
 void emb_test_fail(unsigned line, const char *what_flash);
 void emb_test_skip(const char *why_flash);
+void emb_test_asserted(void); /* every assertion counts once, whether it passes or not */
+
+/* The suite's name, defined for each test executable by emb_add_test(). */
+extern EMB_FLASH_CONST char emb_test_suite[];
 
 /* Strings the framework prints: in flash on Harvard ports (EMB_TEST_STR), so the
  * assertion texts do not consume the 2 KB of SRAM of the ATmega328P. */
 #define EMB_ASSERT_TRUE(cond)                                          \
     do {                                                               \
+        emb_test_asserted();                                           \
         if (!(cond)) {                                                 \
             emb_test_fail(__LINE__, EMB_TEST_STR("expected: " #cond)); \
         }                                                              \
@@ -56,6 +62,7 @@ void emb_test_skip(const char *why_flash);
 #define EMB_ASSERT_EQ(a, b)                                                         \
     do {                                                                            \
         long va_ = (long)(a);                                                       \
+        emb_test_asserted();                                                        \
         long vb_ = (long)(b);                                                       \
         if (va_ != vb_) {                                                           \
             emb_test_logf(EMB_TEST_STR("  values %ld and %ld"), va_, vb_);          \
@@ -66,6 +73,7 @@ void emb_test_skip(const char *why_flash);
 #define EMB_ASSERT_STATUS(expr, expected)                                                       \
     do {                                                                                        \
         emb_status_t st_ = (expr);                                                              \
+        emb_test_asserted();                                                                    \
         if (st_ != (expected)) {                                                                \
             emb_test_logf(EMB_TEST_STR("  status %d, expected %d"), (int)st_, (int)(expected)); \
             emb_test_fail(__LINE__, EMB_TEST_STR("status: " #expr));                            \
@@ -80,6 +88,7 @@ void emb_test_skip(const char *why_flash);
 #if EMB_TEST_HAS_FORK
 #define EMB_ASSERT_FAULTS(stmt)                                    \
     do {                                                           \
+        emb_test_asserted();                                       \
         if (emb_test_fork_begin()) {                               \
             stmt;                                                  \
             emb_test_fork_child_no_fault();                        \

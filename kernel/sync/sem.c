@@ -14,6 +14,10 @@
 
 EMB_STATIC_ASSERT(sizeof(embk_sem_t) <= EMB_SEM_STORAGE_SIZE, "generated storage too small");
 
+#if CONFIG_EMB_OBJ_LIST
+embk_list_t embk_sem_all = EMBK_LIST_INITIALIZER(embk_sem_all); /* usable before kernel init */
+#endif
+
 static EMB_INLINE embk_sem_t *sem_from_handle(emb_sem_t h)
 {
     return (embk_sem_t *)embk_obj_from_raw(h.raw, EMBK_OBJ_SEM, offsetof(embk_sem_t, obj));
@@ -49,6 +53,9 @@ emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr
 {
     embk_sem_t *s;
     emb_sem_attr_t def;
+#if CONFIG_EMB_OBJ_LIST
+    emb_irq_key_t key;
+#endif
     if (out_sem != NULL) {
         out_sem->raw = 0u;
     }
@@ -65,6 +72,14 @@ emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr
     EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, attr->max >= 1u && attr->initial <= attr->max,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     s = (embk_sem_t *)(void *)storage;
+#if CONFIG_EMB_OBJ_LIST
+    /* storage is reused only through destroy (SPEC-009 §6, KRN-OBJ-007) */
+    key = embk_lock_sched();
+    if (embk_list_contains(&embk_sem_all, &s->all_node)) {
+        embk_unlock_sched(key);
+        EMBK_API_MISUSE(EMB_API_ID_SEM_INIT, EMB_FAULT_API_LIFECYCLE, EMB_EBUSY, 1u);
+    }
+#endif
     embk_obj_init(&s->obj, EMBK_OBJ_SEM,
                   attr->flags & (EMB_SEM_SATURATE | EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO),
                   attr->name);
@@ -72,8 +87,11 @@ emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr
     s->count = attr->initial;
     s->max = attr->max;
 #if CONFIG_EMB_NOTIFY
-    s->bind_thread = NULL;
-    s->bind_bit = 0u;
+    embk_binding_init(&s->binding);
+#endif
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_append(&embk_sem_all, &s->all_node);
+    embk_unlock_sched(key);
 #endif
     out_sem->raw = embk_obj_to_raw(s);
     return EMB_OK;
@@ -93,6 +111,12 @@ emb_status_t emb_sem_destroy(emb_sem_t sem)
         }
         (void)embk_wait_flush(&s->waiters, EMBK_WAKE_DESTROYED);
     }
+#if CONFIG_EMB_NOTIFY
+    (void)embk_binding_unbind(&s->binding); /* releases the target; its bits stay (§3.2) */
+#endif
+#if CONFIG_EMB_OBJ_LIST
+    embk_list_remove(&s->all_node);
+#endif
     s->obj.state = EMBK_OBJ_UNINIT;
     embk_sched_reschedule_if_needed();
     embk_unlock_object(s, key);
@@ -165,9 +189,8 @@ emb_status_t emb_sem_give(emb_sem_t sem)
         s->count++;
         EMBK_TRACE(EMB_TRACE_SEM_GIVE, 0xFFu, s, s->count);
 #if CONFIG_EMB_NOTIFY
-        if (s->count == 1u && s->bind_thread != NULL) {
-            embk_notify_set_locked(s->bind_thread,
-                                   s->bind_bit); /* ADR-027: the 0 to 1 transition */
+        if (s->count == 1u) {
+            embk_binding_signal(&s->binding, s); /* ADR-027: the 0 to 1 transition */
         }
 #endif
     }
@@ -188,6 +211,7 @@ emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_
     embk_sem_t *s = sem_from_handle(sem);
     embk_thread_t *t = embk_thread_from_handle(thread);
     emb_irq_key_t key;
+    emb_status_t st;
     EMBK_API_REQUIRE_NOT_ISR(
         EMB_API_ID_SEM_BIND_NOTIFY); /* bindings are set up before the kernel runs too (A18) */
     EMBK_API_REQUIRE(EMB_API_ID_SEM_BIND_NOTIFY, s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
@@ -197,14 +221,22 @@ emb_status_t emb_sem_bind_notify(emb_sem_t sem, emb_thread_t thread, emb_notify_
                          (bit & (emb_notify_bits_t)~EMB_NOTIFY_APP_MASK) == 0u,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
     key = embk_lock_object(s);
-    if (s->bind_thread != NULL) {
-        embk_unlock_object(s, key);
-        return EMB_EEXIST;
-    }
-    s->bind_thread = t;
-    s->bind_bit = bit;
+    st = embk_binding_bind(&s->binding, t, bit);
     embk_unlock_object(s, key);
-    return EMB_OK;
+    return st;
+}
+
+emb_status_t emb_sem_unbind_notify(emb_sem_t sem)
+{
+    embk_sem_t *s = sem_from_handle(sem);
+    emb_irq_key_t key;
+    bool bound;
+    EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_SEM_UNBIND_NOTIFY);
+    EMBK_API_REQUIRE(EMB_API_ID_SEM_UNBIND_NOTIFY, s != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
+    key = embk_lock_object(s);
+    bound = embk_binding_unbind(&s->binding);
+    embk_unlock_object(s, key);
+    return bound ? EMB_OK : EMB_ENOENT;
 }
 #endif
 

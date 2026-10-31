@@ -27,14 +27,18 @@ A **message** is a fixed-size item copied by value. A **block** is a fixed-size 
 ```c
 typedef struct emb_msgq_attr {
     const char *name;
-    void       *storage;        /* ring buffer: capacity * item_size bytes, aligned to EMB_MSGQ_ALIGN */
+    void       *ring;           /* ring buffer: capacity * item_size bytes, aligned to EMB_MSGQ_ALIGN */
+    size_t      ring_size;      /* bytes at ring; init refuses an undersized ring (A43) */
     uint16_t    item_size;      /* 1 .. CONFIG_EMB_MSGQ_MAX_ITEM (default 64) */
-    uint16_t    capacity;       /* >= 1 */
-    uint8_t     flags;          /* EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO | EMB_MSGQ_OWNERSHIP */
-    emb_pool_t  pool;           /* EMB_MSGQ_OWNERSHIP: the pool whose blocks travel in this queue */
-} emb_msgq_attr_t;
+    uint16_t    capacity;       /* >= 1; <= 255 with CONFIG_EMB_IPC_SMALL (A45) */
+    uint8_t     flags;          /* EMB_OBJ_ABORT_WAITERS | EMB_OBJ_FIFO */
+    uint8_t     reserved_[3];
+} emb_msgq_attr_t;              /* EMB_MSGQ_OWNERSHIP and pool arrive with buffer pools (A43) */
 
+#define EMB_MSGQ_RING_SIZE(item_size, capacity)
 #define EMB_MSGQ_RING(name, item_size, capacity)  /* declares aligned storage of the right size */
+
+void         emb_msgq_attr_default(emb_msgq_attr_t *out);
 
 emb_status_t emb_msgq_init(emb_msgq_storage_t *storage, const emb_msgq_attr_t *attr, emb_msgq_t *out);  /* @ctx prekernel thread */
 emb_status_t emb_msgq_destroy(emb_msgq_t q);
@@ -47,16 +51,19 @@ emb_status_t emb_msgq_peek(emb_msgq_t q, void *out_item);                       
 uint16_t     emb_msgq_count(emb_msgq_t q);                                                /* @ctx thread isr  snapshot */
 uint16_t     emb_msgq_free(emb_msgq_t q);
 emb_status_t emb_msgq_bind_notify(emb_msgq_t q, emb_thread_t t, emb_notify_bits_t bit);            /* receive side: empty -> non-empty */
+emb_status_t emb_msgq_unbind_notify(emb_msgq_t q);
 ```
+
+`send`, `receive`, `send_front` and `peek` are `thread isr`, not `prekernel`; the `_until` forms are `thread` (A47).
 
 ### 2.2 Semantics
 
 - **Storage.** The ring holds `capacity` items of `item_size` bytes; `EMB_MSGQ_RING()` declares it with the alignment the kernel needs for word copies. `item_size` above `CONFIG_EMB_MSGQ_MAX_ITEM` is `EMB_EINVAL`: large payloads travel as block pointers (§4), never as large copies.
 - **Two wait queues**: receivers (when empty) and senders (when full), both with the object's wait policy (`PRIORITY_FIFO` default, `EMB_OBJ_FIFO` optional).
 - **Send.** If a receiver waits: copy the item directly into the receiver's `out_item` and wake it with hand-off (the ring is untouched; no binding bit, SPEC-004 §6.3). Else if the ring has room: copy into the tail slot; if the ring was empty, signal the binding. Else: block on the senders' queue; the receiver that frees a slot copies this sender's item into the freed slot and wakes it (slot hand-off), so a woken sender never re-checks. The copy happens inside the object's critical section; its cost is bounded by `CONFIG_EMB_MSGQ_MAX_ITEM` and is part of the masked-time budget (R-003 T7).
-- **Send to front.** Writes at the head (the next item received) and never blocks (`EMB_ETIMEDOUT` when full); for urgent messages (03 §6.3).
-- **Receive.** If the ring is non-empty: copy the head; then, if a sender waits, move its item into the freed tail slot and wake it. Else if a sender waits with the ring empty (capacity reached zero is impossible; this branch is for `capacity` consumed by `send_front` races and is kept for completeness): hand the sender's item directly. Else block on the receivers' queue; the hand-off delivers the item into `out_item` before the wake.
-- **Peek** copies the head without removing it; `count` and `free` are snapshots.
+- **Send to front.** Hands the item to a waiting receiver like `send`, else writes at the head (the next item received); it takes no timeout, never blocks and is not a cancellation point (`EMB_ETIMEDOUT` when full); for urgent messages (03 §6.3, A44).
+- **Receive.** If the ring is non-empty: copy the head; then, if a sender waits, move its item into the freed tail slot and wake it. The queue is never observed empty in that section, so the refill does not signal the binding (A46). Else block on the receivers' queue; the hand-off delivers the item into `out_item` before the wake. Senders wait only while the ring is full and the capacity is at least 1, so no sender can wait while the ring is empty (A44).
+- **Peek** copies the head without removing it and returns `EMB_ETIMEDOUT` when the queue is empty (A44); `count` and `free` are snapshots.
 - **Ownership queues.** With `EMB_MSGQ_OWNERSHIP`, items are block pointers of `pool`: `send` transfers the block's ownership to the queue and `receive` assigns it to the receiver (§4.3). In checked builds the owner field of the block is checked and updated; release builds copy the pointer.
 - **Destroy** follows ADR-020: waiters wake with `EMB_EDESTROYED` only with `EMB_OBJ_ABORT_WAITERS`; items still in the ring are simply dropped (with `OWNERSHIP`, their blocks are returned to the pool).
 - ISR callers use `EMB_NO_WAIT` (SPEC-001 §5.2); a full queue returns `EMB_ETIMEDOUT`, never drops silently (RIOT's `msg_try_send` drop is the behavior to avoid, R-001 §6).
@@ -170,7 +177,7 @@ A port is the cross-partition and cross-core message endpoint of 03 §6.6. It is
 
 ## 8. Observability
 
-Trace events: `msgq_send(q, handed_to | slot)`, `msgq_receive(q, from_slot | handed_from)`, `msgq_full_block(q, thread)`, `pipe_write(p, n)`, `pipe_read(p, n)`, `pipe_close(p)`, `pool_alloc(p, block, thread)`, `pool_free(p, block)`, `pool_transfer(p, block, to)`. Statistics (optional): per queue and pipe, high-water occupancy, blocked-send count; per pool, minimum availability and blocks outstanding; the debug descriptor exports the ring and free-list layout so a debugger can list a queue's contents and a pool's owners.
+Trace events: `msgq_send(q, handed_to | slot)`, `msgq_receive(q, from_slot | handed_from)`, `msgq_full_block(q, thread)` (implemented as `EMB_TRACE_MSGQ_SEND` and `EMB_TRACE_MSGQ_RECEIVE` records with the caller, queue and status of every outcome, the hand-off visible as the partner's wake record, and the generic block record, A47), `pipe_write(p, n)`, `pipe_read(p, n)`, `pipe_close(p)`, `pool_alloc(p, block, thread)`, `pool_free(p, block)`, `pool_transfer(p, block, to)`. Statistics (optional): per queue and pipe, high-water occupancy, blocked-send count; per pool, minimum availability and blocks outstanding; the debug descriptor exports the ring and free-list layout so a debugger can list a queue's contents and a pool's owners.
 
 ## 9. Tiny profile
 

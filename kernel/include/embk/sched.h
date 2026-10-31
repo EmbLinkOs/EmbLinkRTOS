@@ -13,10 +13,19 @@
 
 #include <embk/kernel.h>
 
-extern embk_thread_t embk_idle_thread; /* the idle context; prio 0; never READY in the structure */
+/* The idle context: priority 0, never READY in the structure, not an application thread
+ * (SPEC-008 §11). With the table scheduler and no idle thread it is slim: it never
+ * blocks, times out, takes notifications, joins or changes priority, so only the control
+ * block's prefix that the scheduler, the switch path and diagnostics read (arch through
+ * lock_depth) is allocated, by sched/idle_context.c; nothing reads past it (ADR-050). */
+#define EMBK_IDLE_SLIM (CONFIG_EMB_SCHED_TABLE && !CONFIG_EMB_IDLE_THREAD)
+extern embk_thread_t embk_idle_thread;
+#define EMBK_IDLE (&embk_idle_thread)
 
 #if CONFIG_EMB_SCHED_TABLE
-extern embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT]; /* slot = priority (ADR-036) */
+/* The thread of priority p is in slot p - 1 (ADR-036); idle, at 0, has none. */
+extern embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT - 1];
+#define EMBK_TABLE_SLOT(p) embk_thread_table[(unsigned)(p) - 1u]
 #endif
 
 void embk_sched_init(void);

@@ -1,6 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* Diagnostic identity is independent of scheduler priority and execution lifetime. */
+#include <embk/kernel.h>
+#include <embk/sched.h>
+
 #include <emb_test.h>
 
 static void identity_entry(void *arg)
@@ -171,4 +174,29 @@ EMB_TEST(thread_storage_reuse_requires_destroy)
     EMB_ASSERT_OK(emb_thread_destroy(a));
     EMB_ASSERT_OK(emb_thread_init(emb_test_scratch_storage(), &attr, identity_entry, NULL, &again));
     EMB_ASSERT_OK(emb_thread_destroy(again));
+}
+
+EMB_TEST(idle_context_is_not_an_application_thread)
+{
+    emb_thread_t idle;
+    emb_thread_t self;
+    embk_thread_t *saved;
+    emb_irq_key_t key;
+    uint8_t state = 0u;
+    EMB_TEST_REQ("KRN-THR-025", "KRN-THR-026");
+    idle.raw = embk_obj_to_raw(EMBK_IDLE);
+    EMB_ASSERT_EQ(embk_thread_index(EMBK_IDLE), 0xFEu); /* traces and faults still name it */
+    EMB_ASSERT_EQ(emb_thread_index(idle), 0xFFu);       /* no handle resolves to it */
+    EMB_ASSERT_EQ(emb_thread_get_priority(idle), 0u);
+    EMB_ASSERT_MISUSE(emb_thread_state(idle, &state, NULL), EMB_EINVAL);
+#if CONFIG_EMB_NOTIFY
+    EMB_ASSERT_MISUSE(emb_notify_set(idle, EMB_NOTIFY_BIT(0)), EMB_EINVAL);
+#endif
+    key = emb_irq_lock();
+    saved = embk_cpu.current;
+    embk_cpu.current = EMBK_IDLE; /* as seen from the idle context */
+    self = emb_thread_self();
+    embk_cpu.current = saved;
+    emb_irq_unlock(key);
+    EMB_ASSERT_EQ(self.raw, 0u);
 }
