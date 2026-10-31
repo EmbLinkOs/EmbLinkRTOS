@@ -5,7 +5,7 @@
 # AVR with avr-gcc run under QEMU and on EmbSIM's Arduino Uno, the Cortex-M4F suite on EmbSIM's
 # NUCLEO-F446RE (SIM-002), formatting, and the footprint gate (TEST-011).
 # Target order: Cortex-M and RISC-V first, AVR secondary (ADR-038).
-# The EmbCC legs join when the compiler is available to CI (09 §11).
+# The experimental EmbCC-kernel / GCC-host native legs use a pinned EmbCC release (09 §11).
 name: ci
 
 on:
@@ -371,10 +371,42 @@ jobs:
           path: case-evidence-rv32-c3-embsim.json
           if-no-files-found: warn
 
+  # The experimental EmbCC-kernel / GCC-host native build (ADR-041), with the compiler pinned
+  # to a release and its digest (docs/engineering/embcc-native-linux.md).
+  embcc:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [native-embcc, native-embcc-release, native-embcc-tiny, native-embcc-periodic]
+    env:
+      EMBCC_VERSION: 0.0.1-beta
+      EMBCC_SHA256: 984b25acf1b93d61416887530c9589be96b43437a8de8d61ffd07cf6a856551a
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build python3-yaml
+      - name: Install EmbCC
+        run: |
+          archive="embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
+          curl -fsSL -o "$archive" "https://github.com/EmbLinkOs/EmbCC/releases/download/v${EMBCC_VERSION}/${archive}"
+          echo "${EMBCC_SHA256}  ${archive}" | sha256sum -c -
+          mkdir -p "$HOME/embcc"
+          tar -xzf "$archive" -C "$HOME/embcc" --strip-components=1
+          "$HOME/embcc/bin/embcc" --version
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }} -DEMB_KERNEL_COMPILER="$HOME/embcc/bin/embcc"
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed
