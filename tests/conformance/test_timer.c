@@ -244,3 +244,20 @@ EMB_TEST(timer_missed_periods_are_skipped_in_closed_form)
     teardown(EMB_TIMER_ISR_CONTEXT);
 }
 #endif
+
+static void defined_callback(emb_timer_t timer, void *arg)
+{
+    (void)timer;
+    emb_test_mark((int)(intptr_t)arg);
+}
+
+EMB_TIMER_DEFINE(defined_timer, defined_callback, (void *)6);
+
+EMB_TEST(timer_define_constructs_in_init_table)
+{
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_TRUE(!emb_timer_is_running(defined_timer)); /* constructed stopped */
+    EMB_ASSERT_OK(emb_timer_start(defined_timer, EMB_TICKS(1)));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(2)));
+    EMB_ASSERT_MARKS(6);
+}

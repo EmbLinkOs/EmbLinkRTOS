@@ -66,6 +66,14 @@ typedef struct EMB_ALIGNED(sizeof(void *)) emb_init_entry {
     static EMB_TABLE_CONST emb_init_entry_t fn##_init_entry_ EMB_USED EMB_TABLE_ENTRY_ATTR \
     EMB_SECTION(EMB_TABLE_SECTION("emb_init_table")) = {fn}
 
+/* The name an object _DEFINE macro gives its object: none where the kernel keeps no
+ * names, so Harvard ports do not copy the literal to RAM. */
+#if CONFIG_EMB_OBJ_NAMES
+#define EMB_DEFINE_NAME_(s) (s)
+#else
+#define EMB_DEFINE_NAME_(s) ((const char *)0)
+#endif
+
 /* ---- EMB_CHECK --------------------------------------------------------------- */
 
 /**

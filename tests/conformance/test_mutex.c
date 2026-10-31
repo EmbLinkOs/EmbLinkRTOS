@@ -333,3 +333,14 @@ EMB_TEST(mutex_init_validates_arguments)
     EMB_ASSERT_MISUSE(emb_mutex_init(&st1, &attr, &m1), EMB_EINVAL);
     EMB_ASSERT_MISUSE(emb_mutex_init(NULL, NULL, &m1), EMB_EINVAL);
 }
+
+EMB_MUTEX_DEFINE(defined_mutex, EMB_MUTEX_INHERIT, 0u, EMB_MUTEX_RECURSIVE);
+
+EMB_TEST(mutex_define_constructs_in_init_table)
+{
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_OK(emb_mutex_lock(defined_mutex, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_mutex_lock(defined_mutex, EMB_NO_WAIT)); /* recursive */
+    EMB_ASSERT_OK(emb_mutex_unlock(defined_mutex));
+    EMB_ASSERT_OK(emb_mutex_unlock(defined_mutex));
+}

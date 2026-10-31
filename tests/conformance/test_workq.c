@@ -330,3 +330,21 @@ EMB_TEST(dwork_cancel_sync_waits_for_a_running_handler)
     EMB_ASSERT_OK(emb_workq_destroy(wq));
 }
 #endif
+
+EMB_WORKQ_DEFINE(defined_workq, 4u, EMB_TEST_STACK_SIZE);
+
+static void defined_handler(emb_work_t *work)
+{
+    (void)work;
+    emb_test_mark(4);
+}
+
+EMB_TEST(workq_define_constructs_in_init_table)
+{
+    static emb_work_t w;
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    emb_work_init(&w, defined_handler);
+    EMB_ASSERT_OK(emb_work_submit(defined_workq, &w)); /* the queue thread outranks the runner */
+    emb_test_mark(1);
+    EMB_ASSERT_MARKS(4, 1);
+}

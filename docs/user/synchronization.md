@@ -101,6 +101,8 @@ int main(void)
 
 Expected output is `produced=5 consumed=5` and exit status zero. This is a unit-counting example: it does not transmit payloads or claim to implement a message queue. The default mutex uses inheritance; this program requires `CONFIG_EMB_SEM`, `CONFIG_EMB_NOTIFY`, `CONFIG_EMB_MUTEX` and `CONFIG_EMB_MUTEX_INHERIT`. The reference native GCC configurations provide them.
 
+Objects that live for the whole program can be defined statically instead, like the threads: `EMB_SEM_DEFINE(ready, 1u, EMB_SEM_COUNT_MAX)` and `EMB_MUTEX_DEFINE(state, EMB_MUTEX_INHERIT, 0u, 0u)` declare the storage and the handle and construct the object in `emb_kernel_init()`; a construction failure faults. `EMB_EVENT_DEFINE`, `EMB_COND_DEFINE`, `EMB_MSGQ_DEFINE` (with its ring), `EMB_WORKQ_DEFINE` (with its stack) and `EMB_TIMER_DEFINE` (interrupt-context callbacks only) follow the same pattern. Definitions run in link order, so nothing defined may depend on another definition at construction time: bindings, and timers whose callbacks run on a work queue, are set up in code after `emb_kernel_init()`.
+
 ## Why the bound consumer drains first
 
 Binding takes a **one-bit mask**, such as `EMB_NOTIFY_BIT(0)`, rather than the integer bit index. It registers one target per semaphore. The implementation sets that bit on a later count transition from zero to one; binding an already-positive semaphore does not set it. The initial unit above therefore needs an initial readiness check.
