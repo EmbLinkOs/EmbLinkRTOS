@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- The ESP32-C3-DevKitM-1 board runs its CPU at 160 MHz from the PLL, set up in `emb_board_init()` as ESP-IDF v5.4's bootloader does (BBPLL power, its 480 MHz configuration through the boot ROM's analog I2C routines, CPUPERIOD_SEL and SOC_CLK_SEL), instead of the boot ROM's 20 MHz; UART0's divider is set again for 115200 baud from the 80 MHz APB clock. `run_embsim.py --core-hz` (a board's `EMB_BOARD_EMBSIM_CORE_HZ`) checks the clock the MCU ends at in every EmbSIM test of the board.
+
 - The tiny thread table has no slot for idle, and `CONFIG_EMB_FAULT_HOOK_RUNTIME=n` binds the fault hook at link time through an application-defined `emb_fault_hook()` (weak empty default), keeping no hook pointer in RAM. The `footprint_t1` reference configuration uses it; AVR `footprint_t1` kernel static RAM is 39 bytes and its gate is lowered from 64 to that value.
 
 - The idle context is no longer reachable through a thread handle, and `emb_thread_self()` returns `EMB_HANDLE_NULL` in it (KRN-THR-026, ADR-050). On the tiny profile without an idle thread only the prefix of its control block is allocated: AVR `footprint_t1` kernel static RAM drops from 64 to 43 bytes.
