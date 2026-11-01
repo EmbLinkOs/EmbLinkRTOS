@@ -4,8 +4,10 @@
 #ifndef EMB_WORK_H
 #define EMB_WORK_H
 
+#include <emb/kernel.h>
 #include <emb/status.h>
 #include <emb/storage.h>
+#include <emb/thread.h>
 #include <emb/time.h>
 #include <emb/types.h>
 
@@ -378,6 +380,29 @@ emb_status_t emb_dwork_cancel(emb_dwork_t *dwork, emb_work_state_t *out_state);
  */
 emb_status_t emb_dwork_cancel_sync(emb_dwork_t *dwork, emb_timeout_t timeout);
 #endif
+
+/* EMB_WORKQ_DEFINE(sym, priority, stack_size): storage, the queue thread's stack, the
+ * handle variable `sym`, and an init-table entry that constructs the queue in
+ * emb_kernel_init() (SPEC-001 §6.4, A64); a failure faults. Entries run in link order, so
+ * another entry must not rely on the queue. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_WORKQ_DEFINE(sym, priority_, stack_size_)                         \
+    static emb_workq_storage_t sym##_storage_;                                \
+    EMB_THREAD_STACK(sym##_stack_, (stack_size_));                            \
+    emb_workq_t sym;                                                          \
+    static void sym##_init_(void)                                             \
+    {                                                                         \
+        emb_workq_attr_t attr_;                                               \
+        emb_workq_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                  \
+        attr_.stack = sym##_stack_;                                           \
+        attr_.stack_size = sizeof(sym##_stack_);                              \
+        attr_.priority = (uint8_t)(priority_);                                \
+        (void)emb_check_status(emb_workq_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_WORKQ_DEFINE(" #sym ")");                 \
+    }                                                                         \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }

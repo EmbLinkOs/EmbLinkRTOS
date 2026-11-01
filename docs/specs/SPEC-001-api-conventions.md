@@ -244,8 +244,10 @@ emb_status_t emb_mutex_destroy(emb_mutex_t mutex);
 `init` is `prekernel thread`. On failure `*out_mutex` is `EMB_HANDLE_NULL`. `destroy` follows KRN-OBJ-001. Compile-time definition helpers exist for the common static case:
 
 ```c
-EMB_MUTEX_DEFINE(name, attr_initializer...)   /* storage + handle variable + registration in the init table */
+EMB_MUTEX_DEFINE(name, protocol, ceiling, flags)   /* storage + handle variable + registration in the init table */
 ```
+
+Each type's macro takes the attribute fields a static object needs as positional arguments, like `EMB_THREAD_DEFINE`; the rest keep their `attr_default` values (A64).
 
 The `_DEFINE` form registers the object in a generated initialization table so it is constructed during `emb_kernel_init()`, before the scheduler starts without hand-written init code; the table is one of the bracketed sections `embld` and GNU ld both provide (09 §7).
 

@@ -4,6 +4,7 @@
 #ifndef EMB_COND_H
 #define EMB_COND_H
 
+#include <emb/kernel.h>
 #include <emb/mutex.h>
 #include <emb/status.h>
 #include <emb/time.h>
@@ -166,6 +167,25 @@ emb_status_t emb_cond_signal(emb_cond_t cond);
  * Return: EMB_OK; EMB_EINVAL for a bad handle; EMB_EPERM (misuse) outside thread context.
  */
 emb_status_t emb_cond_broadcast(emb_cond_t cond);
+
+/* EMB_COND_DEFINE(sym, flags): storage, the handle variable `sym`, and an init-table
+ * entry that constructs the condition variable in emb_kernel_init() (SPEC-001 §6.4, A64);
+ * a failure faults. MISRA Dev CS-12: rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_COND_DEFINE(sym, flags_)                                         \
+    static emb_cond_storage_t sym##_storage_;                                \
+    emb_cond_t sym;                                                          \
+    static void sym##_init_(void)                                            \
+    {                                                                        \
+        emb_cond_attr_t attr_;                                               \
+        emb_cond_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                 \
+        attr_.flags = (uint8_t)(flags_);                                     \
+        (void)emb_check_status(emb_cond_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_COND_DEFINE(" #sym ")");                 \
+    }                                                                        \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
 
 #ifdef __cplusplus
 }

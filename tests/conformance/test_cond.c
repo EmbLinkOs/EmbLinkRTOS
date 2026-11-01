@@ -160,3 +160,12 @@ EMB_TEST(cond_storage_reuse_requires_destroy)
     teardown();
 }
 #endif
+
+EMB_COND_DEFINE(defined_cond, 0u);
+
+EMB_TEST(cond_define_constructs_in_init_table)
+{
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_OK(emb_cond_signal(defined_cond)); /* no waiter: a no-op on a live object */
+    EMB_ASSERT_OK(emb_cond_destroy(defined_cond));
+}

@@ -302,6 +302,31 @@ emb_status_t emb_msgq_bind_notify(emb_msgq_t msgq, emb_thread_t thread, emb_noti
 emb_status_t emb_msgq_unbind_notify(emb_msgq_t msgq);
 #endif
 
+/* EMB_MSGQ_DEFINE(sym, item_size, capacity, flags): storage, a ring of @capacity items
+ * of @item_size bytes, the handle variable `sym`, and an init-table entry that constructs
+ * the queue in emb_kernel_init() (SPEC-001 §6.4, A64); a failure faults. MISRA Dev CS-12:
+ * rule 20.7, `sym` is a token. */
+/* NOLINTBEGIN(bugprone-macro-parentheses): MISRA Dev CS-12 rule 20.7, as above */
+#define EMB_MSGQ_DEFINE(sym, item_size_, capacity_, flags_)                  \
+    static emb_msgq_storage_t sym##_storage_;                                \
+    static EMB_MSGQ_RING(sym##_ring_, (item_size_), (capacity_));            \
+    emb_msgq_t sym;                                                          \
+    static void sym##_init_(void)                                            \
+    {                                                                        \
+        emb_msgq_attr_t attr_;                                               \
+        emb_msgq_attr_default(&attr_);                                       \
+        attr_.name = EMB_DEFINE_NAME_(#sym);                                 \
+        attr_.ring = sym##_ring_;                                            \
+        attr_.ring_size = sizeof(sym##_ring_);                               \
+        attr_.item_size = (uint16_t)(item_size_);                            \
+        attr_.capacity = (uint16_t)(capacity_);                              \
+        attr_.flags = (uint8_t)(flags_);                                     \
+        (void)emb_check_status(emb_msgq_init(&sym##_storage_, &attr_, &sym), \
+                               "EMB_MSGQ_DEFINE(" #sym ")");                 \
+    }                                                                        \
+    EMB_INIT_TABLE_ENTRY(sym##_init_)
+/* NOLINTEND(bugprone-macro-parentheses) */
+
 #ifdef __cplusplus
 }
 #endif

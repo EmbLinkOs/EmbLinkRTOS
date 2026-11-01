@@ -151,8 +151,8 @@ Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-00
 ### API-021  Construction and destruction
 **Statement.** Every object type shall provide `emb_<object>_init(storage, attr, out_handle)` with context class pre-kernel and thread, which shall set `*out_handle` to `EMB_HANDLE_NULL` on failure, and `emb_<object>_destroy(handle)`. A compile-time `EMB_<OBJECT>_DEFINE` form shall declare storage and handle and register the object in the generated initialization table.
 **Rationale.** Static definition without hand-written init code is how tables of objects stay in data, not code (principle 14).
-**Status.** Accepted 2026-10-07
-**Verification.** Test: conformance init/destroy and `_DEFINE` tests per object type.
+**Status.** Accepted 2026-10-07; implemented for threads, semaphores, mutexes, event flags, condition variables, message queues, work queues and interrupt-context timers (A64).
+**Verification.** Test: conformance init/destroy and `_DEFINE` tests per object type (`thread_define_registers_in_init_table` and the `*_define_constructs_in_init_table` cases).
 **Trace.** SPEC-001 §6.4; KRN-OBJ-001, KRN-OBJ-003
 
 ### API-022  Distinct time types

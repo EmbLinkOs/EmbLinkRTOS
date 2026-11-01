@@ -310,3 +310,18 @@ EMB_TEST(msgq_small_counts_refuse_a_capacity_above_255)
     EMB_ASSERT_MISUSE(emb_msgq_init(&storage, &attr, &q), EMB_EINVAL); /* 8-bit counts (A45) */
 }
 #endif
+
+EMB_MSGQ_DEFINE(defined_msgq, sizeof(uint32_t), 2u, 0u);
+
+EMB_TEST(msgq_define_constructs_in_init_table)
+{
+    uint32_t v = 7u;
+    uint32_t out = 0u;
+    EMB_TEST_REQ("API-021", "KRN-OBJ-009");
+    EMB_ASSERT_OK(emb_msgq_send(defined_msgq, &v, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_msgq_send(defined_msgq, &v, EMB_NO_WAIT));
+    EMB_ASSERT_STATUS(emb_msgq_send(defined_msgq, &v, EMB_NO_WAIT), EMB_ETIMEDOUT); /* capacity 2 */
+    EMB_ASSERT_OK(emb_msgq_receive(defined_msgq, &out, EMB_NO_WAIT));
+    EMB_ASSERT_EQ(out, 7u);
+    EMB_ASSERT_OK(emb_msgq_receive(defined_msgq, &out, EMB_NO_WAIT));
+}
