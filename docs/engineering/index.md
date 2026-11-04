@@ -21,6 +21,7 @@ m2-02-object-lifecycle
 m2-10-campaign
 m2-exit-review
 hwgen
+any-board-plan
 crash-record
 hil
 hil-uno-2026-11-04
