@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- A bring-up probe for the classic ESP32 (docs/ports/xtensa.md), ahead of any Xtensa port: `tools/esp/bringup/` builds a kernel-free image with EmbCC. The image stops the ROM's watchdogs and prints on UART0; it is flashed at 0x1000 with `embflash --esp`. `tools/esp/esp_image.py --chip esp32` writes the ESP32's image (chip 0, 40 MHz flash), with each segment placed at its run address. Not yet run on hardware.
+
 - The first hardware run (docs/engineering/hil-uno-2026-11-04.md): the checked tiny suite on an Arduino Uno R3, flashed with embflash, passed 17 of 17. That includes the crash record surviving the watchdog reset, decoded to the faulting line, The release (15/15) and T1 (12/12) builds pass too. Hand-overs measure 81, 68 and 66 µs per switch in the checked, release and T1 builds (about 1,300, 1,085 and 1,062 cycles).
 
 - The HIL runner drives the Arduino Uno R3 (`avr-uno-hil`). It flashes through Optiboot with avrdude, from the board's new `debug_probe.avrdude` hint, then opens the console, which resets the board; the same USB serial port serves both. On the Uno and the NUCLEO-F446RE, the crash record's reset cases run on the board too (`resets_in: hil`).
