@@ -1,6 +1,6 @@
 # The crash record
 
-A kernel fault leaves a record of itself for the next boot ([SPEC-015 §4](../specs/SPEC-015-observability-formats.md), OBS-016). The application reads it with `emb_crash_record_get()`, uploads `raw`, and discards it with `emb_crash_record_clear()`. This page covers the first increment ([A71 to A73](../specs/AMENDMENTS-M3.md)).
+A kernel fault leaves a record of itself for the next boot ([SPEC-015 §4](../specs/SPEC-015-observability-formats.md), OBS-016). The application reads it with `emb_crash_record_get()`, uploads `raw`, and discards it with `emb_crash_record_clear()`. `tools/crashdec` decodes it. This page covers the first increment ([A71 to A73](../specs/AMENDMENTS-M3.md)).
 
 ## What a fault does
 
@@ -51,6 +51,19 @@ The table comes from scratch probes: a `.noinit` word, a reset, and a report on 
 
 On the ATmega328P a watchdog reset leaves the watchdog enabled, with its shortest timeout. Until this change, the fault action REBOOT therefore reset the part again every 15 ms. The port now clears WDRF and stops the watchdog in `.init3`, before the C runtime starts. EmbSIM shows both behaviors.
 
+## Decoding: tools/crashdec
+
+```sh
+python3 -I tools/crashdec/crashdec.py run.log                                     # EMB_CRASH lines in a console log
+python3 -I tools/crashdec/crashdec.py "$EMB_NATIVE_CRASH_FILE"                    # the native port's raw file
+python3 -I tools/crashdec/crashdec.py run.log --elf image.elf --tool-prefix arm-none-eabi-
+```
+
+`crashdec` accepts versions 1 and 2 and refuses a wrong magic, an unknown version, a wrong length or a failing CRC-32 (exit 2). It names the fault class from `include/emb/fault.h` and the API from `tools/fault/api-ids.json`.
+
+- **With `--elf`.** It reads `emb_build_id` from the image and refuses a record from another build (exit 1; `--force` decodes anyway). It then symbolizes the pc with `<prefix>addr2line`, doubling a version 2 (AVR) word address first. Both decode to the faulting line: the Cortex-M4 record from QEMU and the Uno's from EmbSIM name `crash_record_survives_reset` at the line after its `emb_fault()` call.
+- **Native.** Native images are position independent on Linux, so their pc does not symbolize without the load address. The QEMU Cortex-M CI job decodes and symbolizes the record `test_crash_reset` left instead.
+- **Tests.** `tools/crashdec/test_crashdec.py` decodes a record the native kernel printed, which ties the C serializer to the decoder.
 ## The tiny profile
 
 The record is off by default on the tiny profile ([A73](../specs/AMENDMENTS-M3.md)). On AVR its code costs about 1 KiB of flash, which the tiny footprint gates (`tools/footprint/thresholds-avr-uno*.json`, baseline plus 10 percent) do not have room for. A tiny build that wants it sets `CONFIG_EMB_CRASH_RECORD=y`, as the `avr-uno-embsim` preset does, so that CI still verifies the AVR record and its survival across the watchdog reset.

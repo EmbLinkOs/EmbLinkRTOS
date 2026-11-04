@@ -39,6 +39,11 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Decode the crash records test_crash printed (tools/crashdec, OBS-016)
+        if: matrix.preset == 'native-gcc'
+        run: |
+          ctest --preset native-gcc -R '^test_crash$' --verbose > crash.log
+          python3 -I tools/crashdec/crashdec.py crash.log --elf build/native-gcc/tests/conformance/test_crash
       - name: Coverage report
         if: matrix.preset == 'native-coverage'
         run: python3 -I tools/coverage/report.py --json coverage.json --markdown coverage.md && cat coverage.md >> "$GITHUB_STEP_SUMMARY"
@@ -92,6 +97,13 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Decode and symbolize the record that survived the reset (tools/crashdec, OBS-016)
+        if: matrix.preset == 'cm4-an386'
+        run: |
+          ctest --preset cm4-an386 -R '^test_crash_reset$' --verbose > crash-reset.log
+          python3 -I tools/crashdec/crashdec.py crash-reset.log --tool-prefix arm-none-eabi- \
+            --elf build/cm4-an386/tests/conformance/test_crash_reset.elf | tee crashdec.txt
+          grep -q "in crash_record_survives_reset at" crashdec.txt
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
@@ -249,6 +261,8 @@ jobs:
             --conf boards/arduino/arduino_uno/generated/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: IRQ configuration and encoding regressions
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
+      - name: Crash record decoder
+        run: python3 -I -m unittest discover -s tools/crashdec -p 'test_*.py' -v
       - name: Hardware generator (schemas, rules, committed outputs)
         run: |
           pip install jsonschema
@@ -286,6 +300,12 @@ jobs:
         run: cmake --build --preset avr-uno-embsim
       - name: Test on EmbSIM
         run: ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+      - name: Decode and symbolize the small record that survived the watchdog reset (tools/crashdec)
+        run: |
+          ctest --preset avr-uno-embsim -R '^test_crash_reset$' --verbose > crash-reset.log
+          python3 -I tools/crashdec/crashdec.py crash-reset.log --tool-prefix avr- \
+            --elf build/avr-uno-embsim/tests/conformance/test_crash_reset.elf | tee crashdec.txt
+          grep -q "in crash_record_survives_reset at" crashdec.txt
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/avr-uno-embsim --preset avr-uno-embsim --out case-evidence-avr-uno-embsim.json
