@@ -88,7 +88,11 @@
     "simulation": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "embsim": { "type": "string" }, "qemu": { "type": "array", "items": { "type": "string" } } }
+      "properties": {
+        "embsim": { "type": "string" },
+        "qemu": { "type": "array", "items": { "type": "string" } },
+        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim"] } }
+      }
     },
     "defaults": {
       "type": "object",

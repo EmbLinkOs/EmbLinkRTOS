@@ -21,6 +21,7 @@ m2-02-object-lifecycle
 m2-10-campaign
 m2-exit-review
 hwgen
+crash-record
 case-evidence
 resource-bounds
 embcc-capability-review

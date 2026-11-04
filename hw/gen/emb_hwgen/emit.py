@@ -247,7 +247,11 @@ SECTIONS
   }} > RAM
 
   end = .;
-  __stack_top = ORIGIN(RAM) + LENGTH(RAM);
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
+  __emb_retained_start = __emb_retained_end - 128;
+  __stack_top = __emb_retained_start;
 }}
 """
 
@@ -332,6 +336,9 @@ def board_cmake(r):
     qemu = r["board"].get("simulation", {}).get("qemu")
     if qemu:
         out += f"set(EMB_BOARD_QEMU_ARGS {' '.join(qemu)})\n"
+    resets = r["board"].get("simulation", {}).get("resets_in")
+    if resets:
+        out += f"set(EMB_BOARD_RESETS_IN {' '.join(resets)}) # restart the image with RAM kept (test_crash_reset)\n"
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"

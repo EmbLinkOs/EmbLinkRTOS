@@ -423,12 +423,35 @@ void emb_arch_reset(const emb_fault_info_t *info)
 {
     __asm__ __volatile__("cpsid i" ::: "memory");
     emb_board_fault_report(info);
+    emb_arch_system_reset();
+}
+
+void emb_arch_system_reset(void)
+{
+    __asm__ __volatile__("cpsid i" ::: "memory");
     __asm__ __volatile__("dsb" ::: "memory");
     REG32(SCB_AIRCR) = (0x5FAu << 16) | (1u << 2); /* SYSRESETREQ */
     __asm__ __volatile__("dsb" ::: "memory");
     for (;;) {
     }
 }
+
+#if CONFIG_EMB_CRASH_RECORD
+/* The linker script's area above the stack, outside every loaded segment (A73). */
+extern uint8_t __emb_retained_start[];
+extern uint8_t __emb_retained_end[];
+
+uint8_t *emb_arch_retained(uint16_t *size)
+{
+    *size = (uint16_t)(__emb_retained_end - __emb_retained_start);
+    return __emb_retained_start;
+}
+
+void emb_arch_retained_sync(bool store)
+{
+    (void)store; /* the memory itself survives */
+}
+#endif
 
 /* Only with a debugger attached (DHCSR.C_DEBUGEN): without one a `bkpt` escalates to
  * HardFault, and inside a fault handler to lockup. */

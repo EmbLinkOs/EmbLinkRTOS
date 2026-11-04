@@ -125,6 +125,14 @@ extern "C" {
 #ifndef EMB_IS_CONSTANT
 #define EMB_IS_CONSTANT(x) 0
 #endif
+/* The calling function's return address (the crash record's pc of a software fault), or 0
+ * where the compiler cannot give it. */
+#ifndef EMB_RETURN_ADDRESS
+#define EMB_RETURN_ADDRESS()   ((uintptr_t)0)
+#define EMB_HAS_RETURN_ADDRESS 0
+#else
+#define EMB_HAS_RETURN_ADDRESS 1
+#endif
 #ifndef EMB_IF_CONSTANT
 #define EMB_IF_CONSTANT(x, a, b) (b)
 #endif

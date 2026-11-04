@@ -6,3 +6,4 @@ set(EMB_BOARD_VARIANT armv7m)
 set(EMB_BOARD_DEFAULT_PROFILE base)
 set(EMB_BOARD_C_FLAGS -mcpu=cortex-m3 -mfloat-abi=soft)
 set(EMB_BOARD_QEMU_ARGS -M mps2-an385 -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel) # ~31 MIPS, deterministic time
+set(EMB_BOARD_RESETS_IN qemu) # SYSRESETREQ restarts the image, RAM kept (test_crash_reset)

@@ -60,6 +60,9 @@
         "-icount",
         "shift=6,sleep=off",
         "-bios"
+      ],
+      "resets_in": [
+        "embsim"
       ]
     },
     "soc": "microchip/atmega/atmega328p.yaml",
@@ -183,7 +186,7 @@
     },
     {
       "path": "boards/arduino/arduino_uno/board.yaml",
-      "sha256": "925a772f8ddd394c8ac91b964db600cc0421671415828b733c2f954d7e3171e3"
+      "sha256": "65197c11f454891e0eab01893276961dc4f8cdd364334637864f5f340133bb75"
     },
     {
       "path": "soc/microchip/atmega/atmega328p.yaml",

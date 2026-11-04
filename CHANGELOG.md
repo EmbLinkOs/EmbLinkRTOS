@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- AVR: the port stops the watchdog after a watchdog reset, in `.init3`. Before, the fault action REBOOT reset the part again every 15 ms.
+
 - The Arduino Uno builds from its generated description (A70).
   - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The ATmega board support (`soc/microchip/atmega/`) and inline drivers (`drivers/microchip/include/`) take every address from `hw_config.h`.
   - The images are byte-identical in `.text` and `.data`, and the configuration hashes are unchanged.
@@ -28,6 +30,14 @@ User-visible changes are recorded here. There are no released versions or releas
 - `emb_sem_init()` and `emb_mutex_init()` refuse storage that still holds an active object of their type (fault in checked builds, `EMB_EBUSY` in release) instead of overwriting it, when `CONFIG_EMB_OBJ_LIST` is on (default except on the tiny profile). Storage is reused only through destroy. Semaphore and mutex storage grows by one list node where the option is on. KRN-OBJ-007 now specifies `EMB_EBUSY` instead of `EMB_EEXIST` (ADR-045).
 
 ### Added
+
+- The crash record (SPEC-015 §4, A71 to A73; `CONFIG_EMB_CRASH_RECORD`, on by default).
+  - A kernel fault writes a CRC-checked record before the hook and the fault action. Version 1 (92 bytes) on 32-bit and native ports holds the build id, firmware version, uptime, fault class, code, API and argument, thread, address, pc and sp. Version 2 (34 bytes) serves AVR.
+  - The record lives in memory the reset leaves alone: 128 bytes above the stack on Cortex-M and RISC-V, `.noinit` on AVR, `$EMB_NATIVE_CRASH_FILE` on native.
+  - The next boot validates it, and `emb_crash_record_get()` and `emb_crash_record_clear()` (API IDs 145 and 146) read and discard it.
+  - A software fault's pc is now the return address into the code that raised it.
+  - New port function `emb_arch_system_reset()`.
+  - `test_crash_reset` shows the record across a real reset on QEMU MPS2 and RV32 virt and on EmbSIM's NUCLEO-F446RE and Uno.
 
 - A second board on the STM32F446, the NUCLEO-F446ZE, described in YAML only (SPEC-014 §11).
   - It builds with the same STM32F4 board support and drivers, with its console on USART3 (PD8 and PD9) and a solved 180 MHz PLL.

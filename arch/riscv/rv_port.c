@@ -164,10 +164,40 @@ void emb_arch_reset(const emb_fault_info_t *info)
 {
     __asm__ __volatile__("csrci mstatus, 8" ::: "memory");
     emb_board_fault_report(info);
+    emb_arch_system_reset();
+}
+
+/* No architectural reset in machine mode: the board's, when it has one. */
+EMB_WEAK void emb_board_system_reset(void);
+EMB_WEAK void emb_board_system_reset(void)
+{
+}
+
+void emb_arch_system_reset(void)
+{
+    __asm__ __volatile__("csrci mstatus, 8" ::: "memory");
+    emb_board_system_reset();
     for (;;) {
-        /* no architectural reset in machine mode: the board's watchdog, when it has one */
+        /* a board without a reset stops here */
     }
 }
+
+#if CONFIG_EMB_CRASH_RECORD
+/* The linker script's area above the stack, outside every loaded segment (A73). */
+extern uint8_t __emb_retained_start[];
+extern uint8_t __emb_retained_end[];
+
+uint8_t *emb_arch_retained(uint16_t *size)
+{
+    *size = (uint16_t)(__emb_retained_end - __emb_retained_start);
+    return __emb_retained_start;
+}
+
+void emb_arch_retained_sync(bool store)
+{
+    (void)store; /* the memory itself survives */
+}
+#endif
 
 void emb_rv_halt(void)
 {

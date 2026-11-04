@@ -123,8 +123,8 @@ Group `API`. Design: `docs/specs/SPEC-001-api-conventions.md`. Decisions: ADR-00
 ### API-017  Misuse faults are attributable
 **Statement.** A kernel fault raised by API misuse shall record the fault class, the public function identifier, and the index of the offending argument in the crash record.
 **Rationale.** A fault without its cause costs a reproduction; the crash record exists to avoid that (FLT-001).
-**Status.** Accepted 2026-10-07
-**Verification.** Test: provoke each misuse class on the native port and decode the crash record.
+**Status.** Accepted 2026-10-07; implemented: the record carries the fault class, `api_id` and `argument` (A71).
+**Verification.** Test: provoke each misuse class on the native port and decode the crash record. Test: `crash_record_from_a_real_fault_reaches_the_next_boot` (native, a handle misuse of `emb_sem_give`).
 **Trace.** SPEC-001 §5.3; 03 §10.2
 
 ### API-018  Handle representation

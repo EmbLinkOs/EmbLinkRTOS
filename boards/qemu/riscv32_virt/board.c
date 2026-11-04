@@ -13,6 +13,7 @@
 #define TEST_FINISH  (*(volatile uint32_t *)(uintptr_t)EMB_HW_TEST_DEVICE)
 #define FINISHER_OK  0x5555u
 #define FINISHER_ERR 0x3333u
+#define FINISHER_RST 0x7777u /* the sifive_test device: system reset */
 
 static unsigned led_state;
 
@@ -75,4 +76,9 @@ void emb_board_fault_report(const emb_fault_info_t *info)
     emb_board_puts((info != NULL && info->where != NULL) ? info->where : "?");
     emb_board_puts("\n");
     emb_board_exit(2);
+}
+
+void emb_board_system_reset(void)
+{
+    TEST_FINISH = FINISHER_RST;
 }

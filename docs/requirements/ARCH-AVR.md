@@ -62,8 +62,8 @@ New group; numbering starts at 001.
 ### ARCH-AVR-008  Robustness without faults
 **Statement.** Checked builds on this port shall enable the switch-out stack guard check, the interrupt-reserve check, and the software watchdog service; a kernel fault shall write the small crash record to `.noinit` and reset through the watchdog by default.
 **Rationale.** No fault hardware; the watchdog and the guards are the only safety nets.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: `arch/avr/guard_detects_overflow`, `arch/avr/crash_record_survives_wdt_reset`.
+**Status.** Accepted 2026-10-07; the small crash record is written to `.noinit` and the watchdog reset keeps it; the watchdog is stopped after the reset (A73).
+**Verification.** Test: `arch/avr/guard_detects_overflow`, `arch/avr/crash_record_survives_wdt_reset`. Test: `crash_record_survives_reset` on EmbSIM's Arduino Uno (QEMU's arduino-uno has no watchdog).
 **Trace.** SPEC-012 §8, §9; FLT-001, FLT-004
 
 ### ARCH-AVR-009  Debug and emulation path

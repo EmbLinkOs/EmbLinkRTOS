@@ -28,4 +28,5 @@ flash_partitions:
 simulation:
   embsim: emblink/arduino_uno
   qemu: [-M, arduino-uno, -icount, "shift=6,sleep=off", -bios] # ~16 MIPS, deterministic time
+  resets_in: [embsim] # EmbSIM models the watchdog reset; QEMU's arduino-uno has no watchdog
 defaults: { CONFIG_EMB_PROFILE: tiny, CONFIG_EMB_TICK_NS: 1000000 }

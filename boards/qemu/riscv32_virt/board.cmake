@@ -6,3 +6,4 @@ set(EMB_BOARD_VARIANT rv32imac)
 set(EMB_BOARD_DEFAULT_PROFILE base)
 set(EMB_BOARD_C_FLAGS -march=rv32imac_zicsr_zifencei -mabi=ilp32)
 set(EMB_BOARD_QEMU_ARGS -M virt -icount shift=3,sleep=off -bios none -kernel) # deterministic time
+set(EMB_BOARD_RESETS_IN qemu) # the sifive_test reset restarts the image; memory outside its segments is kept
