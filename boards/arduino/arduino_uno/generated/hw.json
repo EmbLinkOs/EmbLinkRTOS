@@ -9,6 +9,13 @@
       "device": "usart0"
     },
     "curated": true,
+    "debug_probe": {
+      "avrdude": {
+        "baud": 115200,
+        "part": "atmega328p",
+        "programmer": "arduino"
+      }
+    },
     "defaults": {
       "CONFIG_EMB_PROFILE": "tiny",
       "CONFIG_EMB_TICK_NS": 1000000
@@ -62,7 +69,8 @@
         "-bios"
       ],
       "resets_in": [
-        "embsim"
+        "embsim",
+        "hil"
       ]
     },
     "soc": "microchip/atmega/atmega328p.yaml",
@@ -186,7 +194,7 @@
     },
     {
       "path": "boards/arduino/arduino_uno/board.yaml",
-      "sha256": "65197c11f454891e0eab01893276961dc4f8cdd364334637864f5f340133bb75"
+      "sha256": "45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6"
     },
     {
       "path": "soc/microchip/atmega/atmega328p.yaml",

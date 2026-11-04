@@ -83,7 +83,16 @@
     "debug_probe": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "openocd": { "type": "string" }, "pyocd_target": { "type": "string" } }
+      "properties": {
+        "openocd": { "type": "string" },
+        "pyocd_target": { "type": "string" },
+        "avrdude": {
+          "type": "object",
+          "required": ["part", "programmer", "baud"],
+          "additionalProperties": false,
+          "properties": { "part": { "type": "string" }, "programmer": { "type": "string" }, "baud": { "type": "integer", "minimum": 1 } }
+        }
+      }
     },
     "simulation": {
       "type": "object",
@@ -91,7 +100,7 @@
       "properties": {
         "embsim": { "type": "string" },
         "qemu": { "type": "array", "items": { "type": "string" } },
-        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim"] } }
+        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim", "hil"] } }
       }
     },
     "defaults": {

@@ -31,5 +31,5 @@ flash_partitions:
 # the conformance framework's software interrupts: lines with no peripheral behind them
 test_irqs: [61, 62]
 debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446retx }
-simulation: { embsim: emblink/nucleo_f446re, resets_in: [embsim] }
+simulation: { embsim: emblink/nucleo_f446re, resets_in: [embsim, hil] }
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

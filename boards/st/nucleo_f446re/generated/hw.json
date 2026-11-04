@@ -71,7 +71,8 @@
     "simulation": {
       "embsim": "emblink/nucleo_f446re",
       "resets_in": [
-        "embsim"
+        "embsim",
+        "hil"
       ]
     },
     "soc": "st/stm32f4/stm32f446re.yaml",
@@ -229,7 +230,7 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "21e11a190b7f792f448f18f1f2b7c847c106c367acfcfb101c2083ba41da151d"
+      "sha256": "d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

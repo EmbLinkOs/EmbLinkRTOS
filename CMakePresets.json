@@ -213,6 +213,19 @@
       }
     },
     {
+      "name": "avr-uno-hil",
+      "displayName": "Arduino Uno R3 (the physical board), avr-gcc, tiny profile, checked, crash record on (set EMB_HIL_PORT to its USB serial port)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_TEST_EMULATOR": "hil",
+        "EMB_SET": "EMB_CRASH_RECORD=y"
+      }
+    },
+    {
       "name": "cm4-nucleo-hil",
       "displayName": "NUCLEO-F446RE (Cortex-M4F), GCC, base profile, checked, tests on the physical board (set EMB_HIL_PORT to its ST-LINK console)",
       "generator": "Ninja",
@@ -392,6 +405,10 @@
       "configurePreset": "cm4-nucleo-hil"
     },
     {
+      "name": "avr-uno-hil",
+      "configurePreset": "avr-uno-hil"
+    },
+    {
       "name": "rv32-virt",
       "configurePreset": "rv32-virt"
     },
@@ -568,6 +585,13 @@
     {
       "name": "cm4-nucleo-hil",
       "configurePreset": "cm4-nucleo-hil",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-hil",
+      "configurePreset": "avr-uno-hil",
       "output": {
         "outputOnFailure": true
       }

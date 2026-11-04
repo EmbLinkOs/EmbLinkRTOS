@@ -5,7 +5,7 @@
 #   arch/avr/arch.yaml
 #     2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2
 #   boards/arduino/arduino_uno/board.yaml
-#     65197c11f454891e0eab01893276961dc4f8cdd364334637864f5f340133bb75
+#     45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6
 #   soc/microchip/atmega/atmega328p.yaml
 #     f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18
 # arduino_uno: ATmega328P, avr5 at 16 MHz.
@@ -17,11 +17,11 @@ set(EMB_BOARD_DEFAULT_PROFILE tiny)
 set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/microchip/atmega")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M arduino-uno -icount shift=6,sleep=off -bios)
-set(EMB_BOARD_RESETS_IN embsim) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_EMBSIM_TARGET emblink/arduino_uno) # EMB_TEST_EMULATOR=embsim
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/avr/arch.yaml=2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2"
-    "boards/arduino/arduino_uno/board.yaml=65197c11f454891e0eab01893276961dc4f8cdd364334637864f5f340133bb75"
+    "boards/arduino/arduino_uno/board.yaml=45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6"
     "soc/microchip/atmega/atmega328p.yaml=f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18"
 )

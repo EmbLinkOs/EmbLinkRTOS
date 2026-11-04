@@ -1,6 +1,6 @@
 # Running on a physical board (HIL)
 
-M3a's evidence comes from a physical NUCLEO-F446RE: the conformance suite run on the board, cycle counts, and latency measured from outside. This page is the procedure for the day the board arrives. The runner, the preset and the benchmark images exist and are tested without a board. **Nothing on this page has been run on hardware yet.**
+M3a's evidence comes from physical boards: the conformance suite run on the board, cycle counts, and latency measured from outside. The NUCLEO-F446RE is the M3a board. The Arduino Uno R3 runs the tiny profile the same way. This page is the procedure for both. The runner, the preset and the benchmark images exist and are tested without a board. **Nothing on this page has been run on hardware yet.**
 
 ## What you need
 
@@ -12,6 +12,22 @@ M3a's evidence comes from a physical NUCLEO-F446RE: the conformance suite run on
 The console's device:
 - macOS: `/dev/cu.usbmodem*` (`ls /dev/cu.usbmodem*` after plugging in);
 - Linux: `/dev/ttyACM0` (your user needs the `dialout` group).
+
+## The Arduino Uno R3
+
+The Uno flashes and prints over one USB serial port: its ATmega16U2, `/dev/cu.usbmodem*` on macOS, `/dev/ttyACM0` on Linux. The runner therefore uses the other order:
+1. It flashes the image's `.hex` through Optiboot: `avrdude -p atmega328p -c arduino -b 115200 -D -U flash:w:<hex>:i`, from the `debug_probe.avrdude` hint in `hw.json`.
+2. It opens the console. Opening the port resets the board (DTR), so the image starts from its first line while the runner is listening.
+
+Install avrdude with `brew install avrdude` on macOS or `apt install avrdude` on Linux. Then:
+
+```sh
+cmake --preset avr-uno-hil -DEMB_HIL_PORT=/dev/cu.usbmodem1101
+cmake --build --preset avr-uno-hil
+ctest --preset avr-uno-hil
+```
+
+The preset is the tiny profile, checked, with the crash record turned on, so `test_crash_reset` shows the record across the part's own watchdog reset. A clone with a CH340 USB chip works too, as `/dev/cu.wchusbserial*`, though an older bootloader may need 57600 baud (`--flash-cmd`).
 
 ## Running the suite
 

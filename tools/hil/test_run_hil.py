@@ -110,6 +110,23 @@ class Runner(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_hil.flash_command({"board": {}}, Path("t.elf"), None)
 
+    def test_shared_port_flashes_before_opening(self):
+        """The Uno's case: the bootloader has the port while flashing; the console opens after."""
+        b = self.board(b"2 tests, 0 failed, 0 skipped, 5 ticks\nEMB_TEST_END\n", delay=0.5)
+        hw = dict(HW, board={"name": "arduino_uno", "debug_probe": {"avrdude": {"part": "atmega328p",
+                                                                               "programmer": "arduino", "baud": 115200}}})
+        b.hw.write_text(json.dumps(hw))
+        rc, out, _ = b.run()
+        self.assertEqual(rc, 0)
+        self.assertTrue(b.flag.exists())
+
+    def test_avrdude_command_from_the_committed_uno(self):
+        hw = json.loads((HERE.parent.parent / "boards/arduino/arduino_uno/generated/hw.json").read_text())
+        self.assertTrue(run_hil.shares_port(hw))
+        cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101")
+        self.assertEqual(cmd, ["avrdude", "-q", "-p", "atmega328p", "-c", "arduino", "-P", "/dev/cu.usbmodem1101",
+                               "-b", "115200", "-D", "-U", "flash:w:/b/test_sem.hex:i"])
+
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
         self.assertEqual(run_hil.flash_command(hw, Path("t.elf"), None)[:3], ["openocd", "-f", "board/st_nucleo_f4.cfg"])

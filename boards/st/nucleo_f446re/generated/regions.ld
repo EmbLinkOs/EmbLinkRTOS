@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c
  *   boards/st/nucleo_f446re/board.yaml
- *     21e11a190b7f792f448f18f1f2b7c847c106c367acfcfb101c2083ba41da151d
+ *     d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml

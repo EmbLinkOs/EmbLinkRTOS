@@ -25,8 +25,10 @@ leds: [ { name: user, gpio: PB5, active: high, doc: L } ]
 flash_partitions:
   - { name: app, base: 0x0000, size: 32256 }
   - { name: bootloader, base: 0x7E00, size: 512, reserved: true, doc: Optiboot }
+# Optiboot over the ATmega16U2's USB serial port, which is also the console
+debug_probe: { avrdude: { part: atmega328p, programmer: arduino, baud: 115200 } }
 simulation:
   embsim: emblink/arduino_uno
   qemu: [-M, arduino-uno, -icount, "shift=6,sleep=off", -bios] # ~16 MIPS, deterministic time
-  resets_in: [embsim] # EmbSIM models the watchdog reset; QEMU's arduino-uno has no watchdog
+  resets_in: [embsim, hil] # EmbSIM models the watchdog reset, as the part does; QEMU's arduino-uno has no watchdog
 defaults: { CONFIG_EMB_PROFILE: tiny, CONFIG_EMB_TICK_NS: 1000000 }

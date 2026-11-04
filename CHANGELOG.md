@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The HIL runner drives the Arduino Uno R3 (`avr-uno-hil`). It flashes through Optiboot with avrdude, from the board's new `debug_probe.avrdude` hint, then opens the console, which resets the board; the same USB serial port serves both. On the Uno and the NUCLEO-F446RE, the crash record's reset cases run on the board too (`resets_in: hil`).
+
 - Hardware-in-the-loop runs (docs/engineering/hil.md).
   - `tools/hil/run_hil.py` flashes an image with the probe the board's `hw.json` names (OpenOCD), reads the board's console through termios, and reports as the emulator runners do.
   - `EMB_TEST_EMULATOR=hil` with `EMB_HIL_PORT` registers the suite and the benchmarks, run one at a time; `cm4-nucleo-hil` is the preset.
