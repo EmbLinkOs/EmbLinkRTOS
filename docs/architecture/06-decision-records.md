@@ -644,3 +644,24 @@ Boards now on the owner's bench, a classic ESP32 (Xtensa LX6) and a Raspberry Pi
 - Generated outputs must stay machine-independent for boards outside the tree too (HW-013). They name a board's own files as `@board/...`.
 
 **Status.** Proposed 2026-11-04, from the project owner's goal; awaiting review. Implementation started with A76 (boards outside the tree).
+
+## ADR-052 Xtensa images link with EmbCC's embld under a linker script
+
+**Context.** The ESP32's instruction RAM takes only 32-bit accesses, so a byte load from code memory faults. An Xtensa image therefore needs its read-only data (`.rodata`, the strings), its data, and its code in separate regions: IRAM for the code, DRAM for everything a byte load reads. EmbCC's `embld` placed an Xtensa image only by `-Ttext` and `-Tdata`, and refused a linker script for that machine. Those flags keep `.rodata` with the text, in IRAM. The bring-up probe (#60) worked around this by forcing its strings into `.data`, which does not scale to a kernel and its applications. Two options were open:
+- give `embld` Xtensa scripts;
+- use Espressif's GCC and binutils for the ESP32.
+
+**Decision.** `embld` lays out Xtensa images from linker scripts, through its existing script engine (EmbCC D-024, EmbCC #174). The ESP32 port's images are linked by EmbCC with a script that puts `.text` in IRAM and `.rodata`, `.data` and `.bss` in DRAM. The probe's `tools/esp/bringup/esp32.ld` is the first such script. The kernel port's script will come from the hardware generator, as for every other board (A68).
+
+**Alternatives.**
+- *Espressif's GCC* is a second toolchain of several hundred megabytes for one target family. ESP32 images would be the only ones EmbCC cannot link, and the CI jobs, the compiler-qualification work (09) and the EmbCC kernel leg would all have to carry it.
+- *A `-Trodata` option* would be narrower than a script, and would still fail the next layout an ESP32 needs (RTC fast memory, the noinit area of the crash record).
+
+The engine needed nothing machine-specific for Xtensa: its relocations already check their own reach (`l32r` backwards within 256 KiB, `call8` within 512 KiB) and refuse a layout that breaks it.
+
+**Consequences.**
+- ESP32 builds need an `embld` with D-024. Until EmbCC #174 is in a release, the probe's `build.sh` falls back to `-Ttext`/`-Tdata`, which works only because the probe keeps its byte data in `.data`.
+- A script has no `-Tstack` entry stub, which is no change on the ESP32: its ROM calls the entry as a windowed function, with a stack set.
+- EmbCC's golden test `xtensa-ldscript` runs an ESP32-like layout on QEMU's sim machine.
+
+**Status.** Proposed 2026-11-04, the linker decision the project owner asked for; EmbCC #174 implements it.

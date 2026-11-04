@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The Xtensa linker decision (ADR-052): ESP32 images link with EmbCC's `embld` under a linker script, which puts `.rodata` and data in DRAM, since the ESP32's IRAM takes only 32-bit loads. EmbCC #174 adds Xtensa scripts to `embld`. The bring-up probe links with `tools/esp/bringup/esp32.ld`, and falls back to `-Ttext`/`-Tdata` with an older `embld`.
+
 - The Cortex-M7 (A83): the new board `mps2_an500`, QEMU's `mps2-an500`, comes from its description alone and passes all 21 tests in the checked and release builds (presets `cm7-an500`, `-release`) with no change to the port.
 
 - The DeviceTree board importer (`hw/import/dts.py`, A82) drafts a `board.yaml` from a Zephyr board's `.dts`. The draft covers the oscillators, the clock and PLL, the console and its pins, the LEDs, the buttons and the flash. Zephyr's NUCLEO-F446RE agrees with the curated board on every board fact, and its draft, with only a `simulation` line added, builds and passes 19 of 19 on EmbSIM. The generator now refuses a Cortex-M app partition that does not start where the core boots.
