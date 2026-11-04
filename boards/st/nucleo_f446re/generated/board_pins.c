@@ -21,11 +21,11 @@
 
 const emb_stm32_pin_t emb_board_pins[] = {
     /* PA2: pins.usart2.tx (usart2_tx) */
-    {EMB_HW_GPIOA_BASE, EMB_HW_GPIOA_CLKEN_BIT, 2u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u},
     /* PA3: pins.usart2.rx (usart2_rx) */
-    {EMB_HW_GPIOA_BASE, EMB_HW_GPIOA_CLKEN_BIT, 3u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u},
     /* PA5: leds.user (output) */
-    {EMB_HW_GPIOA_BASE, EMB_HW_GPIOA_CLKEN_BIT, 5u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

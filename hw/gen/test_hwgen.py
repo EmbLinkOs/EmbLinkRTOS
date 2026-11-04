@@ -15,7 +15,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
-from emb_hwgen import HwError, generate, load, model, schema  # noqa: E402
+from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E402
 
 BOARD = "boards/st/nucleo_f446re"
 
@@ -299,6 +299,37 @@ class Outputs(unittest.TestCase):
         self.assertEqual(data["derived"]["clock"]["hclk_hz"], 180_000_000)
         self.assertEqual(data["derived"]["timer"], {"source": "systick", "hz": 180_000_000})
         self.assertIn("openocd", data["board"]["debug_probe"])
+
+
+class Facts(unittest.TestCase):
+    """HW-001 (A69): no hardware facts outside the descriptions."""
+
+    def test_repository_is_clean(self):
+        self.assertEqual(facts.check(ROOT), [])
+
+    def test_address_in_driver_c_is_found(self):
+        root = Path(tempfile.mkdtemp(prefix="hwfacts-"))
+        try:
+            (root / "drivers/st").mkdir(parents=True)
+            (root / "soc").mkdir()
+            (root / "drivers/st/x.c").write_text("#define RCC 0x40023800u\n#define MASK 0x3Fu\n")
+            self.assertEqual(facts.check(root), ["drivers/st/x.c:1: address-like constant 0x40023800u; "
+                                                 "take it from hw_config.h (HW-001)"])
+        finally:
+            shutil.rmtree(root)
+
+    def test_hand_written_file_in_generated_board_is_found(self):
+        root = Path(tempfile.mkdtemp(prefix="hwfacts-"))
+        try:
+            (root / "boards/st/b/generated").mkdir(parents=True)
+            (root / "boards/st/b/board.yaml").write_text("")
+            (root / "boards/st/b/board.c").write_text("")
+            (root / "soc").mkdir()
+            (root / "drivers").mkdir()
+            self.assertEqual(len(facts.check(root)), 1)
+            self.assertTrue(facts.check(root)[0].startswith("boards/st/b/board.c: "))
+        finally:
+            shutil.rmtree(root)
 
 
 class Clock(unittest.TestCase):

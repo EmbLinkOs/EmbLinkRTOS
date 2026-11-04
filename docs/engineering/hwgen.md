@@ -41,7 +41,8 @@ Register base addresses, interrupt numbers, clock gates and pin functions come f
 | `board_pins.c` | board initialization | the pins to configure: port, number, mode and alternate function |
 | `regions.ld` | linker | FLASH from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2), the kernel's table brackets |
 | `board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
-| `board.cmake` | CMake | port, variant, default profile, CPU flags, EmbSIM target, input hashes |
+| `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes |
+| `CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
 | `hw.json` | tools (HW-005) | the flattened descriptions and everything derived, validated by `hw.schema.json` |
 | `board.md`, `build_report.md` | reviewers | board reference; clock results against the limits, image layout, warnings |
 
@@ -57,6 +58,24 @@ Each output is sorted and carries no timestamp. It names the generator version, 
 - **Buses.** Each APB divider is the smallest that keeps its bus within its limit.
 - **Flash.** Wait states follow the SoC's table.
 - **Regulator.** The scale is the lowest-power one that covers HCLK without over-drive. Failing that, the solver uses the first that covers it with over-drive.
+
+## Building a generated board
+
+A board described in YAML holds `board.yaml` and `generated/` and nothing else ([A69](../specs/AMENDMENTS-M3.md)):
+
+- **Finding the board.** Configuration finds the board through `generated/board.cmake`, and `generated/` becomes the board directory.
+- **Staleness.** Each input's SHA-256 is compared with the one `board.cmake` records. A mismatch stops configuration with the `generate` command to run, and editing a description reconfigures.
+- **The build.** `generated/CMakeLists.txt` hands the build to the family's board support, `soc/st/stm32f4/CMakeLists.txt`. It compiles four things into `emb_board`:
+  - `board.c`, the `emb_board.h` interface for every STM32F4 board;
+  - the drivers in `drivers/st/`: clock-tree bring-up (`stm32f4_rcc.c`), the pin table and toggling (`stm32f4_gpio.c`), and the polled console (`stm32_usart.c`);
+  - the board's `board_pins.c`;
+  - the board's `hw_config.h`, which the other three compile against.
+
+  It then links `regions.ld`.
+
+The drivers keep register offsets and bit layouts. Every base address, gate, pin, divider and frequency comes from `hw_config.h`. `emb-hwgen.py check` enforces both halves of HW-001:
+- a generated board's directory holds no other file;
+- C under `soc/` and `drivers/` contains no hexadecimal literal of seven or more digits.
 
 ## Validation rules
 
@@ -93,11 +112,11 @@ The tests cover:
 - the solver at 180, 168, 84 and 8 MHz;
 - unit parsing and inheritance.
 
-With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
+The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
 
 ## Limits of this increment
 
-- **The build does not use the outputs yet.** The NUCLEO-F446RE still builds from its hand-written `board.c`, `hw_config.h`, linker script and `board.conf`. The next step replaces them with `generated/` and driver code that takes every address from it.
+- **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
 - **Not generated:** the system description, `soc_devices.c`, `embld.opts`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
 - **Other boards:** the Uno, the MPS2 boards, RV32 virt and the ESP32-C3 have no descriptions in this schema yet.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

@@ -17,6 +17,9 @@ set(EMB_BOARD_ARCH cortex_m)
 set(EMB_BOARD_VARIANT armv7em)
 set(EMB_BOARD_DEFAULT_PROFILE base)
 set(EMB_BOARD_C_FLAGS -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
+# the SoC family's board support and drivers build this board (generated/CMakeLists.txt)
+set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")
+set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446re) # EMB_TEST_EMULATOR=embsim
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
