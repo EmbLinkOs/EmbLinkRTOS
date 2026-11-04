@@ -131,6 +131,58 @@ emb_status_t emb_workq_destroy(emb_workq_t workq);
  */
 emb_status_t emb_workq_flush(emb_workq_t workq, emb_timeout_t timeout);
 
+#if CONFIG_EMB_WORKQ_STATS
+/* A queue's statistics (KRN-WQ-011): maxima since init or the last reset. */
+typedef struct emb_workq_stats {
+    emb_duration_t max_latency;    /* worst time from a submit to its handler's start */
+    emb_duration_t max_duration;   /* longest handler run */
+    emb_work_fn_t max_duration_fn; /* the handler that took it; NULL before the first run */
+    uint16_t pending;              /* items queued now */
+    uint16_t max_pending;          /* most items queued at once */
+} emb_workq_stats_t;
+
+/**
+ * emb_workq_get_stats() - Read a queue's statistics.
+ * @workq:     Initialized work queue.
+ * @out_stats: Receives the statistics.
+ *
+ * @ctx      thread isr
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ_STATS
+ * @req      KRN-WQ-011
+ * @since    0.3
+ * @stable   no
+ *
+ * Times are kernel-clock ticks. A submit while the item's handler runs starts the latency
+ * of the run it queues. Flush markers are not items.
+ *
+ * Return: EMB_OK; EMB_EINVAL for a bad handle or a NULL @out_stats.
+ */
+emb_status_t emb_workq_get_stats(emb_workq_t workq, emb_workq_stats_t *out_stats);
+
+/**
+ * emb_workq_reset_stats() - Restart a queue's maxima from now.
+ * @workq: Initialized work queue.
+ *
+ * @ctx      thread isr
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_WORKQ_STATS
+ * @req      KRN-WQ-011
+ * @since    0.3
+ * @stable   no
+ *
+ * The latency and duration maxima return to zero and the pending maximum to the items
+ * queued now.
+ *
+ * Return: EMB_OK; EMB_EINVAL for a bad handle.
+ */
+emb_status_t emb_workq_reset_stats(emb_workq_t workq);
+#endif
+
 #if CONFIG_EMB_SYSTEM_WORKQ
 /**
  * emb_workq_system() - The system work queue.

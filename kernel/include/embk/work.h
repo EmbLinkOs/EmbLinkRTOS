@@ -22,6 +22,9 @@ typedef struct embk_work {
     uint8_t tag;              /* EMBK_WORK_TAG once initialized */
     uint8_t state;            /* EMB_WORK_IDLE | EMB_WORK_PENDING | EMB_WORK_RUNNING */
     uint8_t flags;            /* EMBK_WORK_RESUBMITTED | EMBK_WORK_MARKER */
+#if CONFIG_EMB_WORKQ_STATS
+    emb_tick_t submitted; /* the last submit: the start of its latency */
+#endif
 } embk_work_t;
 
 typedef struct embk_workq {
@@ -32,6 +35,13 @@ typedef struct embk_workq {
     embk_work_t *running;     /* the item whose handler runs, or NULL */
     uint8_t stopping;         /* destroy has begun: the thread exits at an empty FIFO */
     uint8_t timer_refs;       /* timers whose callbacks run here: destroy is refused */
+#if CONFIG_EMB_WORKQ_STATS
+    uint16_t pending;                               /* items queued now, flush markers excluded */
+    uint16_t max_pending;                           /* KRN-WQ-011 statistics from here */
+    emb_tick_t max_latency;                         /* worst submit to start */
+    emb_tick_t max_duration;                        /* longest handler */
+    void (*max_duration_fn)(struct emb_work *work); /* the handler that took it */
+#endif
 #if CONFIG_EMB_OBJ_LIST
     embk_list_node_t all_node; /* in embk_workq_all from init to destroy */
 #endif
