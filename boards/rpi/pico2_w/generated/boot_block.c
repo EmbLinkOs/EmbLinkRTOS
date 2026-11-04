@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 
-EMB_USED const uint32_t emb_boot_block[5] __attribute__((section(".emb_boot_block"))) = {
+EMB_USED EMB_SECTION(".emb_boot_block") const uint32_t emb_boot_block[5] = {
     0xFFFFDED3u, /* PICOBIN_BLOCK_MARKER_START */
     0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */
     0x000001FFu, /* item LAST (0xff): the items before it fill one word */

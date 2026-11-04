@@ -471,10 +471,36 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
 
+  # The ESP32 probe built by Espressif's own GCC and GNU ld with the same esp32.ld that EmbCC's
+  # embld reads (ADR-052, ADR-053): a vendor toolchain as a CI leg. The archive is Espressif's
+  # release, pinned by the SHA-256 Espressif publishes beside it.
+  xtensa-gcc:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      ESP_GCC_RELEASE: esp-16.1.0_20260609
+      ESP_GCC_ARCHIVE: xtensa-esp-elf-16.1.0_20260609-x86_64-linux-gnu.tar.xz
+      ESP_GCC_SHA256: f708752ebb35cab21f184b2574114ed1187619db0edb8a4ba913c06ca2fa675e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Espressif's GCC for Xtensa (pinned, checksum-verified)
+        timeout-minutes: 15
+        run: |
+          curl -sSfL --retry 3 -o "$ESP_GCC_ARCHIVE" \
+            "https://github.com/espressif/crosstool-NG/releases/download/$ESP_GCC_RELEASE/$ESP_GCC_ARCHIVE"
+          echo "$ESP_GCC_SHA256  $ESP_GCC_ARCHIVE" | sha256sum -c -
+          tar -xJf "$ESP_GCC_ARCHIVE"
+          echo "$PWD/xtensa-esp-elf/bin" >> "$GITHUB_PATH"
+      - name: Build the ESP32 bring-up probe with it, and check the image
+        run: |
+          xtensa-esp32-elf-gcc --version | head -1
+          XTENSA_GCC=xtensa-esp32-elf-gcc tools/esp/bringup/build.sh build/esp32-gcc
+          python3 -I tools/esp/bringup/check_probe.py build/esp32-gcc/esp32_hello.bin
+
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

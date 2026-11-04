@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Toolchain neutrality (ADR-053). There is one port per architecture, and toolchains differ in three places only: the compiler macros, the port assembly and the linker layout. The lint refuses raw `__attribute__`, `__builtin_`, `typeof` and statement expressions outside `arch/` and `include/emb/compiler/`. The support matrix lists the toolchains CI builds each board with. A new `xtensa-gcc` CI job builds the ESP32 probe with Espressif's GCC, pinned by checksum, from the same `esp32.ld` that EmbCC's `embld` reads. ADR-052 is revised to match. IAR and Keil wait for a license.
+
 - Armv6-M, the Cortex-M0 and M0+ (A86). Critical sections use PRIMASK, PendSV is written in Thumb-1, priority registers are written a word at a time, and faults are HardFault only. Two priority bits are accepted for this variant. The new board `microbit`, QEMU's nRF51822, passes all 14 tests in the checked and release tiny builds. The other variants' port code is unchanged.
 
 - The STM32 pin importer (`hw/import/pins.py`, A85) drafts a package's bonded pins and its pins' alternate functions from ST's open pin data. For the STM32F446RE and STM32F446ZE it agrees with the curated files, with 0 differences.

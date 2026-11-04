@@ -592,7 +592,7 @@ def rp2350_boot_block_c(r):
     out += _c_comment(r, _cmd(r))
     out += "/* The boot ROM's IMAGE_DEF block (RP2350 datasheet §5.9, pico-sdk's picobin.h). */\n"
     out += "#include <emb/compiler.h>\n\n#include <stdint.h>\n\n"
-    out += "EMB_USED const uint32_t emb_boot_block[5] __attribute__((section(\".emb_boot_block\"))) = {\n"
+    out += "EMB_USED EMB_SECTION(\".emb_boot_block\") const uint32_t emb_boot_block[5] = {\n"
     for w, what in words:
         out += f"    0x{w:08X}u, /* {what} */\n"
     out += "};\n"

@@ -103,8 +103,18 @@ class Tiers(unittest.TestCase):
             self.assertEqual(matrix.main(["--root", str(self.repo.d)]), 0)
             self.assertEqual(matrix.main(["--root", str(self.repo.d), "--check"]), 0)
         page = (self.repo.d / matrix.PAGE).read_text()
-        self.assertIn("| `hwboard` | P1 | c1 | 1 hardware | `hw-x` checked 3/3 (2026-11-04, [report](run.md)) |", page)
-        self.assertIn("| `lonely` | P1 | c1 | untested | neither run nor built in CI |", page)
+        self.assertIn("| `hwboard` | P1 | c1 | 1 hardware | - | `hw-x` checked 3/3 (2026-11-04, [report](run.md)) |", page)
+        self.assertIn("| `lonely` | P1 | c1 | untested | - | neither run nor built in CI |", page)
+
+    def test_toolchains_from_the_presets(self):
+        p = self.repo.d / "CMakePresets.json"
+        d = json.loads(p.read_text())
+        d["configurePresets"][1]["toolchainFile"] = "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake"
+        d["configurePresets"].append({"name": "emu-b", "inherits": "emu-a", "toolchainFile": "x/embcc-avr.cmake"})
+        p.write_text(json.dumps(d))
+        rows = {r["board"]: r for r in matrix.derive(self.repo.d)}
+        self.assertEqual(rows["emuboard"]["toolchains"], "GCC")  # emu-b is not in CI: not claimed
+        self.assertEqual(rows["builtboard"]["toolchains"], "host default")
 
 
 class Repository(unittest.TestCase):

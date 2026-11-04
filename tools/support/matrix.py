@@ -28,6 +28,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PAGE = Path("docs/engineering/support-matrix.md")
 TIERS = {1: "1 hardware", 2: "2 emulated", 3: "3 described", None: "untested"}
+# each CMake toolchain file's compiler family (ADR-053): what the "Toolchains in CI" column says
+TOOLCHAINS = {"arm-none-eabi-gcc": "GCC", "avr-gcc": "GCC", "riscv-gcc": "GCC", "native-gcc": "GCC",
+              "native-coverage": "GCC", "native-clang": "Clang", "native-sanitizers": "GCC or Clang",
+              "native-tsan": "GCC or Clang", "embcc-native": "EmbCC", "embcc-native-mixed": "EmbCC",
+              "embcc-avr": "EmbCC"}
 
 
 class MatrixError(Exception):
@@ -56,24 +61,45 @@ def boards(root):
     return out
 
 
+def _inherited(by, name, get, seen=()):
+    """A preset's own value, or the first one up its `inherits` chain."""
+    p = by[name]
+    v = get(p)
+    if v is not None:
+        return v
+    parents = p.get("inherits", [])
+    for parent in ([parents] if isinstance(parents, str) else parents):
+        if parent in by and parent not in seen:
+            v = _inherited(by, parent, get, seen + (name,))
+            if v is not None:
+                return v
+    return None
+
+
+def _presets(root):
+    d = json.loads((root / "CMakePresets.json").read_text(encoding="utf-8"))
+    return {p["name"]: p for p in d["configurePresets"]}
+
+
 def preset_boards(root):
     """{configure preset: board}, following `inherits`; the default board is native."""
-    d = json.loads((root / "CMakePresets.json").read_text(encoding="utf-8"))
-    by = {p["name"]: p for p in d["configurePresets"]}
+    by = _presets(root)
 
-    def board(name, seen=()):
-        p = by[name]
+    def board(p):
         v = p.get("cacheVariables", {}).get("EMB_BOARD")
-        if v is not None:
-            return v["value"] if isinstance(v, dict) else v
-        parents = p.get("inherits", [])
-        for parent in ([parents] if isinstance(parents, str) else parents):
-            if parent not in seen:
-                b = board(parent, seen + (name,))
-                if b:
-                    return b
-        return None
-    return {n: board(n) or "native" for n in by if not by[n].get("hidden")}
+        return (v["value"] if isinstance(v, dict) else v) if v is not None else None
+    return {n: _inherited(by, n, board) or "native" for n in by if not by[n].get("hidden")}
+
+
+def preset_toolchains(root):
+    """{configure preset: compiler family}, from its toolchain file (ADR-053)."""
+    by = _presets(root)
+    out = {}
+    for n in by:
+        f = _inherited(by, n, lambda p: p.get("toolchainFile"))
+        stem = Path(f).stem if f else None
+        out[n] = TOOLCHAINS.get(stem, stem or "host default")
+    return out
 
 
 def ci_presets(root):
@@ -97,6 +123,7 @@ def ci_presets(root):
 def derive(root):
     bs = boards(root)
     pb = preset_boards(root)
+    ptc = preset_toolchains(root)
     configs = json.loads((root / "tools" / "evidence" / "configurations.json").read_text(encoding="utf-8"))["configurations"]
     runs, built = ci_presets(root)
     problems = []
@@ -144,7 +171,8 @@ def derive(root):
         also = [p for p in emulated if tier == 1]
         if also:
             ev += "; CI also runs " + ", ".join(f"`{p}`" for p in also)
-        rows.append({"board": name, "tier": tier, "evidence": ev, **b})
+        tcs = sorted({ptc[p] for p in mine if p in built})
+        rows.append({"board": name, "tier": tier, "evidence": ev, "toolchains": ", ".join(tcs) or "-", **b})
     return rows
 
 
@@ -160,9 +188,12 @@ def render(rows):
            "- **3 described**: CI builds the board from its description; nothing runs it.",
            "- **untested**: the board exists, but CI neither runs nor builds it.", "",
            "Emulator results are never timing evidence (SIM-003).", "",
-           "| Board | SoC | Core | Tier | Evidence |", "|---|---|---|---|---|"]
+           "The toolchains column names each compiler CI builds the board with, from its presets' "
+           "toolchain files ([ADR-053](../architecture/06-decision-records.md)). A toolchain CI does "
+           "not run is not claimed for the board.", "",
+           "| Board | SoC | Core | Tier | Toolchains in CI | Evidence |", "|---|---|---|---|---|---|"]
     for r in rows:
-        out.append(f"| `{r['board']}` | {r['soc']} | {r['core']} | {TIERS[r['tier']]} | {r['evidence']} |")
+        out.append(f"| `{r['board']}` | {r['soc']} | {r['core']} | {TIERS[r['tier']]} | {r['toolchains']} | {r['evidence']} |")
     counts = {t: sum(1 for r in rows if r["tier"] == t) for t in TIERS}
     out += ["", "Totals: " + ", ".join(f"{TIERS[t]}: {counts[t]}" for t in TIERS) + "."]
     return "\n".join(out) + "\n"

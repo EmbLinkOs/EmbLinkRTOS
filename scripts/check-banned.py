@@ -4,7 +4,10 @@
 """Tree-wide check for constructs the coding standard bans (CODING-STANDARD CS-1.3, CS-1.5,
 CS-1.6, CS-11.4): compiler thread-local storage, alloca, setjmp, computed goto, the
 cleanup attribute, inline assembly outside the ports and compiler layer, compiler
-detection macros outside include/emb/compiler/, TODO and FIXME markers."""
+detection macros outside include/emb/compiler/, TODO and FIXME markers; and, for toolchain
+neutrality (ADR-053), GNU extensions outside the ports (arch/) and the compiler layer: raw
+__attribute__, __builtin_ calls, typeof and statement expressions. Generated C is checked
+too: the generator writes the EMB_ macros."""
 import os
 import re
 import sys
@@ -20,6 +23,15 @@ RULES = [
     (re.compile(r"\b(TODO|FIXME)\b"), "TODO/FIXME marker (CS-11.4)"),
 ]
 ASM = re.compile(r"\b__asm__\b|\basm\b\s*(volatile)?\s*\(")
+# GNU extensions a port may use for its architecture, but nothing else (ADR-053): the
+# compiler layer spells them as EMB_ macros with standard fallbacks
+GNU_ONLY = [
+    (re.compile(r"\b__attribute__\b"), "__attribute__: use the EMB_ macro of <emb/compiler.h>"),
+    (re.compile(r"\b__builtin_\w+\s*\("), "__builtin_ call: use the EMB_ macro of <emb/compiler.h>"),
+    (re.compile(r"\b(__typeof__|__typeof|typeof)\s*\("), "typeof (C23, a GNU extension before)"),
+    (re.compile(r"(#\s*define\b.*|=|return)\s*\(\s*\{"), "statement expression ({ ... })"),
+]
+NEUTRAL_EXEMPT = ("arch/", "include/emb/compiler/", "include/emb/compiler.h")
 COMPILER_MACRO = re.compile(r"defined\s*\(\s*__(GNUC|clang|EMBCC)__\s*\)|#\s*if(n?def)?\s+__(GNUC|clang|EMBCC)__")
 
 
@@ -42,6 +54,11 @@ def main():
                         if ASM.search(line) and not rel.startswith(("arch/", "include/emb/compiler/")):
                             print(f"{rel}:{n}: inline assembly outside arch/ (CS-1.5)")
                             bad += 1
+                        if not rel.startswith(NEUTRAL_EXEMPT):
+                            for rx, what in GNU_ONLY:
+                                if rx.search(line):
+                                    print(f"{rel}:{n}: {what} (ADR-053)")
+                                    bad += 1
                         if COMPILER_MACRO.search(line) and not rel.startswith("include/emb/compiler"):
                             print(f"{rel}:{n}: compiler detection outside the portability layer (CS-1.6)")
                             bad += 1
