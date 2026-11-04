@@ -202,6 +202,27 @@
       }
     },
     {
+      "name": "cm7-an500",
+      "displayName": "Cortex-M7 (QEMU mps2-an500), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm7-an500",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an500"
+      }
+    },
+    {
+      "name": "cm7-an500-release",
+      "displayName": "Cortex-M7 (QEMU mps2-an500), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm7-an500-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an500",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
       "name": "cm33-an505",
       "displayName": "Cortex-M33 (QEMU mps2-an505), GCC, base profile, checked",
       "generator": "Ninja",
@@ -435,6 +456,14 @@
       "configurePreset": "cm4-an386-tiny"
     },
     {
+      "name": "cm7-an500",
+      "configurePreset": "cm7-an500"
+    },
+    {
+      "name": "cm7-an500-release",
+      "configurePreset": "cm7-an500-release"
+    },
+    {
       "name": "cm33-an505",
       "configurePreset": "cm33-an505"
     },
@@ -622,6 +651,20 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm7-an500",
+      "configurePreset": "cm7-an500",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm7-an500-release",
+      "configurePreset": "cm7-an500-release",
       "output": {
         "outputOnFailure": true
       }

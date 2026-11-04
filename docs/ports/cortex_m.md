@@ -1,8 +1,8 @@
 # Cortex-M port
 
-**Status:** Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`mps2-an385`, `mps2-an386`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv6-M and Armv8-M Baseline follow (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
+**Status:** Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F and Cortex-M7, A83) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`mps2-an385`, `mps2-an386`, `mps2-an500`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv6-M and Armv8-M Baseline follow (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
 
-**Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit, halt and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, `boards/arm/mps2_an505` (their board support in `soc/arm/mps2/`), `boards/rpi/pico2_w` (the RP2350's board support in `soc/rpi/rp2350/`, built only), and `boards/st/nucleo_f446re`. Every Cortex-M board is a `board.yaml` and its generated `generated/` directory ([hardware generator](../engineering/hwgen.md)). The NUCLEO-F446RE has no C of its own: it is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory, built by the STM32F4 board support (`soc/st/stm32f4/board.c`) over the drivers in `drivers/st/`. So is `boards/st/nucleo_f446ze`, a second board on the STM32F446, which runs the suite on EmbSIM's NUCLEO-F446ZE (preset `cm4-nucleo-f446ze`).
+**Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit, halt and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, `boards/arm/mps2_an500`, `boards/arm/mps2_an505` (their board support in `soc/arm/mps2/`), `boards/rpi/pico2_w` (the RP2350's board support in `soc/rpi/rp2350/`, built only), and `boards/st/nucleo_f446re`. Every Cortex-M board is a `board.yaml` and its generated `generated/` directory ([hardware generator](../engineering/hwgen.md)). The NUCLEO-F446RE has no C of its own: it is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory, built by the STM32F4 board support (`soc/st/stm32f4/board.c`) over the drivers in `drivers/st/`. So is `boards/st/nucleo_f446ze`, a second board on the STM32F446, which runs the suite on EmbSIM's NUCLEO-F446ZE (preset `cm4-nucleo-f446ze`).
 
 ## Switching
 
@@ -45,6 +45,8 @@ GCC 13.2 `-Os`, `samples/first_execution`, base profile, `mps2_an386`:
 Static RAM includes the idle thread's 256-byte stack and control block. R-003 T4 (control block at most 96 bytes on the base profile) is not met yet; the base profile's 64-bit time and doubly linked lists are the main cost.
 
 ## Verified
+
+Under QEMU 11.1 on `mps2-an500` (Cortex-M7 with FPv5-D16, presets `cm7-an500` and `-release`, A83): every image passes, 21 of 21 in each build, with no change to the port. The double-precision FPU's d8 to d15 are the s16 to s31 the switch saves.
 
 Under QEMU 11.1 on `mps2-an505` (Cortex-M33 with FPv5, presets `cm33-an505`, `-release`, `-tiny`): every conformance image passes, 22 in the checked and release builds (with `test_stack_limit`, A80) and 15 in the tiny build. That includes `test_fpu`, `test_irq_priority`, the hardware-fault crash record and the reset case. The images carry `Tag_CPU_arch: v8-M.mainline` and `Tag_FP_arch: FPv5`.
 

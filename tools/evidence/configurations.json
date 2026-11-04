@@ -19,6 +19,8 @@
     "cm4-an386": {"target": "qemu mps2-an386", "scope": "emulated", "profile": "base", "checked": true},
     "cm4-an386-release": {"target": "qemu mps2-an386", "scope": "emulated", "profile": "base", "checked": false},
     "cm4-an386-tiny": {"target": "qemu mps2-an386", "scope": "emulated", "profile": "tiny", "checked": true},
+    "cm7-an500": {"target": "qemu mps2-an500", "scope": "emulated", "profile": "base", "checked": true},
+    "cm7-an500-release": {"target": "qemu mps2-an500", "scope": "emulated", "profile": "base", "checked": false},
     "cm33-an505": {"target": "qemu mps2-an505", "scope": "emulated", "profile": "base", "checked": true},
     "cm33-an505-release": {"target": "qemu mps2-an505", "scope": "emulated", "profile": "base", "checked": false},
     "cm33-an505-tiny": {"target": "qemu mps2-an505", "scope": "emulated", "profile": "tiny", "checked": true},

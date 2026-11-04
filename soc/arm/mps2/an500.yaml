@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# MPS2 AN500: a Cortex-M7 with double-precision FPU in the MPS2 FPGA (QEMU machine mps2-an500),
+# the emulated Cortex-M7 reference (A83). QEMU 11.1's hw/arm/mps2.c gives it the AN385/AN386
+# memory map, UARTs, FPGA I/O and 32 interrupt lines, and an MPU of 16 regions; it models no
+# caches.
+schema_version: 0
+kind: soc
+name: an500
+vendor: arm
+family: mps2
+extends: mps2.yaml
+part: Cortex-M7
+curated: true
+arch: { port: cortex_m, variant: armv7em }
+cpu:
+  core: cortex-m7f
+  fpu: fpv5-d16
+  mpu: { model: armv7m, regions: 16 }
+  cache: none
+  cycle_counter: dwt
+  cflags: [-mcpu=cortex-m7, -mfpu=fpv5-d16, -mfloat-abi=hard]

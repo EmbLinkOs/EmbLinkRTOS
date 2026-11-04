@@ -1,0 +1,206 @@
+{
+  "board": {
+    "clocks": {
+      "cpu_hz": 25000000,
+      "source": "sysclk"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "uart0"
+    },
+    "curated": true,
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "base",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "QEMU's MPS2 AN500: the console on the CMSDK APB UART0 at 115200 baud, LED0 in the FPGA I/O block, the run's end through Arm semihosting.",
+    "kind": "board",
+    "name": "mps2_an500",
+    "schema_version": 0,
+    "simulation": {
+      "qemu": [
+        "-M",
+        "mps2-an500",
+        "-icount",
+        "shift=5,sleep=off",
+        "-semihosting-config",
+        "enable=on,target=native",
+        "-kernel"
+      ],
+      "resets_in": [
+        "qemu"
+      ]
+    },
+    "soc": "arm/mps2/an500.yaml",
+    "test_irqs": [
+      30,
+      31
+    ],
+    "vendor": "arm"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {},
+      "bypass": false,
+      "cpu_hz": 25000000,
+      "hclk_hz": 25000000,
+      "pll": null,
+      "source": "sysclk",
+      "source_hz": 25000000
+    },
+    "console": {
+      "base": 1073758208,
+      "baud": 115200,
+      "clock": null,
+      "clock_hz": 25000000,
+      "device": "uart0",
+      "irqs": []
+    },
+    "kconfig": {
+      "CONFIG_EMB_CM_CPU_HZ": 25000000,
+      "CONFIG_EMB_CM_IRQ_COUNT": 32,
+      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": 3,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 4194304,
+        "origin": 0
+      },
+      "ram": {
+        "length": 4194304,
+        "origin": 536870912,
+        "regions": [
+          "ram"
+        ]
+      }
+    },
+    "partitions": [],
+    "pins": [],
+    "profile": "base",
+    "test_irqs": {
+      "high": 31,
+      "low": 30
+    },
+    "timer": {
+      "hz": 25000000,
+      "source": "systick"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822"
+    },
+    {
+      "path": "boards/arm/mps2_an500/board.yaml",
+      "sha256": "b8f4dc1bd3275e8dbdedf8dbfc9c32c385d01e7e6c67fbd626a5be24b94b63eb"
+    },
+    {
+      "path": "soc/arm/mps2/an500.yaml",
+      "sha256": "f6beb3730b7c7a9094f517c0b02739b2a6c1ef96a36b65ec4f30f626737f4a49"
+    },
+    {
+      "path": "soc/arm/mps2/mps2.yaml",
+      "sha256": "b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "arch": {
+      "port": "cortex_m",
+      "variant": "armv7em"
+    },
+    "clocks": {
+      "sources": [
+        {
+          "doc": "the FPGA's fixed system clock",
+          "hz": 25000000,
+          "name": "sysclk"
+        }
+      ]
+    },
+    "cpu": {
+      "cache": "none",
+      "cflags": [
+        "-mcpu=cortex-m7",
+        "-mfpu=fpv5-d16",
+        "-mfloat-abi=hard"
+      ],
+      "core": "cortex-m7f",
+      "cycle_counter": "dwt",
+      "fpu": "fpv5-d16",
+      "mpu": {
+        "model": "armv7m",
+        "regions": 16
+      }
+    },
+    "curated": true,
+    "debug": {
+      "swd": true
+    },
+    "family": "mps2",
+    "interrupts": {
+      "controller": "nvic",
+      "count": 32,
+      "priority_bits": 3,
+      "reserved": [
+        30,
+        31
+      ],
+      "systick": true
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 0,
+          "name": "code",
+          "size": 4194304
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x"
+          ],
+          "base": 536870912,
+          "name": "ram",
+          "size": 4194304
+        }
+      ]
+    },
+    "name": "an500",
+    "part": "Cortex-M7",
+    "peripherals": [
+      {
+        "base": 1073758208,
+        "compatible": "arm,cmsdk-uart",
+        "name": "uart0",
+        "size": 4096
+      },
+      {
+        "base": 1073905664,
+        "compatible": "arm,mps2-fpgaio",
+        "doc": "LED0 at offset 0",
+        "name": "fpgaio",
+        "size": 4096
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "arm"
+  },
+  "warnings": [
+    "soc/arm/mps2/an500.yaml:19: cpu.mpu: the cortex_m port does not use the MPU yet"
+  ]
+}

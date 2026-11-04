@@ -15,6 +15,7 @@ Emulator results are never timing evidence (SIM-003).
 | `esp32c3_devkitm1` | (no description yet) | rv32imc | 2 emulated | CI runs `rv32-c3-embsim` |
 | `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | CI runs `cm3-an385` |
 | `mps2_an386` | Cortex-M4F | cortex-m4f | 2 emulated | CI runs `cm4-an386`, `cm4-an386-release`, `cm4-an386-tiny` |
+| `mps2_an500` | Cortex-M7 | cortex-m7f | 2 emulated | CI runs `cm7-an500`, `cm7-an500-release` |
 | `mps2_an505` | Cortex-M33 | cortex-m33f | 2 emulated | CI runs `cm33-an505`, `cm33-an505-release`, `cm33-an505-tiny` |
 | `native` | host | posix | 2 emulated | CI runs, on the host, `native-asan`, `native-clang`, `native-coverage`, `native-embcc`, `native-embcc-periodic`, `native-embcc-release`, `native-embcc-tiny`, `native-gcc`, `native-periodic`, `native-release`, `native-timeslice`, `native-timeslice-tickless`, `native-tiny`, `native-tsan` |
 | `nucleo_f446re` | STM32F446RE | cortex-m4f | 2 emulated | CI runs `cm4-nucleo-embsim` |
@@ -22,4 +23,4 @@ Emulator results are never timing evidence (SIM-003).
 | `pico2_w` | RP2350A | cortex-m33f | 3 described | CI builds `cm33-pico2w` |
 | `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | CI runs `rv32-virt`, `rv32-virt-release`, `rv32-virt-tiny` |
 
-Totals: 1 hardware: 1, 2 emulated: 8, 3 described: 1, untested: 0.
+Totals: 1 hardware: 1, 2 emulated: 9, 3 described: 1, untested: 0.

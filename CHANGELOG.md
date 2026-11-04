@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The Cortex-M7 (A83): the new board `mps2_an500`, QEMU's `mps2-an500`, comes from its description alone and passes all 21 tests in the checked and release builds (presets `cm7-an500`, `-release`) with no change to the port.
+
 - The DeviceTree board importer (`hw/import/dts.py`, A82) drafts a `board.yaml` from a Zephyr board's `.dts`. The draft covers the oscillators, the clock and PLL, the console and its pins, the LEDs, the buttons and the flash. Zephyr's NUCLEO-F446RE agrees with the curated board on every board fact, and its draft, with only a `simulation` line added, builds and passes 19 of 19 on EmbSIM. The generator now refuses a Cortex-M app partition that does not start where the core boots.
 
 - The board support matrix (docs/engineering/support-matrix.md, A81). It gives each board's tier from evidence: hardware (an archived passing run on the board), emulated (CI runs the suite on its emulator) or described (CI builds it). `tools/support/matrix.py` generates the page, and CI keeps it current. It also refuses a CI preset missing from the evidence inventory, which caught eight such presets. Today it lists one board on hardware (the Uno), eight emulated and one described (the Pico 2 W).

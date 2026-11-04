@@ -20,7 +20,7 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 | 6 | DeviceTree board importer (`hw/import/dts.py`) | board | Zephyr's `nucleo_f446re` DTS draft vs the curated `board.yaml` | done: agrees on every board fact; the draft passes 19/19 on EmbSIM (A82) |
 | 7 | STM32 pin importer (ST open pin data) | SoC | package files and alternate functions vs the curated F446RE and F446ZE files | |
 | 8 | SoC descriptions outside the tree (`EMB_SOC_ROOT`) | SoC | an out-of-tree SoC copy builds and runs a board on QEMU | |
-| 9 | Armv6-M (Cortex-M0/M0+) and Cortex-M7 | core | suite on QEMU `microbit` and `mps2-an500` | |
+| 9 | Armv6-M (Cortex-M0/M0+) and Cortex-M7 | core | suite on QEMU `microbit` and `mps2-an500` | Cortex-M7 done: 21/21 checked and release (A83); Armv6-M next |
 | 10 | Xtensa LX6 core port (classic ESP32) | core | after the bring-up probe (#60) runs on the board, and once the linker decision is taken | |
 
 ## 1. Boards outside the tree (done)
