@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 # Port manifest for Cortex-M (format: SPEC-011 §2). Variants: Armv7-M (Cortex-M3),
-# Armv7E-M (Cortex-M4/M7, with or without FPU). Armv6-M and Armv8-M follow (07 §2, M3).
+# Armv7E-M (Cortex-M4/M7, with or without FPU), Armv8-M Mainline (Cortex-M33, in the Secure
+# state, TrustZone unused; A78). Armv6-M and Armv8-M Baseline follow (07 §2, M3).
 arch: cortex_m
-variants: [armv7m, armv7em]
+variants: [armv7m, armv7em, armv8m-main]
 word_bits: 32
 endian: little
 # context frame: 8 hardware words, 8 callee-saved words, EXC_RETURN; plus 16 + 18
@@ -11,13 +12,13 @@ endian: little
 stack: { align: 8, growth: down, min_thread: 256, context_frame: 204 }
 features:
   irq_nesting: true
-  zero_latency_irqs: [armv7m, armv7em]
-  cas: [armv7m, armv7em]
+  zero_latency_irqs: [armv7m, armv7em, armv8m-main]
+  cas: [armv7m, armv7em, armv8m-main]
   interrupt_stack: true
   hw_stack_limit: []
   mpu: none
-  fpu_lazy: [armv7em]
-  cycle_counter: [armv7m, armv7em]
+  fpu_lazy: [armv7em, armv8m-main]
+  cycle_counter: [armv7m, armv7em, armv8m-main]
   tickless: true
   smp: false
   syscall_trap: none

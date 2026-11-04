@@ -86,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny]
+        preset: [cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny, cm33-an505, cm33-an505-release, cm33-an505-tiny]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools

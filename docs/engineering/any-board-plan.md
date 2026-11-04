@@ -13,7 +13,8 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 |---|---|---|---|---|
 | 1 | Boards outside the tree (`EMB_BOARD_ROOT`, A76) | board | `OutOfTree` tests; an out-of-tree copy of the AN386 passes its 21 tests under QEMU | done (#61) |
 | 2 | SVD importer (HW-004, HW-012, A77) | SoC | `stm32f446.yaml` draft vs the curated file; re-import keeps curated nodes | done: agrees except the PVD line ([hwgen.md](hwgen.md#importing-a-soc-from-its-svd)) |
-| 3 | Armv8-M Mainline (Cortex-M33) in the Cortex-M port | core | full suite on QEMU `mps2-an505` (checked, release, tiny) | |
+| 3 | Armv8-M Mainline (Cortex-M33) in the Cortex-M port | core | full suite on QEMU `mps2-an505` (checked, release, tiny) | done: 21, 21 and 15 of 15 pass (A78) |
+| 3b | PSPLIM stack limits on Armv8-M Mainline | core | a thread overrunning its stack takes a STKOF fault, recorded, on QEMU | |
 | 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | |
 | 5 | Support tiers from evidence | all | the matrix lists every board with its tier and the outcome that earned it | |
 | 6 | DeviceTree board importer (`emb-dtsimport`) | board | Zephyr's `nucleo_f446re` DTS draft vs the curated `board.yaml` | |
@@ -51,6 +52,7 @@ SPEC-014 §8 sets the design: EmbCC's `embsvd` parses the SVD (`embsvd DEVICE.sv
   - no TrustZone: the port runs in the Secure state with no non-secure image, as QEMU starts it.
 - **SoC and board.** `soc/arm/mps2/an505.yaml` and the `mps2_an505` board, from their descriptions.
 - **Verification.** Presets `cm33-an505`, `cm33-an505-release` and `cm33-an505-tiny` run the suite in CI. Running the RP2350's Arm side needs this step first.
+- **Result (2026-11-04).** Every image passes on QEMU 11.1, with no change to the port's code: the Secure-state Armv8-M Mainline exception model matches Armv7E-M's where the port touches it. PSPLIM moved to step 3b, because it adds a field to every thread's control block and needs its own overflow test.
 
 ## 4. RP2350 and the Pico 2 W
 

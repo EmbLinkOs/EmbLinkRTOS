@@ -29,8 +29,10 @@ typedef uint32_t emb_arch_timer_raw_t; /* SysTick counts */
 #define EMB_ARCH_CLOCK_SEQLOCK 0 /* the 64-bit clock is read inside the critical section */
 #define EMB_ARCH_IRQ_COUNT     CONFIG_EMB_CM_IRQ_COUNT
 
-#if !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__)
-#error "this port builds for Armv7-M and Armv7E-M; Armv6-M and Armv8-M are the M3-B variants"
+/* Armv8-M Mainline runs in the Secure state with TrustZone unused (A78): its exception
+ * return values, frames, BASEPRI and FP lazy stacking are those of Armv7E-M. */
+#if !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__) && !defined(__ARM_ARCH_8M_MAIN__)
+#error "this port builds for Armv7-M, Armv7E-M and Armv8-M Mainline only"
 #endif
 
 static EMB_ALWAYS_INLINE emb_irq_key_t emb_arch_irq_lock(void)

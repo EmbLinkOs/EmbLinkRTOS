@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Cortex-M33 (Armv8-M Mainline) in the Cortex-M port (A78), in the Secure state with TrustZone unused. The new board `mps2_an505`, QEMU's `mps2-an505`, comes from its description alone, and every conformance image passes there: 21 in the checked and release builds, 15 in the tiny build (presets `cm33-an505`, `-release`, `-tiny`). Hardware stack limits (PSPLIM) come later.
+
 - The SVD importer (`hw/import/svd.py`, A77) drafts a SoC description from a CMSIS-SVD file through EmbCC's `embsvd`. The draft covers the core, the interrupt controller and the peripherals, with each peripheral's `compatible` and clock gate taken from a vendor table. It is uncurated, and lists what an SVD lacks as `todo`. `--against` compares the draft with a curated description and never writes it. Against ST's current STM32F446 SVD, the curated F446 die agrees on every fact both hold except where the PVD interrupt sits.
 
 - Boards outside the tree: `-DEMB_BOARD_ROOT=<dir>` builds a project's own board (a custom PCB, say) from its `board.yaml`, on this tree's SoC descriptions. `emb-hwgen.py check --board-root <dir>` checks those boards in the project's CI. The generator stamps such a board's files as `@board/...`, so outputs are the same on every machine. ADR-051 (proposed) sets the board-support model this begins: cores are ported, SoCs imported, boards described, with support tiers taken from evidence (A76).
