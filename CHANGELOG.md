@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The Raspberry Pi Pico 2 W (RP2350A on its Cortex-M33 cores, A79), from its description. The SoC was drafted by the SVD importer and curated. The generator now supports a numbered GPIO bank (`GPIO0.f2` pins), and the RP2350's boot ROM block. Every image is also written as a UF2 that the boot ROM's drive accepts, and the build refuses one without its IMAGE_DEF. The board builds (preset `cm33-pico2w`) and has not run yet.
+
 - Cortex-M33 (Armv8-M Mainline) in the Cortex-M port (A78), in the Secure state with TrustZone unused. The new board `mps2_an505`, QEMU's `mps2-an505`, comes from its description alone, and every conformance image passes there: 21 in the checked and release builds, 15 in the tiny build (presets `cm33-an505`, `-release`, `-tiny`). Hardware stack limits (PSPLIM) come later.
 
 - The SVD importer (`hw/import/svd.py`, A77) drafts a SoC description from a CMSIS-SVD file through EmbCC's `embsvd`. The draft covers the core, the interrupt controller and the peripherals, with each peripheral's `compatible` and clock gate taken from a vendor table. It is uncurated, and lists what an SVD lacks as `todo`. `--against` compares the draft with a curated description and never writes it. Against ST's current STM32F446 SVD, the curated F446 die agrees on every fact both hold except where the PVD interrupt sits.

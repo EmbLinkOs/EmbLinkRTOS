@@ -24,7 +24,9 @@ MEMORY
 
 SECTIONS
 {
-  .vectors : { KEEP(*(.vectors)) } > FLASH
+  /* the vector table, then any block the SoC's boot ROM looks for near the image's start
+     (the RP2350's IMAGE_DEF, A79) */
+  .vectors : { KEEP(*(.vectors)) KEEP(*(.emb_boot_block)) } > FLASH
 
   .text : {
     *(.text .text.*)

@@ -15,7 +15,7 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 | 2 | SVD importer (HW-004, HW-012, A77) | SoC | `stm32f446.yaml` draft vs the curated file; re-import keeps curated nodes | done: agrees except the PVD line ([hwgen.md](hwgen.md#importing-a-soc-from-its-svd)) |
 | 3 | Armv8-M Mainline (Cortex-M33) in the Cortex-M port | core | full suite on QEMU `mps2-an505` (checked, release, tiny) | done: 21, 21 and 15 of 15 pass (A78) |
 | 3b | PSPLIM stack limits on Armv8-M Mainline | core | a thread overrunning its stack takes a STKOF fault, recorded, on QEMU | |
-| 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | |
+| 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | tier 3 done (A79); HIL waits for the board |
 | 5 | Support tiers from evidence | all | the matrix lists every board with its tier and the outcome that earned it | |
 | 6 | DeviceTree board importer (`emb-dtsimport`) | board | Zephyr's `nucleo_f446re` DTS draft vs the curated `board.yaml` | |
 | 7 | STM32 pin importer (ST open pin data) | SoC | package files and alternate functions vs the curated F446RE and F446ZE files | |
@@ -65,6 +65,8 @@ SPEC-014 §8 sets the design: EmbCC's `embsvd` parses the SVD (`embsvd DEVICE.sv
 - **Image.** `embpack` writes the UF2 (`rp2350-arm-s`).
 - **Board.** The Pico 2 W `board.yaml`.
 - **Verification.** Tier 3 until 2026-11-07: it builds, and its image passes the boot-block check. On the board, the HIL runner raises it to tier 1. The radio chip (CYW43439) is out of scope.
+- **Result (2026-11-04).** The SVD importer drafted the die. Curation set the block alias spans, the spare interrupts and the UART function selects. The generator learned numbered GPIO banks and the boot block. The 19 test images and the samples build, each with the IMAGE_DEF at 0x10000140, and their UF2 files match `embpack`'s byte for byte.
+- **For the HIL run.** The console is UART0 on GPIO0 and GPIO1 (pins 1 and 2), not the USB port, so the run needs a 3.3 V USB-serial adapter: the NUCLEO's ST-LINK virtual COM port, or any CP2102 or FT232 adapter. The image is flashed by copying its UF2 to the boot ROM's drive: hold BOOTSEL while plugging in. To run the suite without a press per image, the board's exit could reboot into BOOTSEL through the ROM (the next step, once one image is seen running).
 
 ## 5. Support tiers from evidence
 

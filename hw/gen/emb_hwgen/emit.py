@@ -217,7 +217,9 @@ MEMORY
 
 SECTIONS
 {{
-  .vectors : {{ KEEP(*(.vectors)) }} > FLASH
+  /* the vector table, then any block the SoC's boot ROM looks for near the image's start
+     (the RP2350's IMAGE_DEF, A79) */
+  .vectors : {{ KEEP(*(.vectors)) KEEP(*(.emb_boot_block)) }} > FLASH
 
   .text : {{
     *(.text .text.*)
@@ -402,6 +404,11 @@ def board_cmake(r):
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
+    boot = soc.get("boot")
+    if boot:
+        out += f"set(EMB_BOARD_FLASH_IMAGE {boot['image']}) # what the SoC's boot ROM loads (A79)\n"
+        if "uf2_family" in boot:
+            out += f"set(EMB_BOARD_UF2_FAMILY 0x{boot['uf2_family']:08X})\n"
     out += "# the inputs this directory was generated from, for the configure-time staleness check\n"
     out += "set(EMB_BOARD_HW_INPUTS\n"
     for i in r["inputs"]:
@@ -545,8 +552,51 @@ OUTPUTS = {
 }
 
 
-# outputs only some families or ports have: the STM32 pin table, AVR's embld option set
-FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c}}
+def rp2350_pins_c(r):
+    """The RP2350's pin table (A79): each line's function select, or SIO for an output."""
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
+    out += _c_comment(r, _cmd(r))
+    out += ("/* The pins board initialization configures: GPIO line, function select (SIO, 5, for an\n"
+            " * output) and whether the pad's input is enabled (on for a peripheral's pins). Inputs\n"
+            " * left at their reset state need no entry. */\n")
+    out += "#include <emb_rp2350_pins.h>\n#include <hw_config.h>\n\n"
+    out += "const emb_rp2350_pin_t emb_board_pins[] = {\n"
+    entries = [e for e in r["pins"] if e["mode"] in ("af", "output")]
+    for e in entries:
+        what = e.get("signal", e["mode"])
+        funcsel = e["af"] if e["mode"] == "af" else 5
+        is_input = 1 if e["mode"] == "af" else 0  # a peripheral's pad reads its line too
+        out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
+        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u}},\n"
+    out += "};\n\n"
+    out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
+    return out
+
+
+def rp2350_boot_block_c(r):
+    """The IMAGE_DEF block the RP2350's boot ROM looks for in an image's first 4 KiB (A79):
+    picobin's start marker, an IMAGE_TYPE item, the LAST item, the link to the next block (this
+    one: a loop of one) and the end marker. The regions.ld template places it after the vectors."""
+    t = r["soc"]["boot"]["image_type"]
+    words = [(0xFFFFDED3, "PICOBIN_BLOCK_MARKER_START"),
+             ((t << 16) | (1 << 8) | 0x42, f"item IMAGE_TYPE (0x42), one word: 0x{t:04X}"),
+             ((1 << 8) | 0xFF, "item LAST (0xff): the items before it fill one word"),
+             (0, "offset to the next block: this one"),
+             (0xAB123579, "PICOBIN_BLOCK_MARKER_END")]
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
+    out += _c_comment(r, _cmd(r))
+    out += "/* The boot ROM's IMAGE_DEF block (RP2350 datasheet §5.9, pico-sdk's picobin.h). */\n"
+    out += "#include <emb/compiler.h>\n\n#include <stdint.h>\n\n"
+    out += "EMB_USED const uint32_t emb_boot_block[5] __attribute__((section(\".emb_boot_block\"))) = {\n"
+    for w, what in words:
+        out += f"    0x{w:08X}u, /* {what} */\n"
+    out += "};\n"
+    return out
+
+
+# outputs only some families or ports have: the pin tables, AVR's embld option set
+FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c},
+                  "rp2350": {"board_pins.c": rp2350_pins_c, "boot_block.c": rp2350_boot_block_c}}
 PORT_OUTPUTS = {"avr": {"embld.opts": embld_opts}}
 
 

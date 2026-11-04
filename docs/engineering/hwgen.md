@@ -142,6 +142,16 @@ The tests cover:
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
 
+## A numbered GPIO bank: the RP2350
+
+The RP2350 names its pins `GPIO0` to `GPIO29`, with a function select per pin, where the STM32 has ports and alternate functions ([A79](../specs/AMENDMENTS-M3.md)). Its description says `gpio: { lines: 30, controller: io_bank0 }`. A board writes `uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }`, and the SoC lists what each pin offers as `GPIO0: { f2: uart0_tx }`. The RP2350 family emits two files:
+- `board_pins.c`, with each line's function select and pad input enable;
+- `boot_block.c`, the IMAGE_DEF block its boot ROM needs in an image's first 4 KiB, from the SoC's `boot.image_type`.
+
+The SoC's `boot` entry also makes the build write each image as a UF2 (`tools/uf2/uf2.py`). The writer refuses an RP2350 image whose first 4 KiB hold no valid IMAGE_DEF.
+
+The Raspberry Pi Pico 2 W (`boards/rpi/pico2_w`, preset `cm33-pico2w`) is the first board on it. It runs from the 12 MHz crystal, with no PLL yet, and its console is on UART0 at GPIO0 and GPIO1. It builds but has not run (tier 3): no emulator models the RP2350.
+
 ## Importing a SoC from its SVD
 
 `hw/import/svd.py` drafts a SoC description from a CMSIS-SVD file ([A77](../specs/AMENDMENTS-M3.md), HW-004, HW-012). EmbCC's `embsvd` parses the file; give `--json` with its output if `embsvd` is not on PATH.

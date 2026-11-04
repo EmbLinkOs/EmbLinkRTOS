@@ -141,7 +141,7 @@ def irq_name(periph_name, irq):
     pre = periph_name.lower() + "_"
     if low.startswith(pre) and re.match(r"^[a-z]", low[len(pre):]):
         low = low[len(pre):]
-    return ident(low)
+    return "global" if low == "irq" else ident(low)  # UART0_IRQ, Raspberry Pi's spelling
 
 
 def draft(svd, vendor, family, name, flash, ram, source, digest):
@@ -331,6 +331,23 @@ def compare(doc, existing):
     return diffs, extra
 
 
+def holds_curated(path):
+    """Whether a description file marks itself or any node `curated: true` (HW-012)."""
+    import yaml
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError:
+        return True  # not ours to judge: never overwrite what cannot be read
+
+    def walk(v):
+        if isinstance(v, dict):
+            return v.get("curated") is True or any(walk(x) for x in v.values())
+        if isinstance(v, list):
+            return any(walk(x) for x in v)
+        return False
+    return walk(data)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("svd", help="the CMSIS-SVD file")
@@ -371,7 +388,7 @@ def main(argv=None):
         text = to_yaml(doc, notes, svd_path.name)
         if a.out:
             out = Path(a.out)
-            if out.exists() and "curated: true" in out.read_text(encoding="utf-8"):
+            if out.exists() and holds_curated(out):
                 raise ImportError_(f"{out} holds curated nodes: an import never overwrites them (HW-012); "
                                    "use --against to see what differs")
             out.write_text(text, encoding="utf-8")

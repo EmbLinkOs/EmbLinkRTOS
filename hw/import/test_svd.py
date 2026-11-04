@@ -49,7 +49,8 @@ def export(**cpu):
           periph("FLASH", "FLASH", 0x40023C00, [("FLASH", 4)]),
           periph("TIM1", "TIM", 0x40010000, [("TIM1_BRK_TIM9", 24), ("TIM1_UP_TIM10", 25)]),
           periph("EXTI", "EXTI", 0x40013C00, [("PVD", 1), ("EXTI0", 6)]),
-          periph("NVIC", "NVIC", 0xE000E100)]
+          periph("NVIC", "NVIC", 0xE000E100),
+          periph("UART7", "UART", 0x40007800, [("UART7_IRQ", 30)])]
     ints = sorted({(i["name"], i["value"]) for p in ps for i in p["interrupts"]}, key=lambda t: t[1])
     return {"schema": 1, "generator": "embsvd", "device": {"name": "STM32X1"}, "cpu": c, "memories": [],
             "interrupts": [{"name": n, "value": v} for n, v in ints], "peripherals": ps}
@@ -87,7 +88,7 @@ class Draft(unittest.TestCase):
     def test_interrupts(self):
         i = self.doc["interrupts"]
         self.assertEqual((i["controller"], i["count"], i["priority_bits"], i["systick"]), ("nvic", 39, 4, True))
-        used = {1, 4, 5, 6, 24, 25, 38}
+        used = {1, 4, 5, 6, 24, 25, 30, 38}
         self.assertEqual(i["reserved"], [n for n in range(39) if n not in used])
         doc, _ = make(export(deviceNumInterrupts=42))
         self.assertEqual(doc["interrupts"]["count"], 42)
@@ -102,6 +103,7 @@ class Draft(unittest.TestCase):
         self.assertEqual(p["flash_if"]["compatible"], "st,stm32f4-flash")  # renamed by the family rule
         self.assertEqual(p["tim1"]["compatible"], "svd,tim")  # unmapped: binds no driver
         self.assertEqual([i["name"] for i in p["tim1"]["irqs"]], ["brk_tim9", "up_tim10"])
+        self.assertEqual(p["uart7"]["irqs"], [{"name": "global", "number": 30}])  # <PERIPHERAL>_IRQ
         self.assertEqual(self.notes["buses"], {"ahb1": 0x30, "apb1": 0x40})  # not the low-power register
 
     def test_family_rule_applies_to_its_family_only(self):
@@ -171,6 +173,12 @@ class Cli(unittest.TestCase):
         rc, out, _ = self.run_main("-o", str(self.d / "draft.yaml"))
         self.assertEqual(rc, 0, out)
         self.assertIn("curated: false", (self.d / "draft.yaml").read_text())
+        # a draft is rewritten (its header mentions `curated: true`, as prose); a curated node is not
+        rc, out, _ = self.run_main("-o", str(self.d / "draft.yaml"))
+        self.assertEqual(rc, 0, out)
+        f.write_text("peripherals:\n  - { name: uart0, curated: true }\n", encoding="utf-8")
+        rc, _, err = self.run_main("-o", str(f))
+        self.assertEqual(rc, 2)
 
     def test_other_embsvd_schema_refused(self):
         (self.d / "x.json").write_text(json.dumps({**export(), "schema": 2}), encoding="utf-8")

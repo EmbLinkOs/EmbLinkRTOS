@@ -234,6 +234,16 @@
       }
     },
     {
+      "name": "cm33-pico2w",
+      "displayName": "Raspberry Pi Pico 2 W (RP2350A, Cortex-M33), GCC, base profile, checked: build only until the board runs (HIL)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-pico2w",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "pico2_w"
+      }
+    },
+    {
       "name": "cm4-nucleo-embsim",
       "displayName": "NUCLEO-F446RE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446RE",
       "generator": "Ninja",
@@ -435,6 +445,10 @@
     {
       "name": "cm33-an505-tiny",
       "configurePreset": "cm33-an505-tiny"
+    },
+    {
+      "name": "cm33-pico2w",
+      "configurePreset": "cm33-pico2w"
     },
     {
       "name": "cm4-nucleo-embsim",

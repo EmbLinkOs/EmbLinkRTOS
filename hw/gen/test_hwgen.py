@@ -19,6 +19,7 @@ from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E40
 
 BOARD = "boards/st/nucleo_f446re"
 UNO = "boards/arduino/arduino_uno"
+PICO = "boards/rpi/pico2_w"
 
 
 class Root:
@@ -238,6 +239,69 @@ class Negative(unittest.TestCase):
     def test_board_name_matches_directory(self):
         self.root.edit(f"{BOARD}/board.yaml", "name: nucleo_f446re", "name: nucleo_f446rx")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: nucleo_f446rx"), "name", "differs from its directory")
+
+
+class Bank(unittest.TestCase):
+    """A79: a SoC with one numbered GPIO bank (the RP2350): GPIO<n>.f<k> pins, the bank's line
+    count, its function selects, and the RP2350 pin table."""
+
+    def setUp(self):
+        self.root = Root(boards=(PICO, BOARD))
+        self.addCleanup(self.root.close)
+
+    def expect(self, board, file, needle, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(board)
+        want = f"{file}:{self.root.line_of(file, needle)}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def test_pin_table(self):
+        files, _ = generate.generate(ROOT / PICO, ROOT)
+        self.assertIn("{0u, 2u, 1u},", files["board_pins.c"])  # GPIO0, function 2 (UART0 TX), input enabled
+        self.assertIn("{1u, 2u, 1u},", files["board_pins.c"])
+        self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
+        self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
+        self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])
+
+    def test_line_beyond_the_bank(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO30.f2")
+        self.expect(PICO, f, "tx: GPIO30.f2", "pins.uart0.tx", "GPIO30 is not bonded on the qfn60 package")
+
+    def test_wrong_function_select(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO0.f11")
+        self.expect(PICO, f, "tx: GPIO0.f11", "pins.uart0.tx", r"GPIO0 f11 is not uart0_tx \(GPIO0 offers f2 uart0_tx\)")
+
+    def test_function_select_needed(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO0")
+        self.expect(PICO, f, "tx: GPIO0,", "pins.uart0.tx", r"needs its alternate function: GPIO0\.f<n>")
+
+    def test_pin_styles_do_not_mix(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: PA2.af7")
+        self.expect(PICO, f, "tx: PA2.af7", "pins.uart0.tx", "names its pins GPIO<n>")
+        g = f"{BOARD}/board.yaml"
+        self.root.edit(g, "tx: PA2.af7", "tx: GPIO2.f7")
+        self.expect(BOARD, g, "tx: GPIO2.f7", "pins.usart2.tx", "names its pins P<port><n>")
+
+    def test_bank_soc_rules(self):
+        die = "soc/rpi/rp2350/rp2350.yaml"
+        self.root.edit(die, "  GPIO29: { f2: uart0_rx }", "  GPIO31: { f2: uart0_rx }")
+        self.root.edit(die, "  GPIO28: { f2: uart0_tx }", "  GPIO28: { af2: uart0_tx }")
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(PICO)
+        text = "\n".join(cm.exception.errors)
+        self.assertIn("alternate_functions.GPIO31: beyond the bank's 30 lines", text)
+        self.assertIn("alternate_functions.GPIO28.af2: not a function select (f0 to f31)", text)
+
+    def test_ports_and_lines_exclude_each_other(self):
+        part = "soc/rpi/rp2350/rp2350a.yaml"
+        self.root.edit(part, "gpio: { lines: 30, controller: io_bank0 }", "gpio: { lines: 30, controller: io_bank0, ports: { A: 1 } }")
+        with self.assertRaises(HwError):
+            self.root.resolve(PICO)
 
 
 class Outputs(unittest.TestCase):
