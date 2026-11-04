@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446ze (HW-003).
 # Inputs (SHA-256):
 #   arch/cortex_m/arch.yaml
-#     1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822
+#     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
 #   boards/st/nucleo_f446ze/board.yaml
 #     4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5
 #   soc/st/stm32f4/stm32f4.yaml

@@ -15,6 +15,8 @@
     "native-embcc-release": {"target": "native, EmbCC kernel", "scope": "host", "profile": "base", "checked": false},
     "native-embcc-tiny": {"target": "native, EmbCC kernel", "scope": "host", "profile": "tiny", "checked": true},
     "native-embcc-periodic": {"target": "native, EmbCC kernel", "scope": "host", "profile": "base", "checked": true},
+    "cm0-microbit": {"target": "qemu microbit", "scope": "emulated", "profile": "tiny", "checked": true},
+    "cm0-microbit-release": {"target": "qemu microbit", "scope": "emulated", "profile": "tiny", "checked": false},
     "cm3-an385": {"target": "qemu mps2-an385", "scope": "emulated", "profile": "base", "checked": true},
     "cm4-an386": {"target": "qemu mps2-an386", "scope": "emulated", "profile": "base", "checked": true},
     "cm4-an386-release": {"target": "qemu mps2-an386", "scope": "emulated", "profile": "base", "checked": false},

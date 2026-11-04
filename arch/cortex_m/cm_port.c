@@ -28,7 +28,12 @@
 /* ---- system control registers (Armv7-M ARM B3.2) ---------------------------------- */
 
 #define REG32(a) (*(volatile uint32_t *)(uintptr_t)(a)) /* CODING-STANDARD CS-5.1 */
-#define REG8(a)  (*(volatile uint8_t *)(uintptr_t)(a))
+#if defined(__ARM_ARCH_6M__)
+#define EMBN_CM_V6M 1 /* Armv6-M (A86): PRIMASK, word-only priority registers, HardFault only */
+#else
+#define EMBN_CM_V6M 0
+#endif
+#define REG8(a) (*(volatile uint8_t *)(uintptr_t)(a))
 
 #define SCB_ICSR       0xE000ED04u
 #define SCB_SHPR2      0xE000ED1Cu
@@ -65,15 +70,38 @@ static EMB_ALWAYS_INLINE void pend_switch(void)
     __asm__ __volatile__("dsb" ::: "memory");
 }
 
-/* Lets PendSV run: BASEPRI 0 for the instant between the `isb` and the re-mask. */
+/* Lets PendSV run: BASEPRI (Armv6-M: PRIMASK) 0 for the instant between the `isb` and the
+ * re-mask. */
 static EMB_ALWAYS_INLINE void open_window(void)
 {
+#if EMBN_CM_V6M
+    __asm__ __volatile__("cpsie i\n\t"
+                         "isb" ::
+                             : "memory");
+#else
     __asm__ __volatile__("msr basepri, %0\n\t"
                          "isb"
                          :
                          : "r"(0u)
                          : "memory");
+#endif
 }
+
+/* A priority byte: Armv7-M and later address them one by one; Armv6-M takes word accesses
+ * only (Armv6-M ARM B3.4), so the byte is read, modified and written back in its word, masked
+ * against an interrupt that writes another byte of the same word. */
+#if EMBN_CM_V6M
+static void prio_write(uint32_t base, unsigned index, uint8_t value)
+{
+    uint32_t a = base + (index & ~3u);
+    unsigned shift = 8u * (index & 3u);
+    emb_irq_key_t key = emb_arch_irq_lock();
+    REG32(a) = (REG32(a) & ~(0xFFu << shift)) | ((uint32_t)value << shift);
+    emb_arch_irq_unlock(key);
+}
+#else
+#define prio_write(base, index, value) (REG8((base) + (index)) = (value)) /* the byte itself */
+#endif
 
 /* Frame words from the saved stack pointer upward: on Armv8-M Mainline the thread's PSPLIM
  * (A80), then r4..r11, EXC_RETURN, then the hardware frame r0, r1, r2, r3, r12, lr, pc, xPSR
@@ -122,15 +150,27 @@ void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size
 void emb_arch_switch_to(embk_thread_t *next)
 {
     emb_irq_key_t held;
+#if EMBN_CM_V6M
+    __asm__ __volatile__("mrs %0, primask" : "=r"(held));
+#else
     __asm__ __volatile__("mrs %0, basepri" : "=r"(held));
+#endif
     embn_cm_next = next;
     pend_switch();
     open_window(); /* PendSV runs here; this thread continues below once resumed */
+#if EMBN_CM_V6M
+    __asm__ __volatile__("msr primask, %0\n\t"
+                         "isb"
+                         :
+                         : "r"(held)
+                         : "memory");
+#else
     __asm__ __volatile__("msr basepri, %0\n\t"
                          "isb"
                          :
                          : "r"(held)
                          : "memory");
+#endif
 }
 
 /* The exiting thread's last switch: its context is not saved. Until PendSV has left
@@ -228,7 +268,7 @@ emb_status_t emb_arch_irq_set_level(emb_irq_t irq, uint8_t level)
     if (!valid_irq(irq) || level > EMB_IRQ_LEVEL_KERNEL_MAX) {
         return EMB_EINVAL;
     }
-    REG8(NVIC_IPR + irq) = embn_cm_irq_priority(level);
+    prio_write(NVIC_IPR, irq, embn_cm_irq_priority(level));
     return EMB_OK;
 }
 
@@ -267,7 +307,7 @@ static uint32_t tick_reload; /* counts per tick minus one */
 emb_status_t emb_arch_timer_init(void)
 {
     REG32(SYST_CSR) = 0u;
-    REG8(SCB_SHPR3 + 3u) = PRIO_SYSTICK;
+    prio_write(SCB_SHPR3, 3u, PRIO_SYSTICK);
     return EMB_OK;
 }
 
@@ -357,11 +397,13 @@ void emb_arch_init(void)
     aircr &= ~((0xFFFFu << 16) | (7u << 8));
     REG32(SCB_AIRCR) = aircr | (0x5FAu << 16);
     __asm__ __volatile__("dsb\n\tisb" ::: "memory");
-    REG8(SCB_SHPR3 + 2u) = PRIO_PENDSV;
-    REG8(SCB_SHPR3 + 3u) = PRIO_SYSTICK;
+    prio_write(SCB_SHPR3, 2u, PRIO_PENDSV);
+    prio_write(SCB_SHPR3, 3u, PRIO_SYSTICK);
+#if !EMBN_CM_V6M                                              /* Armv6-M has HardFault only */
     REG32(SCB_SHCSR) |= (1u << 16) | (1u << 17) | (1u << 18); /* MemManage, BusFault, Usage */
+#endif
     for (i = 0u; i < (unsigned)EMB_ARCH_IRQ_COUNT; i++) {
-        REG8(NVIC_IPR + i) = (uint8_t)CONFIG_EMB_CM_IRQ_PRIORITY; /* kernel-aware by default */
+        prio_write(NVIC_IPR, i, (uint8_t)CONFIG_EMB_CM_IRQ_PRIORITY); /* kernel-aware by default */
     }
 }
 
@@ -482,6 +524,10 @@ void emb_arch_breakpoint(void)
 void embn_cm_fault(const uint32_t *frame, uint32_t exc);
 void embn_cm_fault(const uint32_t *frame, uint32_t exc)
 {
+#if EMBN_CM_V6M
+    /* Armv6-M has no fault status registers: the exception number and the stacked pc */
+    embk_fault_raise_hw((uint16_t)exc, 0u, (uintptr_t)frame[6], (uintptr_t)frame);
+#else
     uint32_t cfsr = REG32(SCB_CFSR);
     uintptr_t addr = cfsr;
     if ((cfsr & CFSR_STKOF) != 0u) {
@@ -495,6 +541,7 @@ void embn_cm_fault(const uint32_t *frame, uint32_t exc)
         addr = REG32(SCB_BFAR); /* BFARVALID */
     }
     embk_fault_raise_hw((uint16_t)exc, addr, (uintptr_t)frame[6], (uintptr_t)frame);
+#endif
 }
 
 #if CONFIG_EMB_CRASH_RECORD
@@ -515,6 +562,17 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
     if ((info->fault_class != EMB_FAULT_HARDWARE && !limit) || max < 4u) {
         return 0u;
     }
+#if EMBN_CM_V6M
+    /* no fault status registers: the stacked frame only */
+    (void)cfsr;
+    if (frame != NULL) {
+        for (i = 0u; i < 8u && n < max; i++) {
+            regs[n++] = frame[i];
+        }
+        *lr = frame[5];
+    }
+    return n;
+#else
     cfsr = REG32(SCB_CFSR);
     regs[n++] = cfsr;
     regs[n++] = REG32(SCB_HFSR);
@@ -528,5 +586,6 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
         *lr = frame[5];
     }
     return n;
+#endif
 }
 #endif

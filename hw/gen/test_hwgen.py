@@ -225,9 +225,10 @@ class Negative(unittest.TestCase):
 
     # port manifest, errata, defaults
     def test_arch_variant_mismatch(self):
-        self.root.edit("soc/st/stm32f4/stm32f4.yaml", "variant: armv7em", "variant: armv6m")
+        # Armv8-M Baseline: a variant the Cortex-M port does not have (Armv6-M it has, A86)
+        self.root.edit("soc/st/stm32f4/stm32f4.yaml", "variant: armv7em", "variant: armv8m-base")
         f = "soc/st/stm32f4/stm32f4.yaml"
-        self.expect(f, self.root.line_of(f, "arch:"), "arch.variant", "no variant 'armv6m'")
+        self.expect(f, self.root.line_of(f, "arch:"), "arch.variant", "no variant 'armv8m-base'")
 
     def test_arch_port_missing(self):
         self.root.edit("soc/st/stm32f4/stm32f4.yaml", "port: cortex_m", "port: xtensa")

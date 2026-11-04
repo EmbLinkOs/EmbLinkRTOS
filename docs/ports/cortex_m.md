@@ -1,6 +1,6 @@
 # Cortex-M port
 
-**Status:** Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F and Cortex-M7, A83) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`mps2-an385`, `mps2-an386`, `mps2-an500`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv6-M and Armv8-M Baseline follow (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
+**Status:** Armv6-M (Cortex-M0, A86), Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F and Cortex-M7, A83) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`microbit`, `mps2-an385`, `mps2-an386`, `mps2-an500`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv8-M Baseline follows (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
 
 **Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit, halt and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, `boards/arm/mps2_an500`, `boards/arm/mps2_an505` (their board support in `soc/arm/mps2/`), `boards/rpi/pico2_w` (the RP2350's board support in `soc/rpi/rp2350/`, built only), and `boards/st/nucleo_f446re`. Every Cortex-M board is a `board.yaml` and its generated `generated/` directory ([hardware generator](../engineering/hwgen.md)). The NUCLEO-F446RE has no C of its own: it is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory, built by the STM32F4 board support (`soc/st/stm32f4/board.c`) over the drivers in `drivers/st/`. So is `boards/st/nucleo_f446ze`, a second board on the STM32F446, which runs the suite on EmbSIM's NUCLEO-F446ZE (preset `cm4-nucleo-f446ze`).
 
@@ -46,6 +46,8 @@ Static RAM includes the idle thread's 256-byte stack and control block. R-003 T4
 
 ## Verified
 
+Under QEMU 11.1 on `microbit` (Cortex-M0, presets `cm0-microbit` and `-release`, tiny profile, A86): every image passes, 14 of 14 in each build, Thumb-1 (`Tag_CPU_arch: v6S-M`). This includes the priority, mutex-inheritance and first-execution cases.
+
 Under QEMU 11.1 on `mps2-an500` (Cortex-M7 with FPv5-D16, presets `cm7-an500` and `-release`, A83): every image passes, 21 of 21 in each build, with no change to the port. The double-precision FPU's d8 to d15 are the s16 to s31 the switch saves.
 
 Under QEMU 11.1 on `mps2-an505` (Cortex-M33 with FPv5, presets `cm33-an505`, `-release`, `-tiny`): every conformance image passes, 22 in the checked and release builds (with `test_stack_limit`, A80) and 15 in the tiny build. That includes `test_fpu`, `test_irq_priority`, the hardware-fault crash record and the reset case. The images carry `Tag_CPU_arch: v8-M.mainline` and `Tag_FP_arch: FPv5`.
@@ -53,6 +55,17 @@ Under QEMU 11.1 on `mps2-an505` (Cortex-M33 with FPv5, presets `cm33-an505`, `-r
 Under QEMU 8.2, on `mps2-an385` (Cortex-M3) and `mps2-an386` (Cortex-M4F, checked, release and tiny): the original nine conformance suites, plus `test_fpu` on the M4F. The subsequent `test_irq_priority` adds register, range, pending-order, nested-preemption, equal-priority and masking checks; its evidence is recorded separately in the IRQ report. `test_fpu` checks that s16-s31 survive a blocking switch and that a float computation preempted by a float-using thread at every tick gives the bit-identical result. Disabling the PendSV FP save makes both tests fail. The first-execution sample ran 2.5 million switches in 15 seconds on the M4F. The fork-based misuse tests are skipped, as on AVR. QEMU runs with `-icount`, so virtual time follows executed instructions and the timing tests do not depend on host load; without it, a stalled host made overdue timer interrupts fire back to back and a 3-tick sleep observed 5 ticks.
 
 On EmbSIM's NUCLEO-F446RE (`emblink/nucleo_f446re`, preset `cm4-nucleo-embsim`, checked base profile): the original ten test images, built as for the board, followed by the new `test_irq_priority` image in the IRQ correction. `emb_board_init` brings the part from its reset state (HSI at 16 MHz) to 180 MHz as RM0390 orders it: HSE in bypass from the ST-LINK's MCO, the PLL (M 8, N 360, P 2), over-drive and its switch, five wait states, then SYSCLK to the PLL with APB1 at 45 MHz and APB2 at 90 MHz. Each ready flag is polled a bounded number of times; if HSE never comes ready (a board whose MCO is not on PH0), the console starts on HSI, says so, and the run halts. The console is USART2 at 115200 baud from APB1. The framework test interrupt is line 61, reserved on the F446 (no Ethernet); the priority fixture also uses reserved line 62. A test run ends in `emb_cm_halt` (PRIMASK set, WFI) after the last frame's TC; EmbSIM stops at the console's `EMB_TEST_END`. The test_time run ends at 122 ms of virtual time after 113 ticks, so SysTick does run from a 180 MHz HCLK. Since the generator took over the board, the same sequence runs from `hw_config.h`'s solver output, with the pinned factors and identical register values. The 18 CTest targets pass as before, and each image is 176 to 192 bytes larger in text, the cost of the table-driven pin setup. The board has not run on a physical NUCLEO yet.
+
+## Armv6-M (Cortex-M0/M0+)
+
+Variant `armv6m` ([A86](../specs/AMENDMENTS-M3.md)):
+- **Critical sections** use PRIMASK, since there is no BASEPRI, so no interrupt is zero-latency.
+- **PendSV** saves the same frame in Thumb-1: r8 to r11 move through the low registers, and each assembly block switches GCC's divided syntax to unified and back.
+- **Priority registers** take word accesses only, so a byte is read, modified and written back in its word. Two priority bits are implemented: two kernel-aware levels, with the lowest encoding left to PendSV.
+- **Faults:** HardFault only, without status registers. The crash record keeps the stacked frame.
+- **No CAS and no FPU.**
+
+Every change is under `__ARM_ARCH_6M__`, and the Armv7-M port objects are identical in their disassembly. The reference board is QEMU's `microbit` (nRF51822, `boards/bbc/microbit`, board support in `soc/nordic/nrf51/`, tiny profile).
 
 ## Armv8-M Mainline (Cortex-M33)
 
@@ -81,4 +94,4 @@ It reuses the MPS2 board support unchanged.
 
 ## Next
 
-Armv6-M (PRIMASK critical sections, no `basepri`), MSPLIM for the interrupt stack, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
+MSPLIM for the interrupt stack, the Armv6-M crash and priority tests on a physical Cortex-M0, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).

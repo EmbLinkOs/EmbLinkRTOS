@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description (SPEC-014 §4): the BBC micro:bit (v1) as QEMU models it (machine microbit),
+# the emulated Armv6-M reference (A86). emb-hwgen turns it into generated/.
+schema_version: 0
+kind: board
+name: microbit
+vendor: bbc
+soc: nordic/nrf51/nrf51822.yaml
+curated: true
+doc: >-
+  QEMU's micro:bit: an nRF51822 (Cortex-M0) at 16 MHz, the console on its UART at 115200 baud,
+  the run's end through Arm semihosting. An emulation reference: on a physical micro:bit the
+  console's pin is not selected.
+clocks:
+  cpu_hz: 16MHz
+  source: hfclk
+console: { device: uart0, baud: 115200 }
+test_irqs: [20, 21]
+simulation:
+  qemu: [-M, microbit, -icount, "shift=5,sleep=off", -semihosting-config, "enable=on,target=native", -kernel]
+defaults: { CONFIG_EMB_PROFILE: tiny, CONFIG_EMB_TICK_NS: 1000000, CONFIG_EMB_CM_KERNEL_BASEPRI: 64, CONFIG_EMB_CM_IRQ_PRIORITY: 128 }

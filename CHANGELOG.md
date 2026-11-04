@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Armv6-M, the Cortex-M0 and M0+ (A86). Critical sections use PRIMASK, PendSV is written in Thumb-1, priority registers are written a word at a time, and faults are HardFault only. Two priority bits are accepted for this variant. The new board `microbit`, QEMU's nRF51822, passes all 14 tests in the checked and release tiny builds. The other variants' port code is unchanged.
+
 - The STM32 pin importer (`hw/import/pins.py`, A85) drafts a package's bonded pins and its pins' alternate functions from ST's open pin data. For the STM32F446RE and STM32F446ZE it agrees with the curated files, with 0 differences.
 
 - SoC descriptions outside the tree (A84). An `EMB_BOARD_ROOT` may hold `soc/<vendor>/<family>/`, with its descriptions and board support, beside its boards. A project with a new chip family then needs no change to this tree. `emb-hwgen.py check --board-root` runs the hardware-facts check on the project's C too.

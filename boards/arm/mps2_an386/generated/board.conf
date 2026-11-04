@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/arm/mps2_an386 (HW-003).
 # Inputs (SHA-256):
 #   arch/cortex_m/arch.yaml
-#     1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822
+#     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
 #   boards/arm/mps2_an386/board.yaml
 #     568078072789279ea4e60631f930e9d2b4307fb40a9f2b8b8ad710515eda47af
 #   soc/arm/mps2/an386.yaml

@@ -150,6 +150,77 @@ void embn_cm_reset(void)
 #define EMBN_CM_SET_LIMIT
 #endif
 
+#if defined(__ARM_ARCH_6M__)
+/* Armv6-M (A86): the same switch in Thumb-1, which has no stmdb, movw/movt, cbz or IT and
+ * reaches r8-r11 only through the low registers. PRIMASK masks the kernel's interrupts while
+ * the running and next pointers change; the frame is the same as below: r4-r11, then
+ * EXC_RETURN, from the saved stack pointer upward. GCC puts Thumb-1 inline assembly in the
+ * divided syntax: each block switches to unified and back. */
+EMB_NAKED void embn_cm_pendsv(void)
+{
+    __asm__ __volatile__(".syntax unified\n\t"
+                         "cpsid i\n\t"
+                         "ldr r2, =embn_cm_running\n\t"
+                         "ldr r1, [r2]\n\t"
+                         "cmp r1, #0\n\t"
+                         "beq 1f\n\t"
+                         "mrs r0, psp\n\t"
+                         "subs r0, #36\n\t"
+                         "str r0, [r1]\n\t"
+                         "stmia r0!, {r4-r7}\n\t"
+                         "mov r4, r8\n\t"
+                         "mov r5, r9\n\t"
+                         "mov r6, r10\n\t"
+                         "mov r7, r11\n\t"
+                         "stmia r0!, {r4-r7}\n\t"
+                         "mov r3, lr\n\t"
+                         "str r3, [r0]\n\t"
+                         "b 2f\n\t"
+                         "1:\n\t"
+                         "ldr r3, =embn_cm_exiting\n\t"
+                         "str r1, [r3]\n\t" /* r1 is 0: the exited thread's stack is left */
+                         "2:\n\t"
+                         "ldr r3, =embn_cm_next\n\t"
+                         "ldr r1, [r3]\n\t"
+                         "str r1, [r2]\n\t"
+                         "ldr r0, [r1]\n\t"
+                         "adds r0, #16\n\t"
+                         "ldmia r0!, {r4-r7}\n\t" /* the saved r8-r11 */
+                         "mov r8, r4\n\t"
+                         "mov r9, r5\n\t"
+                         "mov r10, r6\n\t"
+                         "mov r11, r7\n\t"
+                         "ldmia r0!, {r3}\n\t" /* EXC_RETURN; r0 is now the hardware frame */
+                         "msr psp, r0\n\t"
+                         "subs r0, #36\n\t"
+                         "ldmia r0!, {r4-r7}\n\t"
+                         "mov lr, r3\n\t"
+                         "cpsie i\n\t"
+                         "bx lr\n\t"
+                         ".ltorg\n\t"
+                         ".syntax divided\n\t");
+}
+
+/* HardFault, the only fault: the stacked frame on PSP or MSP by EXC_RETURN bit 2. */
+EMB_NAKED void embn_cm_fault_entry(void)
+{
+    __asm__ __volatile__(".syntax unified\n\t"
+                         "movs r0, #4\n\t"
+                         "mov r1, lr\n\t"
+                         "tst r0, r1\n\t"
+                         "beq 1f\n\t"
+                         "mrs r0, psp\n\t"
+                         "b 2f\n\t"
+                         "1:\n\t"
+                         "mrs r0, msp\n\t"
+                         "2:\n\t"
+                         "mrs r1, ipsr\n\t"
+                         "ldr r2, =embn_cm_fault\n\t"
+                         "bx r2\n\t"
+                         ".ltorg\n\t"
+                         ".syntax divided\n\t");
+}
+#else
 EMB_NAKED void embn_cm_pendsv(void)
 {
     __asm__ __volatile__("mov r0, #" EMBN_STR_(
@@ -192,6 +263,7 @@ EMB_NAKED void embn_cm_fault_entry(void)
                          "mrs r1, ipsr\n\t"
                          "b embn_cm_fault\n\t");
 }
+#endif
 
 void embn_cm_nmi(void)
 {

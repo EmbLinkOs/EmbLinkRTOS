@@ -33,9 +33,11 @@ config EMB_CM_IRQ_PRIORITY
 config EMB_CM_IRQ_PRIORITY_BITS
 	int "Priority bits exposed by the board's Cortex-M port"
 	default 3
-	range 3 7
+	range 2 7
 	help
 	  Declare implemented high bits, or a conservative subset, in board.conf.
+	  Armv6-M implements two; the other variants at least three (the
+	  configuration tool checks the variant's minimum).
 	  PRIGROUP=0 gives these bits preemption semantics. At most seven bits are
 	  exposed because the eighth would be subpriority, not preemption priority.
 

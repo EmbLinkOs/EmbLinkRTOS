@@ -4,7 +4,7 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/rpi/pico2_w (HW-003).
  * Inputs (SHA-256):
  *   arch/cortex_m/arch.yaml
- *     1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822
+ *     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
  *   boards/rpi/pico2_w/board.yaml
  *     17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245
  *   soc/rpi/rp2350/rp2350.yaml

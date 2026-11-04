@@ -13,6 +13,7 @@ Emulator results are never timing evidence (SIM-003).
 |---|---|---|---|---|
 | `arduino_uno` | ATmega328P | avr5 | 1 hardware | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); CI also runs `avr-uno`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1` |
 | `esp32c3_devkitm1` | (no description yet) | rv32imc | 2 emulated | CI runs `rv32-c3-embsim` |
+| `microbit` | nRF51822 | cortex-m0 | 2 emulated | CI runs `cm0-microbit`, `cm0-microbit-release` |
 | `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | CI runs `cm3-an385` |
 | `mps2_an386` | Cortex-M4F | cortex-m4f | 2 emulated | CI runs `cm4-an386`, `cm4-an386-release`, `cm4-an386-tiny` |
 | `mps2_an500` | Cortex-M7 | cortex-m7f | 2 emulated | CI runs `cm7-an500`, `cm7-an500-release` |
@@ -23,4 +24,4 @@ Emulator results are never timing evidence (SIM-003).
 | `pico2_w` | RP2350A | cortex-m33f | 3 described | CI builds `cm33-pico2w` |
 | `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | CI runs `rv32-virt`, `rv32-virt-release`, `rv32-virt-tiny` |
 
-Totals: 1 hardware: 1, 2 emulated: 9, 3 described: 1, untested: 0.
+Totals: 1 hardware: 1, 2 emulated: 10, 3 described: 1, untested: 0.

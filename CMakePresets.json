@@ -160,6 +160,27 @@
       }
     },
     {
+      "name": "cm0-microbit",
+      "displayName": "Cortex-M0 (QEMU microbit, nRF51822), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm0-microbit",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "microbit"
+      }
+    },
+    {
+      "name": "cm0-microbit-release",
+      "displayName": "Cortex-M0 (QEMU microbit, nRF51822), GCC, tiny profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm0-microbit-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "microbit",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
       "name": "cm3-an385",
       "displayName": "Cortex-M3 (QEMU mps2-an385), GCC, base profile, checked",
       "generator": "Ninja",
@@ -440,6 +461,14 @@
       "configurePreset": "avr-uno-embsim"
     },
     {
+      "name": "cm0-microbit",
+      "configurePreset": "cm0-microbit"
+    },
+    {
+      "name": "cm0-microbit-release",
+      "configurePreset": "cm0-microbit-release"
+    },
+    {
       "name": "cm3-an385",
       "configurePreset": "cm3-an385"
     },
@@ -623,6 +652,20 @@
     {
       "name": "avr-uno-embsim",
       "configurePreset": "avr-uno-embsim",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm0-microbit",
+      "configurePreset": "cm0-microbit",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm0-microbit-release",
+      "configurePreset": "cm0-microbit-release",
       "output": {
         "outputOnFailure": true
       }
