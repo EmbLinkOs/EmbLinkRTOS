@@ -83,6 +83,47 @@ class Decode(unittest.TestCase):
         self.assertEqual(rec["reset_reason_name"], "reboot")
 
 
+def v1_regs(regs, status):
+    """A version 1 record with registers (A74): 92 bytes and four per register."""
+    length = 92 + 4 * len(regs)
+    body = b"EMBC" + struct.pack("<HH", 1, length) + struct.pack(
+        "<20s8sQIBBHHBBHHIIIIIIBBH", b"\x11" * 20, b"0.2.0", 0, 2, 10, 0, 6, 0, 0, 0, 0, 0, 0x10000, 0xEA, 0xEB,
+        0x200011E0, 0, 0, status, len(regs) - status, 0) + struct.pack(f"<{len(regs)}I", *regs)
+    return body + struct.pack("<I", zlib.crc32(body))
+
+
+class Registers(unittest.TestCase):
+    CM = [0x00010000, 0x40000000, 0, 0, 0x25D, 0, 0x40004000, 0x20000004, 0, 0xEB, 0xEA, 0x41000000]
+
+    def test_registers_follow_the_counts(self):
+        r = crashdec.parse(v1_regs(self.CM, 4))
+        self.assertEqual((r["length"], r["status_reg_count"], r["gpr_count"]), (140, 4, 8))
+        self.assertEqual(r["regs"], self.CM)
+        self.assertEqual(r["lr_or_ra"], 0xEB)
+
+    def test_a_length_that_disagrees_with_the_counts_is_refused(self):
+        raw = bytearray(v1_regs(self.CM, 4))
+        raw[85] = 9  # one general register more than the record holds
+        with self.assertRaisesRegex(crashdec.RecordError, "144 bytes"):
+            crashdec.parse(bytes(raw))
+
+    def test_cortex_m_names_and_status_bits(self):
+        regs = crashdec.name_regs(crashdec.parse(v1_regs(self.CM, 4)), "cortex_m")
+        self.assertEqual([r["name"] for r in regs][:6], ["cfsr", "hfsr", "mmfar", "bfar", "r0", "r1"])
+        self.assertEqual(regs[0]["note"], "UNDEFINSTR")
+        self.assertEqual(regs[1]["note"], "FORCED")
+        self.assertEqual(regs[10]["name"], "pc")
+
+    def test_riscv_names_and_cause(self):
+        regs = crashdec.name_regs(crashdec.parse(v1_regs([3, 0x8000007A, 0x8000007A, 0x1880, 0x8000007A], 4)), "riscv")
+        self.assertEqual([r["name"] for r in regs], ["mcause", "mtval", "mepc", "mstatus", "ra"])
+        self.assertEqual(regs[0]["note"], "breakpoint")
+
+    def test_unknown_port_numbers_the_registers(self):
+        regs = crashdec.name_regs(crashdec.parse(v1_regs([1, 2, 3], 1)), None)
+        self.assertEqual([r["name"] for r in regs], ["status0", "gpr0", "gpr1"])
+
+
 class Cli(unittest.TestCase):
     def run_cli(self, *args):
         return subprocess.run([sys.executable, "-I", str(HERE / "crashdec.py"), *args], capture_output=True, text=True)

@@ -30,6 +30,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Hardware faults put their registers in the crash record (A74).
+  - Cortex-M: CFSR, HFSR, MMFAR, BFAR and the stacked r0 to r3, r12, lr, pc and xPSR. RISC-V: mcause, mtval, mepc, mstatus, ra and a0 to a7.
+  - New port function `emb_arch_crash_regs()`; the retained area grows to 192 bytes.
+  - `crashdec` names the registers and decodes the CFSR, HFSR and mcause.
+  - `test_crash_hw` checks the registers of a real trap across a reset.
+
 - The NUCLEO-F446ZE runs its tests on EmbSIM's NUCLEO-F446ZE (20 CTest targets, preset `cm4-nucleo-f446ze`). The EmbSIM CI job for the NUCLEO boards now builds EmbSIM `2529ab8`.
 
 - `tools/crashdec` decodes crash records.
@@ -40,7 +46,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - The crash record (SPEC-015 §4, A71 to A73; `CONFIG_EMB_CRASH_RECORD`, on by default except on the tiny profile, where its AVR code does not fit the footprint gates).
   - A kernel fault writes a CRC-checked record before the hook and the fault action. Version 1 (92 bytes) on 32-bit and native ports holds the build id, firmware version, uptime, fault class, code, API and argument, thread, address, pc and sp. Version 2 (34 bytes) serves AVR.
-  - The record lives in memory the reset leaves alone: 128 bytes above the stack on Cortex-M and RISC-V, `.noinit` on AVR, `$EMB_NATIVE_CRASH_FILE` on native.
+  - The record lives in memory the reset leaves alone: 192 bytes above the stack on Cortex-M and RISC-V, `.noinit` on AVR, `$EMB_NATIVE_CRASH_FILE` on native.
   - The next boot validates it, and `emb_crash_record_get()` and `emb_crash_record_clear()` (API IDs 145 and 146) read and discard it.
   - A software fault's pc is now the return address into the code that raised it.
   - New port function `emb_arch_system_reset()`.

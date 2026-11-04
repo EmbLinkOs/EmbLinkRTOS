@@ -343,6 +343,18 @@ void emb_arch_retained_sync(bool store)
 {
     (void)store; /* the memory itself survives */
 }
+
+/* No hardware fault entry on this port: nothing to add to the record. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    (void)info;
+    (void)regs;
+    (void)max;
+    *status_count = 0u;
+    *lr = 0u;
+    return 0u;
+}
 #endif
 
 void emb_arch_breakpoint(void)

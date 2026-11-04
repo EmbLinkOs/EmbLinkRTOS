@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-#define EMB_CRASH_VERSION_FULL  1u /* 32-bit and native ports: 92 bytes */
+#define EMB_CRASH_VERSION_FULL  1u /* 32-bit and native ports: 92 bytes and 4 per register */
 #define EMB_CRASH_VERSION_SMALL 2u /* 16-bit pointers (AVR): 34 bytes */
 
 /* What the kernel did after writing the record (emb_crash_record_t.reset_reason). */
@@ -25,6 +25,7 @@ extern "C" {
 #define EMB_CRASH_RESET_HALT   2u /* CONFIG_EMB_FAULT_ACTION_HALT: stopped for a debugger */
 
 #define EMB_CRASH_BUILD_ID_SIZE 20u /* version 2 keeps the first 4 bytes */
+#define EMB_CRASH_REGS_MAX      16u /* status and general registers together, version 1 */
 #define EMB_CRASH_THREAD_NONE   0xFFFFu
 
 typedef struct emb_crash_record {
@@ -42,7 +43,11 @@ typedef struct emb_crash_record {
     uintptr_t address;     /* faulting address for hardware faults, else 0 */
     uintptr_t pc;          /* program counter where the port provides it, else 0 */
     uintptr_t sp;          /* stack pointer where the port provides it, else 0 */
-    const uint8_t *raw;    /* the record as written, for upload */
+    uint32_t lr;           /* link register or return address at a hardware fault, else 0 */
+    uint8_t status_count;  /* regs[0 .. status_count): the architecture's fault status registers */
+    uint8_t gpr_count;     /* then gpr_count general registers (docs/engineering/crash-record.md) */
+    uint32_t regs[EMB_CRASH_REGS_MAX];
+    const uint8_t *raw; /* the record as written, for upload */
 } emb_crash_record_t;
 
 /**

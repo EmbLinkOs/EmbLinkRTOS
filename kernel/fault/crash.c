@@ -10,13 +10,15 @@
  *               | code u16 | api_id u16 | cpu_id u8 | partition_id u8 | thread_index u16
  *               | thread_generation u16 | address u32 | pc u32 | lr_or_ra u32 | sp u32
  *               | stack_base u32 | stack_size u32 | status_reg_count u8 | gpr_count u8
- *               | flight_event_count u16 | crc32                               (92 bytes)
+ *               | flight_event_count u16 | registers u32[status + gpr] | crc32
+ *                                                       (92 bytes, 4 more per register)
  *   version 2:  magic | version | length | build_id[4] | uptime_ticks u32 | reset_reason u8
  *               | fault_class u8 | argument u8 | thread_index u8 | code u16 | api_id u16
  *               | pc u16 | sp u16 | address u16 | crc32                         (34 bytes)
  *
- * Registers and the flight recorder are not captured yet (counts 0); the fields the kernel
- * does not know (lr_or_ra, stack base and size, generation, cpu, partition) are 0.
+ * The registers are the port's (emb_arch_crash_regs, A74): a hardware fault's status
+ * registers, then general registers. The flight recorder is not captured yet (count 0); the
+ * fields the kernel does not know (stack base and size, generation, cpu, partition) are 0.
  */
 #include <emb/arch.h>
 #include <emb/crash.h>
@@ -75,29 +77,70 @@ static uint32_t crc32(const uint8_t *p, uint16_t n)
     return ~c;
 }
 
-static uint8_t *area(void)
+static uint8_t *area(uint16_t *size)
 {
-    uint16_t size = 0u;
-    uint8_t *p = emb_arch_retained(&size);
-    return (p != NULL && size >= EMBK_CRASH_LENGTH) ? p : NULL;
+    uint8_t *p = emb_arch_retained(size);
+    return (p != NULL && *size >= EMBK_CRASH_LENGTH) ? p : NULL;
+}
+
+/* Whether the bytes at p, of the retained memory's size, hold a complete record. */
+static bool record_ok(const uint8_t *p, uint16_t size)
+{
+    uint16_t length = (uint16_t)get16(p, 6u);
+    if (p[0] != MAGIC_0 || p[1] != MAGIC_1 || p[2] != MAGIC_2 || p[3] != MAGIC_3 ||
+        get16(p, 4u) != EMBK_CRASH_VERSION || length < EMBK_CRASH_LENGTH || length > size) {
+        return false;
+    }
+#if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_SMALL
+    if (length != EMBK_CRASH_LENGTH) {
+        return false;
+    }
+#else
+    if (length != EMBK_CRASH_LENGTH + 4u * ((uint16_t)p[84] + p[85]) || get16(p, 86u) != 0u) {
+        return false; /* the registers the counts announce, and no flight recorder yet */
+    }
+#endif
+    return get32(p, (uint16_t)(length - 4u)) == crc32(p, (uint16_t)(length - 4u));
 }
 
 void embk_crash_record_write(const emb_fault_info_t *info, uint32_t reset_reason)
 {
-    uint8_t *p = area();
+    uint16_t size = 0u;
+    uint8_t *p = area(&size);
     uint16_t at = 0u;
     uint16_t i;
     uint64_t up;
+#if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_FULL
+    uint32_t regs[EMB_CRASH_REGS_MAX];
+    uint8_t n = 0u;
+    uint8_t status = 0u;
+    uint32_t lr = 0u;
+#endif
     if (p == NULL) {
         return;
     }
+#if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_FULL
+    {
+        uint16_t room = (uint16_t)((size - EMBK_CRASH_LENGTH) / 4u);
+        n = emb_arch_crash_regs(info, regs,
+                                (uint8_t)(room < EMB_CRASH_REGS_MAX ? room : EMB_CRASH_REGS_MAX),
+                                &status, &lr);
+        if (status > n) {
+            status = n;
+        }
+    }
+#endif
     up = (embk_cpu.kernel_state == EMBK_KERNEL_RUNNING) ? (uint64_t)embk_time_ticks_locked() : 0u;
     put8(p, &at, MAGIC_0);
     put8(p, &at, MAGIC_1);
     put8(p, &at, MAGIC_2);
     put8(p, &at, MAGIC_3);
     put16(p, &at, EMBK_CRASH_VERSION);
+#if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_FULL
+    put16(p, &at, EMBK_CRASH_LENGTH + 4u * (uint32_t)n);
+#else
     put16(p, &at, EMBK_CRASH_LENGTH);
+#endif
 #if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_SMALL
     for (i = 0u; i < 4u; i++) { /* the build id's first four bytes */
         put8(p, &at, EMB_FLASH_READ_U8(&emb_build_id[i]));
@@ -135,13 +178,16 @@ void embk_crash_record_write(const emb_fault_info_t *info, uint32_t reset_reason
     put16(p, &at, 0u); /* thread_generation: no generations without partitions */
     put32(p, &at, (uint32_t)info->address);
     put32(p, &at, (uint32_t)info->pc);
-    put32(p, &at, 0u); /* lr_or_ra */
+    put32(p, &at, lr);
     put32(p, &at, (uint32_t)info->sp);
     put32(p, &at, 0u); /* stack_base */
     put32(p, &at, 0u); /* stack_size */
-    put8(p, &at, 0u);  /* status_reg_count */
-    put8(p, &at, 0u);  /* gpr_count */
-    put16(p, &at, 0u); /* flight_event_count */
+    put8(p, &at, status);
+    put8(p, &at, (uint32_t)n - status);
+    put16(p, &at, 0u);         /* flight_event_count */
+    for (i = 0u; i < n; i++) { /* at most EMB_CRASH_REGS_MAX */
+        put32(p, &at, regs[i]);
+    }
 #endif
     put32(p, &at, crc32(p, at));
     emb_arch_retained_sync(true);
@@ -149,18 +195,17 @@ void embk_crash_record_write(const emb_fault_info_t *info, uint32_t reset_reason
 
 void embk_crash_record_boot(void)
 {
+    uint16_t size = 0u;
     uint8_t *p;
     emb_arch_retained_sync(false);
-    p = area();
-    record_valid = (uint8_t)(p != NULL && p[0] == MAGIC_0 && p[1] == MAGIC_1 && p[2] == MAGIC_2 &&
-                             p[3] == MAGIC_3 && get16(p, 4u) == EMBK_CRASH_VERSION &&
-                             get16(p, 6u) == EMBK_CRASH_LENGTH &&
-                             get32(p, EMBK_CRASH_LENGTH - 4u) == crc32(p, EMBK_CRASH_LENGTH - 4u));
+    p = area(&size);
+    record_valid = (uint8_t)(p != NULL && record_ok(p, size));
 }
 
 emb_status_t emb_crash_record_get(emb_crash_record_t *out)
 {
-    const uint8_t *p = area();
+    uint16_t size = 0u;
+    const uint8_t *p = area(&size);
     uint16_t i;
     EMBK_API_REQUIRE(EMB_API_ID_CRASH_RECORD_GET, out != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
@@ -176,6 +221,12 @@ emb_status_t emb_crash_record_get(emb_crash_record_t *out)
     for (i = 0u; i < 8u; i++) { /* eight bytes */
         out->fw_version[i] = '\0';
     }
+    for (i = 0u; i < EMB_CRASH_REGS_MAX; i++) { /* sixteen words */
+        out->regs[i] = 0u;
+    }
+    out->lr = 0u;
+    out->status_count = 0u;
+    out->gpr_count = 0u;
 #if EMBK_CRASH_VERSION == EMB_CRASH_VERSION_SMALL
     for (i = 0u; i < 4u; i++) { /* four bytes */
         out->build_id[i] = p[8u + i];
@@ -207,13 +258,20 @@ emb_status_t emb_crash_record_get(emb_crash_record_t *out)
     out->address = (uintptr_t)get32(p, 60u);
     out->pc = (uintptr_t)get32(p, 64u);
     out->sp = (uintptr_t)get32(p, 72u);
+    out->lr = get32(p, 68u);
+    out->status_count = p[84];
+    out->gpr_count = p[85];
+    for (i = 0u; i < (uint16_t)(p[84] + p[85]) && i < EMB_CRASH_REGS_MAX; i++) { /* the counts */
+        out->regs[i] = get32(p, (uint16_t)(88u + 4u * i));
+    }
 #endif
     return EMB_OK;
 }
 
 emb_status_t emb_crash_record_clear(void)
 {
-    uint8_t *p = area();
+    uint16_t size = 0u;
+    uint8_t *p = area(&size);
     record_valid = 0u;
     if (p != NULL) {
         p[0] = 0u; /* the magic: nothing valid survives the next reset either */

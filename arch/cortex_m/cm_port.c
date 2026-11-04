@@ -479,3 +479,35 @@ void embn_cm_fault(const uint32_t *frame, uint32_t exc)
     }
     embk_fault_raise_hw((uint16_t)exc, addr, (uintptr_t)frame[6], (uintptr_t)frame);
 }
+
+#if CONFIG_EMB_CRASH_RECORD
+/* A hardware fault's state for the crash record (A74): CFSR, HFSR, MMFAR and BFAR, then the
+ * stacked r0 to r3, r12, lr, pc and xPSR, unless stacking itself failed (CFSR STKERR, MSTKERR),
+ * when the frame cannot be trusted. Software faults have nothing to add. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    const uint32_t *frame = (const uint32_t *)info->sp;
+    uint32_t cfsr;
+    uint8_t n = 0u;
+    uint8_t i;
+    *status_count = 0u;
+    *lr = 0u;
+    if (info->fault_class != EMB_FAULT_HARDWARE || max < 4u) {
+        return 0u;
+    }
+    cfsr = REG32(SCB_CFSR);
+    regs[n++] = cfsr;
+    regs[n++] = REG32(SCB_HFSR);
+    regs[n++] = REG32(SCB_MMFAR);
+    regs[n++] = REG32(SCB_BFAR);
+    *status_count = n;
+    if (frame != NULL && (cfsr & ((1u << 12) | (1u << 4))) == 0u) {
+        for (i = 0u; i < 8u && n < max; i++) { /* the eight stacked words */
+            regs[n++] = frame[i];
+        }
+        *lr = frame[5];
+    }
+    return n;
+}
+#endif

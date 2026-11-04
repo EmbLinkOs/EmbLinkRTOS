@@ -61,6 +61,8 @@ def parse(raw):
     if version not in LAYOUTS:
         raise RecordError(f"record version {version} is unknown to this decoder (it knows 1 and 2)")
     want, (fmt, names) = LAYOUTS[version]
+    if version == 1 and len(raw) >= 88:
+        want += 4 * (raw[84] + raw[85])  # four bytes per register (A74)
     if length != want or len(raw) < length:
         raise RecordError(f"version {version} is {want} bytes; the record says {length} and has {len(raw)}")
     body = raw[:length - 4]
@@ -74,6 +76,8 @@ def parse(raw):
     # version 2 is AVR's: avr-gcc's return address counts 16-bit words; addr2line wants bytes
     rec["pc_bytes"] = rec["pc"] * 2 if version == 2 else rec["pc"]
     rec["build_id"] = rec["build_id"].hex()
+    count = rec.get("status_reg_count", 0) + rec.get("gpr_count", 0)
+    rec["regs"] = list(struct.unpack_from(f"<{count}I", raw, 88)) if count else []
     if "fw_version" in rec:
         rec["fw_version"] = rec["fw_version"].rstrip(b"\0").decode("ascii", "replace")
     return rec
@@ -129,6 +133,48 @@ def elf_symbol_bytes(path, name):
     return None
 
 
+# The ports' register order (emb_arch_crash_regs, A74).
+REG_NAMES = {
+    "cortex_m": (["cfsr", "hfsr", "mmfar", "bfar"], ["r0", "r1", "r2", "r3", "r12", "lr", "pc", "xpsr"]),
+    "riscv": (["mcause", "mtval", "mepc", "mstatus"], ["ra", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7"]),
+}
+CFSR = {0: "IACCVIOL", 1: "DACCVIOL", 3: "MUNSTKERR", 4: "MSTKERR", 5: "MLSPERR", 7: "MMARVALID",
+        8: "IBUSERR", 9: "PRECISERR", 10: "IMPRECISERR", 11: "UNSTKERR", 12: "STKERR", 13: "LSPERR",
+        15: "BFARVALID", 16: "UNDEFINSTR", 17: "INVSTATE", 18: "INVPC", 19: "NOCP", 24: "UNALIGNED",
+        25: "DIVBYZERO"}
+HFSR = {1: "VECTTBL", 30: "FORCED", 31: "DEBUGEVT"}
+MCAUSE = {0: "instruction address misaligned", 1: "instruction access fault", 2: "illegal instruction",
+          3: "breakpoint", 4: "load address misaligned", 5: "load access fault",
+          6: "store address misaligned", 7: "store access fault", 8: "environment call from U-mode",
+          11: "environment call from M-mode"}
+ELF_MACHINE = {40: "cortex_m", 243: "riscv"}
+
+
+def elf_arch(path):
+    data = Path(path).read_bytes()[:20]
+    if data[:4] != b"\x7fELF":
+        return None
+    return ELF_MACHINE.get(struct.unpack_from("<H" if data[5] == 1 else ">H", data, 18)[0])
+
+
+def name_regs(rec, arch):
+    """The registers with the port's names, and the status bits spelled out."""
+    status, gprs = REG_NAMES.get(arch, ([], []))
+    ns = rec.get("status_reg_count", 0)
+    out = []
+    for i, v in enumerate(rec["regs"]):
+        names, j = (status, i) if i < ns else (gprs, i - ns)
+        name = names[j] if j < len(names) else (f"status{j}" if i < ns else f"gpr{j}")
+        note = ""
+        if arch == "cortex_m" and name in ("cfsr", "hfsr"):
+            bits = [n for b, n in sorted((CFSR if name == "cfsr" else HFSR).items()) if v >> b & 1]
+            note = " ".join(bits)
+        elif arch == "riscv" and name == "mcause":
+            note = MCAUSE.get(v, "interrupt" if v >> 31 else "unknown")
+        out.append({"name": name, "value": v, "note": note})
+    return out
+
+
 def symbolize(elf, pc, prefix):
     try:
         out = subprocess.run([f"{prefix}addr2line", "-f", "-e", str(elf), f"{pc:#x}"],
@@ -162,6 +208,10 @@ def text(rec):
     byte_pc = f" (byte address {rec['pc_bytes']:#x})" if rec["pc_bytes"] != rec["pc"] else ""
     lines.append(f"  pc         {rec['pc']:#x}{byte_pc}{where}")
     lines.append(f"  sp         {rec['sp']:#x}; fault address {rec['address']:#x}")
+    if rec.get("lr_or_ra"):
+        lines.append(f"  lr/ra      {rec['lr_or_ra']:#x}")
+    for r in rec.get("named_regs", []):
+        lines.append(f"  {r['name']:<10} {r['value']:#010x}" + (f"  {r['note']}" if r["note"] else ""))
     if rec.get("build_match") is False:
         lines.append("  WARNING    the record's build id does not match the ELF (decoded with --force)")
     return "\n".join(lines)
@@ -175,6 +225,7 @@ def main(argv=None):
     ap.add_argument("--tool-prefix", default="", help="binutils prefix for addr2line, e.g. arm-none-eabi-")
     ap.add_argument("--force", action="store_true", help="decode a record whose build id does not match")
     ap.add_argument("--json", action="store_true", help="JSON output, one object per record")
+    ap.add_argument("--arch", choices=sorted(REG_NAMES), help="name the registers for this port (default: from --elf)")
     args = ap.parse_args(argv)
     if args.hex:
         data = args.hex.encode()
@@ -191,6 +242,7 @@ def main(argv=None):
     classes = fault_classes()
     api_map = json.loads((ROOT / "tools" / "fault" / "api-ids.json").read_text(encoding="utf-8"))
     elf_id = elf_symbol_bytes(args.elf, "emb_build_id") if args.elf else None
+    arch = args.arch or (elf_arch(args.elf) if args.elf else None)
     status, out = 0, []
     for raw in raws:
         try:
@@ -211,6 +263,7 @@ def main(argv=None):
                     continue
             if rec["pc"]:
                 rec["symbol"] = symbolize(args.elf, rec["pc_bytes"], args.tool_prefix)
+        rec["named_regs"] = name_regs(rec, arch)
         out.append(rec)
     if args.json:
         print(json.dumps(out, indent=2, sort_keys=True))

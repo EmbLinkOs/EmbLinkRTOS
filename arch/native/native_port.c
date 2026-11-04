@@ -571,7 +571,7 @@ void emb_arch_system_reset(void)
 #if CONFIG_EMB_CRASH_RECORD
 /* SPEC-015 §9: on the native port the record goes to a host file, $EMB_NATIVE_CRASH_FILE,
  * so that it outlives the process; without the variable it lives in process memory only. */
-static uint8_t retained[128];
+static uint8_t retained[192];
 
 uint8_t *emb_arch_retained(uint16_t *size)
 {
@@ -599,6 +599,18 @@ void emb_arch_retained_sync(bool store)
         memset(retained, 0, sizeof(retained));
     }
     (void)fclose(f);
+}
+
+/* No hardware fault entry on this port: nothing to add to the record. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    (void)info;
+    (void)regs;
+    (void)max;
+    *status_count = 0u;
+    *lr = 0u;
+    return 0u;
 }
 #endif
 

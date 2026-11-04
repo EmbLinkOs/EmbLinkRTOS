@@ -20,7 +20,7 @@ extern EMB_FLASH_CONST uint8_t emb_build_id[EMB_CRASH_BUILD_ID_SIZE];
 #define EMBK_CRASH_LENGTH  34u
 #else
 #define EMBK_CRASH_VERSION EMB_CRASH_VERSION_FULL
-#define EMBK_CRASH_LENGTH  92u
+#define EMBK_CRASH_LENGTH  92u /* without registers; 4 bytes more for each */
 #endif
 
 /* Serializes the fault into the port's retained memory, before the hook and the action;

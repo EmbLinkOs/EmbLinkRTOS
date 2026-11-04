@@ -15,21 +15,43 @@ Because the record is written before the hook, a hook that resets the part (as `
 
 | Field | Version 1 (32-bit, native) | Version 2 (AVR) |
 |---|---|---|
-| Size | 92 bytes | 34 bytes |
+| Size | 92 bytes, and 4 per register | 34 bytes |
 | Build id | 20 bytes (`emb_build_id`) | first 4 bytes |
 | Firmware version | 8 bytes (`CONFIG_EMB_FW_VERSION`) | absent |
 | Uptime | 64-bit ticks | 32-bit ticks |
 | Fault | class, argument, 16-bit code, API ID, thread | the same, 8-bit thread |
 | Addresses | fault address, pc, sp (32-bit), lr, stack bounds (0) | fault address, pc, sp (16-bit) |
-| Registers, flight recorder | counts 0 (not captured yet) | absent |
+| Registers | a hardware fault's: status registers, then general registers (A74) | absent |
+| Flight recorder | count 0 (not captured yet) | absent |
 
 A software fault's pc is the return address into the code that raised it. On a hardware fault, the port supplies the faulting pc. On AVR it is the word address avr-gcc reports.
+
+## Registers
+
+A hardware fault's record carries the port's registers (`emb_arch_crash_regs()`, A74). A software fault's record carries none.
+
+| Port | Status registers | General registers |
+|---|---|---|
+| Cortex-M | CFSR, HFSR, MMFAR, BFAR | the stacked r0 to r3, r12, lr, pc, xPSR; skipped when CFSR shows STKERR or MSTKERR |
+| RISC-V | mcause, mtval, mepc, mstatus | ra, a0 to a7 from the trap frame |
+
+`test_crash_hw` executes a trap instruction (`EMB_TRAP()`), lets the record survive a reset, and checks the registers on the next boot:
+- on Cortex-M: CFSR.UNDEFINSTR, and the stacked pc and lr equal to the record's;
+- on RISC-V: mcause 3 (breakpoint), and mepc and ra.
+
+It runs on QEMU MPS2 and RV32 virt and on EmbSIM's NUCLEO boards. `crashdec` names the registers and spells out their bits:
+
+```
+  cfsr       0x00010000  UNDEFINSTR
+  ...
+  pc         0x000000ea
+```
 
 ## Where it survives
 
 | Port | Memory | Survives |
 |---|---|---|
-| Cortex-M, RISC-V | 128 bytes reserved by the linker script at the top of RAM, above the stack, as symbols and not a section | startup (no section clears it) and the emulators' reset: QEMU's `virt` re-zeroes every ELF segment, but not memory outside them |
+| Cortex-M, RISC-V | 192 bytes reserved by the linker script at the top of RAM, above the stack, as symbols and not a section | startup (no section clears it) and the emulators' reset: QEMU's `virt` re-zeroes every ELF segment, but not memory outside them |
 | AVR | 34-byte `.noinit` array | avr-libc's startup; the watchdog reset |
 | Native | process buffer, mirrored to `$EMB_NATIVE_CRASH_FILE` when set | process exit, through the file |
 
@@ -70,7 +92,7 @@ The record is off by default on the tiny profile ([A73](../specs/AMENDMENTS-M3.m
 
 ## Limits
 
-- No register snapshot, flight recorder or partition mini-records. The register snapshot needs the ports' capture, and the flight recorder the trace rings.
+- No flight recorder or partition mini-records: the flight recorder needs the trace rings. Software faults carry no registers.
 - The build id is fixed at configure time: two dirty builds of one commit and configuration share it.
 - `reset_reason` is the kernel's action, not the SoC's reset cause.
 - The F446's backup SRAM is not used.

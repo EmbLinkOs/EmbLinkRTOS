@@ -35,7 +35,7 @@ The later [timer-delivery validation](../engineering/m2-01-timer-correction.md) 
 | `CONFIG_EMB_SYSTEM_WORKQ`, `_PRIO`, `_STACK` | y; 0 (second-highest priority); 2048 bytes | the system work queue, linked only when `emb_workq_system()` is referenced |
 | `CONFIG_EMB_TIMER` | y | software timers; not available with the table scheduler |
 | `CONFIG_EMB_OBJ_LIST` | y (n on tiny) | exact refusal of init on live storage |
-| `CONFIG_EMB_CRASH_RECORD`, `CONFIG_EMB_FW_VERSION` | y (n on tiny); "0.2.0" | the crash record a fault leaves for the next boot (`emb_crash_record_get()`); 128 bytes above the stack on 32-bit ports, 34 bytes of `.noinit` on AVR, where its code costs about 1 KiB |
+| `CONFIG_EMB_CRASH_RECORD`, `CONFIG_EMB_FW_VERSION` | y (n on tiny); "0.2.0" | the crash record a fault leaves for the next boot (`emb_crash_record_get()`); 192 bytes above the stack on 32-bit ports, 34 bytes of `.noinit` on AVR, where its code costs about 1 KiB |
 
 ## Scheduler options
 
