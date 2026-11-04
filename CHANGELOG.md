@@ -32,6 +32,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Hardware-in-the-loop runs (docs/engineering/hil.md).
+  - `tools/hil/run_hil.py` flashes an image with the probe the board's `hw.json` names (OpenOCD), reads the board's console through termios, and reports as the emulator runners do.
+  - `EMB_TEST_EMULATOR=hil` with `EMB_HIL_PORT` registers the suite and the benchmarks, run one at a time; `cm4-nucleo-hil` is the preset.
+  - New benchmark `bench_irq`: cycles from `emb_irq_pend()` to the connected handler.
+  - Tested with a pseudo-terminal; not yet run on a board.
+
 - Hardware faults put their registers in the crash record (A74).
   - Cortex-M: CFSR, HFSR, MMFAR, BFAR and the stacked r0 to r3, r12, lr, pc and xPSR. RISC-V: mcause, mtval, mepc, mstatus, ra and a0 to a7.
   - New port function `emb_arch_crash_regs()`; the retained area grows to 192 bytes.

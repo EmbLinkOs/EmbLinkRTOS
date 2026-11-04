@@ -22,6 +22,7 @@ m2-10-campaign
 m2-exit-review
 hwgen
 crash-record
+hil
 case-evidence
 resource-bounds
 embcc-capability-review

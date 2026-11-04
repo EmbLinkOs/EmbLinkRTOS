@@ -213,6 +213,17 @@
       }
     },
     {
+      "name": "cm4-nucleo-hil",
+      "displayName": "NUCLEO-F446RE (Cortex-M4F), GCC, base profile, checked, tests on the physical board (set EMB_HIL_PORT to its ST-LINK console)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-nucleo-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "nucleo_f446re",
+        "EMB_TEST_EMULATOR": "hil"
+      }
+    },
+    {
       "name": "cm4-nucleo-f446ze",
       "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446ZE: the second board on the STM32F446, from its YAML description alone",
       "generator": "Ninja",
@@ -375,6 +386,10 @@
     {
       "name": "cm4-nucleo-f446ze",
       "configurePreset": "cm4-nucleo-f446ze"
+    },
+    {
+      "name": "cm4-nucleo-hil",
+      "configurePreset": "cm4-nucleo-hil"
     },
     {
       "name": "rv32-virt",
@@ -546,6 +561,13 @@
     {
       "name": "cm4-nucleo-f446ze",
       "configurePreset": "cm4-nucleo-f446ze",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-nucleo-hil",
+      "configurePreset": "cm4-nucleo-hil",
       "output": {
         "outputOnFailure": true
       }

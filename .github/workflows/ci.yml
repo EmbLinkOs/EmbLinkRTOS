@@ -282,6 +282,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
       - name: Crash record decoder
         run: python3 -I -m unittest discover -s tools/crashdec -p 'test_*.py' -v
+      - name: Hardware-in-the-loop runner (a pseudo-terminal for the board)
+        run: python3 -I -m unittest discover -s tools/hil -p 'test_*.py' -v
       - name: Hardware generator (schemas, rules, committed outputs)
         run: |
           pip install jsonschema
