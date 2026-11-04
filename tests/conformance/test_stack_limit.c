@@ -7,8 +7,10 @@
  * record. The first boot overflows with a hook that resets the part; the second finds the record.
  */
 #include "crash_print.h"
+
 #include <emb/arch.h>
 #include <emb/crash.h>
+
 #include <emb_test.h>
 
 static void reset_now(const emb_fault_info_t *info)
