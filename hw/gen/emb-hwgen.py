@@ -5,7 +5,7 @@
 (SPEC-014, docs/engineering/hwgen.md).
 
     emb-hwgen.py generate --board boards/st/nucleo_f446re [--out DIR]
-    emb-hwgen.py check              # every board with a generated/ directory is up to date
+    emb-hwgen.py check              # every generated/ is up to date; no hardware facts in C (HW-001)
     emb-hwgen.py validate --board boards/st/nucleo_f446re
 
 Exit status 0 on success, 1 when check finds a difference, 2 on a description error; each
@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from emb_hwgen import HwError, generate  # noqa: E402
+from emb_hwgen import HwError, facts, generate  # noqa: E402
 
 
 def _boards(root):
@@ -61,8 +61,11 @@ def cmd_check(args):
             else:
                 sys.stdout.writelines(difflib.unified_diff(have.splitlines(True), want.splitlines(True),
                                                            f"{rel} (committed)", f"{rel} (generated)"))
-    print(f"emb-hwgen check: {len(boards)} board(s), {bad} stale file(s)")
-    return 1 if bad else 0
+    problems = facts.check(ROOT)
+    for p in problems:
+        print(p)
+    print(f"emb-hwgen check: {len(boards)} board(s), {bad} stale file(s), {len(problems)} hardware fact(s) outside a description")
+    return 1 if bad or problems else 0
 
 
 def cmd_validate(args):
@@ -79,7 +82,8 @@ def main(argv=None):
     g = sub.add_parser("generate", help="write a board's generated outputs")
     g.add_argument("--board", required=True, help="the board directory, holding board.yaml")
     g.add_argument("--out", help="output directory (default: <board>/generated)")
-    sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003)")
+    sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003), "
+                   "and look for hardware facts outside the descriptions (HW-001)")
     v = sub.add_parser("validate", help="validate a board and its SoC without writing anything")
     v.add_argument("--board", required=True)
     args = ap.parse_args(argv)
