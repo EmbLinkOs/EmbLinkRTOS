@@ -279,6 +279,16 @@ config EMB_WORKQ
 	  A kernel thread per queue runs submitted items in order. The tiny profile's table
 	  scheduler has no work queues in M2.
 
+config EMB_WORKQ_STATS
+	bool "Per-queue work statistics (KRN-WQ-011)"
+	depends on EMB_WORKQ
+	default n
+	help
+	  Each queue records the most items it held at once, the worst submit-to-start
+	  latency and the longest handler with its address, read with
+	  emb_workq_get_stats(). Costs a timestamp per work item and two clock reads per
+	  handler run.
+
 config EMB_SYSTEM_WORKQ
 	bool "The system work queue, linked only when referenced (ADR-048)"
 	depends on EMB_WORKQ
