@@ -11,6 +11,7 @@ User-visible changes are recorded here. There are no released versions or releas
   - The STM32F4 board support (`soc/st/stm32f4/`) and drivers (`drivers/st/`) take every address, gate, pin and frequency from `hw_config.h`.
   - The configuration hash, the register values and the EmbSIM results are unchanged. Each image is 176 to 192 bytes larger in text.
   - Configuration refuses `generated/` files older than their descriptions, and `emb-hwgen.py check` fails on address-like constants in `soc/` and `drivers/` C.
+- The ESP32-C3-DevKitM-1 board runs its CPU at 160 MHz from the PLL, set up in `emb_board_init()` as ESP-IDF v5.4's bootloader does (BBPLL power, its 480 MHz configuration through the boot ROM's analog I2C routines, CPUPERIOD_SEL and SOC_CLK_SEL), instead of the boot ROM's 20 MHz; UART0's divider is set again for 115200 baud from the 80 MHz APB clock. `run_embsim.py --core-hz` (a board's `EMB_BOARD_EMBSIM_CORE_HZ`) checks the clock the MCU ends at in every EmbSIM test of the board.
 
 - The tiny thread table has no slot for idle, and `CONFIG_EMB_FAULT_HOOK_RUNTIME=n` binds the fault hook at link time through an application-defined `emb_fault_hook()` (weak empty default), keeping no hook pointer in RAM. The `footprint_t1` reference configuration uses it; AVR `footprint_t1` kernel static RAM is 39 bytes and its gate is lowered from 64 to that value.
 

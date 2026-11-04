@@ -13,7 +13,7 @@ The configuration pipeline resolves Kconfig defaults seeded by a port manifest, 
 | `native-clang` | Clang compiler coverage; requires Clang |
 | `native-asan` / `native-tsan` | Sanitizer configurations; require supported compiler runtimes |
 | `native-coverage` | GCC `--coverage` build; after CTest, `tools/coverage/report.py` prints kernel statement and branch coverage |
-| `native-timeslice` | GCC, checked base with round-robin time slicing (quantum 2 ticks, levels up to 20) and a periodic clock, so the differential bridge checks rotation; also builds the work-queue statistics |
+| `native-timeslice` | GCC, checked base with round-robin time slicing (quantum 2 ticks, levels up to 20) and a periodic clock, so the differential bridge checks rotation |
 | `native-timeslice-tickless` | The same slicing with the tickless clock; conformance only |
 
 Use the same preset name for configure, build and CTest. A tiny result does not verify base-only features; a release result does not exercise checked-build faults. Embedded presets additionally require their cross-compiler, libc and emulator; do not interpret a build with no registered tests as conformance.
