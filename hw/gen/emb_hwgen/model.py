@@ -399,6 +399,12 @@ class Resolver:
             self.err(board, "flash_partitions", "no partition named app: the image's place is unknown")
             return None
         code = {"origin": app["base"], "length": app["size"]} if app else {"origin": flash["base"], "length": flash["size"]}
+        if app and soc.data["arch"]["port"] == "cortex_m" and app["base"] != flash["base"]:
+            # the core takes its vector table from the boot region's start (A82)
+            self.err(board, "flash_partitions.app",
+                     f"the app partition starts at 0x{app['base']:08X}, but the core boots from 0x{flash['base']:08X}: "
+                     "an image there needs a bootloader, which the RTOS does not have")
+            return None
         ram = sorted((r for r in regions if "w" in r["attrs"] and not {"retained", "tcm"} & set(r["attrs"])),
                      key=lambda r: r["base"])
         if not ram:

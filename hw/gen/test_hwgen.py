@@ -143,6 +143,14 @@ class Negative(unittest.TestCase):
                        "- { name: app, base: 0x08000000, size: 20K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "erase-sector")
 
+    def test_app_partition_must_start_where_the_core_boots(self):
+        """A82: a Cortex-M core takes its vector table from the boot region's start; an image
+        elsewhere (MCUboot's slot 0) would need a bootloader."""
+        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+                       "- { name: boot, base: 0x08000000, size: 128K, reserved: true }\n  - { name: app, base: 0x08020000, size: 384K }")
+        self.expect(f"{BOARD}/board.yaml", self.board_line("name: app, base: 0x08020000"), "flash_partitions.app",
+                    "the core boots from 0x08000000")
+
     def test_partition_outside_flash(self):
         self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
                        "- { name: app, base: 0x08000000, size: 1M }")

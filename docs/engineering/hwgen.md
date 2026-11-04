@@ -177,6 +177,22 @@ python3 -I hw/import/svd.py STM32F446.svd --vendor st --family stm32f4 \
   - The older SVD 1.1 in `cmsis-svd-data` gets ten of those facts wrong: no FPU, 3 priority bits, 90 lines, and interrupts given to the wrong peripherals (UART4 the WWDG's line 0). `--against` reports every one. This is why a draft is never used uncurated.
   - The test `Stm32f446Oracle` repeats the v2.0 comparison when `EMB_SVD_STM32F446` names the file. The SVD is not committed.
 
+## Importing a board from Zephyr
+
+`hw/import/dts.py` drafts a `board.yaml` from a Zephyr board's DeviceTree ([A82](../specs/AMENDMENTS-M3.md)). The C preprocessor and `dtc` flatten the `.dts` with its includes. Clone Zephyr and its `hal_stm32` module, or only the board's files, the `dts/` and `include/zephyr/dt-bindings` directories, and `hal_stm32/dts`.
+
+```sh
+Z=~/zephyr; H=~/hal_stm32
+python3 -I hw/import/dts.py $Z/boards/st/nucleo_f446re/nucleo_f446re.dts \
+    -I $Z/dts -I $Z/dts/arm -I $Z/dts/common -I $Z/include -I $Z/include/zephyr -I $H/dts \
+    --soc st/stm32f4/stm32f446re.yaml -o ~/my-project/boards/st/my_nucleo/board.yaml --name my_nucleo
+```
+
+- **What it takes.** The enabled oscillators, the clock and PLL, the console and its pins, the LEDs and buttons, and the flash; the test lines come from the SoC's reserved lines.
+- **What stays `todo`.** Zephyr's clock and partition choices, the debug probe and simulation, and the other enabled peripherals.
+- **A bootloader layout.** When Zephyr's code partition is MCUboot's slot 0, the draft's app partition is the whole flash, since an image must start where the core boots. The generator refuses an app partition elsewhere on Cortex-M.
+- **Verified on the NUCLEO-F446RE.** Zephyr's board agrees with the curated one on every board fact, and differs only on the clock (96 MHz) and the LSE, which it leaves disabled. Its draft, kept outside the tree with a `simulation` line added, builds and passes 19 of 19 on EmbSIM.
+
 ## A board outside the tree
 
 A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:
