@@ -23,6 +23,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- A second board on the STM32F446, the NUCLEO-F446ZE, described in YAML only (SPEC-014 §11).
+  - It builds with the same STM32F4 board support and drivers, with its console on USART3 (PD8 and PD9) and a solved 180 MHz PLL.
+  - The new `cm4-nucleo-f446ze` preset and a CI step build it. Nothing runs it: EmbSIM has no NUCLEO-F446ZE.
+  - The description is `curated: false` until checked on a physical board.
+
 - The hardware generator's first increment (SPEC-014, A66 to A68): `hw/gen/emb-hwgen.py`.
   - It validates SoC and board descriptions against JSON Schema 2020-12 files in `hw/schemas/` and against the semantic rules. Each error names the file, line and node.
   - It solves the clock tree and writes a board's `generated/` directory: `hw_config.h`, `board_pins.c`, `regions.ld`, `board.conf`, `board.cmake`, `hw.json`, `board.md` and `build_report.md`, deterministically and stamped with input hashes.

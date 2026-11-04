@@ -1,6 +1,6 @@
 # The hardware generator (emb-hwgen)
 
-`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A68](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 and the NUCLEO-F446RE.
+`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A69](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 and two boards on it, the NUCLEO-F446RE and the NUCLEO-F446ZE.
 
 ## Use
 
@@ -24,7 +24,7 @@ Never edit `generated/` by hand (HW-003). Change the YAML and regenerate.
 | `soc/st/stm32f4/stm32f4.yaml` | family base (`abstract`) | port binding, core, clock-tree limits, PLL ranges, prescalers, flash latency |
 | `soc/st/stm32f4/stm32f446.yaml` | die (`abstract`) | memory regions, NVIC size and free lines, buses with their limits, regulator scales, peripherals, serial alternate functions, flash sectors |
 | `soc/st/stm32f4/stm32f446re.yaml`, `stm32f446ze.yaml` | part | package and bonded pins |
-| `boards/st/nucleo_f446re/board.yaml` | board | oscillators, CPU frequency, pins, console, LED, button, flash partitions, test interrupt lines, probe hints, defaults |
+| `boards/st/nucleo_f446re/board.yaml`, `boards/st/nucleo_f446ze/board.yaml` | board | oscillators, CPU frequency, pins, console, LEDs, button, flash partitions, test interrupt lines, probe hints, defaults |
 | `hw/schemas/*.schema.json` | JSON Schema 2020-12 | the SoC and board grammar, and the shape of `hw.json` |
 
 A part file `extends` its die, which extends the family. Mappings merge key by key, and lists of named nodes merge by name. The flattened part is what the schema checks.
@@ -77,6 +77,21 @@ The drivers keep register offsets and bit layouts. Every base address, gate, pin
 - a generated board's directory holds no other file;
 - C under `soc/` and `drivers/` contains no hexadecimal literal of seven or more digits.
 
+## A second board on the same SoC
+
+The NUCLEO-F446ZE shows the SPEC-014 §11 flow, done by hand until the importers exist. It was added without writing C, CMake or configuration:
+
+1. Write `boards/st/nucleo_f446ze/board.yaml`, naming the part `st/stm32f4/stm32f446ze.yaml` (the LQFP144 package file, which describes the bonded pins).
+   - Oscillators: the ST-LINK's 8 MHz MCO in bypass, and the LSE crystal.
+   - Requested clock: `cpu_hz: 180MHz`, without PLL factors.
+   - Console: USART3 on PD8 and PD9 (AF7), the virtual COM port.
+   - LEDs LD1 to LD3 on PB0, PB7 and PB14; button B1 on PC13, active high.
+   - Flash partition, test interrupt lines and probe hints.
+2. Run `python3 -I hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446ze`. The solver picks M 4, N 180, P 2, Q 8, a 2 MHz VCO input where the F446RE pins its brought-up M 8, N 360. It derives the same 45 and 90 MHz buses, 5 wait states, scale 1 and over-drive.
+3. Build with `cmake --preset cm4-nucleo-f446ze && cmake --build --preset cm4-nucleo-f446ze`. The same `soc/st/stm32f4` board support and `drivers/st` code compile against the ZE's `hw_config.h`. The console moves to USART3, and its pins to AFRH, without a driver change.
+
+This is a build check, not a run. EmbSIM has no NUCLEO-F446ZE, and its F446RE model does not show USART3, so the 18 test images build without CTest entries. Both description files stay `curated: false` until a physical board confirms UM1974's facts. `Outputs.test_second_board_on_the_soc_needs_no_c` asserts that the board directory holds only `board.yaml` and `generated/`, and that both boards use the same SoC support.
+
 ## Validation rules
 
 Each rule has a negative test in `hw/gen/test_hwgen.py` that asserts the file, the line and the node path of its error.
@@ -119,4 +134,5 @@ The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI'
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
 - **Not generated:** the system description, `soc_devices.c`, `embld.opts`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
 - **Other boards:** the Uno, the MPS2 boards, RV32 virt and the ESP32-C3 have no descriptions in this schema yet.
+- **The NUCLEO-F446ZE is build-only:** no emulator runs it.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

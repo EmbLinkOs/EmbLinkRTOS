@@ -1,0 +1,813 @@
+{
+  "board": {
+    "buttons": [
+      {
+        "active": "high",
+        "doc": "B1",
+        "gpio": "PC13",
+        "name": "user"
+      }
+    ],
+    "clocks": {
+      "cpu_hz": 180000000,
+      "source": "hse"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "usart3"
+    },
+    "curated": false,
+    "debug_probe": {
+      "openocd": "board/st_nucleo_f4.cfg",
+      "pyocd_target": "stm32f446zetx"
+    },
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "base",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "The STM32F446ZE (LQFP144) at 180 MHz from the PLL, its input the ST-LINK/V2-1's 8 MHz MCO in HSE bypass, the board's default clock configuration (UM1974 \u00a76.7.1). The console is USART3 on PD8 and PD9, which the ST-LINK carries as its virtual COM port.",
+    "flash_partitions": [
+      {
+        "base": 134217728,
+        "name": "app",
+        "size": 524288
+      }
+    ],
+    "kind": "board",
+    "leds": [
+      {
+        "active": "high",
+        "doc": "LD1",
+        "gpio": "PB0",
+        "name": "green"
+      },
+      {
+        "active": "high",
+        "doc": "LD2",
+        "gpio": "PB7",
+        "name": "blue"
+      },
+      {
+        "active": "high",
+        "doc": "LD3",
+        "gpio": "PB14",
+        "name": "red"
+      }
+    ],
+    "name": "nucleo_f446ze",
+    "oscillators": {
+      "hse": {
+        "hz": 8000000,
+        "source": "external_clock"
+      },
+      "lse": {
+        "hz": 32768,
+        "source": "external_crystal"
+      }
+    },
+    "pins": {
+      "usart3": {
+        "rx": "PD9.af7",
+        "tx": "PD8.af7"
+      }
+    },
+    "revision": "MB1137",
+    "schema_version": 0,
+    "soc": "st/stm32f4/stm32f446ze.yaml",
+    "test_irqs": [
+      61,
+      62
+    ],
+    "vendor": "st"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {
+        "ahb1": 180000000,
+        "apb1": 45000000,
+        "apb2": 90000000
+      },
+      "bypass": true,
+      "cpu_hz": 180000000,
+      "flash_wait_states": 5,
+      "hclk_hz": 180000000,
+      "pclk1_div": 4,
+      "pclk1_hz": 45000000,
+      "pclk2_div": 2,
+      "pclk2_hz": 90000000,
+      "pll": {
+        "m": 4,
+        "n": 180,
+        "name": "pll",
+        "p": 2,
+        "q": 8,
+        "q_hz": 45000000,
+        "r": 2,
+        "vco_hz": 360000000,
+        "vco_in_hz": 2000000
+      },
+      "source": "hse",
+      "source_hz": 8000000,
+      "voltage_scale": {
+        "name": "scale1",
+        "overdrive": true,
+        "vos": 3
+      }
+    },
+    "console": {
+      "base": 1073760256,
+      "baud": 115200,
+      "clock": {
+        "bit": 18,
+        "bus": "apb1"
+      },
+      "clock_hz": 45000000,
+      "device": "usart3",
+      "irqs": [
+        {
+          "name": "global",
+          "number": 39
+        }
+      ]
+    },
+    "kconfig": {
+      "CONFIG_EMB_CM_CPU_HZ": 180000000,
+      "CONFIG_EMB_CM_IRQ_COUNT": 97,
+      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": 4,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 524288,
+        "origin": 134217728
+      },
+      "ram": {
+        "length": 131072,
+        "origin": 536870912,
+        "regions": [
+          "sram1",
+          "sram2"
+        ]
+      }
+    },
+    "partitions": [
+      {
+        "base": 134217728,
+        "name": "app",
+        "sectors": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "size": 524288
+      }
+    ],
+    "pins": [
+      {
+        "gpio": "gpiob",
+        "mode": "output",
+        "number": 0,
+        "owner": "leds.green",
+        "pin": "PB0",
+        "port": "B"
+      },
+      {
+        "gpio": "gpiob",
+        "mode": "output",
+        "number": 7,
+        "owner": "leds.blue",
+        "pin": "PB7",
+        "port": "B"
+      },
+      {
+        "gpio": "gpiob",
+        "mode": "output",
+        "number": 14,
+        "owner": "leds.red",
+        "pin": "PB14",
+        "port": "B"
+      },
+      {
+        "gpio": "gpioc",
+        "mode": "input",
+        "number": 13,
+        "owner": "buttons.user",
+        "pin": "PC13",
+        "port": "C"
+      },
+      {
+        "af": 7,
+        "gpio": "gpiod",
+        "mode": "af",
+        "number": 8,
+        "owner": "pins.usart3.tx",
+        "pin": "PD8",
+        "port": "D",
+        "signal": "usart3_tx"
+      },
+      {
+        "af": 7,
+        "gpio": "gpiod",
+        "mode": "af",
+        "number": 9,
+        "owner": "pins.usart3.rx",
+        "pin": "PD9",
+        "port": "D",
+        "signal": "usart3_rx"
+      }
+    ],
+    "profile": "base",
+    "test_irqs": {
+      "high": 62,
+      "low": 61
+    },
+    "timer": {
+      "hz": 180000000,
+      "source": "systick"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c"
+    },
+    {
+      "path": "boards/st/nucleo_f446ze/board.yaml",
+      "sha256": "52eb8470d22d27952ef2279e87e491b0fe0c4d0b027c4b35a3f5c5836d1968fa"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f4.yaml",
+      "sha256": "5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446.yaml",
+      "sha256": "eda69135dd4cd1f08770781c6a482828b908920a98e49b2a46774e1e5afbbf3c"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446ze.yaml",
+      "sha256": "98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "alternate_functions": {
+      "PA0": {
+        "af8": "uart4_tx"
+      },
+      "PA1": {
+        "af8": "uart4_rx"
+      },
+      "PA10": {
+        "af7": "usart1_rx"
+      },
+      "PA2": {
+        "af7": "usart2_tx"
+      },
+      "PA3": {
+        "af7": "usart2_rx"
+      },
+      "PA9": {
+        "af7": "usart1_tx"
+      },
+      "PB10": {
+        "af7": "usart3_tx"
+      },
+      "PB6": {
+        "af7": "usart1_tx"
+      },
+      "PB7": {
+        "af7": "usart1_rx"
+      },
+      "PC10": {
+        "af7": "usart3_tx",
+        "af8": "uart4_tx"
+      },
+      "PC11": {
+        "af7": "usart3_rx",
+        "af8": "uart4_rx"
+      },
+      "PC12": {
+        "af8": "uart5_tx"
+      },
+      "PC5": {
+        "af7": "usart3_rx"
+      },
+      "PC6": {
+        "af8": "usart6_tx"
+      },
+      "PC7": {
+        "af8": "usart6_rx"
+      },
+      "PD2": {
+        "af8": "uart5_rx"
+      },
+      "PD5": {
+        "af7": "usart2_tx"
+      },
+      "PD6": {
+        "af7": "usart2_rx"
+      },
+      "PD8": {
+        "af7": "usart3_tx"
+      },
+      "PD9": {
+        "af7": "usart3_rx"
+      }
+    },
+    "arch": {
+      "port": "cortex_m",
+      "variant": "armv7em"
+    },
+    "clocks": {
+      "buses": [
+        {
+          "enable_offset": 48,
+          "from": "hclk",
+          "max_hz": 180000000,
+          "name": "ahb1"
+        },
+        {
+          "enable_offset": 64,
+          "from": "pclk1",
+          "max_hz": 45000000,
+          "name": "apb1"
+        },
+        {
+          "enable_offset": 68,
+          "from": "pclk2",
+          "max_hz": 90000000,
+          "name": "apb2"
+        }
+      ],
+      "flash_latency": {
+        "hz_per_wait_state": 30000000,
+        "max_wait_states": 15
+      },
+      "plls": [
+        {
+          "inputs": [
+            "hsi",
+            "hse"
+          ],
+          "m": [
+            2,
+            63
+          ],
+          "n": [
+            50,
+            432
+          ],
+          "name": "pll",
+          "p": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "q": [
+            2,
+            15
+          ],
+          "r": [
+            2,
+            7
+          ],
+          "vco_in_hz": [
+            1000000,
+            2000000
+          ],
+          "vco_out_hz": [
+            100000000,
+            432000000
+          ]
+        }
+      ],
+      "prescalers": {
+        "ahb": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          64,
+          128,
+          256,
+          512
+        ],
+        "apb": [
+          1,
+          2,
+          4,
+          8,
+          16
+        ]
+      },
+      "sources": [
+        {
+          "doc": "internal RC, the clock out of reset",
+          "hz": 16000000,
+          "name": "hsi"
+        },
+        {
+          "bypass_max_hz": 50000000,
+          "hz": "board",
+          "max_hz": 26000000,
+          "min_hz": 4000000,
+          "name": "hse"
+        },
+        {
+          "hz": 32000,
+          "name": "lsi"
+        },
+        {
+          "hz": "board",
+          "name": "lse"
+        }
+      ],
+      "voltage_scales": [
+        {
+          "max_hz": 120000000,
+          "name": "scale3",
+          "vos": 1
+        },
+        {
+          "max_hz": 144000000,
+          "name": "scale2",
+          "overdrive_max_hz": 168000000,
+          "vos": 2
+        },
+        {
+          "max_hz": 168000000,
+          "name": "scale1",
+          "overdrive_max_hz": 180000000,
+          "vos": 3
+        }
+      ]
+    },
+    "cpu": {
+      "cache": "none",
+      "cflags": [
+        "-mcpu=cortex-m4",
+        "-mfpu=fpv4-sp-d16",
+        "-mfloat-abi=hard"
+      ],
+      "core": "cortex-m4f",
+      "cycle_counter": "dwt",
+      "fpu": "fpv4-sp-d16",
+      "mpu": {
+        "model": "armv7m",
+        "regions": 8
+      },
+      "trustzone": false
+    },
+    "curated": false,
+    "debug": {
+      "dwt": true,
+      "itm": true,
+      "jtag": true,
+      "swd": true
+    },
+    "family": "stm32f4",
+    "flash": {
+      "geometry": {
+        "sectors": [
+          16384,
+          16384,
+          16384,
+          16384,
+          65536,
+          131072,
+          131072,
+          131072
+        ],
+        "write_granularity": 1
+      },
+      "region": "flash"
+    },
+    "gpio": {
+      "ports": {
+        "A": 65535,
+        "B": 65535,
+        "C": 65535,
+        "D": 65535,
+        "E": 65535,
+        "F": 65535,
+        "G": 65535,
+        "H": 3
+      }
+    },
+    "interrupts": {
+      "controller": "nvic",
+      "count": 97,
+      "priority_bits": 4,
+      "reserved": [
+        61,
+        62,
+        79,
+        80,
+        81,
+        82,
+        83,
+        85,
+        86,
+        88,
+        89,
+        90
+      ],
+      "systick": true
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 134217728,
+          "name": "flash",
+          "size": 524288
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "dma"
+          ],
+          "base": 536870912,
+          "name": "sram1",
+          "size": 114688
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "dma"
+          ],
+          "base": 536985600,
+          "name": "sram2",
+          "size": 16384
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "retained"
+          ],
+          "base": 1073889280,
+          "name": "bkpsram",
+          "size": 4096
+        }
+      ]
+    },
+    "name": "stm32f446ze",
+    "package": "lqfp144",
+    "part": "STM32F446ZE",
+    "peripherals": [
+      {
+        "base": 1073888256,
+        "compatible": "st,stm32f4-flash",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 4
+          }
+        ],
+        "name": "flash_if",
+        "size": 1024
+      },
+      {
+        "base": 1073872896,
+        "clock": {
+          "bit": 0,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioa",
+        "port": "A",
+        "size": 1024
+      },
+      {
+        "base": 1073873920,
+        "clock": {
+          "bit": 1,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiob",
+        "port": "B",
+        "size": 1024
+      },
+      {
+        "base": 1073874944,
+        "clock": {
+          "bit": 2,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioc",
+        "port": "C",
+        "size": 1024
+      },
+      {
+        "base": 1073875968,
+        "clock": {
+          "bit": 3,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiod",
+        "port": "D",
+        "size": 1024
+      },
+      {
+        "base": 1073876992,
+        "clock": {
+          "bit": 4,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioe",
+        "port": "E",
+        "size": 1024
+      },
+      {
+        "base": 1073878016,
+        "clock": {
+          "bit": 5,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiof",
+        "port": "F",
+        "size": 1024
+      },
+      {
+        "base": 1073879040,
+        "clock": {
+          "bit": 6,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiog",
+        "port": "G",
+        "size": 1024
+      },
+      {
+        "base": 1073880064,
+        "clock": {
+          "bit": 7,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioh",
+        "port": "H",
+        "size": 1024
+      },
+      {
+        "base": 1073770496,
+        "clock": {
+          "bit": 28,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32f4-pwr",
+        "irqs": [
+          {
+            "name": "pvd",
+            "number": 1
+          }
+        ],
+        "name": "pwr",
+        "size": 1024
+      },
+      {
+        "base": 1073887232,
+        "compatible": "st,stm32f4-rcc",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 5
+          }
+        ],
+        "name": "rcc",
+        "size": 1024
+      },
+      {
+        "base": 1073761280,
+        "clock": {
+          "bit": 19,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 52
+          }
+        ],
+        "name": "uart4",
+        "size": 1024
+      },
+      {
+        "base": 1073762304,
+        "clock": {
+          "bit": 20,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 53
+          }
+        ],
+        "name": "uart5",
+        "size": 1024
+      },
+      {
+        "base": 1073811456,
+        "clock": {
+          "bit": 4,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 37
+          }
+        ],
+        "name": "usart1",
+        "size": 1024
+      },
+      {
+        "base": 1073759232,
+        "clock": {
+          "bit": 17,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 38
+          }
+        ],
+        "name": "usart2",
+        "size": 1024
+      },
+      {
+        "base": 1073760256,
+        "clock": {
+          "bit": 18,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 39
+          }
+        ],
+        "name": "usart3",
+        "size": 1024
+      },
+      {
+        "base": 1073812480,
+        "clock": {
+          "bit": 5,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-usart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 71
+          }
+        ],
+        "name": "usart6",
+        "size": 1024
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "st"
+  },
+  "warnings": [
+    "boards/st/nucleo_f446ze/board.yaml:1: (root): uncurated description (curated: false or absent)",
+    "soc/st/stm32f4/stm32f4.yaml:17: cpu.mpu: the cortex_m port does not use the MPU yet",
+    "soc/st/stm32f4/stm32f446ze.yaml:1: (root): uncurated description (curated: false or absent)"
+  ]
+}
