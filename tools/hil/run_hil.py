@@ -130,7 +130,8 @@ def run(args):
         print(f"run_hil: {e}", file=sys.stderr)
         return 2
     print(f"hil: board {hw['board']['name']}, soc {hw['soc'].get('part', hw['soc']['name'])}, "
-          f"probe {' '.join(cmd[:3])}, port {args.port} at {baud} baud, image {image.name} sha256 {digest}")
+          f"probe {' '.join(cmd[:3])}, port {args.port} at {baud} baud, image {image.name} sha256 {digest}",
+          flush=True)  # before the console's bytes, which go out unbuffered
     if shared:
         # the bootloader needs the port: flash, then open the console (which resets the board)
         problem = flash(cmd, args.flash_timeout)

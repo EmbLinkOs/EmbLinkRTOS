@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The first hardware run (docs/engineering/hil-uno-2026-11-04.md): the checked tiny suite on an Arduino Uno R3, flashed with embflash, passed 17 of 17. That includes the crash record surviving the watchdog reset, decoded to the faulting line, and a first context-switch figure (about 81 µs in the checked build).
+
 - The HIL runner drives the Arduino Uno R3 (`avr-uno-hil`). It flashes through Optiboot with avrdude, from the board's new `debug_probe.avrdude` hint, then opens the console, which resets the board; the same USB serial port serves both. On the Uno and the NUCLEO-F446RE, the crash record's reset cases run on the board too (`resets_in: hil`).
 
 - Hardware-in-the-loop runs (docs/engineering/hil.md).

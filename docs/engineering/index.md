@@ -23,6 +23,7 @@ m2-exit-review
 hwgen
 crash-record
 hil
+hil-uno-2026-11-04
 case-evidence
 resource-bounds
 embcc-capability-review
