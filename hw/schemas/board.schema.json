@@ -23,11 +23,7 @@
     },
     "oscillators": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "hse": { "$ref": "#/$defs/oscillator" },
-        "lse": { "$ref": "#/$defs/oscillator" }
-      }
+      "additionalProperties": { "$ref": "#/$defs/oscillator" }
     },
     "clocks": {
       "type": "object",
@@ -78,6 +74,7 @@
           "name": { "$ref": "#/$defs/ident" },
           "base": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
           "size": { "type": "integer", "minimum": 1 },
+          "reserved": { "type": "boolean" },
           "doc": { "type": "string" }
         }
       }
@@ -91,7 +88,7 @@
     "simulation": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "embsim": { "type": "string" } }
+      "properties": { "embsim": { "type": "string" }, "qemu": { "type": "array", "items": { "type": "string" } } }
     },
     "defaults": {
       "type": "object",

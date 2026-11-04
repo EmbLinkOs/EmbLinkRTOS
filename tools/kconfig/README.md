@@ -4,7 +4,7 @@
 
 ```
 python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/avr/arch.yaml \
-    --conf boards/arduino/arduino_uno/board.conf --conf configs/tiny.conf \
+    --conf boards/arduino/arduino_uno/generated/board.conf --conf configs/tiny.conf \
     --out-header build/generated/include/emb/config.h --out-cmake build/generated/config.cmake \
     --out-json build/generated/config.json --out-dotconfig build/.config
 ```

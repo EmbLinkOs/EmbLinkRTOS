@@ -82,8 +82,8 @@ class Resolver:
         self._curation(board, soc)
 
         if console is not None and clk is not None:
-            bus = console["clock"]["bus"]
-            console["clock_hz"] = clk["bus_hz"][bus]
+            gate = console["clock"]
+            console["clock_hz"] = clk["bus_hz"][gate["bus"]] if gate else clk["hclk_hz"]
         docs = soc.docs + board.docs + ([manifest] if manifest else [])
         return {
             "board": {k: v for k, v in board.data.items()},
@@ -96,7 +96,7 @@ class Resolver:
             "linker": linker,
             "kconfig": kconfig,
             "profile": profile,
-            "timer": {"source": "systick", "hz": clk["hclk_hz"]} if soc.data["interrupts"].get("systick") else None,
+            "timer": self._timer(soc, clk),
             "inputs": sorted(({"path": d.name, "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
             "warnings": sorted(self.warnings),
         }
@@ -143,9 +143,10 @@ class Resolver:
 
     def _soc_rules(self, soc):
         d = soc.data
-        regions = sorted(d["memory"]["regions"], key=lambda r: (r["base"], r["name"]))
+        # address spaces are separate (AVR: program, data, eeprom); the default is one space
+        regions = sorted(d["memory"]["regions"], key=lambda r: (r.get("space", "main"), r["base"], r["name"]))
         for a, b in zip(regions, regions[1:]):
-            if a["base"] + a["size"] > b["base"]:
+            if a.get("space", "main") == b.get("space", "main") and a["base"] + a["size"] > b["base"]:
                 self.err(soc, f"memory.regions.{b['name']}", f"overlaps {a['name']} ({a['base']:#010x} + {a['size']:#x})")
         for r in regions:
             if r["base"] + r["size"] > 1 << 32:
@@ -157,10 +158,24 @@ class Resolver:
         for n in sorted(reserved):
             if n >= count:
                 self.err(soc, "interrupts.reserved", f"line {n} is above the controller's {count} lines")
+        ctl = d["interrupts"]["controller"]
+        if ctl == "nvic" and "priority_bits" not in d["interrupts"]:
+            self.err(soc, "interrupts", "an NVIC needs priority_bits")
+        vectors = {}
+        for v in d["interrupts"].get("vectors", []):
+            at = f"interrupts.vectors.{v['name']}"
+            if v["number"] >= count:
+                self.err(soc, at, f"vector {v['number']} is above the controller's {count}")
+            elif v["number"] in vectors:
+                self.err(soc, at, f"vector {v['number']} is already {vectors[v['number']]}")
+            else:
+                vectors[v["number"]] = v["name"]
+        if ctl == "avr" and len(vectors) != count:
+            self.err(soc, "interrupts.vectors", f"an AVR lists all {count} vectors; {len(vectors)} are listed")
         irq_owner = {}
-        periph = sorted(d["peripherals"], key=lambda p: (p["base"], p["name"]))
+        periph = sorted(d["peripherals"], key=lambda p: (p.get("space", "main"), p["base"], p["name"]))
         for a, b in zip(periph, periph[1:]):
-            if a["base"] + a["size"] > b["base"]:
+            if a.get("space", "main") == b.get("space", "main") and a["base"] + a["size"] > b["base"]:
                 self.err(soc, f"peripherals.{b['name']}.base", f"overlaps {a['name']} ({a['base']:#010x} + {a['size']:#x})")
         for p in sorted(d["peripherals"], key=lambda p: p["name"]):
             where = f"peripherals.{p['name']}"
@@ -176,6 +191,8 @@ class Resolver:
                     self.err(soc, at, f"line {n} is listed in interrupts.reserved")
                 elif n in irq_owner:
                     self.err(soc, at, f"line {n} is already {irq_owner[n]}'s")
+                elif vectors and n not in vectors:
+                    self.err(soc, at, f"line {n} is not in interrupts.vectors")
                 else:
                     irq_owner[n] = f"{p['name']}.{irq['name']}"
 
@@ -190,15 +207,15 @@ class Resolver:
                 self.err(soc, f"alternate_functions.{pin}", "not a pin name (P<port><n>)")
                 continue
             for af in sorted(afs):
-                if not re.fullmatch(r"af(1[0-5]|[0-9])", af):
-                    self.err(soc, f"alternate_functions.{pin}.{af}", "not an alternate function (af0 to af15)")
+                if not re.fullmatch(r"af(1[0-5]|[0-9])|fixed", af):
+                    self.err(soc, f"alternate_functions.{pin}.{af}", "not an alternate function (af0 to af15, or fixed)")
 
         fl = d.get("flash")
         if fl is not None:
             region = next((r for r in d["memory"]["regions"] if r["name"] == fl["region"]), None)
             if region is None:
                 self.err(soc, "flash.region", f"unresolved reference: no memory region {fl['region']!r}")
-            elif sum(fl["geometry"]["sectors"]) != region["size"]:
+            elif "sectors" in fl["geometry"] and sum(fl["geometry"]["sectors"]) != region["size"]:
                 self.err(soc, "flash.geometry.sectors",
                          f"the sectors add up to {sum(fl['geometry']['sectors'])} bytes, region {region['name']} is {region['size']}")
 
@@ -239,10 +256,14 @@ class Resolver:
             entry = {"pin": pin["name"], "port": pin["port"], "number": pin["number"], "mode": mode, "owner": at,
                      "gpio": gpio["name"]}
             if mode == "af":
+                offered = afs.get(pin["name"], {})
+                if pin["af"] is None and offered.get("fixed") == signal:
+                    entry.update({"mode": "fixed", "signal": signal})  # taken over when the peripheral is on
+                    out.append(entry)
+                    return
                 if pin["af"] is None:
                     self.err(board, at, f"{pin['name']} needs its alternate function: {pin['name']}.af<n>")
                     return
-                offered = afs.get(pin["name"], {})
                 got = offered.get(f"af{pin['af']}")
                 if got != signal:
                     have = ", ".join(f"{k} {v}" for k, v in sorted(offered.items())) or "no listed function"
@@ -274,10 +295,7 @@ class Resolver:
         if "tx" not in board.data.get("pins", {}).get(dev, {}):
             self.err(board, "console.device", f"{dev} has no tx pin in pins.{dev}")
             return None
-        if "clock" not in p:
-            self.err(board, "console.device", f"{dev} has no clock gate in the SoC description")
-            return None
-        return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p["clock"],
+        return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p.get("clock"),
                 "irqs": p.get("irqs", [])}
 
     def _test_irqs(self, board, soc):
@@ -309,7 +327,8 @@ class Resolver:
         bounds = []
         if fl is not None:
             addr = region["base"]
-            for size in fl["geometry"]["sectors"]:
+            page = fl["geometry"].get("page_size")
+            for size in fl["geometry"].get("sectors") or [page] * (region["size"] // page):
                 bounds.append((addr, addr + size))
                 addr += size
         starts = {b[0] for b in bounds}
@@ -326,8 +345,13 @@ class Resolver:
                 self.err(board, at, "does not start and end on erase-sector boundaries; "
                          "independently written partitions must not share a sector")
                 continue
-            sectors = [i for i, b in enumerate(bounds) if b[0] >= p["base"] and b[1] <= end]
-            out.append({"name": p["name"], "base": p["base"], "size": p["size"], "sectors": sectors})
+            units = [i for i, b in enumerate(bounds) if b[0] >= p["base"] and b[1] <= end]
+            entry = {"name": p["name"], "base": p["base"], "size": p["size"], "reserved": bool(p.get("reserved", False))}
+            if fl is not None and "sectors" in fl["geometry"]:
+                entry["sectors"] = units
+            elif fl is not None:
+                entry["pages"] = [units[0], units[-1]] if units else []
+            out.append(entry)
         for a, b in zip(out, out[1:]):
             if a["base"] + a["size"] > b["base"]:
                 self.err(board, f"flash_partitions.{b['name']}", f"overlaps {a['name']}")
@@ -344,10 +368,10 @@ class Resolver:
             self.err(board, "flash_partitions", "no partition named app: the image's place is unknown")
             return None
         code = {"origin": app["base"], "length": app["size"]} if app else {"origin": flash["base"], "length": flash["size"]}
-        ram = sorted((r for r in regions if {"w", "x"} <= set(r["attrs"]) and not {"retained", "tcm"} & set(r["attrs"])),
+        ram = sorted((r for r in regions if "w" in r["attrs"] and not {"retained", "tcm"} & set(r["attrs"])),
                      key=lambda r: r["base"])
         if not ram:
-            self.err(soc, "memory.regions", "no writable, executable, non-retained region for RAM")
+            self.err(soc, "memory.regions", "no writable, non-retained region for RAM")
             return None
         # contiguous regions from the lowest one become one linker RAM (SRAM1 + SRAM2 on the F446)
         merged = [ram[0]]
@@ -364,12 +388,16 @@ class Resolver:
         """The board's configuration fragment: what the port needs from the hardware, then the
         board's own defaults (CONFIG_EMB_PROFILE goes to board.cmake instead)."""
         derived = {}
-        if soc.data["arch"]["port"] == "cortex_m" and clk is not None:
+        port = soc.data["arch"]["port"]
+        if port == "cortex_m" and clk is not None:
             derived = {
                 "CONFIG_EMB_CM_CPU_HZ": clk["hclk_hz"],
                 "CONFIG_EMB_CM_IRQ_COUNT": soc.data["interrupts"]["count"],
-                "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": soc.data["interrupts"]["priority_bits"],
+                "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": soc.data["interrupts"].get("priority_bits"),
             }
+        elif port == "avr" and clk is not None:
+            derived = {"CONFIG_EMB_AVR_MCU": f'"{soc.data["cpu"].get("mcu", soc.data["arch"]["variant"])}"',
+                       "CONFIG_EMB_AVR_F_CPU": clk["hclk_hz"]}
         out = dict(derived)
         profile = "base"
         for key, value in sorted(board.data.get("defaults", {}).items()):
@@ -385,6 +413,16 @@ class Resolver:
             else:
                 out[key] = value
         return dict(sorted(out.items())), profile
+
+    def _timer(self, soc, clk):
+        """The kernel tick's source, as the port drives it (HW-015): SysTick on Cortex-M, Timer1 on
+        the AVR port (SPEC-012)."""
+        port = soc.data["arch"]["port"]
+        if port == "cortex_m" and soc.data["interrupts"].get("systick"):
+            return {"source": "systick", "hz": clk["hclk_hz"]}
+        if port == "avr" and any(p["name"] == "timer1" for p in soc.data["peripherals"]):
+            return {"source": "timer1", "hz": clk["hclk_hz"]}
+        return None
 
     def _curation(self, board, soc):
         for doc in (soc.leaf, board.leaf):

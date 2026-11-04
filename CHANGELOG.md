@@ -6,6 +6,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- The Arduino Uno builds from its generated description (A70).
+  - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The ATmega board support (`soc/microchip/atmega/`) and inline drivers (`drivers/microchip/include/`) take every address from `hw_config.h`.
+  - The images are byte-identical in `.text` and `.data`, and the configuration hashes are unchanged.
+  - The generated linker script limits text to the 32,256-byte app partition, so an image that would overwrite Optiboot no longer links.
+  - `generated/embld.opts` gives embld the same layout (HW-006).
+
 - The NUCLEO-F446RE builds from its generated description (A69).
   - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The board directory holds `board.yaml` and `generated/`.
   - The STM32F4 board support (`soc/st/stm32f4/`) and drivers (`drivers/st/`) take every address, gate, pin and frequency from `hw_config.h`.

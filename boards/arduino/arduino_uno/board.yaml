@@ -1,13 +1,31 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-# Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
-# in M1 the matching hw_config.h is written by hand (include/hw_config.h).
-board: arduino_uno
-soc: microchip/atmega/atmega328p
-oscillators: { main: { hz: 16000000, source: external_crystal } }
-console: { device: usart0, baud: 115200, pins: { tx: PD1, rx: PD0 } }
-leds: [ { name: user, gpio: PB5 } ]
+# Board description (SPEC-014 §4, SPEC-012 §11): Arduino Uno R3. emb-hwgen turns it into
+# generated/ (hw/gen/emb-hwgen.py generate --board boards/arduino/arduino_uno).
+schema_version: 0
+kind: board
+name: arduino_uno
+vendor: arduino
+revision: R3
+soc: microchip/atmega/atmega328p.yaml
+curated: true
+doc: >-
+  The ATmega328P at 16 MHz from its crystal, with the Optiboot bootloader in the last 512
+  bytes of flash. The console is USART0 on PD0 and PD1, which the ATmega16U2 carries as the
+  board's USB serial port; the user LED L is on PB5 (pin 13).
+oscillators:
+  xtal: { hz: 16MHz, source: external_crystal }
+clocks:
+  cpu_hz: 16MHz
+  source: xtal
+pins:
+  usart0: { tx: PD1, rx: PD0 }
+console: { device: usart0, baud: 115200 }
+leds: [ { name: user, gpio: PB5, active: high, doc: L } ]
 flash_partitions:
   - { name: app, base: 0x0000, size: 32256 }
-  - { name: bootloader, base: 0x7E00, size: 512, reserved: true }
+  - { name: bootloader, base: 0x7E00, size: 512, reserved: true, doc: Optiboot }
+simulation:
+  embsim: emblink/arduino_uno
+  qemu: [-M, arduino-uno, -icount, "shift=6,sleep=off", -bios] # ~16 MIPS, deterministic time
 defaults: { CONFIG_EMB_PROFILE: tiny, CONFIG_EMB_TICK_NS: 1000000 }

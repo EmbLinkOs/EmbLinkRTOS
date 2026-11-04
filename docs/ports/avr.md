@@ -1,8 +1,8 @@
 # Port: AVR (ATmega328P, `arch/avr`)
 
 **Specification:** SPEC-012 (port), SPEC-011 (contract), SPEC-002 §13 and SPEC-003 §13 (AVR rows).
-**Status (M1):** periodic tick, context switch, `EMB_ISR` prologue and epilogue, critical sections, interrupt mask table, idle, faults by halt or watchdog reset. Tickless mode, the `.noinit` crash record, and the generated linker script come with later milestones; the configuration refuses `CONFIG_EMB_TICKLESS` on this port until then.
-**Boards:** `arduino_uno` (ATmega328P at 16 MHz, USART0 console at 115200, LED on PB5, Optiboot keeps the top 512 bytes of flash).
+**Status (M1):** periodic tick, context switch, `EMB_ISR` prologue and epilogue, critical sections, interrupt mask table, idle, faults by halt or watchdog reset. Tickless mode, the `.noinit` crash record, come with later milestones; the configuration refuses `CONFIG_EMB_TICKLESS` on this port until then.
+**Boards:** `arduino_uno` (ATmega328P at 16 MHz, USART0 console at 115200, LED on PB5, Optiboot keeps the top 512 bytes of flash). The board is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory. The ATmega board support (`soc/microchip/atmega/board.c`) and the inline drivers in `drivers/microchip/include/` build it; the images are byte-identical to the hand-written board's.
 **Verified on:** QEMU `arduino-uno` machine (SIM-002): the first-execution sequence and the conformance suite. No hardware run yet: every figure below marked *measured* comes from the toolchain's output, not from a board, and no latency number is published (SIM-003).
 
 ## Context frame
@@ -44,7 +44,7 @@ Periodic tick on Timer1 CTC: prescaler `CONFIG_EMB_AVR_TIMER1_PRESCALER` (64), `
 
 ## Memory and linking
 
-- Registration tables (`emb_init_table`, `emb_test_table`) live in flash in `.progmem.<name>` sections, bracketed by `__start_`/`__stop_` symbols in the board's linker script (`boards/arduino/arduino_uno/arduino_uno.ld`, derived from the toolchain's avr5 script with the flash region ending below Optiboot). GCC for AVR lets the `progmem` attribute override an explicit section name, so table entries are declared with `EMB_TABLE_CONST` (plain `const` plus the section) and read with `EMB_FLASH_READ_*`.
+- Registration tables (`emb_init_table`, `emb_test_table`) live in flash in `.progmem.<name>` sections, bracketed by `__start_`/`__stop_` symbols in the board's generated linker script (`boards/arduino/arduino_uno/generated/regions.ld`, derived from the toolchain's avr5 script). Its text region is the board's `app` partition, 32,256 bytes ending below Optiboot, which the hand-written script stated but left to the toolchain's 32 KiB default. `generated/embld.opts` holds the same layout for embld (HW-006). GCC for AVR lets the `progmem` attribute override an explicit section name, so table entries are declared with `EMB_TABLE_CONST` (plain `const` plus the section) and read with `EMB_FLASH_READ_*`.
 - `const` tables of the kernel are `EMB_FLASH_CONST` (`progmem`) and read with `pgm_read_*`; string literals of a checked build (`__func__` locations) stay in RAM on avr-gcc 7, so the tiny profile sets `CONFIG_EMB_FAULT_WHERE=n`.
 - Stack checks: the kernel's guard words (8 bytes at the stack limit) at every switch; no hardware limit, no MPU.
 

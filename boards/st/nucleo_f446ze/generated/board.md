@@ -22,9 +22,9 @@ The STM32F446ZE (LQFP144) at 180 MHz from the PLL, its input the ST-LINK/V2-1's 
 
 ## Flash partitions
 
-| Partition | Base | Size | Erase sectors |
+| Partition | Base | Size | Erase units |
 |---|---|---|---|
-| app | `0x08000000` | 512K | 0, 1, 2, 3, 4, 5, 6, 7 |
+| app | `0x08000000` | 512K | sectors 0, 1, 2, 3, 4, 5, 6, 7 |
 
 ## Pins
 

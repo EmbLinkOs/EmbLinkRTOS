@@ -11,7 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 BOARDS = {
     "native": ("native/native", "native", "base", "posix"),
-    "avr": ("arduino/arduino_uno", "avr", "tiny", "atmega328p"),
+    "avr": ("arduino/arduino_uno/generated", "avr", "tiny", "atmega328p"),
     "riscv": ("qemu/riscv32_virt", "riscv", "base", "rv32imac"),
     "cm3": ("arm/mps2_an385", "cortex_m", "base", "armv7m"),
     "cm4": ("arm/mps2_an386", "cortex_m", "base", "armv7em"),

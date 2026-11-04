@@ -1,0 +1,469 @@
+{
+  "board": {
+    "clocks": {
+      "cpu_hz": 16000000,
+      "source": "xtal"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "usart0"
+    },
+    "curated": true,
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "tiny",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "The ATmega328P at 16 MHz from its crystal, with the Optiboot bootloader in the last 512 bytes of flash. The console is USART0 on PD0 and PD1, which the ATmega16U2 carries as the board's USB serial port; the user LED L is on PB5 (pin 13).",
+    "flash_partitions": [
+      {
+        "base": 0,
+        "name": "app",
+        "size": 32256
+      },
+      {
+        "base": 32256,
+        "doc": "Optiboot",
+        "name": "bootloader",
+        "reserved": true,
+        "size": 512
+      }
+    ],
+    "kind": "board",
+    "leds": [
+      {
+        "active": "high",
+        "doc": "L",
+        "gpio": "PB5",
+        "name": "user"
+      }
+    ],
+    "name": "arduino_uno",
+    "oscillators": {
+      "xtal": {
+        "hz": 16000000,
+        "source": "external_crystal"
+      }
+    },
+    "pins": {
+      "usart0": {
+        "rx": "PD0",
+        "tx": "PD1"
+      }
+    },
+    "revision": "R3",
+    "schema_version": 0,
+    "simulation": {
+      "embsim": "emblink/arduino_uno",
+      "qemu": [
+        "-M",
+        "arduino-uno",
+        "-icount",
+        "shift=6,sleep=off",
+        "-bios"
+      ]
+    },
+    "soc": "microchip/atmega/atmega328p.yaml",
+    "vendor": "arduino"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {},
+      "bypass": false,
+      "cpu_hz": 16000000,
+      "hclk_hz": 16000000,
+      "pll": null,
+      "source": "xtal",
+      "source_hz": 16000000
+    },
+    "console": {
+      "base": 192,
+      "baud": 115200,
+      "clock": null,
+      "clock_hz": 16000000,
+      "device": "usart0",
+      "irqs": [
+        {
+          "name": "rx",
+          "number": 18
+        },
+        {
+          "name": "udre",
+          "number": 19
+        },
+        {
+          "name": "tx",
+          "number": 20
+        }
+      ]
+    },
+    "kconfig": {
+      "CONFIG_EMB_AVR_F_CPU": 16000000,
+      "CONFIG_EMB_AVR_MCU": "\"atmega328p\"",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 32256,
+        "origin": 0
+      },
+      "ram": {
+        "length": 2048,
+        "origin": 256,
+        "regions": [
+          "sram"
+        ]
+      }
+    },
+    "partitions": [
+      {
+        "base": 0,
+        "name": "app",
+        "pages": [
+          0,
+          251
+        ],
+        "reserved": false,
+        "size": 32256
+      },
+      {
+        "base": 32256,
+        "name": "bootloader",
+        "pages": [
+          252,
+          255
+        ],
+        "reserved": true,
+        "size": 512
+      }
+    ],
+    "pins": [
+      {
+        "gpio": "portb",
+        "mode": "output",
+        "number": 5,
+        "owner": "leds.user",
+        "pin": "PB5",
+        "port": "B"
+      },
+      {
+        "gpio": "portd",
+        "mode": "fixed",
+        "number": 0,
+        "owner": "pins.usart0.rx",
+        "pin": "PD0",
+        "port": "D",
+        "signal": "usart0_rx"
+      },
+      {
+        "gpio": "portd",
+        "mode": "fixed",
+        "number": 1,
+        "owner": "pins.usart0.tx",
+        "pin": "PD1",
+        "port": "D",
+        "signal": "usart0_tx"
+      }
+    ],
+    "profile": "tiny",
+    "test_irqs": null,
+    "timer": {
+      "hz": 16000000,
+      "source": "timer1"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/avr/arch.yaml",
+      "sha256": "2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2"
+    },
+    {
+      "path": "boards/arduino/arduino_uno/board.yaml",
+      "sha256": "925a772f8ddd394c8ac91b964db600cc0421671415828b733c2f954d7e3171e3"
+    },
+    {
+      "path": "soc/microchip/atmega/atmega328p.yaml",
+      "sha256": "f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "alternate_functions": {
+      "PD0": {
+        "fixed": "usart0_rx"
+      },
+      "PD1": {
+        "fixed": "usart0_tx"
+      }
+    },
+    "arch": {
+      "port": "avr",
+      "variant": "atmega328p"
+    },
+    "clocks": {
+      "sources": [
+        {
+          "doc": "the full-swing crystal oscillator",
+          "hz": "board",
+          "max_hz": 20000000,
+          "min_hz": 400000,
+          "name": "xtal"
+        },
+        {
+          "doc": "the calibrated internal RC oscillator",
+          "hz": 8000000,
+          "name": "rc"
+        }
+      ]
+    },
+    "cpu": {
+      "core": "avr5",
+      "mcu": "atmega328p"
+    },
+    "curated": true,
+    "family": "megaavr",
+    "flash": {
+      "geometry": {
+        "page_size": 128,
+        "write_granularity": 128
+      },
+      "region": "flash"
+    },
+    "gpio": {
+      "ports": {
+        "B": 255,
+        "C": 127,
+        "D": 255
+      }
+    },
+    "interrupts": {
+      "controller": "avr",
+      "count": 26,
+      "vectors": [
+        {
+          "name": "reset",
+          "number": 0
+        },
+        {
+          "name": "int0",
+          "number": 1
+        },
+        {
+          "name": "int1",
+          "number": 2
+        },
+        {
+          "name": "pcint0",
+          "number": 3
+        },
+        {
+          "name": "pcint1",
+          "number": 4
+        },
+        {
+          "name": "pcint2",
+          "number": 5
+        },
+        {
+          "name": "wdt",
+          "number": 6
+        },
+        {
+          "name": "timer2_compa",
+          "number": 7
+        },
+        {
+          "name": "timer2_compb",
+          "number": 8
+        },
+        {
+          "name": "timer2_ovf",
+          "number": 9
+        },
+        {
+          "name": "timer1_capt",
+          "number": 10
+        },
+        {
+          "name": "timer1_compa",
+          "number": 11
+        },
+        {
+          "name": "timer1_compb",
+          "number": 12
+        },
+        {
+          "name": "timer1_ovf",
+          "number": 13
+        },
+        {
+          "name": "timer0_compa",
+          "number": 14
+        },
+        {
+          "name": "timer0_compb",
+          "number": 15
+        },
+        {
+          "name": "timer0_ovf",
+          "number": 16
+        },
+        {
+          "name": "spi_stc",
+          "number": 17
+        },
+        {
+          "name": "usart_rx",
+          "number": 18
+        },
+        {
+          "name": "usart_udre",
+          "number": 19
+        },
+        {
+          "name": "usart_tx",
+          "number": 20
+        },
+        {
+          "name": "adc",
+          "number": 21
+        },
+        {
+          "name": "ee_ready",
+          "number": 22
+        },
+        {
+          "name": "analog_comp",
+          "number": 23
+        },
+        {
+          "name": "twi",
+          "number": 24
+        },
+        {
+          "name": "spm_ready",
+          "number": 25
+        }
+      ]
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 0,
+          "name": "flash",
+          "size": 32768,
+          "space": "program"
+        },
+        {
+          "attrs": [
+            "r",
+            "w"
+          ],
+          "base": 256,
+          "name": "sram",
+          "size": 2048,
+          "space": "data"
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "retained"
+          ],
+          "base": 0,
+          "name": "eeprom",
+          "size": 1024,
+          "space": "eeprom"
+        }
+      ]
+    },
+    "name": "atmega328p",
+    "package": "pdip28",
+    "part": "ATmega328P",
+    "peripherals": [
+      {
+        "base": 35,
+        "compatible": "microchip,avr-gpio",
+        "name": "portb",
+        "port": "B",
+        "size": 3,
+        "space": "data"
+      },
+      {
+        "base": 38,
+        "compatible": "microchip,avr-gpio",
+        "name": "portc",
+        "port": "C",
+        "size": 3,
+        "space": "data"
+      },
+      {
+        "base": 41,
+        "compatible": "microchip,avr-gpio",
+        "name": "portd",
+        "port": "D",
+        "size": 3,
+        "space": "data"
+      },
+      {
+        "base": 128,
+        "compatible": "microchip,avr-timer16",
+        "irqs": [
+          {
+            "name": "capt",
+            "number": 10
+          },
+          {
+            "name": "compa",
+            "number": 11
+          },
+          {
+            "name": "compb",
+            "number": 12
+          },
+          {
+            "name": "ovf",
+            "number": 13
+          }
+        ],
+        "name": "timer1",
+        "size": 12,
+        "space": "data"
+      },
+      {
+        "base": 192,
+        "compatible": "microchip,avr-usart",
+        "irqs": [
+          {
+            "name": "rx",
+            "number": 18
+          },
+          {
+            "name": "udre",
+            "number": 19
+          },
+          {
+            "name": "tx",
+            "number": 20
+          }
+        ],
+        "name": "usart0",
+        "size": 7,
+        "space": "data"
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "microchip"
+  },
+  "warnings": []
+}

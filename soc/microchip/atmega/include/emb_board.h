@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* arduino_uno board interface: console on USART0, user LED on PB5 (SPEC-012 §11). */
+/* The board interface of every ATmega board described in YAML: the console and the first LED are
+ * the ones the board's generated hw_config.h names (SPEC-012 §11, SPEC-014). */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 
@@ -8,11 +9,13 @@
 
 #include <stdint.h>
 
+#include <hw_config.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define EMB_HW_BOARD_NAME "arduino_uno"
+#define EMB_HW_BOARD_NAME EMB_HW_BOARD
 
 void emb_board_init(void);
 void emb_board_led_toggle(void);

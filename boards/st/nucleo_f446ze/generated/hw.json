@@ -155,6 +155,7 @@
       {
         "base": 134217728,
         "name": "app",
+        "reserved": false,
         "sectors": [
           0,
           1,
