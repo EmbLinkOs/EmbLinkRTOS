@@ -6,11 +6,6 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
-- The NUCLEO-F446RE builds from its generated description (A69).
-  - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The board directory holds `board.yaml` and `generated/`.
-  - The STM32F4 board support (`soc/st/stm32f4/`) and drivers (`drivers/st/`) take every address, gate, pin and frequency from `hw_config.h`.
-  - The configuration hash, the register values and the EmbSIM results are unchanged. Each image is 176 to 192 bytes larger in text.
-  - Configuration refuses `generated/` files older than their descriptions, and `emb-hwgen.py check` fails on address-like constants in `soc/` and `drivers/` C.
 - The ESP32-C3-DevKitM-1 board runs its CPU at 160 MHz from the PLL, set up in `emb_board_init()` as ESP-IDF v5.4's bootloader does (BBPLL power, its 480 MHz configuration through the boot ROM's analog I2C routines, CPUPERIOD_SEL and SOC_CLK_SEL), instead of the boot ROM's 20 MHz; UART0's divider is set again for 115200 baud from the 80 MHz APB clock. `run_embsim.py --core-hz` (a board's `EMB_BOARD_EMBSIM_CORE_HZ`) checks the clock the MCU ends at in every EmbSIM test of the board.
 
 - The tiny thread table has no slot for idle, and `CONFIG_EMB_FAULT_HOOK_RUNTIME=n` binds the fault hook at link time through an application-defined `emb_fault_hook()` (weak empty default), keeping no hook pointer in RAM. The `footprint_t1` reference configuration uses it; AVR `footprint_t1` kernel static RAM is 39 bytes and its gate is lowered from 64 to that value.
@@ -27,6 +22,7 @@ User-visible changes are recorded here. There are no released versions or releas
   - It validates SoC and board descriptions against JSON Schema 2020-12 files in `hw/schemas/` and against the semantic rules. Each error names the file, line and node.
   - It solves the clock tree and writes a board's `generated/` directory: `hw_config.h`, `board_pins.c`, `regions.ld`, `board.conf`, `board.cmake`, `hw.json`, `board.md` and `build_report.md`, deterministically and stamped with input hashes.
   - Descriptions exist for the STM32F446 (family, die, RE and ZE parts) and the NUCLEO-F446RE. CI regenerates and compares the outputs.
+  - The NUCLEO-F446RE build does not use them yet.
 
 - A CI job runs the experimental EmbCC-kernel / GCC-host native presets (`native-embcc`, `-release`, `-tiny`, `-periodic`) with the EmbCC `0.0.1-beta` release, pinned by version and SHA-256; the merge gate requires it.
 

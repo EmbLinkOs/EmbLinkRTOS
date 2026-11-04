@@ -6,45 +6,20 @@
 find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
 
 # -- board ---------------------------------------------------------------------
-# A hand-written board has boards/<vendor>/<board>/board.cmake; a board described in YAML has
-# only board.yaml and the generator's generated/ directory, which then is EMB_BOARD_DIR (SPEC-014).
-file(GLOB _emb_board_cmake "${CMAKE_SOURCE_DIR}/boards/*/${EMB_BOARD}/board.cmake"
-                           "${CMAKE_SOURCE_DIR}/boards/*/${EMB_BOARD}/generated/board.cmake")
+file(GLOB _emb_board_cmake "${CMAKE_SOURCE_DIR}/boards/*/${EMB_BOARD}/board.cmake")
 list(LENGTH _emb_board_cmake _n)
 if(NOT _n EQUAL 1)
-  file(GLOB _all "${CMAKE_SOURCE_DIR}/boards/*/*/board.cmake" "${CMAKE_SOURCE_DIR}/boards/*/*/generated/board.cmake")
+  file(GLOB _all "${CMAKE_SOURCE_DIR}/boards/*/*/board.cmake")
   set(_names "")
   foreach(_b ${_all})
-    string(REGEX REPLACE "/generated/board.cmake$|/board.cmake$" "" _d "${_b}")
+    get_filename_component(_d "${_b}" DIRECTORY)
     get_filename_component(_nm "${_d}" NAME)
     string(APPEND _names " ${_nm}")
   endforeach()
   message(FATAL_ERROR "EMB_BOARD='${EMB_BOARD}' is not a board directory. Known boards:${_names}")
 endif()
 get_filename_component(EMB_BOARD_DIR "${_emb_board_cmake}" DIRECTORY)
-set(EMB_BOARD_INCLUDE_DIRS "${EMB_BOARD_DIR}/include")
 include("${_emb_board_cmake}")   # EMB_BOARD_ARCH, EMB_BOARD_VARIANT, EMB_BOARD_DEFAULT_PROFILE, EMB_BOARD_MCU
-if(DEFINED EMB_BOARD_HW_INPUTS)
-  # a generated board: refuse outputs older than their descriptions (HW-003), and reconfigure
-  # when a description changes
-  foreach(_in ${EMB_BOARD_HW_INPUTS})
-    string(REGEX MATCH "^([^=]+)=([0-9a-f]+)$" _m "${_in}")
-    set(_rel "${CMAKE_MATCH_1}")
-    set(_path "${CMAKE_SOURCE_DIR}/${_rel}")
-    set(_want "${CMAKE_MATCH_2}")
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_path}")
-    if(NOT EXISTS "${_path}")
-      message(FATAL_ERROR "${EMB_BOARD}: generated/ names ${_rel}, which does not exist")
-    endif()
-    file(SHA256 "${_path}" _have)
-    if(NOT _have STREQUAL _want)
-      string(REGEX REPLACE "/generated$" "" _bd "${EMB_BOARD_DIR}")
-      file(RELATIVE_PATH _bd "${CMAKE_SOURCE_DIR}" "${_bd}")
-      message(FATAL_ERROR "${EMB_BOARD}: ${_rel} changed since generated/ was written; "
-                          "run python3 -I hw/gen/emb-hwgen.py generate --board ${_bd}")
-    endif()
-  endforeach()
-endif()
 if(NOT EMB_PROFILE)
   set(EMB_PROFILE "${EMB_BOARD_DEFAULT_PROFILE}")
 endif()

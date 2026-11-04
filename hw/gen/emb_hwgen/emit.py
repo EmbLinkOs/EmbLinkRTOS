@@ -81,10 +81,9 @@ def hw_config_h(r):
     clocks["EMB_HW_SYSCLK_HSI"] = "0"
     clocks["EMB_HW_SYSCLK_HSE"] = "1"
     clocks["EMB_HW_SYSCLK_PLL"] = "2"
-    # CFGR.SW's encoding; always defined, as the drivers test them with -Wundef
-    clocks["EMB_HW_PLL_SOURCE_HSE"] = "1" if clk["pll"] and clk["source"] == "hse" else "0"
     if clk["pll"]:
         pll = clk["pll"]
+        clocks["EMB_HW_PLL_SOURCE_HSE"] = "1" if clk["source"] == "hse" else "0"
         for f in ("m", "n", "p", "q", "r"):
             if f in pll:
                 clocks[f"EMB_HW_PLL_{f.upper()}"] = f"{pll[f]}u"
@@ -182,7 +181,8 @@ def board_pins_c(r):
         g = _sym(e["gpio"])
         what = e.get("signal", e["mode"])
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u}},\n"
+        out += (f"    {{EMB_HW_{g}_BASE, EMB_HW_{g}_CLKEN_BIT, {e['number']}u, {mode[e['mode']]}, "
+                f"{e.get('af', 0)}u}},\n")
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -275,15 +275,11 @@ def board_cmake(r):
     soc = r["soc"]
     out = "# SPDX-License-Identifier: Apache-2.0\n" + _hash_comment(r, _cmd(r))
     out += f"# {r['board']['name']}: {soc.get('part', soc['name'])}, {soc['cpu']['core']} at {_mhz(r['clock']['hclk_hz'])}.\n"
-    soc_dir = "soc/" + "/".join(r["board"]["soc"].split("/")[:-1])
     out += f"set(EMB_BOARD_ARCH {soc['arch']['port']})\n"
     out += f"set(EMB_BOARD_VARIANT {soc['arch']['variant']})\n"
     out += f"set(EMB_BOARD_DEFAULT_PROFILE {r['profile']})\n"
     if soc["cpu"].get("cflags"):
         out += f"set(EMB_BOARD_C_FLAGS {' '.join(soc['cpu']['cflags'])})\n"
-    out += "# the SoC family's board support and drivers build this board (generated/CMakeLists.txt)\n"
-    out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
-    out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
@@ -292,14 +288,6 @@ def board_cmake(r):
     for i in r["inputs"]:
         out += f"    \"{i['path']}={i['sha256']}\"\n"
     out += ")\n"
-    return out
-
-
-def cmakelists_txt(r):
-    out = "# SPDX-License-Identifier: Apache-2.0\n" + _hash_comment(r, _cmd(r))
-    out += "# The board has no C of its own: its SoC family's board support builds emb_board from\n"
-    out += "# board_pins.c and hw_config.h here, and links regions.ld.\n"
-    out += "add_subdirectory(\"${EMB_SOC_DIR}\" soc)\n"
     return out
 
 
@@ -411,7 +399,6 @@ OUTPUTS = {
     "regions.ld": regions_ld,
     "board.conf": board_conf,
     "board.cmake": board_cmake,
-    "CMakeLists.txt": cmakelists_txt,
     "hw.json": hw_json,
     "board.md": board_md,
     "build_report.md": build_report_md,

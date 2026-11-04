@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board interface of every STM32F4 board described in YAML: the console and the first LED
- * are the ones the board's generated hw_config.h names. */
+/* nucleo_f446re board interface: console on USART2 (the ST-LINK's virtual COM port), LD2 on PA5. */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 

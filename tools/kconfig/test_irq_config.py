@@ -15,7 +15,7 @@ BOARDS = {
     "riscv": ("qemu/riscv32_virt", "riscv", "base", "rv32imac"),
     "cm3": ("arm/mps2_an385", "cortex_m", "base", "armv7m"),
     "cm4": ("arm/mps2_an386", "cortex_m", "base", "armv7em"),
-    "f446": ("st/nucleo_f446re/generated", "cortex_m", "base", "armv7em"),  # emb-hwgen's output
+    "f446": ("st/nucleo_f446re", "cortex_m", "base", "armv7em"),
 }
 
 

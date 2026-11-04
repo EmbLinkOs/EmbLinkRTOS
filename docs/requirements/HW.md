@@ -11,8 +11,8 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-001  Single source for hardware facts
 **Statement.** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **Rationale.** No hand-written board C for things the description knows (01 §6).
-**Status.** Accepted 2026-10-07; implemented for boards described in YAML (the NUCLEO-F446RE, A69); the other boards keep hand-written files.
-**Verification.** Analysis: CI grep for register addresses and IRQ numbers in `boards/` and `soc/` C sources; review of generated outputs. Implemented as `hw/gen/emb-hwgen.py check` (`emb_hwgen/facts.py`, tests in the `Facts` cases of `hw/gen/test_hwgen.py`).
+**Status.** Accepted 2026-10-07
+**Verification.** Analysis: CI grep for register addresses and IRQ numbers in `boards/` and `soc/` C sources; review of generated outputs.
 **Trace.** SPEC-014 §3 to §6; ADR-004
 
 ### HW-002  Schema validation with named errors
@@ -25,7 +25,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-003  Reproducible generated files
 **Statement.** Generated files shall be reproducible and never edited by hand.
 **Rationale.** BLD-004; drift between description and code is the failure this pipeline prevents.
-**Status.** Accepted 2026-10-07; implemented: `emb-hwgen.py check` regenerates every board with a `generated/` directory (A66), and configuration refuses outputs older than their inputs (A69).
+**Status.** Accepted 2026-10-07; implemented: `emb-hwgen.py check` regenerates every board with a `generated/` directory (A66).
 **Verification.** CI regenerates and diffs against the committed outputs. Test: `Outputs.test_committed_outputs_are_current`; the CI lint job runs `hw/gen/emb-hwgen.py check`.
 **Trace.** SPEC-014 §9
 
