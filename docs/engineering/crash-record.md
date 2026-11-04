@@ -37,12 +37,12 @@ A software fault's pc is the return address into the code that raised it. On a h
 
 | Target | `test_crash` (in one boot) | `test_crash_reset` (across a real reset) |
 |---|---|---|
-| Native presets | yes, plus a real fault in a forked child read back from the file | not applicable: a process reset is a new process (the forked case covers it) |
-| QEMU MPS2 AN385 and AN386 | yes | yes, SYSRESETREQ |
-| QEMU RV32 virt | yes | yes, the sifive_test reset |
-| QEMU arduino-uno | yes | no: the machine has no watchdog, so the reset never comes |
+| Native presets (not tiny) | yes, plus a real fault in a forked child read back from the file | not applicable: a process reset is a new process (the forked case covers it) |
+| QEMU MPS2 AN385 and AN386 (not tiny) | yes | yes, SYSRESETREQ |
+| QEMU RV32 virt (not tiny) | yes | yes, the sifive_test reset |
+| QEMU arduino-uno | no: the tiny profile leaves the record off | no: the machine has no watchdog, so the reset never comes |
 | EmbSIM NUCLEO-F446RE | yes | yes, SYSRESETREQ |
-| EmbSIM Arduino Uno | yes | yes, the watchdog reset |
+| EmbSIM Arduino Uno (`avr-uno-embsim`, record turned on) | yes | yes, the watchdog reset |
 | EmbSIM ESP32-C3 | yes | no: the board has no `emb_board_system_reset()` yet |
 
 The table comes from scratch probes: a `.noinit` word, a reset, and a report on the second boot. The probes ran on QEMU 11.1.1 and on EmbSIM `c528293` and `2529ab8`. `EMB_BOARD_RESETS_IN` in a board's `board.cmake`, or `simulation.resets_in` in its `board.yaml`, names the emulators where `test_crash_reset` is built.
@@ -50,6 +50,10 @@ The table comes from scratch probes: a `.noinit` word, a reset, and a report on 
 ## AVR: the watchdog after its own reset
 
 On the ATmega328P a watchdog reset leaves the watchdog enabled, with its shortest timeout. Until this change, the fault action REBOOT therefore reset the part again every 15 ms. The port now clears WDRF and stops the watchdog in `.init3`, before the C runtime starts. EmbSIM shows both behaviors.
+
+## The tiny profile
+
+The record is off by default on the tiny profile ([A73](../specs/AMENDMENTS-M3.md)). On AVR its code costs about 1 KiB of flash, which the tiny footprint gates (`tools/footprint/thresholds-avr-uno*.json`, baseline plus 10 percent) do not have room for. A tiny build that wants it sets `CONFIG_EMB_CRASH_RECORD=y`, as the `avr-uno-embsim` preset does, so that CI still verifies the AVR record and its survival across the watchdog reset.
 
 ## Limits
 

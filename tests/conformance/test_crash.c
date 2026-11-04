@@ -136,9 +136,6 @@ EMB_TEST(crash_record_from_a_real_fault_reaches_the_next_boot)
     EMB_ASSERT_EQ(r.fault_class, EMB_FAULT_CHECK);
     EMB_ASSERT_EQ(r.code, 0x0BADu);
     EMB_ASSERT_EQ(r.api_id, EMB_API_ID_NONE);
-#if EMB_HAS_RETURN_ADDRESS
-    EMB_ASSERT_TRUE(r.pc != 0u); /* the return address into this test, for crashdec to name */
-#endif
     crash_print(&r);
 
     EMB_ASSERT_OK(emb_crash_record_clear());

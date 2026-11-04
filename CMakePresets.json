@@ -148,14 +148,15 @@
     },
     {
       "name": "avr-uno-embsim",
-      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked, tests on EmbSIM's Uno",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked, crash record on, tests on EmbSIM's Uno",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno-embsim",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
       "cacheVariables": {
         "EMB_BOARD": "arduino_uno",
         "EMB_PROFILE": "tiny",
-        "EMB_TEST_EMULATOR": "embsim"
+        "EMB_TEST_EMULATOR": "embsim",
+        "EMB_SET": "EMB_CRASH_RECORD=y"
       }
     },
     {

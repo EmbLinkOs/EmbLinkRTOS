@@ -436,6 +436,7 @@ config EMB_TRACE
 
 config EMB_CRASH_RECORD
 	bool "Crash record kept across reset (SPEC-015 §4, OBS-016)"
+	default n if EMB_PROFILE_TINY
 	default y
 	help
 	  A kernel fault writes a record of itself (fault class, code, API
@@ -443,7 +444,8 @@ config EMB_CRASH_RECORD
 	  the port's reset leaves alone, before the hook and the fault action.
 	  The next boot validates it and emb_crash_record_get() returns it.
 	  Version 1 on 32-bit and native ports (92 bytes), the small version 2
-	  on AVR (34 bytes of .noinit).
+	  on AVR (34 bytes of .noinit). Off by default on the tiny profile: on
+	  AVR its code (about 1 KiB) does not fit the tiny footprint gates (A73).
 
 config EMB_FW_VERSION
 	string "Firmware version recorded in the crash record (8 bytes)"

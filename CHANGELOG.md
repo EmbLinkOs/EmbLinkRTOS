@@ -31,7 +31,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
-- The crash record (SPEC-015 §4, A71 to A73; `CONFIG_EMB_CRASH_RECORD`, on by default).
+- The crash record (SPEC-015 §4, A71 to A73; `CONFIG_EMB_CRASH_RECORD`, on by default except on the tiny profile, where its AVR code does not fit the footprint gates).
   - A kernel fault writes a CRC-checked record before the hook and the fault action. Version 1 (92 bytes) on 32-bit and native ports holds the build id, firmware version, uptime, fault class, code, API and argument, thread, address, pc and sp. Version 2 (34 bytes) serves AVR.
   - The record lives in memory the reset leaves alone: 128 bytes above the stack on Cortex-M and RISC-V, `.noinit` on AVR, `$EMB_NATIVE_CRASH_FILE` on native.
   - The next boot validates it, and `emb_crash_record_get()` and `emb_crash_record_clear()` (API IDs 145 and 146) read and discard it.
