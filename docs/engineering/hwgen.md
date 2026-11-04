@@ -8,6 +8,7 @@
 python3 -I hw/gen/emb-hwgen.py validate --board boards/st/nucleo_f446re   # check only
 python3 -I hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446re   # rewrite generated/
 python3 -I hw/gen/emb-hwgen.py check                                      # CI: every generated/ is current
+python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project            # a project's own boards
 ```
 
 The generator needs Python 3 and PyYAML, the configuration tool's one dependency.
@@ -140,6 +141,29 @@ The tests cover:
 - unit parsing and inheritance.
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
+
+## A board outside the tree
+
+A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:
+
+```text
+my-project/
+  boards/acme/acme_m4/board.yaml     # names a SoC of this tree: soc: arm/mps2/an386.yaml
+  boards/acme/acme_m4/generated/     # emb-hwgen's outputs, committed with the project
+```
+
+```sh
+python3 -I hw/gen/emb-hwgen.py generate --board ~/my-project/boards/acme/acme_m4
+cmake -S . -B build/acme -G Ninja --toolchain cmake/toolchains/arm-none-eabi-gcc.cmake \
+      -DEMB_BOARD=acme_m4 -DEMB_BOARD_ROOT=$HOME/my-project
+cmake --build build/acme && ctest --test-dir build/acme
+python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project    # in the project's CI
+```
+
+- **Lookup.** Configuration looks the board up in this tree and in each root (a semicolon-separated list; relative paths start from this tree). It refuses a root without `boards/`, and a board name found twice.
+- **Stamps.** The outputs record the board's own files as `@board/board.yaml`, relative to the board's directory, and the SoC and port files by their paths in this tree. The staleness check resolves both, and the outputs hold no path of the machine they were made on.
+- **What stays in the tree.** SoC descriptions and their family board support. A custom SoC still needs a description, and a new family needs its board support, in this tree.
+- **Verified.** A copy of the MPS2 AN386 description kept outside the tree as `acme_m4` generates, configures, and passes the AN386's 21 tests under QEMU. `OutOfTree` in `hw/gen/test_hwgen.py` covers the stamps, location independence, the messages, and `check --board-root`.
 
 ## Limits of this increment
 

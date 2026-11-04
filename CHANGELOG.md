@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Boards outside the tree: `-DEMB_BOARD_ROOT=<dir>` builds a project's own board (a custom PCB, say) from its `board.yaml`, on this tree's SoC descriptions. `emb-hwgen.py check --board-root <dir>` checks those boards in the project's CI. The generator stamps such a board's files as `@board/...`, so outputs are the same on every machine. ADR-051 (proposed) sets the board-support model this begins: cores are ported, SoCs imported, boards described, with support tiers taken from evidence (A76).
+
 - A bring-up probe for the classic ESP32 (docs/ports/xtensa.md), ahead of any Xtensa port: `tools/esp/bringup/` builds a kernel-free image with EmbCC. The image stops the ROM's watchdogs and prints on UART0; it is flashed at 0x1000 with `embflash --esp`. `tools/esp/esp_image.py --chip esp32` writes the ESP32's image (chip 0, 40 MHz flash), with each segment placed at its run address. Not yet run on hardware.
 
 - The first hardware run (docs/engineering/hil-uno-2026-11-04.md): the checked tiny suite on an Arduino Uno R3, flashed with embflash, passed 17 of 17. That includes the crash record surviving the watchdog reset, decoded to the faulting line, The release (15/15) and T1 (12/12) builds pass too. Hand-overs measure 81, 68 and 66 µs per switch in the checked, release and T1 builds (about 1,300, 1,085 and 1,062 cycles).

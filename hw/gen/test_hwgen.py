@@ -332,6 +332,64 @@ class Outputs(unittest.TestCase):
         self.assertIn("openocd", data["board"]["debug_probe"])
 
 
+class OutOfTree(unittest.TestCase):
+    """A76: a project's own board, kept outside the tree under an EMB_BOARD_ROOT, uses the tree's
+    SoC descriptions; its outputs name its own files from its directory ('@board/'), never the
+    machine's paths."""
+
+    def project(self, name="acme_m4"):
+        d = Path(tempfile.mkdtemp(prefix="hwgen-project-"))
+        self.addCleanup(shutil.rmtree, d)
+        board = d / "boards" / "acme" / name
+        board.mkdir(parents=True)
+        text = (ROOT / "boards/arm/mps2_an386/board.yaml").read_text(encoding="utf-8")
+        (board / "board.yaml").write_text(text.replace("name: mps2_an386", f"name: {name}"), encoding="utf-8")
+        return d, board
+
+    def test_inputs_are_stamped_from_the_board(self):
+        d, board = self.project()
+        files, _ = generate.generate(board, ROOT)
+        cmake = files["board.cmake"]
+        self.assertRegex(cmake, r'"@board/board\.yaml=[0-9a-f]{64}"')
+        self.assertIn('"soc/arm/mps2/an386.yaml=', cmake)
+        self.assertIn("generate --board <path to>/acme_m4", cmake)
+        for name, text in files.items():
+            with self.subTest(file=name):
+                self.assertNotIn(str(d), text)
+                self.assertNotIn(str(d.resolve()), text)
+
+    def test_location_independent(self):
+        """HW-013 for a board outside the tree: two projects in two places give the same bytes."""
+        _, a = self.project()
+        _, b = self.project()
+        self.assertEqual(generate.generate(a, ROOT)[0], generate.generate(b, ROOT)[0])
+
+    def test_terminal_messages_keep_the_real_path(self):
+        d, board = self.project()
+        _, warnings = generate.generate(board, ROOT)
+        self.assertEqual(warnings, [])  # mps2_an386 is curated: no uncurated warning
+        (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("curated: true", "curated: false"))
+        files, warnings = generate.generate(board, ROOT)
+        self.assertTrue(any(str((board / "board.yaml").resolve()) in w for w in warnings), warnings)
+        self.assertIn("@board/board.yaml:1: (root): uncurated description", files["hw.json"])
+
+    def test_check_board_root(self):
+        d, board = self.project()
+        tool = [sys.executable, "-I", str(HERE / "emb-hwgen.py")]
+        import subprocess
+        run = lambda *a: subprocess.run(tool + list(a), capture_output=True, text=True)  # noqa: E731
+        self.assertEqual(run("generate", "--board", str(board)).returncode, 0)
+        r = run("check", "--board-root", str(d))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("1 board(s), 0 stale file(s)", r.stdout)
+        (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("baud: 115200", "baud: 57600"))
+        r = run("check", "--board-root", str(d))
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        r = run("check", "--board-root", str(board))
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("has no boards/ directory", r.stderr)
+
+
 class Avr(unittest.TestCase):
     """The ATmega328P and the Arduino Uno: separate address spaces, vectors, fixed-function pins,
     page-sized erase units, and HW-006's second linker output."""

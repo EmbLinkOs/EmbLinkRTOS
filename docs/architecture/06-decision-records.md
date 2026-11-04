@@ -587,3 +587,60 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** With `CONFIG_EMB_TIMER=n` the thread timeout path is the M1 code. Arming a timer is O(armed timers); stopping is O(1). A timer restarted already due from its own ISR-context callback expires one pass later: at the next tick in periodic mode, at once by the reprogrammed compare in tickless mode. The table scheduler's singly linked list has no timer list, and timers are off with it in M2.
 
 **Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-09.
+
+## ADR-051 Any board, from a custom PCB to a vendor's: cores are ported, SoCs imported, boards described
+
+**Context.** The project owner set the goal on 2026-11-04: EmbLinkRTOS should run on any board, from a custom PCB to an official vendor board. Principle 5 (01 §2) and 02 §9 already make a new board on a supported SoC a matter of data. In practice support grows one target at a time, and 07 names the targets:
+- four ports (native, AVR, Cortex-M3/M4F, RV32);
+- SoC descriptions written by hand for five parts;
+- boards found only inside the tree.
+
+Boards now on the owner's bench, a classic ESP32 (Xtensa LX6) and a Raspberry Pi Pico 2 W (RP2350), have no place in that list. Writing per-board code does not scale to "any board". Neither does a support claim made without evidence, which would also break the evidence rules of 07 and M4's "support matrix comes from archived outcomes".
+
+**Decision.**
+1. **Three layers, each with its own cost.**
+   - *Core port* (`arch/`): context switch, interrupts, tick. There is one per CPU core family, and it is the only kernel-facing work.
+   - *SoC description* plus family board support (`soc/`, `drivers/`): a new part of a supported family is a description. A new family adds its board support and drivers once.
+   - *Board description* (`board.yaml`): never C (02 §9).
+
+   Coverage grows by adding to whichever layer is missing, never by special-casing a board.
+2. **Boards live anywhere.** A project keeps its own boards in its own tree and names that tree with `EMB_BOARD_ROOT`, a directory with the same `boards/<vendor>/<board>/` layout ([A76](../specs/AMENDMENTS-M3.md)). Those boards use the tree's SoC descriptions, and `emb-hwgen.py check --board-root` checks them in the project's CI. Board names are unique across the tree and every root.
+3. **SoC descriptions come from importers.** Importers draft SoC descriptions from vendor data (HW-004, HW-012), and a person then curates the draft:
+   - CMSIS-SVD first, since it covers most Cortex-M and many RISC-V parts (`embsvd`);
+   - then Microchip's ATDF for AVR;
+   - then Espressif's register descriptions.
+
+   An imported description stays `curated: false` until a board confirms it.
+4. **Support tiers, from evidence.** A board's tier is derived from archived outcomes for the release, never declared:
+
+   | Tier | Name | Evidence |
+   |---|---|---|
+   | 1 | hardware | The conformance suite on the physical board through the HIL runner |
+   | 2 | emulated | The suite in CI on QEMU or EmbSIM |
+   | 3 | described | Builds from its description, with no execution evidence |
+
+   A custom board is tier 3 the moment it builds, and its owner can raise it with the same runner.
+5. **Core ports follow demand and hardware on hand.** In order:
+   - Xtensa LX6 (classic ESP32);
+   - Cortex-M33 (the RP2350's Arm cores);
+   - Hazard3 (its RISC-V cores, mostly the existing RV32 port);
+   - Cortex-M0+ and Cortex-M7.
+
+   Each port passes its own gate and inherits no other port's claim (07 M5).
+6. **The 1.0 boundary does not move.** The first supported release is still the NUCLEO-F446RE controller of 07 §1. This record sets the direction support grows in after it, not the scope of that release.
+
+**Alternatives.**
+- *Per-board code* (a demo project or board package per board, as many RTOSes ship): every new board costs C, and boards drift apart.
+- *Zephyr's devicetree as the board format*: it brings a large board catalog, but also the macro layer R-002 §1 records as Zephyr's most repeated complaint. Devicetree stays an importer input (SPEC-014 §1), not the format.
+- *Listing every board as supported*: misleading without evidence; the tiers replace it.
+
+**Consequences.**
+- 07's named boards become examples of tiers, not the whole target list.
+- The importers move up in priority: they turn many chips into many descriptions, and their output still needs review.
+- The classic ESP32 is in scope as a future Xtensa port. It first needs linker-script support for Xtensa in `embld`, or another linker (`docs/ports/xtensa.md`).
+- What remains in the tree only:
+  - custom SoCs and their family support, which need a SoC root and a board-support path;
+  - the HIL matrix of 02 §9, which covers only boards with a probe the runner knows.
+- Generated outputs must stay machine-independent for boards outside the tree too (HW-013). They name a board's own files as `@board/...`.
+
+**Status.** Proposed 2026-11-04, from the project owner's goal; awaiting review. Implementation started with A76 (boards outside the tree).

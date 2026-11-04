@@ -43,6 +43,7 @@ class Resolver:
     # -------------------------------------------------------------- entry point
 
     def resolve(self, board_dir):
+        self.board_dir = Path(board_dir)
         board_path = Path(board_dir) / "board.yaml"
         board = load.flatten(board_path, self.root)
         self._schema(board, "board")
@@ -97,7 +98,7 @@ class Resolver:
             "kconfig": kconfig,
             "profile": profile,
             "timer": self._timer(soc, clk),
-            "inputs": sorted(({"path": d.name, "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
+            "inputs": sorted(({"path": load.stamp(d.path, self.root, self.board_dir), "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
             "warnings": sorted(self.warnings),
         }
 
