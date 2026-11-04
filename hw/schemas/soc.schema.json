@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/soc.schema.json",
+  "title": "SoC description, schema v0 (SPEC-014 §3)",
+  "description": "Validates the flattened SoC model: the part file with every extends merged and every unit normalized to an integer.",
+  "type": "object",
+  "required": ["schema_version", "kind", "name", "vendor", "family", "arch", "cpu", "memory", "interrupts", "peripherals"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 0 },
+    "kind": { "const": "soc" },
+    "name": { "$ref": "#/$defs/ident" },
+    "vendor": { "$ref": "#/$defs/ident" },
+    "family": { "$ref": "#/$defs/ident" },
+    "part": { "type": "string" },
+    "package": { "$ref": "#/$defs/ident" },
+    "extends": { "type": "string" },
+    "abstract": { "type": "boolean" },
+    "curated": { "type": "boolean" },
+    "doc": { "type": "string" },
+    "imported_from": { "$ref": "#/$defs/provenance" },
+    "arch": {
+      "type": "object",
+      "required": ["port", "variant"],
+      "additionalProperties": false,
+      "properties": { "port": { "$ref": "#/$defs/ident" }, "variant": { "$ref": "#/$defs/ident" } }
+    },
+    "cpu": {
+      "type": "object",
+      "required": ["core"],
+      "additionalProperties": false,
+      "properties": {
+        "core": { "type": "string" },
+        "fpu": { "type": "string" },
+        "mpu": {
+          "type": "object",
+          "required": ["model", "regions"],
+          "additionalProperties": false,
+          "properties": { "model": { "type": "string" }, "regions": { "type": "integer", "minimum": 0 } }
+        },
+        "cache": { "type": "string" },
+        "trustzone": { "type": "boolean" },
+        "cycle_counter": { "type": "string" },
+        "revisions": { "type": "array", "items": { "type": "string" } },
+        "cflags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "required": ["regions"],
+      "additionalProperties": false,
+      "properties": {
+        "regions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "base", "size", "attrs"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "$ref": "#/$defs/ident" },
+              "base": { "$ref": "#/$defs/u32" },
+              "size": { "type": "integer", "minimum": 1 },
+              "attrs": { "type": "array", "items": { "enum": ["r", "w", "x", "dma", "retained", "tcm", "boot"] } },
+              "doc": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "clocks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "hz"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "$ref": "#/$defs/ident" },
+              "hz": { "oneOf": [ { "type": "integer", "minimum": 1 }, { "const": "board" } ] },
+              "min_hz": { "type": "integer", "minimum": 1 },
+              "max_hz": { "type": "integer", "minimum": 1 },
+              "bypass_max_hz": { "type": "integer", "minimum": 1 },
+              "doc": { "type": "string" }
+            }
+          }
+        },
+        "plls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "inputs", "m", "n", "p", "vco_in_hz", "vco_out_hz"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "$ref": "#/$defs/ident" },
+              "inputs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/ident" } },
+              "m": { "$ref": "#/$defs/range" },
+              "n": { "$ref": "#/$defs/range" },
+              "p": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+              "q": { "$ref": "#/$defs/range" },
+              "r": { "$ref": "#/$defs/range" },
+              "vco_in_hz": { "$ref": "#/$defs/range" },
+              "vco_out_hz": { "$ref": "#/$defs/range" },
+              "doc": { "type": "string" }
+            }
+          }
+        },
+        "prescalers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ahb": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+            "apb": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } }
+          }
+        },
+        "flash_latency": {
+          "type": "object",
+          "required": ["hz_per_wait_state", "max_wait_states"],
+          "additionalProperties": false,
+          "properties": {
+            "hz_per_wait_state": { "type": "integer", "minimum": 1 },
+            "max_wait_states": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "buses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "max_hz", "from"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "$ref": "#/$defs/ident" },
+              "max_hz": { "type": "integer", "minimum": 1 },
+              "from": { "enum": ["hclk", "pclk1", "pclk2"] },
+              "enable_offset": { "type": "integer", "minimum": 0 },
+              "doc": { "type": "string" }
+            }
+          }
+        },
+        "voltage_scales": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "vos", "max_hz"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "$ref": "#/$defs/ident" },
+              "vos": { "type": "integer", "minimum": 0 },
+              "max_hz": { "type": "integer", "minimum": 1 },
+              "overdrive_max_hz": { "type": "integer", "minimum": 1 },
+              "doc": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "interrupts": {
+      "type": "object",
+      "required": ["controller", "count", "priority_bits"],
+      "additionalProperties": false,
+      "properties": {
+        "controller": { "enum": ["nvic"] },
+        "count": { "type": "integer", "minimum": 1, "maximum": 496 },
+        "priority_bits": { "type": "integer", "minimum": 2, "maximum": 8 },
+        "systick": { "type": "boolean" },
+        "reserved": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      }
+    },
+    "peripherals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "compatible", "base", "size"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "$ref": "#/$defs/ident" },
+          "compatible": { "type": "string", "pattern": "^[a-z0-9-]+,[a-z0-9-]+$" },
+          "base": { "$ref": "#/$defs/u32" },
+          "size": { "type": "integer", "minimum": 1 },
+          "port": { "type": "string", "pattern": "^[A-K]$" },
+          "clock": {
+            "type": "object",
+            "required": ["bus", "bit"],
+            "additionalProperties": false,
+            "properties": { "bus": { "$ref": "#/$defs/ident" }, "bit": { "type": "integer", "minimum": 0, "maximum": 31 } }
+          },
+          "irqs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "number"],
+              "additionalProperties": false,
+              "properties": { "name": { "$ref": "#/$defs/ident" }, "number": { "type": "integer", "minimum": 0 } }
+            }
+          },
+          "curated": { "type": "boolean" },
+          "doc": { "type": "string" }
+        }
+      }
+    },
+    "gpio": {
+      "type": "object",
+      "required": ["ports"],
+      "additionalProperties": false,
+      "properties": {
+        "ports": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 65535 }
+        }
+      }
+    },
+    "alternate_functions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "$ref": "#/$defs/ident" }
+      }
+    },
+    "flash": {
+      "type": "object",
+      "required": ["region", "geometry"],
+      "additionalProperties": false,
+      "properties": {
+        "region": { "$ref": "#/$defs/ident" },
+        "geometry": {
+          "type": "object",
+          "required": ["sectors"],
+          "additionalProperties": false,
+          "properties": {
+            "sectors": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+            "write_granularity": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "errata": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "revisions"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "revisions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "workaround": { "type": "string" },
+          "doc": { "type": "string" }
+        }
+      }
+    },
+    "debug": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" }
+    }
+  },
+  "$defs": {
+    "ident": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+    "u32": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "range": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+    "provenance": {
+      "type": "object",
+      "required": ["tool", "source"],
+      "additionalProperties": false,
+      "properties": { "tool": { "type": "string" }, "source": { "type": "string" }, "hash": { "type": "string" } }
+    }
+  }
+}

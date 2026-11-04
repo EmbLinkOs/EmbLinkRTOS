@@ -5,6 +5,7 @@
 
 AMENDMENTS-M1
 AMENDMENTS-M2
+AMENDMENTS-M3
 SPEC-001-api-conventions
 SPEC-002-interrupts-and-critical-sections
 SPEC-003-time-timeouts-and-timers

@@ -1,16 +1,35 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-# Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
-# in M1 the matching hw_config.h is written by hand (include/hw_config.h).
-board: nucleo_f446re
-soc: st/stm32f4/stm32f446re
+# Board description (SPEC-014 §4): NUCLEO-F446RE, MB1136 C-03 (UM1724). emb-hwgen turns it
+# into generated/ (hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446re).
+schema_version: 0
+kind: board
+name: nucleo_f446re
+vendor: st
+revision: MB1136 C-03
+soc: st/stm32f4/stm32f446re.yaml
+curated: true
+doc: >-
+  The STM32F446RE at 180 MHz from the PLL, its input the ST-LINK's 8 MHz MCO on PH0 in HSE
+  bypass (solder bridges SB16 and SB50 as shipped). The console is USART2, which the ST-LINK
+  carries as its virtual COM port.
 oscillators:
-  main: { hz: 8000000, source: external_clock } # the ST-LINK's MCO through SB16/SB50, HSE bypass
-  lse: { hz: 32768, source: external_crystal }   # X2
-cpu_hz: 180000000 # PLL: M 8, N 360, P 2; voltage scale 1 with over-drive, 5 flash wait states
-console: { device: usart2, baud: 115200, pins: { tx: PA2, rx: PA3 } } # the ST-LINK's virtual COM port
-leds: [ { name: user, gpio: PA5 } ]   # LD2
-buttons: [ { name: user, gpio: PC13, active: low } ] # B1
+  hse: { hz: 8MHz, source: external_clock }   # the ST-LINK's MCO through SB16/SB50 (UM1724 §6.7.1)
+  lse: { hz: 32768, source: external_crystal } # X2
+clocks:
+  cpu_hz: 180MHz
+  source: hse
+  # kept as first brought up: VCO input 1 MHz, VCO 360 MHz, Q 7 (no USB on this board)
+  pll: { m: 8, n: 360, p: 2, q: 7, r: 2 }
+pins:
+  usart2: { tx: PA2.af7, rx: PA3.af7 }
+console: { device: usart2, baud: 115200 }
+leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
+buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:
-  - { name: app, base: 0x08000000, size: 524288 }
+  - { name: app, base: 0x08000000, size: 512K }
+# the conformance framework's software interrupts: lines with no peripheral behind them
+test_irqs: [61, 62]
+debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446retx }
+simulation: { embsim: emblink/nucleo_f446re }
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

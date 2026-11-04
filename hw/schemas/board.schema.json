@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/board.schema.json",
+  "title": "Board description, schema v0 (SPEC-014 §4)",
+  "description": "Validates a board file after unit normalization.",
+  "type": "object",
+  "required": ["schema_version", "kind", "name", "vendor", "soc", "oscillators", "clocks", "console"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 0 },
+    "kind": { "const": "board" },
+    "name": { "$ref": "#/$defs/ident" },
+    "vendor": { "$ref": "#/$defs/ident" },
+    "revision": { "type": "string" },
+    "soc": { "type": "string", "pattern": "^[a-z0-9_/-]+\\.yaml$" },
+    "curated": { "type": "boolean" },
+    "doc": { "type": "string" },
+    "imported_from": {
+      "type": "object",
+      "required": ["tool", "source"],
+      "additionalProperties": false,
+      "properties": { "tool": { "type": "string" }, "source": { "type": "string" }, "hash": { "type": "string" } }
+    },
+    "oscillators": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hse": { "$ref": "#/$defs/oscillator" },
+        "lse": { "$ref": "#/$defs/oscillator" }
+      }
+    },
+    "clocks": {
+      "type": "object",
+      "required": ["cpu_hz", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "cpu_hz": { "type": "integer", "minimum": 1 },
+        "source": { "$ref": "#/$defs/ident" },
+        "pll": {
+          "type": "object",
+          "required": ["m", "n", "p"],
+          "additionalProperties": false,
+          "properties": {
+            "m": { "type": "integer", "minimum": 1 },
+            "n": { "type": "integer", "minimum": 1 },
+            "p": { "type": "integer", "minimum": 1 },
+            "q": { "type": "integer", "minimum": 1 },
+            "r": { "type": "integer", "minimum": 1 }
+          }
+        }
+      }
+    },
+    "pins": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "$ref": "#/$defs/pin" }
+      }
+    },
+    "console": {
+      "type": "object",
+      "required": ["device", "baud"],
+      "additionalProperties": false,
+      "properties": {
+        "device": { "$ref": "#/$defs/ident" },
+        "baud": { "type": "integer", "minimum": 300, "maximum": 12000000 }
+      }
+    },
+    "leds": { "type": "array", "items": { "$ref": "#/$defs/gpio_line" } },
+    "buttons": { "type": "array", "items": { "$ref": "#/$defs/gpio_line" } },
+    "flash_partitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "base", "size"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "$ref": "#/$defs/ident" },
+          "base": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+          "size": { "type": "integer", "minimum": 1 },
+          "doc": { "type": "string" }
+        }
+      }
+    },
+    "test_irqs": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+    "debug_probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "openocd": { "type": "string" }, "pyocd_target": { "type": "string" } }
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "embsim": { "type": "string" } }
+    },
+    "defaults": {
+      "type": "object",
+      "additionalProperties": { "oneOf": [ { "type": "integer" }, { "type": "string" }, { "type": "boolean" } ] }
+    }
+  },
+  "$defs": {
+    "ident": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
+    "pin": { "type": "string", "pattern": "^P[A-K](1[0-5]|[0-9])(\\.af(1[0-5]|[0-9]))?$" },
+    "oscillator": {
+      "type": "object",
+      "required": ["hz", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "hz": { "type": "integer", "minimum": 1 },
+        "source": { "enum": ["external_crystal", "external_clock"] }
+      }
+    },
+    "gpio_line": {
+      "type": "object",
+      "required": ["name", "gpio", "active"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/ident" },
+        "gpio": { "$ref": "#/$defs/pin" },
+        "active": { "enum": ["high", "low"] },
+        "doc": { "type": "string" }
+      }
+    }
+  }
+}

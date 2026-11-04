@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# STM32F446RE: the F446 die with 512 KiB of flash in the LQFP64 package. The bonded pins
+# come from ST's open pin data (STM32F446R(C-E)Tx.xml): no PB11, only PD2 on port D.
+schema_version: 0
+kind: soc
+name: stm32f446re
+vendor: st
+family: stm32f4
+extends: stm32f446.yaml
+part: STM32F446RE
+package: lqfp64
+curated: true
+gpio:
+  ports: { A: 0xFFFF, B: 0xF7FF, C: 0xFFFF, D: 0x0004, H: 0x0003 }

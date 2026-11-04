@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/hw.schema.json",
+  "title": "hw.json, the normalized hardware model, schema v0 (SPEC-014 §6, §9; HW-005, HW-015)",
+  "description": "The one artifact downstream tools read. board and soc are the validated descriptions (board.schema.json, soc.schema.json); derived holds what the generator computed from them.",
+  "type": "object",
+  "required": ["generator", "schema_version", "inputs", "board", "soc", "derived", "warnings"],
+  "additionalProperties": false,
+  "properties": {
+    "generator": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": { "name": { "const": "emb-hwgen" }, "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" } }
+    },
+    "schema_version": { "const": 0 },
+    "inputs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256"],
+        "additionalProperties": false,
+        "properties": { "path": { "type": "string" }, "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" } }
+      }
+    },
+    "board": { "type": "object", "required": ["name", "vendor", "soc"] },
+    "soc": { "type": "object", "required": ["name", "vendor", "family", "arch", "cpu"] },
+    "derived": {
+      "type": "object",
+      "required": ["clock", "console", "linker", "partitions", "pins", "test_irqs", "timer", "kconfig", "profile"],
+      "additionalProperties": false,
+      "properties": {
+        "clock": {
+          "type": "object",
+          "required": ["cpu_hz", "hclk_hz", "source", "source_hz", "bus_hz", "pll"],
+          "properties": {
+            "cpu_hz": { "type": "integer" },
+            "hclk_hz": { "type": "integer" },
+            "source": { "type": "string" },
+            "source_hz": { "type": "integer" },
+            "bus_hz": { "type": "object", "additionalProperties": { "type": "integer" } },
+            "pll": { "oneOf": [ { "type": "null" }, { "type": "object", "required": ["name", "m", "n", "p", "vco_hz"] } ] }
+          }
+        },
+        "console": {
+          "type": "object",
+          "required": ["device", "baud", "base", "clock_hz"],
+          "properties": { "device": { "type": "string" }, "baud": { "type": "integer" }, "base": { "type": "integer" }, "clock_hz": { "type": "integer" } }
+        },
+        "linker": {
+          "type": "object",
+          "required": ["flash", "ram"],
+          "properties": {
+            "flash": { "$ref": "#/$defs/span" },
+            "ram": { "$ref": "#/$defs/span" }
+          }
+        },
+        "partitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "base", "size", "sectors"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "base": { "type": "integer" },
+              "size": { "type": "integer" },
+              "sectors": { "type": "array", "items": { "type": "integer" } }
+            }
+          }
+        },
+        "pins": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pin", "port", "number", "mode", "owner", "gpio"],
+            "properties": {
+              "pin": { "type": "string" },
+              "port": { "type": "string" },
+              "number": { "type": "integer", "minimum": 0, "maximum": 15 },
+              "mode": { "enum": ["af", "output", "input"] },
+              "owner": { "type": "string" },
+              "gpio": { "type": "string" },
+              "af": { "type": "integer" },
+              "signal": { "type": "string" }
+            }
+          }
+        },
+        "test_irqs": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["low", "high"],
+              "additionalProperties": false,
+              "properties": { "low": { "type": "integer" }, "high": { "type": "integer" } }
+            }
+          ]
+        },
+        "timer": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["source", "hz"],
+              "additionalProperties": false,
+              "properties": { "source": { "type": "string" }, "hz": { "type": "integer" } }
+            }
+          ]
+        },
+        "kconfig": { "type": "object" },
+        "profile": { "enum": ["tiny", "base"] }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "span": {
+      "type": "object",
+      "required": ["origin", "length"],
+      "properties": { "origin": { "type": "integer" }, "length": { "type": "integer" } }
+    }
+  }
+}

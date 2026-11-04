@@ -16,6 +16,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The hardware generator's first increment (SPEC-014, A66 to A68): `hw/gen/emb-hwgen.py`.
+  - It validates SoC and board descriptions against JSON Schema 2020-12 files in `hw/schemas/` and against the semantic rules. Each error names the file, line and node.
+  - It solves the clock tree and writes a board's `generated/` directory: `hw_config.h`, `board_pins.c`, `regions.ld`, `board.conf`, `board.cmake`, `hw.json`, `board.md` and `build_report.md`, deterministically and stamped with input hashes.
+  - Descriptions exist for the STM32F446 (family, die, RE and ZE parts) and the NUCLEO-F446RE. CI regenerates and compares the outputs.
+  - The NUCLEO-F446RE build does not use them yet.
+
 - A CI job runs the experimental EmbCC-kernel / GCC-host native presets (`native-embcc`, `-release`, `-tiny`, `-periodic`) with the EmbCC `0.0.1-beta` release, pinned by version and SHA-256; the merge gate requires it.
 
 - Work-queue statistics (`CONFIG_EMB_WORKQ_STATS`, off by default; KRN-WQ-011, A65): `emb_workq_get_stats()` reports the worst submit-to-start latency, the longest handler with its function and the deepest backlog per queue, in ticks; `emb_workq_reset_stats()` restarts them.
