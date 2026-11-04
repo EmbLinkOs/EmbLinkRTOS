@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The SVD importer (`hw/import/svd.py`, A77) drafts a SoC description from a CMSIS-SVD file through EmbCC's `embsvd`. The draft covers the core, the interrupt controller and the peripherals, with each peripheral's `compatible` and clock gate taken from a vendor table. It is uncurated, and lists what an SVD lacks as `todo`. `--against` compares the draft with a curated description and never writes it. Against ST's current STM32F446 SVD, the curated F446 die agrees on every fact both hold except where the PVD interrupt sits.
+
 - Boards outside the tree: `-DEMB_BOARD_ROOT=<dir>` builds a project's own board (a custom PCB, say) from its `board.yaml`, on this tree's SoC descriptions. `emb-hwgen.py check --board-root <dir>` checks those boards in the project's CI. The generator stamps such a board's files as `@board/...`, so outputs are the same on every machine. ADR-051 (proposed) sets the board-support model this begins: cores are ported, SoCs imported, boards described, with support tiers taken from evidence (A76).
 
 - A bring-up probe for the classic ESP32 (docs/ports/xtensa.md), ahead of any Xtensa port: `tools/esp/bringup/` builds a kernel-free image with EmbCC. The image stops the ROM's watchdogs and prints on UART0; it is flashed at 0x1000 with `embflash --esp`. `tools/esp/esp_image.py --chip esp32` writes the ESP32's image (chip 0, 40 MHz flash), with each segment placed at its run address. Not yet run on hardware.

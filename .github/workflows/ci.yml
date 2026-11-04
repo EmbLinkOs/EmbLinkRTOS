@@ -288,6 +288,7 @@ jobs:
         run: |
           pip install jsonschema
           python3 -I -m unittest discover -s hw/gen -p 'test_*.py' -v
+          python3 -I -m unittest discover -s hw/import -p 'test_*.py' -v
           python3 -I hw/gen/emb-hwgen.py check
       - name: Reference model
         run: |

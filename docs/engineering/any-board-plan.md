@@ -12,7 +12,7 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 | # | Step | Layer | Verification | Status |
 |---|---|---|---|---|
 | 1 | Boards outside the tree (`EMB_BOARD_ROOT`, A76) | board | `OutOfTree` tests; an out-of-tree copy of the AN386 passes its 21 tests under QEMU | done (#61) |
-| 2 | SVD importer (HW-004, HW-012) | SoC | `stm32f446.yaml` draft vs the curated file; re-import keeps curated nodes | |
+| 2 | SVD importer (HW-004, HW-012, A77) | SoC | `stm32f446.yaml` draft vs the curated file; re-import keeps curated nodes | done: agrees except the PVD line ([hwgen.md](hwgen.md#importing-a-soc-from-its-svd)) |
 | 3 | Armv8-M Mainline (Cortex-M33) in the Cortex-M port | core | full suite on QEMU `mps2-an505` (checked, release, tiny) | |
 | 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | |
 | 5 | Support tiers from evidence | all | the matrix lists every board with its tier and the outcome that earned it | |
@@ -40,11 +40,12 @@ SPEC-014 §8 sets the design: EmbCC's `embsvd` parses the SVD (`embsvd DEVICE.sv
 - **Provenance.** The draft carries `imported_from: { tool, source, hash }` and `curated: false`.
 - **Re-import (HW-012).** Importing against an existing file never overwrites a node marked `curated: true`. It prints a diff of what the SVD says differently.
 - **Oracle.** The F446 die file was written by hand from the SVD and the reference manual. Every fact the importer produces for it must equal the curated value, or be explained in the test.
+- **Result (2026-11-04).** The draft from ST's SVD v2.0 agrees with the curated die on every fact both hold, except that the SVD gives the PVD interrupt to EXTI and the curated file gives it to PWR. The older SVD 1.1 gets ten facts wrong, and the comparison reports each one.
 - **Input.** The SVD comes from the vendor at a pinned hash and is not committed. Tests use a small synthetic SVD written for them. The F446 comparison runs when the file is present, and its result is recorded here.
 
 ## 3. Cortex-M33 (Armv8-M Mainline)
 
-- **Port.** `arch/cortex_m` gains variant `armv8m.main`:
+- **Port.** `arch/cortex_m` gains variant `armv8m-main` (the importer's spelling, A77):
   - PSPLIM and MSPLIM as hardware stack limits, wired to the checked stack guard;
   - the Armv8-M exception return values;
   - no TrustZone: the port runs in the Secure state with no non-secure image, as QEMU starts it.

@@ -142,6 +142,31 @@ The tests cover:
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
 
+## Importing a SoC from its SVD
+
+`hw/import/svd.py` drafts a SoC description from a CMSIS-SVD file ([A77](../specs/AMENDMENTS-M3.md), HW-004, HW-012). EmbCC's `embsvd` parses the file; give `--json` with its output if `embsvd` is not on PATH.
+
+```sh
+python3 -I hw/import/svd.py STM32F446.svd --vendor st --family stm32f4 \
+    --flash 0x08000000:512K --ram 0x20000000:128K -o stm32f446-draft.yaml
+python3 -I hw/import/svd.py STM32F446.svd --vendor st --family stm32f4 \
+    --flash 0x08000000:512K --ram 0x20000000:128K --against soc/st/stm32f4/stm32f446.yaml
+```
+
+- **What the draft holds.** Everything the SVD states:
+  - the core, FPU, MPU and `-mcpu` flags;
+  - the interrupt count, priority bits, and the lines no peripheral uses (`reserved`);
+  - each peripheral's base, size and interrupts. Peripherals on the Cortex-M private peripheral bus are left out, as architecture.
+
+  The vendor table `hw/import/compat/<vendor>.yaml` adds each peripheral's `compatible`, its GPIO `port`, and its clock gate (the RCC `*ENR` field `<NAME>EN` on ST parts). A peripheral the table does not map gets `svd,<group>`, which no driver binds.
+- **What it does not hold.** Clocks, pins and alternate functions, flash geometry, errata and packages are listed as `todo` at the top, with the bus enable-register offsets the SVD does give.
+- **Curation.** The draft is `abstract` and `curated: false`. A person checks it against the reference manual, splits it into family, die and part files, and marks what they checked.
+- **Re-import.** `--against` compares the draft with an existing description, through its `extends` chain, matching peripherals by base address. It prints every difference and writes nothing. `-o` refuses a file holding curated nodes.
+- **Verified on the STM32F446.**
+  - Against ST's SVD v2.0 (Apache-2.0, `modm-io/cmsis-svd-stm32`, SHA-256 `a4920acf…776d`), the curated die agrees on every fact both hold: core, FPU, MPU, 4 priority bits, 97 lines, the 12 reserved lines, and each peripheral's name, `compatible`, base, size, GPIO port, clock bus and bit, and interrupts. The one exception is the PVD interrupt (line 1): the SVD gives it to EXTI, the curated file to PWR.
+  - The older SVD 1.1 in `cmsis-svd-data` gets ten of those facts wrong: no FPU, 3 priority bits, 90 lines, and interrupts given to the wrong peripherals (UART4 the WWDG's line 0). `--against` reports every one. This is why a draft is never used uncurated.
+  - The test `Stm32f446Oracle` repeats the v2.0 comparison when `EMB_SVD_STM32F446` names the file. The SVD is not committed.
+
 ## A board outside the tree
 
 A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:
@@ -168,6 +193,6 @@ python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project    # in the proje
 ## Limits of this increment
 
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
-- **Not generated:** the system description, `soc_devices.c`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
+- **Not generated:** the system description, `soc_devices.c`, the DeviceTree and pin importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
 - **Other boards:** the ESP32-C3 has no description yet; it waits for #46, which rewrites its board.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.
