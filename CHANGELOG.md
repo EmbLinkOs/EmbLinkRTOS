@@ -6,6 +6,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- The MPS2 AN385 and AN386 and QEMU's RV32 virt build from their generated descriptions (A75). Their hand-written board files are gone, and their board support moved to `soc/arm/mps2/` and `soc/qemu/virt/`. The configuration hashes are unchanged, and the images are identical except for the build id. Only the ESP32-C3 is still hand-written.
+
 - AVR: the port stops the watchdog after a watchdog reset, in `.init3`. Before, the fault action REBOOT reset the part again every 15 ms.
 
 - The Arduino Uno builds from its generated description (A70).

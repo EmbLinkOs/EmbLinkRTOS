@@ -164,7 +164,7 @@
       "required": ["controller", "count"],
       "additionalProperties": false,
       "properties": {
-        "controller": { "enum": ["nvic", "avr"] },
+        "controller": { "enum": ["nvic", "avr", "clint"] },
         "count": { "type": "integer", "minimum": 1, "maximum": 496 },
         "priority_bits": { "type": "integer", "minimum": 2, "maximum": 8 },
         "systick": { "type": "boolean" },

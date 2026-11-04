@@ -1,6 +1,6 @@
 # The hardware generator (emb-hwgen)
 
-`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A70](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 with two boards on it (the NUCLEO-F446RE and NUCLEO-F446ZE) and the ATmega328P with the Arduino Uno ([A70](../specs/AMENDMENTS-M3.md)).
+`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A70, A75](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 with two boards on it (the NUCLEO-F446RE and NUCLEO-F446ZE), the ATmega328P with the Arduino Uno ([A70](../specs/AMENDMENTS-M3.md)), and the emulated references: QEMU's MPS2 AN385 and AN386 and its RV32 virt ([A75](../specs/AMENDMENTS-M3.md)). Only the ESP32-C3 board is still written by hand.
 
 ## Use
 
@@ -145,5 +145,5 @@ The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI'
 
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
 - **Not generated:** the system description, `soc_devices.c`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
-- **Other boards:** the MPS2 boards, RV32 virt and the ESP32-C3 have no descriptions in this schema yet.
+- **Other boards:** the ESP32-C3 has no description yet; it waits for #46, which rewrites its board.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

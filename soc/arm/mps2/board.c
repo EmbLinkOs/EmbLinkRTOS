@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * MPS2 boards as QEMU models them (mps2-an385, mps2-an386): console on the CMSDK APB
- * UART0, run end through Arm semihosting (QEMU runs with -semihosting). A reference
+ * Board support for the MPS2 boards as QEMU models them (mps2-an385, mps2-an386), each
+ * described in YAML: console on the CMSDK APB UART0, LED0 in the FPGA I/O block, run end
+ * through Arm semihosting (QEMU runs with -semihosting); addresses from hw_config.h. A reference
  * board for emulation (SIM-002), not a hardware target: semihosting halts a part with
  * no debugger attached.
  */
@@ -12,10 +13,11 @@
 #include <emb_cortex_m.h>
 #include <hw_config.h>
 
-#define UART_DATA     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_UART0_BASE + 0x00u))
-#define UART_STATE    (*(volatile uint32_t *)(uintptr_t)(EMB_HW_UART0_BASE + 0x04u))
-#define UART_CTRL     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_UART0_BASE + 0x08u))
-#define UART_BAUDDIV  (*(volatile uint32_t *)(uintptr_t)(EMB_HW_UART0_BASE + 0x10u))
+#define UART_DATA     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x00u))
+#define UART_STATE    (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x04u))
+#define UART_CTRL     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x08u))
+#define UART_BAUDDIV  (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x10u))
+#define FPGAIO_LED    (*(volatile uint32_t *)(uintptr_t)(EMB_HW_FPGAIO_BASE + 0x00u))
 #define STATE_TX_FULL 1u
 #define CTRL_TX_EN    1u
 
@@ -23,7 +25,7 @@ static unsigned led_state;
 
 void emb_board_init(void)
 {
-    UART_BAUDDIV = EMB_HW_CPU_HZ / 115200u;
+    UART_BAUDDIV = EMB_HW_CONSOLE_CLOCK_HZ / EMB_HW_CONSOLE_BAUD;
     UART_CTRL = CTRL_TX_EN;
     led_state = 0u;
 }
@@ -31,8 +33,7 @@ void emb_board_init(void)
 void emb_board_led_toggle(void)
 {
     led_state ^= 1u;
-    /* FPGAIO LED0 (QEMU models the register) */
-    *(volatile uint32_t *)(uintptr_t)0x40028000u = led_state;
+    FPGAIO_LED = led_state; /* LED0 (QEMU models the register) */
 }
 
 static void put_char(char c)

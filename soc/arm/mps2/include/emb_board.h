@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* MPS2 board interface (QEMU models): console on UART0, run end by semihosting. */
+/* The board interface of the MPS2 boards described in YAML (QEMU models): console on UART0,
+ * run end by semihosting. */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 

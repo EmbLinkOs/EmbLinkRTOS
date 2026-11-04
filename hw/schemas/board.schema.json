@@ -4,7 +4,7 @@
   "title": "Board description, schema v0 (SPEC-014 §4)",
   "description": "Validates a board file after unit normalization.",
   "type": "object",
-  "required": ["schema_version", "kind", "name", "vendor", "soc", "oscillators", "clocks", "console"],
+  "required": ["schema_version", "kind", "name", "vendor", "soc", "clocks", "console"],
   "additionalProperties": false,
   "properties": {
     "schema_version": { "const": 0 },
@@ -79,7 +79,7 @@
         }
       }
     },
-    "test_irqs": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+    "test_irqs": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
     "debug_probe": {
       "type": "object",
       "additionalProperties": false,

@@ -114,6 +114,8 @@ def hw_config_h(r):
     irqs, vectors = {}, {}
     if ints["controller"] == "nvic":
         irqs = {"EMB_HW_IRQ_COUNT": f"{ints['count']}u", "EMB_HW_IRQ_PRIORITY_BITS": f"{ints['priority_bits']}u"}
+    elif ints["controller"] == "clint":
+        irqs = {"EMB_HW_IRQ_COUNT": f"{ints['count']}u"}
     else:
         irqs = {"EMB_HW_VECTOR_COUNT": f"{ints['count']}u"}
         # the port's EMB_ISR(name) pastes EMB_VECTOR_##name (SPEC-012 §7)
@@ -160,7 +162,9 @@ def hw_config_h(r):
 
     test = {}
     if r["test_irqs"]:
-        test = {"EMB_HW_TEST_IRQ": f"{r['test_irqs']['low']}u", "EMB_HW_TEST_IRQ_HIGH": f"{r['test_irqs']['high']}u"}
+        test = {"EMB_HW_TEST_IRQ": f"{r['test_irqs']['low']}u"}
+        if r["test_irqs"]["high"] is not None:
+            test["EMB_HW_TEST_IRQ_HIGH"] = f"{r['test_irqs']['high']}u"
 
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
@@ -273,7 +277,63 @@ AVR_DATA_VMA = 0x800000
 AVR_EEPROM_VMA = 0x810000
 
 
+_RV_RAM_SECTIONS = """\
+OUTPUT_ARCH(riscv)
+ENTRY(embn_rv_reset)
+
+MEMORY
+{{
+  RAM (rwx) : ORIGIN = 0x{ram_origin:08X}, LENGTH = {ram_length}
+}}
+
+SECTIONS
+{{
+  .text : {{
+    KEEP(*(.text.embn_rv_reset))
+    *(.text .text.*)
+  }} > RAM
+
+  .rodata : ALIGN(16) {{
+    *(.rodata .rodata.* .srodata .srodata.*)
+    . = ALIGN(16); /* the table entries' own alignment (sizeof(void *) * 4) */
+    __start_emb_init_table = .;
+    KEEP(*(emb_init_table))
+    __stop_emb_init_table = .;
+    . = ALIGN(16);
+    __start_emb_test_table = .;
+    KEEP(*(emb_test_table))
+    __stop_emb_test_table = .;
+  }} > RAM
+
+  .data : ALIGN(16) {{
+    *(.data .data.* .sdata .sdata.*)
+  }} > RAM
+
+  .bss (NOLOAD) : ALIGN(16) {{
+    __bss_start = .;
+    *(.bss .bss.* .sbss .sbss.* COMMON)
+    . = ALIGN(16);
+    __bss_end = .;
+  }} > RAM
+
+  end = .;
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
+  __emb_retained_start = __emb_retained_end - 192;
+  __stack_top = __emb_retained_start;
+}}
+"""
+
+
 def regions_ld(r):
+    if r["soc"]["arch"]["port"] == "riscv":
+        lk = r["linker"]
+        out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+        out += (f"/* Linker script for {r['board']['name']} ({r['soc'].get('part', r['soc']['name'])}): the image is loaded\n"
+                " * into RAM and runs there, so .data needs no copy. The kernel's registration tables are\n"
+                " * bracketed by name (SPEC-001 §6.4, HW-006). */\n")
+        return out + _RV_RAM_SECTIONS.format(ram_origin=lk["ram"]["origin"], ram_length=_ld_size(lk["ram"]["length"]))
     if r["soc"]["arch"]["port"] == "avr":
         lk = r["linker"]
         eeprom = next((x for x in r["soc"]["memory"]["regions"] if x.get("space") == "eeprom"), None)
@@ -434,7 +494,9 @@ def board_md(r):
         for irq in p.get("irqs", []):
             rows.append((irq["number"], f"{p['name']}.{irq['name']}"))
     if r["test_irqs"]:
-        rows += [(r["test_irqs"]["low"], "test framework (low)"), (r["test_irqs"]["high"], "test framework (high)")]
+        rows += [(r["test_irqs"]["low"], "test framework (low)")]
+        if r["test_irqs"]["high"] is not None:
+            rows += [(r["test_irqs"]["high"], "test framework (high)")]
     for n, owner in sorted(rows):
         out += f"| {n} | {owner} |\n"
     return out + _md_stamp(r)

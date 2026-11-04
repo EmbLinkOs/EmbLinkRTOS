@@ -1,16 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * QEMU RISC-V virt as a board: console on the ns16550a UART, run end through QEMU's
+ * Board support for QEMU's RISC-V virt machine, described in YAML: console on the ns16550a
+ * UART, run end through QEMU's
  * sifive_test device (status 0 passes, (code << 16) | 0x3333 fails with code). A
  * reference board for emulation (SIM-002).
  */
 #include <emb_board.h>
 
-#define UART_THR     (*(volatile uint8_t *)(uintptr_t)(EMB_HW_UART0_BASE + 0u))
-#define UART_LSR     (*(volatile uint8_t *)(uintptr_t)(EMB_HW_UART0_BASE + 5u))
+#define UART_THR     (*(volatile uint8_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0u))
+#define UART_LSR     (*(volatile uint8_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 5u))
 #define LSR_THRE     0x20u
-#define TEST_FINISH  (*(volatile uint32_t *)(uintptr_t)EMB_HW_TEST_DEVICE)
+#define TEST_FINISH  (*(volatile uint32_t *)(uintptr_t)EMB_HW_TEST_BASE)
 #define FINISHER_OK  0x5555u
 #define FINISHER_ERR 0x3333u
 #define FINISHER_RST 0x7777u /* the sifive_test device: system reset */

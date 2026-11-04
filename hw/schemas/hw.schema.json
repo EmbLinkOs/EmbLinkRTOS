@@ -96,7 +96,7 @@
               "type": "object",
               "required": ["low", "high"],
               "additionalProperties": false,
-              "properties": { "low": { "type": "integer" }, "high": { "type": "integer" } }
+              "properties": { "low": { "type": "integer" }, "high": { "oneOf": [ { "type": "integer" }, { "type": "null" } ] } }
             }
           ]
         },

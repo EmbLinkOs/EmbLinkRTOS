@@ -292,7 +292,8 @@ class Resolver:
         if p is None:
             self.err(board, "console.device", f"unresolved reference: the SoC has no peripheral {dev!r}")
             return None
-        if "tx" not in board.data.get("pins", {}).get(dev, {}):
+        if "gpio" in soc.data and "tx" not in board.data.get("pins", {}).get(dev, {}):
+            # a SoC with pin muxing needs the pin; a fixed device (an emulator's UART) has none
             self.err(board, "console.device", f"{dev} has no tx pin in pins.{dev}")
             return None
         return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p.get("clock"),
@@ -304,14 +305,14 @@ class Resolver:
             return None
         count = soc.data["interrupts"]["count"]
         reserved = set(soc.data["interrupts"].get("reserved", []))
-        if irqs[0] == irqs[1]:
+        if len(irqs) == 2 and irqs[0] == irqs[1]:
             self.err(board, "test_irqs", f"the two lines must differ (both {irqs[0]})")
         for n in irqs:
             if n >= count:
                 self.err(board, "test_irqs", f"line {n} is above the controller's {count} lines")
             elif n not in reserved:
                 self.err(board, "test_irqs", f"line {n} has a peripheral behind it; use one of interrupts.reserved")
-        return {"low": irqs[0], "high": irqs[1]}
+        return {"low": irqs[0], "high": irqs[1] if len(irqs) == 2 else None}
 
     def _partitions(self, board, soc):
         parts = board.data.get("flash_partitions", [])
@@ -395,6 +396,14 @@ class Resolver:
                 "CONFIG_EMB_CM_IRQ_COUNT": soc.data["interrupts"]["count"],
                 "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": soc.data["interrupts"].get("priority_bits"),
             }
+        elif port == "riscv" and clk is not None:
+            clint = next((p for p in soc.data["peripherals"] if p["compatible"] == "riscv,clint0"), None)
+            timebase = next((s for s in soc.data.get("clocks", {}).get("sources", []) if s["name"] == "timebase"), None)
+            derived = {"CONFIG_EMB_RV_IRQ_COUNT": soc.data["interrupts"]["count"]}
+            if clint is not None:
+                derived["CONFIG_EMB_RV_CLINT_BASE"] = f"0x{clint['base']:08X}"  # a hex symbol, spelled as one
+            if timebase is not None:
+                derived["CONFIG_EMB_RV_MTIME_HZ"] = timebase["hz"]
         elif port == "avr" and clk is not None:
             derived = {"CONFIG_EMB_AVR_MCU": f'"{soc.data["cpu"].get("mcu", soc.data["arch"]["variant"])}"',
                        "CONFIG_EMB_AVR_F_CPU": clk["hclk_hz"]}

@@ -439,6 +439,39 @@ class Avr(unittest.TestCase):
             root.close()
 
 
+class QemuBoards(unittest.TestCase):
+    """The MPS2 boards and RV32 virt from their descriptions (A75): the values the hand-written
+    files had, a console without pins, the CLINT, one test interrupt line."""
+
+    def files(self, board):
+        return generate.generate(ROOT / board, ROOT)[0]
+
+    def test_mps2(self):
+        for board, soc in (("boards/arm/mps2_an385", "Cortex-M3"), ("boards/arm/mps2_an386", "Cortex-M4F")):
+            with self.subTest(board=board):
+                f = self.files(board)
+                for macro, value in [("EMB_HW_SOC", f'"{soc}"'), ("EMB_HW_CPU_HZ", "25000000u"),
+                                     ("EMB_HW_UART0_BASE", "0x40004000u"), ("EMB_HW_TEST_IRQ", "30u"),
+                                     ("EMB_HW_TEST_IRQ_HIGH", "31u"), ("EMB_HW_IRQ_PRIORITY_BITS", "3u")]:
+                    self.assertRegex(f["hw_config.h"], rf"#define {macro}\s+{re.escape(value)}\n")
+                for line in ("CONFIG_EMB_CM_CPU_HZ=25000000", "CONFIG_EMB_CM_IRQ_COUNT=32",
+                             "CONFIG_EMB_CM_IRQ_PRIORITY_BITS=3", "CONFIG_EMB_TICK_NS=1000000"):
+                    self.assertIn(line + "\n", f["board.conf"])
+                self.assertIn("FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 4M", f["regions.ld"])
+                self.assertNotIn("board_pins.c", f)
+
+    def test_riscv32_virt(self):
+        f = self.files("boards/qemu/riscv32_virt")
+        for line in ("CONFIG_EMB_RV_CLINT_BASE=0x02000000", "CONFIG_EMB_RV_IRQ_COUNT=8",
+                     "CONFIG_EMB_RV_MTIME_HZ=10000000"):
+            self.assertIn(line + "\n", f["board.conf"])  # the hex symbol spelled as before: same hash
+        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_IRQ\s+0u\n")
+        self.assertNotIn("EMB_HW_TEST_IRQ_HIGH", f["hw_config.h"])
+        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_BASE\s+0x00100000u\n")
+        self.assertIn("RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 16M", f["regions.ld"])
+        self.assertIn("ENTRY(embn_rv_reset)", f["regions.ld"])
+
+
 class Facts(unittest.TestCase):
     """HW-001 (A69): no hardware facts outside the descriptions."""
 

@@ -2,7 +2,7 @@
 
 **Status:** RV32IMAC in machine mode running the full conformance suite under QEMU's `virt` machine (checked, release and tiny builds), and RV32IMC on EmbSIM's ESP32-C3-DevKitM-1 (checked base build); first 32-bit target with Cortex-M (ADR-038). PMP partitions, the PLIC, RV32F/D context and the RP2350's Hazard3 cores follow (07 §2, M3 and M5). No hardware run yet: QEMU timing is never evidence (SIM-003).
 
-**Sources:** `arch/riscv/` (`rv_switch.S` frame, switch, trap entry, reset, the ESP32-C3's vector table; `rv_port.c` trap handler, startup, idle, faults; the SoC's tick, interrupt controller and cycle counter behind `rv_soc.h`: `rv_clint.c` on a CLINT, `rv_esp32c3.c` on the ESP32-C3, chosen by `CONFIG_EMB_RV_ESP32C3`), boards `boards/qemu/riscv32_virt/` and `boards/espressif/esp32c3_devkitm1/`, the image tool `tools/esp/esp_image.py`.
+**Sources:** `arch/riscv/` (`rv_switch.S` frame, switch, trap entry, reset, the ESP32-C3's vector table; `rv_port.c` trap handler, startup, idle, faults; the SoC's tick, interrupt controller and cycle counter behind `rv_soc.h`: `rv_clint.c` on a CLINT, `rv_esp32c3.c` on the ESP32-C3, chosen by `CONFIG_EMB_RV_ESP32C3`), boards `boards/qemu/riscv32_virt/` (a `board.yaml` and its [generated](../engineering/hwgen.md) `generated/`, board support in `soc/qemu/virt/`) and `boards/espressif/esp32c3_devkitm1/` (still hand-written), the image tool `tools/esp/esp_image.py`.
 
 ## Frame and switching
 

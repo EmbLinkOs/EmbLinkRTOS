@@ -11,7 +11,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-001  Single source for hardware facts
 **Statement.** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **Rationale.** No hand-written board C for things the description knows (01 §6).
-**Status.** Accepted 2026-10-07; implemented for boards described in YAML (the NUCLEO-F446RE and NUCLEO-F446ZE, A69, and the Arduino Uno, A70); the MPS2, RV32 virt and ESP32-C3 boards keep hand-written files.
+**Status.** Accepted 2026-10-07; implemented for boards described in YAML (the NUCLEO-F446RE and NUCLEO-F446ZE, A69, the Arduino Uno, A70, the MPS2 AN385 and AN386 and RV32 virt, A75); the ESP32-C3 keeps hand-written files.
 **Verification.** Analysis: CI grep for register addresses and IRQ numbers in `boards/` and `soc/` C sources; review of generated outputs. Implemented as `hw/gen/emb-hwgen.py check` (`emb_hwgen/facts.py`, tests in the `Facts` cases of `hw/gen/test_hwgen.py`).
 **Trace.** SPEC-014 §3 to §6; ADR-004
 
@@ -60,7 +60,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-008  SoC and board content
 **Statement.** A SoC description shall carry `arch`, `cpu`, `memory`, `interrupts`, and `peripherals` (clocks, DMA, flash, power, errata, debug optional) and shall reference a port manifest; a board description shall carry the SoC reference, oscillators, pins, devices, console, flash partitions, LEDs, buttons, probe hints, and defaults.
 **Rationale.** SPEC-014 §3, §4 fix what the generator can rely on.
-**Status.** Accepted 2026-10-07; partly implemented: the STM32F446 (RE and ZE parts), the ATmega328P, the NUCLEO-F446RE, the NUCLEO-F446ZE and the Arduino Uno validate; the STM32F407 and RP2350 descriptions do not exist yet.
+**Status.** Accepted 2026-10-07; partly implemented: the STM32F446 (RE and ZE parts), the ATmega328P, the MPS2 AN385 and AN386, QEMU's RV32 virt and their six boards validate; the STM32F407 and RP2350 descriptions do not exist yet.
 **Verification.** Schema required fields; the STM32F407, RP2350, and ATmega328P descriptions validate. Test: `Loader.test_every_part_validates`.
 **Trace.** SPEC-014 §3, §4
 

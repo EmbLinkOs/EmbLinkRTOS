@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# MPS2 AN386: a Cortex-M4F in the MPS2 FPGA (QEMU machine mps2-an386).
+schema_version: 0
+kind: soc
+name: an386
+vendor: arm
+family: mps2
+extends: mps2.yaml
+part: Cortex-M4F
+curated: true
+arch: { port: cortex_m, variant: armv7em }
+cpu:
+  core: cortex-m4f
+  fpu: fpv4-sp-d16
+  cycle_counter: dwt
+  cflags: [-mcpu=cortex-m4, -mfpu=fpv4-sp-d16, -mfloat-abi=hard]
