@@ -11,22 +11,22 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-001  Single source for hardware facts
 **Statement.** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **Rationale.** No hand-written board C for things the description knows (01 §6).
-**Status.** Accepted 2026-10-07
-**Verification.** Analysis: CI grep for register addresses and IRQ numbers in `boards/` and `soc/` C sources; review of generated outputs.
+**Status.** Accepted 2026-10-07; implemented for boards described in YAML (the NUCLEO-F446RE, A69); the other boards keep hand-written files.
+**Verification.** Analysis: CI grep for register addresses and IRQ numbers in `boards/` and `soc/` C sources; review of generated outputs. Implemented as `hw/gen/emb-hwgen.py check` (`emb_hwgen/facts.py`, tests in the `Facts` cases of `hw/gen/test_hwgen.py`).
 **Trace.** SPEC-014 §3 to §6; ADR-004
 
 ### HW-002  Schema validation with named errors
 **Statement.** The hardware model shall be validated against a published schema before generation; validation errors shall name the file and node.
 **Rationale.** Authors fix descriptions, not generator stack traces.
-**Status.** Accepted 2026-10-07
-**Verification.** Generator tests with malformed inputs; the error message names file and node path.
+**Status.** Accepted 2026-10-07; implemented for SoC and board descriptions (A67): every error names file, line and node path.
+**Verification.** Generator tests with malformed inputs; the error message names file and node path. Test: the `Negative` cases of `hw/gen/test_hwgen.py`; `Schemas.test_agrees_with_reference_implementation` against `jsonschema`.
 **Trace.** SPEC-014 §1, §7
 
 ### HW-003  Reproducible generated files
 **Statement.** Generated files shall be reproducible and never edited by hand.
 **Rationale.** BLD-004; drift between description and code is the failure this pipeline prevents.
-**Status.** Accepted 2026-10-07
-**Verification.** CI regenerates and diffs against the committed outputs.
+**Status.** Accepted 2026-10-07; implemented: `emb-hwgen.py check` regenerates every board with a `generated/` directory (A66), and configuration refuses outputs older than their inputs (A69).
+**Verification.** CI regenerates and diffs against the committed outputs. Test: `Outputs.test_committed_outputs_are_current`; the CI lint job runs `hw/gen/emb-hwgen.py check`.
 **Trace.** SPEC-014 §9
 
 ### HW-004  SVD and DeviceTree importers
@@ -39,8 +39,8 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-005  Normalized JSON export
 **Statement.** The normalized model shall be exported in a stable JSON form for tooling.
 **Rationale.** EmbStudio, EmbDebug, the HIL runner, and the harness consume one artifact and never parse YAML.
-**Status.** Accepted 2026-10-07
-**Verification.** Schema for `hw.json`; consumer tests.
+**Status.** Accepted 2026-10-07; implemented: `hw.json` with `hw/schemas/hw.schema.json` (A68).
+**Verification.** Schema for `hw.json`; consumer tests. Test: `Outputs.test_hw_json_matches_its_schema`; no consumer reads it yet.
 **Trace.** SPEC-014 §6, §9
 
 ### HW-006  Two linker outputs from one region model
@@ -53,15 +53,15 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-007  Three description kinds and common conventions
 **Statement.** Descriptions shall be YAML 1.2 files of kind `soc`, `board`, or `system` with a `schema_version`, validated by JSON Schema 2020-12, supporting unit suffixes, cross-file references, `extends` inheritance, provenance, `curated` marks, and `doc` text.
 **Rationale.** One grammar for every hardware fact; DeviceTree's good ideas without its macro layer (R-002 §1).
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07; partly implemented: SoC and board kinds with units, `extends`, references, provenance, `curated` and `doc` (A66, A67); the system kind waits for HW-009.
 **Verification.** Schema files exist for the three kinds; conformance of the shipped descriptions.
 **Trace.** SPEC-014 §1, §2
 
 ### HW-008  SoC and board content
 **Statement.** A SoC description shall carry `arch`, `cpu`, `memory`, `interrupts`, and `peripherals` (clocks, DMA, flash, power, errata, debug optional) and shall reference a port manifest; a board description shall carry the SoC reference, oscillators, pins, devices, console, flash partitions, LEDs, buttons, probe hints, and defaults.
 **Rationale.** SPEC-014 §3, §4 fix what the generator can rely on.
-**Status.** Accepted 2026-10-07
-**Verification.** Schema required fields; the STM32F407, RP2350, and ATmega328P descriptions validate.
+**Status.** Accepted 2026-10-07; partly implemented: the STM32F446 (RE and ZE parts) and the NUCLEO-F446RE validate; the STM32F407, RP2350 and ATmega328P descriptions do not exist yet.
+**Verification.** Schema required fields; the STM32F407, RP2350, and ATmega328P descriptions validate. Test: `Loader.test_every_part_validates`.
 **Trace.** SPEC-014 §3, §4
 
 ### HW-009  System description as the static source
@@ -74,15 +74,15 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-010  Generated outputs
 **Statement.** The generator shall emit `hw_config.h`, `soc_devices.c`, `soc_clocks.c`, `board_pins.c`, `regions.ld` and `embld.opts`, `partitions.c`, `caps_init.c`, `ceilings.h`, `init_order.c`, `Kconfig.board` and `Kconfig.system`, `board.md`, `hw.json`, `build_report.md`, and the CTF trace metadata, each as SPEC-014 §6 describes.
 **Rationale.** The complete list is what downstream specifications depend on.
-**Status.** Accepted 2026-10-07
-**Verification.** Generator golden-file tests per output.
+**Status.** Accepted 2026-10-07; partly implemented: `hw_config.h`, `board_pins.c`, `regions.ld`, `board.conf`, `board.cmake`, `hw.json`, `board.md` and `build_report.md` (A68).
+**Verification.** Generator golden-file tests per output. Test: `Outputs.test_committed_outputs_are_current` (golden files), `Outputs.test_hand_written_values_preserved`.
 **Trace.** SPEC-014 §6
 
 ### HW-011  Semantic validation
 **Statement.** The generator shall fail the build, naming file and node, on unresolved references, duplicate names, overlapping or misaligned regions or partitions, independently writable flash partitions sharing erase units or violating write/update alignment, duplicate or out-of-range interrupts, pin conflicts, clock cycles or bus overspeed, dependency cycles, partition hardware constraint violations, undeclared ceiling users, port manifest mismatches, inapplicable errata, and uncurated nodes under the `safety` attribute.
 **Rationale.** Every rule here was a runtime bug somewhere else.
-**Status.** Accepted 2026-10-07
-**Verification.** One negative generator test per rule.
+**Status.** Accepted 2026-10-07; partly implemented: the rules A68 lists; those needing the system description and the `safety` refusal wait for it.
+**Verification.** One negative generator test per rule. Test: one `Negative` case per implemented rule in `hw/gen/test_hwgen.py`.
 **Trace.** SPEC-014 §7
 
 ### HW-012  Importers produce drafts, never overwrites
@@ -95,8 +95,8 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-013  Determinism and stamps
 **Statement.** Generated outputs shall be sorted, free of timestamps, and stamped with the generator version, schema version, and input hashes; `hw.json` shall carry the same stamps.
 **Rationale.** HW-003 made checkable.
-**Status.** Accepted 2026-10-07
-**Verification.** Two generator runs produce identical outputs; stamp fields present.
+**Status.** Accepted 2026-10-07; implemented (A68).
+**Verification.** Two generator runs produce identical outputs; stamp fields present. Test: `Outputs.test_deterministic_and_location_independent`, `Outputs.test_stamps`.
 **Trace.** SPEC-014 §9
 
 ### HW-014  Schema versioning and migration
@@ -109,6 +109,6 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-015  Benchmark and tooling metadata
 **Statement.** `hw.json` shall provide the board, SoC revision, clock, and timer-source fields the benchmark metadata record of 05 §4.4 requires, and the probe hints the HIL runner needs.
 **Rationale.** One source for the numbers that make measurements comparable (R-003 §6).
-**Status.** Accepted 2026-10-07
-**Verification.** Harness metadata test reads them from `hw.json`.
+**Status.** Accepted 2026-10-07; implemented in `hw.json`: board, SoC part, clock, timer source and probe hints; the harness does not read it yet.
+**Verification.** Harness metadata test reads them from `hw.json`. Test: `Outputs.test_harness_metadata_fields`.
 **Trace.** SPEC-014 §4, §6; TEST-012

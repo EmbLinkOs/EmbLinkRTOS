@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# STM32F446ZE: the F446 die with 512 KiB of flash in the LQFP144 package, its 114 I/Os
+# (DS10693 Table 10): ports A to G complete, PH0 and PH1.
+schema_version: 0
+kind: soc
+name: stm32f446ze
+vendor: st
+family: stm32f4
+extends: stm32f446.yaml
+part: STM32F446ZE
+package: lqfp144
+curated: false
+gpio:
+  ports: { A: 0xFFFF, B: 0xFFFF, C: 0xFFFF, D: 0xFFFF, E: 0xFFFF, F: 0xFFFF, G: 0xFFFF, H: 0x0003 }

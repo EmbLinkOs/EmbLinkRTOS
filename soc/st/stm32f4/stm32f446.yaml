@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The STM32F446 die (SPEC-014 §3): memory, interrupts, buses and the peripherals the drivers
+# use, from RM0390 Rev 6, the STM32F446xC/E datasheet (DS10693) and ST's STM32F446 SVD 1.9.
+# A package file (stm32f446re.yaml, stm32f446ze.yaml) adds the bonded pins.
+schema_version: 0
+kind: soc
+name: stm32f446
+vendor: st
+family: stm32f4
+extends: stm32f4.yaml
+abstract: true
+curated: true
+memory:
+  regions:
+    - { name: flash, base: 0x08000000, size: 512K, attrs: [r, x, boot] }
+    - { name: sram1, base: 0x20000000, size: 112K, attrs: [r, w, x, dma] }
+    - { name: sram2, base: 0x2001C000, size: 16K, attrs: [r, w, x, dma] }
+    - { name: bkpsram, base: 0x40024000, size: 4K, attrs: [r, w, retained] }
+clocks:
+  # RM0390 §6.2: the AHB and APB limits; enable_offset is the bus's RCC clock-enable register
+  buses:
+    - { name: ahb1, max_hz: 180MHz, from: hclk, enable_offset: 0x30 }
+    - { name: apb1, max_hz: 45MHz, from: pclk1, enable_offset: 0x40 }
+    - { name: apb2, max_hz: 90MHz, from: pclk2, enable_offset: 0x44 }
+  # RM0390 §5.1.4, PWR_CR.VOS: in order of preference (lowest power first)
+  voltage_scales:
+    - { name: scale3, vos: 1, max_hz: 120MHz }
+    - { name: scale2, vos: 2, max_hz: 144MHz, overdrive_max_hz: 168MHz }
+    - { name: scale1, vos: 3, max_hz: 168MHz, overdrive_max_hz: 180MHz }
+interrupts:
+  count: 97
+  # vector lines with no peripheral behind them (RM0390 Table 38): free for software use
+  reserved: [61, 62, 79, 80, 81, 82, 83, 85, 86, 88, 89, 90]
+peripherals:
+  - { name: flash_if, compatible: "st,stm32f4-flash", base: 0x40023C00, size: 0x400,
+      irqs: [ { name: global, number: 4 } ] }
+  - { name: gpioa, compatible: "st,stm32-gpio", base: 0x40020000, size: 0x400, port: A, clock: { bus: ahb1, bit: 0 } }
+  - { name: gpiob, compatible: "st,stm32-gpio", base: 0x40020400, size: 0x400, port: B, clock: { bus: ahb1, bit: 1 } }
+  - { name: gpioc, compatible: "st,stm32-gpio", base: 0x40020800, size: 0x400, port: C, clock: { bus: ahb1, bit: 2 } }
+  - { name: gpiod, compatible: "st,stm32-gpio", base: 0x40020C00, size: 0x400, port: D, clock: { bus: ahb1, bit: 3 } }
+  - { name: gpioe, compatible: "st,stm32-gpio", base: 0x40021000, size: 0x400, port: E, clock: { bus: ahb1, bit: 4 } }
+  - { name: gpiof, compatible: "st,stm32-gpio", base: 0x40021400, size: 0x400, port: F, clock: { bus: ahb1, bit: 5 } }
+  - { name: gpiog, compatible: "st,stm32-gpio", base: 0x40021800, size: 0x400, port: G, clock: { bus: ahb1, bit: 6 } }
+  - { name: gpioh, compatible: "st,stm32-gpio", base: 0x40021C00, size: 0x400, port: H, clock: { bus: ahb1, bit: 7 } }
+  - { name: pwr, compatible: "st,stm32f4-pwr", base: 0x40007000, size: 0x400, clock: { bus: apb1, bit: 28 },
+      irqs: [ { name: pvd, number: 1 } ] }
+  - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,
+      irqs: [ { name: global, number: 5 } ] }
+  - { name: uart4, compatible: "st,stm32-usart", base: 0x40004C00, size: 0x400, clock: { bus: apb1, bit: 19 },
+      irqs: [ { name: global, number: 52 } ] }
+  - { name: uart5, compatible: "st,stm32-usart", base: 0x40005000, size: 0x400, clock: { bus: apb1, bit: 20 },
+      irqs: [ { name: global, number: 53 } ] }
+  - { name: usart1, compatible: "st,stm32-usart", base: 0x40011000, size: 0x400, clock: { bus: apb2, bit: 4 },
+      irqs: [ { name: global, number: 37 } ] }
+  - { name: usart2, compatible: "st,stm32-usart", base: 0x40004400, size: 0x400, clock: { bus: apb1, bit: 17 },
+      irqs: [ { name: global, number: 38 } ] }
+  - { name: usart3, compatible: "st,stm32-usart", base: 0x40004800, size: 0x400, clock: { bus: apb1, bit: 18 },
+      irqs: [ { name: global, number: 39 } ] }
+  - { name: usart6, compatible: "st,stm32-usart", base: 0x40011400, size: 0x400, clock: { bus: apb2, bit: 5 },
+      irqs: [ { name: global, number: 71 } ] }
+# The serial pins' alternate functions. Ports A to C and PD2 from ST's open pin data
+# (STM32F446R(C-E)Tx.xml); PD5, PD6, PD8 and PD9 from DS10693 Table 11.
+alternate_functions:
+  PA0: { af8: uart4_tx }
+  PA1: { af8: uart4_rx }
+  PA2: { af7: usart2_tx }
+  PA3: { af7: usart2_rx }
+  PA9: { af7: usart1_tx }
+  PA10: { af7: usart1_rx }
+  PB6: { af7: usart1_tx }
+  PB7: { af7: usart1_rx }
+  PB10: { af7: usart3_tx }
+  PC5: { af7: usart3_rx }
+  PC6: { af8: usart6_tx }
+  PC7: { af8: usart6_rx }
+  PC10: { af7: usart3_tx, af8: uart4_tx }
+  PC11: { af7: usart3_rx, af8: uart4_rx }
+  PC12: { af8: uart5_tx }
+  PD2: { af8: uart5_rx }
+  PD5: { af7: usart2_tx }
+  PD6: { af7: usart2_rx }
+  PD8: { af7: usart3_tx }
+  PD9: { af7: usart3_rx }
+flash:
+  region: flash
+  # RM0390 Table 4: sectors 0 to 3 of 16 KiB, 4 of 64 KiB, 5 to 7 of 128 KiB
+  geometry: { sectors: [16K, 16K, 16K, 16K, 64K, 128K, 128K, 128K], write_granularity: 1 }
