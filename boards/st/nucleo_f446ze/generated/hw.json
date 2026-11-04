@@ -73,6 +73,12 @@
     },
     "revision": "MB1137",
     "schema_version": 0,
+    "simulation": {
+      "embsim": "emblink/nucleo_f446ze",
+      "resets_in": [
+        "embsim"
+      ]
+    },
     "soc": "st/stm32f4/stm32f446ze.yaml",
     "test_irqs": [
       61,
@@ -244,7 +250,7 @@
     },
     {
       "path": "boards/st/nucleo_f446ze/board.yaml",
-      "sha256": "52eb8470d22d27952ef2279e87e491b0fe0c4d0b027c4b35a3f5c5836d1968fa"
+      "sha256": "4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

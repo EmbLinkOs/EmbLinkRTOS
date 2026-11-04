@@ -328,9 +328,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
     env:
-      # the first EmbSIM commit with emblink/nucleo_f446re complete enough for the suite; main
-      # once EmbLinkOs/EmbSIM#54 merges
-      EMBSIM_REF: c52829326e4e2477e751f41f3532b7a021f60fb7
+      # EmbSIM main as of 2026-11-04: emblink/nucleo_f446re and emblink/nucleo_f446ze
+      EMBSIM_REF: 2529ab80801e7f9ed0d898d49b9d4534efeaa8d3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -352,10 +351,11 @@ jobs:
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
         run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
-      - name: Second STM32F446 board from its description alone, build only (SPEC-014 §11)
+      - name: Second STM32F446 board from its description alone, on EmbSIM's NUCLEO-F446ZE (SPEC-014 §11)
         run: |
-          cmake --preset cm4-nucleo-f446ze
+          cmake --preset cm4-nucleo-f446ze -DEMB_EMBSIM="$PWD/embsim/build/bin/embsim"
           cmake --build --preset cm4-nucleo-f446ze
+          ctest --preset cm4-nucleo-f446ze --output-on-failure --no-tests=error
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json

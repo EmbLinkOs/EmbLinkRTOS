@@ -30,6 +30,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The NUCLEO-F446ZE runs its tests on EmbSIM's NUCLEO-F446ZE (20 CTest targets, preset `cm4-nucleo-f446ze`). The EmbSIM CI job for the NUCLEO boards now builds EmbSIM `2529ab8`.
+
 - `tools/crashdec` decodes crash records.
   - It reads a raw record file, a console log with `EMB_CRASH` lines, or a hex string, for versions 1 and 2.
   - It refuses a wrong magic, an unknown version, a wrong length or a bad CRC.

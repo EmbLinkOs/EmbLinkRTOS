@@ -102,7 +102,7 @@ The NUCLEO-F446ZE shows the SPEC-014 §11 flow, done by hand until the importers
 2. Run `python3 -I hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446ze`. The solver picks M 4, N 180, P 2, Q 8, a 2 MHz VCO input where the F446RE pins its brought-up M 8, N 360. It derives the same 45 and 90 MHz buses, 5 wait states, scale 1 and over-drive.
 3. Build with `cmake --preset cm4-nucleo-f446ze && cmake --build --preset cm4-nucleo-f446ze`. The same `soc/st/stm32f4` board support and `drivers/st` code compile against the ZE's `hw_config.h`. The console moves to USART3, and its pins to AFRH, without a driver change.
 
-This is a build check, not a run. EmbSIM has no NUCLEO-F446ZE, and its F446RE model does not show USART3, so the 18 test images build without CTest entries. Both description files stay `curated: false` until a physical board confirms UM1974's facts. `Outputs.test_second_board_on_the_soc_needs_no_c` asserts that the board directory holds only `board.yaml` and `generated/`, and that both boards use the same SoC support.
+EmbSIM's NUCLEO-F446ZE (`emblink/nucleo_f446ze`, from EmbSIM `2529ab8`) runs the board's 20 test images, the crash record's reset case included, with the console on USART3. EmbSIM's description of the board agrees with UM1974 on every fact `board.yaml` states. Both description files stay `curated: false` until a physical board confirms UM1974's facts. `Outputs.test_second_board_on_the_soc_needs_no_c` asserts that the board directory holds only `board.yaml` and `generated/`, and that both boards use the same SoC support.
 
 ## Validation rules
 
@@ -146,5 +146,4 @@ The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI'
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
 - **Not generated:** the system description, `soc_devices.c`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
 - **Other boards:** the MPS2 boards, RV32 virt and the ESP32-C3 have no descriptions in this schema yet.
-- **The NUCLEO-F446ZE is build-only:** no emulator runs it.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

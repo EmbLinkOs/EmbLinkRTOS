@@ -5,7 +5,7 @@
 #   arch/cortex_m/arch.yaml
 #     8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c
 #   boards/st/nucleo_f446ze/board.yaml
-#     52eb8470d22d27952ef2279e87e491b0fe0c4d0b027c4b35a3f5c5836d1968fa
+#     4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
@@ -20,10 +20,12 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard)
 # the SoC family's board support and drivers build this board (generated/CMakeLists.txt)
 set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
+set(EMB_BOARD_RESETS_IN embsim) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446ze) # EMB_TEST_EMULATOR=embsim
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c"
-    "boards/st/nucleo_f446ze/board.yaml=52eb8470d22d27952ef2279e87e491b0fe0c4d0b027c4b35a3f5c5836d1968fa"
+    "boards/st/nucleo_f446ze/board.yaml=4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
     "soc/st/stm32f4/stm32f446.yaml=eda69135dd4cd1f08770781c6a482828b908920a98e49b2a46774e1e5afbbf3c"
     "soc/st/stm32f4/stm32f446ze.yaml=98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"

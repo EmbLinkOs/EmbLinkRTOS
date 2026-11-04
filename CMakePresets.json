@@ -214,12 +214,13 @@
     },
     {
       "name": "cm4-nucleo-f446ze",
-      "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, build only: the second board on the STM32F446, from its YAML description alone",
+      "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446ZE: the second board on the STM32F446, from its YAML description alone",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/cm4-nucleo-f446ze",
       "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
       "cacheVariables": {
-        "EMB_BOARD": "nucleo_f446ze"
+        "EMB_BOARD": "nucleo_f446ze",
+        "EMB_TEST_EMULATOR": "embsim"
       }
     },
     {
@@ -538,6 +539,13 @@
     {
       "name": "cm4-nucleo-embsim",
       "configurePreset": "cm4-nucleo-embsim",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-nucleo-f446ze",
+      "configurePreset": "cm4-nucleo-f446ze",
       "output": {
         "outputOnFailure": true
       }
