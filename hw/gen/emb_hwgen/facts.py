@@ -24,6 +24,8 @@ def check(root):
                 problems.append(f"{p.relative_to(root).as_posix()}: a board described in YAML has no hand-written "
                                 "files; describe it in board.yaml or the SoC description")
     for d in ("soc", "drivers"):
+        if not (root / d).is_dir():
+            continue  # a board root (A84) may hold boards only
         for p in sorted((root / d).rglob("*")):
             if p.suffix not in (".c", ".h") or not p.is_file():
                 continue

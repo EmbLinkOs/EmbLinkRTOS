@@ -67,8 +67,9 @@ def cmd_check(args):
             else:
                 sys.stdout.writelines(difflib.unified_diff(have.splitlines(True), want.splitlines(True),
                                                            f"{rel} (committed)", f"{rel} (generated)"))
-    # the facts check reads the kernel's C, so it runs on the tree's own check only
-    problems = [] if args.board_root else facts.check(ROOT)
+    # HW-001 for the tree, or for each board root: its boards hold no hand-written files, and its
+    # own SoC families' C no address-like constant (A84)
+    problems = [p for r in roots for p in facts.check(r)]
     for p in problems:
         print(p)
     print(f"emb-hwgen check: {len(boards)} board(s), {bad} stale file(s), {len(problems)} hardware fact(s) outside a description")

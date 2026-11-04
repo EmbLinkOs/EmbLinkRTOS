@@ -393,7 +393,12 @@ def board_cmake(r):
     if soc["cpu"].get("cflags"):
         out += f"set(EMB_BOARD_C_FLAGS {' '.join(soc['cpu']['cflags'])})\n"
     out += "# the SoC family's board support and drivers build this board (generated/CMakeLists.txt)\n"
-    out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
+    if r.get("soc_in_board_root"):
+        # the project's own SoC family, beside its boards (A84): generated/ is
+        # <root>/boards/<vendor>/<board>/generated
+        out += f"get_filename_component(EMB_SOC_DIR \"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{soc_dir}\" ABSOLUTE)\n"
+    else:
+        out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
     out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
     qemu = r["board"].get("simulation", {}).get("qemu")
     if qemu:

@@ -53,6 +53,30 @@ class Resolver:
 
     # -------------------------------------------------------------- entry point
 
+    def board_root(self):
+        """The directory a board outside the tree belongs to, holding boards/<vendor>/<board>/
+        and perhaps soc/ (A84); None for a board in the tree."""
+        if load.inside(self.board_dir, self.root):
+            return None
+        return self.board_dir.resolve().parent.parent.parent
+
+    def _soc_path(self, board):
+        """The board's SoC description: in the tree, or in its board root's soc/ (A84), but not
+        in both."""
+        rel = board.data["soc"]
+        tree = self.root / "soc" / rel
+        broot = self.board_root()
+        own = broot / "soc" / rel if broot is not None else None
+        found = [p for p in (tree, own) if p is not None and p.is_file()]
+        if len(found) == 2:
+            self.err(board, "soc", f"soc/{rel} is both in the tree and in the board root {broot}: rename one")
+            return None
+        if not found:
+            where = "soc/ in the tree" + (f" or in {broot}" if broot is not None else "")
+            self.err(board, "soc", f"no SoC description soc/{rel} ({where})")
+            return None
+        return found[0]
+
     def resolve(self, board_dir):
         self.board_dir = Path(board_dir)
         board_path = Path(board_dir) / "board.yaml"
@@ -64,10 +88,10 @@ class Resolver:
         if board.data["name"] != Path(board_dir).name:
             self.err(board, "name", f"{board.data['name']!r} differs from its directory {Path(board_dir).name!r}")
 
-        soc_path = self.root / "soc" / board.data["soc"]
-        if not soc_path.is_file():
-            self.err(board, "soc", f"no SoC description {load.rel(soc_path, self.root)}")
+        soc_path = self._soc_path(board)
+        if soc_path is None:
             raise HwError(self.errors)
+        self.soc_in_board_root = not load.inside(soc_path, self.root)
         soc = load.flatten(soc_path, self.root)
         if soc.data.get("kind") != "soc":
             self.err(board, "soc", f"{load.rel(soc_path, self.root)} is a {soc.data.get('kind')!r} description, not a SoC")
@@ -110,6 +134,7 @@ class Resolver:
             "profile": profile,
             "timer": self._timer(soc, clk),
             "inputs": sorted(({"path": load.stamp(d.path, self.root, self.board_dir), "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
+            "soc_in_board_root": self.soc_in_board_root,
             "warnings": sorted(self.warnings),
         }
 

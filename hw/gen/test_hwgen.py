@@ -445,6 +445,40 @@ class OutOfTree(unittest.TestCase):
         self.assertTrue(any(str((board / "board.yaml").resolve()) in w for w in warnings), warnings)
         self.assertIn("@board/board.yaml:1: (root): uncurated description", files["hw.json"])
 
+    def soc_project(self):
+        """A board root that also holds its own SoC family (A84): a copy of the MPS2's."""
+        d, board = self.project()
+        shutil.copytree(ROOT / "soc/arm/mps2", d / "soc/acme/mps2x")
+        for f in (d / "soc/acme/mps2x").glob("*.yaml"):
+            f.write_text(f.read_text().replace("vendor: arm", "vendor: acme").replace("family: mps2", "family: mps2x"))
+        y = board / "board.yaml"
+        y.write_text(y.read_text().replace("soc: arm/mps2/an386.yaml", "soc: acme/mps2x/an386.yaml"))
+        return d, board
+
+    def test_soc_in_the_board_root(self):
+        d, board = self.soc_project()
+        files, _ = generate.generate(board, ROOT)
+        self.assertIn('"@board/../../../soc/acme/mps2x/an386.yaml=', files["board.cmake"])
+        self.assertIn('get_filename_component(EMB_SOC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../soc/acme/mps2x" ABSOLUTE)',
+                      files["board.cmake"])
+        for text in files.values():
+            self.assertNotIn(str(d.resolve()), text)
+
+    def test_soc_in_both_places_refused(self):
+        d, board = self.soc_project()
+        shutil.copytree(ROOT / "soc/arm/mps2", d / "soc/arm/mps2")
+        y = board / "board.yaml"
+        y.write_text(y.read_text().replace("soc: acme/mps2x/an386.yaml", "soc: arm/mps2/an386.yaml"))
+        with self.assertRaises(HwError) as cm:
+            generate.generate(board, ROOT)
+        self.assertTrue(any("is both in the tree and in the board root" in e for e in cm.exception.errors))
+
+    def test_facts_check_on_a_board_root(self):
+        d, board = self.soc_project()
+        c = d / "soc/acme/mps2x/board.c"
+        c.write_text(c.read_text() + "\n#define STRAY 0x40004000u\n")
+        self.assertTrue(any("board.c" in p and "0x40004000u" in p for p in facts.check(d)))
+
     def test_check_board_root(self):
         d, board = self.project()
         tool = [sys.executable, "-I", str(HERE / "emb-hwgen.py")]

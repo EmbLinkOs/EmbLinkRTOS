@@ -213,7 +213,7 @@ python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project    # in the proje
 
 - **Lookup.** Configuration looks the board up in this tree and in each root (a semicolon-separated list; relative paths start from this tree). It refuses a root without `boards/`, and a board name found twice.
 - **Stamps.** The outputs record the board's own files as `@board/board.yaml`, relative to the board's directory, and the SoC and port files by their paths in this tree. The staleness check resolves both, and the outputs hold no path of the machine they were made on.
-- **What stays in the tree.** SoC descriptions and their family board support. A custom SoC still needs a description, and a new family needs its board support, in this tree.
+- **A SoC of the project's own** ([A84](../specs/AMENDMENTS-M3.md)). The root may also hold `soc/<vendor>/<family>/`, a family's descriptions and its board support, and its boards name it as any board names a SoC. The generator looks in the tree and in the root, and refuses a SoC file found in both. `check --board-root` also checks the root's C for hardware facts (HW-001). The port manifests (`arch/`) stay in the tree.
 - **Verified.** A copy of the MPS2 AN386 description kept outside the tree as `acme_m4` generates, configures, and passes the AN386's 21 tests under QEMU. `OutOfTree` in `hw/gen/test_hwgen.py` covers the stamps, location independence, the messages, and `check --board-root`.
 
 ## Limits of this increment
