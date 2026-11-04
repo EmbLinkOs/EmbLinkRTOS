@@ -138,6 +138,18 @@ void embn_cm_reset(void)
 #define EMBN_CM_RESTORE_FP
 #endif
 
+/* Armv8-M Mainline: each thread's stack limit, PSPLIM, travels in its saved frame below r4
+ * (A80), so a switch costs one more word of the thread's stack and no control-block field. */
+#if defined(__ARM_ARCH_8M_MAIN__)
+#define EMBN_CM_SAVE_REGS    "mrs r3, psplim\n\tstmdb r0!, {r3-r11, lr}\n\t"
+#define EMBN_CM_RESTORE_REGS "ldmia r0!, {r3-r11, lr}\n\t"
+#define EMBN_CM_SET_LIMIT    "msr psplim, r3\n\t"
+#else
+#define EMBN_CM_SAVE_REGS    "stmdb r0!, {r4-r11, lr}\n\t"
+#define EMBN_CM_RESTORE_REGS "ldmia r0!, {r4-r11, lr}\n\t"
+#define EMBN_CM_SET_LIMIT
+#endif
+
 EMB_NAKED void embn_cm_pendsv(void)
 {
     __asm__ __volatile__("mov r0, #" EMBN_STR_(
@@ -148,8 +160,7 @@ EMB_NAKED void embn_cm_pendsv(void)
                                       "movt r2, #:upper16:embn_cm_running\n\t"
                                       "ldr r1, [r2]\n\t"
                                       "cbz r1, 1f\n\t"
-                                      "mrs r0, psp\n\t" EMBN_CM_SAVE_FP
-                                      "stmdb r0!, {r4-r11, lr}\n\t"
+                                      "mrs r0, psp\n\t" EMBN_CM_SAVE_FP EMBN_CM_SAVE_REGS
                                       "str r0, [r1]\n\t"
                                       "b 2f\n\t"
                                       "1:\n\t"
@@ -162,9 +173,8 @@ EMB_NAKED void embn_cm_pendsv(void)
                                       "movt r3, #:upper16:embn_cm_next\n\t"
                                       "ldr r1, [r3]\n\t"
                                       "str r1, [r2]\n\t"
-                                      "ldr r0, [r1]\n\t"
-                                      "ldmia r0!, {r4-r11, lr}\n\t" EMBN_CM_RESTORE_FP
-                                      "msr psp, r0\n\t"
+                                      "ldr r0, [r1]\n\t" EMBN_CM_RESTORE_REGS
+                                          EMBN_CM_RESTORE_FP EMBN_CM_SET_LIMIT "msr psp, r0\n\t"
                                       "mov r0, #0\n\t"
                                       "msr basepri, r0\n\t"
                                       "isb\n\t"

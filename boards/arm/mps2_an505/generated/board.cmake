@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/arm/mps2_an505 (HW-003).
 # Inputs (SHA-256):
 #   arch/cortex_m/arch.yaml
-#     205d8d23e724f727f0e283bc8106b6b8e0f88302c68f2f4e530cee9c6f9f609b
+#     1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822
 #   boards/arm/mps2_an505/board.yaml
 #     c526e7622f82e8a4a2f2c2bb9147089443f67f61dd5cd4f66e1a0a6a4362c2c2
 #   soc/arm/mps2/an505.yaml
@@ -22,7 +22,7 @@ set(EMB_BOARD_QEMU_ARGS -M mps2-an505 -icount shift=5,sleep=off -semihosting-con
 set(EMB_BOARD_RESETS_IN qemu) # restart the image with RAM kept (test_crash_reset)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
-    "arch/cortex_m/arch.yaml=205d8d23e724f727f0e283bc8106b6b8e0f88302c68f2f4e530cee9c6f9f609b"
+    "arch/cortex_m/arch.yaml=1119c9816df8831c850a7521ca2de9ddfb6328542d97a6f94a40924183f25822"
     "boards/arm/mps2_an505/board.yaml=c526e7622f82e8a4a2f2c2bb9147089443f67f61dd5cd4f66e1a0a6a4362c2c2"
     "soc/arm/mps2/an505.yaml=62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1"
     "soc/arm/mps2/mps2.yaml=b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"

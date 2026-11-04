@@ -46,8 +46,8 @@ KRN-MEM-007 to 011 originate in 03 §9 and are restated verbatim. KRN-MEM-001 to
 ### KRN-MEM-010  Stack overflow detection
 **Statement.** Stack overflow detection shall offer: fill-pattern check at switch (all profiles), hardware stack limit registers (Armv8-M, RISC-V with PMP), MPU guard regions (isolated profiles).
 **Rationale.** 03 §9.3.
-**Status.** Accepted (03 §9.3); the fill-pattern guard check (`CONFIG_EMB_STACK_CHECK`) is implemented; hardware limits and MPU guards are not.
-**Verification.** Test: none yet (planned: a guard-overwrite case that expects the stack fault).
+**Status.** Accepted (03 §9.3); the fill-pattern guard check (`CONFIG_EMB_STACK_CHECK`) is implemented, and so is the Armv8-M Mainline stack limit register, PSPLIM (A80). RISC-V PMP limits and MPU guards are not.
+**Verification.** Test: `test_stack_limit` (PSPLIM: an overflowing thread takes the stack overflow fault with CFSR.STKOF, on QEMU `mps2-an505`); the fill-pattern case is still planned (a guard-overwrite case that expects the stack fault).
 **Trace.** 03 §9.3
 
 ### KRN-MEM-011  Dedicated interrupt stacks

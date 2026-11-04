@@ -75,11 +75,18 @@ static EMB_ALWAYS_INLINE void open_window(void)
                          : "memory");
 }
 
-/* Frame words from the saved stack pointer upward: r4..r11, EXC_RETURN, then the
- * hardware frame r0, r1, r2, r3, r12, lr, pc, xPSR (Armv7-M ARM B1.5.6). */
-#define FRAME_WORDS    17u
+/* Frame words from the saved stack pointer upward: on Armv8-M Mainline the thread's PSPLIM
+ * (A80), then r4..r11, EXC_RETURN, then the hardware frame r0, r1, r2, r3, r12, lr, pc, xPSR
+ * (Armv7-M ARM B1.5.6). */
+#if defined(__ARM_ARCH_8M_MAIN__)
+#define FRAME_LIMIT 1u
+#else
+#define FRAME_LIMIT 0u
+#endif
+#define FRAME_WORDS    (17u + FRAME_LIMIT)
 #define EXC_RETURN_PSP 0xFFFFFFFDu /* thread mode, PSP, no floating-point context */
 #define XPSR_THUMB     0x01000000u
+#define CFSR_STKOF     (1u << 20) /* UsageFault: a stack limit check failed (Armv8-M) */
 
 void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size,
                            emb_thread_entry_t entry, void *arg, bool privileged)
@@ -88,6 +95,11 @@ void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size
     uint32_t *f = (uint32_t *)top - FRAME_WORDS;
     unsigned i;
     (void)privileged; /* every thread is privileged until the MPU milestone (SPEC-010) */
+#if FRAME_LIMIT
+    /* PSPLIM: the stack's lowest 8-aligned address; a push below it is a STKOF UsageFault */
+    f[0] = (uint32_t)(((uintptr_t)stack_base + 7u) & ~(uintptr_t)7u);
+    f++;
+#endif
     for (i = 0u; i < 8u; i++) {
         f[i] = 0u; /* r4..r11 */
     }
@@ -101,7 +113,7 @@ void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size
     /* MISRA Dev CS-12: 11.1, the one function-to-integer conversion of the port */
     f[15] = (uint32_t)(uintptr_t)&embk_thread_launch & ~1u; /* pc, Thumb bit in xPSR */
     f[16] = XPSR_THUMB;
-    ((emb_arch_tcb_t *)(void *)t)->sp = (emb_arch_sp_t)(uintptr_t)f;
+    ((emb_arch_tcb_t *)(void *)t)->sp = (emb_arch_sp_t)(uintptr_t)(f - FRAME_LIMIT);
 }
 
 /* P2: called with the kernel's critical section held; returns, in the same section,
@@ -395,7 +407,7 @@ void emb_arch_idle(void)
 bool emb_arch_stack_check(const embk_thread_t *t)
 {
     (void)t;
-    return true; /* the kernel's guard words; PSPLIM comes with Armv8-M (M3-B) */
+    return true; /* the guard words; on Armv8-M Mainline also PSPLIM, which faults at once */
 }
 
 void emb_arch_stack_limit_set(void *limit)
@@ -472,6 +484,11 @@ void embn_cm_fault(const uint32_t *frame, uint32_t exc)
 {
     uint32_t cfsr = REG32(SCB_CFSR);
     uintptr_t addr = cfsr;
+    if ((cfsr & CFSR_STKOF) != 0u) {
+        /* the thread's stack reached PSPLIM: the exception frame was not stacked, so there is
+         * no pc to report (Armv8-M ARM, stack limit checks) */
+        embk_fault_raise_stack_limit((uint16_t)exc, cfsr, (uintptr_t)frame);
+    }
     if ((cfsr & (1u << 7)) != 0u) {
         addr = REG32(SCB_MMFAR); /* MMARVALID */
     } else if ((cfsr & (1u << 15)) != 0u) {
@@ -482,8 +499,9 @@ void embn_cm_fault(const uint32_t *frame, uint32_t exc)
 
 #if CONFIG_EMB_CRASH_RECORD
 /* A hardware fault's state for the crash record (A74): CFSR, HFSR, MMFAR and BFAR, then the
- * stacked r0 to r3, r12, lr, pc and xPSR, unless stacking itself failed (CFSR STKERR, MSTKERR),
- * when the frame cannot be trusted. Software faults have nothing to add. */
+ * stacked r0 to r3, r12, lr, pc and xPSR, unless stacking itself failed (CFSR STKERR, MSTKERR)
+ * or hit the stack limit (STKOF, A80), when the frame cannot be trusted. A stack limit fault
+ * records the status registers too. Software faults have nothing to add. */
 uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
                             uint8_t *status_count, uint32_t *lr)
 {
@@ -493,7 +511,8 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
     uint8_t i;
     *status_count = 0u;
     *lr = 0u;
-    if (info->fault_class != EMB_FAULT_HARDWARE || max < 4u) {
+    bool limit = info->fault_class == EMB_FAULT_STACK_OVERFLOW && info->sp != 0u;
+    if ((info->fault_class != EMB_FAULT_HARDWARE && !limit) || max < 4u) {
         return 0u;
     }
     cfsr = REG32(SCB_CFSR);
@@ -502,7 +521,7 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
     regs[n++] = REG32(SCB_MMFAR);
     regs[n++] = REG32(SCB_BFAR);
     *status_count = n;
-    if (frame != NULL && (cfsr & ((1u << 12) | (1u << 4))) == 0u) {
+    if (frame != NULL && (cfsr & ((1u << 12) | (1u << 4) | CFSR_STKOF)) == 0u) {
         for (i = 0u; i < 8u && n < max; i++) { /* the eight stacked words */
             regs[n++] = frame[i];
         }

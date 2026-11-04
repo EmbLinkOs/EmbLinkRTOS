@@ -46,7 +46,7 @@ Static RAM includes the idle thread's 256-byte stack and control block. R-003 T4
 
 ## Verified
 
-Under QEMU 11.1 on `mps2-an505` (Cortex-M33 with FPv5, presets `cm33-an505`, `-release`, `-tiny`): every conformance image passes, 21 in the checked and release builds and 15 in the tiny build. That includes `test_fpu`, `test_irq_priority`, the hardware-fault crash record and the reset case. The images carry `Tag_CPU_arch: v8-M.mainline` and `Tag_FP_arch: FPv5`.
+Under QEMU 11.1 on `mps2-an505` (Cortex-M33 with FPv5, presets `cm33-an505`, `-release`, `-tiny`): every conformance image passes, 22 in the checked and release builds (with `test_stack_limit`, A80) and 15 in the tiny build. That includes `test_fpu`, `test_irq_priority`, the hardware-fault crash record and the reset case. The images carry `Tag_CPU_arch: v8-M.mainline` and `Tag_FP_arch: FPv5`.
 
 Under QEMU 8.2, on `mps2-an385` (Cortex-M3) and `mps2-an386` (Cortex-M4F, checked, release and tiny): the original nine conformance suites, plus `test_fpu` on the M4F. The subsequent `test_irq_priority` adds register, range, pending-order, nested-preemption, equal-priority and masking checks; its evidence is recorded separately in the IRQ report. `test_fpu` checks that s16-s31 survive a blocking switch and that a float computation preempted by a float-using thread at every tick gives the bit-identical result. Disabling the PendSV FP save makes both tests fail. The first-execution sample ran 2.5 million switches in 15 seconds on the M4F. The fork-based misuse tests are skipped, as on AVR. QEMU runs with `-icount`, so virtual time follows executed instructions and the timing tests do not depend on host load; without it, a stalled host made overdue timer interrupts fire back to back and a 3-tick sleep observed 5 ticks.
 
@@ -61,7 +61,12 @@ Variant `armv8m-main` ([A78](../specs/AMENDMENTS-M3.md)) runs in the Secure stat
 
 The header accepts `__ARM_ARCH_8M_MAIN__`, and the manifest lists the variant for zero-latency interrupts, CAS, lazy FP stacking and the cycle counter.
 
-**Not yet used:** PSPLIM and MSPLIM, the hardware stack limits. The kernel's guard words check the stack as on Armv7-M, and `hw_stack_limit` stays empty (any-board plan, step 3b). Also unused: the Armv8-M MPU, the Security Attribution Unit and non-secure images.
+**Stack limits ([A80](../specs/AMENDMENTS-M3.md)).**
+- Each thread's PSPLIM is its stack's base, saved in its frame below r4 and restored by PendSV before PSP.
+- A push below the base faults at once (CFSR.STKOF), before the thread writes outside its stack. The fault is reported as `EMB_FAULT_STACK_OVERFLOW`, with the fault status in the crash record and no frame: the hardware does not stack one at the limit.
+- MSPLIM (the interrupt stack) is not set yet.
+
+**Not yet used:** the Armv8-M MPU, the Security Attribution Unit, and non-secure images.
 
 **The reference board.** `mps2_an505`, QEMU's `mps2-an505`, is described from QEMU 11.1's `hw/arm/mps2-tz.c`:
 - code at the SSRAM's Secure alias 0x10000000, where INITSVTOR points;
@@ -74,4 +79,4 @@ It reuses the MPS2 board support unchanged.
 
 ## Next
 
-Armv6-M (PRIMASK critical sections, no `basepri`), PSPLIM stack limits on Armv8-M Mainline, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
+Armv6-M (PRIMASK critical sections, no `basepri`), MSPLIM for the interrupt stack, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).

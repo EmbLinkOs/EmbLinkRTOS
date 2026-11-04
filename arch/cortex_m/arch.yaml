@@ -7,15 +7,16 @@ arch: cortex_m
 variants: [armv7m, armv7em, armv8m-main]
 word_bits: 32
 endian: little
-# context frame: 8 hardware words, 8 callee-saved words, EXC_RETURN; plus 16 + 18
-# floating-point words when the thread has used the FPU (lazy stacking).
-stack: { align: 8, growth: down, min_thread: 256, context_frame: 204 }
+# context frame: 8 hardware words, 8 callee-saved words, EXC_RETURN, and on Armv8-M Mainline
+# the thread's PSPLIM (A80); plus 16 + 18 floating-point words when the thread has used the
+# FPU (lazy stacking).
+stack: { align: 8, growth: down, min_thread: 256, context_frame: 208 }
 features:
   irq_nesting: true
   zero_latency_irqs: [armv7m, armv7em, armv8m-main]
   cas: [armv7m, armv7em, armv8m-main]
   interrupt_stack: true
-  hw_stack_limit: []
+  hw_stack_limit: [armv8m-main]
   mpu: none
   fpu_lazy: [armv7em, armv8m-main]
   cycle_counter: [armv7m, armv7em, armv8m-main]

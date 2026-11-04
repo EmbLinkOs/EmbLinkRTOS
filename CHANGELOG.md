@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Hardware stack limits on the Cortex-M33 (A80). Each thread's PSPLIM is its stack's base, so an overflowing thread faults at its first push below the base, before it writes outside its stack. The fault is reported as a stack overflow, and the crash record shows CFSR.STKOF. The limit travels in the thread's saved frame, which costs four bytes of stack per thread on Armv8-M and nothing on other variants. New test `test_stack_limit`.
+
 - The Raspberry Pi Pico 2 W (RP2350A on its Cortex-M33 cores, A79), from its description. The SoC was drafted by the SVD importer and curated. The generator now supports a numbered GPIO bank (`GPIO0.f2` pins), and the RP2350's boot ROM block. Every image is also written as a UF2 that the boot ROM's drive accepts, and the build refuses one without its IMAGE_DEF. The board builds (preset `cm33-pico2w`) and has not run yet.
 
 - Cortex-M33 (Armv8-M Mainline) in the Cortex-M port (A78), in the Secure state with TrustZone unused. The new board `mps2_an505`, QEMU's `mps2-an505`, comes from its description alone, and every conformance image passes there: 21 in the checked and release builds, 15 in the tiny build (presets `cm33-an505`, `-release`, `-tiny`). Hardware stack limits (PSPLIM) come later.

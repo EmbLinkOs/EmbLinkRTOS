@@ -14,7 +14,7 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 | 1 | Boards outside the tree (`EMB_BOARD_ROOT`, A76) | board | `OutOfTree` tests; an out-of-tree copy of the AN386 passes its 21 tests under QEMU | done (#61) |
 | 2 | SVD importer (HW-004, HW-012, A77) | SoC | `stm32f446.yaml` draft vs the curated file; re-import keeps curated nodes | done: agrees except the PVD line ([hwgen.md](hwgen.md#importing-a-soc-from-its-svd)) |
 | 3 | Armv8-M Mainline (Cortex-M33) in the Cortex-M port | core | full suite on QEMU `mps2-an505` (checked, release, tiny) | done: 21, 21 and 15 of 15 pass (A78) |
-| 3b | PSPLIM stack limits on Armv8-M Mainline | core | a thread overrunning its stack takes a STKOF fault, recorded, on QEMU | |
+| 3b | PSPLIM stack limits on Armv8-M Mainline | core | a thread overrunning its stack takes a STKOF fault, recorded, on QEMU | done: `test_stack_limit`, which fails with PSPLIM disabled (A80) |
 | 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | tier 3 done (A79); HIL waits for the board |
 | 5 | Support tiers from evidence | all | the matrix lists every board with its tier and the outcome that earned it | |
 | 6 | DeviceTree board importer (`emb-dtsimport`) | board | Zephyr's `nucleo_f446re` DTS draft vs the curated `board.yaml` | |
