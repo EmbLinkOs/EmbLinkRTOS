@@ -193,6 +193,19 @@ python3 -I hw/import/dts.py $Z/boards/st/nucleo_f446re/nucleo_f446re.dts \
 - **A bootloader layout.** When Zephyr's code partition is MCUboot's slot 0, the draft's app partition is the whole flash, since an image must start where the core boots. The generator refuses an app partition elsewhere on Cortex-M.
 - **Verified on the NUCLEO-F446RE.** Zephyr's board agrees with the curated one on every board fact, and differs only on the clock (96 MHz) and the LSE, which it leaves disabled. Its draft, kept outside the tree with a `simulation` line added, builds and passes 19 of 19 on EmbSIM.
 
+## Importing STM32 pins
+
+`hw/import/pins.py` takes a package's bonded pins and alternate functions from ST's open pin data, which SVD files lack ([A85](../specs/AMENDMENTS-M3.md)):
+
+```sh
+D=~/STM32_open_pin_data
+python3 -I hw/import/pins.py --mcu "$D/mcu/STM32F446R(C-E)Tx.xml" \
+    --gpio $D/mcu/IP/GPIO-STM32F446_gpio_v1_0_Modes.xml --soc st/stm32f4/stm32f446re.yaml
+python3 -I hw/import/pins.py ... --against soc/st/stm32f4/stm32f446re.yaml
+```
+
+The draft is the package file's `gpio.ports` and the `alternate_functions` of the peripherals the SoC description has. For the F446RE and F446ZE it agrees with the curated files: 0 differences. It also lists the functions the table leaves out, such as CTS, RTS, MCO and the ZE's USART6 on PG9 and PG14.
+
 ## A board outside the tree
 
 A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:

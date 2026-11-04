@@ -32,6 +32,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- The STM32 pin importer (`hw/import/pins.py`, A85) drafts a package's bonded pins and its pins' alternate functions from ST's open pin data. For the STM32F446RE and STM32F446ZE it agrees with the curated files, with 0 differences.
+
 - SoC descriptions outside the tree (A84). An `EMB_BOARD_ROOT` may hold `soc/<vendor>/<family>/`, with its descriptions and board support, beside its boards. A project with a new chip family then needs no change to this tree. `emb-hwgen.py check --board-root` runs the hardware-facts check on the project's C too.
 
 - The Xtensa linker decision (ADR-052): ESP32 images link with EmbCC's `embld` under a linker script, which puts `.rodata` and data in DRAM, since the ESP32's IRAM takes only 32-bit loads. EmbCC #174 adds Xtensa scripts to `embld`. The bring-up probe links with `tools/esp/bringup/esp32.ld`, and falls back to `-Ttext`/`-Tdata` with an older `embld`.

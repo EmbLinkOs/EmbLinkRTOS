@@ -18,7 +18,7 @@ Every step that needs no hardware is verified on QEMU or EmbSIM first, and a boa
 | 4 | RP2350 SoC and Pico 2 W board | SoC, board | builds from its description (tier 3); on 2026-11-07, HIL (tier 1) | tier 3 done (A79); HIL waits for the board |
 | 5 | Support tiers from evidence | all | the matrix lists every board with its tier and the outcome that earned it | done: [support matrix](support-matrix.md), 1/8/1 boards at tiers 1/2/3 (A81) |
 | 6 | DeviceTree board importer (`hw/import/dts.py`) | board | Zephyr's `nucleo_f446re` DTS draft vs the curated `board.yaml` | done: agrees on every board fact; the draft passes 19/19 on EmbSIM (A82) |
-| 7 | STM32 pin importer (ST open pin data) | SoC | package files and alternate functions vs the curated F446RE and F446ZE files | |
+| 7 | STM32 pin importer (ST open pin data) | SoC | package files and alternate functions vs the curated F446RE and F446ZE files | done: 0 differences for both packages (A85) |
 | 8 | SoC descriptions outside the tree (in a board root, A84) | SoC | an out-of-tree SoC copy builds and runs a board on QEMU | done: a project's copy of the MPS2 family passes 20/20 |
 | 9 | Armv6-M (Cortex-M0/M0+) and Cortex-M7 | core | suite on QEMU `microbit` and `mps2-an500` | Cortex-M7 done: 21/21 checked and release (A83); Armv6-M next |
 | 10 | Xtensa LX6 core port (classic ESP32) | core | after the bring-up probe (#60) runs on the board | linker decided: embld with scripts (ADR-052, EmbCC #174) |
