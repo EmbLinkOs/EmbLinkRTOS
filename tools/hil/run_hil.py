@@ -14,7 +14,8 @@ hint the default flash command is built from:
   opens it first, then flashes and resets, and nothing the image prints is lost;
 - debug_probe.avrdude (the Arduino Uno's Optiboot): flashing and the console share the USB
   serial port, so the runner flashes the image's .hex first and then opens the console,
-  which resets the board (DTR) and starts the image from its first line.
+  which resets the board (DTR) and starts the image from its first line. The flasher is
+  EmbCC's embflash (--stk500) when the one installed has it, else avrdude (--flasher).
 
 It reads until the test framework's summary ("<n> tests, <m> failed") and EMB_TEST_END, or
 --until's text for a benchmark, or the timeout.
@@ -31,6 +32,7 @@ import os
 import re
 import select
 import shlex
+import shutil
 import subprocess
 import sys
 import termios
@@ -76,13 +78,27 @@ def shares_port(hw):
     return "avrdude" in hw["board"].get("debug_probe", {})
 
 
-def flash_command(hw, image, template, port=None):
+def embflash_has_stk500():
+    """Whether the embflash on PATH programs serial bootloaders (EmbCC with --stk500)."""
+    tool = shutil.which("embflash")
+    if tool is None:
+        return False
+    try:
+        usage = subprocess.run([tool, "--help"], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return "--stk500" in usage.stdout + usage.stderr
+
+
+def flash_command(hw, image, template, port=None, flasher="auto"):
     if template:
         return shlex.split(template.replace("{image}", shlex.quote(str(image))).replace("{port}", str(port)))
     probe = hw["board"].get("debug_probe", {})
     if "avrdude" in probe:
         a = probe["avrdude"]
         hex_image = Path(image).with_suffix(".hex")
+        if flasher == "embflash" or (flasher == "auto" and embflash_has_stk500()):
+            return ["embflash", str(hex_image), "--stk500", f"serial:{port}@{a['baud']}", "--verify"]
         return ["avrdude", "-q", "-p", a["part"], "-c", a["programmer"], "-P", str(port), "-b", str(a["baud"]),
                 "-D", "-U", f"flash:w:{hex_image}:i"]
     if "openocd" not in probe:
@@ -109,7 +125,7 @@ def run(args):
     baud = hw["derived"]["console"]["baud"]
     shared = shares_port(hw) if args.shared_port is None else args.shared_port
     try:
-        cmd = flash_command(hw, image, args.flash_cmd, args.port)
+        cmd = flash_command(hw, image, args.flash_cmd, args.port, args.flasher)
     except (KeyError, ValueError) as e:
         print(f"run_hil: {e}", file=sys.stderr)
         return 2
@@ -177,6 +193,8 @@ def main(argv=None):
     ap.add_argument("--timeout", type=float, default=120.0, help="seconds to wait for the result")
     ap.add_argument("--flash-timeout", type=float, default=60.0)
     ap.add_argument("--log", help="also write the console to this file")
+    ap.add_argument("--flasher", choices=["auto", "embflash", "avrdude"], default="auto",
+                    help="a serial bootloader's programmer: EmbCC's embflash when it has --stk500 (auto)")
     ap.add_argument("--shared-port", dest="shared_port", action="store_true", default=None,
                     help="flash before opening the console (default: from hw.json's probe)")
     return run(ap.parse_args(argv))

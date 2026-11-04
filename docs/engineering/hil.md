@@ -16,10 +16,10 @@ The console's device:
 ## The Arduino Uno R3
 
 The Uno flashes and prints over one USB serial port: its ATmega16U2, `/dev/cu.usbmodem*` on macOS, `/dev/ttyACM0` on Linux. The runner therefore uses the other order:
-1. It flashes the image's `.hex` through Optiboot: `avrdude -p atmega328p -c arduino -b 115200 -D -U flash:w:<hex>:i`, from the `debug_probe.avrdude` hint in `hw.json`.
+1. It flashes the image's `.hex` through Optiboot, from the `debug_probe` hint in `hw.json`. It uses EmbCC's own programmer, `embflash <hex> --stk500 serial:<port>@115200 --verify` (EmbCC #172), when the installed embflash has `--stk500`; otherwise avrdude, `avrdude -p atmega328p -c arduino -b 115200 -D -U flash:w:<hex>:i`. `--flasher` chooses explicitly.
 2. It opens the console. Opening the port resets the board (DTR), so the image starts from its first line while the runner is listening.
 
-Install avrdude with `brew install avrdude` on macOS or `apt install avrdude` on Linux. Then:
+Use an EmbCC built with #172 (`make embflash`), or install avrdude with `brew install avrdude` on macOS or `apt install avrdude` on Linux. Then:
 
 ```sh
 cmake --preset avr-uno-hil -DEMB_HIL_PORT=/dev/cu.usbmodem1101

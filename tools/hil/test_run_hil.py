@@ -123,9 +123,12 @@ class Runner(unittest.TestCase):
     def test_avrdude_command_from_the_committed_uno(self):
         hw = json.loads((HERE.parent.parent / "boards/arduino/arduino_uno/generated/hw.json").read_text())
         self.assertTrue(run_hil.shares_port(hw))
-        cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101")
+        cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101", "avrdude")
         self.assertEqual(cmd, ["avrdude", "-q", "-p", "atmega328p", "-c", "arduino", "-P", "/dev/cu.usbmodem1101",
                                "-b", "115200", "-D", "-U", "flash:w:/b/test_sem.hex:i"])
+        cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101", "embflash")
+        self.assertEqual(cmd, ["embflash", "/b/test_sem.hex", "--stk500", "serial:/dev/cu.usbmodem1101@115200",
+                               "--verify"])
 
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
