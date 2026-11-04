@@ -16,6 +16,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- A CI job runs the experimental EmbCC-kernel / GCC-host native presets (`native-embcc`, `-release`, `-tiny`, `-periodic`) with the EmbCC `0.0.1-beta` release, pinned by version and SHA-256; the merge gate requires it.
+
 - Work-queue statistics (`CONFIG_EMB_WORKQ_STATS`, off by default; KRN-WQ-011, A65): `emb_workq_get_stats()` reports the worst submit-to-start latency, the longest handler with its function and the deepest backlog per queue, in ticks; `emb_workq_reset_stats()` restarts them.
 
 - Static definitions for the other object types (A64): `EMB_SEM_DEFINE`, `EMB_MUTEX_DEFINE`, `EMB_EVENT_DEFINE`, `EMB_COND_DEFINE`, `EMB_MSGQ_DEFINE`, `EMB_WORKQ_DEFINE` and, for interrupt-context callbacks, `EMB_TIMER_DEFINE` declare storage (with the ring or stack) and the handle and construct the object in `emb_kernel_init()`.
