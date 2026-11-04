@@ -1,0 +1,11 @@
+{
+  "_comment": "Archived outcomes of the conformance suite on physical boards (ADR-051 tier 1, tools/support/matrix.py). One entry per build run; each names the report that records it. A board is tier 1 only through an entry here whose every test passed.",
+  "runs": [
+    {"board": "arduino_uno", "preset": "avr-uno-hil", "build": "checked", "date": "2026-11-04",
+     "configuration": "dbc519b5c8f2fce5", "passed": 17, "total": 17, "report": "hil-uno-2026-11-04.md"},
+    {"board": "arduino_uno", "preset": "avr-uno-hil", "build": "release (EMB_CONF=configs/release.conf)", "date": "2026-11-04",
+     "configuration": "7bef7fe0183c9585", "passed": 15, "total": 15, "report": "hil-uno-2026-11-04.md"},
+    {"board": "arduino_uno", "preset": "avr-uno-hil", "build": "T1 (EMB_CONF=configs/footprint-t1.conf)", "date": "2026-11-04",
+     "configuration": "20b21602a3c69026", "passed": 12, "total": 12, "report": "hil-uno-2026-11-04.md"}
+  ]
+}

@@ -47,6 +47,13 @@ The exit status is 0 on a pass, 1 on failures, and 2 on a flash failure or a tim
 
 Without `EMB_HIL_PORT`, configuration builds the images and registers no tests. Only a board described in YAML has the `hw.json` the runner needs.
 
+**Archive the outcome.** A run counts toward the board's tier only once it is archived ([support matrix](support-matrix.md), A81):
+1. Add one entry per build to `docs/engineering/hardware-runs.json`: board, preset, build, date, configuration hash, passed and total.
+2. Name the report that records the run, a `hil-<board>-<date>.md` page that names the preset.
+3. Run `python3 -I tools/support/matrix.py`.
+
+Only a run with every test passed earns tier 1.
+
 ## Benchmarks
 
 | Image | Measures | Unit |

@@ -273,6 +273,10 @@ jobs:
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: UF2 writer (A79)
         run: python3 -I -m unittest discover -s tools/uf2 -p 'test_*.py' -v
+      - name: Board support matrix (ADR-051, A81)
+        run: |
+          python3 -I -m unittest discover -s tools/support -p 'test_*.py' -v
+          python3 -I tools/support/matrix.py --check
       - name: Footprint report tool
         run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
       - name: Case evidence tools
