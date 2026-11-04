@@ -33,8 +33,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build clang python3-yaml
+          scripts/ci-apt-install.sh ninja-build clang python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -93,8 +92,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -150,8 +148,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -198,8 +195,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-avr avr-libc binutils-avr qemu-system-misc python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-avr avr-libc binutils-avr qemu-system-misc python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -237,8 +233,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y clang-format-18 python3-yaml
+          scripts/ci-apt-install.sh clang-format-18 python3-yaml
       - name: clang-format
         run: |
           find include kernel arch boards soc drivers samples tests \( -name '*.c' -o -name '*.h' \) -print0 \
@@ -300,8 +295,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-avr avr-libc binutils-avr python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-avr avr-libc binutils-avr python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -347,8 +341,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -393,8 +386,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf python3-yaml
+          scripts/ci-apt-install.sh ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -433,8 +425,7 @@ jobs:
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         run: |
-          sudo apt-get -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::Retries=3 install -y ninja-build python3-yaml
+          scripts/ci-apt-install.sh ninja-build python3-yaml
       - name: Install EmbCC
         run: |
           archive="embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
