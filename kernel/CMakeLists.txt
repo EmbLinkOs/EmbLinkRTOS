@@ -49,14 +49,14 @@ endif()
 if(CONFIG_EMB_CRASH_RECORD)
   # The build identity (A72): SHA-1 over the commit, whether tracked files differ from it, and
   # the configuration hash, fixed at configure time.
-  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${EMB_BASE}"
                   OUTPUT_VARIABLE _emb_commit OUTPUT_STRIP_TRAILING_WHITESPACE
                   RESULT_VARIABLE _emb_git ERROR_QUIET)
   if(NOT _emb_git EQUAL 0)
     set(_emb_commit "unknown")
   endif()
   execute_process(COMMAND git status --porcelain --untracked-files=no
-                  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE _emb_dirty ERROR_QUIET)
+                  WORKING_DIRECTORY "${EMB_BASE}" OUTPUT_VARIABLE _emb_dirty ERROR_QUIET)
   if(_emb_dirty)
     set(_emb_commit "${_emb_commit}+dirty")
   endif()

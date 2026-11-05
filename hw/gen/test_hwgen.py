@@ -337,8 +337,8 @@ class Outputs(unittest.TestCase):
         for p in c_files:
             self.assertEqual(p.read_text(encoding="utf-8"), files[p.name])  # generated, not edited
         re_cmake = (ROOT / BOARD / "generated/board.cmake").read_text(encoding="utf-8")
-        self.assertIn('set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")', re_cmake)
-        self.assertIn('set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")', files["board.cmake"])
+        self.assertIn('set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")', re_cmake)
+        self.assertIn('set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")', files["board.cmake"])
         self.assertTrue(any("nucleo_f446ze/board.yaml" in w and "uncurated" in w for w in warnings))
 
     def test_second_board_solves_its_own_clock(self):

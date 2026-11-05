@@ -6,6 +6,7 @@ The current usable workflow is native kernel development and conformance testing
 :maxdepth: 2
 
 getting-started
+application
 feature-status
 concepts
 tasks
