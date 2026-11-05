@@ -111,6 +111,31 @@ static EMB_ALWAYS_INLINE bool emb_irq_is_locked(void)
 unsigned emb_irq_nesting_depth(void);
 
 /**
+ * emb_isr_stack_info() - Size and high-water mark of the interrupt stack.
+ * @out_size:       Its size in bytes: CONFIG_EMB_ISR_STACK_SIZE where the port has an
+ *                  interrupt stack of its own; on AVR, the pre-kernel stack the idle
+ *                  context and its interrupts use. May be NULL.
+ * @out_high_water: The bytes ever used, from the fill below the live frames at kernel
+ *                  init; 0 without CONFIG_EMB_STACK_CHECK or CONFIG_EMB_STACK_STATS.
+ *                  May be NULL.
+ *
+ * The deepest point any interrupt, nested ones included, has reached since the kernel
+ * initialized: the measurement for sizing CONFIG_EMB_ISR_STACK_SIZE (A90).
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(stack) scan
+ * @owns     none
+ * @config   CONFIG_EMB_STACK_CHECK CONFIG_EMB_STACK_STATS
+ * @req      PORT-016 KRN-MEM-009
+ * @since    0.2
+ * @stable   no
+ *
+ * Return: EMB_OK; EMB_ENOTSUP when the port has no such stack (native).
+ */
+emb_status_t emb_isr_stack_info(size_t *out_size, size_t *out_high_water);
+
+/**
  * emb_irq_enable() - Unmask one interrupt at the controller.
  * @irq: Interrupt number from the SoC table.
  *

@@ -198,7 +198,7 @@ The public preemption contract excludes caller-owned critical sections. Internal
 | AVR | On the interrupted thread's stack (no alternative on this core) | every thread stack budget includes `CONFIG_EMB_AVR_ISR_STACK_RESERVE`, the worst single kernel-aware handler frame plus the full-context save of `EMB_ISR` (33 bytes) |
 | native | Host-provided | n/a |
 
-Interrupt stack overflow is detected in checked builds with a fill pattern checked at the outermost exit, and by `MSPLIM` on Armv8-M where the toolchain exposes it (09 §10 gap 1).
+Interrupt stack overflow is detected in checked builds with a fill pattern checked at the outermost exit, and by `MSPLIM` on Armv8-M where the toolchain exposes it (09 §10 gap 1). **Implemented by A90:** the port reports the stack through `emb_arch_isr_stack()` (PORT-016). The kernel fills it below the live frames at `emb_kernel_init()` and, at every outermost kernel-aware exit, checks its lowest `EMBK_STACK_GUARD_BYTES` and the interrupted thread's guard, which takes at least the exception frame on every port. On Cortex-M the stack is a `CONFIG_EMB_ISR_STACK_SIZE` array placed first in RAM, and the first PendSV drops `main()`'s frames from it. On AVR the stack reported is the pre-kernel one, which the idle context runs on. `emb_isr_stack_info()` reports the high-water mark.
 
 ## 8. Interrupt management API
 

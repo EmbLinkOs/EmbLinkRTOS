@@ -17,6 +17,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added (technical review, 2026-11-05)
 
+- The interrupt stack is bounded and checked (A90, PORT-016).
+  - Cortex-M: MSP is a `CONFIG_EMB_ISR_STACK_SIZE` array (2048 bytes by default) first in RAM, and the first PendSV drops `main()`'s frames from it.
+  - Armv8-M Mainline: MSPLIM stops an overflowing interrupt.
+  - Every port: checked builds check the interrupt stack's guard, and the interrupted thread's, at every outermost interrupt exit.
+  - `emb_isr_stack_info()` reports the high-water mark, and test runs print it. Before, the Cortex-M main stack had no bound, and an overflow overwrote `.bss` silently.
 - Fault checks run on boards (A89). `EMB_ASSERT_FAULTS` and checked-build `EMB_ASSERT_MISUSE` were skipped on every embedded build. On a board whose reset keeps RAM (QEMU's MPS2 and RV32 virt, EmbSIM, the Uno and the NUCLEO on hardware), the statement now runs in place, the fault resets the board, and the next boot replays the case to the check and records it. On the MPS2 AN386 that executes 72 checks that were skipped.
 - Hardware runs keep their record (A89). `run_hil.py --archive` writes each image's console and a JSON record with the SHA-256 of what was flashed, the git commit, the cases and the benchmark values. `tools/hil/archive.py` files a run under `docs/engineering/hil-runs/`, and `matrix.py` checks `hardware-runs.json` against it.
 - `bench_switch` and `bench_irq` print `BENCH v1` lines, and their HIL entries fail without valid, nonzero values (`--bench`). Before, reaching `BENCH_END` passed.

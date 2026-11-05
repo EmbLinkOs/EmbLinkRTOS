@@ -263,6 +263,9 @@
     "emb_thread_stack_info": [
       "stack"
     ],
+    "emb_isr_stack_info": [
+      "stack"
+    ],
     "emb_thread_foreach": [
       "live_threads",
       "callbacks",

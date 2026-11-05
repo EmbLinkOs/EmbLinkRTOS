@@ -149,3 +149,10 @@ PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restate
 **Status.** Proposed 2026-11-05
 **Verification.** Test: `smoke_libc_errno_from_a_thread` on every port.
 **Trace.** SPEC-011 §10; A88
+
+### PORT-016  The interrupt stack's bound and check
+**Statement.** A port shall report the stack that is no thread's through `emb_arch_isr_stack()`: its dedicated interrupt stack, sized by `CONFIG_EMB_ISR_STACK_SIZE`, or the pre-kernel stack its idle context and interrupts run on. In checked builds the kernel shall fill that stack below the live frames at `emb_kernel_init()` and, at every outermost kernel-aware interrupt exit, fault as `EMB_FAULT_STACK_OVERFLOW` when its lowest guard bytes, or the interrupted thread's, are no longer the fill. A port with a main stack limit register (Armv8-M MSPLIM) shall set it, and `emb_isr_stack_info()` shall report the stack's high-water mark.
+**Rationale.** The Cortex-M interrupt stack had no bound and no check (review 2026-11-05, F2); an overflow corrupted `.bss` silently (A90).
+**Status.** Proposed 2026-11-05
+**Verification.** Test: `test_isr_stack` (size and use, both guard checks with the byte restored after the interrupt, MSPLIM on Armv8-M Mainline).
+**Trace.** SPEC-002 §7.2; SPEC-011 §10; A90

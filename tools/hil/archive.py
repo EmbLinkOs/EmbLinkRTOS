@@ -60,6 +60,7 @@ def summarize(recs, preset, build):
                        "cases": len(r.get("cases", [])),
                        "cases_passed": sum(1 for c in r.get("cases", []) if c["outcome"] == "passed"),
                        "fault_checks_by_reset": r.get("fault_checks_by_reset", 0),
+                       "isr_stack": r.get("isr_stack"),
                        "bench": r.get("bench", []), "started": r["started"]})
     return {
         "format": "emb-hil-archive v1",
@@ -69,6 +70,7 @@ def summarize(recs, preset, build):
         "date": min(r["started"] for _, _, r in recs)[:10],
         "configuration": configs.pop() if configs else None,
         "git": {"commit": commits.pop(), "dirty": dirty},
+        "isr_stack_max_used": max((i["isr_stack"]["used"] for i in images if i["isr_stack"]), default=None),
         "passed": sum(1 for i in images if i["outcome"] == "passed"),
         "total": len(images),
         "images": images,

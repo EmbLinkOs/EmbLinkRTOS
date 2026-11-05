@@ -380,8 +380,17 @@ config EMB_IRQ_DYNAMIC
 config EMB_ISR_STACK_SIZE
 	int "Dedicated interrupt stack size, bytes"
 	depends on EMB_ARCH_HAS_INTERRUPT_STACK
+	default 2048 if EMB_ARCH_CORTEX_M
 	default 1024
 	range 256 1048576
+	help
+	  SPEC-002 §7.2, A90: the stack every kernel-aware interrupt, nested ones and the
+	  pre-kernel code included, runs on (Cortex-M's MSP, RISC-V's trap stack). Checked
+	  builds fill it at kernel init and check its lowest bytes at every outermost
+	  interrupt exit; emb_isr_stack_info() reports its high-water mark for sizing.
+	  On Armv8-M Mainline MSPLIM stops an overflow 384 bytes above its bottom, the room
+	  the fault path runs in. Cortex-M's default is larger for FPU frames at each
+	  nesting level.
 
 endmenu
 
