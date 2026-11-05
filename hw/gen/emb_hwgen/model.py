@@ -8,6 +8,8 @@ from pathlib import Path
 from . import HwError, clock, load, schema
 
 PIN = re.compile(r"^P([A-K])(1[0-5]|[0-9])(?:\.af(1[0-5]|[0-9]))?$")
+# a SoC with one numbered bank (gpio.lines, A79): GPIO<n>, with function select <k> as .f<k>
+PIN_BANK = re.compile(r"^GPIO([1-5][0-9]|6[0-3]|[0-9])(?:\.f([12][0-9]|3[01]|[0-9]))?$")
 
 # Sections whose items are named and must be unique (SPEC-014 §7: duplicate name).
 SOC_NAMED = ("memory.regions", "peripherals", "clocks.sources", "clocks.plls", "clocks.buses", "clocks.voltage_scales")
@@ -25,10 +27,19 @@ def _get(data, dotted):
 
 def parse_pin(text):
     m = PIN.match(text)
-    if not m:
-        return None
-    return {"port": m.group(1), "number": int(m.group(2)), "af": int(m.group(3)) if m.group(3) else None,
-            "name": f"P{m.group(1)}{m.group(2)}"}
+    if m:
+        return {"port": m.group(1), "number": int(m.group(2)), "af": int(m.group(3)) if m.group(3) else None,
+                "name": f"P{m.group(1)}{m.group(2)}", "bank": False}
+    m = PIN_BANK.match(text)
+    if m:
+        return {"port": "", "number": int(m.group(1)), "af": int(m.group(2)) if m.group(2) else None,
+                "name": f"GPIO{m.group(1)}", "bank": True}
+    return None
+
+
+def af_key(pin, n):
+    """The alternate-function key of a pin's description: af<n> on a ported SoC, f<n> on a bank."""
+    return f"f{n}" if pin["bank"] else f"af{n}"
 
 
 class Resolver:
@@ -42,7 +53,32 @@ class Resolver:
 
     # -------------------------------------------------------------- entry point
 
+    def board_root(self):
+        """The directory a board outside the tree belongs to, holding boards/<vendor>/<board>/
+        and perhaps soc/ (A84); None for a board in the tree."""
+        if load.inside(self.board_dir, self.root):
+            return None
+        return self.board_dir.resolve().parent.parent.parent
+
+    def _soc_path(self, board):
+        """The board's SoC description: in the tree, or in its board root's soc/ (A84), but not
+        in both."""
+        rel = board.data["soc"]
+        tree = self.root / "soc" / rel
+        broot = self.board_root()
+        own = broot / "soc" / rel if broot is not None else None
+        found = [p for p in (tree, own) if p is not None and p.is_file()]
+        if len(found) == 2:
+            self.err(board, "soc", f"soc/{rel} is both in the tree and in the board root {broot}: rename one")
+            return None
+        if not found:
+            where = "soc/ in the tree" + (f" or in {broot}" if broot is not None else "")
+            self.err(board, "soc", f"no SoC description soc/{rel} ({where})")
+            return None
+        return found[0]
+
     def resolve(self, board_dir):
+        self.board_dir = Path(board_dir)
         board_path = Path(board_dir) / "board.yaml"
         board = load.flatten(board_path, self.root)
         self._schema(board, "board")
@@ -52,10 +88,10 @@ class Resolver:
         if board.data["name"] != Path(board_dir).name:
             self.err(board, "name", f"{board.data['name']!r} differs from its directory {Path(board_dir).name!r}")
 
-        soc_path = self.root / "soc" / board.data["soc"]
-        if not soc_path.is_file():
-            self.err(board, "soc", f"no SoC description {load.rel(soc_path, self.root)}")
+        soc_path = self._soc_path(board)
+        if soc_path is None:
             raise HwError(self.errors)
+        self.soc_in_board_root = not load.inside(soc_path, self.root)
         soc = load.flatten(soc_path, self.root)
         if soc.data.get("kind") != "soc":
             self.err(board, "soc", f"{load.rel(soc_path, self.root)} is a {soc.data.get('kind')!r} description, not a SoC")
@@ -97,7 +133,8 @@ class Resolver:
             "kconfig": kconfig,
             "profile": profile,
             "timer": self._timer(soc, clk),
-            "inputs": sorted(({"path": d.name, "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
+            "inputs": sorted(({"path": load.stamp(d.path, self.root, self.board_dir), "sha256": d.sha256} for d in docs), key=lambda i: i["path"]),
+            "soc_in_board_root": self.soc_in_board_root,
             "warnings": sorted(self.warnings),
         }
 
@@ -201,14 +238,21 @@ class Resolver:
         for port in sorted(ports):
             if port not in gpio_ports:
                 self.err(soc, f"gpio.ports.{port}", f"no peripheral is GPIO port {port}")
+        bank = "lines" in d.get("gpio", {})
+        if bank and d["gpio"]["controller"] not in {p["name"] for p in d["peripherals"]}:
+            self.err(soc, "gpio.controller", f"unresolved reference: no peripheral {d['gpio']['controller']!r}")
         for pin, afs in sorted(d.get("alternate_functions", {}).items()):
             parsed = parse_pin(pin)
-            if parsed is None or parsed["af"] is not None:
-                self.err(soc, f"alternate_functions.{pin}", "not a pin name (P<port><n>)")
+            if parsed is None or parsed["af"] is not None or parsed["bank"] != bank:
+                self.err(soc, f"alternate_functions.{pin}", "not a pin name (" + ("GPIO<n>" if bank else "P<port><n>") + ")")
                 continue
+            if bank and parsed["number"] >= d["gpio"]["lines"]:
+                self.err(soc, f"alternate_functions.{pin}", f"beyond the bank's {d['gpio']['lines']} lines")
             for af in sorted(afs):
-                if not re.fullmatch(r"af(1[0-5]|[0-9])|fixed", af):
-                    self.err(soc, f"alternate_functions.{pin}.{af}", "not an alternate function (af0 to af15, or fixed)")
+                ok = r"f([12][0-9]|3[01]|[0-9])" if bank else r"af(1[0-5]|[0-9])|fixed"
+                if not re.fullmatch(ok, af):
+                    self.err(soc, f"alternate_functions.{pin}.{af}",
+                             "not a function select (f0 to f31)" if bank else "not an alternate function (af0 to af15, or fixed)")
 
         fl = d.get("flash")
         if fl is not None:
@@ -228,11 +272,17 @@ class Resolver:
     # -------------------------------------------------------------- board
 
     def _bonded(self, soc, pin):
-        mask = soc.data.get("gpio", {}).get("ports", {}).get(pin["port"])
+        gpio = soc.data.get("gpio", {})
+        if pin["bank"]:
+            return "lines" in gpio and pin["number"] < gpio["lines"]
+        mask = gpio.get("ports", {}).get(pin["port"])
         return mask is not None and (mask >> pin["number"]) & 1 == 1
 
-    def _port_peripheral(self, soc, port):
-        return next((p for p in soc.data["peripherals"] if p.get("port") == port), None)
+    def _port_peripheral(self, soc, pin):
+        if pin["bank"]:
+            name = soc.data.get("gpio", {}).get("controller")
+            return next((p for p in soc.data["peripherals"] if p["name"] == name), None)
+        return next((p for p in soc.data["peripherals"] if p.get("port") == pin["port"]), None)
 
     def _pins(self, board, soc):
         d = board.data
@@ -243,6 +293,11 @@ class Resolver:
 
         def claim(text, at, mode, signal=None):
             pin = parse_pin(text)
+            bank = "lines" in soc.data.get("gpio", {})
+            if pin["bank"] != bank:
+                self.err(board, at, f"{pin['name']}: the {soc.data['name']} names its pins "
+                         + ("GPIO<n>" if bank else "P<port><n>"))
+                return
             if not self._bonded(soc, pin):
                 self.err(board, at, f"{pin['name']} is not bonded on the {soc.data.get('package', soc.data['name'])} package")
                 return
@@ -250,7 +305,7 @@ class Resolver:
                 self.err(board, at, f"{pin['name']} is already assigned to {owner[pin['name']]}")
                 return
             owner[pin["name"]] = at
-            gpio = self._port_peripheral(soc, pin["port"])
+            gpio = self._port_peripheral(soc, pin)
             if gpio is None:
                 return  # reported by the SoC rules: gpio.ports names a port no peripheral drives
             entry = {"pin": pin["name"], "port": pin["port"], "number": pin["number"], "mode": mode, "owner": at,
@@ -262,12 +317,12 @@ class Resolver:
                     out.append(entry)
                     return
                 if pin["af"] is None:
-                    self.err(board, at, f"{pin['name']} needs its alternate function: {pin['name']}.af<n>")
+                    self.err(board, at, f"{pin['name']} needs its alternate function: {pin['name']}.{af_key(pin, '<n>')}")
                     return
-                got = offered.get(f"af{pin['af']}")
+                got = offered.get(af_key(pin, pin["af"]))
                 if got != signal:
                     have = ", ".join(f"{k} {v}" for k, v in sorted(offered.items())) or "no listed function"
-                    self.err(board, at, f"{pin['name']} af{pin['af']} is not {signal} ({pin['name']} offers {have})")
+                    self.err(board, at, f"{pin['name']} {af_key(pin, pin['af'])} is not {signal} ({pin['name']} offers {have})")
                     return
                 entry.update({"af": pin["af"], "signal": signal})
             elif pin["af"] is not None:
@@ -369,6 +424,12 @@ class Resolver:
             self.err(board, "flash_partitions", "no partition named app: the image's place is unknown")
             return None
         code = {"origin": app["base"], "length": app["size"]} if app else {"origin": flash["base"], "length": flash["size"]}
+        if app and soc.data["arch"]["port"] == "cortex_m" and app["base"] != flash["base"]:
+            # the core takes its vector table from the boot region's start (A82)
+            self.err(board, "flash_partitions.app",
+                     f"the app partition starts at 0x{app['base']:08X}, but the core boots from 0x{flash['base']:08X}: "
+                     "an image there needs a bootloader, which the RTOS does not have")
+            return None
         ram = sorted((r for r in regions if "w" in r["attrs"] and not {"retained", "tcm"} & set(r["attrs"])),
                      key=lambda r: r["base"])
         if not ram:

@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# MPS2 AN505: a Cortex-M33 with FPU and DSP in Arm's SSE-200 IoT Kit (QEMU machine mps2-an505),
+# the emulated Armv8-M Mainline reference (A78). The image runs in the Secure state with
+# TrustZone unused, as QEMU starts the CPU: code and data at their Secure aliases, the boot
+# vector table at INITSVTOR (0x10000000), the UART and FPGA I/O through the peripheral
+# protection controllers' Secure aliases (bit 28 set). From QEMU 11.1's hw/arm/mps2-tz.c and
+# hw/arm/armsse.c, and Arm's AN505 application note.
+schema_version: 0
+kind: soc
+name: an505
+vendor: arm
+family: mps2
+extends: mps2.yaml
+part: Cortex-M33
+curated: true
+arch: { port: cortex_m, variant: armv8m-main }
+cpu:
+  core: cortex-m33f
+  fpu: fpv5-sp-d16
+  trustzone: false
+  cycle_counter: dwt
+  cflags: [-mcpu=cortex-m33, -mfpu=fpv5-sp-d16, -mfloat-abi=hard]
+memory:
+  regions:
+    # ZBT SSRAM1 (4 MiB, QEMU's ssram-0) at its Secure alias, and SSRAM2 and SSRAM3 (2 MiB each,
+    # contiguous) at theirs; the memory protection controllers reset to all-Secure
+    - { name: code, base: 0x10000000, size: 4M, attrs: [r, x, boot] }
+    - { name: ram, base: 0x38000000, size: 4M, attrs: [r, w, x] }
+clocks:
+  sources:
+    - { name: sysclk, hz: 20MHz, doc: "the SSE-200's MAINCLK; SysTick runs on it (no reference clock is wired)" }
+interrupts:
+  # 32 SSE-200 lines and 92 expansion lines; the devices use lines 32 to 67
+  count: 124
+  priority_bits: 3
+  reserved: [120, 121]
+peripherals:
+  - { name: uart0, compatible: "arm,cmsdk-uart", base: 0x50200000, size: 0x1000 }
+  - { name: fpgaio, compatible: "arm,mps2-fpgaio", base: 0x50302000, size: 0x1000, doc: LED0 at offset 0 }

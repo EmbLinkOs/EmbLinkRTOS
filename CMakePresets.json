@@ -160,6 +160,27 @@
       }
     },
     {
+      "name": "cm0-microbit",
+      "displayName": "Cortex-M0 (QEMU microbit, nRF51822), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm0-microbit",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "microbit"
+      }
+    },
+    {
+      "name": "cm0-microbit-release",
+      "displayName": "Cortex-M0 (QEMU microbit, nRF51822), GCC, tiny profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm0-microbit-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "microbit",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
       "name": "cm3-an385",
       "displayName": "Cortex-M3 (QEMU mps2-an385), GCC, base profile, checked",
       "generator": "Ninja",
@@ -199,6 +220,69 @@
       "cacheVariables": {
         "EMB_BOARD": "mps2_an386",
         "EMB_PROFILE": "tiny"
+      }
+    },
+    {
+      "name": "cm7-an500",
+      "displayName": "Cortex-M7 (QEMU mps2-an500), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm7-an500",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an500"
+      }
+    },
+    {
+      "name": "cm7-an500-release",
+      "displayName": "Cortex-M7 (QEMU mps2-an500), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm7-an500-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an500",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "cm33-an505",
+      "displayName": "Cortex-M33 (QEMU mps2-an505), GCC, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-an505",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an505"
+      }
+    },
+    {
+      "name": "cm33-an505-release",
+      "displayName": "Cortex-M33 (QEMU mps2-an505), GCC, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-an505-release",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an505",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "cm33-an505-tiny",
+      "displayName": "Cortex-M33 (QEMU mps2-an505), GCC, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-an505-tiny",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an505",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
+      "name": "cm33-pico2w",
+      "displayName": "Raspberry Pi Pico 2 W (RP2350A, Cortex-M33), GCC, base profile, checked: build only until the board runs (HIL)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-pico2w",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "pico2_w"
       }
     },
     {
@@ -377,6 +461,14 @@
       "configurePreset": "avr-uno-embsim"
     },
     {
+      "name": "cm0-microbit",
+      "configurePreset": "cm0-microbit"
+    },
+    {
+      "name": "cm0-microbit-release",
+      "configurePreset": "cm0-microbit-release"
+    },
+    {
       "name": "cm3-an385",
       "configurePreset": "cm3-an385"
     },
@@ -391,6 +483,30 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny"
+    },
+    {
+      "name": "cm7-an500",
+      "configurePreset": "cm7-an500"
+    },
+    {
+      "name": "cm7-an500-release",
+      "configurePreset": "cm7-an500-release"
+    },
+    {
+      "name": "cm33-an505",
+      "configurePreset": "cm33-an505"
+    },
+    {
+      "name": "cm33-an505-release",
+      "configurePreset": "cm33-an505-release"
+    },
+    {
+      "name": "cm33-an505-tiny",
+      "configurePreset": "cm33-an505-tiny"
+    },
+    {
+      "name": "cm33-pico2w",
+      "configurePreset": "cm33-pico2w"
     },
     {
       "name": "cm4-nucleo-embsim",
@@ -541,6 +657,20 @@
       }
     },
     {
+      "name": "cm0-microbit",
+      "configurePreset": "cm0-microbit",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm0-microbit-release",
+      "configurePreset": "cm0-microbit-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "cm3-an385",
       "configurePreset": "cm3-an385",
       "output": {
@@ -564,6 +694,41 @@
     {
       "name": "cm4-an386-tiny",
       "configurePreset": "cm4-an386-tiny",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm7-an500",
+      "configurePreset": "cm7-an500",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm7-an500-release",
+      "configurePreset": "cm7-an500-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm33-an505",
+      "configurePreset": "cm33-an505",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm33-an505-release",
+      "configurePreset": "cm33-an505-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm33-an505-tiny",
+      "configurePreset": "cm33-an505-tiny",
       "output": {
         "outputOnFailure": true
       }

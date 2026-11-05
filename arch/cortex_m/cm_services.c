@@ -8,10 +8,19 @@ void emb_cm_semihosting_exit(int code)
     volatile uint32_t block[2];
     block[0] = 0x20026u; /* ADP_Stopped_ApplicationExit */
     block[1] = (uint32_t)code;
+#if defined(__ARM_ARCH_6M__)
+    __asm__ __volatile__(".syntax unified\n\t"
+                         "movs r0, #0x20\n\t" /* SYS_EXIT_EXTENDED; Thumb-1 has movs only */
+                         "mov r1, %0\n\t"
+                         "bkpt 0xab\n\t"
+                         ".syntax divided" ::"r"(block)
+                         : "r0", "r1", "cc", "memory");
+#else
     __asm__ __volatile__("mov r0, #0x20\n\t" /* SYS_EXIT_EXTENDED */
                          "mov r1, %0\n\t"
                          "bkpt 0xab" ::"r"(block)
                          : "r0", "r1", "memory");
+#endif
     for (;;) {
     }
 }

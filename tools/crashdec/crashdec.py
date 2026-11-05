@@ -140,7 +140,7 @@ REG_NAMES = {
 }
 CFSR = {0: "IACCVIOL", 1: "DACCVIOL", 3: "MUNSTKERR", 4: "MSTKERR", 5: "MLSPERR", 7: "MMARVALID",
         8: "IBUSERR", 9: "PRECISERR", 10: "IMPRECISERR", 11: "UNSTKERR", 12: "STKERR", 13: "LSPERR",
-        15: "BFARVALID", 16: "UNDEFINSTR", 17: "INVSTATE", 18: "INVPC", 19: "NOCP", 24: "UNALIGNED",
+        15: "BFARVALID", 16: "UNDEFINSTR", 17: "INVSTATE", 18: "INVPC", 19: "NOCP", 20: "STKOF", 24: "UNALIGNED",
         25: "DIVBYZERO"}
 HFSR = {1: "VECTTBL", 30: "FORCED", 31: "DEBUGEVT"}
 MCAUSE = {0: "instruction address misaligned", 1: "instruction access fault", 2: "illegal instruction",

@@ -1,6 +1,6 @@
 # The hardware generator (emb-hwgen)
 
-`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A70, A75](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 with two boards on it (the NUCLEO-F446RE and NUCLEO-F446ZE), the ATmega328P with the Arduino Uno ([A70](../specs/AMENDMENTS-M3.md)), and the emulated references: QEMU's MPS2 AN385 and AN386 and its RV32 virt ([A75](../specs/AMENDMENTS-M3.md)). Only the ESP32-C3 board is still written by hand.
+`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A70, A75](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 with two boards on it (the NUCLEO-F446RE and NUCLEO-F446ZE), the ATmega328P with the Arduino Uno ([A70](../specs/AMENDMENTS-M3.md)), and the emulated references: QEMU's MPS2 AN385 and AN386 and its RV32 virt ([A75](../specs/AMENDMENTS-M3.md)), and the AN505's Cortex-M33 ([A78](../specs/AMENDMENTS-M3.md)). Only the ESP32-C3 board is still written by hand.
 
 ## Use
 
@@ -8,6 +8,7 @@
 python3 -I hw/gen/emb-hwgen.py validate --board boards/st/nucleo_f446re   # check only
 python3 -I hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446re   # rewrite generated/
 python3 -I hw/gen/emb-hwgen.py check                                      # CI: every generated/ is current
+python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project            # a project's own boards
 ```
 
 The generator needs Python 3 and PyYAML, the configuration tool's one dependency.
@@ -141,9 +142,96 @@ The tests cover:
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
 
+## A numbered GPIO bank: the RP2350
+
+The RP2350 names its pins `GPIO0` to `GPIO29`, with a function select per pin, where the STM32 has ports and alternate functions ([A79](../specs/AMENDMENTS-M3.md)). Its description says `gpio: { lines: 30, controller: io_bank0 }`. A board writes `uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }`, and the SoC lists what each pin offers as `GPIO0: { f2: uart0_tx }`. The RP2350 family emits two files:
+- `board_pins.c`, with each line's function select and pad input enable;
+- `boot_block.c`, the IMAGE_DEF block its boot ROM needs in an image's first 4 KiB, from the SoC's `boot.image_type`.
+
+The SoC's `boot` entry also makes the build write each image as a UF2 (`tools/uf2/uf2.py`). The writer refuses an RP2350 image whose first 4 KiB hold no valid IMAGE_DEF.
+
+The Raspberry Pi Pico 2 W (`boards/rpi/pico2_w`, preset `cm33-pico2w`) is the first board on it. It runs from the 12 MHz crystal, with no PLL yet, and its console is on UART0 at GPIO0 and GPIO1. It builds but has not run (tier 3): no emulator models the RP2350.
+
+## Importing a SoC from its SVD
+
+`hw/import/svd.py` drafts a SoC description from a CMSIS-SVD file ([A77](../specs/AMENDMENTS-M3.md), HW-004, HW-012). EmbCC's `embsvd` parses the file; give `--json` with its output if `embsvd` is not on PATH.
+
+```sh
+python3 -I hw/import/svd.py STM32F446.svd --vendor st --family stm32f4 \
+    --flash 0x08000000:512K --ram 0x20000000:128K -o stm32f446-draft.yaml
+python3 -I hw/import/svd.py STM32F446.svd --vendor st --family stm32f4 \
+    --flash 0x08000000:512K --ram 0x20000000:128K --against soc/st/stm32f4/stm32f446.yaml
+```
+
+- **What the draft holds.** Everything the SVD states:
+  - the core, FPU, MPU and `-mcpu` flags;
+  - the interrupt count, priority bits, and the lines no peripheral uses (`reserved`);
+  - each peripheral's base, size and interrupts. Peripherals on the Cortex-M private peripheral bus are left out, as architecture.
+
+  The vendor table `hw/import/compat/<vendor>.yaml` adds each peripheral's `compatible`, its GPIO `port`, and its clock gate (the RCC `*ENR` field `<NAME>EN` on ST parts). A peripheral the table does not map gets `svd,<group>`, which no driver binds.
+- **What it does not hold.** Clocks, pins and alternate functions, flash geometry, errata and packages are listed as `todo` at the top, with the bus enable-register offsets the SVD does give.
+- **Curation.** The draft is `abstract` and `curated: false`. A person checks it against the reference manual, splits it into family, die and part files, and marks what they checked.
+- **Re-import.** `--against` compares the draft with an existing description, through its `extends` chain, matching peripherals by base address. It prints every difference and writes nothing. `-o` refuses a file holding curated nodes.
+- **Verified on the STM32F446.**
+  - Against ST's SVD v2.0 (Apache-2.0, `modm-io/cmsis-svd-stm32`, SHA-256 `a4920acf…776d`), the curated die agrees on every fact both hold: core, FPU, MPU, 4 priority bits, 97 lines, the 12 reserved lines, and each peripheral's name, `compatible`, base, size, GPIO port, clock bus and bit, and interrupts. The one exception is the PVD interrupt (line 1): the SVD gives it to EXTI, the curated file to PWR.
+  - The older SVD 1.1 in `cmsis-svd-data` gets ten of those facts wrong: no FPU, 3 priority bits, 90 lines, and interrupts given to the wrong peripherals (UART4 the WWDG's line 0). `--against` reports every one. This is why a draft is never used uncurated.
+  - The test `Stm32f446Oracle` repeats the v2.0 comparison when `EMB_SVD_STM32F446` names the file. The SVD is not committed.
+
+## Importing a board from Zephyr
+
+`hw/import/dts.py` drafts a `board.yaml` from a Zephyr board's DeviceTree ([A82](../specs/AMENDMENTS-M3.md)). The C preprocessor and `dtc` flatten the `.dts` with its includes. Clone Zephyr and its `hal_stm32` module, or only the board's files, the `dts/` and `include/zephyr/dt-bindings` directories, and `hal_stm32/dts`.
+
+```sh
+Z=~/zephyr; H=~/hal_stm32
+python3 -I hw/import/dts.py $Z/boards/st/nucleo_f446re/nucleo_f446re.dts \
+    -I $Z/dts -I $Z/dts/arm -I $Z/dts/common -I $Z/include -I $Z/include/zephyr -I $H/dts \
+    --soc st/stm32f4/stm32f446re.yaml -o ~/my-project/boards/st/my_nucleo/board.yaml --name my_nucleo
+```
+
+- **What it takes.** The enabled oscillators, the clock and PLL, the console and its pins, the LEDs and buttons, and the flash; the test lines come from the SoC's reserved lines.
+- **What stays `todo`.** Zephyr's clock and partition choices, the debug probe and simulation, and the other enabled peripherals.
+- **A bootloader layout.** When Zephyr's code partition is MCUboot's slot 0, the draft's app partition is the whole flash, since an image must start where the core boots. The generator refuses an app partition elsewhere on Cortex-M.
+- **Verified on the NUCLEO-F446RE.** Zephyr's board agrees with the curated one on every board fact, and differs only on the clock (96 MHz) and the LSE, which it leaves disabled. Its draft, kept outside the tree with a `simulation` line added, builds and passes 19 of 19 on EmbSIM.
+
+## Importing STM32 pins
+
+`hw/import/pins.py` takes a package's bonded pins and alternate functions from ST's open pin data, which SVD files lack ([A85](../specs/AMENDMENTS-M3.md)):
+
+```sh
+D=~/STM32_open_pin_data
+python3 -I hw/import/pins.py --mcu "$D/mcu/STM32F446R(C-E)Tx.xml" \
+    --gpio $D/mcu/IP/GPIO-STM32F446_gpio_v1_0_Modes.xml --soc st/stm32f4/stm32f446re.yaml
+python3 -I hw/import/pins.py ... --against soc/st/stm32f4/stm32f446re.yaml
+```
+
+The draft is the package file's `gpio.ports` and the `alternate_functions` of the peripherals the SoC description has. For the F446RE and F446ZE it agrees with the curated files: 0 differences. It also lists the functions the table leaves out, such as CTS, RTS, MCO and the ZE's USART6 on PG9 and PG14.
+
+## A board outside the tree
+
+A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:
+
+```text
+my-project/
+  boards/acme/acme_m4/board.yaml     # names a SoC of this tree: soc: arm/mps2/an386.yaml
+  boards/acme/acme_m4/generated/     # emb-hwgen's outputs, committed with the project
+```
+
+```sh
+python3 -I hw/gen/emb-hwgen.py generate --board ~/my-project/boards/acme/acme_m4
+cmake -S . -B build/acme -G Ninja --toolchain cmake/toolchains/arm-none-eabi-gcc.cmake \
+      -DEMB_BOARD=acme_m4 -DEMB_BOARD_ROOT=$HOME/my-project
+cmake --build build/acme && ctest --test-dir build/acme
+python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project    # in the project's CI
+```
+
+- **Lookup.** Configuration looks the board up in this tree and in each root (a semicolon-separated list; relative paths start from this tree). It refuses a root without `boards/`, and a board name found twice.
+- **Stamps.** The outputs record the board's own files as `@board/board.yaml`, relative to the board's directory, and the SoC and port files by their paths in this tree. The staleness check resolves both, and the outputs hold no path of the machine they were made on.
+- **A SoC of the project's own** ([A84](../specs/AMENDMENTS-M3.md)). The root may also hold `soc/<vendor>/<family>/`, a family's descriptions and its board support, and its boards name it as any board names a SoC. The generator looks in the tree and in the root, and refuses a SoC file found in both. `check --board-root` also checks the root's C for hardware facts (HW-001). The port manifests (`arch/`) stay in the tree.
+- **Verified.** A copy of the MPS2 AN386 description kept outside the tree as `acme_m4` generates, configures, and passes the AN386's 21 tests under QEMU. `OutOfTree` in `hw/gen/test_hwgen.py` covers the stamps, location independence, the messages, and `check --board-root`.
+
 ## Limits of this increment
 
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
-- **Not generated:** the system description, `soc_devices.c`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
+- **Not generated:** the system description, `soc_devices.c`, the DeviceTree and pin importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
 - **Other boards:** the ESP32-C3 has no description yet; it waits for #46, which rewrites its board.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The nRF51 family (SPEC-014 §3) as QEMU 11.1 models it (hw/arm/nrf51_soc.c, the micro:bit's
+# SoC): a Cortex-M0 at a fixed 16 MHz, flash from 0, SRAM at 0x20000000, the UART at 0x40002000
+# on line 2 (each peripheral's line is bits 12-16 of its base). The emulated Armv6-M reference
+# (A86). A part file gives the flash and SRAM sizes.
+schema_version: 0
+kind: soc
+name: nrf51
+vendor: nordic
+family: nrf51
+abstract: true
+curated: true
+doc: From QEMU 11.1's hw/arm/nrf51_soc.c, include/hw/arm/nrf51.h and hw/char/nrf51_uart.c.
+arch: { port: cortex_m, variant: armv6m }
+cpu:
+  core: cortex-m0
+  cycle_counter: systick
+  cflags: [-mcpu=cortex-m0, -mfloat-abi=soft]
+clocks:
+  sources:
+    - { name: hfclk, hz: 16MHz, doc: "HCLK, fixed in QEMU's model" }
+interrupts:
+  controller: nvic
+  count: 32
+  priority_bits: 2
+  systick: true
+  # SWI0 to SWI5 (lines 20 to 25, the nRF51's software interrupts) and the unused 26 to 31:
+  # no peripheral raises them
+  reserved: [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+peripherals:
+  - { name: uart0, compatible: "nordic,nrf-uart", base: 0x40002000, size: 0x1000, irqs: [ { name: global, number: 2 } ] }

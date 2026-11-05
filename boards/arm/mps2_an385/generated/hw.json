@@ -95,7 +95,7 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c"
+      "sha256": "6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a"
     },
     {
       "path": "boards/arm/mps2_an385/board.yaml",

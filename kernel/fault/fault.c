@@ -99,6 +99,14 @@ void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr
                sp);
 }
 
+/* A hardware stack limit (PSPLIM on Armv8-M Mainline, A80, KRN-MEM-010): the stack overflow
+ * class, with the fault status as the address word, the stack pointer at the limit, no pc. */
+void embk_fault_raise_stack_limit(uint16_t code, uintptr_t status, uintptr_t sp)
+{
+    raise_info(EMB_API_ID_NONE, EMB_FAULT_STACK_OVERFLOW, code, 0u, "stack limit register", status,
+               0u, sp);
+}
+
 void emb_fault(uint8_t fault_class, uint16_t code, const char *where)
 {
 #if CONFIG_EMB_CRASH_RECORD

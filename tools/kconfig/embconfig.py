@@ -751,8 +751,10 @@ def derive_irq_levels(tree: Tree):
     maximum = 0
     if probe.value(tree.symbols["EMB_ARCH"]) == "cortex_m":
         bits = integer("EMB_CM_IRQ_PRIORITY_BITS")
-        if not 3 <= bits <= 7:
-            raise ConfigError("CONFIG_EMB_CM_IRQ_PRIORITY_BITS must be in 3..7")
+        # Armv6-M implements two priority bits (A86); the other variants at least three
+        low = 2 if probe.value(tree.symbols["EMB_ARCH_VARIANT"]) == "armv6m" else 3
+        if not low <= bits <= 7:
+            raise ConfigError(f"CONFIG_EMB_CM_IRQ_PRIORITY_BITS must be in {low}..7")
         step = 1 << (8 - bits)
         lowest = 256 - 2 * step  # leave the least urgent encoding to PendSV
         base = integer("EMB_CM_KERNEL_BASEPRI")

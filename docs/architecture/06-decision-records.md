@@ -587,3 +587,119 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 **Consequences.** With `CONFIG_EMB_TIMER=n` the thread timeout path is the M1 code. Arming a timer is O(armed timers); stopping is O(1). A timer restarted already due from its own ISR-context callback expires one pass later: at the next tick in periodic mode, at once by the reprogrammed compare in tickless mode. The table scheduler's singly linked list has no timer list, and timers are off with it in M2.
 
 **Status.** Accepted 2026-10-31 by the project owner at the M2 contract review; implemented 2026-10-27 in M2-09.
+
+## ADR-051 Any board, from a custom PCB to a vendor's: cores are ported, SoCs imported, boards described
+
+**Context.** The project owner set the goal on 2026-11-04: EmbLinkRTOS should run on any board, from a custom PCB to an official vendor board. Principle 5 (01 §2) and 02 §9 already make a new board on a supported SoC a matter of data. In practice support grows one target at a time, and 07 names the targets:
+- four ports (native, AVR, Cortex-M3/M4F, RV32);
+- SoC descriptions written by hand for five parts;
+- boards found only inside the tree.
+
+Boards now on the owner's bench, a classic ESP32 (Xtensa LX6) and a Raspberry Pi Pico 2 W (RP2350), have no place in that list. Writing per-board code does not scale to "any board". Neither does a support claim made without evidence, which would also break the evidence rules of 07 and M4's "support matrix comes from archived outcomes".
+
+**Decision.**
+1. **Three layers, each with its own cost.**
+   - *Core port* (`arch/`): context switch, interrupts, tick. There is one per CPU core family, and it is the only kernel-facing work.
+   - *SoC description* plus family board support (`soc/`, `drivers/`): a new part of a supported family is a description. A new family adds its board support and drivers once.
+   - *Board description* (`board.yaml`): never C (02 §9).
+
+   Coverage grows by adding to whichever layer is missing, never by special-casing a board.
+2. **Boards live anywhere.** A project keeps its own boards in its own tree and names that tree with `EMB_BOARD_ROOT`, a directory with the same `boards/<vendor>/<board>/` layout ([A76](../specs/AMENDMENTS-M3.md)). Those boards use the tree's SoC descriptions, and `emb-hwgen.py check --board-root` checks them in the project's CI. Board names are unique across the tree and every root.
+3. **SoC descriptions come from importers.** Importers draft SoC descriptions from vendor data (HW-004, HW-012), and a person then curates the draft:
+   - CMSIS-SVD first, since it covers most Cortex-M and many RISC-V parts (`embsvd`);
+   - then Microchip's ATDF for AVR;
+   - then Espressif's register descriptions.
+
+   An imported description stays `curated: false` until a board confirms it.
+4. **Support tiers, from evidence.** A board's tier is derived from archived outcomes for the release, never declared:
+
+   | Tier | Name | Evidence |
+   |---|---|---|
+   | 1 | hardware | The conformance suite on the physical board through the HIL runner |
+   | 2 | emulated | The suite in CI on QEMU or EmbSIM |
+   | 3 | described | Builds from its description, with no execution evidence |
+
+   A custom board is tier 3 the moment it builds, and its owner can raise it with the same runner.
+5. **Core ports follow demand and hardware on hand.** In order:
+   - Xtensa LX6 (classic ESP32);
+   - Cortex-M33 (the RP2350's Arm cores);
+   - Hazard3 (its RISC-V cores, mostly the existing RV32 port);
+   - Cortex-M0+ and Cortex-M7.
+
+   Each port passes its own gate and inherits no other port's claim (07 M5).
+6. **The 1.0 boundary does not move.** The first supported release is still the NUCLEO-F446RE controller of 07 §1. This record sets the direction support grows in after it, not the scope of that release.
+
+**Alternatives.**
+- *Per-board code* (a demo project or board package per board, as many RTOSes ship): every new board costs C, and boards drift apart.
+- *Zephyr's devicetree as the board format*: it brings a large board catalog, but also the macro layer R-002 §1 records as Zephyr's most repeated complaint. Devicetree stays an importer input (SPEC-014 §1), not the format.
+- *Listing every board as supported*: misleading without evidence; the tiers replace it.
+
+**Consequences.**
+- 07's named boards become examples of tiers, not the whole target list.
+- The importers move up in priority: they turn many chips into many descriptions, and their output still needs review.
+- The classic ESP32 is in scope as a future Xtensa port. It first needs linker-script support for Xtensa in `embld`, or another linker (`docs/ports/xtensa.md`).
+- What remains in the tree only:
+  - custom SoCs and their family support, which need a SoC root and a board-support path;
+  - the HIL matrix of 02 §9, which covers only boards with a probe the runner knows.
+- Generated outputs must stay machine-independent for boards outside the tree too (HW-013). They name a board's own files as `@board/...`.
+
+**Status.** Proposed 2026-11-04, from the project owner's goal; awaiting review. Implementation started with A76 (boards outside the tree).
+
+## ADR-052 The ESP32's layout is a GNU ld script, which EmbCC's embld and Espressif's GCC both link
+
+**Context.** The ESP32's instruction RAM takes only 32-bit accesses, so a byte load from code memory faults. An Xtensa image therefore needs its code in IRAM and everything a byte load reads in DRAM: the read-only data (`.rodata`, the strings), the data and the bss. EmbCC's `embld` placed an Xtensa image only by `-Ttext` and `-Tdata`, and refused a linker script for that machine. Those flags keep `.rodata` with the text, in IRAM. The bring-up probe (#60) worked around this by forcing its strings into `.data`, which does not scale to a kernel and its applications.
+
+**Decision.** The ESP32's layout is a GNU ld script: `.text` (with any `.literal` sections before their code) in IRAM, and `.rodata`, `.data` and `.bss` in DRAM. Every toolchain that reads such a script links the same layout:
+- **EmbCC:** `embld` lays out Xtensa images from scripts through its existing engine (EmbCC D-024, EmbCC #174). The engine needed nothing machine-specific, because the relocations check their own reach (`l32r` backwards within 256 KiB, `call8` within 512 KiB).
+- **Espressif's GCC:** GNU ld reads the script as written. A CI leg builds the probe with Espressif's GCC.
+
+The probe's `tools/esp/bringup/esp32.ld` is the first such script; the kernel port's will come from the hardware generator, as for every other board (A68). EmbCC is one supported toolchain for the ESP32, not the only one (ADR-053).
+
+**Alternatives.**
+- *EmbCC only.* Refusing Espressif's GCC would cut the ESP32 off from the toolchain ESP-IDF and most ESP32 projects use. The first draft of this record chose that, and ADR-053 reverses it.
+- *Espressif's GCC only.* The ESP32 would be the one target EmbCC cannot link.
+- *A `-Trodata` option.* It is narrower than a script, and would still fail the next layout an ESP32 needs, such as RTC fast memory or the crash record's noinit area.
+
+**Consequences.**
+- An EmbCC build of the ESP32 needs an `embld` with D-024. Until EmbCC #174 is in a release, the probe's `build.sh` falls back to `-Ttext`/`-Tdata`, which works only because the probe keeps its byte data in `.data`.
+- `build.sh` builds with Espressif's GCC when `XTENSA_GCC` names it. `check_probe.py` checks either image, the same way: an ESP32 image, the code in IRAM, the message in DRAM.
+- A script has no `-Tstack` entry stub, which changes nothing on the ESP32: its ROM calls the entry as a windowed function, with a stack set.
+- EmbCC's golden test `xtensa-ldscript` runs an ESP32-like layout on QEMU's sim machine. The RTOS CI's `xtensa-gcc` job builds the probe with Espressif's GCC, pinned to release `esp-16.1.0_20260609` by the SHA-256 Espressif publishes.
+
+**Status.** Proposed 2026-11-04 and revised the same day by ADR-053, at the project owner's direction that the RTOS work with every toolchain; EmbCC #174 implements the embld side.
+
+## ADR-053 Toolchain neutrality: one port per architecture, three seams, toolchains tiered by evidence
+
+**Context.** Users build with the toolchain their project already uses:
+- a vendor's GCC (Espressif's, Arm GNU, the RISC-V GNU toolchain);
+- Clang or LLVM;
+- EmbCC;
+- a certified commercial compiler (IAR, Arm Compiler 6 in Keil MDK, TI, Tasking), which safety projects often must use.
+
+A toolchain can have real advantages for a part, such as code size, vendor optimizations or a debugger that knows the chip, and choosing among them is the user's decision, not the RTOS's. Two models exist:
+- **FreeRTOS** keeps one port per compiler and architecture (`portable/GCC/ARM_CM4F`, `portable/IAR/ARM_CM4F`, `portable/RVDS/ARM_CM4F`, ...), and leaves linker scripts to each vendor's project. Almost any compiler works, but the copies drift, and the commercial ports depend on their vendors.
+- **Zephyr** keeps one port per architecture. It isolates the compiler, the linker and the binary tools behind modules chosen by `ZEPHYR_TOOLCHAIN_VARIANT`, and it generates GNU ld scripts, Arm scatter files and IAR ICF files from one CMake description, because armlink and IAR's ilink cannot read GNU ld scripts. Its default, the Zephyr SDK's GCC, is what its CI guarantees. Its IAR and Arm Compiler support still lists limits where subsystems depend on GNU-only code: neutrality retrofitted is slow.
+
+EmbLinkRTOS already builds the same sources with EmbCC, GCC and Clang (09 §11). Its compiler-specific spellings live in `include/emb/compiler/` (BLD-002), and an unknown compiler compiles the kernel with `generic.h` fallbacks.
+
+**Decision.**
+1. **One port per architecture, never per compiler.** A toolchain differs from another in three seams only, and each has one place:
+   - *compiler extensions:* attributes, builtins and the like, spelled only as `EMB_` macros of `<emb/compiler.h>`, with one header per compiler in `include/emb/compiler/` and standard-C fallbacks;
+   - *assembly:* kept to the few port functions that need it (the switch, entry and fault stubs), in `arch/`. A new assembler dialect adds a small file beside the GNU one, never a second port;
+   - *linker layout:* generated from the board description (SPEC-014) for each linker family. Today that is the GNU ld script (`regions.ld`, which EmbCC's `embld`, GNU ld and LLVM's lld read) and `embld.opts`. An IAR ICF or Arm scatter emitter is one more output from the same data.
+2. **Enforced.** `scripts/check-banned.py` refuses GNU extensions outside `arch/` and the compiler layer: raw `__attribute__`, `__builtin_` calls, `typeof` and statement expressions. Inline assembly and compiler detection were already confined. Generated C is checked too.
+3. **Toolchains are tiered by evidence, as boards are (ADR-051).** A toolchain is claimed for a board only where CI builds the board with it. The support matrix lists them per board. Free toolchains run in CI: GCC (Arm GNU, avr-gcc, RISC-V, Espressif's), Clang and EmbCC. Commercial ones (IAR, Arm Compiler 6 or Keil, TI, Tasking) need licenses. They stay unclaimed until a licensed runner exists. Keil MDK Community, free for non-commercial use with Arm Compiler 6, may allow a local leg first.
+4. **EmbCC is first-class, not exclusive.** It is the toolchain this project controls, so a gap there can be fixed at its source. No target requires it.
+
+**Alternatives.**
+- *Per-compiler ports* (FreeRTOS) cost one copy of each port per compiler, and the copies drift.
+- *A single toolchain* (EmbCC, or GCC) is simpler to test, but excludes every project bound to another, including certified ones.
+- *Retrofitting neutrality later* is what Zephyr's IAR and armclang limitations show is slow. The seams are cheap to keep now, while the code is small.
+
+**Consequences.**
+- ADR-052 is revised: the ESP32's script serves both `embld` and Espressif's GCC, and CI builds the bring-up probe with the latter (`xtensa-gcc`, checksum-pinned).
+- The support matrix gains a "Toolchains in CI" column.
+- **Not yet:** an IAR or Arm compiler header, a second assembler dialect, and ICF or scatter emitters. They wait for a license and a runner to prove them; until then nothing claims them.
+- The ports' inline assembly is GNU syntax, which EmbCC, GCC and Clang all accept. A port for a compiler without it, such as IAR's, would add the assembly file the seam allows.
+
+**Status.** Proposed 2026-11-04, from the project owner's direction ("work with all the vendors' own toolchains"); awaiting review.

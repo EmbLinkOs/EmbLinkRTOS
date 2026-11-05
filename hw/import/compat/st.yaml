@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The SVD importer's table for STMicroelectronics (SPEC-014 §8, hw/import/svd.py): which
+# `compatible` a peripheral of an ST SVD gets, and where its clock gate is. The first rule that
+# matches a peripheral applies; `family` limits a rule to one family. A peripheral no rule
+# matches gets `svd,<group>`, which no driver binds.
+schema_version: 0
+vendor: st
+rules:
+  - { group: USART, compatible: "st,stm32-usart" }
+  - { group: GPIO, compatible: "st,stm32-gpio", port: "^GPIO([A-K])$" }
+  - { name: FLASH, family: stm32f4, compatible: "st,stm32f4-flash", rename: flash_if }
+  - { name: RCC, family: stm32f4, compatible: "st,stm32f4-rcc" }
+  - { name: PWR, family: stm32f4, compatible: "st,stm32f4-pwr" }
+# Clock gates: the RCC register whose name matches `register` names the bus (its first group,
+# lower case), and the field <PERIPHERAL>EN in it is the peripheral's enable bit.
+clock_gates: { peripheral: RCC, register: "^(AHB[0-9]|APB[0-9])ENR$" }

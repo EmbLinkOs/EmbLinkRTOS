@@ -6,6 +6,7 @@
 
     emb-hwgen.py generate --board boards/st/nucleo_f446re [--out DIR]
     emb-hwgen.py check              # every generated/ is up to date; no hardware facts in C (HW-001)
+    emb-hwgen.py check --board-root ~/my-project   # the boards a project keeps outside the tree
     emb-hwgen.py validate --board boards/st/nucleo_f446re
 
 Exit status 0 on success, 1 when check finds a difference, 2 on a description error; each
@@ -41,7 +42,12 @@ def cmd_generate(args):
 
 def cmd_check(args):
     bad = 0
-    boards = _boards(ROOT)
+    roots = [Path(r) for r in args.board_root] or [ROOT]
+    for r in roots:
+        if not (r / "boards").is_dir():
+            print(f"emb-hwgen: {r} has no boards/ directory (a board root holds boards/<vendor>/<board>/)", file=sys.stderr)
+            return 2
+    boards = [b for r in roots for b in _boards(r)]
     for board in boards:
         files, _ = generate.generate(board, ROOT)
         gen = board / "generated"
@@ -61,7 +67,9 @@ def cmd_check(args):
             else:
                 sys.stdout.writelines(difflib.unified_diff(have.splitlines(True), want.splitlines(True),
                                                            f"{rel} (committed)", f"{rel} (generated)"))
-    problems = facts.check(ROOT)
+    # HW-001 for the tree, or for each board root: its boards hold no hand-written files, and its
+    # own SoC families' C no address-like constant (A84)
+    problems = [p for r in roots for p in facts.check(r)]
     for p in problems:
         print(p)
     print(f"emb-hwgen check: {len(boards)} board(s), {bad} stale file(s), {len(problems)} hardware fact(s) outside a description")
@@ -82,8 +90,10 @@ def main(argv=None):
     g = sub.add_parser("generate", help="write a board's generated outputs")
     g.add_argument("--board", required=True, help="the board directory, holding board.yaml")
     g.add_argument("--out", help="output directory (default: <board>/generated)")
-    sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003), "
-                   "and look for hardware facts outside the descriptions (HW-001)")
+    c = sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003), "
+                       "and look for hardware facts outside the descriptions (HW-001)")
+    c.add_argument("--board-root", action="append", default=[],
+                   help="check the boards under DIR/boards/ instead of the tree's (repeatable)")
     v = sub.add_parser("validate", help="validate a board and its SoC without writing anything")
     v.add_argument("--board", required=True)
     args = ap.parse_args(argv)

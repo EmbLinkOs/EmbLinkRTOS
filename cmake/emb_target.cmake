@@ -29,6 +29,12 @@ function(emb_add_executable name)
         COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/esp/esp_image.py"
                 "$<TARGET_FILE:${name}>" -o "$<TARGET_FILE_DIR:${name}>/${name}.bin"
         COMMENT "flash image: ${name}.bin")
+    elseif(EMB_BOARD_FLASH_IMAGE STREQUAL "uf2")
+      # what the boot ROM's USB drive takes (tools/uf2/uf2.py, A79)
+      add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/uf2/uf2.py"
+                "$<TARGET_FILE:${name}>" -o "$<TARGET_FILE_DIR:${name}>/${name}.uf2" --family ${EMB_BOARD_UF2_FAMILY}
+        COMMENT "flash image: ${name}.uf2")
     endif()
   endif()
   set_property(GLOBAL APPEND PROPERTY EMB_IMAGES "$<TARGET_FILE:${name}>")

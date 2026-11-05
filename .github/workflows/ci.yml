@@ -86,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny]
+        preset: [cm0-microbit, cm0-microbit-release, cm3-an385, cm4-an386, cm4-an386-release, cm4-an386-tiny, cm7-an500, cm7-an500-release, cm33-an505, cm33-an505-release, cm33-an505-tiny]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
@@ -99,6 +99,13 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Build the Raspberry Pi Pico 2 W (RP2350, A79; no emulator models it, so build only)
+        if: matrix.preset == 'cm33-an505'
+        run: |
+          cmake --preset cm33-pico2w
+          cmake --build --preset cm33-pico2w
+          # every image is a UF2 the boot ROM accepts: uf2.py refuses one without an IMAGE_DEF
+          test "$(ls build/cm33-pico2w/tests/conformance/*.uf2 | wc -l)" -ge 19
       - name: Decode and symbolize the record that survived the reset (tools/crashdec, OBS-016)
         if: matrix.preset == 'cm4-an386'
         run: |
@@ -264,6 +271,12 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
+      - name: UF2 writer (A79)
+        run: python3 -I -m unittest discover -s tools/uf2 -p 'test_*.py' -v
+      - name: Board support matrix (ADR-051, A81)
+        run: |
+          python3 -I -m unittest discover -s tools/support -p 'test_*.py' -v
+          python3 -I tools/support/matrix.py --check
       - name: Footprint report tool
         run: python3 -I -m unittest discover -s tools/footprint -p 'test_*.py' -v
       - name: Case evidence tools
@@ -288,6 +301,7 @@ jobs:
         run: |
           pip install jsonschema
           python3 -I -m unittest discover -s hw/gen -p 'test_*.py' -v
+          python3 -I -m unittest discover -s hw/import -p 'test_*.py' -v
           python3 -I hw/gen/emb-hwgen.py check
       - name: Reference model
         run: |
@@ -457,10 +471,36 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
 
+  # The ESP32 probe built by Espressif's own GCC and GNU ld with the same esp32.ld that EmbCC's
+  # embld reads (ADR-052, ADR-053): a vendor toolchain as a CI leg. The archive is Espressif's
+  # release, pinned by the SHA-256 Espressif publishes beside it.
+  xtensa-gcc:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      ESP_GCC_RELEASE: esp-16.1.0_20260609
+      ESP_GCC_ARCHIVE: xtensa-esp-elf-16.1.0_20260609-x86_64-linux-gnu.tar.xz
+      ESP_GCC_SHA256: f708752ebb35cab21f184b2574114ed1187619db0edb8a4ba913c06ca2fa675e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Espressif's GCC for Xtensa (pinned, checksum-verified)
+        timeout-minutes: 15
+        run: |
+          curl -sSfL --retry 3 -o "$ESP_GCC_ARCHIVE" \
+            "https://github.com/espressif/crosstool-NG/releases/download/$ESP_GCC_RELEASE/$ESP_GCC_ARCHIVE"
+          echo "$ESP_GCC_SHA256  $ESP_GCC_ARCHIVE" | sha256sum -c -
+          tar -xJf "$ESP_GCC_ARCHIVE"
+          echo "$PWD/xtensa-esp-elf/bin" >> "$GITHUB_PATH"
+      - name: Build the ESP32 bring-up probe with it, and check the image
+        run: |
+          xtensa-esp32-elf-gcc --version | head -1
+          XTENSA_GCC=xtensa-esp32-elf-gcc tools/esp/bringup/build.sh build/esp32-gcc
+          python3 -I tools/esp/bringup/check_probe.py build/esp32-gcc/esp32_hello.bin
+
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

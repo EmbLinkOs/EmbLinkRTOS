@@ -4,7 +4,7 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/arm/mps2_an386 (HW-003).
  * Inputs (SHA-256):
  *   arch/cortex_m/arch.yaml
- *     8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c
+ *     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
  *   boards/arm/mps2_an386/board.yaml
  *     568078072789279ea4e60631f930e9d2b4307fb40a9f2b8b8ad710515eda47af
  *   soc/arm/mps2/an386.yaml
@@ -24,7 +24,9 @@ MEMORY
 
 SECTIONS
 {
-  .vectors : { KEEP(*(.vectors)) } > FLASH
+  /* the vector table, then any block the SoC's boot ROM looks for near the image's start
+     (the RP2350's IMAGE_DEF, A79) */
+  .vectors : { KEEP(*(.vectors)) KEEP(*(.emb_boot_block)) } > FLASH
 
   .text : {
     *(.text .text.*)

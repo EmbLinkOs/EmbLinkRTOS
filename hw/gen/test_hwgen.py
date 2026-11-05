@@ -19,6 +19,7 @@ from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E40
 
 BOARD = "boards/st/nucleo_f446re"
 UNO = "boards/arduino/arduino_uno"
+PICO = "boards/rpi/pico2_w"
 
 
 class Root:
@@ -142,6 +143,14 @@ class Negative(unittest.TestCase):
                        "- { name: app, base: 0x08000000, size: 20K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "erase-sector")
 
+    def test_app_partition_must_start_where_the_core_boots(self):
+        """A82: a Cortex-M core takes its vector table from the boot region's start; an image
+        elsewhere (MCUboot's slot 0) would need a bootloader."""
+        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+                       "- { name: boot, base: 0x08000000, size: 128K, reserved: true }\n  - { name: app, base: 0x08020000, size: 384K }")
+        self.expect(f"{BOARD}/board.yaml", self.board_line("name: app, base: 0x08020000"), "flash_partitions.app",
+                    "the core boots from 0x08000000")
+
     def test_partition_outside_flash(self):
         self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
                        "- { name: app, base: 0x08000000, size: 1M }")
@@ -216,9 +225,10 @@ class Negative(unittest.TestCase):
 
     # port manifest, errata, defaults
     def test_arch_variant_mismatch(self):
-        self.root.edit("soc/st/stm32f4/stm32f4.yaml", "variant: armv7em", "variant: armv6m")
+        # Armv8-M Baseline: a variant the Cortex-M port does not have (Armv6-M it has, A86)
+        self.root.edit("soc/st/stm32f4/stm32f4.yaml", "variant: armv7em", "variant: armv8m-base")
         f = "soc/st/stm32f4/stm32f4.yaml"
-        self.expect(f, self.root.line_of(f, "arch:"), "arch.variant", "no variant 'armv6m'")
+        self.expect(f, self.root.line_of(f, "arch:"), "arch.variant", "no variant 'armv8m-base'")
 
     def test_arch_port_missing(self):
         self.root.edit("soc/st/stm32f4/stm32f4.yaml", "port: cortex_m", "port: xtensa")
@@ -238,6 +248,69 @@ class Negative(unittest.TestCase):
     def test_board_name_matches_directory(self):
         self.root.edit(f"{BOARD}/board.yaml", "name: nucleo_f446re", "name: nucleo_f446rx")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: nucleo_f446rx"), "name", "differs from its directory")
+
+
+class Bank(unittest.TestCase):
+    """A79: a SoC with one numbered GPIO bank (the RP2350): GPIO<n>.f<k> pins, the bank's line
+    count, its function selects, and the RP2350 pin table."""
+
+    def setUp(self):
+        self.root = Root(boards=(PICO, BOARD))
+        self.addCleanup(self.root.close)
+
+    def expect(self, board, file, needle, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(board)
+        want = f"{file}:{self.root.line_of(file, needle)}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def test_pin_table(self):
+        files, _ = generate.generate(ROOT / PICO, ROOT)
+        self.assertIn("{0u, 2u, 1u},", files["board_pins.c"])  # GPIO0, function 2 (UART0 TX), input enabled
+        self.assertIn("{1u, 2u, 1u},", files["board_pins.c"])
+        self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
+        self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
+        self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])
+
+    def test_line_beyond_the_bank(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO30.f2")
+        self.expect(PICO, f, "tx: GPIO30.f2", "pins.uart0.tx", "GPIO30 is not bonded on the qfn60 package")
+
+    def test_wrong_function_select(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO0.f11")
+        self.expect(PICO, f, "tx: GPIO0.f11", "pins.uart0.tx", r"GPIO0 f11 is not uart0_tx \(GPIO0 offers f2 uart0_tx\)")
+
+    def test_function_select_needed(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO0")
+        self.expect(PICO, f, "tx: GPIO0,", "pins.uart0.tx", r"needs its alternate function: GPIO0\.f<n>")
+
+    def test_pin_styles_do_not_mix(self):
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "tx: GPIO0.f2", "tx: PA2.af7")
+        self.expect(PICO, f, "tx: PA2.af7", "pins.uart0.tx", "names its pins GPIO<n>")
+        g = f"{BOARD}/board.yaml"
+        self.root.edit(g, "tx: PA2.af7", "tx: GPIO2.f7")
+        self.expect(BOARD, g, "tx: GPIO2.f7", "pins.usart2.tx", "names its pins P<port><n>")
+
+    def test_bank_soc_rules(self):
+        die = "soc/rpi/rp2350/rp2350.yaml"
+        self.root.edit(die, "  GPIO29: { f2: uart0_rx }", "  GPIO31: { f2: uart0_rx }")
+        self.root.edit(die, "  GPIO28: { f2: uart0_tx }", "  GPIO28: { af2: uart0_tx }")
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(PICO)
+        text = "\n".join(cm.exception.errors)
+        self.assertIn("alternate_functions.GPIO31: beyond the bank's 30 lines", text)
+        self.assertIn("alternate_functions.GPIO28.af2: not a function select (f0 to f31)", text)
+
+    def test_ports_and_lines_exclude_each_other(self):
+        part = "soc/rpi/rp2350/rp2350a.yaml"
+        self.root.edit(part, "gpio: { lines: 30, controller: io_bank0 }", "gpio: { lines: 30, controller: io_bank0, ports: { A: 1 } }")
+        with self.assertRaises(HwError):
+            self.root.resolve(PICO)
 
 
 class Outputs(unittest.TestCase):
@@ -330,6 +403,98 @@ class Outputs(unittest.TestCase):
         self.assertEqual(data["derived"]["clock"]["hclk_hz"], 180_000_000)
         self.assertEqual(data["derived"]["timer"], {"source": "systick", "hz": 180_000_000})
         self.assertIn("openocd", data["board"]["debug_probe"])
+
+
+class OutOfTree(unittest.TestCase):
+    """A76: a project's own board, kept outside the tree under an EMB_BOARD_ROOT, uses the tree's
+    SoC descriptions; its outputs name its own files from its directory ('@board/'), never the
+    machine's paths."""
+
+    def project(self, name="acme_m4"):
+        d = Path(tempfile.mkdtemp(prefix="hwgen-project-"))
+        self.addCleanup(shutil.rmtree, d)
+        board = d / "boards" / "acme" / name
+        board.mkdir(parents=True)
+        text = (ROOT / "boards/arm/mps2_an386/board.yaml").read_text(encoding="utf-8")
+        (board / "board.yaml").write_text(text.replace("name: mps2_an386", f"name: {name}"), encoding="utf-8")
+        return d, board
+
+    def test_inputs_are_stamped_from_the_board(self):
+        d, board = self.project()
+        files, _ = generate.generate(board, ROOT)
+        cmake = files["board.cmake"]
+        self.assertRegex(cmake, r'"@board/board\.yaml=[0-9a-f]{64}"')
+        self.assertIn('"soc/arm/mps2/an386.yaml=', cmake)
+        self.assertIn("generate --board <path to>/acme_m4", cmake)
+        for name, text in files.items():
+            with self.subTest(file=name):
+                self.assertNotIn(str(d), text)
+                self.assertNotIn(str(d.resolve()), text)
+
+    def test_location_independent(self):
+        """HW-013 for a board outside the tree: two projects in two places give the same bytes."""
+        _, a = self.project()
+        _, b = self.project()
+        self.assertEqual(generate.generate(a, ROOT)[0], generate.generate(b, ROOT)[0])
+
+    def test_terminal_messages_keep_the_real_path(self):
+        d, board = self.project()
+        _, warnings = generate.generate(board, ROOT)
+        self.assertEqual(warnings, [])  # mps2_an386 is curated: no uncurated warning
+        (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("curated: true", "curated: false"))
+        files, warnings = generate.generate(board, ROOT)
+        self.assertTrue(any(str((board / "board.yaml").resolve()) in w for w in warnings), warnings)
+        self.assertIn("@board/board.yaml:1: (root): uncurated description", files["hw.json"])
+
+    def soc_project(self):
+        """A board root that also holds its own SoC family (A84): a copy of the MPS2's."""
+        d, board = self.project()
+        shutil.copytree(ROOT / "soc/arm/mps2", d / "soc/acme/mps2x")
+        for f in (d / "soc/acme/mps2x").glob("*.yaml"):
+            f.write_text(f.read_text().replace("vendor: arm", "vendor: acme").replace("family: mps2", "family: mps2x"))
+        y = board / "board.yaml"
+        y.write_text(y.read_text().replace("soc: arm/mps2/an386.yaml", "soc: acme/mps2x/an386.yaml"))
+        return d, board
+
+    def test_soc_in_the_board_root(self):
+        d, board = self.soc_project()
+        files, _ = generate.generate(board, ROOT)
+        self.assertIn('"@board/../../../soc/acme/mps2x/an386.yaml=', files["board.cmake"])
+        self.assertIn('get_filename_component(EMB_SOC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../soc/acme/mps2x" ABSOLUTE)',
+                      files["board.cmake"])
+        for text in files.values():
+            self.assertNotIn(str(d.resolve()), text)
+
+    def test_soc_in_both_places_refused(self):
+        d, board = self.soc_project()
+        shutil.copytree(ROOT / "soc/arm/mps2", d / "soc/arm/mps2")
+        y = board / "board.yaml"
+        y.write_text(y.read_text().replace("soc: acme/mps2x/an386.yaml", "soc: arm/mps2/an386.yaml"))
+        with self.assertRaises(HwError) as cm:
+            generate.generate(board, ROOT)
+        self.assertTrue(any("is both in the tree and in the board root" in e for e in cm.exception.errors))
+
+    def test_facts_check_on_a_board_root(self):
+        d, board = self.soc_project()
+        c = d / "soc/acme/mps2x/board.c"
+        c.write_text(c.read_text() + "\n#define STRAY 0x40004000u\n")
+        self.assertTrue(any("board.c" in p and "0x40004000u" in p for p in facts.check(d)))
+
+    def test_check_board_root(self):
+        d, board = self.project()
+        tool = [sys.executable, "-I", str(HERE / "emb-hwgen.py")]
+        import subprocess
+        run = lambda *a: subprocess.run(tool + list(a), capture_output=True, text=True)  # noqa: E731
+        self.assertEqual(run("generate", "--board", str(board)).returncode, 0)
+        r = run("check", "--board-root", str(d))
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("1 board(s), 0 stale file(s)", r.stdout)
+        (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("baud: 115200", "baud: 57600"))
+        r = run("check", "--board-root", str(d))
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        r = run("check", "--board-root", str(board))
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("has no boards/ directory", r.stderr)
 
 
 class Avr(unittest.TestCase):

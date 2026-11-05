@@ -8,6 +8,7 @@ A node path names list items by their `name` field when they have one
 path stays the same when a part file overrides a node of its die file.
 """
 import hashlib
+import os
 import re
 from pathlib import Path
 
@@ -28,6 +29,23 @@ def rel(path, root):
         return Path(path).resolve().relative_to(Path(root).resolve()).as_posix()
     except ValueError:
         return Path(path).as_posix()
+
+
+def inside(path, root):
+    try:
+        Path(path).resolve().relative_to(Path(root).resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def stamp(path, root, board_dir):
+    """The path as an output records it (HW-003): relative to the repository root, or, for a
+    board kept outside it (EMB_BOARD_ROOT, A76), '@board/' and the path from the board's
+    directory, so the outputs do not name the machine they were generated on."""
+    if inside(path, root):
+        return rel(path, root)
+    return "@board/" + Path(os.path.relpath(Path(path).resolve(), Path(board_dir).resolve())).as_posix()
 
 
 def normalize(value):

@@ -36,7 +36,7 @@ A case that prints `TEST` without its `CASE` line crashed or timed out inside th
 | `coverage_type` | `conformance` for case evidence; model, analysis and coverage rows join as those tools report |
 | `cases` | the citing cases as `executable:case` |
 
-Only a citation printed by an executed case counts. `@req` header tags, Verification fields and identifiers that merely appear in test sources are traceability links, not evidence; a requirement is never "passed" by its declaration. The inventory lists every preset with its scope and names the `nucleo-f446re-hil` configuration as unrun: there is no board and no HIL runner yet (M3a).
+Only a citation printed by an executed case counts. `@req` header tags, Verification fields and identifiers that merely appear in test sources are traceability links, not evidence; a requirement is never "passed" by its declaration. The inventory lists every preset with its scope, and names the hardware configurations (`avr-uno-hil`, `cm4-nucleo-hil`, `cm33-pico2w`) as unrun here, with their reasons. Their runs on boards are archived in `docs/engineering/hardware-runs.json` and counted by the [support matrix](support-matrix.md), not as case evidence. `tools/support/matrix.py` refuses a preset CI runs that this inventory does not list.
 
 Applicability follows the feature gates. A case exists in a configuration exactly when its `#if` gate is true there, so a `no case` row in a configuration that enables the feature is a gap. A `no case` row where the feature is off is out of scope for that configuration. The matrix does not yet tell the two apart automatically.
 

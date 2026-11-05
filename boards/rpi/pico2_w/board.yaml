@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description (SPEC-014 §4): the Raspberry Pi Pico 2 W, an RP2350A run on its Arm cores
+# (A79). From pico-sdk 2.1.1's boards/pico2_w.h and the Pico 2 W datasheet. emb-hwgen turns it
+# into generated/.
+schema_version: 0
+kind: board
+name: pico2_w
+vendor: rpi
+soc: rpi/rp2350/rp2350a.yaml
+curated: false
+doc: >-
+  The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs
+  from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the
+  CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files,
+  copied to the boot ROM's USB drive (hold BOOTSEL while plugging in).
+oscillators:
+  xosc: { hz: 12MHz, source: external_crystal }
+clocks:
+  cpu_hz: 12MHz
+  source: xosc
+pins:
+  uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }
+console: { device: uart0, baud: 115200 }
+# the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
+flash_partitions:
+  - { name: app, base: 0x10000000, size: 4M }
+# SPAREIRQ_IRQ_0 and 1: lines no peripheral raises
+test_irqs: [46, 47]
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

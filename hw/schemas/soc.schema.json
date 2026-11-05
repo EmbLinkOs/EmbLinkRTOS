@@ -215,13 +215,15 @@
     },
     "gpio": {
       "type": "object",
-      "required": ["ports"],
       "additionalProperties": false,
+      "oneOf": [{ "required": ["ports"] }, { "required": ["lines", "controller"] }],
       "properties": {
         "ports": {
           "type": "object",
           "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 65535 }
-        }
+        },
+        "lines": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "controller": { "$ref": "#/$defs/ident" }
       }
     },
     "alternate_functions": {
@@ -266,6 +268,17 @@
     "debug": {
       "type": "object",
       "additionalProperties": { "type": "boolean" }
+    },
+    "boot": {
+      "type": "object",
+      "required": ["image"],
+      "additionalProperties": false,
+      "properties": {
+        "image": { "enum": ["uf2"] },
+        "uf2_family": { "$ref": "#/$defs/u32" },
+        "image_type": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "doc": { "type": "string" }
+      }
     }
   },
   "$defs": {

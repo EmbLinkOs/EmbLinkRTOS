@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# nRF51822, the variant QEMU's micro:bit models: 256 KiB of flash in 1 KiB pages, 16 KiB of SRAM
+# (nrf51_soc.c: NRF51822_FLASH_PAGES, NRF51822_SRAM_PAGES).
+schema_version: 0
+kind: soc
+name: nrf51822
+vendor: nordic
+family: nrf51
+extends: nrf51.yaml
+part: nRF51822
+curated: true
+memory:
+  regions:
+    - { name: flash, base: 0x00000000, size: 256K, attrs: [r, x, boot] }
+    - { name: sram, base: 0x20000000, size: 16K, attrs: [r, w, x] }

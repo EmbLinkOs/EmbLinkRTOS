@@ -34,6 +34,19 @@ extern "C" {
 #define EMB_TEST_MARKS_MAX    128
 #define EMB_TEST_ISR(name)    EMB_ISR(name)
 #define EMB_TEST_PRINTF       EMB_PRINTF_LIKE(1, 2)
+#elif defined(__ARM_ARCH_6M__)
+/* Armv6-M parts (Cortex-M0/M0+) have 4 to 32 KiB of RAM (A86): the 32-bit sizes below are
+ * 20 KiB of helper stacks alone. Handlers run on MSP, so a helper's stack holds its frame, its
+ * calls and one exception frame. */
+#define EMB_TEST_STR(s)       (s)
+#define EMB_TEST_HAS_FORK     0
+#define EMB_TEST_EXACT_TIME   0
+#define EMB_TEST_STACK_SIZE   512
+#define EMB_TEST_RUNNER_STACK 1024
+#define EMB_TEST_MAX_THREADS  4
+#define EMB_TEST_MARKS_MAX    64
+#define EMB_TEST_ISR(name)    EMB_ISR(name)
+#define EMB_TEST_PRINTF
 #else /* the 32-bit embedded ports: Cortex-M, RISC-V (platform_target.c) */
 #define EMB_TEST_STR(s)       (s)
 #define EMB_TEST_HAS_FORK     0

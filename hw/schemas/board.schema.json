@@ -110,7 +110,7 @@
   },
   "$defs": {
     "ident": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
-    "pin": { "type": "string", "pattern": "^P[A-K](1[0-5]|[0-9])(\\.af(1[0-5]|[0-9]))?$" },
+    "pin": { "type": "string", "pattern": "^(P[A-K](1[0-5]|[0-9])(\\.af(1[0-5]|[0-9]))?|GPIO([1-5][0-9]|6[0-3]|[0-9])(\\.f([12][0-9]|3[01]|[0-9]))?)$" },
     "oscillator": {
       "type": "object",
       "required": ["hz", "source"],

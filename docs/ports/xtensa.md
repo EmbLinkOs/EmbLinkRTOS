@@ -1,6 +1,6 @@
 # Xtensa (classic ESP32): bring-up
 
-**Status:** not a port yet. The classic ESP32 (two Xtensa LX6 cores, the ESP-WROOM-32 module on an "ESP-32S" development board) is not in the target plan (07 §2). Adding it as a port is an owner decision and needs an ADR. What exists is a bring-up probe that checks, before any kernel code is written, that the toolchain, the image, the flasher and the register addresses are right. It has not run on hardware yet.
+**Status:** not a port yet. The classic ESP32 (two Xtensa LX6 cores, the ESP-WROOM-32 module on an "ESP-32S" development board) is in scope under [ADR-051](../architecture/06-decision-records.md) (any board), and its images link under one GNU ld script, with EmbCC's `embld` or with Espressif's GCC ([ADR-052](../architecture/06-decision-records.md), [ADR-053](../architecture/06-decision-records.md)). What exists is a bring-up probe that checks, before any kernel code is written, that the toolchain, the image, the flasher and the register addresses are right. It has not run on hardware yet.
 
 **Sources:** `tools/esp/bringup/` (`esp32_hello.c`, `build.sh`), the image tool `tools/esp/esp_image.py --chip esp32`, and EmbCC's `embflash --esp` (EmbCC D-023).
 
@@ -19,10 +19,10 @@ Replace `XXXX` with the port the board shows (`ls /dev/cu.*`). embflash resets t
 
 ## Toolchain and image
 
-- **Compiler.** EmbCC's `xtensa-none-elf` uses the windowed ABI, which the ROM's own calls and window vectors (VECBASE 0x40000000) expect.
-- **Linker.** `embld` takes no linker script for Xtensa. The probe is placed with `-Ttext 0x40080400` and `-Tdata 0x3FFF0000`, the start of ESP-IDF's `bootloader.ld` `iram_seg` and `dram_seg`, which the ROM loads into without overwriting itself.
+- **Compiler.** EmbCC's `xtensa-none-elf`, or Espressif's `xtensa-esp32-elf-gcc` (`XTENSA_GCC=xtensa-esp32-elf-gcc tools/esp/bringup/build.sh`). Both use the windowed ABI, which the ROM's own calls and window vectors (VECBASE 0x40000000) expect. CI builds the probe with Espressif's GCC, and `check_probe.py` checks either image the same way.
+- **Linker.** `tools/esp/bringup/esp32.ld` puts the code in IRAM (0x40080400) and `.rodata`, `.data` and `.bss` in DRAM (0x3FFF0000). These are ESP-IDF's `bootloader.ld` `iram_seg` and `dram_seg`, which the ROM loads into without overwriting itself. This needs an `embld` with Xtensa scripts (EmbCC D-024, #174, ADR-052). With an older one, `build.sh` falls back to `-Ttext 0x40080400 -Tdata 0x3FFF0000`.
 - **Segment addresses.** `embld` stores `.data` after the code: its load address follows the text, its run address is 0x3FFF0000. `esp_image.py --chip esp32` therefore writes each segment at its run address. Its header gives chip ID 0, DIO at 40 MHz, 4 MB and maximum revision 3.99; its checksum and appended SHA-256 are the same as for the C3.
-- **Byte data in DRAM.** The instruction RAM takes only 32-bit accesses. Byte data (the strings) therefore lives in `.data` and is loaded into DRAM.
+- **Byte data in DRAM.** The instruction RAM takes only 32-bit accesses, so everything a byte load reads must be in DRAM. The script does that for `.rodata`. The probe also keeps its strings in `.data`, so that the fallback link works too.
 
 ## Before a core port
 
@@ -33,4 +33,4 @@ A kernel port needs four parts:
 - the interrupt matrix and the level-1 vector;
 - a linker layout that keeps read-only data out of IRAM.
 
-The linker layout means either Xtensa linker-script support in `embld` (EmbCC work) or another linker. The core could be brought up first on QEMU's `sim` machine with a de212 core, as EmbCC's Xtensa tests run, since QEMU has no ESP32 machine and EmbSIM models only the ESP32-C3. Timing measured there would not count as evidence (SIM-003).
+The linker layout is decided: EmbCC's `embld` with a generated script (ADR-052). The core could be brought up first on QEMU's `sim` machine with a de212 core, as EmbCC's Xtensa tests run, since QEMU has no ESP32 machine and EmbSIM models only the ESP32-C3. Timing measured there would not count as evidence (SIM-003).

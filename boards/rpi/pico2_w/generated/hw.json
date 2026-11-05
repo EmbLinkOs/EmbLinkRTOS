@@ -1,0 +1,427 @@
+{
+  "board": {
+    "clocks": {
+      "cpu_hz": 12000000,
+      "source": "xosc"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "uart0"
+    },
+    "curated": false,
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "base",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in).",
+    "flash_partitions": [
+      {
+        "base": 268435456,
+        "name": "app",
+        "size": 4194304
+      }
+    ],
+    "kind": "board",
+    "name": "pico2_w",
+    "oscillators": {
+      "xosc": {
+        "hz": 12000000,
+        "source": "external_crystal"
+      }
+    },
+    "pins": {
+      "uart0": {
+        "rx": "GPIO1.f2",
+        "tx": "GPIO0.f2"
+      }
+    },
+    "schema_version": 0,
+    "soc": "rpi/rp2350/rp2350a.yaml",
+    "test_irqs": [
+      46,
+      47
+    ],
+    "vendor": "rpi"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {},
+      "bypass": false,
+      "cpu_hz": 12000000,
+      "hclk_hz": 12000000,
+      "pll": null,
+      "source": "xosc",
+      "source_hz": 12000000
+    },
+    "console": {
+      "base": 1074200576,
+      "baud": 115200,
+      "clock": null,
+      "clock_hz": 12000000,
+      "device": "uart0",
+      "irqs": [
+        {
+          "name": "global",
+          "number": 33
+        }
+      ]
+    },
+    "kconfig": {
+      "CONFIG_EMB_CM_CPU_HZ": 12000000,
+      "CONFIG_EMB_CM_IRQ_COUNT": 52,
+      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": 4,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 4194304,
+        "origin": 268435456
+      },
+      "ram": {
+        "length": 532480,
+        "origin": 536870912,
+        "regions": [
+          "sram",
+          "sram_xy"
+        ]
+      }
+    },
+    "partitions": [
+      {
+        "base": 268435456,
+        "name": "app",
+        "reserved": false,
+        "size": 4194304
+      }
+    ],
+    "pins": [
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 0,
+        "owner": "pins.uart0.tx",
+        "pin": "GPIO0",
+        "port": "",
+        "signal": "uart0_tx"
+      },
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 1,
+        "owner": "pins.uart0.rx",
+        "pin": "GPIO1",
+        "port": "",
+        "signal": "uart0_rx"
+      }
+    ],
+    "profile": "base",
+    "test_irqs": {
+      "high": 47,
+      "low": 46
+    },
+    "timer": {
+      "hz": 12000000,
+      "source": "systick"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a"
+    },
+    {
+      "path": "boards/rpi/pico2_w/board.yaml",
+      "sha256": "17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245"
+    },
+    {
+      "path": "soc/rpi/rp2350/rp2350.yaml",
+      "sha256": "a68970a2c779c23f4b8e5efb8abc76bdd81f34610c3a03aa71e69beec4087b60"
+    },
+    {
+      "path": "soc/rpi/rp2350/rp2350a.yaml",
+      "sha256": "5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "alternate_functions": {
+      "GPIO0": {
+        "f2": "uart0_tx"
+      },
+      "GPIO1": {
+        "f2": "uart0_rx"
+      },
+      "GPIO10": {
+        "f11": "uart1_tx"
+      },
+      "GPIO11": {
+        "f11": "uart1_rx"
+      },
+      "GPIO12": {
+        "f2": "uart0_tx"
+      },
+      "GPIO13": {
+        "f2": "uart0_rx"
+      },
+      "GPIO14": {
+        "f11": "uart0_tx"
+      },
+      "GPIO15": {
+        "f11": "uart0_rx"
+      },
+      "GPIO16": {
+        "f2": "uart0_tx"
+      },
+      "GPIO17": {
+        "f2": "uart0_rx"
+      },
+      "GPIO18": {
+        "f11": "uart0_tx"
+      },
+      "GPIO19": {
+        "f11": "uart0_rx"
+      },
+      "GPIO2": {
+        "f11": "uart0_tx"
+      },
+      "GPIO20": {
+        "f2": "uart1_tx"
+      },
+      "GPIO21": {
+        "f2": "uart1_rx"
+      },
+      "GPIO22": {
+        "f11": "uart1_tx"
+      },
+      "GPIO23": {
+        "f11": "uart1_rx"
+      },
+      "GPIO24": {
+        "f2": "uart1_tx"
+      },
+      "GPIO25": {
+        "f2": "uart1_rx"
+      },
+      "GPIO26": {
+        "f11": "uart1_tx"
+      },
+      "GPIO27": {
+        "f11": "uart1_rx"
+      },
+      "GPIO28": {
+        "f2": "uart0_tx"
+      },
+      "GPIO29": {
+        "f2": "uart0_rx"
+      },
+      "GPIO3": {
+        "f11": "uart0_rx"
+      },
+      "GPIO4": {
+        "f2": "uart1_tx"
+      },
+      "GPIO5": {
+        "f2": "uart1_rx"
+      },
+      "GPIO6": {
+        "f11": "uart1_tx"
+      },
+      "GPIO7": {
+        "f11": "uart1_rx"
+      },
+      "GPIO8": {
+        "f2": "uart1_tx"
+      },
+      "GPIO9": {
+        "f2": "uart1_rx"
+      }
+    },
+    "arch": {
+      "port": "cortex_m",
+      "variant": "armv8m-main"
+    },
+    "boot": {
+      "image": "uf2",
+      "image_type": 4129,
+      "uf2_family": 3834380121
+    },
+    "clocks": {
+      "sources": [
+        {
+          "doc": "the crystal oscillator; clk_ref and clk_sys run from it",
+          "hz": "board",
+          "max_hz": 50000000,
+          "min_hz": 1000000,
+          "name": "xosc"
+        }
+      ]
+    },
+    "cpu": {
+      "cflags": [
+        "-mcpu=cortex-m33",
+        "-mfpu=fpv5-sp-d16",
+        "-mfloat-abi=hard"
+      ],
+      "core": "cortex-m33f",
+      "cycle_counter": "dwt",
+      "fpu": "fpv5-sp-d16",
+      "mpu": {
+        "model": "armv8m",
+        "regions": 8
+      },
+      "trustzone": false
+    },
+    "curated": true,
+    "debug": {
+      "swd": true
+    },
+    "family": "rp2350",
+    "gpio": {
+      "controller": "io_bank0",
+      "lines": 30
+    },
+    "interrupts": {
+      "controller": "nvic",
+      "count": 52,
+      "priority_bits": 4,
+      "reserved": [
+        46,
+        47,
+        48,
+        49,
+        50,
+        51
+      ],
+      "systick": true
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 268435456,
+          "doc": "the QSPI flash, mapped by the XIP cache",
+          "name": "xip",
+          "size": 16777216
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "dma"
+          ],
+          "base": 536870912,
+          "doc": "SRAM0 to SRAM7, striped",
+          "name": "sram",
+          "size": 524288
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x"
+          ],
+          "base": 537395200,
+          "doc": "SRAM8 and SRAM9",
+          "name": "sram_xy",
+          "size": 8192
+        }
+      ]
+    },
+    "name": "rp2350a",
+    "package": "qfn60",
+    "part": "RP2350A",
+    "peripherals": [
+      {
+        "base": 1073807360,
+        "compatible": "rpi,rp2350-clocks",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 30
+          }
+        ],
+        "name": "clocks",
+        "size": 16384
+      },
+      {
+        "base": 1073872896,
+        "compatible": "rpi,rp2350-resets",
+        "name": "resets",
+        "size": 16384
+      },
+      {
+        "base": 1073905664,
+        "compatible": "rpi,rp2350-io-bank",
+        "irqs": [
+          {
+            "name": "bank0",
+            "number": 21
+          }
+        ],
+        "name": "io_bank0",
+        "size": 16384
+      },
+      {
+        "base": 1073971200,
+        "compatible": "rpi,rp2350-pads",
+        "name": "pads_bank0",
+        "size": 16384
+      },
+      {
+        "base": 1074036736,
+        "compatible": "rpi,rp2350-xosc",
+        "name": "xosc",
+        "size": 16384
+      },
+      {
+        "base": 1074200576,
+        "compatible": "arm,pl011",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 33
+          }
+        ],
+        "name": "uart0",
+        "size": 16384
+      },
+      {
+        "base": 1074233344,
+        "compatible": "arm,pl011",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 34
+          }
+        ],
+        "name": "uart1",
+        "size": 16384
+      },
+      {
+        "base": 3489660928,
+        "compatible": "rpi,rp2350-sio",
+        "name": "sio",
+        "size": 4096
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "rpi"
+  },
+  "warnings": [
+    "boards/rpi/pico2_w/board.yaml:1: (root): uncurated description (curated: false or absent)",
+    "soc/rpi/rp2350/rp2350.yaml:21: cpu.mpu: the cortex_m port does not use the MPU yet"
+  ]
+}

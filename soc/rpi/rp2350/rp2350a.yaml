@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# RP2350A: the RP2350 in the QFN-60 package, with GPIO0 to GPIO29 (RP2350 datasheet, pin
+# locations; pico-sdk's PICO_RP2350A).
+schema_version: 0
+kind: soc
+name: rp2350a
+vendor: rpi
+family: rp2350
+extends: rp2350.yaml
+part: RP2350A
+package: qfn60
+curated: true
+gpio: { lines: 30, controller: io_bank0 }

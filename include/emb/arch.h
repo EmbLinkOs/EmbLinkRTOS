@@ -117,6 +117,9 @@ EMB_NORETURN void embk_idle_loop(void);          /* the idle context's body */
  * or mcause), @address the faulting address where known, @pc and @sp the faulting
  * context's. Records EMB_FAULT_HARDWARE and takes the configured action. */
 EMB_NORETURN void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr_t sp);
+/* A hardware stack limit register's fault (A80): class EMB_FAULT_STACK_OVERFLOW, the fault status
+ * as the address word, the stack pointer at the limit, no pc. */
+EMB_NORETURN void embk_fault_raise_stack_limit(uint16_t code, uintptr_t status, uintptr_t sp);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The RP2350 die (SPEC-014 §3) as its Arm cores run it: two Cortex-M33 with FPU, started by the
+# boot ROM in the Secure state. Drafted by hw/import/svd.py from pico-sdk 2.1.1's RP2350.svd
+# (BSD-3-Clause), then curated against pico-sdk's register headers and the RP2350 datasheet:
+# block sizes include each peripheral's XOR, set and clear aliases (+0x1000, +0x2000, +0x3000),
+# lines 46 to 51 are the datasheet's spare interrupts for software, and the flash is the
+# board's QSPI device behind the 16 MiB XIP window. A package file names the GPIO lines.
+schema_version: 0
+kind: soc
+name: rp2350
+vendor: rpi
+family: rp2350
+abstract: true
+curated: true
+imported_from: { tool: "hw/import/svd.py 0.1.0 (embsvd)", source: RP2350.svd, hash: "sha256:68140a728736378db8dd5c9bec5cd8481efed3e72cb77439a201ad48e4743609" }
+arch: { port: cortex_m, variant: armv8m-main }
+cpu:
+  core: cortex-m33f
+  fpu: fpv5-sp-d16
+  mpu: { model: armv8m, regions: 8 }
+  trustzone: false
+  cycle_counter: dwt
+  cflags: [-mcpu=cortex-m33, -mfpu=fpv5-sp-d16, -mfloat-abi=hard]
+memory:
+  regions:
+    - { name: xip, base: 0x10000000, size: 16M, attrs: [r, x, boot], doc: "the QSPI flash, mapped by the XIP cache" }
+    - { name: sram, base: 0x20000000, size: 512K, attrs: [r, w, x, dma], doc: "SRAM0 to SRAM7, striped" }
+    - { name: sram_xy, base: 0x20080000, size: 8K, attrs: [r, w, x], doc: "SRAM8 and SRAM9" }
+clocks:
+  sources:
+    - { name: xosc, hz: board, min_hz: 1MHz, max_hz: 50MHz, doc: "the crystal oscillator; clk_ref and clk_sys run from it" }
+interrupts:
+  controller: nvic
+  count: 52
+  priority_bits: 4
+  systick: true
+  # SPAREIRQ_IRQ_0 to 5: no peripheral raises them
+  reserved: [46, 47, 48, 49, 50, 51]
+peripherals:
+  - { name: clocks, compatible: "rpi,rp2350-clocks", base: 0x40010000, size: 0x4000, irqs: [{ name: global, number: 30 }] }
+  - { name: resets, compatible: "rpi,rp2350-resets", base: 0x40020000, size: 0x4000 }
+  - { name: io_bank0, compatible: "rpi,rp2350-io-bank", base: 0x40028000, size: 0x4000, irqs: [{ name: bank0, number: 21 }] }
+  - { name: pads_bank0, compatible: "rpi,rp2350-pads", base: 0x40038000, size: 0x4000 }
+  - { name: xosc, compatible: "rpi,rp2350-xosc", base: 0x40048000, size: 0x4000 }
+  - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }] }
+  - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }] }
+  - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
+# The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX)
+alternate_functions:
+  GPIO0: { f2: uart0_tx }
+  GPIO1: { f2: uart0_rx }
+  GPIO2: { f11: uart0_tx }
+  GPIO3: { f11: uart0_rx }
+  GPIO4: { f2: uart1_tx }
+  GPIO5: { f2: uart1_rx }
+  GPIO6: { f11: uart1_tx }
+  GPIO7: { f11: uart1_rx }
+  GPIO8: { f2: uart1_tx }
+  GPIO9: { f2: uart1_rx }
+  GPIO10: { f11: uart1_tx }
+  GPIO11: { f11: uart1_rx }
+  GPIO12: { f2: uart0_tx }
+  GPIO13: { f2: uart0_rx }
+  GPIO14: { f11: uart0_tx }
+  GPIO15: { f11: uart0_rx }
+  GPIO16: { f2: uart0_tx }
+  GPIO17: { f2: uart0_rx }
+  GPIO18: { f11: uart0_tx }
+  GPIO19: { f11: uart0_rx }
+  GPIO20: { f2: uart1_tx }
+  GPIO21: { f2: uart1_rx }
+  GPIO22: { f11: uart1_tx }
+  GPIO23: { f11: uart1_rx }
+  GPIO24: { f2: uart1_tx }
+  GPIO25: { f2: uart1_rx }
+  GPIO26: { f11: uart1_tx }
+  GPIO27: { f11: uart1_rx }
+  GPIO28: { f2: uart0_tx }
+  GPIO29: { f2: uart0_rx }
+# The boot ROM boots a flash image with a valid IMAGE_DEF block in its first 4 KiB (datasheet
+# §5.9); image_type 0x1021 says EXE, SECURITY_S, CPU_ARM, CHIP_RP2350 (pico-sdk's picobin.h).
+# The UF2 family ID is the ROM's for Arm Secure images.
+boot: { image: uf2, uf2_family: 0xE48BFF59, image_type: 0x1021 }
+debug: { swd: true }

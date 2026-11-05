@@ -32,6 +32,32 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added
 
+- Toolchain neutrality (ADR-053). There is one port per architecture, and toolchains differ in three places only: the compiler macros, the port assembly and the linker layout. The lint refuses raw `__attribute__`, `__builtin_`, `typeof` and statement expressions outside `arch/` and `include/emb/compiler/`. The support matrix lists the toolchains CI builds each board with. A new `xtensa-gcc` CI job builds the ESP32 probe with Espressif's GCC, pinned by checksum, from the same `esp32.ld` that EmbCC's `embld` reads. ADR-052 is revised to match. IAR and Keil wait for a license.
+
+- Armv6-M, the Cortex-M0 and M0+ (A86). Critical sections use PRIMASK, PendSV is written in Thumb-1, priority registers are written a word at a time, and faults are HardFault only. Two priority bits are accepted for this variant. The new board `microbit`, QEMU's nRF51822, passes all 14 tests in the checked and release tiny builds. The other variants' port code is unchanged.
+
+- The STM32 pin importer (`hw/import/pins.py`, A85) drafts a package's bonded pins and its pins' alternate functions from ST's open pin data. For the STM32F446RE and STM32F446ZE it agrees with the curated files, with 0 differences.
+
+- SoC descriptions outside the tree (A84). An `EMB_BOARD_ROOT` may hold `soc/<vendor>/<family>/`, with its descriptions and board support, beside its boards. A project with a new chip family then needs no change to this tree. `emb-hwgen.py check --board-root` runs the hardware-facts check on the project's C too.
+
+- The Xtensa linker decision (ADR-052): ESP32 images link with EmbCC's `embld` under a linker script, which puts `.rodata` and data in DRAM, since the ESP32's IRAM takes only 32-bit loads. EmbCC #174 adds Xtensa scripts to `embld`. The bring-up probe links with `tools/esp/bringup/esp32.ld`, and falls back to `-Ttext`/`-Tdata` with an older `embld`.
+
+- The Cortex-M7 (A83): the new board `mps2_an500`, QEMU's `mps2-an500`, comes from its description alone and passes all 21 tests in the checked and release builds (presets `cm7-an500`, `-release`) with no change to the port.
+
+- The DeviceTree board importer (`hw/import/dts.py`, A82) drafts a `board.yaml` from a Zephyr board's `.dts`. The draft covers the oscillators, the clock and PLL, the console and its pins, the LEDs, the buttons and the flash. Zephyr's NUCLEO-F446RE agrees with the curated board on every board fact, and its draft, with only a `simulation` line added, builds and passes 19 of 19 on EmbSIM. The generator now refuses a Cortex-M app partition that does not start where the core boots.
+
+- The board support matrix (docs/engineering/support-matrix.md, A81). It gives each board's tier from evidence: hardware (an archived passing run on the board), emulated (CI runs the suite on its emulator) or described (CI builds it). `tools/support/matrix.py` generates the page, and CI keeps it current. It also refuses a CI preset missing from the evidence inventory, which caught eight such presets. Today it lists one board on hardware (the Uno), eight emulated and one described (the Pico 2 W).
+
+- Hardware stack limits on the Cortex-M33 (A80). Each thread's PSPLIM is its stack's base, so an overflowing thread faults at its first push below the base, before it writes outside its stack. The fault is reported as a stack overflow, and the crash record shows CFSR.STKOF. The limit travels in the thread's saved frame, which costs four bytes of stack per thread on Armv8-M and nothing on other variants. New test `test_stack_limit`.
+
+- The Raspberry Pi Pico 2 W (RP2350A on its Cortex-M33 cores, A79), from its description. The SoC was drafted by the SVD importer and curated. The generator now supports a numbered GPIO bank (`GPIO0.f2` pins), and the RP2350's boot ROM block. Every image is also written as a UF2 that the boot ROM's drive accepts, and the build refuses one without its IMAGE_DEF. The board builds (preset `cm33-pico2w`) and has not run yet.
+
+- Cortex-M33 (Armv8-M Mainline) in the Cortex-M port (A78), in the Secure state with TrustZone unused. The new board `mps2_an505`, QEMU's `mps2-an505`, comes from its description alone, and every conformance image passes there: 21 in the checked and release builds, 15 in the tiny build (presets `cm33-an505`, `-release`, `-tiny`). Hardware stack limits (PSPLIM) come later.
+
+- The SVD importer (`hw/import/svd.py`, A77) drafts a SoC description from a CMSIS-SVD file through EmbCC's `embsvd`. The draft covers the core, the interrupt controller and the peripherals, with each peripheral's `compatible` and clock gate taken from a vendor table. It is uncurated, and lists what an SVD lacks as `todo`. `--against` compares the draft with a curated description and never writes it. Against ST's current STM32F446 SVD, the curated F446 die agrees on every fact both hold except where the PVD interrupt sits.
+
+- Boards outside the tree: `-DEMB_BOARD_ROOT=<dir>` builds a project's own board (a custom PCB, say) from its `board.yaml`, on this tree's SoC descriptions. `emb-hwgen.py check --board-root <dir>` checks those boards in the project's CI. The generator stamps such a board's files as `@board/...`, so outputs are the same on every machine. ADR-051 (proposed) sets the board-support model this begins: cores are ported, SoCs imported, boards described, with support tiers taken from evidence (A76).
+
 - A bring-up probe for the classic ESP32 (docs/ports/xtensa.md), ahead of any Xtensa port: `tools/esp/bringup/` builds a kernel-free image with EmbCC. The image stops the ROM's watchdogs and prints on UART0; it is flashed at 0x1000 with `embflash --esp`. `tools/esp/esp_image.py --chip esp32` writes the ESP32's image (chip 0, 40 MHz flash), with each segment placed at its run address. Not yet run on hardware.
 
 - The first hardware run (docs/engineering/hil-uno-2026-11-04.md): the checked tiny suite on an Arduino Uno R3, flashed with embflash, passed 17 of 17. That includes the crash record surviving the watchdog reset, decoded to the faulting line, The release (15/15) and T1 (12/12) builds pass too. Hand-overs measure 81, 68 and 66 µs per switch in the checked, release and T1 builds (about 1,300, 1,085 and 1,062 cycles).

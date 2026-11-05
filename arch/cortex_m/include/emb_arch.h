@@ -29,10 +29,43 @@ typedef uint32_t emb_arch_timer_raw_t; /* SysTick counts */
 #define EMB_ARCH_CLOCK_SEQLOCK 0 /* the 64-bit clock is read inside the critical section */
 #define EMB_ARCH_IRQ_COUNT     CONFIG_EMB_CM_IRQ_COUNT
 
-#if !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__)
-#error "this port builds for Armv7-M and Armv7E-M; Armv6-M and Armv8-M are the M3-B variants"
+/* Armv8-M Mainline runs in the Secure state with TrustZone unused (A78): its exception
+ * return values, frames, BASEPRI and FP lazy stacking are those of Armv7E-M. */
+#if !defined(__ARM_ARCH_6M__) && !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__) && \
+    !defined(__ARM_ARCH_8M_MAIN__)
+#error "this port builds for Armv6-M, Armv7-M, Armv7E-M and Armv8-M Mainline only"
 #endif
 
+#if defined(__ARM_ARCH_6M__)
+/* Armv6-M has no BASEPRI (A86): the critical section masks every interrupt with PRIMASK, and
+ * the key is the previous PRIMASK. No interrupt is zero-latency. */
+static EMB_ALWAYS_INLINE emb_irq_key_t emb_arch_irq_lock(void)
+{
+    emb_irq_key_t key;
+    __asm__ __volatile__("mrs %0, primask\n\t"
+                         "cpsid i"
+                         : "=r"(key)
+                         :
+                         : "memory");
+    return key;
+}
+
+static EMB_ALWAYS_INLINE void emb_arch_irq_unlock(emb_irq_key_t key)
+{
+    __asm__ __volatile__("msr primask, %0\n\t"
+                         "isb"
+                         :
+                         : "r"(key)
+                         : "memory");
+}
+
+static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
+{
+    emb_irq_key_t p;
+    __asm__ __volatile__("mrs %0, primask" : "=r"(p));
+    return (p & 1u) != 0u;
+}
+#else
 static EMB_ALWAYS_INLINE emb_irq_key_t emb_arch_irq_lock(void)
 {
     emb_irq_key_t key;
@@ -60,6 +93,7 @@ static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
     __asm__ __volatile__("mrs %0, primask" : "=r"(p));
     return b != 0u || (p & 1u) != 0u;
 }
+#endif
 
 /* Kernel-aware handlers are plain functions bound with emb_irq_connect(); every
  * external vector enters the port's common entry, which brackets the handler with the
