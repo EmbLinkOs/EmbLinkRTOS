@@ -1,0 +1,83 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "thread_detach_after_exit_makes_reusable",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_self_and_detached_are_errors",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "thread_second_joiner_is_ebusy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_timeout_then_success",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "thread_join_before_exit_blocks_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "thread_join_after_exit_returns_code",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T20:07:05Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "1",
+    "config": "3b582919390c2f6b",
+    "profile": "tiny",
+    "suite": "test_thread_join"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avr-uno-hil/tests/conformance/test_thread_join.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_thread_join.hex": "119183bc98e92b3487dc4ef7d1325d2496ae93500d636ad3fce9f89e0489e481"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "93e6c028aa58b4a9f61a88dd00a079195d8ce754",
+    "dirty": false
+  },
+  "image": "test_thread_join.elf",
+  "image_sha256": "c5262abc0f4afaa4d0a2d8614ba094c93443905ca36b87ee66f13899db80bbbf",
+  "isr_stack": {
+    "size": 688,
+    "used": 85
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T20:06:57Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

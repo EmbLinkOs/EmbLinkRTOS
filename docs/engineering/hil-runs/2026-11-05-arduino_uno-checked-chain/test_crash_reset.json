@@ -1,0 +1,53 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 7,
+      "name": "crash_record_survives_reset",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T20:08:41Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "1",
+    "config": "3b582919390c2f6b",
+    "profile": "tiny",
+    "suite": "test_crash_reset"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avr-uno-hil/tests/conformance/test_crash_reset.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_crash_reset.hex": "ff5a49a2fa4257f58341bb7436aec76bd8e017c2bedde41418ac8485dcc5d617"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "93e6c028aa58b4a9f61a88dd00a079195d8ce754",
+    "dirty": false
+  },
+  "image": "test_crash_reset.elf",
+  "image_sha256": "0cee4ae8e829e174c5a8bcd6ac430bcc648cb37b935c69f43327a56f031184a5",
+  "isr_stack": {
+    "size": 1160,
+    "used": 85
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T20:08:35Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 1
+  }
+}

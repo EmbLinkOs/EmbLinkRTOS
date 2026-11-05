@@ -1,0 +1,5 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avr-uno-hil/tests/benchmarks/bench_switch.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image bench_switch.elf sha256 f24f8ee6229df3f8910ab3f45547ba3f47021a0f995b15780dfa568eebaf503e
+bench notify round trip (2 switches): total 416020 cycle-units over 20000 ops; per op x100 = 2080
+BENCH v1 name=notify_handover units=416020 ops=20000 per_op_x100=2080 unit_hz=250000 checked=1
+meta: board arduino_uno, compiler gcc, profile tiny, checked 1, cycle unit hz 250000
+BENCH_END
