@@ -84,7 +84,9 @@ static void bench(void *arg)
     }
 }
 
-EMB_THREAD_DEFINE(bench_thread, bench, NULL, 2u, 512u, 0u);
+/* 512 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 512u ? EMB_THREAD_STACK_MIN : 512u)
+EMB_THREAD_DEFINE(bench_thread, bench, NULL, 2u, STACK_SIZE, 0u);
 
 int main(void)
 {

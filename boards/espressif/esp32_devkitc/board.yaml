@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description, SPEC-012 §11 (schema: SPEC-014). Hand-written, as the ESP32-C3's: the
+# generator has no ESP32 SoC description yet.
+board: esp32_devkitc
+soc: espressif/esp32/esp32
+oscillators:
+  main: { hz: 40000000, source: external_crystal } # the module's 40 MHz crystal
+cpu_hz: 40000000 # the boot ROM leaves the CPU on the crystal; measured 2026-11-05 (docs/ports/xtensa.md)
+console: { device: uart0, baud: 115200, pins: { tx: GPIO1, rx: GPIO3 } } # the board's USB-serial bridge
+leds: [] # the DevKitC has none the CPU drives; the "ESP-32S" copies' blue LED on GPIO2 differs between makers
+buttons: [ { name: boot, gpio: GPIO0, active: low } ]
+flash_partitions:
+  - { name: bootloader, base: 0x1000, size: 0x7000 } # where the ROM boots from: this image, no second stage
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

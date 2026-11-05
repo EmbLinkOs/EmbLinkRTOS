@@ -476,8 +476,8 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
 
-  # The ESP32 probe built by Espressif's own GCC and GNU ld with the same esp32.ld that EmbCC's
-  # embld reads (ADR-052, ADR-053): a vendor toolchain as a CI leg. The archive is Espressif's
+  # The ESP32 probe and the kernel's Xtensa port built by Espressif's own GCC and GNU ld with the
+  # same scripts EmbCC's embld reads (ADR-052, ADR-053, ADR-054): a vendor toolchain as a CI leg. The archive is Espressif's
   # release, pinned by the SHA-256 Espressif publishes beside it.
   xtensa-gcc:
     runs-on: ubuntu-24.04
@@ -501,6 +501,22 @@ jobs:
           xtensa-esp32-elf-gcc --version | head -1
           XTENSA_GCC=xtensa-esp32-elf-gcc tools/esp/bringup/build.sh build/esp32-gcc
           python3 -I tools/esp/bringup/check_probe.py build/esp32-gcc/esp32_hello.bin
+      - name: Install tools
+        timeout-minutes: 15
+        run: scripts/ci-apt-install.sh ninja-build python3-yaml
+      - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
+        run: |
+          cmake --preset xt-esp32-gcc
+          cmake --build --preset xt-esp32-gcc
+          ls build/xt-esp32-gcc/tests/conformance/*.bin | wc -l
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: esp32-gcc-images
+          path: |
+            build/xt-esp32-gcc/**/*.elf
+            build/xt-esp32-gcc/**/*.bin
+          retention-days: 30
 
   application:
     # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four

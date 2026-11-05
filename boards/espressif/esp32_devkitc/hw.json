@@ -1,0 +1,11 @@
+{
+  "board": {
+    "name": "esp32_devkitc",
+    "curated": true,
+    "doc": "Hand-written, as the board's other files: the generator has no ESP32 SoC description yet (docs/ports/xtensa.md). run_hil.py reads the console's rate and the flasher from it.",
+    "console": {"baud": 115200, "device": "uart0"},
+    "debug_probe": {"esp": {"base": 4096}}
+  },
+  "soc": {"name": "esp32", "part": "ESP32-D0WD (ESP-WROOM-32)"},
+  "derived": {"console": {"baud": 115200}}
+}

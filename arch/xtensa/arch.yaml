@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Port manifest for Xtensa (format: SPEC-011 §2): the classic ESP32's LX6, one core (PRO_CPU),
+# the windowed ABI, level-1 interrupts only (ADR-054). The FPU, the second core and the higher
+# interrupt levels come later.
+arch: xtensa
+variants: [lx6]
+word_bits: 32
+endian: little
+# one 128-byte frame: a0-a15, pc, ps, sar, lbeg, lend, lcount, padding; the other windows of a
+# switched-out thread are spilled to its own stack by the window overflow handlers. A thread
+# that blocks in the kernel with an interrupt frame on top used 528-560 bytes on the board
+# (first_execution, 2026-11-05): the windowed ABI's save areas make every frame larger than
+# RISC-V's, hence 768.
+stack: { align: 16, growth: down, min_thread: 768, context_frame: 128 }
+features:
+  irq_nesting: false
+  zero_latency_irqs: []
+  cas: []
+  interrupt_stack: true # the level-1 entry moves to it after the window spill
+  hw_stack_limit: []
+  mpu: none
+  fpu_lazy: []
+  cycle_counter: [lx6]
+  tickless: false # periodic tick only: the port refuses EMB_TICKLESS (Kconfig)
+  smp: false
+  syscall_trap: none
+  fault_entry: true
+  priority_bits: none
+tcb_extension_bytes: 0

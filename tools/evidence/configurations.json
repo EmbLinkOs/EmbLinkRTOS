@@ -40,6 +40,10 @@
                     "unrun": "runs only with the board attached; its runs are archived in docs/engineering/hardware-runs.json, without case-evidence files"},
     "cm4-nucleo-hil": {"target": "NUCLEO-F446RE board", "scope": "hardware", "profile": "base", "checked": true,
                        "unrun": "the board arrives 2026-11-07"},
+    "xt-esp32-hil": {"target": "ESP32 DevKitC board", "scope": "hardware", "profile": "base", "checked": true,
+                     "unrun": "runs only with the board attached; its runs are archived in docs/engineering/hardware-runs.json, without case-evidence files"},
+    "xt-esp32-gcc": {"target": "ESP32 DevKitC board, Espressif's GCC", "scope": "hardware", "profile": "base", "checked": true,
+                     "unrun": "built in CI only; its images are flashed and timed by hand"},
     "cm33-pico2w": {"target": "Raspberry Pi Pico 2 W board", "scope": "hardware", "profile": "base", "checked": true,
                     "unrun": "built in CI only; the board arrives 2026-11-07"}
   }

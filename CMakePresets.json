@@ -321,6 +321,27 @@
       }
     },
     {
+      "name": "xt-esp32-hil",
+      "displayName": "ESP32 DevKitC (the physical board, Xtensa LX6), EmbCC, base profile, checked, tests on the board (set EMB_HIL_PORT to its USB serial port, EMBCC to an embcc with Xtensa scripts, EMBFLASH to an embflash with --esp)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/xt-esp32-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/embcc-xtensa.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "esp32_devkitc",
+        "EMB_TEST_EMULATOR": "hil"
+      }
+    },
+    {
+      "name": "xt-esp32-gcc",
+      "displayName": "ESP32 DevKitC (Xtensa LX6), Espressif's GCC, base profile, checked, build only",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/xt-esp32-gcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/xtensa-esp32-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "esp32_devkitc"
+      }
+    },
+    {
       "name": "cm4-nucleo-f446ze",
       "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446ZE: the second board on the STM32F446, from its YAML description alone",
       "generator": "Ninja",
@@ -519,6 +540,14 @@
     {
       "name": "cm4-nucleo-hil",
       "configurePreset": "cm4-nucleo-hil"
+    },
+    {
+      "name": "xt-esp32-hil",
+      "configurePreset": "xt-esp32-hil"
+    },
+    {
+      "name": "xt-esp32-gcc",
+      "configurePreset": "xt-esp32-gcc"
     },
     {
       "name": "avr-uno-hil",

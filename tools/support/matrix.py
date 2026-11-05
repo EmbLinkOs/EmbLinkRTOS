@@ -33,7 +33,7 @@ TIERS = {1: "1 hardware", 2: "2 emulated", 3: "3 described", None: "untested"}
 TOOLCHAINS = {"arm-none-eabi-gcc": "GCC", "avr-gcc": "GCC", "riscv-gcc": "GCC", "native-gcc": "GCC",
               "native-coverage": "GCC", "native-clang": "Clang", "native-sanitizers": "GCC or Clang",
               "native-tsan": "GCC or Clang", "embcc-native": "EmbCC", "embcc-native-mixed": "EmbCC",
-              "embcc-avr": "EmbCC"}
+              "embcc-avr": "EmbCC", "embcc-xtensa": "EmbCC", "xtensa-esp32-gcc": "GCC"}
 
 
 class MatrixError(Exception):

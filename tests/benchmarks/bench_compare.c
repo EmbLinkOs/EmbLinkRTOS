@@ -13,13 +13,15 @@
  *                    blocks again: interrupt entry, give, switch in, take, switch back
  *
  * A driver at priority 2 runs them; an echo thread at priority 3 answers. On AVR the interrupt
- * is USART_UDRE, which fires as soon as UDRIE0 is set while the transmitter is idle.
+ * is USART_UDRE, which fires as soon as UDRIE0 is set while the transmitter is idle; elsewhere
+ * (the ESP32, ADR-054) the board's test line, raised by emb_irq_pend(), and the unit is the
+ * port's cycle counter.
  */
 #include <stdint.h>
 
 #define ITER     10000u
 #define ISR_ITER 5000u
-#define STACK    192u
+#define STACK    192u /* FreeRTOS's words on AVR, bytes for EmbLinkRTOS (below) */
 #define M_NOTIFY 0u
 #define M_SEM    1u
 #define M_ISR    2u
@@ -34,7 +36,8 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#define OS_NAME "freertos"
+#define OS_NAME   "freertos"
+#define BENCH_AVR 1 /* FreeRTOS's side runs on the Uno only so far */
 typedef TaskHandle_t os_thread_t;
 typedef SemaphoreHandle_t os_sem_t;
 static StaticSemaphore_t sem_buf[4];
@@ -112,6 +115,9 @@ static uint32_t os_unit_hz(void)
 #include <emb_board.h>
 
 #define OS_NAME            "emblink"
+#define BENCH_AVR          CONFIG_EMB_ARCH_AVR
+/* STACK bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define EMB_STACK (EMB_THREAD_STACK_MIN > STACK ? EMB_THREAD_STACK_MIN : STACK)
 typedef emb_thread_t os_thread_t;
 typedef emb_sem_t os_sem_t;
 static emb_sem_storage_t sem_buf[4];
@@ -193,7 +199,7 @@ ISR(USART_UDRE_vect)
     }
 }
 #define TRIGGER() (UCSR0B |= (uint8_t)(1u << UDRIE0))
-#else
+#elif BENCH_AVR
 #include <avr/io.h>
 EMB_ISR(USART_UDRE)
 {
@@ -201,6 +207,14 @@ EMB_ISR(USART_UDRE)
     (void)emb_sem_give(s_isr);
 }
 #define TRIGGER() (UCSR0B |= (uint8_t)(1u << UDRIE0))
+#else
+#include <hw_config.h>
+static void isr_give(void *arg)
+{
+    (void)arg;
+    (void)emb_sem_give(s_isr);
+}
+#define TRIGGER() ((void)emb_irq_pend((emb_irq_t)EMB_HW_TEST_IRQ))
 #endif
 
 static void echo_entry(void *arg)
@@ -257,6 +271,7 @@ static void driver_entry(void *arg)
         os_sem_take_now(s_self);
     }
     report("sem_give_take", os_now() - t0, ITER);
+#if BENCH_AVR
     /* the transmitter idle: while it still sends, UDR is full, UDRE cannot fire at once, and
      * triggers would merge. UDR empty, then the shift register's last frame (87 us at 115200
      * baud) with room to spare: 400 us */
@@ -265,6 +280,7 @@ static void driver_entry(void *arg)
     t0 = os_now();
     while (os_now() - t0 < os_unit_hz() / 2500u) {
     }
+#endif
     t0 = os_now();
     for (i = 0u; i < ISR_ITER; i++) {
         TRIGGER(); /* the echo thread runs before this returns */
@@ -312,8 +328,8 @@ int main(void)
     }
 }
 #else
-EMB_THREAD_DEFINE(driver_thread, driver_entry, NULL, 2u, STACK, EMB_THREAD_NO_AUTOSTART);
-EMB_THREAD_DEFINE(echo_thread, echo_entry, NULL, 3u, STACK, EMB_THREAD_NO_AUTOSTART);
+EMB_THREAD_DEFINE(driver_thread, driver_entry, NULL, 2u, EMB_STACK, EMB_THREAD_NO_AUTOSTART);
+EMB_THREAD_DEFINE(echo_thread, echo_entry, NULL, 3u, EMB_STACK, EMB_THREAD_NO_AUTOSTART);
 
 int main(void)
 {
@@ -325,6 +341,10 @@ int main(void)
     os_sem_init(1, s_back);
     os_sem_init(2, s_self);
     os_sem_init(3, s_isr);
+#if !BENCH_AVR
+    (void)emb_irq_connect((emb_irq_t)EMB_HW_TEST_IRQ, isr_give, NULL);
+    (void)emb_irq_enable((emb_irq_t)EMB_HW_TEST_IRQ);
+#endif
     os_puts("bench_compare: EmbLinkRTOS ");
     os_puts(emb_version_string());
     os_puts("\n");

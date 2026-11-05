@@ -46,11 +46,29 @@
 /* The storage probe writes sizes/alignment as text in the object, never executing
  * these bytes. Immediate operands and %c keep the marker target-independent;
  * realign subsequent instructions after the variable-length text. */
+#if defined(__XTENSA__)
+/* EmbCC's Xtensa inline assembler takes instructions only, no directives: the same text as a
+ * kept constant in the probe's object, its numbers as six and three decimal digits built by
+ * constant expressions (ADR-054). */
+#define EMBN_PROBE_DIGIT(v, p) ((char)('0' + (int)(((size_t)(v) / (p)) % 10u)))
+#define EMB_LAYOUT_MARKER(name, size, align)                                                   \
+    static const struct {                                                                      \
+        char tag[sizeof("->EMB_PROBE " #name " ") - 1u];                                       \
+        char num[11];                                                                          \
+    } embn_probe_##name __attribute__((used)) = {                                              \
+        "->EMB_PROBE " #name " ",                                                              \
+        {EMBN_PROBE_DIGIT(size, 100000u), EMBN_PROBE_DIGIT(size, 10000u),                      \
+         EMBN_PROBE_DIGIT(size, 1000u), EMBN_PROBE_DIGIT(size, 100u), EMBN_PROBE_DIGIT(size, 10u), \
+         EMBN_PROBE_DIGIT(size, 1u), ' ', EMBN_PROBE_DIGIT(align, 100u),                       \
+         EMBN_PROBE_DIGIT(align, 10u), EMBN_PROBE_DIGIT(align, 1u), '\n'}};                       \
+    (void)embn_probe_##name
+#else
 /* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
 #define EMB_LAYOUT_MARKER(name, size, align)                                        \
     __asm__ __volatile__("\n.ascii \"->EMB_PROBE " #name " %c0 %c1\"\n.p2align 2\n" \
                          :                                                          \
                          : "i"(size), "i"(align))
 /* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
+#endif
 
 #endif /* EMB_COMPILER_EMBCC_H */
