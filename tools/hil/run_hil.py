@@ -113,12 +113,15 @@ TIOCM_DTR, TIOCM_RTS = 0x002, 0x004
 
 
 def reset_esp(fd):
-    """A normal boot: EN low (RTS) with IO0 high (DTR clear), then EN released."""
+    """A normal boot: EN low (RTS) with IO0 high (DTR clear), then EN released. What arrived
+    before, the start of the run the flasher's own reset began, is discarded while the board
+    is held in reset, so the console starts at this boot's first byte."""
     try:
         fcntl.ioctl(fd, termios.TIOCMSET, struct.pack("I", TIOCM_RTS))
         time.sleep(0.15)
+        termios.tcflush(fd, termios.TCIFLUSH)
         fcntl.ioctl(fd, termios.TIOCMSET, struct.pack("I", 0))
-    except OSError:
+    except (OSError, termios.error):
         pass  # a pseudo-terminal in the tests has no modem lines
 
 
