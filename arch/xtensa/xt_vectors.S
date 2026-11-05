@@ -38,6 +38,8 @@
         .equ    PS_UM, 0x20
         .equ    PS_EXCM, 0x10
         .equ    EXCCAUSE_LEVEL1, 4
+        .equ    EXCCAUSE_ALLOCA, 5
+        .equ    PS_OWB_SHIFT, 8
 
 /* Every register window except the current one to its stack (the Xtensa ISA's window
  * overflow, taken once per live frame): a no-op write to a12 of a rotated window raises the
@@ -80,6 +82,7 @@ embn_xt_vectors:
         rfwo
 
         .org    embn_xt_vectors + 0x040
+embn_xt_underflow4:
         l32e    a0, a5, -16             /* WindowUnderflow4 */
         l32e    a1, a5, -12
         l32e    a2, a5, -8
@@ -99,6 +102,7 @@ embn_xt_vectors:
         rfwo
 
         .org    embn_xt_vectors + 0x0C0
+embn_xt_underflow8:
         l32e    a1, a9, -12             /* WindowUnderflow8 */
         l32e    a0, a9, -16
         l32e    a7, a1, -12
@@ -127,6 +131,7 @@ embn_xt_vectors:
         rfwo
 
         .org    embn_xt_vectors + 0x140
+embn_xt_underflow12:
         l32e    a1, a13, -12            /* WindowUnderflow12 */
         l32e    a0, a13, -16
         l32e    a11, a1, -12
@@ -178,7 +183,9 @@ embn_xt_vectors:
 embn_xt_user_entry:
         rsr     a0, exccause
         beqi    a0, EXCCAUSE_LEVEL1, 1f
+        beqi    a0, EXCCAUSE_ALLOCA, 2f
         j       embn_xt_fault_entry
+2:      j       embn_xt_alloca          /* another section: beyond a branch's reach */
 1:      addi    a0, a1, -FRAME          /* a0: the frame; a1 untouched until the spill */
         s32i    a1, a0, F_A1
         s32i    a2, a0, F_A2
@@ -261,6 +268,35 @@ embn_xt_resume:
         l32i    a0, a0, F_A0
         rsync
         rfe
+
+/* ---- the alloca exception ------------------------------------------------------------------ */
+
+/* MOVSP found its caller's a0-a3 spilled: every resumed thread's callers are, after the entry's
+ * spill. As the Xtensa ISA prescribes (and ESP-IDF's _xt_alloca_exc does), refill the caller's
+ * window with the underflow handler for its call size, read from the top bits of the
+ * function's return address, with PS.OWB set to the function's window: their rfwu returns to
+ * the MOVSP, which runs again. EmbCC and GCC emitted no MOVSP in the suite; Espressif's Clang
+ * does (CI's Clang images on the board, 2026-11-06). Runs with PS.EXCM set, a0 in EXCSAVE1. */
+        .section .text.embn_xt_alloca, "ax"
+        .align  4
+embn_xt_alloca:
+        rsr     a0, windowbase          /* the MOVSP's window, before rotw changes it */
+        rotw    -1                      /* it is a4 now; a0-a3 are the spilled caller's */
+        rsr     a2, ps
+        extui   a3, a2, PS_OWB_SHIFT, 4
+        xor     a3, a3, a4
+        rsr     a4, excsave1            /* the function's own a0: its return address */
+        slli    a3, a3, PS_OWB_SHIFT
+        xor     a2, a2, a3              /* PS.OWB: the MOVSP's window, for rfwu */
+        wsr     a2, ps
+        rsync
+        bbci    a4, 31, 4f              /* 01: the caller used call4 */
+        rotw    -1                      /* the return address is a8 now */
+        bbci    a8, 30, 8f              /* 10: call8; 11: call12 */
+        rotw    -1
+        j       embn_xt_underflow12
+8:      j       embn_xt_underflow8
+4:      j       embn_xt_underflow4
 
 /* ---- faults ------------------------------------------------------------------------------ */
 
