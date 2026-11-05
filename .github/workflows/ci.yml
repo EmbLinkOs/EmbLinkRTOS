@@ -285,6 +285,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/coverage -p 'test_*.py' -v
       - name: Resource-bound inventory covers every non-constant cost
         run: python3 -I tools/evidence/check_bounds.py
+      - name: The interrupt-safe function table is current
+        run: python3 -I tools/docs/isr_table.py --check
       - name: Configuration tool self-check
         run: |
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \

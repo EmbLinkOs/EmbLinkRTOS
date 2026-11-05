@@ -22,8 +22,8 @@ config EMB_CM_KERNEL_BASEPRI
 	range 1 254
 	help
 	  Interrupts with a priority byte below this value are zero-latency: never masked
-	  by the kernel and not allowed to call it (SPEC-002 §3). 32 is priority level 1
-	  on a part with 3 priority bits.
+	  by the kernel and not allowed to call it (SPEC-002 §3). 32 is hardware priority 1
+	  on a part with 3 priority bits: the API's highest generic level, 5.
 
 config EMB_CM_IRQ_PRIORITY
 	int "Default priority byte of a kernel-aware interrupt"

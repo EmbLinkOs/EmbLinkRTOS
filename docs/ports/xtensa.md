@@ -1,6 +1,6 @@
 # Xtensa (classic ESP32): bring-up
 
-**Status:** not a port yet. The classic ESP32 (two Xtensa LX6 cores, the ESP-WROOM-32 module on an "ESP-32S" development board) is in scope under [ADR-051](../architecture/06-decision-records.md) (any board), and its images link under one GNU ld script, with EmbCC's `embld` or with Espressif's GCC ([ADR-052](../architecture/06-decision-records.md), [ADR-053](../architecture/06-decision-records.md)). What exists is a bring-up probe that checks, before any kernel code is written, that the toolchain, the image, the flasher and the register addresses are right. It has not run on hardware yet.
+**Status:** not a port yet. The classic ESP32 (two Xtensa LX6 cores, the ESP-WROOM-32 module on an "ESP-32S" development board) is in scope under [ADR-051](../architecture/06-decision-records.md) (any board), and its images link under one GNU ld script, with EmbCC's `embld` or with Espressif's GCC ([ADR-052](../architecture/06-decision-records.md), [ADR-053](../architecture/06-decision-records.md)). What exists is a bring-up probe that checks, before any kernel code is written, that the toolchain, the image, the flasher and the register addresses are right. It ran on a physical ESP32 on [2026-11-05](../engineering/hil-esp32-2026-11-05.md): built by EmbCC, flashed by `embflash --esp`, booted by the ROM, printing.
 
 **Sources:** `tools/esp/bringup/` (`esp32_hello.c`, `build.sh`), the image tool `tools/esp/esp_image.py --chip esp32`, and EmbCC's `embflash --esp` (EmbCC D-023).
 

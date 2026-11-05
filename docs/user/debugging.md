@@ -72,6 +72,28 @@ The trace sink is synchronous and can execute with interrupts masked. Keep it bo
 
 The fault hook receives a temporary `emb_fault_info_t` with class/code, context, argument index where provided, and hardware fields where the port supplies them. It runs with interrupts masked before the non-returning port action; it cannot recover by returning. Public API misuse records carry an `EMB_API_ID_*` value from `<emb/api_ids.h>`, even with `CONFIG_EMB_FAULT_WHERE=n`. Shared helpers preserve the public entry: `emb_mutex_lock` is `0x0016` and `emb_mutex_lock_until` is `0x0017`. Decode on the host with `python3 -I tools/fault/decode.py 0x0016`, or consume the {download}`API ID map <../_exports/api-ids.json>`. IDs are explicitly assigned and never renumbered/reused, including after retirement. Keep the map with your firmware artifacts. Zero means no public API attribution: hardware/invariant/generic faults, application-raised `emb_fault()` and `EMB_CHECK()` use zero. The latter cannot infer which earlier call returned a status. Retained, versioned crash records, partition fault delivery, CTF rings and decoders for retained crash formats remain planned; the presence of related structures or specifications does not make those services available.
 
+## On a board
+
+**A fault's crash record.** A kernel fault writes the crash record before its action, in memory the reset keeps ([SPEC-015 §4](../specs/SPEC-015-observability-formats.md)). After the reset, `emb_crash_record_get()` returns it. Print it as an `EMB_CRASH <hex>` line, as `tests/conformance/crash_print.h` does, and decode it on the host against the image that ran:
+
+```sh
+python3 -I tools/crashdec/crashdec.py console.log --elf build/my_app/app.elf --tool-prefix arm-none-eabi-
+```
+
+`crashdec` names the fault class, the code, the API and argument, the thread, the uptime and the reset reason. It refuses an image whose build id differs from the record's, and resolves the pc to a function and line with `addr2line`. On AVR use `--tool-prefix avr-`, on RISC-V `--tool-prefix riscv64-unknown-elf-`.
+
+**GDB on the NUCLEO-F446RE.** OpenOCD serves the ST-LINK; GDB connects to it:
+
+```sh
+openocd -f board/st_nucleo_f4.cfg                                      # leave it running
+arm-none-eabi-gdb build/my_app/app.elf \
+    -ex "target extended-remote :3333" -ex "monitor reset halt" -ex load -ex "break emb_fault_hook" -ex continue
+```
+
+`emb_fault_hook` is called on every kernel fault: at the breakpoint, `bt` shows the call that faulted and `p *info` the fault. A checked build with `CONFIG_EMB_FAULT_HALT_FOR_DEBUG` also stops at a breakpoint instruction in the fault path when a debugger is attached. Under QEMU, add `-s -S` to the machine's arguments (`EMB_BOARD_QEMU_ARGS` in the board's `board.cmake`) and connect GDB to `:1234` in the same way.
+
+**The Uno** has no debug probe on its USB connection. Use the console and the crash record: a fault resets the part through the watchdog, and the record survives the reset ([2026-11-04 run](../engineering/hil-uno-2026-11-04.md)).
+
 ## Common symptoms
 
 | Symptom | Check first |
@@ -83,6 +105,8 @@ The fault hook receives a temporary `emb_fault_info_t` with class/code, context,
 | Checked build stops on an API call | Wrong context, ownership, handle/lifetime, storage or blocking sub-state |
 | Tiny thread init/priority change returns `EMB_EBUSY` | Another initialized thread owns that base-priority slot |
 | Unexpected `EMB_EOWNERDEAD` | A previous mutex owner terminated with the lock held; the new caller owns it |
+| A board resets in a loop, or `test_*` prints `EVIDENCE` again and again | A fault the configured action turns into a reset (AVR's default); read the crash record after the reset |
+| A checked build faults `EMB_FAULT_STACK_OVERFLOW` with code `0xFF` | The interrupt stack's guard: raise `CONFIG_EMB_ISR_STACK_SIZE`, measured with `emb_isr_stack_info()` |
 | IRQ level is rejected on one port | Check `EMB_IRQ_LEVEL_MAX`: native/AVR/current RV32 accept only 0; Cortex-M advertises a board-dependent range with larger levels more urgent. Checked builds fault on invalid requests; release returns `EMB_EINVAL` |
 
 Use a passing relevant conformance run as evidence for that reproduction/configuration. It does not close the known deep differential failures or prove every API requirement. Check [Project status](../STATUS.md) for unresolved implementation and evidence gaps.
