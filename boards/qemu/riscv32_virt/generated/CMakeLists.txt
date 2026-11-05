@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/qemu/riscv32_virt (HW-003).
 # Inputs (SHA-256):
 #   arch/riscv/arch.yaml
-#     af572f3973c21af27831f1beba36152b17f99a4e00035d3ac7594a22d7e50d9a
+#     446538712f59f1c1ec2d363143eafeb6ea30ae717d54882d42a9b36c62812ed4
 #   boards/qemu/riscv32_virt/board.yaml
 #     1351b269a079bf72527e87b0977f737b7888fd8e3079ce561c0b2889833c154c
 #   soc/qemu/virt/rv32.yaml

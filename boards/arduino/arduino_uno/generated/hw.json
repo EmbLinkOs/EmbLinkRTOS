@@ -190,7 +190,7 @@
   "inputs": [
     {
       "path": "arch/avr/arch.yaml",
-      "sha256": "2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2"
+      "sha256": "58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42"
     },
     {
       "path": "boards/arduino/arduino_uno/board.yaml",

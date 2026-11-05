@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /* Smoke test: the kernel starts, threads run and switch, time advances. */
+#include <limits.h>
+#include <stdlib.h>
+
 #include <emb_test.h>
+#include <errno.h>
 
 static uint32_t hits;
 
@@ -28,4 +32,19 @@ EMB_TEST(smoke_sleep_advances_virtual_time)
     EMB_TEST_REQ("KRN-TIM-001", "KRN-TIM-010");
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(10)));
     EMB_ASSERT_ELAPSED(t0.ticks, 10u);
+}
+
+/* The C library works from a thread: errno is thread-local storage in picolibc, so the port
+ * must point the thread pointer at a TLS block (RISC-V tp, A88). One block is shared by
+ * every thread: errno is not per thread. */
+EMB_TEST(smoke_libc_errno_from_a_thread)
+{
+    long v;
+    EMB_TEST_REQ("PORT-015");
+    errno = 0;
+    v = strtol("99999999999999999999999", NULL, 10); /* out of range for long */
+    EMB_ASSERT_TRUE(v == LONG_MAX);
+    EMB_ASSERT_EQ(errno, ERANGE);
+    errno = 0;
+    EMB_ASSERT_EQ(errno, 0);
 }

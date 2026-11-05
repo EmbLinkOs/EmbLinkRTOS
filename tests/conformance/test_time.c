@@ -77,6 +77,21 @@ EMB_TEST(time_conversions_round_up_and_saturate)
     EMB_ASSERT_EQ(EMB_TIMEOUT(d).ticks, EMB_TIMEOUT_MAX_TICKS);
 }
 
+/* A relative wait ends at the n-th tick edge (A87); EMB_AT_LEAST adds the one tick that
+ * guarantees n full periods from anywhere inside the current one. */
+EMB_TEST(time_at_least_adds_one_tick)
+{
+    uint32_t t0;
+    EMB_TEST_REQ("KRN-TIM-024");
+    EMB_ASSERT_EQ(EMB_AT_LEAST(EMB_TICKS(3)).ticks, 4u);
+    EMB_ASSERT_EQ(EMB_AT_LEAST(EMB_TICKS(0)).ticks, 0u); /* zero stays a yield */
+    EMB_ASSERT_TRUE(emb_duration_is_saturated(EMB_AT_LEAST(EMB_TICKS(EMB_TICK_MAX))));
+    EMB_ASSERT_EQ(emb_ticks_at_least(EMB_TICK_MAX - 1u), EMB_TICK_MAX - 1u);
+    t0 = EMB_TEST_NOW();
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_AT_LEAST(EMB_TICKS(2))));
+    EMB_ASSERT_ELAPSED(t0, 3u); /* from an edge in virtual time: one period more */
+}
+
 EMB_TEST(time_instant_helpers)
 {
     emb_instant_t a;

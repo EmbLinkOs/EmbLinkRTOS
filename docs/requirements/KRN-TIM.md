@@ -172,7 +172,7 @@ KRN-TIM-001 to 007 originate in the v0.1 specification (§7.5); KRN-TIM-008 to 0
 **Trace.** SPEC-003 §5.2; API-024
 
 ### KRN-TIM-024  Sleep semantics
-**Statement.** `emb_thread_sleep` and `emb_thread_sleep_until` shall block the caller with wait reason `SLEEP` until the deadline, returning `EMB_OK` on expiry or `EMB_ECANCELED` if canceled. A zero duration or a past deadline shall behave exactly as `emb_thread_yield`.
+**Statement.** `emb_thread_sleep` and `emb_thread_sleep_until` shall block the caller with wait reason `SLEEP` until the deadline, returning `EMB_OK` on expiry or `EMB_ECANCELED` if canceled. A zero duration or a past deadline shall behave exactly as `emb_thread_yield`. A relative sleep of n ticks shall end at the n-th tick edge after the call, so between n − 1 (exclusive) and n tick periods of real time pass; `EMB_AT_LEAST(d)` shall add the one tick that makes the wait at least d (A87).
 **Rationale.** Sleep is a wait with no object; zero sleep as yield is the common expectation and gives equal-priority threads a turn.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: conformance tests for sleep, sleep_until, zero sleep ordering among equal-priority threads, and cancellation.

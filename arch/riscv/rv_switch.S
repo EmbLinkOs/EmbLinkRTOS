@@ -10,7 +10,9 @@
  * A context is resumed by writing mstatus and mepc from its frame and executing mret, so
  * MIE comes back from the frame's MPIE: set for a thread interrupted with interrupts on
  * or a fresh one, clear for a thread that switched out inside its critical section.
- * gp and tp are not used by this port and are not saved.
+ * gp is not used by this port and is not saved. tp points from reset at the one
+ * thread-local block of the C library (errno, A88), which every thread shares, so no frame
+ * carries it either.
  */
 #include <emb/config.h>
 
@@ -173,6 +175,17 @@ embn_rv_vectors:
 /* Reset (QEMU virt with -bios none starts here in machine mode; the ESP32-C3's boot ROM
  * jumps here once it has loaded the image): interrupts off, the
  * stack, .bss cleared, then C. Everything is loaded in RAM, so .data needs no copy. */
+/* A word in each thread-local section, so that both exist in every image and the TLS
+ * segment starts where the linker script's __emb_tls_start says (A88). */
+        .section .tdata.emb_tls_anchor, "awT", @progbits
+        .align  2
+embn_rv_tdata_anchor:
+        .word   0
+        .section .tbss.emb_tls_anchor, "awT", @nobits
+        .align  2
+embn_rv_tbss_anchor:
+        .space  4
+
         .section .text.embn_rv_reset, "ax" /* the one function this name can belong to */
         .globl  embn_rv_reset
         .align  2
@@ -190,6 +203,15 @@ embn_rv_reset:
         addi    t0, t0, 4
         j       1b
 2:
+        la      t0, __emb_tbss_start       /* the TLS block's zero part (A88) */
+        la      t1, __emb_tls_end
+4:
+        bgeu    t0, t1, 5f
+        sb      zero, 0(t0)
+        addi    t0, t0, 1
+        j       4b
+5:
+        la      tp, __emb_tls_start
         call    embn_rv_start
 3:
         wfi

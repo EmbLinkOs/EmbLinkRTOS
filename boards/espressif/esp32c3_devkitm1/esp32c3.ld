@@ -43,7 +43,17 @@ SECTIONS
     *(.data .data.* .sdata .sdata.*)
   } > DRAM
 
-  .bss (NOLOAD) : ALIGN(16) {
+  /* the C library's thread-local block (errno in picolibc), one for every thread: .tdata in
+     place, .tbss reserved after it, which the reset clears; tp points at it (A88) */
+  /* rv_switch.S puts a word in each, so both exist and the TLS segment starts at .tdata */
+  .tdata : ALIGN(16) { KEEP(*(.tdata.emb_tls_anchor)) *(.tdata .tdata.* .gnu.linkonce.td.*) } > DRAM
+  .tbss : { KEEP(*(.tbss.emb_tls_anchor)) *(.tbss .tbss.* .gnu.linkonce.tb.* .tcommon) } > DRAM
+  __emb_tls_start = ADDR(.tdata);
+  __emb_tbss_start = ADDR(.tdata) + SIZEOF(.tdata);
+  __emb_tls_end = ADDR(.tbss) + SIZEOF(.tbss);
+
+  /* placed past .tbss, which takes no room of its own */
+  .bss ALIGN(__emb_tls_end, 16) (NOLOAD) : {
     __bss_start = .;
     *(.bss .bss.* .sbss .sbss.* COMMON)
     . = ALIGN(16);

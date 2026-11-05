@@ -4,7 +4,7 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/qemu/riscv32_virt (HW-003).
  * Inputs (SHA-256):
  *   arch/riscv/arch.yaml
- *     af572f3973c21af27831f1beba36152b17f99a4e00035d3ac7594a22d7e50d9a
+ *     446538712f59f1c1ec2d363143eafeb6ea30ae717d54882d42a9b36c62812ed4
  *   boards/qemu/riscv32_virt/board.yaml
  *     1351b269a079bf72527e87b0977f737b7888fd8e3079ce561c0b2889833c154c
  *   soc/qemu/virt/rv32.yaml
@@ -44,7 +44,17 @@ SECTIONS
     *(.data .data.* .sdata .sdata.*)
   } > RAM
 
-  .bss (NOLOAD) : ALIGN(16) {
+  /* the C library's thread-local block (errno in picolibc), one for every thread: .tdata in
+     place, .tbss reserved after it, which the reset clears; tp points at it (A88) */
+  /* rv_switch.S puts a word in each, so both exist and the TLS segment starts at .tdata */
+  .tdata : ALIGN(16) { KEEP(*(.tdata.emb_tls_anchor)) *(.tdata .tdata.* .gnu.linkonce.td.*) } > RAM
+  .tbss : { KEEP(*(.tbss.emb_tls_anchor)) *(.tbss .tbss.* .gnu.linkonce.tb.* .tcommon) } > RAM
+  __emb_tls_start = ADDR(.tdata);
+  __emb_tbss_start = ADDR(.tdata) + SIZEOF(.tdata);
+  __emb_tls_end = ADDR(.tbss) + SIZEOF(.tbss);
+
+  /* placed past .tbss, which takes no room of its own */
+  .bss ALIGN(__emb_tls_end, 16) (NOLOAD) : {
     __bss_start = .;
     *(.bss .bss.* .sbss .sbss.* COMMON)
     . = ALIGN(16);

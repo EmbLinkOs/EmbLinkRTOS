@@ -4,7 +4,7 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/arduino/arduino_uno (HW-003).
  * Inputs (SHA-256):
  *   arch/avr/arch.yaml
- *     2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2
+ *     58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42
  *   boards/arduino/arduino_uno/board.yaml
  *     45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6
  *   soc/microchip/atmega/atmega328p.yaml

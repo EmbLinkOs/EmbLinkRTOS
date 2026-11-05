@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/rpi/pico2_w (HW-003).
 # Inputs (SHA-256):
 #   arch/cortex_m/arch.yaml
-#     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
+#     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
 #     17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245
 #   soc/rpi/rp2350/rp2350.yaml
@@ -22,7 +22,7 @@ set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
-    "arch/cortex_m/arch.yaml=6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a"
+    "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
     "boards/rpi/pico2_w/board.yaml=17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245"
     "soc/rpi/rp2350/rp2350.yaml=a68970a2c779c23f4b8e5efb8abc76bdd81f34610c3a03aa71e69beec4087b60"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"

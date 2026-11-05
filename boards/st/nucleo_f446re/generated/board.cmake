@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446re (HW-003).
 # Inputs (SHA-256):
 #   arch/cortex_m/arch.yaml
-#     6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a
+#     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/st/nucleo_f446re/board.yaml
 #     d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415
 #   soc/st/stm32f4/stm32f4.yaml
@@ -24,7 +24,7 @@ set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_cras
 set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446re) # EMB_TEST_EMULATOR=embsim
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
-    "arch/cortex_m/arch.yaml=6ea2200bc22158bb790a5e05ddd166e43d1be238180c30e4ed09e71cbe73276a"
+    "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
     "boards/st/nucleo_f446re/board.yaml=d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
     "soc/st/stm32f4/stm32f446.yaml=eda69135dd4cd1f08770781c6a482828b908920a98e49b2a46774e1e5afbbf3c"

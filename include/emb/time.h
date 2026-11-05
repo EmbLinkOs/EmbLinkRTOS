@@ -120,6 +120,35 @@ static EMB_INLINE emb_tick_t emb_ns_to_ticks(uint64_t ns)
 #define EMB_MS(n)    EMB_DURATION_(EMB_MS_TO_TICKS(n))
 #define EMB_SEC(n)   EMB_DURATION_(EMB_SEC_TO_TICKS(n))
 
+/**
+ * emb_ticks_at_least() - The tick count that waits at least @ticks full periods.
+ * @ticks: A relative wait in ticks.
+ *
+ * A relative wait of n ticks ends at the n-th tick edge after the call, so the real time
+ * that passes is more than n - 1 and at most n tick periods: the call lands somewhere
+ * inside a period (SPEC-003 §5.2). One more tick makes it at least n. Zero stays zero,
+ * and a saturated value (or one below it) is kept, so a forever never becomes finite.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config
+ * @req      KRN-TIM-024 API-023
+ * @since    0.2
+ * @stable   yes
+ *
+ * Return: @ticks + 1, or @ticks when it is zero or within one of EMB_TICK_MAX.
+ */
+static EMB_INLINE emb_tick_t emb_ticks_at_least(emb_tick_t ticks)
+{
+    return (ticks == 0u || ticks >= EMB_TICK_MAX - 1u) ? ticks : (emb_tick_t)(ticks + 1u);
+}
+
+/* A duration that guarantees at least @d of real time, for a settling delay or a
+ * minimum gap: emb_thread_sleep(EMB_AT_LEAST(EMB_MS(2))). */
+#define EMB_AT_LEAST(d) EMB_DURATION_(emb_ticks_at_least((d).ticks))
+
 #define EMB_NO_WAIT      EMB_TIMEOUT_(0)
 #define EMB_WAIT_FOREVER EMB_TIMEOUT_(EMB_TICK_MAX)
 #define EMB_TIMEOUT(d)   emb_timeout_from_duration(d)

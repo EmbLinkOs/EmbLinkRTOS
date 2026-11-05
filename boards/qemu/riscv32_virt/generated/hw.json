@@ -91,7 +91,7 @@
   "inputs": [
     {
       "path": "arch/riscv/arch.yaml",
-      "sha256": "af572f3973c21af27831f1beba36152b17f99a4e00035d3ac7594a22d7e50d9a"
+      "sha256": "446538712f59f1c1ec2d363143eafeb6ea30ae717d54882d42a9b36c62812ed4"
     },
     {
       "path": "boards/qemu/riscv32_virt/board.yaml",

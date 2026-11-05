@@ -270,13 +270,14 @@ emb_status_t embk_mutex_lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t
         embk_unlock_object(m, key);
         return EMB_ECANCELED;
     }
+    /* a ceiling violation whether the mutex is free or not (§3.4): a thread that blocked
+     * would otherwise receive it by hand-off unchecked */
+    if (m->protocol == EMB_MUTEX_CEILING && self->base_prio > m->ceiling) {
+        EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EPERM);
+        embk_unlock_object(m, key);
+        EMBK_API_MISUSE(api_id, EMB_FAULT_API_OWNER, EMB_EPERM, 1u);
+    }
     if (m->owner == NULL) {
-        if (m->protocol == EMB_MUTEX_CEILING && self->base_prio > m->ceiling) {
-            EMBK_TRACE(EMB_TRACE_MUTEX_LOCK, embk_thread_index(self), m, EMB_EPERM);
-            embk_unlock_object(m, key);
-            EMBK_API_MISUSE(api_id, EMB_FAULT_API_OWNER, EMB_EPERM,
-                            1u); /* ceiling violation (§3.4) */
-        }
         m->owner = self;
         m->count = 1u;
         owned_append(self, m);
@@ -450,7 +451,9 @@ void embk_mutex_release_all_on_exit(embk_thread_t *t)
     while (t->owned != NULL) {
         hand_over(t->owned, t, true);
     }
-    t->eff_prio = t->base_prio;
+    /* back to the base priority through the one path that keeps the scheduler's count of
+     * raised threads (embk_sched_prio_changed) */
+    (void)embk_prio_recompute(t);
 }
 
 #endif /* CONFIG_EMB_MUTEX */
