@@ -288,6 +288,10 @@ def run_board(args, rec, console):
     if shared:
         # the bootloader needs the port: flash, then open the console (which resets the board)
         problem = flash(cmd, args.flash_timeout)
+        if problem and resets_after_open(hw):
+            # an ESP32's ROM loader now and then misses a block over USB serial: once more
+            print(f"run_hil: {problem}; flashing again", file=sys.stderr)
+            problem = flash(cmd, args.flash_timeout)
         if problem:
             print(f"run_hil: {problem}", file=sys.stderr)
             return 2

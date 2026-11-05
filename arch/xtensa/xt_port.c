@@ -488,9 +488,17 @@ void emb_arch_reset(const emb_fault_info_t *info)
     emb_arch_system_reset();
 }
 
+/* What the board must finish before the reset: its console's transmit FIFO, which the reset
+ * would discard with the last line in it. */
+EMB_WEAK void emb_board_reset_prepare(void);
+EMB_WEAK void emb_board_reset_prepare(void)
+{
+}
+
 void emb_arch_system_reset(void)
 {
     (void)emb_arch_irq_lock();
+    emb_board_reset_prepare();
     REG32(RTC_CNTL_OPTIONS0) |= OPTIONS0_SYS_RST; /* the ROM boots the image again */
     for (;;) {
         /* until the reset takes the CPU */

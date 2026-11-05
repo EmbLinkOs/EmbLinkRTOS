@@ -83,6 +83,12 @@ void emb_board_put_u32(uint32_t v)
     emb_board_puts(&buf[i]);
 }
 
+/* Before the port's reset (a fault check's, A89): the line in the FIFO reaches the host. */
+void emb_board_reset_prepare(void)
+{
+    tx_wait_idle();
+}
+
 void emb_board_exit(int code)
 {
     (void)code; /* no host to report it to */
