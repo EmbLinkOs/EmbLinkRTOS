@@ -1,0 +1,63 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 1675,
+      "unit_hz": 250000,
+      "units": 335073
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 1650,
+      "unit_hz": 250000,
+      "units": 330144
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "emblink",
+      "per_op_x100": 552,
+      "unit_hz": 250000,
+      "units": 55211
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "emblink",
+      "per_op_x100": 2779,
+      "unit_hz": 250000,
+      "units": 138979
+    }
+  ],
+  "board": "arduino_uno",
+  "cases": [],
+  "ended": "2026-11-05T20:37:58Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "build/cmp-release/tests/benchmarks/bench_compare.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "bench_compare.hex": "0a5df8761d62a5459ec631160204999896eea83d20bc40f3f2474a2227a9cbb9"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "b7fb4c6341a8cd5689c5e645943cd47251727356",
+    "dirty": false
+  },
+  "image": "bench_compare.elf",
+  "image_sha256": "f75df563bfd03f3d1b6b2784a10dbfe209ac6157b0c30fc62f17654e3ffb4c1f",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T20:37:50Z"
+}
