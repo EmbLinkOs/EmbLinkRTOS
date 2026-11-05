@@ -343,6 +343,17 @@
       }
     },
     {
+      "name": "xt-esp32-clang",
+      "displayName": "ESP32 DevKitC (Xtensa LX6), Espressif's Clang and LLD, base profile, checked, built for the board (CI keeps the images)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/xt-esp32-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/xtensa-esp32-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "esp32_devkitc",
+        "EMB_TEST_EMULATOR": "hil"
+      }
+    },
+    {
       "name": "cm4-nucleo-f446ze",
       "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446ZE: the second board on the STM32F446, from its YAML description alone",
       "generator": "Ninja",
@@ -549,6 +560,10 @@
     {
       "name": "xt-esp32-gcc",
       "configurePreset": "xt-esp32-gcc"
+    },
+    {
+      "name": "xt-esp32-clang",
+      "configurePreset": "xt-esp32-clang"
     },
     {
       "name": "avr-uno-hil",

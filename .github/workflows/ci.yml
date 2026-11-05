@@ -518,6 +518,52 @@ jobs:
             build/xt-esp32-gcc/**/*.bin
           retention-days: 30
 
+  # The kernel's Xtensa port built by Espressif's Clang, its newlib and LLD (ADR-053): the third
+  # toolchain for the ESP32 after EmbCC and Espressif's GCC. Each archive is pinned by the SHA-256
+  # GitHub records for the release asset. Not in the merge gate until its first green run.
+  xtensa-clang:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      ESP_CLANG_RELEASE: esp-22.1.4_20260825
+      ESP_CLANG_VERSION: 22.1.4_20260825
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Espressif's Clang, newlib and LLD for Xtensa (pinned, checksum-verified)
+        timeout-minutes: 20
+        run: |
+          base="https://github.com/espressif/llvm-project/releases/download/$ESP_CLANG_RELEASE"
+          while read -r sum name; do
+            curl -sSfL --retry 3 -o "$name" "$base/$name"
+            echo "$sum  $name" | sha256sum -c -
+            tar -xJf "$name"
+            rm "$name"
+          done <<LIST
+          4700ed4eb331d70d2e8b0846a233b299f43f958d2ab824ce886764d8bd6eb0a1 clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          34fa17a12ccdfc4b23c36928aed81ef6bd52af305a5246edf3712cc59129197b libs-clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          62b6b572a0e9c930da0dcb17b642737feafbe1fbbfc207d02d07213d0969b681 lld-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          LIST
+          clang_bin=$(dirname "$(find "$PWD" -path '*/bin/clang' \( -type f -o -type l \) | head -1)")
+          ls "$clang_bin" | grep -E '^(clang|ld\.lld|llvm-(objcopy|size|nm|ar|ranlib))$'
+          echo "$clang_bin" >> "$GITHUB_PATH"
+      - name: Install tools
+        timeout-minutes: 15
+        run: scripts/ci-apt-install.sh ninja-build python3-yaml
+      - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
+        run: |
+          clang --version | head -1
+          cmake --preset xt-esp32-clang
+          cmake --build --preset xt-esp32-clang
+          ls build/xt-esp32-clang/tests/conformance/*.bin | wc -l
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: esp32-clang-images
+          path: |
+            build/xt-esp32-clang/**/*.elf
+            build/xt-esp32-clang/**/*.bin
+          retention-days: 30
+
   application:
     # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four
     # boards, run natively and under QEMU until its own end line
