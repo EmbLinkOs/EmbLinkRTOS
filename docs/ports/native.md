@@ -1,7 +1,9 @@
 # Port: native (`arch/native`)
 
 **Specification:** SPEC-013 (port), SPEC-011 (contract).
-**Status (M1):** POSIX backend; one host thread per EmbLinkRTOS thread behind a gate; deterministic interrupt delivery at gate crossings; virtual time advancing only in idle; periodic and tickless modes; host fault handling and the asynchronous signal mode come with later milestones.
+**Status (M1):** POSIX backend; one host thread per EmbLinkRTOS thread behind a gate; deterministic interrupt delivery at gate crossings; virtual time advancing only in idle; periodic and tickless modes; the asynchronous signal mode for stress runs, and the invariant checker at every gate crossing in checked builds ([A93](../specs/AMENDMENTS-M3.md)). Host fault handling comes with a later milestone.
+
+**Asynchronous interrupts.** Run any native image with `EMB_NATIVE_ASYNC_US=50` in the environment, or call `emb_native_async_start(50, irq)` from it: ticks then land between any two statements, about every 50 µs with jitter, and time advances with them instead of only in idle. `tests/stress/test_async_irq` does this under the invariant checker. Runs in this mode are not reproducible, and exact-time assertions do not hold in it, so the conformance suites keep the deterministic mode.
 **Verified with:** GCC 13 and Clang 18 on Linux x86-64, checked and release build kinds, base and tiny profiles, AddressSanitizer, UndefinedBehaviorSanitizer, and ThreadSanitizer, each running the whole conformance suite and the first-execution sample (two million switches).
 
 ## Gate and threads

@@ -110,7 +110,11 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
                             uint8_t *status_count, uint32_t *lr);
 
 /* ---- kernel hooks the port calls ---------------------------------------------- */
-void embk_isr_enter(void);             /* kernel-aware interrupt entry: depth++ */
+void embk_isr_enter(void); /* kernel-aware interrupt entry: depth++ */
+/* Fault when the scheduler's ready structure contradicts the threads' states (checked builds;
+ * SPEC-013 §8, A93): the native port calls it at gate crossings with CONFIG_EMB_NATIVE_INVARIANTS.
+ */
+void embk_invariants_check(void);
 embk_thread_t *embk_isr_exit(void);    /* outermost exit: the thread to switch to, or NULL */
 void embk_time_timer_isr(void);        /* SPEC-003 §4.3 */
 void embk_time_on_wake(void);          /* tickless: at the outermost exit of a wake-up interrupt */
