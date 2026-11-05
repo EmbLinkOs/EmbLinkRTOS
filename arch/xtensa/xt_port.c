@@ -28,6 +28,10 @@
 
 #include <stdint.h>
 
+#if defined(EMBN_XT_NEWLIB)
+#include <sys/reent.h> /* declares __getreent() */
+#endif
+
 #define REG32(a) (*(volatile uint32_t *)(uintptr_t)(a)) /* CODING-STANDARD CS-5.1 */
 
 /* DPORT: the interrupt matrix and the cross-core software interrupts */
@@ -536,6 +540,21 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
     regs[2] = (uint32_t)info->pc;
     *status_count = 3u;
     return 3u;
+}
+#endif
+
+#if defined(EMBN_XT_NEWLIB)
+/* Newlib's reentrancy block with Espressif's GCC: its newlib is built with __DYNAMIC_REENT__ and
+ * asks the system for the running task's block through __getreent(), which ESP-IDF supplies.
+ * The weak default found none outside ESP-IDF, and the first libc call that set errno stored
+ * to address 0 (test_smoke on the board, 2026-11-05). As on RISC-V (A88), one block serves
+ * every thread: errno is shared. Here, not in a file of its own, so that every image links it
+ * ahead of the C library's weak definition. */
+static struct _reent embn_xt_reent = _REENT_INIT(embn_xt_reent);
+
+struct _reent *__getreent(void)
+{
+    return &embn_xt_reent;
 }
 #endif
 
