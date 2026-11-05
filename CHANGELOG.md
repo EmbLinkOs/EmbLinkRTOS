@@ -4,6 +4,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (Xtensa port, 2026-11-05)
+
+- The kernel on the classic ESP32 (Xtensa LX6, PRO_CPU), the board `esp32_devkitc` ([port](docs/ports/xtensa.md), ADR-054, A95). It runs on hardware: 21 of 21 tests, 157 cases and 74 fault checks that reset the board, built by EmbCC ([report](docs/engineering/hil-esp32-port-2026-11-05.md)). Every switch happens in the level-1 entry, after every register window is spilled to the thread's own stack. The tick is CCOMPARE0, the interrupt numbers are the interrupt matrix's sources, and the CPU stays at 40 MHz in this milestone.
+- `cmake --preset xt-esp32-hil` builds it with EmbCC for a run on the board, and CI builds `xt-esp32-gcc` with Espressif's GCC and keeps the images. `run_hil.py` flashes an ESP32 with `embflash --esp` and resets it into a normal boot once its console is open.
+- `bench_compare` runs on the ESP32 too, with the board's test line raising the interrupt. The first numbers, in cycles at 40 MHz, are in the report.
+
 ### Fixed (technical review, 2026-11-05)
 
 - Mutex ceiling: a thread above a `EMB_MUTEX_CEILING` mutex's ceiling is refused when the mutex is owned too (SPEC-005 §3.4). Before, it blocked and later received the mutex by hand-off with no check. Checked builds fault, release builds return `EMB_EPERM`.

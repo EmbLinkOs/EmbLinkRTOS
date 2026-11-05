@@ -703,3 +703,32 @@ EmbLinkRTOS already builds the same sources with EmbCC, GCC and Clang (09 §11).
 - The ports' inline assembly is GNU syntax, which EmbCC, GCC and Clang all accept. A port for a compiler without it, such as IAR's, would add the assembly file the seam allows.
 
 **Status.** Proposed 2026-11-04, from the project owner's direction ("work with all the vendors' own toolchains"); awaiting review.
+
+## ADR-054 The Xtensa port switches in the level-1 entry, after spilling every window
+
+**Context.** The classic ESP32's Xtensa LX6 uses the windowed register ABI: 64 address registers, of which each function sees 16, rotated by each call. A caller's registers stay in the register file until a deeper call needs them, and then a window overflow exception stores them below the stack pointer of the function they called. A context switch must therefore make the outgoing thread's state complete in memory before another thread's code uses the register file. Ports do this in two ways:
+- **Spill at every interrupt entry.** ESP-IDF's FreeRTOS (`_xt_context_save`) does this: one frame layout and one restore path serve the interrupt, the switch and the first entry of a thread.
+- **Spill only when switching.** Zephyr does this: interrupts that do not switch pay nothing for windows, but the entry needs a second, lazier path for the ones that do.
+
+The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in the trap entry.
+
+**Decision.**
+- **Spill at every entry.** Every context switch happens in the level-1 entry (`arch/xtensa/xt_vectors.S`). It saves a 128-byte frame below the interrupted stack pointer, then spills every other window to the thread's own stack while a1 still holds that pointer, because the overflow handlers compute the caller's save address from it. Only then does it move to the interrupt stack and call `embn_xt_irq()`, which returns the frame to resume.
+- **Thread switches through the software interrupt.** A thread's switch raises the core's software interrupt (internal interrupt 7) and opens its critical section until the interrupt has run. The same entry then saves it, as Cortex-M's PendSV does.
+- **One level.** Every kernel-aware interrupt is level 1. Critical sections are `rsil 1`, and interrupts do not nest in this milestone.
+- **The matrix.** The interrupt numbers are the interrupt matrix's sources. An enabled source goes to CPU interrupt 1, a disabled one is parked on internal interrupt 6. The tick is CCOMPARE0 against CCOUNT.
+- **Toolchains.** The board's GNU ld script serves EmbCC's `embld` and Espressif's GCC alike (ADR-052). CI builds the port with Espressif's GCC, and the board ran EmbCC's build.
+
+**Alternatives.**
+- *Spill on switch only.* An interrupt that does not switch would skip the spill and the refills after it. That is about 54 cycles per live frame on the board. The entry would need two exit paths, and a switch decided in the handler would have to spill from inside it, on a stack that is not the thread's. Kept for later, should the tick's cost matter.
+- *A cooperative switch in a plain function* (spill and swap a1 in `emb_arch_switch_to()`). This is a second save format beside the interrupt's, and the interrupt path needs the frame anyway.
+- *The call0 ABI.* It has no windows to spill. But it is not what the ROM, ESP-IDF or Espressif's libraries use, and EmbCC's Xtensa target is windowed.
+
+**Consequences.**
+- **One frame, one restore.** The initial frame enters `embk_thread_launch()` with PS.CALLINC 1, as after a `call4`.
+- **Stacks.** A thread's stack holds the interrupt frame and its spilled windows. A thread that blocks with an interrupt on top used 528–560 bytes on the board, so the port's minimum is 768 bytes, against RISC-V's 256.
+- **Cost.** Every interrupt pays the spill and the refills: about 318 cycles for a round trip that resumes the same thread, plus about 54 per live frame. The kernel's C path is the larger part of a switch (196 cycles for a yield with nothing to switch to, built by EmbCC). Timing the GCC build on the board will separate the compiler from the port.
+- **Not yet.** The second core, nesting and levels 2 to 5, the FPU context and tickless idle come later. The configuration refuses tickless and nesting for this port.
+- **EmbCC.** Its Xtensa inline assembler takes instructions only. The storage probe's marker therefore has a data form for that target, with the same text in a kept constant (`include/emb/compiler/embcc.h`).
+
+**Status.** Proposed 2026-11-05, from the project owner's direction to move on with the RTOS on the ESP32 while the NUCLEO is awaited. The board runs the conformance suite: 21 of 21 tests, 157 cases.
