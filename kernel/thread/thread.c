@@ -349,15 +349,6 @@ void embk_thread_launch(emb_thread_entry_t entry, void *arg)
     emb_thread_exit(0);
 }
 
-bool embk_thread_take_cancel_locked(embk_thread_t *self)
-{
-    if ((self->tflags & EMBK_THREAD_CANCEL_PENDING) != 0u && self->cancel_disable == 0u) {
-        self->tflags &= (uint8_t)~EMBK_THREAD_CANCEL_PENDING;
-        return true;
-    }
-    return false;
-}
-
 /* ---- join and detach (SPEC-008 §6) ------------------------------------------------- */
 
 emb_status_t emb_thread_join(emb_thread_t thread, emb_timeout_t timeout, int *out_code)

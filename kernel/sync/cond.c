@@ -162,7 +162,7 @@ static emb_status_t wait_common(uint16_t api_id, embk_cond_t *c, embk_mutex_t *m
 emb_status_t emb_cond_wait(emb_cond_t cond, emb_mutex_t mutex, emb_timeout_t timeout)
 {
     return wait_common(EMB_API_ID_COND_WAIT, cond_from_handle(cond), embk_mutex_from_handle(mutex),
-                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
+                       embk_deadline_if_blocking(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_cond_wait_until(emb_cond_t cond, emb_mutex_t mutex, emb_instant_t deadline)

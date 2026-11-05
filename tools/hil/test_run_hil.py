@@ -88,7 +88,8 @@ class Runner(unittest.TestCase):
         self.assertIn("bench notify", out)
 
     def test_benchmark_values_are_required_with_bench(self):
-        good = b"BENCH v1 name=notify_handover units=1234 ops=20 per_op_x100=6170 unit_hz=250000 checked=1\nBENCH_END\n"
+        good = (b"BENCH v1 name=notify_handover units=1234 ops=20 per_op_x100=6170 unit_hz=250000 checked=1\n"
+                b"BENCH v1 name=sem units=5 ops=1 unit_hz=1 os=freertos\nBENCH_END\n")
         rc, _, _ = self.board(good).run("--until", "BENCH_END", "--bench")
         self.assertEqual(rc, 0)
         rc, _, err = self.board(b"bench: total 100\nBENCH_END\n").run("--until", "BENCH_END", "--bench")

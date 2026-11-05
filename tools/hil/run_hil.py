@@ -135,6 +135,9 @@ def flash(cmd, timeout):
     return None
 
 
+TEXT_FIELDS = ("os",)  # BENCH fields that name something rather than count it
+
+
 def bench_results(buf):
     """The BENCH v1 lines: [{"name": ..., key: int, ...}]; ValueError on a malformed value."""
     out = []
@@ -142,6 +145,9 @@ def bench_results(buf):
         r = {"name": m.group(1).decode(errors="replace")}
         for field in m.group(2).decode(errors="replace").split():
             key, sep, value = field.partition("=")
+            if key in TEXT_FIELDS and sep and value:
+                r[key] = value  # an identity, such as os=freertos
+                continue
             if not sep or not value.isdigit():
                 raise ValueError(f"BENCH {r['name']}: {field!r} is not key=unsigned integer")
             r[key] = int(value)
@@ -157,7 +163,7 @@ def bench_problem(results):
         ops = r.get("ops", 0)
         if ops == 0:
             return f"BENCH {r['name']}: no operation count"
-        measured = {k: v for k, v in r.items() if k not in ("name", "ops", "unit_hz", "checked")}
+        measured = {k: v for k, v in r.items() if k not in ("name", "ops", "unit_hz", "checked") + TEXT_FIELDS}
         if not measured or any(v == 0 for v in measured.values()):
             return f"BENCH {r['name']}: a zero measurement ({measured}): is the cycle counter running?"
     return None

@@ -342,7 +342,7 @@ embk_thread_t *embk_sched_select(bool yield)
     return next;
 }
 
-void embk_sched_reschedule_if_needed(void)
+void embk_sched_reschedule_slow(void)
 {
     embk_thread_t *next;
     if (embk_cpu.reschedule_pending == 0u || embk_cpu.sched_lock_depth != 0u || embk_in_isr() ||
