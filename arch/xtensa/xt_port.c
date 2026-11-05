@@ -549,8 +549,9 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
  * The weak default found none outside ESP-IDF, and the first libc call that set errno stored
  * to address 0 (test_smoke on the board, 2026-11-05). As on RISC-V (A88), one block serves
  * every thread: errno is shared. Here, not in a file of its own, so that every image links it
- * ahead of the C library's weak definition. */
-static struct _reent embn_xt_reent = _REENT_INIT(embn_xt_reent);
+ * ahead of the C library's weak definition. Zero-initialised, not _REENT_INIT: the kernel uses
+ * no stdio, and _REENT_INIT's streams would link it with its unimplemented syscalls. */
+static struct _reent embn_xt_reent;
 
 struct _reent *__getreent(void)
 {
