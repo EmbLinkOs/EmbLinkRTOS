@@ -14,6 +14,7 @@ The toolchains column names each compiler CI builds the board with, from its pre
 | Board | SoC | Core | Tier | Toolchains in CI | Evidence |
 |---|---|---|---|---|---|
 | `arduino_uno` | ATmega328P | avr5 | 1 hardware | GCC | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); `avr-uno-hil` checked 17/17, release 17/17, T1 13/13, checked 19/19 (2026-11-05, [report](hil-uno-2026-11-05.md)); CI also runs `avr-uno`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1` |
+| `esp32_devkitc` | (no description yet) | lx6 | 1 hardware | GCC | `xt-esp32-hil` checked 24/24, release 24/24 (2026-11-05, [report](hil-esp32-port-2026-11-05.md)) |
 | `esp32c3_devkitm1` | (no description yet) | rv32imc | 2 emulated | GCC | CI runs `rv32-c3-embsim` |
 | `microbit` | nRF51822 | cortex-m0 | 2 emulated | GCC | CI runs `cm0-microbit`, `cm0-microbit-release` |
 | `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | GCC | CI runs `cm3-an385` |
@@ -26,4 +27,4 @@ The toolchains column names each compiler CI builds the board with, from its pre
 | `pico2_w` | RP2350A | cortex-m33f | 3 described | GCC | CI builds `cm33-pico2w` |
 | `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | GCC | CI runs `rv32-virt`, `rv32-virt-release`, `rv32-virt-tiny` |
 
-Totals: 1 hardware: 1, 2 emulated: 10, 3 described: 1, untested: 0.
+Totals: 1 hardware: 2, 2 emulated: 10, 3 described: 1, untested: 0.
