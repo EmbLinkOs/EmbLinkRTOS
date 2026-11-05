@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 enable_language(ASM)
-add_library(emb_arch STATIC xt_port.c xt_vectors.S)
+set(_emb_xt_libc)
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(_emb_xt_libc xt_newlib.c) # newlib's reentrancy block outside ESP-IDF (xt_newlib.c)
+endif()
+add_library(emb_arch STATIC xt_port.c xt_vectors.S ${_emb_xt_libc})
 target_include_directories(emb_arch PUBLIC include)
 target_link_libraries(emb_arch PUBLIC emb_api emb_board PRIVATE emb_flags INTERFACE emb_kernel)
 add_dependencies(emb_arch emb_storage_h)
