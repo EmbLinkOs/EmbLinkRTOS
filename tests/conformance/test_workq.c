@@ -2,6 +2,10 @@
 /* Copyright 2026 Junior Deogracias */
 /* Work queue conformance (SPEC-006 §4; KRN-WQ-001, 002, 004 to 006, 008 to 011). */
 #include <emb_test.h>
+#if CONFIG_EMB_TIMER
+#include <embk/time.h> /* white-box: the expiry pass's steps (dwork_rescheduled_during_its_expiry) */
+#include <embk/timer.h> /* embk_dwork_t */
+#endif
 
 #define IRQ_W 2u /* software interrupt slot */
 
@@ -285,6 +289,39 @@ EMB_TEST(dwork_reschedule_replaces_the_delay)
     EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(12)));
     EMB_ASSERT_MARKS(51); /* once, at the new deadline */
     emb_test_check_elapsed(__LINE__, dwi.ran_at - t0, 2u);
+    EMB_ASSERT_OK(emb_workq_destroy(wq));
+}
+
+/* The interleaving of the review's F6, step by step: the expiry pass has taken the delay's
+ * node off the timer list and released the lock to call the internal callback, and a nested
+ * interrupt cancels the item and schedules it again before the callback takes the lock. The
+ * callback must leave the new delay alone: the item runs once, after it. */
+EMB_TEST(dwork_rescheduled_during_its_expiry_keeps_the_new_delay)
+{
+    embk_dwork_t *d = (embk_dwork_t *)(void *)&dwi.dw.timer_;
+    emb_timer_t self;
+    emb_irq_key_t key;
+    uint32_t t0;
+    EMB_TEST_REQ("KRN-WQ-007", "KRN-TIM-024");
+    make(2u);
+    make_dwork();
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(50)));
+    key = emb_irq_lock(); /* the pass: the node off the list, then the lock released */
+    embk_timer_node_disarm(&d->timer.node);
+    d->timer.in_callback = 1u;
+    emb_irq_unlock(key);
+    EMB_ASSERT_OK(emb_dwork_cancel(&dwi.dw, NULL)); /* the nested interrupt */
+    t0 = EMB_TEST_NOW();
+    EMB_ASSERT_OK(emb_dwork_schedule(wq, &dwi.dw, EMB_TICKS(3)));
+    self.raw = 0u;
+    d->timer.fn(self, d->timer.arg); /* the callback resumes */
+    key = emb_irq_lock();
+    d->timer.in_callback = 0u;
+    emb_irq_unlock(key);
+    EMB_ASSERT_EQ(emb_work_state(&dwi.dw.work), EMB_WORK_IDLE); /* not submitted early */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(6)));
+    EMB_ASSERT_MARKS(51); /* once, at the new deadline */
+    emb_test_check_elapsed(__LINE__, dwi.ran_at - t0, 3u);
     EMB_ASSERT_OK(emb_workq_destroy(wq));
 }
 

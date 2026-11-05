@@ -223,6 +223,86 @@ EMB_TEST(irq_priority_higher_generic_level_preempts_lower)
 #endif
 #endif /* multiple generic levels */
 
+#if CONFIG_EMB_IRQ_NESTING && EMB_IRQ_LEVEL_MAX > 0 && CONFIG_EMB_TIMER && CONFIG_EMB_WORKQ && \
+    !defined(__ARM_ARCH_6M__)
+/* A nested kernel-aware interrupt inside an EMB_TIMER_ISR_CONTEXT callback (review F6): the
+ * callback pends a higher level, whose handler cancels and reschedules a delayed item due in
+ * the same expiry pass. SysTick runs at the highest kernel-aware level by default, so the
+ * test lowers it for its run: only then can a kernel-aware interrupt nest in a callback. */
+static emb_workq_storage_t nested_wq_storage;
+EMB_THREAD_STACK(nested_wq_stack, EMB_TEST_STACK_SIZE);
+static emb_workq_t nested_wq;
+static emb_timer_storage_t nested_timer_storage;
+static emb_timer_t nested_timer;
+static emb_dwork_t nested_work;
+static volatile uint32_t nested_ran_at;
+static volatile unsigned nested_depth;
+
+static void nested_work_fn(emb_work_t *work)
+{
+    (void)work;
+    nested_ran_at = EMB_TEST_NOW();
+    emb_test_mark(40);
+}
+
+static void nested_high(void *arg)
+{
+    (void)arg;
+    nested_depth = emb_irq_nesting_depth();
+    emb_test_mark(20);
+    (void)emb_dwork_cancel(&nested_work, NULL);
+    (void)emb_dwork_schedule(nested_wq, &nested_work, EMB_TICKS(4));
+}
+
+static void nested_callback(emb_timer_t timer, void *arg)
+{
+    uint32_t spin = 0u;
+    (void)timer;
+    (void)arg;
+    emb_test_mark(10);
+    (void)emb_irq_pend(PRIORITY_HIGH);
+    while (nested_depth == 0u && spin < 1000000u) { /* bounded: it preempts at once */
+        spin++;
+    }
+    emb_test_mark(30);
+}
+
+EMB_TEST(irq_priority_nested_interrupt_reschedules_work_in_a_timer_callback)
+{
+    uint8_t systick = SYSTEM_PRIORITY(3u);
+    emb_workq_attr_t qa;
+    emb_timer_attr_t ta;
+    uint32_t t0;
+    EMB_TEST_REQ("KRN-WQ-007", "KRN-TIM-025", "KRN-IRQ-012");
+    priority_setup(priority_pending_low, (uint8_t)EMB_IRQ_LEVEL_MAX);
+    EMB_ASSERT_OK(emb_irq_connect(PRIORITY_HIGH, nested_high, NULL));
+    emb_workq_attr_default(&qa);
+    qa.stack = nested_wq_stack;
+    qa.stack_size = sizeof(nested_wq_stack);
+    qa.priority = 2u;
+    EMB_ASSERT_OK(emb_workq_init(&nested_wq_storage, &qa, &nested_wq));
+    emb_dwork_init(&nested_work, nested_work_fn);
+    emb_timer_attr_default(&ta);
+    ta.fn = nested_callback;
+    ta.flags = EMB_TIMER_ISR_CONTEXT;
+    EMB_ASSERT_OK(emb_timer_init(&nested_timer_storage, &ta, &nested_timer));
+    nested_depth = 0u;
+    SYSTEM_PRIORITY(3u) = embn_cm_irq_priority(0u); /* SysTick below the nested level */
+    t0 = EMB_TEST_NOW();
+    /* the same deadline, armed after the timer: due in the same pass, after its callback */
+    EMB_ASSERT_OK(emb_timer_start(nested_timer, EMB_TICKS(2)));
+    EMB_ASSERT_OK(emb_dwork_schedule(nested_wq, &nested_work, EMB_TICKS(2)));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_TICKS(9)));
+    SYSTEM_PRIORITY(3u) = systick;
+    EMB_ASSERT_MARKS(10, 20, 30, 40);
+    EMB_ASSERT_EQ(nested_depth, 2u);                          /* inside the tick's interrupt */
+    emb_test_check_elapsed(__LINE__, nested_ran_at - t0, 6u); /* the new delay, from tick 2 */
+    EMB_ASSERT_OK(emb_timer_destroy(nested_timer));
+    EMB_ASSERT_OK(emb_workq_destroy(nested_wq));
+    priority_cleanup();
+}
+#endif
+
 EMB_TEST(irq_priority_equal_levels_do_not_preempt)
 {
     EMB_TEST_REQ("KRN-IRQ-028");
