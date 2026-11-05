@@ -118,7 +118,11 @@ Measured one part at a time:
 - `emb_thread_yield()` with nothing to switch to costs 196.
 - A call and return of an empty function costs 8, and a lock and unlock 8.5.
 
-The window traffic is inherent to the windowed ABI. The kernel's own C path is the larger part, and it is the compiler's: a build of the same source with Espressif's GCC, timed on the same board, will show how much (CI builds and keeps those images). The comparison with FreeRTOS on this board is the next step: ESP-IDF's FreeRTOS, built in CI, timed in cycles.
+The window traffic is inherent to the windowed ABI. The kernel's own C path is the larger part, and it is the compiler's. The same source built by Espressif's GCC in CI, flashed on the same board, hands over in 1163 cycles against EmbCC's 2090 (checked builds), and gives and takes in 226 against 436 ([report](../engineering/hil-esp32-port-2026-11-05.md)).
+
+The comparison with FreeRTOS on this board is the next step: ESP-IDF's FreeRTOS, built in CI, timed in cycles.
+
+**With Espressif's GCC,** newlib is built with `__DYNAMIC_REENT__` and asks for the running task's reentrancy block through `__getreent()`, which ESP-IDF supplies. The port supplies one block for every thread instead, as RISC-V's `tp` block (A88): `errno` is shared.
 
 ## The bring-up probe
 

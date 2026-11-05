@@ -333,12 +333,13 @@
     },
     {
       "name": "xt-esp32-gcc",
-      "displayName": "ESP32 DevKitC (Xtensa LX6), Espressif's GCC, base profile, checked, build only",
+      "displayName": "ESP32 DevKitC (Xtensa LX6), Espressif's GCC, base profile, checked, built for the board (CI keeps the images; flash and run them with run_hil.py)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/xt-esp32-gcc",
       "toolchainFile": "${sourceDir}/cmake/toolchains/xtensa-esp32-gcc.cmake",
       "cacheVariables": {
-        "EMB_BOARD": "esp32_devkitc"
+        "EMB_BOARD": "esp32_devkitc",
+        "EMB_TEST_EMULATOR": "hil"
       }
     },
     {
