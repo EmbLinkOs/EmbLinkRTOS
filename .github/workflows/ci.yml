@@ -520,7 +520,7 @@ jobs:
 
   # The kernel's Xtensa port built by Espressif's Clang, its newlib and LLD (ADR-053): the third
   # toolchain for the ESP32 after EmbCC and Espressif's GCC. Each archive is pinned by the SHA-256
-  # GitHub records for the release asset. Not in the merge gate until its first green run.
+  # GitHub records for the release asset.
   xtensa-clang:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -597,7 +597,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, application, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

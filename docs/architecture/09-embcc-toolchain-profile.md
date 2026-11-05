@@ -136,7 +136,7 @@ The [layout-marker correction](../engineering/embcc-layout-marker.md) supplies `
 | avr | Compiler/script/flash/debug capabilities available; full RTOS run unqualified | avr-gcc | Clang AVR (experimental) |
 | cortex_m | Compiler M0+/M3/M4/M4F/M7/M23/M33 targets; upstream M3/M4 RTOS experiments are scoped reports, not current CI qualification | arm-none-eabi-gcc | Clang with `--target=arm-none-eabi` |
 | riscv | RV32/RV64 compiler targets; upstream RV32 RTOS experiment reported, current RTOS compiler leg unqualified | riscv-none-elf-gcc | Clang |
-| xtensa (the classic ESP32, ADR-054) | `xtensa-none-elf`; Xtensa linker scripts with D-024 (EmbCC #174, ADR-052); the kernel ran on the board built by it (2026-11-05) | Espressif's `xtensa-esp32-elf-gcc`: CI builds the probe and the kernel port (`xt-esp32-gcc`, ADR-053) | Espressif's LLVM fork, not yet |
+| xtensa (the classic ESP32, ADR-054) | `xtensa-none-elf`; Xtensa linker scripts with D-024 (EmbCC #174, ADR-052); the kernel ran on the board built by it (2026-11-05) | Espressif's `xtensa-esp32-elf-gcc`: CI builds the probe and the kernel port (`xt-esp32-gcc`, ADR-053) | Espressif's Clang 22.1.4 with its newlib and LLD: CI builds the port (`xt-esp32-clang`), and its images passed on the board (2026-11-06) |
 
 Every leg builds the same sources. Compiler-specific attribute and builtin spellings live only in `include/emb/compiler/` (BLD-002), and `scripts/check-banned.py` refuses GNU extensions outside it and `arch/` (ADR-053). Differences recorded here are the first contents of that directory's EmbCC header.
 

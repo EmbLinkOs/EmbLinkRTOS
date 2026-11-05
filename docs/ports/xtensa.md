@@ -20,7 +20,7 @@ EMBFLASH=/path/to/embflash ctest --test-dir build/xt-esp32-hil
 ```
 
 - **EmbCC.** It needs an `embld` that reads Xtensa linker scripts (EmbCC D-024, #174). `embld` is the one beside `embcc`, so `EMBCC` names both.
-- **Espressif's GCC.** `cmake --preset xt-esp32-gcc` builds the same tree, with `xtensa-esp32-elf-gcc` on `PATH`. CI builds it that way and keeps the images (ADR-053).
+- **Espressif's GCC and Clang.** `cmake --preset xt-esp32-gcc` builds the same tree with `xtensa-esp32-elf-gcc` on `PATH`, and `xt-esp32-clang` with Espressif's `clang`, its newlib and LLD. CI builds both and keeps the images, and both passed the suite on the board (ADR-053). Upstream LLVM's Xtensa target is experimental and missing from most distributions; Espressif's fork is the one ESP-IDF uses.
 - **Images.** Every image is also written as `<name>.bin`, the ROM's image format (`tools/esp/esp_image.py --chip esp32`). The ROM boots it from flash offset 0x1000.
 - **Flashing.** `run_hil.py` flashes with `embflash --esp` (EmbCC D-023), then opens the console. It resets the board into a normal boot itself: EN low through RTS, IO0 high through DTR, as the auto-reset circuit wires them. So the console starts at the run's first line.
 
@@ -85,6 +85,10 @@ The interrupt numbers are the interrupt matrix's sources, 0 to 68:
 - **Tick.** CCOMPARE0 against CCOUNT, internal interrupt 6, at `CONFIG_EMB_XT_CPU_HZ / tick rate`. The handler keeps the due time apart from the compare value. A tick that fell behind is programmed just ahead of CCOUNT, so the missed ticks follow one after the other and none is lost. A compare value already passed would otherwise wait for CCOUNT to wrap, 107 s at 40 MHz.
 - **Cycle counter.** CCOUNT, at the CPU clock.
 
+### The alloca exception
+
+MOVSP raises EXCCAUSE 5 when the caller's a0–a3 are not in the register file, which after the entry's spill is true of every resumed thread's callers. Clang emits MOVSP; EmbCC and GCC did not in the suite. The user-exception entry handles cause 5 as the ISA prescribes, as ESP-IDF's `_xt_alloca_exc` does. It refills the caller's window with the underflow handler for its call size, read from the top bits of the function's return address, with PS.OWB set to the function's window. The handler's `rfwu` then returns to the MOVSP, which runs again.
+
 ### Faults and reset
 
 - **Faults.** Any exception but a level-1 interrupt drops the faulting context's frames and runs `embk_fault_raise_hw(EXCCAUSE, EXCVADDR, EPC1, sp)` on the interrupt stack. The crash record's architecture words are EXCCAUSE, EXCVADDR and EPC1.
@@ -118,7 +122,7 @@ Measured one part at a time:
 - `emb_thread_yield()` with nothing to switch to costs 196.
 - A call and return of an empty function costs 8, and a lock and unlock 8.5.
 
-The window traffic is inherent to the windowed ABI. The kernel's own C path is the larger part, and it is the compiler's. The same source built by Espressif's GCC in CI, flashed on the same board, hands over in 1163 cycles against EmbCC's 2090 (checked builds), and gives and takes in 226 against 436 ([report](../engineering/hil-esp32-port-2026-11-05.md)).
+The window traffic is inherent to the windowed ABI. The kernel's own C path is the larger part, and it is the compiler's. The same source built by Espressif's GCC in CI, flashed on the same board, hands over in 1163 cycles against EmbCC's 2090 (checked builds), and gives and takes in 226 against 436. Espressif's Clang lands in between, close to GCC: 1325 and 218 ([report](../engineering/hil-esp32-port-2026-11-05.md)).
 
 The comparison with FreeRTOS on this board is the next step: ESP-IDF's FreeRTOS, built in CI, timed in cycles.
 
