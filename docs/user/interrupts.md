@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-78 functions, from the headers' `@ctx` tags.
+79 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -78,6 +78,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_irq_nesting_depth()` | `<emb/irq.h>` | no |
 | `emb_irq_pend()` | `<emb/irq.h>` | no |
 | `emb_irq_unlock()` | `<emb/irq.h>` | no |
+| `emb_isr_stack_info()` | `<emb/irq.h>` | no |
 | `emb_msgq_attr_default()` | `<emb/msgq.h>` | no |
 | `emb_msgq_count()` | `<emb/msgq.h>` | no |
 | `emb_msgq_free()` | `<emb/msgq.h>` | no |
