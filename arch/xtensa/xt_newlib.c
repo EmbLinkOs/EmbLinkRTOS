@@ -8,9 +8,7 @@
  * As on RISC-V (A88), one block serves every thread: errno is shared. Built only with GCC
  * (arch/xtensa/CMakeLists.txt); EmbCC's C library keeps errno itself.
  */
-#include <sys/reent.h>
-
-struct _reent *__getreent(void);
+#include <sys/reent.h> /* declares __getreent() */
 
 static struct _reent embn_xt_reent = _REENT_INIT(embn_xt_reent);
 
