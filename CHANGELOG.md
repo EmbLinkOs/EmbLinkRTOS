@@ -13,8 +13,13 @@ User-visible changes are recorded here. There are no released versions or releas
 - AVR: `EMB_THREAD_STACK_MIN` includes `CONFIG_EMB_AVR_ISR_STACK_RESERVE`, as the option's help always said. `emb_thread_init()` refuses a stack too small for its interrupt reserve (96 + 64 = 160 bytes by default).
 - The AVR, RISC-V and Cortex-M manifests no longer claim `tickless: true`. All three ports refuse `EMB_TICKLESS`, and their timer deadline functions are stubs.
 
+- AVR: the idle context's stack restarts at `RAMEND` when the kernel starts (A89). Before, the idle loop and the interrupts it takes ran below `main()`'s dead frames, within about 200 bytes of `.noinit`. Running the fault checks on the Uno found it.
+
 ### Added (technical review, 2026-11-05)
 
+- Fault checks run on boards (A89). `EMB_ASSERT_FAULTS` and checked-build `EMB_ASSERT_MISUSE` were skipped on every embedded build. On a board whose reset keeps RAM (QEMU's MPS2 and RV32 virt, EmbSIM, the Uno and the NUCLEO on hardware), the statement now runs in place, the fault resets the board, and the next boot replays the case to the check and records it. On the MPS2 AN386 that executes 72 checks that were skipped.
+- Hardware runs keep their record (A89). `run_hil.py --archive` writes each image's console and a JSON record with the SHA-256 of what was flashed, the git commit, the cases and the benchmark values. `tools/hil/archive.py` files a run under `docs/engineering/hil-runs/`, and `matrix.py` checks `hardware-runs.json` against it.
+- `bench_switch` and `bench_irq` print `BENCH v1` lines, and their HIL entries fail without valid, nonzero values (`--bench`). Before, reaching `BENCH_END` passed.
 - `EMB_AT_LEAST(d)` and `emb_ticks_at_least()`: a relative wait that lasts at least `d` of real time (A87). A relative wait of n ticks ends at the n-th tick edge after the call, so between n − 1 and n periods pass. This is now stated in SPEC-003 §5.2, KRN-TIM-024 and `emb_thread_sleep()`.
 
 ### Changed

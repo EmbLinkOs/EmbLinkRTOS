@@ -25,7 +25,7 @@ static void reset_now(const emb_fault_info_t *info)
 
 EMB_TEST(crash_record_survives_reset)
 {
-    emb_crash_record_t r;
+    static emb_crash_record_t r; /* not on the runner's stack: 256 bytes on AVR */
     EMB_TEST_REQ("OBS-016", "KRN-IRQ-030", "ARCH-AVR-008");
     if (emb_crash_record_get(&r) != EMB_OK || r.code != SURVIVAL_CODE) {
         emb_board_puts("crash_record_survives_reset: first boot, faulting\n");

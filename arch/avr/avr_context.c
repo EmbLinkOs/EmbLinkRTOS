@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#include <avr/io.h> /* RAMEND */
+
 struct embk_thread *embn_avr_current;
 
 /* Frame bytes from the saved stack pointer upward: r31 .. r2, r1, SREG, r0, PC hi, PC lo. */
@@ -102,13 +104,31 @@ bool emb_arch_switch_out_done(const embk_thread_t *t)
 }
 
 /* P3 (SPEC-012 §3): the pre-kernel context becomes the idle context. Its stack is the
- * stack main() runs on; the switch saves it into @idle, and when the scheduler later
- * picks the idle context it resumes here and runs the idle loop. */
+ * stack main() ran on, restarted at RAMEND: main()'s frames are dead once the kernel starts,
+ * and the idle loop and the interrupts it takes need the room (2 KB of SRAM, A89). The
+ * switch saves that context into @idle; when the scheduler later picks the idle context it
+ * resumes after the call and runs the idle loop. One asm block, because nothing the
+ * compiler keeps on the old stack may be used after SP moves. */
 void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)
 {
     embn_avr_current = idle;
-    emb_arch_switch_to(first);
-    /* resumed as the idle context */
-    __asm__ __volatile__("sei" ::: "memory");
-    embk_thread_launch(NULL, NULL);
+    __asm__ __volatile__("cli\n\t"
+                         "ldi r18, lo8(%[top])\n\t"
+                         "out __SP_L__, r18\n\t"
+                         "ldi r18, hi8(%[top])\n\t"
+                         "out __SP_H__, r18\n\t"
+                         "movw r24, %[first]\n\t"
+                         "call emb_arch_switch_to\n\t"
+                         /* resumed as the idle context: embk_thread_launch(NULL, NULL) */
+                         "sei\n\t"
+                         "ldi r24, 0\n\t"
+                         "ldi r25, 0\n\t"
+                         "ldi r22, 0\n\t"
+                         "ldi r23, 0\n\t"
+                         "jmp embk_thread_launch\n\t" ::[first] "r"(first),
+                         [top] "i"(RAMEND)
+                         : "r18", "r22", "r23", "r24", "r25", "memory");
+    for (;;) {
+        /* not reached: the idle context never returns */
+    }
 }

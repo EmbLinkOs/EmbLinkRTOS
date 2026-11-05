@@ -43,7 +43,7 @@ static uint8_t *retained(void)
 
 EMB_TEST(crash_record_round_trip)
 {
-    emb_crash_record_t r;
+    static emb_crash_record_t r; /* not on the runner's stack: 256 bytes on AVR */
     uint16_t i;
     uint16_t id_bytes = (EMBK_CRASH_VERSION == EMB_CRASH_VERSION_SMALL) ? 4u : 20u;
     EMB_TEST_REQ("OBS-016", "API-017");
@@ -79,7 +79,7 @@ EMB_TEST(crash_record_round_trip)
 EMB_TEST(crash_record_corruption_is_ignored)
 {
     static const uint8_t offsets[] = {0u, 4u, 6u, 17u};
-    emb_crash_record_t r;
+    static emb_crash_record_t r; /* not on the runner's stack: 256 bytes on AVR */
     uint8_t i;
     EMB_TEST_REQ("OBS-016");
     for (i = 0u; i < (uint8_t)sizeof(offsets); i++) { /* magic, version, length, a field */
@@ -113,7 +113,7 @@ EMB_TEST(crash_record_from_a_real_fault_reaches_the_next_boot)
 {
     char path[] = "/tmp/emb-crash-XXXXXX";
     emb_sem_t none = EMB_HANDLE_NULL;
-    emb_crash_record_t r;
+    static emb_crash_record_t r; /* not on the runner's stack: 256 bytes on AVR */
     int fd = mkstemp(path);
     EMB_TEST_REQ("OBS-016", "API-017", "KRN-IRQ-030");
     EMB_ASSERT_TRUE(fd >= 0);

@@ -19,6 +19,9 @@ void emb_test_logf(const char *fmt_flash, ...)
 {
     char buf[80];
     va_list ap;
+    if (emb_test_muted()) {
+        return;
+    }
     va_start(ap, fmt_flash);
     (void)vsnprintf_P(buf, sizeof(buf), fmt_flash, ap);
     va_end(ap);
@@ -28,6 +31,9 @@ void emb_test_logf(const char *fmt_flash, ...)
 void emb_test_puts_flash(const char *s_flash)
 {
     char c = (char)pgm_read_byte(s_flash);
+    if (emb_test_muted()) {
+        return;
+    }
     while (c != '\0') { /* bounded by the string */
         char two[2];
         two[0] = c;
@@ -40,7 +46,19 @@ void emb_test_puts_flash(const char *s_flash)
 
 void emb_test_puts(const char *s)
 {
+    if (emb_test_muted()) {
+        return;
+    }
     emb_board_puts(s);
+}
+
+/* .noinit, which avr-libc's startup leaves alone: the watchdog reset keeps it (A89). */
+static uint8_t retained[16] EMB_SECTION(".noinit");
+
+uint8_t *emb_test_platform_retained(size_t *size)
+{
+    *size = sizeof(retained);
+    return retained;
 }
 
 void emb_test_exit(int code)

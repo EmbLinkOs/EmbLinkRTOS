@@ -41,6 +41,8 @@ if(EMB_BUILD_TESTS)
     set(EMB_TEST_EMULATOR "qemu" CACHE STRING "where ctest runs the test images: qemu, embsim or hil (a physical board)")
     set_property(CACHE EMB_TEST_EMULATOR PROPERTY STRINGS qemu embsim hil)
     set(EMB_HIL_PORT "" CACHE STRING "EMB_TEST_EMULATOR=hil: the board console's serial device")
+    set(EMB_HIL_ARCHIVE "${CMAKE_BINARY_DIR}/hil-archive" CACHE PATH
+        "EMB_TEST_EMULATOR=hil: where each run's console log and record go (tools/hil/archive.py)")
     if(EMB_TEST_EMULATOR STREQUAL "hil")
       # a board described in YAML: its generated hw.json names the probe and the console
       if(EMB_HIL_PORT AND EXISTS "${EMB_BOARD_DIR}/hw.json")

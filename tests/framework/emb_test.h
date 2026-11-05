@@ -82,9 +82,19 @@ extern EMB_FLASH_CONST char emb_test_suite[];
 
 #define EMB_ASSERT_OK(expr) EMB_ASSERT_STATUS((expr), EMB_OK)
 
-/* Runs `stmt` in a forked copy of the process and asserts that it ends in a kernel
- * fault (checked builds, TEST-010). The copy carries only the calling host thread, so
- * `stmt` must fault before any switch. Ports without fork skip the check. */
+/* Asserts that `stmt` ends in a kernel fault in checked builds, and that it returns in
+ * release builds (TEST-010).
+ * - Native: `stmt` runs in a forked copy of the process. The copy carries only the calling
+ *   host thread, so `stmt` must fault before any switch.
+ * - A board whose reset keeps RAM in this run (EMB_TEST_FAULT_BY_RESET, A89): `stmt` runs
+ *   in place. The fault resets the board, and the next boot replays the case to this
+ *   check, without running `stmt` again, and records the outcome. The cases before it are
+ *   not run again, so a case must not depend on an earlier one.
+ * - Elsewhere the check is skipped. */
+#ifndef EMB_TEST_FAULT_BY_RESET
+#define EMB_TEST_FAULT_BY_RESET 0
+#endif
+#define EMB_TEST_RUNS_FAULTS (EMB_TEST_HAS_FORK || EMB_TEST_FAULT_BY_RESET)
 #if EMB_TEST_HAS_FORK
 #define EMB_ASSERT_FAULTS(stmt)                                    \
     do {                                                           \
@@ -95,15 +105,29 @@ extern EMB_FLASH_CONST char emb_test_suite[];
         }                                                          \
         emb_test_fork_expect_fault(__LINE__, EMB_TEST_STR(#stmt)); \
     } while (0)
+#elif EMB_TEST_FAULT_BY_RESET
+#define EMB_ASSERT_FAULTS(stmt)                                           \
+    do {                                                                  \
+        emb_test_asserted();                                              \
+        if (emb_test_fault_begin(__LINE__, EMB_TEST_FAULT_WHAT(#stmt))) { \
+            stmt;                                                         \
+            emb_test_fault_none();                                        \
+        }                                                                 \
+    } while (0)
 #else
-#define EMB_ASSERT_FAULTS(stmt)                                                  \
-    do {                                                                         \
-        if (0) {                                                                 \
-            stmt; /* compiled, never run: keeps the test's symbols referenced */ \
-        }                                                                        \
-        emb_test_skip(EMB_TEST_STR("fault check needs fork"));                   \
+#define EMB_ASSERT_FAULTS(stmt)                                                          \
+    do {                                                                                 \
+        if (0) {                                                                         \
+            stmt; /* compiled, never run: keeps the test's symbols referenced */         \
+        }                                                                                \
+        emb_test_skip(EMB_TEST_STR("fault check needs fork or a reset that keeps RAM")); \
     } while (0)
 #endif
+
+/* The board-reset form: true when `stmt` must run now (the check is armed), false when an
+ * earlier boot settled it; emb_test_fault_none() records that `stmt` returned. */
+bool emb_test_fault_begin(unsigned line, const char *what_flash);
+void emb_test_fault_none(void);
 
 bool emb_test_fork_begin(void);
 EMB_NORETURN void emb_test_fork_child_no_fault(void);

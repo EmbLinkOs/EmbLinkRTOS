@@ -64,5 +64,8 @@ SECTIONS
      segment, so neither startup nor a loader's reset clears it */
   __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
   __emb_retained_start = __emb_retained_end - 192;
-  __stack_top = __emb_retained_start;
+  /* below it, 32 bytes the test framework keeps across the resets of its fault checks (A89) */
+  __emb_test_retained_end = __emb_retained_start;
+  __emb_test_retained_start = __emb_test_retained_end - 32;
+  __stack_top = __emb_test_retained_start;
 }
