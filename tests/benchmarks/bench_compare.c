@@ -117,7 +117,7 @@ static uint32_t os_unit_hz(void)
 #define OS_NAME            "emblink"
 #define BENCH_AVR          CONFIG_EMB_ARCH_AVR
 /* STACK bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
-#define EMB_STACK (EMB_THREAD_STACK_MIN > STACK ? EMB_THREAD_STACK_MIN : STACK)
+#define EMB_STACK          (EMB_THREAD_STACK_MIN > STACK ? EMB_THREAD_STACK_MIN : STACK)
 typedef emb_thread_t os_thread_t;
 typedef emb_sem_t os_sem_t;
 static emb_sem_storage_t sem_buf[4];
