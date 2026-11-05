@@ -1,0 +1,133 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "mutex_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "mutex_waiter_priority_change_reorders_and_propagates",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "mutex_destroy_rules",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "mutex_exit_while_raised",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "mutex_owner_death_policy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "mutex_ceiling_violation_when_owned",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "mutex_ceiling_violation_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "mutex_ceiling_raises_the_owner",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "mutex_deadlock_is_detected_on_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 28,
+      "name": "mutex_inheritance_propagates_along_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "mutex_timeout_removes_the_contribution",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "mutex_contended_lock_inherits_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "mutex_recursive_counts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "mutex_lock_unlock_and_ownership",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T19:27:53Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "458476d870ee237b",
+    "profile": "tiny",
+    "suite": "test_mutex"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_mutex.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_mutex.hex": "386a87fa29e8a6c40bbf0d58cd6d0e796720ddfd5da9de835e44ac5f8fbe846d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "c07ff61c9ae4f040844233ca88bb0d8a3fbfd4ab",
+    "dirty": false
+  },
+  "image": "test_mutex.elf",
+  "image_sha256": "f1df0a1061741fe72c73f89a2fffa9cafbbd3949ae992b2bdafd757f87922a89",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T19:27:41Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 15
+  }
+}

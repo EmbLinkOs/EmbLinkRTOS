@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 2,
+      "name": "irq_priority_port_rejects_invalid_inputs",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "irq_priority_rejects_unknown_number",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_rejects_out_of_range_level",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_accepts_advertised_endpoints",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T19:26:56Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "458476d870ee237b",
+    "profile": "tiny",
+    "suite": "test_irq_priority"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_irq_priority.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_irq_priority.hex": "306b8e991a6df35cf7676955d5de9afaaa8740264bdc594786426ad7d9a84830"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "c07ff61c9ae4f040844233ca88bb0d8a3fbfd4ab",
+    "dirty": false
+  },
+  "image": "test_irq_priority.elf",
+  "image_sha256": "799508112a676be7d45ff3b311a2e34a69adb72ae907a02b89fcdcfe62ffd955",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T19:26:51Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 4
+  }
+}
