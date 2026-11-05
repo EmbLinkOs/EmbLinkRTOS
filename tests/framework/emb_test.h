@@ -115,12 +115,13 @@ extern EMB_FLASH_CONST char emb_test_suite[];
         }                                                                 \
     } while (0)
 #else
-#define EMB_ASSERT_FAULTS(stmt)                                                          \
-    do {                                                                                 \
-        if (0) {                                                                         \
-            stmt; /* compiled, never run: keeps the test's symbols referenced */         \
-        }                                                                                \
-        emb_test_skip(EMB_TEST_STR("fault check needs fork or a reset that keeps RAM")); \
+/* The skip's text stays short: it prints inside the case, and output takes ticks. */
+#define EMB_ASSERT_FAULTS(stmt)                                                  \
+    do {                                                                         \
+        if (0) {                                                                 \
+            stmt; /* compiled, never run: keeps the test's symbols referenced */ \
+        }                                                                        \
+        emb_test_skip(EMB_TEST_STR("fault check needs fork"));                   \
     } while (0)
 #endif
 
