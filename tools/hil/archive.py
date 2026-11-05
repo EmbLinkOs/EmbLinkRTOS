@@ -75,6 +75,17 @@ def summarize(recs, preset, build):
     }
 
 
+def render_runs(doc):
+    """hardware-runs.json with one run per line, so that a new run is a one-line diff."""
+    head = {k: v for k, v in doc.items() if k != "runs"}
+    out = "{\n"
+    for k, v in head.items():
+        out += f"  {json.dumps(k)}: {json.dumps(v)},\n"
+    out += '  "runs": [\n'
+    out += ",\n".join(f"    {json.dumps(r)}" for r in doc["runs"])
+    return out + "\n  ]\n}\n"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("src", help="run_hil.py's --archive directory")
@@ -109,7 +120,7 @@ def main(argv=None):
                  "configuration": index["configuration"], "passed": index["passed"], "total": index["total"],
                  "report": args.report, "archive": rel}
         doc["runs"] = [r for r in doc["runs"] if r.get("archive") != rel] + [entry]
-        runs_path.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+        runs_path.write_text(render_runs(doc), encoding="utf-8")
         print(f"archive: added to {runs_path}")
     return 0
 
