@@ -18,18 +18,21 @@ sys.path.insert(0, str(HERE))
 from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E402
 
 BOARD = "boards/st/nucleo_f446re"
+UNO = "boards/arduino/arduino_uno"
 
 
 class Root:
     """A scratch repository root holding copies of the descriptions a test edits."""
 
-    def __init__(self):
+    def __init__(self, boards=(BOARD,)):
         self.dir = Path(tempfile.mkdtemp(prefix="hwgen-"))
         shutil.copytree(ROOT / "soc", self.dir / "soc")
-        (self.dir / "arch/cortex_m").mkdir(parents=True)
-        shutil.copy(ROOT / "arch/cortex_m/arch.yaml", self.dir / "arch/cortex_m/arch.yaml")
-        (self.dir / BOARD).mkdir(parents=True)
-        shutil.copy(ROOT / BOARD / "board.yaml", self.dir / BOARD / "board.yaml")
+        for port in ("cortex_m", "avr"):
+            (self.dir / "arch" / port).mkdir(parents=True)
+            shutil.copy(ROOT / "arch" / port / "arch.yaml", self.dir / "arch" / port / "arch.yaml")
+        for board in boards:
+            (self.dir / board).mkdir(parents=True)
+            shutil.copy(ROOT / board / "board.yaml", self.dir / board / "board.yaml")
 
     def close(self):
         shutil.rmtree(self.dir)
@@ -314,8 +317,10 @@ class Outputs(unittest.TestCase):
             self.assertIn(line + "\n", conf)
 
     def test_hw_json_matches_its_schema(self):
-        files, _ = generate.generate(ROOT / BOARD, ROOT)
-        self.assertEqual(schema.validate(json.loads(files["hw.json"]), schema.load_schema("hw")), [])
+        for board in sorted(p.parent for p in ROOT.glob("boards/*/*/generated")):
+            files, _ = generate.generate(board, ROOT)
+            with self.subTest(board=board.name):
+                self.assertEqual(schema.validate(json.loads(files["hw.json"]), schema.load_schema("hw")), [])
 
     def test_harness_metadata_fields(self):
         """HW-015: board, SoC, clock, timer source and probe hints are in hw.json."""
@@ -325,6 +330,146 @@ class Outputs(unittest.TestCase):
         self.assertEqual(data["derived"]["clock"]["hclk_hz"], 180_000_000)
         self.assertEqual(data["derived"]["timer"], {"source": "systick", "hz": 180_000_000})
         self.assertIn("openocd", data["board"]["debug_probe"])
+
+
+class Avr(unittest.TestCase):
+    """The ATmega328P and the Arduino Uno: separate address spaces, vectors, fixed-function pins,
+    page-sized erase units, and HW-006's second linker output."""
+
+    def files(self):
+        return generate.generate(ROOT / UNO, ROOT)[0]
+
+    def test_linker_outputs_agree(self):
+        """HW-006: regions.ld and embld.opts describe the same text and data regions."""
+        f = self.files()
+        memory = re.findall(r"^\s*(text|data)\s+\([^)]*\)\s*:\s*ORIGIN = (0x[0-9a-f]+), LENGTH = (\d+)$",
+                            f["regions.ld"], re.M)
+        mem = {name: (int(origin, 16), int(length)) for name, origin, length in memory}
+        opts = dict(line.split("=", 1) for line in f["embld.opts"].splitlines() if line.startswith("-"))
+        self.assertEqual(int(opts["-Ttext"], 16), mem["text"][0])
+        self.assertEqual(int(opts["--rom-limit"]), mem["text"][1])
+        self.assertEqual(int(opts["-Tdata"], 16), mem["data"][0])
+        self.assertEqual(mem["text"], (0, 32256))  # the app partition, below Optiboot
+        self.assertEqual(mem["data"], (0x800100, 2048))
+
+    def test_embcc_toolchain_uses_the_generated_options(self):
+        """The EmbCC AVR toolchain file passes embld exactly the generated option set."""
+        opts = [line for line in self.files()["embld.opts"].splitlines() if line.startswith("-")]
+        toolchain = (ROOT / "cmake/toolchains/embcc-avr.cmake").read_text(encoding="utf-8")
+        for o in opts:
+            self.assertIn(f"-Wl,{o}", toolchain)
+
+    def test_hand_written_values_preserved(self):
+        h = self.files()["hw_config.h"]
+        vectors = ["RESET", "INT0", "INT1", "PCINT0", "PCINT1", "PCINT2", "WDT", "TIMER2_COMPA", "TIMER2_COMPB",
+                   "TIMER2_OVF", "TIMER1_CAPT", "TIMER1_COMPA", "TIMER1_COMPB", "TIMER1_OVF", "TIMER0_COMPA",
+                   "TIMER0_COMPB", "TIMER0_OVF", "SPI_STC", "USART_RX", "USART_UDRE", "USART_TX", "ADC",
+                   "EE_READY", "ANALOG_COMP", "TWI", "SPM_READY"]
+        for n, name in enumerate(vectors):
+            self.assertRegex(h, rf"#define EMB_VECTOR_{name}\s+{n}\n")
+        for macro, value in [("EMB_HW_BOARD", '"arduino_uno"'), ("EMB_HW_CPU_HZ", "16000000u"),
+                             ("EMB_HW_SRAM_BASE", "0x00000100u"), ("EMB_HW_SRAM_SIZE", "2048u"),
+                             ("EMB_HW_CONSOLE_BAUD", "115200u"), ("EMB_HW_LED_PIN", "5u")]:
+            self.assertRegex(h, rf"#define {macro}\s+{re.escape(value)}\n")
+        conf = self.files()["board.conf"]
+        for line in ('CONFIG_EMB_AVR_MCU="atmega328p"', "CONFIG_EMB_AVR_F_CPU=16000000", "CONFIG_EMB_TICK_NS=1000000"):
+            self.assertIn(line + "\n", conf)
+        cmake = self.files()["board.cmake"]
+        self.assertIn("set(EMB_BOARD_DEFAULT_PROFILE tiny)", cmake)
+        self.assertIn("set(EMB_BOARD_QEMU_ARGS -M arduino-uno -icount shift=6,sleep=off -bios)", cmake)
+
+    def test_derived_model(self):
+        data = json.loads(self.files()["hw.json"])
+        d = data["derived"]
+        self.assertIsNone(d["clock"]["pll"])
+        self.assertEqual(d["timer"], {"source": "timer1", "hz": 16_000_000})
+        self.assertEqual([(p["pin"], p["mode"]) for p in d["pins"]], [("PB5", "output"), ("PD0", "fixed"), ("PD1", "fixed")])
+        self.assertEqual([(p["name"], p["reserved"], p["pages"]) for p in d["partitions"]],
+                         [("app", False, [0, 251]), ("bootloader", True, [252, 255])])
+
+    def setUp(self):
+        self.root = Root(boards=(UNO,))
+
+    def tearDown(self):
+        self.root.close()
+
+    def expect(self, file, line, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(UNO)
+        want = f"{file}:{line}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def test_fixed_pin_with_another_signal(self):
+        b = f"{UNO}/board.yaml"
+        self.root.edit(b, "usart0: { tx: PD1, rx: PD0 }", "usart0: { tx: PD0, rx: PD1 }")
+        self.expect(b, self.root.line_of(b, "usart0: {"), "pins.usart0.tx", "PD0 needs its alternate function")
+
+    def test_partition_off_page_boundary(self):
+        b = f"{UNO}/board.yaml"
+        self.root.edit(b, "size: 32256 }", "size: 32250 }")
+        self.expect(b, self.root.line_of(b, "name: app"), "flash_partitions.app", "erase-sector boundaries")
+
+    def test_vectors_must_be_complete(self):
+        f = "soc/microchip/atmega/atmega328p.yaml"
+        self.root.edit(f, "    - { name: spm_ready, number: 25 }\n", "")
+        # a list's line is its first item's
+        self.expect(f, self.root.line_of(f, "name: reset"), "interrupts.vectors", "lists all 26 vectors; 25 are listed")
+
+    def test_peripheral_line_must_be_a_vector(self):
+        f = "soc/microchip/atmega/atmega328p.yaml"
+        self.root.edit(f, "count: 26", "count: 30")
+        self.root.edit(f, "{ name: ovf, number: 13 }", "{ name: ovf, number: 27 }")
+        self.expect(f, self.root.line_of(f, "number: 27"), "peripherals.timer1.irqs.ovf", "not in interrupts.vectors")
+
+    def test_spaces_overlap_only_within_one(self):
+        f = "soc/microchip/atmega/atmega328p.yaml"
+        self.root.edit(f, "{ name: sram, base: 0x0100, size: 2K, attrs: [r, w], space: data }",
+                       "{ name: sram, base: 0x0100, size: 2K, attrs: [r, w], space: program }")
+        self.expect(f, self.root.line_of(f, "name: sram"), "memory.regions.sram", "overlaps flash")
+
+    def test_nvic_needs_priority_bits(self):
+        root = Root()
+        try:
+            root.edit("soc/st/stm32f4/stm32f4.yaml", "  priority_bits: 4\n", "")
+            with self.assertRaises(HwError) as cm:
+                root.resolve()
+            self.assertTrue(any(": interrupts: an NVIC needs priority_bits" in e for e in cm.exception.errors))
+        finally:
+            root.close()
+
+
+class QemuBoards(unittest.TestCase):
+    """The MPS2 boards and RV32 virt from their descriptions (A75): the values the hand-written
+    files had, a console without pins, the CLINT, one test interrupt line."""
+
+    def files(self, board):
+        return generate.generate(ROOT / board, ROOT)[0]
+
+    def test_mps2(self):
+        for board, soc in (("boards/arm/mps2_an385", "Cortex-M3"), ("boards/arm/mps2_an386", "Cortex-M4F")):
+            with self.subTest(board=board):
+                f = self.files(board)
+                for macro, value in [("EMB_HW_SOC", f'"{soc}"'), ("EMB_HW_CPU_HZ", "25000000u"),
+                                     ("EMB_HW_UART0_BASE", "0x40004000u"), ("EMB_HW_TEST_IRQ", "30u"),
+                                     ("EMB_HW_TEST_IRQ_HIGH", "31u"), ("EMB_HW_IRQ_PRIORITY_BITS", "3u")]:
+                    self.assertRegex(f["hw_config.h"], rf"#define {macro}\s+{re.escape(value)}\n")
+                for line in ("CONFIG_EMB_CM_CPU_HZ=25000000", "CONFIG_EMB_CM_IRQ_COUNT=32",
+                             "CONFIG_EMB_CM_IRQ_PRIORITY_BITS=3", "CONFIG_EMB_TICK_NS=1000000"):
+                    self.assertIn(line + "\n", f["board.conf"])
+                self.assertIn("FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 4M", f["regions.ld"])
+                self.assertNotIn("board_pins.c", f)
+
+    def test_riscv32_virt(self):
+        f = self.files("boards/qemu/riscv32_virt")
+        for line in ("CONFIG_EMB_RV_CLINT_BASE=0x02000000", "CONFIG_EMB_RV_IRQ_COUNT=8",
+                     "CONFIG_EMB_RV_MTIME_HZ=10000000"):
+            self.assertIn(line + "\n", f["board.conf"])  # the hex symbol spelled as before: same hash
+        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_IRQ\s+0u\n")
+        self.assertNotIn("EMB_HW_TEST_IRQ_HIGH", f["hw_config.h"])
+        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_BASE\s+0x00100000u\n")
+        self.assertIn("RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 16M", f["regions.ld"])
+        self.assertIn("ENTRY(embn_rv_reset)", f["regions.ld"])
 
 
 class Facts(unittest.TestCase):

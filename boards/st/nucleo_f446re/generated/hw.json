@@ -69,7 +69,11 @@
     "revision": "MB1136 C-03",
     "schema_version": 0,
     "simulation": {
-      "embsim": "emblink/nucleo_f446re"
+      "embsim": "emblink/nucleo_f446re",
+      "resets_in": [
+        "embsim",
+        "hil"
+      ]
     },
     "soc": "st/stm32f4/stm32f446re.yaml",
     "test_irqs": [
@@ -153,6 +157,7 @@
       {
         "base": 134217728,
         "name": "app",
+        "reserved": false,
         "sectors": [
           0,
           1,
@@ -225,7 +230,7 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "fc4665a16294440c517bcf16ec2bdef9d641926631a70e0deed8c620738ae4e8"
+      "sha256": "d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

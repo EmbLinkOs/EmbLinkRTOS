@@ -7,6 +7,7 @@ Every output is sorted, carries no timestamp and names the generator version, th
 version and the SHA-256 of each input (HW-013).
 """
 import json
+from pathlib import Path
 
 from . import SCHEMA_VERSION, VERSION
 
@@ -77,20 +78,23 @@ def hw_config_h(r):
             clocks[f"EMB_HW_{_sym(s['name'])}_BYPASS"] = "1" if osc["source"] == "external_clock" else "0"
         clocks[f"EMB_HW_{_sym(s['name'])}_HZ"] = f"{hz}u"
     clocks["EMB_HW_CPU_HZ"] = f"{clk['hclk_hz']}u"
-    clocks["EMB_HW_SYSCLK_SOURCE"] = f"EMB_HW_SYSCLK_{'PLL' if clk['pll'] else _sym(clk['source'])}"
-    clocks["EMB_HW_SYSCLK_HSI"] = "0"
-    clocks["EMB_HW_SYSCLK_HSE"] = "1"
-    clocks["EMB_HW_SYSCLK_PLL"] = "2"
-    # CFGR.SW's encoding; always defined, as the drivers test them with -Wundef
-    clocks["EMB_HW_PLL_SOURCE_HSE"] = "1" if clk["pll"] and clk["source"] == "hse" else "0"
+    has_pll = bool(soc.get("clocks", {}).get("plls"))
+    if has_pll:
+        clocks["EMB_HW_SYSCLK_SOURCE"] = f"EMB_HW_SYSCLK_{'PLL' if clk['pll'] else _sym(clk['source'])}"
+        clocks["EMB_HW_SYSCLK_HSI"] = "0"
+        clocks["EMB_HW_SYSCLK_HSE"] = "1"
+        clocks["EMB_HW_SYSCLK_PLL"] = "2"
+        # CFGR.SW's encoding; always defined, as the drivers test them with -Wundef
+        clocks["EMB_HW_PLL_SOURCE_HSE"] = "1" if clk["pll"] and clk["source"] == "hse" else "0"
     if clk["pll"]:
         pll = clk["pll"]
         for f in ("m", "n", "p", "q", "r"):
             if f in pll:
                 clocks[f"EMB_HW_PLL_{f.upper()}"] = f"{pll[f]}u"
         clocks["EMB_HW_PLL_VCO_HZ"] = f"{int(pll['vco_hz'])}u"
-    clocks["EMB_HW_AHB_DIV"] = f"{clk['ahb_div']}u"
     buses = soc.get("clocks", {}).get("buses", [])
+    if buses:
+        clocks["EMB_HW_AHB_DIV"] = f"{clk['ahb_div']}u"
     for bus in buses:
         clocks[f"EMB_HW_{_sym(bus['name'])}_HZ"] = f"{clk['bus_hz'][bus['name']]}u"
         if bus["from"] != "hclk":
@@ -106,10 +110,16 @@ def hw_config_h(r):
         memory[f"EMB_HW_{_sym(reg['name'])}_BASE"] = _hex(reg["base"])
         memory[f"EMB_HW_{_sym(reg['name'])}_SIZE"] = f"{reg['size']}u"
 
-    irqs = {
-        "EMB_HW_IRQ_COUNT": f"{soc['interrupts']['count']}u",
-        "EMB_HW_IRQ_PRIORITY_BITS": f"{soc['interrupts']['priority_bits']}u",
-    }
+    ints = soc["interrupts"]
+    irqs, vectors = {}, {}
+    if ints["controller"] == "nvic":
+        irqs = {"EMB_HW_IRQ_COUNT": f"{ints['count']}u", "EMB_HW_IRQ_PRIORITY_BITS": f"{ints['priority_bits']}u"}
+    elif ints["controller"] == "clint":
+        irqs = {"EMB_HW_IRQ_COUNT": f"{ints['count']}u"}
+    else:
+        irqs = {"EMB_HW_VECTOR_COUNT": f"{ints['count']}u"}
+        # the port's EMB_ISR(name) pastes EMB_VECTOR_##name (SPEC-012 §7)
+        vectors = {f"EMB_VECTOR_{_sym(v['name'])}": str(v["number"]) for v in ints.get("vectors", [])}
 
     bus_offset = {bus["name"]: bus.get("enable_offset") for bus in buses}
     periph = {}
@@ -130,26 +140,31 @@ def hw_config_h(r):
         "EMB_HW_CONSOLE_BASE": f"EMB_HW_{cn}_BASE",
         "EMB_HW_CONSOLE_BAUD": f"{con['baud']}u",
         "EMB_HW_CONSOLE_CLOCK_HZ": f"{con['clock_hz']}u",
-        "EMB_HW_CONSOLE_CLKEN_OFFSET": f"EMB_HW_{cn}_CLKEN_OFFSET",
-        "EMB_HW_CONSOLE_CLKEN_BIT": f"EMB_HW_{cn}_CLKEN_BIT",
     }
+    if con["clock"]:
+        console["EMB_HW_CONSOLE_CLKEN_OFFSET"] = f"EMB_HW_{cn}_CLKEN_OFFSET"
+        console["EMB_HW_CONSOLE_CLKEN_BIT"] = f"EMB_HW_{cn}_CLKEN_BIT"
     if any(i["name"] == "global" for i in con["irqs"]):
         console["EMB_HW_CONSOLE_IRQ"] = f"EMB_HW_{cn}_IRQ"
 
     lines = {}
     pins = {(e["owner"]): e for e in r["pins"]}
+    gated = {p["name"] for p in soc["peripherals"] if p.get("clock")}
     for kind, prefix in (("leds", "LED"), ("buttons", "BUTTON")):
         for i, line in enumerate(b.get(kind, [])):
             e = pins[f"{kind}.{line['name']}"]
             for name in ([f"{prefix}_{_sym(line['name'])}"] + ([prefix] if i == 0 else [])):
                 lines[f"EMB_HW_{name}_PORT_BASE"] = f"EMB_HW_{_sym(e['gpio'])}_BASE"
-                lines[f"EMB_HW_{name}_CLKEN_BIT"] = f"EMB_HW_{_sym(e['gpio'])}_CLKEN_BIT"
+                if e["gpio"] in gated:
+                    lines[f"EMB_HW_{name}_CLKEN_BIT"] = f"EMB_HW_{_sym(e['gpio'])}_CLKEN_BIT"
                 lines[f"EMB_HW_{name}_PIN"] = f"{e['number']}u"
                 lines[f"EMB_HW_{name}_ACTIVE_HIGH"] = "1" if line["active"] == "high" else "0"
 
     test = {}
     if r["test_irqs"]:
-        test = {"EMB_HW_TEST_IRQ": f"{r['test_irqs']['low']}u", "EMB_HW_TEST_IRQ_HIGH": f"{r['test_irqs']['high']}u"}
+        test = {"EMB_HW_TEST_IRQ": f"{r['test_irqs']['low']}u"}
+        if r["test_irqs"]["high"] is not None:
+            test["EMB_HW_TEST_IRQ_HIGH"] = f"{r['test_irqs']['high']}u"
 
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
@@ -159,6 +174,7 @@ def hw_config_h(r):
     out += _block("clock tree (" + _mhz(clk["hclk_hz"]) + ")", clocks)
     out += _block("memory regions", memory)
     out += _block("interrupt controller", irqs)
+    out += _block("interrupt vectors, numbered from zero", vectors)
     out += _block("peripherals: register blocks, interrupt lines, clock gates", periph)
     out += _block("console: " + con["device"], console)
     out += _block("LEDs and buttons (the first of each also without its name)", lines)
@@ -235,7 +251,11 @@ SECTIONS
   }} > RAM
 
   end = .;
-  __stack_top = ORIGIN(RAM) + LENGTH(RAM);
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
+  __emb_retained_start = __emb_retained_end - 192;
+  __stack_top = __emb_retained_start;
 }}
 """
 
@@ -248,7 +268,83 @@ def _ld_size(n):
     return str(n)
 
 
+def _avr_template():
+    return (Path(__file__).resolve().parent / "templates" / "avr5.ld").read_text(encoding="utf-8")
+
+
+# avr-ld's view of the separate address spaces (avr-libc's linker scripts)
+AVR_DATA_VMA = 0x800000
+AVR_EEPROM_VMA = 0x810000
+
+
+_RV_RAM_SECTIONS = """\
+OUTPUT_ARCH(riscv)
+ENTRY(embn_rv_reset)
+
+MEMORY
+{{
+  RAM (rwx) : ORIGIN = 0x{ram_origin:08X}, LENGTH = {ram_length}
+}}
+
+SECTIONS
+{{
+  .text : {{
+    KEEP(*(.text.embn_rv_reset))
+    *(.text .text.*)
+  }} > RAM
+
+  .rodata : ALIGN(16) {{
+    *(.rodata .rodata.* .srodata .srodata.*)
+    . = ALIGN(16); /* the table entries' own alignment (sizeof(void *) * 4) */
+    __start_emb_init_table = .;
+    KEEP(*(emb_init_table))
+    __stop_emb_init_table = .;
+    . = ALIGN(16);
+    __start_emb_test_table = .;
+    KEEP(*(emb_test_table))
+    __stop_emb_test_table = .;
+  }} > RAM
+
+  .data : ALIGN(16) {{
+    *(.data .data.* .sdata .sdata.*)
+  }} > RAM
+
+  .bss (NOLOAD) : ALIGN(16) {{
+    __bss_start = .;
+    *(.bss .bss.* .sbss .sbss.* COMMON)
+    . = ALIGN(16);
+    __bss_end = .;
+  }} > RAM
+
+  end = .;
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
+  __emb_retained_start = __emb_retained_end - 192;
+  __stack_top = __emb_retained_start;
+}}
+"""
+
+
 def regions_ld(r):
+    if r["soc"]["arch"]["port"] == "riscv":
+        lk = r["linker"]
+        out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+        out += (f"/* Linker script for {r['board']['name']} ({r['soc'].get('part', r['soc']['name'])}): the image is loaded\n"
+                " * into RAM and runs there, so .data needs no copy. The kernel's registration tables are\n"
+                " * bracketed by name (SPEC-001 §6.4, HW-006). */\n")
+        return out + _RV_RAM_SECTIONS.format(ram_origin=lk["ram"]["origin"], ram_length=_ld_size(lk["ram"]["length"]))
+    if r["soc"]["arch"]["port"] == "avr":
+        lk = r["linker"]
+        eeprom = next((x for x in r["soc"]["memory"]["regions"] if x.get("space") == "eeprom"), None)
+        out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+        out += (f"/* Linker script for {r['board']['name']} ({r['soc'].get('part', r['soc']['name'])}), derived from\n"
+                " * avr-libc's avr5 script: text is the app partition, data the SRAM, and the kernel's\n"
+                " * registration tables are bracketed in flash (SPEC-012 §8, HW-006). */\n")
+        return out + _avr_template().format(
+            text_origin=lk["flash"]["origin"], text_length=lk["flash"]["length"],
+            data_origin=AVR_DATA_VMA + lk["ram"]["origin"], data_length=lk["ram"]["length"],
+            eeprom_origin=AVR_EEPROM_VMA + (eeprom["base"] if eeprom else 0), eeprom_length=eeprom["size"] if eeprom else 0)
     lk = r["linker"]
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
     out += (f"/* Linker script for {r['board']['name']} ({r['soc'].get('part', r['soc']['name'])}): the app "
@@ -260,6 +356,17 @@ def regions_ld(r):
 
 
 # --------------------------------------------------------------------------- board.conf, board.cmake
+
+def embld_opts(r):
+    """HW-006: the same layout as regions.ld, as embld options (09 §7)."""
+    lk = r["linker"]
+    out = "# SPDX-License-Identifier: Apache-2.0\n" + _hash_comment(r, _cmd(r))
+    out += "# embld options for the same memory map as regions.ld: one option per line.\n"
+    out += f"-Ttext=0x{lk['flash']['origin']:X}\n"
+    out += f"-Tdata=0x{AVR_DATA_VMA + lk['ram']['origin']:X}\n"
+    out += f"--rom-limit={lk['flash']['length']}\n"
+    return out
+
 
 def board_conf(r):
     out = "# SPDX-License-Identifier: Apache-2.0\n" + _hash_comment(r, _cmd(r))
@@ -278,12 +385,20 @@ def board_cmake(r):
     soc_dir = "soc/" + "/".join(r["board"]["soc"].split("/")[:-1])
     out += f"set(EMB_BOARD_ARCH {soc['arch']['port']})\n"
     out += f"set(EMB_BOARD_VARIANT {soc['arch']['variant']})\n"
+    if soc["cpu"].get("mcu"):
+        out += f"set(EMB_BOARD_MCU {soc['cpu']['mcu']})\n"
     out += f"set(EMB_BOARD_DEFAULT_PROFILE {r['profile']})\n"
     if soc["cpu"].get("cflags"):
         out += f"set(EMB_BOARD_C_FLAGS {' '.join(soc['cpu']['cflags'])})\n"
     out += "# the SoC family's board support and drivers build this board (generated/CMakeLists.txt)\n"
     out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
     out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
+    qemu = r["board"].get("simulation", {}).get("qemu")
+    if qemu:
+        out += f"set(EMB_BOARD_QEMU_ARGS {' '.join(qemu)})\n"
+    resets = r["board"].get("simulation", {}).get("resets_in")
+    if resets:
+        out += f"set(EMB_BOARD_RESETS_IN {' '.join(resets)}) # restart the image with RAM kept (test_crash_reset)\n"
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
@@ -359,12 +474,19 @@ def board_md(r):
     out += "\n## Memory map\n\n| Region | Base | Size | Attributes |\n|---|---|---|---|\n"
     for reg in sorted(soc["memory"]["regions"], key=lambda x: x["base"]):
         out += f"| {reg['name']} | `0x{reg['base']:08X}` | {_ld_size(reg['size'])} | {', '.join(reg['attrs'])} |\n"
-    out += "\n## Flash partitions\n\n| Partition | Base | Size | Erase sectors |\n|---|---|---|---|\n"
+    out += "\n## Flash partitions\n\n| Partition | Base | Size | Erase units |\n|---|---|---|---|\n"
     for p in r["partitions"]:
-        out += f"| {p['name']} | `0x{p['base']:08X}` | {_ld_size(p['size'])} | {', '.join(map(str, p['sectors']))} |\n"
+        if "sectors" in p:
+            units = "sectors " + ", ".join(map(str, p["sectors"]))
+        elif p.get("pages"):
+            units = f"pages {p['pages'][0]} to {p['pages'][1]}"
+        else:
+            units = "-"
+        name = p["name"] + (" (reserved)" if p.get("reserved") else "")
+        out += f"| {name} | `0x{p['base']:08X}` | {_ld_size(p['size'])} | {units} |\n"
     out += "\n## Pins\n\n| Pin | Use | Mode |\n|---|---|---|\n"
     for e in r["pins"]:
-        m = f"af{e['af']} ({e['signal']})" if e["mode"] == "af" else e["mode"]
+        m = {"af": f"af{e.get('af')} ({e.get('signal')})", "fixed": f"fixed ({e.get('signal')})"}.get(e["mode"], e["mode"])
         out += f"| {e['pin']} | `{e['owner']}` | {m} |\n"
     out += "\n## Interrupt lines\n\n| Line | Owner |\n|---|---|\n"
     rows = []
@@ -372,7 +494,9 @@ def board_md(r):
         for irq in p.get("irqs", []):
             rows.append((irq["number"], f"{p['name']}.{irq['name']}"))
     if r["test_irqs"]:
-        rows += [(r["test_irqs"]["low"], "test framework (low)"), (r["test_irqs"]["high"], "test framework (high)")]
+        rows += [(r["test_irqs"]["low"], "test framework (low)")]
+        if r["test_irqs"]["high"] is not None:
+            rows += [(r["test_irqs"]["high"], "test framework (high)")]
     for n, owner in sorted(rows):
         out += f"| {n} | {owner} |\n"
     return out + _md_stamp(r)
@@ -388,8 +512,12 @@ def build_report_md(r):
         out += (f"{clk['source']} {_mhz(clk['source_hz'])} / M {p['m']} = {_mhz(p['vco_in_hz'])} VCO input, "
                 f"x N {p['n']} = {_mhz(p['vco_hz'])}, / P {p['p']} = {_mhz(clk['hclk_hz'])}{q}{rr}. "
                 f"{'Given by the board, checked' if 'pll' in r['board']['clocks'] else 'Solved'}.\n\n")
-    out += "| Bus | Frequency | Limit |\n|---|---|---|\n"
-    for bus in soc.get("clocks", {}).get("buses", []):
+    else:
+        out += f"{clk['source']} {_mhz(clk['source_hz'])}, used directly.\n\n"
+    buses = soc.get("clocks", {}).get("buses", [])
+    if buses:
+        out += "| Bus | Frequency | Limit |\n|---|---|---|\n"
+    for bus in buses:
         out += f"| {bus['name']} | {_mhz(clk['bus_hz'][bus['name']])} | {_mhz(bus['max_hz'])} |\n"
     if "flash_wait_states" in clk:
         out += f"\nFlash wait states: {clk['flash_wait_states']}.\n"
@@ -407,7 +535,6 @@ def build_report_md(r):
 
 OUTPUTS = {
     "hw_config.h": hw_config_h,
-    "board_pins.c": board_pins_c,
     "regions.ld": regions_ld,
     "board.conf": board_conf,
     "board.cmake": board_cmake,
@@ -418,5 +545,13 @@ OUTPUTS = {
 }
 
 
+# outputs only some families or ports have: the STM32 pin table, AVR's embld option set
+FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c}}
+PORT_OUTPUTS = {"avr": {"embld.opts": embld_opts}}
+
+
 def render(resolved):
-    return {name: fn(resolved) for name, fn in sorted(OUTPUTS.items())}
+    outputs = dict(OUTPUTS)
+    outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
+    outputs.update(PORT_OUTPUTS.get(resolved["soc"]["arch"]["port"], {}))
+    return {name: fn(resolved) for name, fn in sorted(outputs.items())}

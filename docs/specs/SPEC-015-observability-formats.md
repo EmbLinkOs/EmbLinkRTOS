@@ -106,6 +106,8 @@ Babeltrace 2 and Trace Compass read the streams and the generated metadata direc
 
 ## 4. Crash record (03 §10.2)
 
+**Implementation:** versions 1 and 2 as [A71](AMENDMENTS-M3.md) corrects them (16-bit code, `argument` and `api_id`), without registers or flight recorder yet; placement, API and reset per A72 and A73; see the [crash record](../engineering/crash-record.md).
+
 ```
 struct emb_crash_record_v1 {
   u32 magic ("EMBC"), u16 version (1), u16 length

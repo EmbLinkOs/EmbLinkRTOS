@@ -51,5 +51,9 @@ SECTIONS
   } > DRAM
 
   end = .;
-  __stack_top = ORIGIN(DRAM) + LENGTH(DRAM);
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(DRAM) + LENGTH(DRAM);
+  __emb_retained_start = __emb_retained_end - 192;
+  __stack_top = __emb_retained_start;
 }

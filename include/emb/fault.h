@@ -40,7 +40,8 @@ typedef struct emb_fault_info {
     uint8_t thread_index; /* index of the faulting thread, 0xFF in prekernel or ISR context */
     uint8_t context;      /* emb_context_t at the time of the fault */
     uintptr_t address;    /* faulting address for hardware faults, 0 otherwise */
-    uintptr_t pc;         /* program counter where the port can provide it, 0 otherwise */
+    uintptr_t pc;         /* hardware: the faulting pc where the port provides it; software, with
+                             CONFIG_EMB_CRASH_RECORD: the return address into the raiser; else 0 */
     uintptr_t sp;         /* stack pointer where the port can provide it, 0 otherwise */
     const char *where;    /* source location or expression, may be NULL in release builds */
 } emb_fault_info_t;

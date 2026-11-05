@@ -148,5 +148,7 @@
 #define EMB_API_ID_DWORK_CANCEL_SYNC             0x008Eu
 #define EMB_API_ID_WORKQ_GET_STATS               0x008Fu
 #define EMB_API_ID_WORKQ_RESET_STATS             0x0090u
+#define EMB_API_ID_CRASH_RECORD_GET              0x0091u
+#define EMB_API_ID_CRASH_RECORD_CLEAR            0x0092u
 
 #endif /* EMB_API_IDS_H */

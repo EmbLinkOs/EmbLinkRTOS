@@ -10,6 +10,9 @@
 #include <emb/cond.h>
 #endif
 #include <emb/context.h>
+#if CONFIG_EMB_CRASH_RECORD
+#include <emb/crash.h>
+#endif
 #if CONFIG_EMB_EVENT
 #include <emb/event.h>
 #endif

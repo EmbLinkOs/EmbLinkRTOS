@@ -31,4 +31,5 @@ flash_partitions:
   - { name: app, base: 0x08000000, size: 512K }
 test_irqs: [61, 62]
 debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446zetx }
+simulation: { embsim: emblink/nucleo_f446ze, resets_in: [embsim] }
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

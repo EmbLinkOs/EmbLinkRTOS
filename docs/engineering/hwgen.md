@@ -1,6 +1,6 @@
 # The hardware generator (emb-hwgen)
 
-`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A69](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 and two boards on it, the NUCLEO-F446RE and the NUCLEO-F446ZE.
+`hw/gen/emb-hwgen.py` reads a board description and the SoC description it names. It validates both and writes the board's `generated/` directory: the header, tables, linker script and build fragments that would otherwise be typed by hand ([SPEC-014](../specs/SPEC-014-hardware-description-schema.md), [HW](../requirements/HW.md)). This page covers the first increment ([A66 to A70, A75](../specs/AMENDMENTS-M3.md)), which describes the STM32F446 with two boards on it (the NUCLEO-F446RE and NUCLEO-F446ZE), the ATmega328P with the Arduino Uno ([A70](../specs/AMENDMENTS-M3.md)), and the emulated references: QEMU's MPS2 AN385 and AN386 and its RV32 virt ([A75](../specs/AMENDMENTS-M3.md)). Only the ESP32-C3 board is still written by hand.
 
 ## Use
 
@@ -24,7 +24,8 @@ Never edit `generated/` by hand (HW-003). Change the YAML and regenerate.
 | `soc/st/stm32f4/stm32f4.yaml` | family base (`abstract`) | port binding, core, clock-tree limits, PLL ranges, prescalers, flash latency |
 | `soc/st/stm32f4/stm32f446.yaml` | die (`abstract`) | memory regions, NVIC size and free lines, buses with their limits, regulator scales, peripherals, serial alternate functions, flash sectors |
 | `soc/st/stm32f4/stm32f446re.yaml`, `stm32f446ze.yaml` | part | package and bonded pins |
-| `boards/st/nucleo_f446re/board.yaml`, `boards/st/nucleo_f446ze/board.yaml` | board | oscillators, CPU frequency, pins, console, LEDs, button, flash partitions, test interrupt lines, probe hints, defaults |
+| `soc/microchip/atmega/atmega328p.yaml` | part | program, data and EEPROM spaces, the 26 vectors, ports, Timer1, USART0, page-sized flash |
+| `boards/st/nucleo_f446re/board.yaml`, `boards/st/nucleo_f446ze/board.yaml`, `boards/arduino/arduino_uno/board.yaml` | board | oscillators, CPU frequency, pins, console, LEDs, button, flash partitions, test interrupt lines, probe hints, defaults |
 | `hw/schemas/*.schema.json` | JSON Schema 2020-12 | the SoC and board grammar, and the shape of `hw.json` |
 
 A part file `extends` its die, which extends the family. Mappings merge key by key, and lists of named nodes merge by name. The flattened part is what the schema checks.
@@ -38,8 +39,9 @@ Register base addresses, interrupt numbers, clock gates and pin functions come f
 | File | Consumer | Content |
 |---|---|---|
 | `hw_config.h` | board and driver C | identity, clock tree, memory regions, NVIC size, every peripheral's base, interrupt lines and clock gate, the console, LEDs and buttons, the test framework's interrupt lines |
-| `board_pins.c` | board initialization | the pins to configure: port, number, mode and alternate function |
-| `regions.ld` | linker | FLASH from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2), the kernel's table brackets |
+| `board_pins.c` | board initialization (STM32 only) | the pins to configure: port, number, mode and alternate function |
+| `regions.ld` | linker | FLASH (text on AVR) from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2; the SRAM on AVR), the kernel's table brackets |
+| `embld.opts` | embld (AVR only, HW-006) | `-Ttext`, `-Tdata` and `--rom-limit` for the same map as `regions.ld` |
 | `board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
 | `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes |
 | `CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
@@ -77,6 +79,16 @@ The drivers keep register offsets and bit layouts. Every base address, gate, pin
 - a generated board's directory holds no other file;
 - C under `soc/` and `drivers/` contains no hexadecimal literal of seven or more digits.
 
+## The Arduino Uno
+
+The ATmega328P differs from the STM32F446 in the ways A70 adds to the schema.
+- **Address spaces.** It has three: program flash, the data space (I/O registers below the SRAM) and EEPROM.
+- **Interrupts.** A fixed vector table instead of an NVIC.
+- **Pins.** USART0 takes over PD0 and PD1 when enabled, so the SoC lists them as `fixed` functions and the board names them without `.af<n>`.
+- **Flash.** It erases in 128-byte pages, and the Uno reserves the last 512 bytes for Optiboot.
+
+The board support is `soc/microchip/atmega/board.c` over inline drivers (`drivers/microchip/include/emb_avr_drivers.h`). With constant register bases from `hw_config.h`, the compiler emits the same single I/O instructions as the hand-written board did. The 48 images of `avr-uno`, `avr-uno-release` and `avr-uno-t1` are byte-identical in `.text` and `.data`, and all four Uno presets pass their tests, the EmbSIM one included.
+
 ## A second board on the same SoC
 
 The NUCLEO-F446ZE shows the SPEC-014 §11 flow, done by hand until the importers exist. It was added without writing C, CMake or configuration:
@@ -90,7 +102,7 @@ The NUCLEO-F446ZE shows the SPEC-014 §11 flow, done by hand until the importers
 2. Run `python3 -I hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446ze`. The solver picks M 4, N 180, P 2, Q 8, a 2 MHz VCO input where the F446RE pins its brought-up M 8, N 360. It derives the same 45 and 90 MHz buses, 5 wait states, scale 1 and over-drive.
 3. Build with `cmake --preset cm4-nucleo-f446ze && cmake --build --preset cm4-nucleo-f446ze`. The same `soc/st/stm32f4` board support and `drivers/st` code compile against the ZE's `hw_config.h`. The console moves to USART3, and its pins to AFRH, without a driver change.
 
-This is a build check, not a run. EmbSIM has no NUCLEO-F446ZE, and its F446RE model does not show USART3, so the 18 test images build without CTest entries. Both description files stay `curated: false` until a physical board confirms UM1974's facts. `Outputs.test_second_board_on_the_soc_needs_no_c` asserts that the board directory holds only `board.yaml` and `generated/`, and that both boards use the same SoC support.
+EmbSIM's NUCLEO-F446ZE (`emblink/nucleo_f446ze`, from EmbSIM `2529ab8`) runs the board's 20 test images, the crash record's reset case included, with the console on USART3. EmbSIM's description of the board agrees with UM1974 on every fact `board.yaml` states. Both description files stay `curated: false` until a physical board confirms UM1974's facts. `Outputs.test_second_board_on_the_soc_needs_no_c` asserts that the board directory holds only `board.yaml` and `generated/`, and that both boards use the same SoC support.
 
 ## Validation rules
 
@@ -132,7 +144,6 @@ The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI'
 ## Limits of this increment
 
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
-- **Not generated:** the system description, `soc_devices.c`, `embld.opts`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
-- **Other boards:** the Uno, the MPS2 boards, RV32 virt and the ESP32-C3 have no descriptions in this schema yet.
-- **The NUCLEO-F446ZE is build-only:** no emulator runs it.
+- **Not generated:** the system description, `soc_devices.c`, the importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
+- **Other boards:** the ESP32-C3 has no description yet; it waits for #46, which rewrites its board.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

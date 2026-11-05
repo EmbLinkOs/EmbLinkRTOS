@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# ATmega328P (SPEC-014 §3, §12), from the ATmega328P datasheet (DS40002061B): three address
+# spaces (program flash, data with the I/O registers below SRAM, EEPROM), 26 vectors
+# numbered from zero as the datasheet's Table 12-6 lists them, the registers the board and
+# port use, and the PDIP-28 package's pins.
+schema_version: 0
+kind: soc
+name: atmega328p
+vendor: microchip
+family: megaavr
+part: ATmega328P
+package: pdip28
+curated: true
+arch: { port: avr, variant: atmega328p }
+cpu: { core: avr5, mcu: atmega328p }
+memory:
+  regions:
+    - { name: flash, base: 0x0000, size: 32K, attrs: [r, x, boot], space: program }
+    - { name: sram, base: 0x0100, size: 2K, attrs: [r, w], space: data }
+    - { name: eeprom, base: 0x0000, size: 1K, attrs: [r, w, retained], space: eeprom }
+clocks:
+  sources:
+    - { name: xtal, hz: board, min_hz: 400kHz, max_hz: 20MHz, doc: the full-swing crystal oscillator }
+    - { name: rc, hz: 8MHz, doc: the calibrated internal RC oscillator }
+interrupts:
+  controller: avr
+  count: 26
+  vectors:
+    - { name: reset, number: 0 }
+    - { name: int0, number: 1 }
+    - { name: int1, number: 2 }
+    - { name: pcint0, number: 3 }
+    - { name: pcint1, number: 4 }
+    - { name: pcint2, number: 5 }
+    - { name: wdt, number: 6 }
+    - { name: timer2_compa, number: 7 }
+    - { name: timer2_compb, number: 8 }
+    - { name: timer2_ovf, number: 9 }
+    - { name: timer1_capt, number: 10 }
+    - { name: timer1_compa, number: 11 }
+    - { name: timer1_compb, number: 12 }
+    - { name: timer1_ovf, number: 13 }
+    - { name: timer0_compa, number: 14 }
+    - { name: timer0_compb, number: 15 }
+    - { name: timer0_ovf, number: 16 }
+    - { name: spi_stc, number: 17 }
+    - { name: usart_rx, number: 18 }
+    - { name: usart_udre, number: 19 }
+    - { name: usart_tx, number: 20 }
+    - { name: adc, number: 21 }
+    - { name: ee_ready, number: 22 }
+    - { name: analog_comp, number: 23 }
+    - { name: twi, number: 24 }
+    - { name: spm_ready, number: 25 }
+# data-space addresses: PINx, DDRx and PORTx for each port; TCCR1A to OCR1BH; UCSR0A to UDR0
+peripherals:
+  - { name: portb, compatible: "microchip,avr-gpio", base: 0x23, size: 3, space: data, port: B }
+  - { name: portc, compatible: "microchip,avr-gpio", base: 0x26, size: 3, space: data, port: C }
+  - { name: portd, compatible: "microchip,avr-gpio", base: 0x29, size: 3, space: data, port: D }
+  - { name: timer1, compatible: "microchip,avr-timer16", base: 0x80, size: 12, space: data,
+      irqs: [ { name: capt, number: 10 }, { name: compa, number: 11 }, { name: compb, number: 12 }, { name: ovf, number: 13 } ] }
+  - { name: usart0, compatible: "microchip,avr-usart", base: 0xC0, size: 7, space: data,
+      irqs: [ { name: rx, number: 18 }, { name: udre, number: 19 }, { name: tx, number: 20 } ] }
+# PDIP-28: PB6 and PB7 double as XTAL1 and XTAL2, PC6 as RESET
+gpio:
+  ports: { B: 0xFF, C: 0x7F, D: 0xFF }
+# fixed: the pin the peripheral takes over when enabled, with no selection register
+alternate_functions:
+  PD0: { fixed: usart0_rx }
+  PD1: { fixed: usart0_tx }
+flash:
+  region: flash
+  geometry: { page_size: 128, write_granularity: 128 } # 64 words a page

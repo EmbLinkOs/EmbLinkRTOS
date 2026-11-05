@@ -32,6 +32,7 @@
 #define EMB_COMPILER_BARRIER() __asm__ __volatile__("" ::: "memory")
 #define EMB_TRAP()             __builtin_trap()
 #define EMB_IS_CONSTANT(x)     __builtin_constant_p(x)
+#define EMB_RETURN_ADDRESS()   ((uintptr_t)__builtin_return_address(0))
 /* NOLINTEND(portability-no-assembler,hicpp-no-assembler) */
 
 #if __GNUC__ >= 7

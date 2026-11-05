@@ -1,14 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel faults (03 §10, SPEC-001 §5.3): record, hook, act. The crash record and the
- * retained-RAM formats of SPEC-015 come with the observability milestone; here the
- * hook receives the information and the configured action follows.
+ * Kernel faults (03 §10, SPEC-001 §5.3): record, hook, act. The crash record (SPEC-015
+ * §4) is written first, before any recovery action (FLT-001); then the hook receives the
+ * information and the configured action follows.
  */
 #include <emb/fault.h>
 #include <emb/kernel.h>
 
 #include <embk/kernel.h>
+#if CONFIG_EMB_CRASH_RECORD
+#include <embk/crash.h>
+#endif
 
 #if CONFIG_EMB_FAULT_HOOK_RUNTIME
 static emb_fault_hook_t fault_hook; /* lock: set before start or from thread context only */
@@ -57,6 +60,10 @@ static EMB_NORETURN void raise_info(uint16_t api_id, uint8_t fault_class, uint16
     info.sp = sp;
     info.where = where;
     EMBK_TRACE(EMB_TRACE_FAULT, fault_class, code, 0u);
+#if CONFIG_EMB_CRASH_RECORD
+    embk_crash_record_write(&info, CONFIG_EMB_FAULT_ACTION_REBOOT ? EMB_CRASH_RESET_REBOOT
+                                                                  : EMB_CRASH_RESET_HALT);
+#endif
 #if CONFIG_EMB_FAULT_HOOK_RUNTIME
     if (fault_hook != NULL) {
         fault_hook(&info);
@@ -67,15 +74,23 @@ static EMB_NORETURN void raise_info(uint16_t api_id, uint8_t fault_class, uint16
     act(&info);
 }
 
+/* A software fault's pc: the return address into the code that raised it, for the crash
+ * record to name; only paid for where the record is kept. */
+#if CONFIG_EMB_CRASH_RECORD
+#define CALLER_PC() EMB_RETURN_ADDRESS()
+#else
+#define CALLER_PC() ((uintptr_t)0)
+#endif
+
 void embk_fault_raise(uint8_t fault_class, uint16_t code, uint8_t argument, const char *where)
 {
-    raise_info(EMB_API_ID_NONE, fault_class, code, argument, where, 0u, 0u, 0u);
+    raise_info(EMB_API_ID_NONE, fault_class, code, argument, where, 0u, CALLER_PC(), 0u);
 }
 
 void embk_fault_raise_api(uint16_t api_id, uint8_t fault_class, uint16_t code, uint8_t argument,
                           const char *where)
 {
-    raise_info(api_id, fault_class, code, argument, where, 0u, 0u, 0u);
+    raise_info(api_id, fault_class, code, argument, where, 0u, CALLER_PC(), 0u);
 }
 
 void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr_t sp)
@@ -86,13 +101,22 @@ void embk_fault_raise_hw(uint16_t code, uintptr_t address, uintptr_t pc, uintptr
 
 void emb_fault(uint8_t fault_class, uint16_t code, const char *where)
 {
-    embk_fault_raise(fault_class, code, 0u, where);
+#if CONFIG_EMB_CRASH_RECORD
+    raise_info(EMB_API_ID_NONE, fault_class, code, 0u, where, 0u, CALLER_PC(), 0u);
+#else
+    embk_fault_raise(fault_class, code, 0u, where); /* a tail call: no pc to take */
+#endif
 }
 
 emb_status_t emb_check_status(emb_status_t status, const char *what)
 {
     if (status != EMB_OK) {
+#if CONFIG_EMB_CRASH_RECORD
+        raise_info(EMB_API_ID_NONE, EMB_FAULT_CHECK, (uint16_t)(-status), 0u, what, 0u, CALLER_PC(),
+                   0u);
+#else
         embk_fault_raise(EMB_FAULT_CHECK, (uint16_t)(-status), 0u, what);
+#endif
     }
     return status;
 }

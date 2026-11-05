@@ -18,6 +18,7 @@
 
 #include <emb_native.h>
 #include <pthread.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -560,6 +561,58 @@ void emb_arch_reset(const emb_fault_info_t *info)
     report_fault(info, "reset requested");
     emb_native_exit(EMB_NATIVE_EXIT_FAULT);
 }
+
+/* A process cannot reset itself: it ends, and the next run is the next boot. */
+void emb_arch_system_reset(void)
+{
+    emb_native_exit(EMB_NATIVE_EXIT_FAULT);
+}
+
+#if CONFIG_EMB_CRASH_RECORD
+/* SPEC-015 §9: on the native port the record goes to a host file, $EMB_NATIVE_CRASH_FILE,
+ * so that it outlives the process; without the variable it lives in process memory only. */
+static uint8_t retained[192];
+
+uint8_t *emb_arch_retained(uint16_t *size)
+{
+    *size = (uint16_t)sizeof(retained);
+    return retained;
+}
+
+void emb_arch_retained_sync(bool store)
+{
+    const char *path = getenv("EMB_NATIVE_CRASH_FILE");
+    FILE *f;
+    if (path == NULL || path[0] == '\0') {
+        return;
+    }
+    f = fopen(path, store ? "wb" : "rb");
+    if (f == NULL) {
+        if (!store) {
+            memset(retained, 0, sizeof(retained)); /* no file: nothing survived */
+        }
+        return;
+    }
+    if (store) {
+        (void)fwrite(retained, 1u, sizeof(retained), f);
+    } else if (fread(retained, 1u, sizeof(retained), f) != sizeof(retained)) {
+        memset(retained, 0, sizeof(retained));
+    }
+    (void)fclose(f);
+}
+
+/* No hardware fault entry on this port: nothing to add to the record. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    (void)info;
+    (void)regs;
+    (void)max;
+    *status_count = 0u;
+    *lr = 0u;
+    return 0u;
+}
+#endif
 
 void emb_arch_breakpoint(void)
 {

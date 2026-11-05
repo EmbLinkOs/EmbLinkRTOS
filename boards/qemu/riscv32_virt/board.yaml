@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description (SPEC-014 §4): QEMU's RISC-V virt machine, one RV32IMAC hart in machine
+# mode, the emulated RISC-V reference. emb-hwgen turns it into generated/.
+schema_version: 0
+kind: board
+name: riscv32_virt
+vendor: qemu
+soc: qemu/virt/rv32.yaml
+curated: true
+doc: >-
+  The console on the ns16550a UART, the run's end and reset through the sifive_test device.
+  The hart runs at the emulator's speed; cpu_hz names the timebase, the one fixed rate.
+clocks:
+  cpu_hz: 10MHz
+  source: timebase
+console: { device: uart0, baud: 115200 }
+test_irqs: [0] # the machine software interrupt (CLINT msip)
+simulation:
+  qemu: [-M, virt, -icount, "shift=3,sleep=off", -bios, none, -kernel] # deterministic time
+  resets_in: [qemu] # the sifive_test reset restarts the image; memory outside its segments is kept
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

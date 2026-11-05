@@ -306,12 +306,56 @@ void emb_arch_fault_halt(const emb_fault_info_t *info)
 
 void emb_arch_reset(const emb_fault_info_t *info)
 {
-    (void)info; /* the .noinit crash record comes with the observability milestone */
+    (void)info; /* the kernel wrote the crash record before calling here */
+    emb_arch_system_reset();
+}
+
+void emb_arch_system_reset(void)
+{
     __asm__ __volatile__("cli" ::: "memory");
     wdt_enable(WDTO_15MS);
     for (;;) {
     }
 }
+
+/* A watchdog reset leaves the watchdog running with its shortest timeout (DS40002061B
+ * §10.9.2): clear WDRF and stop it before the C runtime starts, or the part resets again
+ * every 15 ms. Placed in .init3, which avr-libc's startup runs before main(). */
+void embn_avr_watchdog_off(void) EMB_NAKED EMB_SECTION(".init3");
+void embn_avr_watchdog_off(void)
+{
+    MCUSR = 0u;
+    wdt_disable();
+}
+
+#if CONFIG_EMB_CRASH_RECORD
+/* .noinit: avr-libc's startup clears .bss but not this (SPEC-012 §8, A73). The small
+ * version 2 record is 34 bytes. */
+static uint8_t retained[34] EMB_SECTION(".noinit");
+
+uint8_t *emb_arch_retained(uint16_t *size)
+{
+    *size = (uint16_t)sizeof(retained);
+    return retained;
+}
+
+void emb_arch_retained_sync(bool store)
+{
+    (void)store; /* the memory itself survives */
+}
+
+/* No hardware fault entry on this port: nothing to add to the record. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    (void)info;
+    (void)regs;
+    (void)max;
+    *status_count = 0u;
+    *lr = 0u;
+    return 0u;
+}
+#endif
 
 void emb_arch_breakpoint(void)
 {

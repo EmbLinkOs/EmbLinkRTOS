@@ -46,7 +46,13 @@ function(emb_add_test name)
   target_link_libraries(${name} PRIVATE emb_test)
   if(NOT CONFIG_EMB_ARCH STREQUAL "native")
     # the image runs on the board's emulator; the runner reads the console (SIM-002)
-    if(EMB_TEST_EMULATOR STREQUAL "embsim")
+    if(EMB_TEST_EMULATOR STREQUAL "hil")
+      # a physical board (tools/hil/run_hil.py): flash, reset, read the console; one at a time
+      add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/hil/run_hil.py"
+               --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}"
+               --log "${CMAKE_CURRENT_BINARY_DIR}/${name}.console.log" "$<TARGET_FILE:${name}>")
+      set_tests_properties(${name} PROPERTIES RUN_SERIAL TRUE TIMEOUT 400)
+    elseif(EMB_TEST_EMULATOR STREQUAL "embsim")
       if(EMB_EMBSIM AND EMB_BOARD_EMBSIM_TARGET)
         # the ELF, or the flash image where the board boots one
         set(_image "$<TARGET_FILE:${name}>")

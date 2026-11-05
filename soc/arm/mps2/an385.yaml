@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# MPS2 AN385: a Cortex-M3 in the MPS2 FPGA (QEMU machine mps2-an385).
+schema_version: 0
+kind: soc
+name: an385
+vendor: arm
+family: mps2
+extends: mps2.yaml
+part: Cortex-M3
+curated: true
+arch: { port: cortex_m, variant: armv7m }
+cpu:
+  core: cortex-m3
+  cycle_counter: dwt
+  cflags: [-mcpu=cortex-m3, -mfloat-abi=soft]

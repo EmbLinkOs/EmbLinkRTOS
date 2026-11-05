@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description (SPEC-014 §4): MPS2 AN386 (Cortex-M4F) as QEMU models it (machine mps2-an386), the
+# emulated Cortex-M reference. emb-hwgen turns it into generated/.
+schema_version: 0
+kind: board
+name: mps2_an386
+vendor: arm
+soc: arm/mps2/an386.yaml
+curated: true
+doc: >-
+  QEMU's MPS2 AN386: the console on the CMSDK APB UART0 at 115200 baud, LED0 in the FPGA
+  I/O block, the run's end through Arm semihosting.
+clocks:
+  cpu_hz: 25MHz
+  source: sysclk
+console: { device: uart0, baud: 115200 }
+test_irqs: [30, 31]
+simulation:
+  qemu: [-M, mps2-an386, -icount, "shift=5,sleep=off", -semihosting-config, "enable=on,target=native", -kernel] # ~31 MIPS, deterministic time
+  resets_in: [qemu] # SYSRESETREQ restarts the image, RAM kept (test_crash_reset)
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

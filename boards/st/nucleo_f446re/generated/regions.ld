@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c
  *   boards/st/nucleo_f446re/board.yaml
- *     fc4665a16294440c517bcf16ec2bdef9d641926631a70e0deed8c620738ae4e8
+ *     d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -60,5 +60,9 @@ SECTIONS
   } > RAM
 
   end = .;
-  __stack_top = ORIGIN(RAM) + LENGTH(RAM);
+  /* the crash record's memory (SPEC-015 §4, A73): above the stack and outside every loaded
+     segment, so neither startup nor a loader's reset clears it */
+  __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
+  __emb_retained_start = __emb_retained_end - 192;
+  __stack_top = __emb_retained_start;
 }

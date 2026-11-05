@@ -6,12 +6,21 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed
 
+- The MPS2 AN385 and AN386 and QEMU's RV32 virt build from their generated descriptions (A75). Their hand-written board files are gone, and their board support moved to `soc/arm/mps2/` and `soc/qemu/virt/`. The configuration hashes are unchanged, and the images are identical except for the build id. Only the ESP32-C3 is still hand-written.
+
+- AVR: the port stops the watchdog after a watchdog reset, in `.init3`. Before, the fault action REBOOT reset the part again every 15 ms.
+
+- The Arduino Uno builds from its generated description (A70).
+  - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The ATmega board support (`soc/microchip/atmega/`) and inline drivers (`drivers/microchip/include/`) take every address from `hw_config.h`.
+  - The images are byte-identical in `.text` and `.data`, and the configuration hashes are unchanged.
+  - The generated linker script limits text to the 32,256-byte app partition, so an image that would overwrite Optiboot no longer links.
+  - `generated/embld.opts` gives embld the same layout (HW-006).
+
 - The NUCLEO-F446RE builds from its generated description (A69).
   - Its hand-written `board.c`, `hw_config.h`, linker script, `board.conf` and `board.cmake` are gone. The board directory holds `board.yaml` and `generated/`.
   - The STM32F4 board support (`soc/st/stm32f4/`) and drivers (`drivers/st/`) take every address, gate, pin and frequency from `hw_config.h`.
   - The configuration hash, the register values and the EmbSIM results are unchanged. Each image is 176 to 192 bytes larger in text.
   - Configuration refuses `generated/` files older than their descriptions, and `emb-hwgen.py check` fails on address-like constants in `soc/` and `drivers/` C.
-- The ESP32-C3-DevKitM-1 board runs its CPU at 160 MHz from the PLL, set up in `emb_board_init()` as ESP-IDF v5.4's bootloader does (BBPLL power, its 480 MHz configuration through the boot ROM's analog I2C routines, CPUPERIOD_SEL and SOC_CLK_SEL), instead of the boot ROM's 20 MHz; UART0's divider is set again for 115200 baud from the 80 MHz APB clock. `run_embsim.py --core-hz` (a board's `EMB_BOARD_EMBSIM_CORE_HZ`) checks the clock the MCU ends at in every EmbSIM test of the board.
 
 - The tiny thread table has no slot for idle, and `CONFIG_EMB_FAULT_HOOK_RUNTIME=n` binds the fault hook at link time through an application-defined `emb_fault_hook()` (weak empty default), keeping no hook pointer in RAM. The `footprint_t1` reference configuration uses it; AVR `footprint_t1` kernel static RAM is 39 bytes and its gate is lowered from 64 to that value.
 
@@ -22,6 +31,40 @@ User-visible changes are recorded here. There are no released versions or releas
 - `emb_sem_init()` and `emb_mutex_init()` refuse storage that still holds an active object of their type (fault in checked builds, `EMB_EBUSY` in release) instead of overwriting it, when `CONFIG_EMB_OBJ_LIST` is on (default except on the tiny profile). Storage is reused only through destroy. Semaphore and mutex storage grows by one list node where the option is on. KRN-OBJ-007 now specifies `EMB_EBUSY` instead of `EMB_EEXIST` (ADR-045).
 
 ### Added
+
+- A bring-up probe for the classic ESP32 (docs/ports/xtensa.md), ahead of any Xtensa port: `tools/esp/bringup/` builds a kernel-free image with EmbCC. The image stops the ROM's watchdogs and prints on UART0; it is flashed at 0x1000 with `embflash --esp`. `tools/esp/esp_image.py --chip esp32` writes the ESP32's image (chip 0, 40 MHz flash), with each segment placed at its run address. Not yet run on hardware.
+
+- The first hardware run (docs/engineering/hil-uno-2026-11-04.md): the checked tiny suite on an Arduino Uno R3, flashed with embflash, passed 17 of 17. That includes the crash record surviving the watchdog reset, decoded to the faulting line, The release (15/15) and T1 (12/12) builds pass too. Hand-overs measure 81, 68 and 66 µs per switch in the checked, release and T1 builds (about 1,300, 1,085 and 1,062 cycles).
+
+- The HIL runner drives the Arduino Uno R3 (`avr-uno-hil`). It flashes through Optiboot with avrdude, from the board's new `debug_probe.avrdude` hint, then opens the console, which resets the board; the same USB serial port serves both. On the Uno and the NUCLEO-F446RE, the crash record's reset cases run on the board too (`resets_in: hil`).
+
+- Hardware-in-the-loop runs (docs/engineering/hil.md).
+  - `tools/hil/run_hil.py` flashes an image with the probe the board's `hw.json` names (OpenOCD), reads the board's console through termios, and reports as the emulator runners do.
+  - `EMB_TEST_EMULATOR=hil` with `EMB_HIL_PORT` registers the suite and the benchmarks, run one at a time; `cm4-nucleo-hil` is the preset.
+  - New benchmark `bench_irq`: cycles from `emb_irq_pend()` to the connected handler.
+  - Tested with a pseudo-terminal; not yet run on a board.
+
+- Hardware faults put their registers in the crash record (A74).
+  - Cortex-M: CFSR, HFSR, MMFAR, BFAR and the stacked r0 to r3, r12, lr, pc and xPSR. RISC-V: mcause, mtval, mepc, mstatus, ra and a0 to a7.
+  - New port function `emb_arch_crash_regs()`; the retained area grows to 192 bytes.
+  - `crashdec` names the registers and decodes the CFSR, HFSR and mcause.
+  - `test_crash_hw` checks the registers of a real trap across a reset.
+
+- The NUCLEO-F446ZE runs its tests on EmbSIM's NUCLEO-F446ZE (20 CTest targets, preset `cm4-nucleo-f446ze`). The EmbSIM CI job for the NUCLEO boards now builds EmbSIM `2529ab8`.
+
+- `tools/crashdec` decodes crash records.
+  - It reads a raw record file, a console log with `EMB_CRASH` lines, or a hex string, for versions 1 and 2.
+  - It refuses a wrong magic, an unknown version, a wrong length or a bad CRC.
+  - It names the fault class and the API. With `--elf`, it refuses a record from another build and symbolizes the pc with `addr2line`.
+  - CI decodes the records that survived a reset on QEMU Cortex-M4 and EmbSIM's Uno, down to the faulting function and line.
+
+- The crash record (SPEC-015 §4, A71 to A73; `CONFIG_EMB_CRASH_RECORD`, on by default except on the tiny profile, where its AVR code does not fit the footprint gates).
+  - A kernel fault writes a CRC-checked record before the hook and the fault action. Version 1 (92 bytes) on 32-bit and native ports holds the build id, firmware version, uptime, fault class, code, API and argument, thread, address, pc and sp. Version 2 (34 bytes) serves AVR.
+  - The record lives in memory the reset leaves alone: 192 bytes above the stack on Cortex-M and RISC-V, `.noinit` on AVR, `$EMB_NATIVE_CRASH_FILE` on native.
+  - The next boot validates it, and `emb_crash_record_get()` and `emb_crash_record_clear()` (API IDs 145 and 146) read and discard it.
+  - A software fault's pc is now the return address into the code that raised it.
+  - New port function `emb_arch_system_reset()`.
+  - `test_crash_reset` shows the record across a real reset on QEMU MPS2 and RV32 virt and on EmbSIM's NUCLEO-F446RE and Uno.
 
 - A second board on the STM32F446, the NUCLEO-F446ZE, described in YAML only (SPEC-014 §11).
   - It builds with the same STM32F4 board support and drivers, with its console on USART3 (PD8 and PD9) and a solved 180 MHz PLL.

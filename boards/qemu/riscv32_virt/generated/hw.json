@@ -1,0 +1,179 @@
+{
+  "board": {
+    "clocks": {
+      "cpu_hz": 10000000,
+      "source": "timebase"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "uart0"
+    },
+    "curated": true,
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "base",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "The console on the ns16550a UART, the run's end and reset through the sifive_test device. The hart runs at the emulator's speed; cpu_hz names the timebase, the one fixed rate.",
+    "kind": "board",
+    "name": "riscv32_virt",
+    "schema_version": 0,
+    "simulation": {
+      "qemu": [
+        "-M",
+        "virt",
+        "-icount",
+        "shift=3,sleep=off",
+        "-bios",
+        "none",
+        "-kernel"
+      ],
+      "resets_in": [
+        "qemu"
+      ]
+    },
+    "soc": "qemu/virt/rv32.yaml",
+    "test_irqs": [
+      0
+    ],
+    "vendor": "qemu"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {},
+      "bypass": false,
+      "cpu_hz": 10000000,
+      "hclk_hz": 10000000,
+      "pll": null,
+      "source": "timebase",
+      "source_hz": 10000000
+    },
+    "console": {
+      "base": 268435456,
+      "baud": 115200,
+      "clock": null,
+      "clock_hz": 10000000,
+      "device": "uart0",
+      "irqs": []
+    },
+    "kconfig": {
+      "CONFIG_EMB_RV_CLINT_BASE": "0x02000000",
+      "CONFIG_EMB_RV_IRQ_COUNT": 8,
+      "CONFIG_EMB_RV_MTIME_HZ": 10000000,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 16777216,
+        "origin": 2147483648
+      },
+      "ram": {
+        "length": 16777216,
+        "origin": 2147483648,
+        "regions": [
+          "ram"
+        ]
+      }
+    },
+    "partitions": [],
+    "pins": [],
+    "profile": "base",
+    "test_irqs": {
+      "high": null,
+      "low": 0
+    },
+    "timer": null
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/riscv/arch.yaml",
+      "sha256": "af572f3973c21af27831f1beba36152b17f99a4e00035d3ac7594a22d7e50d9a"
+    },
+    {
+      "path": "boards/qemu/riscv32_virt/board.yaml",
+      "sha256": "1351b269a079bf72527e87b0977f737b7888fd8e3079ce561c0b2889833c154c"
+    },
+    {
+      "path": "soc/qemu/virt/rv32.yaml",
+      "sha256": "c3f3afbf4246fdfabcd56d5a3c9a900ee5917960ec71a69e910beae3d9ff1df1"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "arch": {
+      "port": "riscv",
+      "variant": "rv32imac"
+    },
+    "clocks": {
+      "sources": [
+        {
+          "doc": "mtime's rate (virt's RISCV_ACLINT_DEFAULT_TIMEBASE_FREQ)",
+          "hz": 10000000,
+          "name": "timebase"
+        }
+      ]
+    },
+    "cpu": {
+      "cflags": [
+        "-march=rv32imac_zicsr_zifencei",
+        "-mabi=ilp32"
+      ],
+      "core": "rv32imac"
+    },
+    "curated": true,
+    "family": "virt",
+    "interrupts": {
+      "controller": "clint",
+      "count": 8,
+      "reserved": [
+        0
+      ]
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "boot"
+          ],
+          "base": 2147483648,
+          "name": "ram",
+          "size": 16777216
+        }
+      ]
+    },
+    "name": "rv32",
+    "part": "qemu-virt-rv32",
+    "peripherals": [
+      {
+        "base": 1048576,
+        "compatible": "sifive,test0",
+        "doc": "exit (0x5555, 0x3333) and reset (0x7777)",
+        "name": "test",
+        "size": 4096
+      },
+      {
+        "base": 33554432,
+        "compatible": "riscv,clint0",
+        "name": "clint",
+        "size": 65536
+      },
+      {
+        "base": 268435456,
+        "compatible": "national,ns16550a",
+        "name": "uart0",
+        "size": 256
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "qemu"
+  },
+  "warnings": []
+}

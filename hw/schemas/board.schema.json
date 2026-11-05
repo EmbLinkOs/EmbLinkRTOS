@@ -4,7 +4,7 @@
   "title": "Board description, schema v0 (SPEC-014 §4)",
   "description": "Validates a board file after unit normalization.",
   "type": "object",
-  "required": ["schema_version", "kind", "name", "vendor", "soc", "oscillators", "clocks", "console"],
+  "required": ["schema_version", "kind", "name", "vendor", "soc", "clocks", "console"],
   "additionalProperties": false,
   "properties": {
     "schema_version": { "const": 0 },
@@ -23,11 +23,7 @@
     },
     "oscillators": {
       "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "hse": { "$ref": "#/$defs/oscillator" },
-        "lse": { "$ref": "#/$defs/oscillator" }
-      }
+      "additionalProperties": { "$ref": "#/$defs/oscillator" }
     },
     "clocks": {
       "type": "object",
@@ -78,20 +74,34 @@
           "name": { "$ref": "#/$defs/ident" },
           "base": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
           "size": { "type": "integer", "minimum": 1 },
+          "reserved": { "type": "boolean" },
           "doc": { "type": "string" }
         }
       }
     },
-    "test_irqs": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
+    "test_irqs": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "integer", "minimum": 0 } },
     "debug_probe": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "openocd": { "type": "string" }, "pyocd_target": { "type": "string" } }
+      "properties": {
+        "openocd": { "type": "string" },
+        "pyocd_target": { "type": "string" },
+        "avrdude": {
+          "type": "object",
+          "required": ["part", "programmer", "baud"],
+          "additionalProperties": false,
+          "properties": { "part": { "type": "string" }, "programmer": { "type": "string" }, "baud": { "type": "integer", "minimum": 1 } }
+        }
+      }
     },
     "simulation": {
       "type": "object",
       "additionalProperties": false,
-      "properties": { "embsim": { "type": "string" } }
+      "properties": {
+        "embsim": { "type": "string" },
+        "qemu": { "type": "array", "items": { "type": "string" } },
+        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim", "hil"] } }
+      }
     },
     "defaults": {
       "type": "object",

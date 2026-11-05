@@ -13,16 +13,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import esp_image  # noqa: E402
 
 
-def elf(entry, segments):
-    """A minimal ELF32 with one PT_LOAD per (address, data, memsz) segment"""
+def elf(entry, segments, machine=243):
+    """A minimal ELF32 with one PT_LOAD per (address, data, memsz[, load address]) segment"""
     phoff = 52
     data_off = phoff + 32 * len(segments)
     hdr = bytearray(b"\x7fELF\x01\x01\x01" + b"\0" * 9)
-    hdr += struct.pack("<HHIIIIIHHHHHH", 2, 243, 1, entry, phoff, 0, 0, 52, 32, len(segments), 40, 0, 0)
+    hdr += struct.pack("<HHIIIIIHHHHHH", 2, machine, 1, entry, phoff, 0, 0, 52, 32, len(segments), 40, 0, 0)
     ph = bytearray()
     body = bytearray()
-    for addr, data, memsz in segments:
-        ph += struct.pack("<IIIIIIII", 1, data_off + len(body), addr, addr, len(data), memsz, 5, 4)
+    for seg in segments:
+        addr, data, memsz = seg[:3]
+        lma = seg[3] if len(seg) > 3 else addr
+        ph += struct.pack("<IIIIIIII", 1, data_off + len(body), addr, lma, len(data), memsz, 5, 4)
         body += data
     return bytes(hdr + ph + body)
 
@@ -54,6 +56,24 @@ class ImageTest(unittest.TestCase):
         self.assertTrue(all(b == 0 for b in img[off:end - 1]))
         self.assertEqual(img[end - 1], checksum)
         self.assertEqual(img[end:], hashlib.sha256(img[:end]).digest())
+
+    def test_esp32(self):
+        """The ESP32: chip ID 0, 40 MHz flash, and each segment at its run address, as a
+        linker that stores .data after the code (embld -Tdata) leaves it."""
+        code = bytes(range(8))
+        data = b"\x11\x22\x33\x44"
+        f = elf(0x40080468, [(0x40080400, code, 8), (0x3FFF0000, data, 4, 0x40080408)], machine=94)
+        segs, entry = esp_image.load_segments(f, at_vaddr=True)
+        self.assertEqual([a for a, _ in segs], [0x3FFF0000, 0x40080400])
+        img = esp_image.image(segs, entry, "esp32")
+        _, count, mode, speed_size, ent = struct.unpack_from("<BBBBI", img, 0)
+        self.assertEqual((count, mode, speed_size, ent), (2, 2, 0x20, 0x40080468))
+        _wp, _drv, chip, _minrev, _minfull, maxfull, _res, hashed = struct.unpack_from("<B3sHBHH4sB", img, 8)
+        self.assertEqual((chip, maxfull, hashed), (0, 399, 1))
+        self.assertEqual(struct.unpack_from("<II", img, 24), (0x3FFF0000, 4))
+        # the C3's default keeps the load address
+        segs, _ = esp_image.load_segments(f)
+        self.assertEqual(sorted(a for a, _ in segs), [0x40080400, 0x40080408])
 
     def test_refuses_what_is_not_an_elf(self):
         with self.assertRaises(ValueError):

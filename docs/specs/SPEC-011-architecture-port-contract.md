@@ -183,7 +183,7 @@ void emb_arch_syscall_return(uintptr_t status) __attribute__((noreturn));
 - The port contributes to the debug descriptor (ADR-011): the context frame layout (register offsets from the saved stack pointer), the `emb_arch_tcb_t` layout, the fault record register layout, the interrupt stack bounds, and the port name and variant.
 - `emb_arch_breakpoint()` (`bkpt`, `ebreak`, `break` on AVR via the debugWIRE convention, a host trap on native) is what `EMB_CHECK` and kernel faults use to stop under a debugger when `CONFIG_EMB_FAULT_HALT_FOR_DEBUG` is set.
 - `emb_arch_trace_timestamp()` is `emb_arch_cycles()` unless the port has a better trace clock.
-- The current fault API uses `emb_arch_fault_halt` and `emb_arch_reset`; retained crash records and the descriptor are planned.
+- The current fault API uses `emb_arch_fault_halt` and `emb_arch_reset`, which ends in `emb_arch_system_reset()`. The crash record's memory is `emb_arch_retained()`, kept by `emb_arch_retained_sync()` where the memory itself does not survive (native), A73. The descriptor is planned.
 
 - EmbCC now emits AVR function/global/line DWARF and has an AVR remote register layout (09 §7 and §10). The descriptor remains a target for RTOS context/thread awareness independent of compiler debug info. Current EmbCC RTOS debugging is unqualified; no AVR `.debug_frame` is emitted and EmbDBG unwinding stops at frame 0. GCC debugging remains a useful reference.
 

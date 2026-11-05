@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The MPS2 FPGA images as QEMU models them (machines mps2-an385, mps2-an386): code in ZBT SSRAM1,
+# data in ZBT SSRAM2/3, the CMSDK APB UART0 and the FPGA I/O block, a fixed 25 MHz clock. An
+# emulation reference (SIM-002), not a hardware target. A part file names the core.
+schema_version: 0
+kind: soc
+name: mps2
+vendor: arm
+family: mps2
+abstract: true
+curated: true
+doc: From QEMU's hw/arm/mps2.c and Arm's AN385 and AN386 application notes.
+memory:
+  regions:
+    - { name: code, base: 0x00000000, size: 4M, attrs: [r, x, boot] }
+    - { name: ram, base: 0x20000000, size: 4M, attrs: [r, w, x] }
+clocks:
+  sources:
+    - { name: sysclk, hz: 25MHz, doc: "the FPGA's fixed system clock" }
+interrupts:
+  controller: nvic
+  count: 32
+  priority_bits: 3
+  systick: true
+  # lines no QEMU device drives: free for the conformance framework's software interrupts
+  reserved: [30, 31]
+peripherals:
+  - { name: uart0, compatible: "arm,cmsdk-uart", base: 0x40004000, size: 0x1000 }
+  - { name: fpgaio, compatible: "arm,mps2-fpgaio", base: 0x40028000, size: 0x1000, doc: LED0 at offset 0 }
+debug: { swd: true }

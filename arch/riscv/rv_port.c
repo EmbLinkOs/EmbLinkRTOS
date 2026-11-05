@@ -164,10 +164,71 @@ void emb_arch_reset(const emb_fault_info_t *info)
 {
     __asm__ __volatile__("csrci mstatus, 8" ::: "memory");
     emb_board_fault_report(info);
+    emb_arch_system_reset();
+}
+
+/* No architectural reset in machine mode: the board's, when it has one. */
+EMB_WEAK void emb_board_system_reset(void);
+EMB_WEAK void emb_board_system_reset(void)
+{
+}
+
+void emb_arch_system_reset(void)
+{
+    __asm__ __volatile__("csrci mstatus, 8" ::: "memory");
+    emb_board_system_reset();
     for (;;) {
-        /* no architectural reset in machine mode: the board's watchdog, when it has one */
+        /* a board without a reset stops here */
     }
 }
+
+#if CONFIG_EMB_CRASH_RECORD
+/* The linker script's area above the stack, outside every loaded segment (A73). */
+extern uint8_t __emb_retained_start[];
+extern uint8_t __emb_retained_end[];
+
+uint8_t *emb_arch_retained(uint16_t *size)
+{
+    *size = (uint16_t)(__emb_retained_end - __emb_retained_start);
+    return __emb_retained_start;
+}
+
+void emb_arch_retained_sync(bool store)
+{
+    (void)store; /* the memory itself survives */
+}
+
+/* A hardware fault's state for the crash record (A74): mcause, mtval, mepc and the frame's
+ * mstatus, then ra and a0 to a7 from the trap frame (rv_switch.S: word 1 ra, 7 to 14 a0 to a7,
+ * 29 mstatus). Software faults have nothing to add. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr)
+{
+    const uint32_t *frame = (const uint32_t *)info->sp;
+    uint32_t mcause;
+    uint8_t n = 0u;
+    uint8_t i;
+    *status_count = 0u;
+    *lr = 0u;
+    if (info->fault_class != EMB_FAULT_HARDWARE || frame == NULL || max < 4u) {
+        return 0u;
+    }
+    __asm__ __volatile__("csrr %0, mcause" : "=r"(mcause));
+    regs[n++] = mcause;
+    regs[n++] = (uint32_t)info->address; /* mtval */
+    regs[n++] = (uint32_t)info->pc;      /* mepc */
+    regs[n++] = frame[29];               /* mstatus */
+    *status_count = n;
+    if (n < max) {
+        regs[n++] = frame[1]; /* ra */
+    }
+    for (i = 7u; i <= 14u && n < max; i++) { /* a0 to a7 */
+        regs[n++] = frame[i];
+    }
+    *lr = frame[1];
+    return n;
+}
+#endif
 
 void emb_rv_halt(void)
 {

@@ -7,4 +7,5 @@ avr
 cortex_m
 native
 riscv
+xtensa
 ```

@@ -172,8 +172,8 @@ KRN-IRQ-001 to 003 and 010 to 016 originate in the v0.1 specification (§3.7 and
 ### KRN-IRQ-030  Exceptions route to the fault manager
 **Statement.** Synchronous faults shall enter through the architecture fault entry, which shall capture the available context and dispatch to the fault manager, classifying a fault from an unprivileged partition as a partition fault and any other as a kernel fault. System-call traps shall not be treated as faults. The crash record shall be written before any recovery action.
 **Rationale.** Fault handling that is designed, not improvised (01 §6); isolation requires the partition classification.
-**Status.** Accepted 2026-10-07
-**Verification.** Test: provoked faults of each class on native and Cortex-M (emulated) produce decodable crash records and the right classification.
+**Status.** Accepted 2026-10-07; the crash record is written before any recovery action (A73); hardware faults on Cortex-M and RISC-V reach it through the existing fault entry.
+**Verification.** Test: provoked faults of each class on native and Cortex-M (emulated) produce decodable crash records and the right classification. Test: `test_crash_reset` (the fault hook resets after the record is written).
 **Trace.** SPEC-002 §9; 03 §10; FLT-001, FLT-002
 
 ### KRN-IRQ-031  Timer interrupt level and bound

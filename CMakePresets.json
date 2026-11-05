@@ -148,14 +148,15 @@
     },
     {
       "name": "avr-uno-embsim",
-      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked, tests on EmbSIM's Uno",
+      "displayName": "Arduino Uno, avr-gcc, tiny profile, checked, crash record on, tests on EmbSIM's Uno",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno-embsim",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
       "cacheVariables": {
         "EMB_BOARD": "arduino_uno",
         "EMB_PROFILE": "tiny",
-        "EMB_TEST_EMULATOR": "embsim"
+        "EMB_TEST_EMULATOR": "embsim",
+        "EMB_SET": "EMB_CRASH_RECORD=y"
       }
     },
     {
@@ -212,13 +213,38 @@
       }
     },
     {
+      "name": "avr-uno-hil",
+      "displayName": "Arduino Uno R3 (the physical board), avr-gcc, tiny profile, checked, crash record on (set EMB_HIL_PORT to its USB serial port)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_TEST_EMULATOR": "hil",
+        "EMB_SET": "EMB_CRASH_RECORD=y"
+      }
+    },
+    {
+      "name": "cm4-nucleo-hil",
+      "displayName": "NUCLEO-F446RE (Cortex-M4F), GCC, base profile, checked, tests on the physical board (set EMB_HIL_PORT to its ST-LINK console)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-nucleo-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "nucleo_f446re",
+        "EMB_TEST_EMULATOR": "hil"
+      }
+    },
+    {
       "name": "cm4-nucleo-f446ze",
-      "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, build only: the second board on the STM32F446, from its YAML description alone",
+      "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, tests on EmbSIM's NUCLEO-F446ZE: the second board on the STM32F446, from its YAML description alone",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/cm4-nucleo-f446ze",
       "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
       "cacheVariables": {
-        "EMB_BOARD": "nucleo_f446ze"
+        "EMB_BOARD": "nucleo_f446ze",
+        "EMB_TEST_EMULATOR": "embsim"
       }
     },
     {
@@ -373,6 +399,14 @@
     {
       "name": "cm4-nucleo-f446ze",
       "configurePreset": "cm4-nucleo-f446ze"
+    },
+    {
+      "name": "cm4-nucleo-hil",
+      "configurePreset": "cm4-nucleo-hil"
+    },
+    {
+      "name": "avr-uno-hil",
+      "configurePreset": "avr-uno-hil"
     },
     {
       "name": "rv32-virt",
@@ -537,6 +571,27 @@
     {
       "name": "cm4-nucleo-embsim",
       "configurePreset": "cm4-nucleo-embsim",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-nucleo-f446ze",
+      "configurePreset": "cm4-nucleo-f446ze",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-nucleo-hil",
+      "configurePreset": "cm4-nucleo-hil",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-hil",
+      "configurePreset": "avr-uno-hil",
       "output": {
         "outputOnFailure": true
       }

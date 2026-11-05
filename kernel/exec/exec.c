@@ -11,6 +11,7 @@
 #include <emb/sched.h>
 #include <emb/version.h>
 
+#include <embk/crash.h>
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/thread.h>
@@ -44,6 +45,9 @@ void emb_kernel_init(void)
         embk_fault_raise_api(EMB_API_ID_KERNEL_INIT, EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
     }
     emb_arch_init();
+#if CONFIG_EMB_CRASH_RECORD
+    embk_crash_record_boot(); /* what the previous run left, before anything can fault */
+#endif
     embk_sched_init();
     embk_time_init();
     embk_thread_init_subsystem();

@@ -5,7 +5,7 @@
 #   arch/cortex_m/arch.yaml
 #     8dba6ed12ea59f8d198019b7f4fb74638dd8703722e49ccf6bc0b808423d903c
 #   boards/st/nucleo_f446ze/board.yaml
-#     52eb8470d22d27952ef2279e87e491b0fe0c4d0b027c4b35a3f5c5836d1968fa
+#     4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml

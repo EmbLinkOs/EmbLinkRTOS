@@ -88,6 +88,20 @@ EMB_NORETURN void emb_arch_fault_halt(
     const emb_fault_info_t *info); /* FAULT_ACTION=HALT; info may be NULL */
 EMB_NORETURN void emb_arch_reset(const emb_fault_info_t *info); /* FAULT_ACTION=REBOOT */
 void emb_arch_breakpoint(void);
+/* The plain reset emb_arch_reset() ends in, without the board's report (A73). */
+EMB_NORETURN void emb_arch_system_reset(void);
+
+/* ---- retained memory (§11, SPEC-015 §4; CONFIG_EMB_CRASH_RECORD) ---------------- */
+/* Memory neither startup nor the port's reset clears; *size its bytes. NULL: none. */
+uint8_t *emb_arch_retained(uint16_t *size);
+/* store: after the kernel wrote it; !store: at boot, before it is read. A no-op where the
+ * memory itself survives; the native port keeps it in $EMB_NATIVE_CRASH_FILE. */
+void emb_arch_retained_sync(bool store);
+/* The architecture state of a fault for the crash record (A74): at most max words, the first
+ * *status_count of them fault status registers, then general registers; *lr the link register
+ * or return address. Returns the number of words; 0 where the port has nothing to add. */
+uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_t max,
+                            uint8_t *status_count, uint32_t *lr);
 
 /* ---- kernel hooks the port calls ---------------------------------------------- */
 void embk_isr_enter(void);             /* kernel-aware interrupt entry: depth++ */

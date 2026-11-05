@@ -865,6 +865,18 @@
       "name": "emb_workq_reset_stats",
       "header": "work.h",
       "state": "active"
+    },
+    {
+      "id": 145,
+      "name": "emb_crash_record_get",
+      "header": "crash.h",
+      "state": "active"
+    },
+    {
+      "id": 146,
+      "name": "emb_crash_record_clear",
+      "header": "crash.h",
+      "state": "active"
     }
   ]
 }

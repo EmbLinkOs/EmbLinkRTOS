@@ -97,10 +97,12 @@ EMB_TEST(first_execution_sequence_repeats_reliably)
         EMB_ASSERT_EQ(el, ROUNDS / 100u + 1u); /* one tick per hundred rounds, plus the stop */
         EMB_ASSERT_EQ(ticks_seen, el);         /* the timer thread saw every tick */
 #else
-        /* real time: the timer thread may start up to one tick after t0, and one tick may
-         * pass between its last wake and this read; it never counts more than elapsed */
+        /* real time: the timer thread counts from its own start, which creating the threads
+         * can delay by several ticks on a slow target (the ESP32-C3 at 20 MHz from flash), and
+         * one tick may pass between its last wake and this read; it never counts more */
+        uint32_t since = el - (timer_start - t0);
         EMB_ASSERT_TRUE(el >= ROUNDS / 100u);
-        EMB_ASSERT_TRUE(ticks_seen <= el && ticks_seen + 2u >= el);
+        EMB_ASSERT_TRUE(ticks_seen <= since && ticks_seen + 2u >= since);
 #endif
     }
 }
