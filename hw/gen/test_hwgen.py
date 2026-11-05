@@ -239,12 +239,38 @@ class Negative(unittest.TestCase):
 
 class Outputs(unittest.TestCase):
     def test_committed_outputs_are_current(self):
-        """HW-003: the committed generated/ directory is exactly what the descriptions give."""
-        files, _ = generate.generate(ROOT / BOARD, ROOT)
-        gen = ROOT / BOARD / "generated"
-        self.assertEqual(sorted(files), sorted(p.name for p in gen.iterdir() if p.is_file()))
-        for name, text in files.items():
-            self.assertEqual((gen / name).read_text(encoding="utf-8"), text, name)
+        """HW-003: every committed generated/ directory is exactly what the descriptions give."""
+        boards = sorted(p.parent for p in ROOT.glob("boards/*/*/generated"))
+        self.assertGreaterEqual(len(boards), 2)
+        for board in boards:
+            files, _ = generate.generate(board, ROOT)
+            gen = board / "generated"
+            with self.subTest(board=board.name):
+                self.assertEqual(sorted(files), sorted(p.name for p in gen.iterdir() if p.is_file()))
+                for name, text in files.items():
+                    self.assertEqual((gen / name).read_text(encoding="utf-8"), text, name)
+
+    def test_second_board_on_the_soc_needs_no_c(self):
+        """SPEC-014 §11, the M3a generator gate: the NUCLEO-F446ZE is a description only, built by the
+        same SoC support and drivers as the NUCLEO-F446RE."""
+        ze = ROOT / "boards/st/nucleo_f446ze"
+        self.assertEqual(sorted(p.name for p in ze.iterdir() if not p.name.startswith(".")), ["board.yaml", "generated"])
+        c_files = [p for p in (ze / "generated").iterdir() if p.suffix in (".c", ".h")]
+        files, warnings = generate.generate(ze, ROOT)
+        self.assertEqual(sorted(p.name for p in c_files), ["board_pins.c", "hw_config.h"])
+        for p in c_files:
+            self.assertEqual(p.read_text(encoding="utf-8"), files[p.name])  # generated, not edited
+        re_cmake = (ROOT / BOARD / "generated/board.cmake").read_text(encoding="utf-8")
+        self.assertIn('set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")', re_cmake)
+        self.assertIn('set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/st/stm32f4")', files["board.cmake"])
+        self.assertTrue(any("nucleo_f446ze/board.yaml" in w and "uncurated" in w for w in warnings))
+
+    def test_second_board_solves_its_own_clock(self):
+        data = json.loads(generate.generate(ROOT / "boards/st/nucleo_f446ze", ROOT)[0]["hw.json"])
+        pll = data["derived"]["clock"]["pll"]
+        self.assertEqual((pll["m"], pll["n"], pll["p"], pll["q"]), (4, 180, 2, 8))
+        self.assertEqual(data["derived"]["console"]["device"], "usart3")
+        self.assertEqual([p["pin"] for p in data["derived"]["pins"] if p["mode"] == "af"], ["PD8", "PD9"])
 
     def test_deterministic_and_location_independent(self):
         """HW-013: two runs agree byte for byte, and so does a copy of the inputs elsewhere."""

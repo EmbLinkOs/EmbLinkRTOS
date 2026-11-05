@@ -212,6 +212,16 @@
       }
     },
     {
+      "name": "cm4-nucleo-f446ze",
+      "displayName": "NUCLEO-F446ZE (Cortex-M4F), GCC, base profile, checked, build only: the second board on the STM32F446, from its YAML description alone",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-nucleo-f446ze",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "nucleo_f446ze"
+      }
+    },
+    {
       "name": "rv32-virt",
       "displayName": "RV32IMAC (QEMU virt), GCC, base profile, checked",
       "generator": "Ninja",
@@ -359,6 +369,10 @@
     {
       "name": "cm4-nucleo-embsim",
       "configurePreset": "cm4-nucleo-embsim"
+    },
+    {
+      "name": "cm4-nucleo-f446ze",
+      "configurePreset": "cm4-nucleo-f446ze"
     },
     {
       "name": "rv32-virt",

@@ -325,6 +325,10 @@ jobs:
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
         run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
+      - name: Second STM32F446 board from its description alone, build only (SPEC-014 §11)
+        run: |
+          cmake --preset cm4-nucleo-f446ze
+          cmake --build --preset cm4-nucleo-f446ze
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json

@@ -60,7 +60,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 ### HW-008  SoC and board content
 **Statement.** A SoC description shall carry `arch`, `cpu`, `memory`, `interrupts`, and `peripherals` (clocks, DMA, flash, power, errata, debug optional) and shall reference a port manifest; a board description shall carry the SoC reference, oscillators, pins, devices, console, flash partitions, LEDs, buttons, probe hints, and defaults.
 **Rationale.** SPEC-014 §3, §4 fix what the generator can rely on.
-**Status.** Accepted 2026-10-07; partly implemented: the STM32F446 (RE and ZE parts) and the NUCLEO-F446RE validate; the STM32F407, RP2350 and ATmega328P descriptions do not exist yet.
+**Status.** Accepted 2026-10-07; partly implemented: the STM32F446 (RE and ZE parts), the NUCLEO-F446RE and the NUCLEO-F446ZE validate; the STM32F407, RP2350 and ATmega328P descriptions do not exist yet.
 **Verification.** Schema required fields; the STM32F407, RP2350, and ATmega328P descriptions validate. Test: `Loader.test_every_part_validates`.
 **Trace.** SPEC-014 §3, §4
 

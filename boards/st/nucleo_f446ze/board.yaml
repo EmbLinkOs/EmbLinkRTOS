@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Board description (SPEC-014 §4): NUCLEO-F446ZE, MB1137 (UM1974). The second board on the
+# STM32F446: it has no C of its own (SPEC-014 §11). Uncurated until checked on a physical board.
+schema_version: 0
+kind: board
+name: nucleo_f446ze
+vendor: st
+revision: MB1137
+soc: st/stm32f4/stm32f446ze.yaml
+curated: false
+doc: >-
+  The STM32F446ZE (LQFP144) at 180 MHz from the PLL, its input the ST-LINK/V2-1's 8 MHz MCO
+  in HSE bypass, the board's default clock configuration (UM1974 §6.7.1). The console is
+  USART3 on PD8 and PD9, which the ST-LINK carries as its virtual COM port.
+oscillators:
+  hse: { hz: 8MHz, source: external_clock }   # the ST-LINK's MCO
+  lse: { hz: 32768, source: external_crystal } # X2
+clocks:
+  cpu_hz: 180MHz
+  source: hse
+pins:
+  usart3: { tx: PD8.af7, rx: PD9.af7 }
+console: { device: usart3, baud: 115200 }
+leds:
+  - { name: green, gpio: PB0, active: high, doc: LD1 }
+  - { name: blue, gpio: PB7, active: high, doc: LD2 }
+  - { name: red, gpio: PB14, active: high, doc: LD3 }
+buttons: [ { name: user, gpio: PC13, active: high, doc: B1 } ]
+flash_partitions:
+  - { name: app, base: 0x08000000, size: 512K }
+test_irqs: [61, 62]
+debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446zetx }
+defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }
