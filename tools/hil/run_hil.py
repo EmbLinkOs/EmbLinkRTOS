@@ -56,7 +56,7 @@ END = b"EMB_TEST_END"
 CASE = re.compile(rb"^CASE (\S+) outcome=(\w+) asserts=(\d+) skips=(\d+)", re.M)
 EVIDENCE = re.compile(rb"^EVIDENCE v1 (.*)$", re.M)
 BENCH = re.compile(rb"^BENCH v1 name=(\S+)(.*)$", re.M)
-FAULT_CHECK = re.compile(rb"^  fault check \d+ \(line \d+\): the board reset", re.M)
+FAULT_CHECKS = re.compile(rb"^  fault checks that reset the board: (\d+)", re.M)
 ROOT = Path(__file__).resolve().parents[2]
 BAUD = {9600: termios.B9600, 19200: termios.B19200, 38400: termios.B38400, 57600: termios.B57600,
         115200: termios.B115200, 230400: getattr(termios, "B230400", termios.B115200)}
@@ -182,7 +182,7 @@ def parse_console(buf):
                           "skipped": int(m.group(3)) if m.group(3) else None}
     rec["cases"] = [{"name": c.group(1).decode(errors="replace"), "outcome": c.group(2).decode(),
                      "asserts": int(c.group(3)), "skips": int(c.group(4))} for c in CASE.finditer(buf)]
-    rec["fault_checks_by_reset"] = len(FAULT_CHECK.findall(buf))
+    rec["fault_checks_by_reset"] = sum(int(n) for n in FAULT_CHECKS.findall(buf))
     ev = EVIDENCE.search(buf)
     if ev:
         rec["evidence"] = dict(f.split("=", 1) for f in ev.group(1).decode(errors="replace").split() if "=" in f)

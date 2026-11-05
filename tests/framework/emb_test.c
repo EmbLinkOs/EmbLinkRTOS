@@ -332,7 +332,7 @@ void emb_test_threads_reset(void)
 
 #if EMB_TEST_FAULT_BY_RESET
 #define RESUME_MAGIC          0x4D52u /* "RM" */
-#define RESUME_PENDING        0xA5u
+#define RESUME_PENDING        0xA0u
 #define RESULT_KERNEL_FAULT   1u
 #define RESULT_HARDWARE_FAULT 2u
 #define NO_CASE               0xFFFFu
@@ -348,20 +348,20 @@ typedef struct resume {
     uint8_t ran;        /* totals before the case */
     uint8_t failures;
     uint8_t skips;
-    uint8_t result;      /* RESULT_* */
-    uint8_t pending;     /* RESUME_PENDING: the framework asked for this reset */
+    uint8_t state;       /* RESUME_PENDING in the high nibble when the framework asked for
+          this reset; RESULT_* in the low one */
+    uint8_t settled;     /* the case's checks settled before this one */
     uint8_t case_failed; /* the case had failed before the check */
     uint32_t sum;        /* FNV-1a over the bytes before it */
 } resume_t;
 
 static resume_t resume; /* the record being built or the one read at boot */
 static uint16_t resume_case = NO_CASE;
-static uint16_t case_index;    /* the running case's position in the table */
-static uint16_t case_check;    /* fault checks begun in the running case */
-static uint8_t armed;          /* a check's statement is running */
-static unsigned armed_line;    /* and where it is */
-static uint16_t settled_check; /* the check this boot settled, reported after its case */
-static unsigned settled_line;
+static uint16_t case_index;  /* the running case's position in the table */
+static uint16_t case_check;  /* fault checks begun in the running case */
+static uint8_t armed;        /* a check's statement is running */
+static unsigned armed_line;  /* and where it is */
+static uint8_t case_settled; /* the running case's checks that reset the board as expected */
 static const char *armed_what;
 
 static uint32_t fnv(const uint8_t *p, size_t n, uint32_t h)
@@ -419,7 +419,7 @@ static bool resume_load(void)
         dst[i] = mem[i];
     }
     ok = resume.magic == RESUME_MAGIC && resume.sum == resume_sum(&resume) &&
-         resume.pending == RESUME_PENDING && resume.image == image_id();
+         (resume.state & 0xF0u) == RESUME_PENDING && resume.image == image_id();
     for (i = 0u; i < sizeof(resume); i++) {
         mem[i] = 0u;
     }
@@ -433,9 +433,9 @@ static void fault_observed(const emb_fault_info_t *info)
     if (armed == 0u) {
         return; /* not a check's fault: the configured action follows */
     }
-    resume.result = (info->fault_class == EMB_FAULT_HARDWARE) ? RESULT_HARDWARE_FAULT
-                                                              : RESULT_KERNEL_FAULT;
-    resume.pending = RESUME_PENDING;
+    resume.state = (uint8_t)(RESUME_PENDING |
+                             ((info->fault_class == EMB_FAULT_HARDWARE) ? RESULT_HARDWARE_FAULT
+                                                                        : RESULT_KERNEL_FAULT));
     resume_store();
     emb_arch_system_reset();
 }
@@ -469,14 +469,15 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
             /* the check the last boot faulted at: its outcome */
             muted = false;
             resume_case = NO_CASE;
-            settled_check = case_check; /* printed after the case: output takes ticks */
-            settled_line = line;
+            case_settled = resume.settled;
             if (resume.case_failed != 0u) {
                 current_failed = 1u; /* printed on the boot that failed */
             }
 #if CONFIG_EMB_CHECKED
-            if (resume.result != RESULT_KERNEL_FAULT) {
+            if ((resume.state & 0x0Fu) != RESULT_KERNEL_FAULT) {
                 emb_test_fail(line, EMB_TEST_STR("a hardware fault, not a kernel fault"));
+            } else {
+                case_settled++;
             }
 #else
             emb_test_fail(line, EMB_TEST_STR("release build: misuse must return a status, not "
@@ -497,8 +498,8 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
     resume.ran = (uint8_t)ran;
     resume.failures = (uint8_t)failures;
     resume.skips = (uint8_t)(skips - current_skips); /* the case's own are counted again */
-    resume.result = 0u;
-    resume.pending = 0u;
+    resume.state = 0u;
+    resume.settled = case_settled;
     resume.case_failed = (uint8_t)current_failed;
     hook_install(true);
     armed_line = line;
@@ -560,6 +561,7 @@ static void runner(void *arg)
         replay = index == (unsigned)resume_case;
         case_index = (uint16_t)index;
         case_check = 0u;
+        case_settled = 0u;
 #endif
         current_failed = 0u;
         current_asserts = 0u;
@@ -584,15 +586,13 @@ static void runner(void *arg)
 #endif
         muted = false;
 #if EMB_TEST_FAULT_BY_RESET
-        if (settled_check != 0u) {
+        if (case_settled != 0u) {
             /* not emb_test_logf: its formatter's frames are more than the AVR runner's stack
              * spares; printed only now, since output inside a case takes ticks */
-            emb_test_puts_flash(EMB_TEST_STR("  fault check "));
-            emb_board_put_u32((uint32_t)settled_check);
-            emb_test_puts_flash(EMB_TEST_STR(" (line "));
-            emb_board_put_u32((uint32_t)settled_line);
-            emb_test_puts_flash(EMB_TEST_STR("): the board reset after the fault\n"));
-            settled_check = 0u;
+            emb_test_puts_flash(EMB_TEST_STR("  fault checks that reset the board: "));
+            emb_board_put_u32((uint32_t)case_settled);
+            emb_test_puts_flash(EMB_TEST_STR("\n"));
+            case_settled = 0u;
         }
 #endif
         ran++;

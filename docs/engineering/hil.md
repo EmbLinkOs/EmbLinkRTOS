@@ -47,7 +47,7 @@ The exit status is 0 on a pass, 1 on failures, and 2 on a flash failure or a tim
 
 **Fault checks run on the board (A89).** A misuse check (`EMB_ASSERT_FAULTS`, `EMB_ASSERT_MISUSE` in checked builds) runs its statement in place on a board whose reset keeps RAM (`EMB_BOARD_RESETS_IN` in `board.cmake`: the Uno and the NUCLEO on hardware and EmbSIM, the MPS2 and RV32 virt boards under QEMU).
 - The kernel's fault resets the board through the test framework's fault hook, after the kernel has written the crash record.
-- The next boot reads the framework's 64 retained bytes and skips the cases already finished. It replays the faulting case with its output held back, up to that check, and when the case ends it prints `fault check N (line L): the board reset after the fault`.
+- The next boot reads the framework's 64 retained bytes and skips the cases already finished. It replays the faulting case with its output held back, up to that check, and when the case ends it prints `fault checks that reset the board: N`. The record carries N across the boots.
 - The run's console therefore spans several boots, and the runner reads straight through them.
 - A check whose statement returns fails in a checked build. A fault fails in a release build.
 
