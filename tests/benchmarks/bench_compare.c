@@ -100,11 +100,11 @@ void bench_platform_init(void);
 void bench_puts(const char *s);
 void bench_test_irq_enable(void);
 void bench_isr(void);
+void bench_trigger(void);
 
-#define SYST_RVR  (*(volatile uint32_t *)0xE000E014u)
-#define SYST_CVR  (*(volatile uint32_t *)0xE000E018u)
-#define SCB_ICSR  (*(volatile uint32_t *)0xE000ED04u)
-#define NVIC_ISPR (*(volatile uint32_t *)(0xE000E200u + 4u * (BENCH_TEST_IRQ / 32u)))
+#define SYST_RVR (*(volatile uint32_t *)0xE000E014u)
+#define SYST_CVR (*(volatile uint32_t *)0xE000E018u)
+#define SCB_ICSR (*(volatile uint32_t *)0xE000ED04u)
 
 /* CPU cycles from SysTick, as the EmbLinkRTOS Cortex-M port's emb_arch_cycles(): the ticks
  * times the reload, plus the current count, with a tick pending but not yet counted added */
@@ -341,11 +341,7 @@ void bench_isr(void)
     (void)xSemaphoreGiveFromISR(s_isr, &woken);
     portYIELD_FROM_ISR(woken);
 }
-#define TRIGGER()                                    \
-    do {                                             \
-        NVIC_ISPR = 1u << (BENCH_TEST_IRQ % 32u);    \
-        __asm__ volatile("dsb\n\tisb" ::: "memory"); \
-    } while (0)
+#define TRIGGER() bench_trigger() /* the NVIC pend and its barriers (bench_platform.c) */
 #elif defined(BENCH_FREERTOS)
 ISR(USART_UDRE_vect)
 {

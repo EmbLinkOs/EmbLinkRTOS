@@ -12,8 +12,9 @@
  */
 #include "FreeRTOS.h"
 
-#include <hw_config.h>
 #include <stdint.h>
+
+#include <hw_config.h>
 
 #if BENCH_NUCLEO
 #include <emb_stm32_drivers.h>
@@ -27,6 +28,7 @@ extern const unsigned emb_board_pin_count;
 #define SCB_CPACR    0xE000ED88u
 #define NVIC_ISER(n) (0xE000E100u + 4u * (n))
 #define NVIC_IPR(n)  (0xE000E400u + (n))
+#define NVIC_ISPR(n) (0xE000E200u + 4u * (n))
 
 void bench_platform_init(void);
 void bench_puts(const char *s);
@@ -49,14 +51,15 @@ static void unexpected(void)
 }
 
 typedef void (*vector_t)(void);
-__attribute__((section(".vectors"), used)) static const vector_t vectors[16 + BENCH_TEST_IRQ + 1] = {
+__attribute__((section(".vectors"),
+               used)) static const vector_t vectors[16 + BENCH_TEST_IRQ + 1] = {
     [0] = (vector_t)(uintptr_t)&msp_stack[sizeof(msp_stack)],
     [1] = embn_cm_reset,
-    [2] = unexpected,  /* NMI */
-    [3] = unexpected,  /* HardFault */
-    [4] = unexpected,  /* MemManage */
-    [5] = unexpected,  /* BusFault */
-    [6] = unexpected,  /* UsageFault */
+    [2] = unexpected, /* NMI */
+    [3] = unexpected, /* HardFault */
+    [4] = unexpected, /* MemManage */
+    [5] = unexpected, /* BusFault */
+    [6] = unexpected, /* UsageFault */
     [11] = vPortSVCHandler,
     [12] = unexpected, /* DebugMon */
     [14] = xPortPendSVHandler,
@@ -126,4 +129,12 @@ void bench_test_irq_enable(void)
 {
     REG8(NVIC_IPR(BENCH_TEST_IRQ)) = (uint8_t)(3u << (8u - configPRIO_BITS));
     REG32(NVIC_ISER(BENCH_TEST_IRQ / 32u)) = 1u << (BENCH_TEST_IRQ % 32u);
+}
+
+/* bench_compare's interrupt: the test line pended in the NVIC, as emb_irq_pend() does */
+void bench_trigger(void);
+void bench_trigger(void)
+{
+    REG32(NVIC_ISPR(BENCH_TEST_IRQ / 32u)) = 1u << (BENCH_TEST_IRQ % 32u);
+    __asm__ volatile("dsb\n\tisb" ::: "memory");
 }

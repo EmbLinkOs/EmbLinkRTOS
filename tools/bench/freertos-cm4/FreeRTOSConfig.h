@@ -43,15 +43,15 @@
 /* The Cortex-M port's interrupt priorities: the kernel's at the lowest level, and every
  * interrupt that calls a FromISR function at or below configMAX_SYSCALL_INTERRUPT_PRIORITY,
  * level 2 of the board's levels (bench_platform.c puts the test line below it). */
-#define configPRIO_BITS                         BENCH_PRIO_BITS
-#define configKERNEL_INTERRUPT_PRIORITY         (0xFFu)
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY    (2u << (8u - configPRIO_BITS))
+#define configPRIO_BITS                      BENCH_PRIO_BITS
+#define configKERNEL_INTERRUPT_PRIORITY      (0xFFu)
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY (2u << (8u - configPRIO_BITS))
 
-#define INCLUDE_vTaskSuspend                    1
-#define INCLUDE_vTaskDelay                      0
-#define INCLUDE_vTaskDelete                     0
-#define INCLUDE_vTaskPrioritySet                0
-#define INCLUDE_uxTaskPriorityGet               0
-#define INCLUDE_xTaskGetSchedulerState          0
+#define INCLUDE_vTaskSuspend           1
+#define INCLUDE_vTaskDelay             0
+#define INCLUDE_vTaskDelete            0
+#define INCLUDE_vTaskPrioritySet       0
+#define INCLUDE_uxTaskPriorityGet      0
+#define INCLUDE_xTaskGetSchedulerState 0
 
 #endif /* FREERTOS_CONFIG_H */
