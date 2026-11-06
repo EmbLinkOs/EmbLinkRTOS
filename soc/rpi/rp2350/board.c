@@ -183,10 +183,50 @@ void emb_board_put_u32(uint32_t v)
     emb_board_puts(&buf[i]);
 }
 
+/* set for a test image built for the board (EMB_TEST_EMULATOR=hil, the SoC's CMakeLists.txt) */
+#ifndef EMB_RP2350_EXIT_TO_BOOTSEL
+#define EMB_RP2350_EXIT_TO_BOOTSEL 0
+#endif
+
+#if EMB_RP2350_EXIT_TO_BOOTSEL
+/* The boot ROM's reboot (RP2350 datasheet §5.4.8.24; pico-sdk 2.1.1's bootrom_constants.h and
+ * picoboot_constants.h): the table lookup function is the halfword pointer at 0x16, asked for
+ * code 'R','B' with RT_FLAG_FUNC_ARM_SEC (this code runs in the Secure state). */
+#define ROM_TABLE_LOOKUP                  0x16u
+#define ROM_FUNC_REBOOT                   ((uint32_t)'R' | ((uint32_t)'B' << 8))
+#define RT_FLAG_FUNC_ARM_SEC              0x0004u
+#define REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL  0x2u
+#define REBOOT2_FLAG_NO_RETURN_ON_SUCCESS 0x100u
+/* the lookup returns the function's address; as an integer, so that ISO C converts it */
+typedef uintptr_t (*rom_table_lookup_fn)(uint32_t code, uint32_t mask);
+typedef int (*rom_reboot_fn)(uint32_t flags, uint32_t delay_ms, uint32_t p0, uint32_t p1);
+
+/* Back to the boot ROM's USB loader, both interfaces on, so that picotool can load the next
+ * image without the BOOTSEL button (tools/hil/run_hil.py). The table pointer is read through a
+ * volatile pointer object: GCC takes a constant address this low for a null-page access. */
+static void reboot_to_bootsel(void)
+{
+    const volatile uint16_t *volatile table =
+        (const volatile uint16_t *)(uintptr_t)ROM_TABLE_LOOKUP;
+    rom_table_lookup_fn lookup = (rom_table_lookup_fn)(uintptr_t)*table;
+    uintptr_t fn = lookup(ROM_FUNC_REBOOT, RT_FLAG_FUNC_ARM_SEC);
+    if (fn != 0u) {
+        rom_reboot_fn reboot = (rom_reboot_fn)fn;
+        (void)reboot(REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL | REBOOT2_FLAG_NO_RETURN_ON_SUCCESS, 10u, 0u,
+                     0u);
+    }
+}
+#endif
+
+/* A test image built for the board (EMB_TEST_EMULATOR=hil) hands it back to the boot ROM's
+ * loader when it ends; otherwise, and if the reboot fails, the CPU halts. */
 void emb_board_exit(int code)
 {
     (void)code; /* no host to report it to */
     (void)poll_set(UART_FR, FR_BUSY, 0u);
+#if EMB_RP2350_EXIT_TO_BOOTSEL
+    reboot_to_bootsel();
+#endif
     emb_cm_halt();
 }
 

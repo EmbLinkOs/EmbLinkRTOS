@@ -5,7 +5,7 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245
+#     d1a8f8521dd26c12843f00516f064393a3e30587c56b9bc0f1c6cda63423d213
 #   soc/rpi/rp2350/rp2350.yaml
 #     a68970a2c779c23f4b8e5efb8abc76bdd81f34610c3a03aa71e69beec4087b60
 #   soc/rpi/rp2350/rp2350a.yaml
@@ -18,12 +18,13 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard)
 # the SoC family's board support and drivers build this board (generated/CMakeLists.txt)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/rpi/rp2350")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
+set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245"
+    "boards/rpi/pico2_w/board.yaml=d1a8f8521dd26c12843f00516f064393a3e30587c56b9bc0f1c6cda63423d213"
     "soc/rpi/rp2350/rp2350.yaml=a68970a2c779c23f4b8e5efb8abc76bdd81f34610c3a03aa71e69beec4087b60"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

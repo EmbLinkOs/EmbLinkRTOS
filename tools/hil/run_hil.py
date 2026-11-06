@@ -21,6 +21,11 @@ hint the default flash command is built from:
   the runner then opens the console and resets the board into a normal boot itself (EN low
   through RTS with IO0 high through DTR, as the board's auto-reset circuit wires them), so
   the run starts again from its first line. $EMBFLASH names the embflash to use.
+- debug_probe.picotool (an RP2350 board's boot ROM loader in BOOTSEL, family: the UF2 family):
+  the console is another port (a USB-UART on the board's UART0), opened first. The runner
+  waits for the board in BOOTSEL (picotool info), then picotool loads the image's .uf2,
+  verifies it and boots it. A test image built for the board reboots into BOOTSEL when it
+  ends, so the next image needs no button; after a hang, hold BOOTSEL and replug the board.
 
 It reads until the test framework's summary ("<n> tests, <m> failed") and EMB_TEST_END, or
 --until's text for a benchmark, or the timeout. A suite whose fault checks reset the board
@@ -125,6 +130,28 @@ def reset_esp(fd):
         pass  # a pseudo-terminal in the tests has no modem lines
 
 
+def uses_picotool(hw):
+    """Whether the board is loaded by picotool in BOOTSEL (an RP2350 board)."""
+    return "picotool" in hw["board"].get("debug_probe", {})
+
+
+def wait_bootsel(timeout, poll=0.5):
+    """None once a board in BOOTSEL answers picotool, else what to report: the previous image
+    reboots into BOOTSEL as it ends, which takes the USB device a moment to appear."""
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            found = subprocess.run(["picotool", "info"], capture_output=True, timeout=10).returncode == 0
+        except (OSError, subprocess.TimeoutExpired) as e:
+            return f"picotool: {e}"
+        if found:
+            return None
+        if time.monotonic() >= deadline:
+            return ("no board in BOOTSEL: hold the BOOTSEL button while plugging the board in "
+                    "(an image that hung does not reboot into BOOTSEL itself)")
+        time.sleep(poll)
+
+
 def embflash_has_stk500():
     """Whether the embflash on PATH programs serial bootloaders (EmbCC with --stk500)."""
     tool = shutil.which("embflash")
@@ -152,8 +179,10 @@ def flash_command(hw, image, template, port=None, flasher="auto"):
         tool = os.environ.get("EMBFLASH", "embflash")
         return [tool, str(Path(image).with_suffix(".bin")), "--esp", f"serial:{port}",
                 "--base", hex(int(probe["esp"]["base"])), "--verify"]
+    if "picotool" in probe:
+        return ["picotool", "load", "-v", "-x", str(Path(image).with_suffix(".uf2")), "-t", "uf2"]
     if "openocd" not in probe:
-        raise ValueError("hw.json has no debug_probe.openocd, .avrdude or .esp hint; give --flash-cmd")
+        raise ValueError("hw.json has no debug_probe.openocd, .avrdude, .esp or .picotool hint; give --flash-cmd")
     return ["openocd", "-f", probe["openocd"], "-c", f"program {image} verify reset exit"]
 
 
@@ -305,7 +334,8 @@ def run_board(args, rec, console):
         reset_esp(fd)
     try:
         if not shared:
-            problem = flash(cmd, args.flash_timeout)
+            problem = wait_bootsel(args.flash_timeout) if uses_picotool(hw) and not args.flash_cmd else None
+            problem = problem or flash(cmd, args.flash_timeout)
             if problem:
                 print(f"run_hil: {problem}", file=sys.stderr)
                 return 2

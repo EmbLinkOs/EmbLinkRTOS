@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (Pico 2 W on the bench, 2026-11-06)
+
+- The Pico 2 W runs the suite from `run_hil.py` (`cmake --preset cm33-pico2w-hil`, A101): picotool loads each image in BOOTSEL, and each test image reboots into BOOTSEL when it ends, so no button is pressed between images. The console is UART0 through any 3.3 V USB-UART, and [the HIL guide](docs/engineering/hil.md) shows the ESP32 DevKitC's bridge doing that job. Built by GCC and by Clang with LLD.
+
 ### Added (Clang cross builds, 2026-11-06)
 
 - The Cortex-M and RISC-V ports build with Clang and link with LLD (A100), against the GNU toolchains' C libraries: `-DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-clang.cmake` or `riscv-clang.cmake`, or the presets `cm0-microbit-clang`, `cm3-an385-clang`, `cm4-an386-clang`, `cm4-an386-release-clang`, `cm7-an500-clang`, `cm33-an505-clang`, `rv32-virt-clang` and `rv32-virt-release-clang`. Every suite passes under QEMU with Clang 23.1.5 and LLD, and CI's `clang-cross` job runs them with Ubuntu's Clang. `EMB_CLANG` names another `clang`.

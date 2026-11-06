@@ -86,6 +86,12 @@
       "properties": {
         "openocd": { "type": "string" },
         "pyocd_target": { "type": "string" },
+        "picotool": {
+          "type": "object",
+          "required": ["family"],
+          "additionalProperties": false,
+          "properties": { "family": { "type": "string" } }
+        },
         "avrdude": {
           "type": "object",
           "required": ["part", "programmer", "baud"],

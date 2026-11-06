@@ -29,6 +29,34 @@ ctest --preset avr-uno-hil
 
 The preset is the tiny profile, checked, with the crash record turned on, so `test_crash_reset` shows the record across the part's own watchdog reset. A clone with a CH340 USB chip works too, as `/dev/cu.wchusbserial*`, though an older bootloader may need 57600 baud (`--flash-cmd`).
 
+## The Raspberry Pi Pico 2 W
+
+The Pico 2 W's USB port is the boot ROM's loader, not a console. The console is UART0 on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2), at 3.3 V, so it needs a USB-UART. Each image is loaded by [picotool](https://github.com/raspberrypi/picotool) while the board is in BOOTSEL.
+
+**Loading.** On macOS, `brew install picotool`. The runner waits until `picotool info` finds a board in BOOTSEL, then runs `picotool load -v -x <image>.uf2 -t uf2`, which writes, verifies and boots the image. A test image built for the board (`EMB_TEST_EMULATOR=hil`) reboots into BOOTSEL through the boot ROM when it ends, so the next image needs no button. A fault check's reset reboots into the image itself, not into BOOTSEL. A new board, or one whose flash is blank, starts in BOOTSEL. Otherwise, and after an image that hung, hold BOOTSEL while plugging the board in.
+
+**A console without a USB-UART adapter: the ESP32 DevKitC's.** The DevKitC's USB bridge (a CP2102 or CH340) is a 3.3 V USB-UART. Hold the ESP32 in reset and the bridge is free for the Pico:
+
+| Wire | From | To |
+|---|---|---|
+| 1 | DevKitC `EN` | DevKitC `GND` (holds the ESP32 in reset; its UART pins go high-impedance) |
+| 2 | Pico 2 W pin 1, GPIO0 (UART0 TX) | DevKitC `TX` (`TXD0`, GPIO1): the bridge's receive line, labelled from the ESP32's side |
+| 3 | Pico 2 W pin 3, GND | DevKitC `GND` |
+
+- **Power:** each board takes its power from its own USB cable. Join the grounds only, never 3V3 or 5V.
+- **Input:** the tests only print, so the Pico's RX (pin 2) can stay unconnected.
+- **Port:** the console is the DevKitC's port, `/dev/cu.usbserial-*` on macOS.
+
+A USB-UART adapter at 3.3 V, or a Raspberry Pi Debug Probe, replaces the DevKitC the same way. The Debug Probe also offers SWD, for which the runner has no support yet.
+
+```sh
+cmake --preset cm33-pico2w-hil -DEMB_HIL_PORT=/dev/cu.usbserial-0001
+cmake --build --preset cm33-pico2w-hil
+ctest --preset cm33-pico2w-hil
+```
+
+`-DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchains/arm-none-eabi-clang.cmake` builds the same images with Clang and LLD. The CPU runs from the 12 MHz crystal in this first increment, so cycle counts are in 12 MHz units.
+
 ## Running the suite
 
 ```sh
