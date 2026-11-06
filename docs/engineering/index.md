@@ -28,6 +28,7 @@ hil
 hil-uno-2026-11-04
 hil-uno-2026-11-05
 hil-esp32-2026-11-05
+bench-uno-freertos-2026-11-05
 case-evidence
 resource-bounds
 embcc-capability-review

@@ -334,7 +334,7 @@ emb_status_t embk_mutex_lock_common(uint16_t api_id, embk_mutex_t *m, emb_tick_t
 emb_status_t emb_mutex_lock(emb_mutex_t mutex, emb_timeout_t timeout)
 {
     return embk_mutex_lock_common(EMB_API_ID_MUTEX_LOCK, mutex_from_handle(mutex),
-                                  embk_deadline_from_timeout(timeout),
+                                  embk_deadline_if_blocking(timeout),
                                   EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 

@@ -63,7 +63,15 @@ embk_thread_t *embk_sched_select(bool yield);
 /* P2 (SPEC-002 §6.3): when a reschedule is pending, the scheduler is not locked, and
  * the caller holds the critical section, select and switch; returns when the caller
  * runs again. */
-void embk_sched_reschedule_if_needed(void);
+void embk_sched_reschedule_slow(void);
+/* The reschedule check every give, set and wake ends with: the call only when a decision is
+ * pending, which on the fast paths it rarely is. */
+static EMB_INLINE void embk_sched_reschedule_if_needed(void)
+{
+    if (embk_cpu.reschedule_pending != 0u) {
+        embk_sched_reschedule_slow();
+    }
+}
 
 /* Block path: the current thread is no longer runnable; switch away now regardless
  * of reschedule_pending (the scheduler lock cannot be held here). */

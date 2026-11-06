@@ -248,7 +248,7 @@ static emb_status_t send_common(uint16_t api_id, embk_msgq_t *q, const void *ite
 emb_status_t emb_msgq_send(emb_msgq_t msgq, const void *item, emb_timeout_t timeout)
 {
     return send_common(EMB_API_ID_MSGQ_SEND, msgq_from_handle(msgq), item,
-                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
+                       embk_deadline_if_blocking(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_msgq_send_until(emb_msgq_t msgq, const void *item, emb_instant_t deadline)
@@ -323,7 +323,7 @@ static emb_status_t receive_common(uint16_t api_id, embk_msgq_t *q, void *out_it
 emb_status_t emb_msgq_receive(emb_msgq_t msgq, void *out_item, emb_timeout_t timeout)
 {
     return receive_common(EMB_API_ID_MSGQ_RECEIVE, msgq_from_handle(msgq), out_item,
-                          embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
+                          embk_deadline_if_blocking(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_msgq_receive_until(emb_msgq_t msgq, void *out_item, emb_instant_t deadline)

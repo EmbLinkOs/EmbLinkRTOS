@@ -225,6 +225,9 @@ jobs:
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
+      - name: FreeRTOS's build of the comparison benchmark (A94)
+        if: matrix.preset == 'avr-uno'
+        run: tools/bench/freertos-avr/build.sh build/freertos-avr
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
       - name: Collect case evidence

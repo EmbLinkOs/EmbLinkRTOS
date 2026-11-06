@@ -165,7 +165,7 @@ static emb_status_t wait_common(uint16_t api_id, emb_notify_bits_t mask, uint8_t
 emb_status_t emb_notify_wait(emb_notify_bits_t mask, uint8_t mode, emb_timeout_t timeout,
                              emb_notify_bits_t *out_bits)
 {
-    return wait_common(EMB_API_ID_NOTIFY_WAIT, mask, mode, embk_deadline_from_timeout(timeout),
+    return wait_common(EMB_API_ID_NOTIFY_WAIT, mask, mode, embk_deadline_if_blocking(timeout),
                        EMB_TIMEOUT_IS_NO_WAIT(timeout), out_bits);
 }
 

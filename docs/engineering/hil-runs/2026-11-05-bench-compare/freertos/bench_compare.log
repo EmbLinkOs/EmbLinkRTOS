@@ -1,0 +1,7 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash build/freertos-avr/bench_compare.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image bench_compare.elf sha256 b84073f8aff2cac768bfe2206755e568d2dcff0e4f0128b04595e6e1a49b9138
+bench_compare: FreeRTOS V11.1.0
+BENCH v1 name=notify_handover units=298975 ops=20000 per_op_x100=1494 unit_hz=250000 os=freertos
+BENCH v1 name=sem_handover units=328006 ops=20000 per_op_x100=1640 unit_hz=250000 os=freertos
+BENCH v1 name=sem_give_take units=41284 ops=10000 per_op_x100=412 unit_hz=250000 os=freertos
+BENCH v1 name=isr_wake units=146189 ops=5000 per_op_x100=2923 unit_hz=250000 os=freertos
+BENCH_END
