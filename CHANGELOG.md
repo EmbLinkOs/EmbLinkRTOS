@@ -15,6 +15,8 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - AVR: the idle context's stack restarts at `RAMEND` when the kernel starts (A89). Before, the idle loop and the interrupts it takes ran below `main()`'s dead frames, within about 200 bytes of `.noinit`. Running the fault checks on the Uno found it.
 
+- Delayed work: an item that a nested interrupt cancelled and scheduled again while its expiry was running no longer runs at once (A92). It keeps the new delay. The window needs a kernel-aware interrupt above SysTick's level, so it can only open with `CONFIG_EMB_CM_TIMER_LEVEL` lowered from its default.
+
 ### Added (technical review, 2026-11-05)
 
 - The interrupt stack is bounded and checked (A90, PORT-016).

@@ -34,6 +34,7 @@ if(CONFIG_EMB_MSGQ)
 endif()
 if(CONFIG_EMB_WORKQ)
   emb_add_test(test_workq test_workq.c)
+  target_link_libraries(test_workq PRIVATE emb_kernel_private) # the dwork expiry interleaving
 endif()
 if(CONFIG_EMB_TIMER)
   emb_add_test(test_timer test_timer.c)
