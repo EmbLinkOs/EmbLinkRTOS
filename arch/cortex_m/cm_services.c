@@ -12,8 +12,7 @@ void emb_cm_semihosting_exit(int code)
     __asm__ __volatile__(".syntax unified\n\t"
                          "movs r0, #0x20\n\t" /* SYS_EXIT_EXTENDED; Thumb-1 has movs only */
                          "mov r1, %0\n\t"
-                         "bkpt 0xab\n\t"
-                         ".syntax divided" ::"r"(block)
+                         "bkpt 0xab" ::"r"(block)
                          : "r0", "r1", "cc", "memory");
 #else
     __asm__ __volatile__("mov r0, #0x20\n\t" /* SYS_EXIT_EXTENDED */
@@ -36,9 +35,10 @@ void emb_cm_halt(void)
 }
 
 #if defined(__ARM_FP)
-EMB_NAKED void emb_cm_fp_fill(uint32_t base)
+/* Naked: assembly only. The parameter is in r0, so it is marked unused rather than cast to void,
+ * a C statement Clang refuses in a naked function. */
+EMB_NAKED void emb_cm_fp_fill(uint32_t base EMB_UNUSED)
 {
-    (void)base;
     __asm__ __volatile__("vmov s16, r0\n\tadds r0, #1\n\tvmov s17, r0\n\tadds r0, #1\n\t"
                          "vmov s18, r0\n\tadds r0, #1\n\tvmov s19, r0\n\tadds r0, #1\n\t"
                          "vmov s20, r0\n\tadds r0, #1\n\tvmov s21, r0\n\tadds r0, #1\n\t"
@@ -52,9 +52,8 @@ EMB_NAKED void emb_cm_fp_fill(uint32_t base)
 
 #define FP_CMP(reg) "vmov r1, " reg "\n\tcmp r1, r0\n\tbne 1f\n\tadds r0, #1\n\t"
 
-EMB_NAKED uint32_t emb_cm_fp_check(uint32_t base)
+EMB_NAKED uint32_t emb_cm_fp_check(uint32_t base EMB_UNUSED)
 {
-    (void)base;
     __asm__ __volatile__(FP_CMP("s16") FP_CMP("s17") FP_CMP("s18") FP_CMP("s19") FP_CMP("s20")
                              FP_CMP("s21") FP_CMP("s22") FP_CMP("s23") FP_CMP("s24") FP_CMP("s25")
                                  FP_CMP("s26") FP_CMP("s27") FP_CMP("s28") FP_CMP("s29")

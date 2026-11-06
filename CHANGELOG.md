@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (Clang cross builds, 2026-11-06)
+
+- The Cortex-M and RISC-V ports build with Clang and link with LLD (A100), against the GNU toolchains' C libraries: `-DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-clang.cmake` or `riscv-clang.cmake`, or the presets `cm0-microbit-clang`, `cm3-an385-clang`, `cm4-an386-clang`, `cm4-an386-release-clang`, `cm7-an500-clang`, `cm33-an505-clang`, `rv32-virt-clang` and `rv32-virt-release-clang`. Every suite passes under QEMU with Clang 23.1.5 and LLD, and CI's `clang-cross` job runs them with Ubuntu's Clang. `EMB_CLANG` names another `clang`.
+
 ### Added (Xtensa port, 2026-11-05)
 
 - The kernel on the classic ESP32 (Xtensa LX6, PRO_CPU), the board `esp32_devkitc` ([port](docs/ports/xtensa.md), ADR-054, A95). It runs on hardware: 21 of 21 tests, 157 cases and 74 fault checks that reset the board, built by EmbCC ([report](docs/engineering/hil-esp32-port-2026-11-05.md)). Every switch happens in the level-1 entry, after every register window is spilled to the thread's own stack. The tick is CCOMPARE0, the interrupt numbers are the interrupt matrix's sources, and the CPU stays at 40 MHz in this milestone.

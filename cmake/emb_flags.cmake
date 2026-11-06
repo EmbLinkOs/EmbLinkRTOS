@@ -39,3 +39,28 @@ target_compile_definitions(emb_flags INTERFACE ${EMB_TOOLCHAIN_DEFINES})
 target_include_directories(emb_flags INTERFACE
   "${EMB_GENERATED_DIR}/include")
 target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_C_FLAGS})
+
+# A Clang toolchain that links with LLD against a GNU toolchain's C library and libgcc
+# (cmake/toolchains/*-clang.cmake): the GNU driver names the multilib directory for the board's
+# CPU flags, which only now are known (board.cmake). EMB_TOOLCHAIN_GCC_LIBS is that driver,
+# EMB_TOOLCHAIN_GCC_LIBS_FLAGS its own flags, EMB_TOOLCHAIN_GCC_LIBS_NAMES the libraries.
+if(EMB_TOOLCHAIN_GCC_LIBS)
+  set(_emb_libdirs)
+  foreach(_emb_lib libgcc.a ${EMB_TOOLCHAIN_GCC_LIBS_NAMES})
+    execute_process(COMMAND "${EMB_TOOLCHAIN_GCC_LIBS}" ${EMB_TOOLCHAIN_GCC_LIBS_FLAGS} ${EMB_BOARD_C_FLAGS}
+                            -print-file-name=${_emb_lib}
+                    OUTPUT_VARIABLE _emb_libpath OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT IS_ABSOLUTE "${_emb_libpath}")
+      message(FATAL_ERROR "${EMB_TOOLCHAIN_GCC_LIBS} has no ${_emb_lib} for: ${EMB_BOARD_C_FLAGS}")
+    endif()
+    get_filename_component(_emb_libdir "${_emb_libpath}" DIRECTORY)
+    list(APPEND _emb_libdirs "-L${_emb_libdir}")
+  endforeach()
+  list(REMOVE_DUPLICATES _emb_libdirs)
+  set(_emb_libflags)
+  foreach(_emb_lib ${EMB_TOOLCHAIN_GCC_LIBS_NAMES} libgcc.a)
+    string(REGEX REPLACE "^lib(.*)\\.a$" "-l\\1" _emb_flag "${_emb_lib}")
+    list(APPEND _emb_libflags "${_emb_flag}")
+  endforeach()
+  target_link_options(emb_flags INTERFACE ${_emb_libdirs} ${_emb_libflags})
+endif()

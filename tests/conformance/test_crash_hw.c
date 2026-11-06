@@ -2,10 +2,11 @@
 /* Copyright 2026 Junior Deogracias */
 /*
  * A hardware fault in the crash record, across a real reset (SPEC-015 §4, A74): the first
- * boot executes a trap instruction (EMB_TRAP: udf on Cortex-M, ebreak on RISC-V) with a fault
- * hook that resets the part; the second boot finds the record with the port's registers: the
- * fault status registers and the stacked or trapped general registers. Its own image, like
- * test_crash_reset, since the second boot runs every case of the image from the top.
+ * boot executes a trap instruction (EMB_TRAP: udf on Cortex-M; on RISC-V, ebreak from GCC and
+ * unimp from Clang) with a fault hook that resets the part; the second boot finds the record with
+ * the port's registers: the fault status registers and the stacked or trapped general registers.
+ * Its own image, like test_crash_reset, since the second boot runs every case of the image from the
+ * top.
  */
 #include "crash_print.h"
 
@@ -41,7 +42,8 @@ EMB_TEST(crash_record_keeps_a_hardware_fault)
 #elif CONFIG_EMB_ARCH_RISCV
     /* mcause, mtval, mepc, mstatus; ra, a0-a7 */
     EMB_ASSERT_EQ(r.gpr_count, 9u);
-    EMB_ASSERT_EQ(r.regs[0], 3u);             /* mcause: breakpoint (ebreak) */
+    /* mcause: breakpoint (GCC's ebreak) or illegal instruction (Clang's unimp) */
+    EMB_ASSERT_TRUE(r.regs[0] == 3u || r.regs[0] == 2u);
     EMB_ASSERT_EQ(r.regs[2], (uint32_t)r.pc); /* mepc */
     EMB_ASSERT_EQ(r.regs[4], r.lr);           /* ra */
 #endif

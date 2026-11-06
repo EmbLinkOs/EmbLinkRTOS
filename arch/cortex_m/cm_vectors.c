@@ -169,7 +169,8 @@ void embn_cm_reset(void)
  * reaches r8-r11 only through the low registers. PRIMASK masks the kernel's interrupts while
  * the running and next pointers change; the frame is the same as below: r4-r11, then
  * EXC_RETURN, from the saved stack pointer upward. GCC puts Thumb-1 inline assembly in the
- * divided syntax: each block switches to unified and back. */
+ * divided syntax: each block switches to unified, and GCC restores its own syntax after the
+ * block. No block switches back itself: Clang has no divided syntax and refuses the directive. */
 EMB_NAKED void embn_cm_pendsv(void)
 {
     __asm__ __volatile__(".syntax unified\n\t"
@@ -213,8 +214,7 @@ EMB_NAKED void embn_cm_pendsv(void)
                          "mov lr, r3\n\t"
                          "cpsie i\n\t"
                          "bx lr\n\t"
-                         ".ltorg\n\t"
-                         ".syntax divided\n\t");
+                         ".ltorg\n\t");
 }
 
 /* HardFault, the only fault: the stacked frame on PSP or MSP by EXC_RETURN bit 2. */
@@ -233,8 +233,7 @@ EMB_NAKED void embn_cm_fault_entry(void)
                          "mrs r1, ipsr\n\t"
                          "ldr r2, =embn_cm_fault\n\t"
                          "bx r2\n\t"
-                         ".ltorg\n\t"
-                         ".syntax divided\n\t");
+                         ".ltorg\n\t");
 }
 #else
 EMB_NAKED void embn_cm_pendsv(void)
