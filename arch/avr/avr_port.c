@@ -11,7 +11,6 @@
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-#include <avr/wdt.h>
 
 /* ---- interrupt controller: one mask bit per vector (SPEC-012 §5) ---------------------- */
 
@@ -321,10 +320,21 @@ void emb_arch_reset(const emb_fault_info_t *info)
     emb_arch_system_reset();
 }
 
+/* The watchdog at its shortest timeout (15 ms, prescaler 0), then wait for it: wdt_enable()'s
+ * timed sequence (WDCE and WDE together, then WDE within four cycles), in assembly because
+ * the older avr-libc's wdt_enable() has a branch for other parts that Clang refuses to
+ * assemble ("I" constraint, WDTCSR outside the I/O space). */
 void emb_arch_system_reset(void)
 {
-    __asm__ __volatile__("cli" ::: "memory");
-    wdt_enable(WDTO_15MS);
+    __asm__ __volatile__(
+        "cli\n\t"
+        "wdr\n\t"
+        "sts %[wdtcsr], %[change]\n\t"
+        "sts %[wdtcsr], %[enable]\n\t"
+        :
+        : [wdtcsr] "n"(_SFR_MEM_ADDR(WDTCSR)), [change] "r"((uint8_t)((1u << WDCE) | (1u << WDE))),
+          [enable] "r"((uint8_t)(1u << WDE))
+        : "memory");
     for (;;) {
     }
 }
