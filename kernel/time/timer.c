@@ -339,7 +339,7 @@ emb_status_t emb_timer_restart(emb_timer_t timer)
     return EMB_OK;
 }
 
-static EMB_INLINE uintptr_t caller_index(void)
+static EMB_INLINE EMB_UNUSED uintptr_t caller_index(void) /* the trace hooks only */
 {
     return (embk_cpu.current != NULL) ? embk_thread_index(embk_cpu.current) : 0xFFu;
 }

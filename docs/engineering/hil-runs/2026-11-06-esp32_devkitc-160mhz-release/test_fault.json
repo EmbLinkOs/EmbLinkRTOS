@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 3,
+      "name": "fault_successful_check_preserves_status",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "fault_status_policy_is_preserved",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T01:19:30Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "0",
+    "config": "166b84ac4a276048",
+    "profile": "base",
+    "suite": "test_fault"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_fault.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_fault.bin": "bbf78be29275f966880a1d2610b15010260f1b8bcfcbfaaae663cd6c8e2046fb"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "277174cfcb8dc83dcc0da395f50ff53aae712dd1",
+    "dirty": false
+  },
+  "image": "test_fault.elf",
+  "image_sha256": "4ac345888c7ae64a6869252f52b3befb5c6620c9f3bde4f5547d9a8eeab7fa8a",
+  "isr_stack": {
+    "size": 1024,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:19:28Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

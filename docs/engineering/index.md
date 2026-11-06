@@ -28,6 +28,8 @@ hil
 hil-uno-2026-11-04
 hil-uno-2026-11-05
 hil-esp32-2026-11-05
+hil-esp32-port-2026-11-05
+bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 case-evidence
 resource-bounds

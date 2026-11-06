@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Xtensa port options (docs/ports/xtensa.md). Board values come from board.conf.
+
+if EMB_ARCH_XTENSA
+
+menu "Xtensa port"
+
+config EMB_XT_CPU_HZ
+	int "CPU clock in Hz: CCOUNT's rate, which the tick and the cycle counter use"
+	default 40000000
+	range 1000000 240000000
+	help
+	  The classic ESP32's boot ROM leaves the CPU on the 40 MHz crystal, which the
+	  interrupt probe measured on the board (2026-11-05). A board that moves it to the
+	  PLL in emb_board_init() sets the rate it selects: esp32_devkitc, 160 MHz.
+
+config EMB_XT_IRQ_COUNT
+	int "Interrupt numbers: the ESP32's interrupt matrix sources"
+	default 69
+	range 1 96
+
+endmenu
+
+require EMB_IRQ_DYNAMIC "the Xtensa port binds handlers with emb_irq_connect() (docs/ports/xtensa.md)"
+require !EMB_TICKLESS "the Xtensa port implements the periodic CCOMPARE0 tick only in this milestone"
+require !EMB_IRQ_NESTING "the Xtensa port takes level-1 interrupts only in this milestone"
+
+endif

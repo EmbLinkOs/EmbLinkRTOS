@@ -45,6 +45,12 @@ function(_emb_add_image name)
         COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/esp/esp_image.py"
                 "$<TARGET_FILE:${name}>" -o "$<TARGET_FILE_DIR:${name}>/${name}.bin"
         COMMENT "flash image: ${name}.bin")
+    elseif(EMB_BOARD_FLASH_IMAGE STREQUAL "esp32")
+      # the classic ESP32's ROM boots it from flash offset 0x1000, each segment at its run address
+      add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/esp/esp_image.py"
+                "$<TARGET_FILE:${name}>" -o "$<TARGET_FILE_DIR:${name}>/${name}.bin" --chip esp32
+        COMMENT "flash image: ${name}.bin")
     elseif(EMB_BOARD_FLASH_IMAGE STREQUAL "uf2")
       # what the boot ROM's USB drive takes (tools/uf2/uf2.py, A79)
       add_custom_command(TARGET ${name} POST_BUILD

@@ -16,6 +16,11 @@ hint the default flash command is built from:
   serial port, so the runner flashes the image's .hex first and then opens the console,
   which resets the board (DTR) and starts the image from its first line. The flasher is
   EmbCC's embflash (--stk500) when the one installed has it, else avrdude (--flasher).
+- debug_probe.esp (an ESP32 board's ROM loader, base: the flash offset its ROM boots from):
+  the port is shared too. EmbCC's embflash --esp writes the image's .bin beside the ELF;
+  the runner then opens the console and resets the board into a normal boot itself (EN low
+  through RTS with IO0 high through DTR, as the board's auto-reset circuit wires them), so
+  the run starts again from its first line. $EMBFLASH names the embflash to use.
 
 It reads until the test framework's summary ("<n> tests, <m> failed") and EMB_TEST_END, or
 --until's text for a benchmark, or the timeout. A suite whose fault checks reset the board
@@ -37,6 +42,7 @@ summary, each case's outcome line and any BENCH results. tools/hil/archive.py fi
 records under docs/engineering/hil-runs/.
 """
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -44,6 +50,7 @@ import re
 import select
 import shlex
 import shutil
+import struct
 import subprocess
 import sys
 import termios
@@ -92,7 +99,30 @@ def echo(chunk):
 
 def shares_port(hw):
     """Whether flashing goes through the console's own port (a serial bootloader)."""
-    return "avrdude" in hw["board"].get("debug_probe", {})
+    probe = hw["board"].get("debug_probe", {})
+    return "avrdude" in probe or "esp" in probe
+
+
+def resets_after_open(hw):
+    """Whether the runner resets the board once the console is open (an ESP32's auto-reset
+    circuit: opening the port does not reset it, as DTR does an Uno)."""
+    return "esp" in hw["board"].get("debug_probe", {})
+
+
+TIOCM_DTR, TIOCM_RTS = 0x002, 0x004
+
+
+def reset_esp(fd):
+    """A normal boot: EN low (RTS) with IO0 high (DTR clear), then EN released. What arrived
+    before, the start of the run the flasher's own reset began, is discarded while the board
+    is held in reset, so the console starts at this boot's first byte."""
+    try:
+        fcntl.ioctl(fd, termios.TIOCMSET, struct.pack("I", TIOCM_RTS))
+        time.sleep(0.15)
+        termios.tcflush(fd, termios.TCIFLUSH)
+        fcntl.ioctl(fd, termios.TIOCMSET, struct.pack("I", 0))
+    except (OSError, termios.error):
+        pass  # a pseudo-terminal in the tests has no modem lines
 
 
 def embflash_has_stk500():
@@ -118,8 +148,12 @@ def flash_command(hw, image, template, port=None, flasher="auto"):
             return ["embflash", str(hex_image), "--stk500", f"serial:{port}@{a['baud']}", "--verify"]
         return ["avrdude", "-q", "-p", a["part"], "-c", a["programmer"], "-P", str(port), "-b", str(a["baud"]),
                 "-D", "-U", f"flash:w:{hex_image}:i"]
+    if "esp" in probe:
+        tool = os.environ.get("EMBFLASH", "embflash")
+        return [tool, str(Path(image).with_suffix(".bin")), "--esp", f"serial:{port}",
+                "--base", hex(int(probe["esp"]["base"])), "--verify"]
     if "openocd" not in probe:
-        raise ValueError("hw.json has no debug_probe.openocd or .avrdude hint; give --flash-cmd")
+        raise ValueError("hw.json has no debug_probe.openocd, .avrdude or .esp hint; give --flash-cmd")
     return ["openocd", "-f", probe["openocd"], "-c", f"program {image} verify reset exit"]
 
 
@@ -254,6 +288,10 @@ def run_board(args, rec, console):
     if shared:
         # the bootloader needs the port: flash, then open the console (which resets the board)
         problem = flash(cmd, args.flash_timeout)
+        if problem and resets_after_open(hw):
+            # an ESP32's ROM loader now and then misses a block over USB serial: once more
+            print(f"run_hil: {problem}; flashing again", file=sys.stderr)
+            problem = flash(cmd, args.flash_timeout)
         if problem:
             print(f"run_hil: {problem}", file=sys.stderr)
             return 2
@@ -263,6 +301,8 @@ def run_board(args, rec, console):
         print(f"run_hil: cannot open the console {args.port}: {e}", file=sys.stderr)
         return 2
     log = open(args.log, "wb") if args.log else None
+    if resets_after_open(hw):
+        reset_esp(fd)
     try:
         if not shared:
             problem = flash(cmd, args.flash_timeout)

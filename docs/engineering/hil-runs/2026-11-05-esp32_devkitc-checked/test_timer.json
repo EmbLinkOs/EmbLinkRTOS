@@ -1,0 +1,91 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 22,
+      "name": "timer_isr_context_one_shot_and_periodic_without_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 22,
+      "name": "timer_restart_remaining_and_stop_states",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "timer_callback_runs_on_its_work_queue",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_stop_sync_waits_for_a_running_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_expiries_during_a_long_callback_are_overruns",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "timer_init_needs_a_queue_or_isr_context",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "timer_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T21:32:26Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "1fc9c964c0006f0f",
+    "profile": "base",
+    "suite": "test_timer"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_timer.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_timer.bin": "024399e588669a3603236878b395358ee27e46b62a50754576c20b2f985ebe40"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "test_timer.elf",
+  "image_sha256": "26b331f2d12c4a8544713d54f934c5f5a137b76c4adf7125e4ae0b1288f51462",
+  "isr_stack": {
+    "size": 1024,
+    "used": 272
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:32:23Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

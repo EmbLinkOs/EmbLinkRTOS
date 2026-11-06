@@ -193,6 +193,24 @@ class Runner(unittest.TestCase):
         self.assertEqual(cmd, ["embflash", "/b/test_sem.hex", "--stk500", "serial:/dev/cu.usbmodem1101@115200",
                                "--verify"])
 
+    def test_esp_command_from_the_committed_esp32(self):
+        hw = json.loads((HERE.parent.parent / "boards/espressif/esp32_devkitc/hw.json").read_text())
+        self.assertTrue(run_hil.shares_port(hw))
+        self.assertTrue(run_hil.resets_after_open(hw))
+        old = os.environ.pop("EMBFLASH", None)
+        try:
+            cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbserial-0001")
+            self.assertEqual(cmd, ["embflash", "/b/test_sem.bin", "--esp", "serial:/dev/cu.usbserial-0001",
+                                   "--base", "0x1000", "--verify"])
+            os.environ["EMBFLASH"] = "/opt/embcc/bin/embflash"
+            cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbserial-0001")
+            self.assertEqual(cmd[0], "/opt/embcc/bin/embflash")
+        finally:
+            os.environ.pop("EMBFLASH", None)
+            if old is not None:
+                os.environ["EMBFLASH"] = old
+        self.assertEqual(hw["derived"]["console"]["baud"], 115200)
+
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
         self.assertEqual(run_hil.flash_command(hw, Path("t.elf"), None)[:3], ["openocd", "-f", "board/st_nucleo_f4.cfg"])

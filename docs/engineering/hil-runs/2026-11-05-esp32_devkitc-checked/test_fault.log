@@ -1,0 +1,44 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_fault.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_fault.elf sha256 c1bf7c34de32335a6d3031db3b2f21ec7810310fec8e836e9fe3c03a4455f00e
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:2784
+load:0x3ffb0ae0,len:8
+load:0x40080400,len:23540
+entry 0x4008386c
+EVIDENCE v1 suite=test_fault config=1fc9c964c0006f0f profile=base board=esp32_devkitc checked=1
+TEST fault_successful_check_preserves_status
+  -> ok
+  req API-015 API-017
+CASE fault_successful_check_preserves_status outcome=passed asserts=3 skips=0
+TEST fault_status_policy_is_preserved
+ets Jul 29 2019 12:21:46
+
+rst:0x3 (SW_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:2784
+load:0x3ffb0ae0,len:8
+load:0x40080400,len:23540
+entry 0x4008386c
+ets Jul 29 2019 12:21:46
+
+rst:0x3 (SW_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:2784
+load:0x3ffb0ae0,len:8
+load:0x40080400,len:23540
+entry 0x4008386c
+  fault checks that reset the board: 2
+  -> ok
+  req API-015
+CASE fault_status_policy_is_preserved outcome=passed asserts=2 skips=0
+ISR_STACK size=1024 used=160
+2 tests, 0 failed, 0 skipped, 3 ticks
+EMB_TEST_END

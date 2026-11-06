@@ -45,7 +45,7 @@ static EMB_INLINE embk_work_t *work_of(const emb_work_t *work)
 }
 
 /* The index the trace records for the caller: none before the kernel runs. */
-static EMB_INLINE uintptr_t caller_index(void)
+static EMB_INLINE EMB_UNUSED uintptr_t caller_index(void) /* the trace hooks only */
 {
     return (embk_cpu.current != NULL) ? embk_thread_index(embk_cpu.current) : 0xFFu;
 }

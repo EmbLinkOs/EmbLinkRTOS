@@ -94,8 +94,10 @@ static void ping_b(void *arg)
 #endif
 }
 
-EMB_THREAD_DEFINE(thread_a, ping_a, NULL, 2u, 256u, 0u);
-EMB_THREAD_DEFINE(thread_b, ping_b, NULL, 3u, 256u, 0u);
+/* 256 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 256u ? EMB_THREAD_STACK_MIN : 256u)
+EMB_THREAD_DEFINE(thread_a, ping_a, NULL, 2u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_b, ping_b, NULL, 3u, STACK_SIZE, 0u);
 
 int main(void)
 {

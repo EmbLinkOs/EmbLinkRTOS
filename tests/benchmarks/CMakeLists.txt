@@ -2,10 +2,10 @@
 # Copyright 2026 Junior Deogracias
 # Benchmarks (05 §4.4, R-003 §6): built for every port, published only from hardware runs.
 emb_add_executable(bench_switch bench_switch.c)
-if(CONFIG_EMB_ARCH_CORTEX_M OR CONFIG_EMB_ARCH_RISCV)
+if(CONFIG_EMB_ARCH_CORTEX_M OR CONFIG_EMB_ARCH_RISCV OR CONFIG_EMB_ARCH_XTENSA)
   emb_add_executable(bench_irq bench_irq.c) # the board's test line and a dynamic handler
 endif()
-if(CONFIG_EMB_ARCH_AVR AND CONFIG_EMB_NOTIFY AND CONFIG_EMB_SEM)
+if((CONFIG_EMB_ARCH_AVR OR CONFIG_EMB_ARCH_XTENSA OR CONFIG_EMB_ARCH_CORTEX_M) AND CONFIG_EMB_NOTIFY AND CONFIG_EMB_SEM)
   # the same source as FreeRTOS's build (tools/bench/freertos-avr/build.sh): the comparison
   emb_add_executable(bench_compare bench_compare.c)
 endif()

@@ -33,7 +33,7 @@ static EMB_INLINE embk_dwork_t *dwork_of(emb_dwork_t *dw)
     return (embk_dwork_t *)(void *)&dw->timer_;
 }
 
-static EMB_INLINE uintptr_t caller_index(void)
+static EMB_INLINE EMB_UNUSED uintptr_t caller_index(void) /* the trace hooks only */
 {
     return (embk_cpu.current != NULL) ? embk_thread_index(embk_cpu.current) : 0xFFu;
 }

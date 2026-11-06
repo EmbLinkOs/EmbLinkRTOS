@@ -37,9 +37,11 @@ static void task_timer(void *arg);
  * scheduler (ADR-036); virtual time on the native port advances only in idle. */
 #define ROUNDS_PER_SLEEP 100u
 
-EMB_THREAD_DEFINE(thread_a, task_a, NULL, 2u, 512u, 0u);
-EMB_THREAD_DEFINE(thread_b, task_b, NULL, 3u, 512u, 0u);
-EMB_THREAD_DEFINE(thread_t, task_timer, NULL, 4u, 512u, 0u);
+/* 512 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 512u ? EMB_THREAD_STACK_MIN : 512u)
+EMB_THREAD_DEFINE(thread_a, task_a, NULL, 2u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_b, task_b, NULL, 3u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_t, task_timer, NULL, 4u, STACK_SIZE, 0u);
 
 static void task_a(void *arg)
 {

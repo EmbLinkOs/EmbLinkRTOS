@@ -60,11 +60,12 @@ cmake --build build/my_app
 | `mps2_an385`, `mps2_an386`, `mps2_an500`, `mps2_an505`, `microbit` | `arm-none-eabi-gcc` | `cmake --build build/my_app --target run_app` (QEMU) |
 | `riscv32_virt` | `riscv64-unknown-elf-gcc` with picolibc | `cmake --build build/my_app --target run_app` (QEMU) |
 | `arduino_uno` | `avr-gcc` | flash `app.hex`: see [the Uno](../engineering/hil.md#the-arduino-uno-r3) |
+| `esp32_devkitc` | `embcc` (`cmake/toolchains/embcc-xtensa.cmake`; `xtensa-esp32-gcc.cmake` for Espressif's GCC) | flash `app.bin` at 0x1000: `embflash build/my_app/app.bin --esp serial:/dev/cu.usbserial-XXXX --base 0x1000 --verify` |
 | `nucleo_f446re` | `arm-none-eabi-gcc` | flash `app.elf`: `openocd -f board/st_nucleo_f4.cfg -c "program build/my_app/app.elf verify reset exit"` |
 
 `run_app` runs the image under the board's QEMU machine, its console on your terminal: press Ctrl-A then X to leave QEMU. `-DCMAKE_TOOLCHAIN_FILE=...` chooses another toolchain (ADR-053), and `EMB_PROFILE`, `EMB_CONF` and `EMB_SET` work as in the RTOS's own build ([configuration](configuration.md)): for example `-DEMB_SET="EMB_CHECKED=n"` for a release build. A board of your own lives in your project too: `-DEMB_BOARD_ROOT=boards_dir` ([board roots](../engineering/hwgen.md)).
 
-Everything `emb_add_executable()` makes sits next to the image: on a board, `app.elf`, `app.hex`, `app.elf.map` and a size report, and, where the board boots one, `app.bin` (ESP32-C3) or `app.uf2` (Pico 2 W).
+Everything `emb_add_executable()` makes sits next to the image: on a board, `app.elf`, `app.hex`, `app.elf.map` and a size report, and, where the board boots one, `app.bin` (the ESP32 and ESP32-C3) or `app.uf2` (Pico 2 W).
 
 ## What the build checks
 

@@ -1,0 +1,79 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 15,
+      "name": "thread_identity_survives_priority_and_termination",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1200,
+      "name": "thread_identity_repeated_construction_does_not_alias_live_object",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "thread_identity_survives_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "thread_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "idle_context_is_not_an_application_thread",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T21:32:01Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "1fc9c964c0006f0f",
+    "profile": "base",
+    "suite": "test_thread_identity"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_thread_identity.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_thread_identity.bin": "88eca060fa9c148ec7242c2e97eae772a39043b3ba60df7bea6750e051a54153"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "test_thread_identity.elf",
+  "image_sha256": "db54ec4a922258b4e23a9064d46ba2a4ed5144517b5d81565285287e0ea07a6c",
+  "isr_stack": {
+    "size": 1024,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:31:58Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

@@ -30,6 +30,18 @@ static emb_notify_bits_t consume(embk_thread_t *t)
     return got;
 }
 
+/* The set itself, on a thread known not to have terminated: the bits, then the wake of a waiter
+ * they satisfy. @source: the bound object, NULL for a direct set; only the trace reads it. */
+static EMB_INLINE void notify_set_live(embk_thread_t *t, emb_notify_bits_t bits, const void *source)
+{
+    (void)source;
+    t->notify_bits |= bits;
+    EMBK_TRACE(EMB_TRACE_NOTIFY_SET, embk_thread_index(t), bits, source);
+    if (t->wait_queue == &t->self_q && t->wait_reason == EMB_WAIT_REASON_NOTIFY && satisfied(t)) {
+        (void)embk_wait_wake(t, EMBK_WAKE_SATISFIED, (uintptr_t)consume(t));
+    }
+}
+
 emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
 {
     embk_thread_t *t = embk_thread_from_handle(thread);
@@ -48,7 +60,7 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
         embk_unlock_object(t, key);
         return EMB_ESTATE;
     }
-    embk_notify_set_locked(t, bits);
+    notify_set_live(t, bits, NULL);    /* inline: the hand-over's path (A97) */
     embk_sched_reschedule_if_needed(); /* P2 when called from a thread */
     embk_unlock_object(t, key);
     return EMB_OK;
@@ -57,15 +69,10 @@ emb_status_t emb_notify_set(emb_thread_t thread, emb_notify_bits_t bits)
 /* @source: the bound object, NULL for a direct set; only the trace reads it. */
 static void notify_set(embk_thread_t *t, emb_notify_bits_t bits, const void *source)
 {
-    (void)source;
     if ((t->tflags & EMBK_THREAD_TERMINATED) != 0u) {
         return; /* dropped: a terminated thread has no notification word (SPEC-008 §5) */
     }
-    t->notify_bits |= bits;
-    EMBK_TRACE(EMB_TRACE_NOTIFY_SET, embk_thread_index(t), bits, source);
-    if (t->wait_queue == &t->self_q && t->wait_reason == EMB_WAIT_REASON_NOTIFY && satisfied(t)) {
-        (void)embk_wait_wake(t, EMBK_WAKE_SATISFIED, (uintptr_t)consume(t));
-    }
+    notify_set_live(t, bits, source);
 }
 
 void embk_notify_set_locked(embk_thread_t *t, emb_notify_bits_t bits)

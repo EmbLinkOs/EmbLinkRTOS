@@ -1,0 +1,97 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "time_sleep_is_exact_in_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "time_sleep_until_does_not_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "time_zero_sleep_and_past_deadline_yield",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "time_timeouts_expire_in_deadline_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "time_conversions_round_up_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_at_least_adds_one_tick",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_instant_helpers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 40,
+      "name": "time_now_is_monotonic_across_sleeps",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T21:33:05Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "0",
+    "config": "a6675cd36514cdfd",
+    "profile": "base",
+    "suite": "test_time"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_time.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_time.bin": "86f9eda5995604abff1703db858a0611145c1512db6020697a461d40f456ec26"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "test_time.elf",
+  "image_sha256": "f520c12da561101899b0e4eef4fa80d9072ffd907f64ed36b1f83366a0afb0b0",
+  "isr_stack": {
+    "size": 1024,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:33:03Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}

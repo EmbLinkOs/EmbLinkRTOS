@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "smoke_thread_runs_and_exits",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "smoke_sleep_advances_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "smoke_libc_errno_from_a_thread",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T01:19:28Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "0",
+    "config": "166b84ac4a276048",
+    "profile": "base",
+    "suite": "test_smoke"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_smoke.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_smoke.bin": "5c8fd08206f709ea864648632690e4fa6b4cae78022bb07240cd619cf6dbfdea"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "277174cfcb8dc83dcc0da395f50ff53aae712dd1",
+    "dirty": false
+  },
+  "image": "test_smoke.elf",
+  "image_sha256": "5e55491fa1b23613f5ef67a4793f30493f498aeee7cafab10359d5359283c4c7",
+  "isr_stack": {
+    "size": 1024,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:19:26Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

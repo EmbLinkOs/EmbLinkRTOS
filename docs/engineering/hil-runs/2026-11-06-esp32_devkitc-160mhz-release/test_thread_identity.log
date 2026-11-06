@@ -1,0 +1,35 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_thread_identity.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_thread_identity.elf sha256 bfd3cdc26fb0587e7ae8b324b3a4c4233dfd8b860628df6f3a87c99f54dbe23a
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:3504
+load:0x3ffb0db0,len:28
+load:0x40080400,len:27060
+entry 0x40084660
+EVIDENCE v1 suite=test_thread_identity config=166b84ac4a276048 profile=base board=esp32_devkitc checked=0
+TEST thread_identity_survives_priority_and_termination
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_priority_and_termination outcome=passed asserts=15 skips=0
+TEST thread_identity_repeated_construction_does_not_alias_live_object
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_repeated_construction_does_not_alias_live_object outcome=passed asserts=1200 skips=0
+TEST thread_identity_survives_suspend_and_resume
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_suspend_and_resume outcome=passed asserts=12 skips=0
+TEST thread_storage_reuse_requires_destroy
+  -> ok
+  req KRN-THR-015 KRN-THR-023
+CASE thread_storage_reuse_requires_destroy outcome=passed asserts=9 skips=0
+TEST idle_context_is_not_an_application_thread
+  -> ok
+  req KRN-THR-025 KRN-THR-026
+CASE idle_context_is_not_an_application_thread outcome=passed asserts=6 skips=0
+ISR_STACK size=1024 used=0
+5 tests, 0 failed, 0 skipped, 76 ticks
+EMB_TEST_END

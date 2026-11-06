@@ -4,6 +4,15 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (Xtensa port, 2026-11-05)
+
+- The kernel on the classic ESP32 (Xtensa LX6, PRO_CPU), the board `esp32_devkitc` ([port](docs/ports/xtensa.md), ADR-054, A95). It runs on hardware: 21 of 21 tests, 157 cases and 74 fault checks that reset the board, built by EmbCC ([report](docs/engineering/hil-esp32-port-2026-11-05.md)). Every switch happens in the level-1 entry, after every register window is spilled to the thread's own stack. The tick is CCOMPARE0, the interrupt numbers are the interrupt matrix's sources, and the CPU stays at 40 MHz in this milestone.
+- The ESP32 board runs its CPU at 160 MHz from the PLL, ESP-IDF's default; the ROM leaves it on the 40 MHz crystal. All six builds (EmbCC, GCC and Clang, checked and release) pass on the board at 160 MHz.
+- EmbCC builds track header dependencies (`cmake/toolchains/embcc-depfile.cmake`). Before, CMake asked EmbCC for no dependency files, and a changed header such as the generated `<emb/config.h>` left stale objects behind.
+- `cmake --preset xt-esp32-hil` builds it with EmbCC for a run on the board. CI builds `xt-esp32-gcc` with Espressif's GCC and `xt-esp32-clang` with Espressif's Clang and LLD, and keeps the images. Both passed the suite on the board. `run_hil.py` flashes an ESP32 with `embflash --esp` and resets it into a normal boot once its console is open.
+- `bench_compare` runs on the ESP32 too, with the board's test line raising the interrupt. The first numbers, in cycles at 40 MHz, are in the report.
+- A measured comparison with FreeRTOS on the ESP32 ([report](docs/engineering/bench-esp32-freertos-2026-11-06.md), A96): ESP-IDF v6.1's FreeRTOS V10.5.1, configured as the EmbLinkRTOS release build, counted in CPU cycles on the same board. Built by GCC, EmbLinkRTOS takes 37% fewer cycles per notification switch, 50% fewer per semaphore switch, 34% fewer per uncontended give and take, and 39% fewer per interrupt-to-thread wake. Built by EmbCC it is behind on three of the four. `tools/bench/freertos-esp32/` builds the FreeRTOS side, locally or in CI's ESP-IDF container.
+
 ### Fixed (technical review, 2026-11-05)
 
 - Mutex ceiling: a thread above a `EMB_MUTEX_CEILING` mutex's ceiling is refused when the mutex is owned too (SPEC-005 §3.4). Before, it blocked and later received the mutex by hand-off with no check. Checked builds fault, release builds return `EMB_EPERM`.

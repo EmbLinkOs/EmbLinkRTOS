@@ -1,0 +1,121 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "sem_counts_and_nowait",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_give_hands_off_to_highest_waiter",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_fifo_option_orders_by_arrival",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_take_times_out_and_disarms",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sem_give_from_isr_wakes_at_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_max_overflow_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sem_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "sem_destroy_aborts_waiters_when_allowed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "sem_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sem_blocking_take_from_prekernel_or_isr_rejected",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sem_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T21:32:08Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "1fc9c964c0006f0f",
+    "profile": "base",
+    "suite": "test_sem"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 4,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_sem.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_sem.bin": "157b270d42f557a790ca792413c86a1b0c08b200b310324e07d39a8829a0e5d6"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "test_sem.elf",
+  "image_sha256": "f0d89bf8c7a594d0a4cccbeb016211b332d5ae6aba2e3de7c701fdda3d56b745",
+  "isr_stack": {
+    "size": 1024,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:32:06Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 12
+  }
+}

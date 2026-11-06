@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 38,
+      "name": "crash_record_round_trip",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "crash_record_corruption_is_ignored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "crash_record_get_refuses_null",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T21:32:33Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "1fc9c964c0006f0f",
+    "profile": "base",
+    "suite": "test_crash"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_crash.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_crash.bin": "ca1a12b13ce54f59dae042a85013b8557918cb76443edc2d929a516f467a999b"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "test_crash.elf",
+  "image_sha256": "4e4ab87f3cb8767278f40b937e33de89349c19cbe303b555dbf54b9649477d48",
+  "isr_stack": {
+    "size": 1024,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:32:31Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

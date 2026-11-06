@@ -1,0 +1,42 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "avg_x100": 32614,
+      "checked": 0,
+      "max": 811,
+      "min": 325,
+      "name": "irq_pend_to_handler",
+      "ops": 1000,
+      "unit_hz": 40000000
+    }
+  ],
+  "board": "esp32_devkitc",
+  "cases": [],
+  "ended": "2026-11-05T21:33:36Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/benchmarks/bench_irq.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "bench_irq.bin": "01f73af097de4ac56db9263a9e3e36f357aebf0cfb831b97be7632b3bf5638a7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "97ca41517de00a5d9bd76ecefddcc17884ab9e34",
+    "dirty": false
+  },
+  "image": "bench_irq.elf",
+  "image_sha256": "1ec6c7e5a7a6c31579c57b58307708d737d303c1d4d0e9b8f4720e37869673f0",
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-05T21:33:35Z"
+}
