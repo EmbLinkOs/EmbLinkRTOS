@@ -34,7 +34,7 @@ TOOLCHAINS = {"arm-none-eabi-gcc": "GCC", "avr-gcc": "GCC", "riscv-gcc": "GCC", 
               "native-coverage": "GCC", "native-clang": "Clang", "native-sanitizers": "GCC or Clang",
               "native-tsan": "GCC or Clang", "embcc-native": "EmbCC", "embcc-native-mixed": "EmbCC",
               "embcc-avr": "EmbCC", "embcc-xtensa": "EmbCC", "xtensa-esp32-gcc": "GCC", "xtensa-esp32-clang": "Clang",
-              "arm-none-eabi-clang": "Clang", "riscv-clang": "Clang"}
+              "arm-none-eabi-clang": "Clang", "riscv-clang": "Clang", "avr-clang": "Clang"}
 
 
 class MatrixError(Exception):

@@ -44,12 +44,27 @@ target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_
 # (cmake/toolchains/*-clang.cmake): the GNU driver names the multilib directory for the board's
 # CPU flags, which only now are known (board.cmake). EMB_TOOLCHAIN_GCC_LIBS is that driver,
 # EMB_TOOLCHAIN_GCC_LIBS_FLAGS its own flags, EMB_TOOLCHAIN_GCC_LIBS_NAMES the libraries.
+# -print-file-name searches the driver's own directories, not the -L directories a specs file
+# adds to the link (Ubuntu's picolibc.specs), so those come from the link command (-###).
 if(EMB_TOOLCHAIN_GCC_LIBS)
+  execute_process(COMMAND "${EMB_TOOLCHAIN_GCC_LIBS}" ${EMB_TOOLCHAIN_GCC_LIBS_FLAGS} ${EMB_BOARD_C_FLAGS}
+                          "-###" -nostartfiles -o emb-probe.elf emb-probe.o
+                  ERROR_VARIABLE _emb_linkcmd OUTPUT_QUIET)
+  string(REGEX MATCHALL "[ \"]-L[^ \"\n]+" _emb_specdirs "${_emb_linkcmd}")
+  list(TRANSFORM _emb_specdirs REPLACE "^[ \"]-L" "")
   set(_emb_libdirs)
   foreach(_emb_lib libgcc.a ${EMB_TOOLCHAIN_GCC_LIBS_NAMES})
     execute_process(COMMAND "${EMB_TOOLCHAIN_GCC_LIBS}" ${EMB_TOOLCHAIN_GCC_LIBS_FLAGS} ${EMB_BOARD_C_FLAGS}
                             -print-file-name=${_emb_lib}
                     OUTPUT_VARIABLE _emb_libpath OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT IS_ABSOLUTE "${_emb_libpath}")
+      foreach(_emb_dir ${_emb_specdirs})
+        if(EXISTS "${_emb_dir}/${_emb_lib}")
+          set(_emb_libpath "${_emb_dir}/${_emb_lib}")
+          break()
+        endif()
+      endforeach()
+    endif()
     if(NOT IS_ABSOLUTE "${_emb_libpath}")
       message(FATAL_ERROR "${EMB_TOOLCHAIN_GCC_LIBS} has no ${_emb_lib} for: ${EMB_BOARD_C_FLAGS}")
     endif()

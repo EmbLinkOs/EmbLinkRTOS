@@ -59,9 +59,8 @@ void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size
 
 /* Save the running context, make @next current, restore it (SPEC-012 §4.3). The call
  * pushed the return address; r24:r25 = next. */
-EMB_NAKED void emb_arch_switch_to(embk_thread_t *next)
+EMB_NAKED void emb_arch_switch_to(embk_thread_t *next EMB_UNUSED)
 {
-    (void)next;
     __asm__ __volatile__(
         "push r0\n\t"
         "in r0, __SREG__\n\t"
@@ -78,9 +77,8 @@ EMB_NAKED void emb_arch_switch_to(embk_thread_t *next)
 }
 
 /* The exiting thread's last switch: no save (SPEC-008 §5 step 5 is immediate on this port). */
-EMB_NAKED void emb_arch_switch_final(embk_thread_t *next)
+EMB_NAKED void emb_arch_switch_final(embk_thread_t *next EMB_UNUSED)
 {
-    (void)next;
     __asm__ __volatile__("cli\n\t"
                          "sts embn_avr_current, r24\n\t"
                          "sts embn_avr_current+1, r25\n\t"

@@ -331,12 +331,23 @@ void emb_arch_system_reset(void)
 
 /* A watchdog reset leaves the watchdog running with its shortest timeout (DS40002061B
  * §10.9.2): clear WDRF and stop it before the C runtime starts, or the part resets again
- * every 15 ms. Placed in .init3, which avr-libc's startup runs before main(). */
+ * every 15 ms. Placed in .init3, which avr-libc's startup runs before main(), with r1 already
+ * zero and interrupts still off from reset. Naked, so it falls through to .init4; assembly
+ * only, as Clang allows nothing else in a naked function: MCUSR = 0, then wdt_disable()'s
+ * timed sequence (WDCE and WDE together, then 0 within four cycles). */
 void embn_avr_watchdog_off(void) EMB_NAKED EMB_SECTION(".init3");
 void embn_avr_watchdog_off(void)
 {
-    MCUSR = 0u;
-    wdt_disable();
+    __asm__ __volatile__("sts %[mcusr], __zero_reg__\n\t"
+                         "wdr\n\t"
+                         "lds r24, %[wdtcsr]\n\t"
+                         "ori r24, %[change]\n\t"
+                         "sts %[wdtcsr], r24\n\t"
+                         "sts %[wdtcsr], __zero_reg__\n\t"
+                         :
+                         : [mcusr] "n"(_SFR_MEM_ADDR(MCUSR)), [wdtcsr] "n"(_SFR_MEM_ADDR(WDTCSR)),
+                           [change] "n"((1 << WDCE) | (1 << WDE))
+                         : "r24", "memory");
 }
 
 #if CONFIG_EMB_CRASH_RECORD

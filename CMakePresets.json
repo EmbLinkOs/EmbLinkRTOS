@@ -123,6 +123,17 @@
       }
     },
     {
+      "name": "avr-uno-clang",
+      "displayName": "Arduino Uno, Clang (avr-gcc links), tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
       "name": "avr-uno-release",
       "displayName": "Arduino Uno, avr-gcc, tiny profile, release (footprint reference)",
       "generator": "Ninja",
@@ -140,6 +151,18 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno-t1",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_CONF": "configs/footprint-t1.conf"
+      }
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "displayName": "Arduino Uno, Clang (avr-gcc links), tiny profile, release, the R-003 T1 feature set (the footprint gate measures the avr-gcc build)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-t1-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-clang.cmake",
       "cacheVariables": {
         "EMB_BOARD": "arduino_uno",
         "EMB_PROFILE": "tiny",
@@ -564,12 +587,20 @@
       "configurePreset": "avr-uno"
     },
     {
+      "name": "avr-uno-clang",
+      "configurePreset": "avr-uno-clang"
+    },
+    {
       "name": "avr-uno-release",
       "configurePreset": "avr-uno-release"
     },
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1"
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "configurePreset": "avr-uno-t1-clang"
     },
     {
       "name": "avr-uno-embsim",
@@ -795,6 +826,13 @@
       }
     },
     {
+      "name": "avr-uno-clang",
+      "configurePreset": "avr-uno-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "avr-uno-release",
       "configurePreset": "avr-uno-release",
       "output": {
@@ -804,6 +842,13 @@
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "configurePreset": "avr-uno-t1-clang",
       "output": {
         "outputOnFailure": true
       }
