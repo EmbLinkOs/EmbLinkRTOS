@@ -14,6 +14,8 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../../.." && pwd)
 out=${1:-"$root/build/freertos-esp32"}
-: "${IDF_PATH:?source ESP-IDF's export.sh first}"
+mkdir -p "$out"
+out=$(cd "$out" && pwd) # absolute: ESP-IDF reads SDKCONFIG relative to the project
+: "${IDF_PATH:?source export.sh from ESP-IDF first}"
 idf.py -C "$here" -B "$out" -DSDKCONFIG="$out/sdkconfig" -DSDKCONFIG_DEFAULTS="$here/sdkconfig.defaults" build
 echo "freertos-esp32: $out/bootloader/bootloader.bin at 0x1000, $out/partition_table/partition-table.bin at 0x8000, $out/bench_compare_freertos.bin at 0x10000"

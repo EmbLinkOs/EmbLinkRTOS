@@ -284,6 +284,21 @@ static void isr_give(void *arg)
 #define TRIGGER() ((void)emb_irq_pend((emb_irq_t)EMB_HW_TEST_IRQ))
 #endif
 
+#if BENCH_AVR
+#define TRIGGER_AND_WAIT() TRIGGER() /* the interrupt is taken before the next instruction */
+#else
+/* On the ESP32 a FROM_CPU write reaches the CPU some cycles later, so a loop of bare triggers
+ * could raise the next before the first was taken, and the two would merge: each waits for its
+ * wake, on both kernels. */
+#define TRIGGER_AND_WAIT()            \
+    do {                              \
+        uint32_t wakes_ = isr_wakes;  \
+        TRIGGER();                    \
+        while (isr_wakes == wakes_) { \
+        }                             \
+    } while (0)
+#endif
+
 static void BENCH_FAST echo_entry(void *arg)
 {
     (void)arg;
@@ -350,7 +365,7 @@ static void BENCH_FAST driver_entry(void *arg)
 #endif
     t0 = os_now();
     for (i = 0u; i < ISR_ITER; i++) {
-        TRIGGER(); /* the echo thread runs before this returns */
+        TRIGGER_AND_WAIT(); /* the echo thread has run when this returns */
     }
     report("isr_wake", os_now() - t0, ISR_ITER);
     if (isr_wakes != ISR_ITER) {

@@ -110,8 +110,8 @@ The release build, built by EmbCC, at 40 MHz, in CPU cycles ([2026-11-05](../eng
 
 | | cycles |
 |---|---|
-| notification hand-over (2 switches) | 1761 |
-| semaphore hand-over (2 switches) | 1754 |
+| notification hand-over (one switch) | 1761 |
+| semaphore hand-over (one switch) | 1754 |
 | semaphore give and take, no switch | 411 |
 | interrupt wakes a higher-priority thread | 3265 |
 | `emb_irq_pend()` to the handler (average; min 325, max 811) | 326 |
