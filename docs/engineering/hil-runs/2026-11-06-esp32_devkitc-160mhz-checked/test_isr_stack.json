@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "isr_stack_info_reports_size_and_use",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "isr_stack_guard_is_checked_at_the_outermost_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "thread_guard_is_checked_at_the_outermost_exit",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T01:18:42Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "b529ce7ae629fe93",
+    "profile": "base",
+    "suite": "test_isr_stack"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_isr_stack.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_isr_stack.bin": "4ab16211a29c8e0ebe63250035920e2e3d0ab751dc06b7f7ea80ac5cb40145e0"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "277174cfcb8dc83dcc0da395f50ff53aae712dd1",
+    "dirty": false
+  },
+  "image": "test_isr_stack.elf",
+  "image_sha256": "2d2aefee425e130cbffd0ec8df8c808749bb89bec24b922def4643aad80a1f88",
+  "isr_stack": {
+    "size": 1024,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:18:40Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

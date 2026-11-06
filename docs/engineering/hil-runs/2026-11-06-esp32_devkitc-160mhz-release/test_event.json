@@ -1,0 +1,115 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 15,
+      "name": "event_any_all_and_clear",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "event_overlapping_clear_serves_waiters_in_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "event_set_wakes_every_satisfied_waiter_in_one_pass",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "event_set_from_isr_wakes_at_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "event_wait_times_out_cancels_and_ignores_clear",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "event_destroy_aborts_waiters_when_allowed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "event_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "event_wait_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "event_binding_fires_after_direct_waiters",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "event_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "event_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T01:19:55Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "0",
+    "config": "166b84ac4a276048",
+    "profile": "base",
+    "suite": "test_event"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_event.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_event.bin": "869d3af66a79d78411ad51e9327202fea32d571ea42102368575a169b80b1414"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "277174cfcb8dc83dcc0da395f50ff53aae712dd1",
+    "dirty": false
+  },
+  "image": "test_event.elf",
+  "image_sha256": "d03750f5850edc02d32cf091c497f231179e911dce1141d4348876f1d75a61d0",
+  "isr_stack": {
+    "size": 1024,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:19:53Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 11
+  }
+}
