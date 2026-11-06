@@ -1,0 +1,48 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xtc-hil-checked/tests/conformance/test_time.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_time.elf sha256 d99765f629a18477327d70061fbce1d1fbc2f8f7ff8ea92f5d7ec1b6d0294182
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:3584
+load:0x3ffb0e00,len:4
+ho 8 tail 4 room 4
+load:0x40080400,len:20584
+entry 0x40083e64
+EVIDENCE v1 suite=test_time config=b529ce7ae629fe93 profile=base board=esp32_devkitc checked=1
+TEST time_sleep_is_exact_in_virtual_time
+  -> ok
+  req KRN-TIM-001 KRN-TIM-010 API-023
+CASE time_sleep_is_exact_in_virtual_time outcome=passed asserts=4 skips=0
+TEST time_sleep_until_does_not_drift
+  -> ok
+  req KRN-TIM-011
+CASE time_sleep_until_does_not_drift outcome=passed asserts=20 skips=0
+TEST time_zero_sleep_and_past_deadline_yield
+  -> ok
+  req KRN-TIM-010 API-024
+CASE time_zero_sleep_and_past_deadline_yield outcome=passed asserts=3 skips=0
+TEST time_timeouts_expire_in_deadline_order
+  -> ok
+  req KRN-TIM-020 KRN-TIM-021
+CASE time_timeouts_expire_in_deadline_order outcome=passed asserts=14 skips=0
+TEST time_conversions_round_up_and_saturate
+  -> ok
+  req API-021 API-022
+CASE time_conversions_round_up_and_saturate outcome=passed asserts=12 skips=0
+TEST time_at_least_adds_one_tick
+  -> ok
+  req KRN-TIM-024
+CASE time_at_least_adds_one_tick outcome=passed asserts=6 skips=0
+TEST time_instant_helpers
+  -> ok
+  req API-021
+CASE time_instant_helpers outcome=passed asserts=6 skips=0
+TEST time_now_is_monotonic_across_sleeps
+  -> ok
+  req KRN-TIM-001
+CASE time_now_is_monotonic_across_sleeps outcome=passed asserts=40 skips=0
+ISR_STACK size=1024 used=160
+8 tests, 0 failed, 0 skipped, 146 ticks
+EMB_TEST_END

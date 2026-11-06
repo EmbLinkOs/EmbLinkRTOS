@@ -1,0 +1,23 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-checked/tests/conformance/test_irq_priority.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_irq_priority.elf sha256 614257bb67575a508531dedabbd231db5125b2fd2691f28299089b556f7a75c1
+EVIDENCE v1 suite=test_irq_priority config=e8eee1ae70ccea44 profile=tiny board=arduino_uno checked=1
+TEST irq_priority_accepts_advertised_endpoints
+  -> ok
+  req KRN-IRQ-028 KRN-IRQ-029
+CASE irq_priority_accepts_advertised_endpoints outcome=passed asserts=2 skips=0
+TEST irq_priority_rejects_out_of_range_level
+  fault checks that reset the board: 2
+  -> ok
+  req API-015 KRN-IRQ-028
+CASE irq_priority_rejects_out_of_range_level outcome=passed asserts=2 skips=0
+TEST irq_priority_rejects_unknown_number
+  fault checks that reset the board: 1
+  -> ok
+  req API-015 KRN-IRQ-029
+CASE irq_priority_rejects_unknown_number outcome=passed asserts=1 skips=0
+TEST irq_priority_port_rejects_invalid_inputs
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_port_rejects_invalid_inputs outcome=passed asserts=2 skips=0
+ISR_STACK size=1384 used=73
+4 tests, 0 failed, 0 skipped, 28 ticks
+EMB_TEST_END

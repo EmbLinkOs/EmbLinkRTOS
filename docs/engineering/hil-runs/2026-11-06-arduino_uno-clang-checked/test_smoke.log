@@ -1,0 +1,17 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-checked/tests/conformance/test_smoke.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_smoke.elf sha256 5a11033c742dec4adad189621a84515b2544b22b6880783a054457d7ec3b3f63
+EVIDENCE v1 suite=test_smoke config=e8eee1ae70ccea44 profile=tiny board=arduino_uno checked=1
+TEST smoke_thread_runs_and_exits
+  -> ok
+  req KRN-THR-001 KRN-THR-005 KRN-THR-017
+CASE smoke_thread_runs_and_exits outcome=passed asserts=5 skips=0
+TEST smoke_sleep_advances_virtual_time
+  -> ok
+  req KRN-TIM-001 KRN-TIM-010
+CASE smoke_sleep_advances_virtual_time outcome=passed asserts=2 skips=0
+TEST smoke_libc_errno_from_a_thread
+  -> ok
+  req PORT-015
+CASE smoke_libc_errno_from_a_thread outcome=passed asserts=3 skips=0
+ISR_STACK size=728 used=73
+3 tests, 0 failed, 0 skipped, 57 ticks
+EMB_TEST_END
