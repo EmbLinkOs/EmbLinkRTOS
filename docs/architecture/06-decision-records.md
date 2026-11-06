@@ -733,14 +733,14 @@ The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in th
 
 **Status.** Proposed 2026-11-05, from the project owner's direction to move on with the RTOS on the ESP32 while the NUCLEO is awaited. The board runs the conformance suite: 21 of 21 tests, 157 cases.
 
-## ADR-055 Keep the running thread in its ready list (proposed)
+## ADR-055 Keep the running thread in its ready list
 
 **Context.** The scheduler keeps the running thread out of the ready structure: `embk_sched_select()` removes the thread it picks, puts a preempted thread back ahead of its peers (KRN-SCH-041), and the checked build's invariants say so (0x5104, 0x5115: "the running one is not listed"). An instruction profile of `bench_compare`'s notification hand-over on QEMU's Cortex-M4 (release, 2026-11-06, `-d in_asm,exec`) counts about 239 instructions per switch, after A97. FreeRTOS 11.1 takes about 237 on the same benchmark.
 - The list traffic around the running thread is a large part of that. In my reading of the code, a hand-over round trip makes about four list operations: the woken thread is queued; the preempted driver is inserted again; the echo thread is removed when picked; the driver is removed when picked again.
 - FreeRTOS keeps the running task in its ready list. It queues the woken task and removes it when it blocks, about two operations.
 - In the profile, `insert` alone was about 14 instructions per switch, and the removal a similar amount.
 
-**Decision (proposed, not implemented).**
+**Decision.**
 - The running thread stays in its ready list at its effective priority while it is runnable.
 - Selection is the head of the highest non-empty list, and it removes nothing.
 - Blocking, suspension and exit remove the thread. A yield, or an exhausted time slice, moves it to the tail of its list.
@@ -751,9 +751,10 @@ The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in th
 - *Cache the next thread* (a per-CPU "next" pointer kept current on every make-ready). It would save the selection's scan, not the list operations.
 
 **Consequences.**
-- The invariants 0x5104 and 0x5115 invert: the running thread is listed exactly when it is runnable.
+- The invariants 0x5104 (table) and 0x5115 (lists) invert: the running thread is in the ready structure exactly while it is runnable. A new one, 0x5117, says it is then first at its level.
+- `embk_sched_select()` leaves a preempted thread in place, moves a yielding one behind its peers, and removes one that blocked, suspended or exited. Kernel start no longer unlinks the first thread. A priority change relinks the running thread at the head of its new level. The time slice looks for a peer behind the running thread.
 - `embk_invariants_check()`, the executable model in `tools/model` (ADR-013), and the conformance cases on ordering need the same change. That includes KRN-SCH-041, rotation with time slicing, priority inheritance moving a running owner between lists, and suspend and exit of the running thread.
 - The tiny profile's table scheduler (ADR-036) keeps one thread per priority. The running thread then stays in its slot, which removes a store pair there too.
 - Expected gain: about two list operations per hand-over round trip, some 25 instructions on Cortex-M. To be measured on the NUCLEO before and after.
 
-**Status.** Proposed 2026-11-06 from the profile above; awaiting the project owner's decision before any code changes.
+**Status.** Proposed and implemented on 2026-11-06 on its own branch (`feat/sched-current-listed`, A99), to be measured on the NUCLEO, the Uno and the ESP32 against the build without it before it merges. Its first stress runs found two races in the native port's asynchronous mode, which A98 fixed: neither was in the scheduler.
