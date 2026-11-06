@@ -10,7 +10,7 @@ endif()
 if(EMB_TEST_EMULATOR STREQUAL "hil" AND EMB_HIL_PORT)
   foreach(_bench bench_switch bench_irq)
     if(TARGET ${_bench})
-      add_test(NAME ${_bench} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/hil/run_hil.py"
+      add_test(NAME ${_bench} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/hil/run_hil.py"
                --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}" --until BENCH_END --bench
                --log "${CMAKE_CURRENT_BINARY_DIR}/${_bench}.console.log" --archive "${EMB_HIL_ARCHIVE}"
                $<TARGET_FILE:${_bench}>)

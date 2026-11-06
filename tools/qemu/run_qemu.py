@@ -9,8 +9,8 @@ enable=on,target=native -kernel", "-M virt -bios none -kernel". Boards add
 `-icount shift=N,sleep=off` so that virtual time follows executed instructions: the timing
 tests then do not depend on host load. The image prints its
 results on the board console; the run ends when the test framework's summary line
-("<n> tests, <m> failed") and the marker EMB_TEST_END have appeared, when the emulator
-exits, or at the timeout. Exit status: 0 when the summary reports no failure, 1 on
+("<n> tests, <m> failed") and the marker EMB_TEST_END have appeared (or --until's text, for
+an application), when the emulator exits, or at the timeout. Exit status: 0 when the summary reports no failure, 1 on
 failures, 2 on a timeout, an early emulator exit, or a QEMU error. Emulated timing is
 never evidence (SIM-003): this runner checks behavior only.
 """
@@ -32,6 +32,7 @@ def main(argv):
     ap.add_argument("--qemu-args", required=True,
                     help="machine arguments, ending with the option that takes the image (-bios or -kernel)")
     ap.add_argument("--timeout", type=float, default=240.0)
+    ap.add_argument("--until", help="end successfully when this text appears (an application's own end)")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
     cmd = [args.qemu] + shlex.split(args.qemu_args) + [args.elf, "-nographic", "-monitor", "none"]
@@ -49,7 +50,9 @@ def main(argv):
             if not chunk:
                 if proc.poll() is not None:
                     m = SUMMARY.search(buf)
-                    if m and END in buf:
+                    if args.until is not None and args.until.encode() in buf:
+                        rc = 0
+                    elif m and END in buf:
                         rc = 0 if int(m.group(2)) == 0 else 1
                     else:
                         print(f"\nrun_qemu: the emulator exited ({proc.returncode}) before the summary",
@@ -61,6 +64,11 @@ def main(argv):
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.buffer.flush()
             buf += chunk
+            if args.until is not None:
+                if args.until.encode() in buf:
+                    rc = 0
+                    break
+                continue
             m = SUMMARY.search(buf)
             if m and END in buf:
                 rc = 0 if int(m.group(2)) == 0 else 1

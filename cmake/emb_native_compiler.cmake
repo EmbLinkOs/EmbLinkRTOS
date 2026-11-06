@@ -25,7 +25,7 @@ endif()
 
 function(emb_use_kernel_compiler target)
   if(EMB_NATIVE_MIXED_EMBCC)
-    set(_launcher "${CMAKE_SOURCE_DIR}/tools/toolchain/kernel_compile.py")
+    set(_launcher "${EMB_BASE}/tools/toolchain/kernel_compile.py")
     set_property(TARGET ${target} PROPERTY C_COMPILER_LAUNCHER
       "${Python3_EXECUTABLE};${_launcher};${EMB_KERNEL_COMPILER}")
     get_target_property(_sources ${target} SOURCES)
@@ -39,18 +39,18 @@ function(emb_check_native_abi)
     return()
   endif()
   foreach(_compiler host kernel)
-    add_library(emb_${_compiler}_abi OBJECT "${CMAKE_SOURCE_DIR}/tools/toolchain/native_abi.c")
-    target_include_directories(emb_${_compiler}_abi PRIVATE "${CMAKE_SOURCE_DIR}/kernel/include")
+    add_library(emb_${_compiler}_abi OBJECT "${EMB_BASE}/tools/toolchain/native_abi.c")
+    target_include_directories(emb_${_compiler}_abi PRIVATE "${EMB_BASE}/kernel/include")
     target_link_libraries(emb_${_compiler}_abi PRIVATE emb_api emb_flags)
     if(_compiler STREQUAL "kernel")
       emb_use_kernel_compiler(emb_kernel_abi)
     endif()
     set(_header "${EMB_GENERATED_DIR}/abi/${_compiler}.h")
     add_custom_command(OUTPUT "${_header}"
-      COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/storage/gen_storage.py"
+      COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/storage/gen_storage.py"
               --out "${_header}" $<TARGET_OBJECTS:emb_${_compiler}_abi>
       DEPENDS emb_${_compiler}_abi $<TARGET_OBJECTS:emb_${_compiler}_abi>
-              "${CMAKE_SOURCE_DIR}/tools/storage/gen_storage.py"
+              "${EMB_BASE}/tools/storage/gen_storage.py"
       VERBATIM)
   endforeach()
   add_custom_command(OUTPUT "${EMB_GENERATED_DIR}/abi/verified"

@@ -423,7 +423,7 @@ def board_cmake(r):
         # <root>/boards/<vendor>/<board>/generated
         out += f"get_filename_component(EMB_SOC_DIR \"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{soc_dir}\" ABSOLUTE)\n"
     else:
-        out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
+        out += f"set(EMB_SOC_DIR \"${{EMB_BASE}}/{soc_dir}\")\n"
     out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
     qemu = r["board"].get("simulation", {}).get("qemu")
     if qemu:
