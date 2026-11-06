@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+name: apt-install
+description: >-
+  CI's package installation: the packages' archives cached between runs, then
+  scripts/ci-apt-install.sh, bounded and retried. With the archives cached, a run downloads
+  only the package indexes, which the stalls on the runners' mirror have spared.
+inputs:
+  packages:
+    description: the Ubuntu packages to install, separated by spaces
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: The packages' archives from earlier runs
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ci-apt
+        key: ci-apt-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/ci-apt-install.sh') }}-${{ inputs.packages }}
+    - name: Install
+      shell: bash
+      run: CI_APT_CACHE="$HOME/.cache/ci-apt" scripts/ci-apt-install.sh ${{ inputs.packages }}
