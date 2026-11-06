@@ -55,6 +55,17 @@ jobs:
         with:
           name: coverage
           path: coverage.*
+      - name: FreeRTOS's side of bench_compare for Cortex-M4 (tools/bench/freertos-cm4), both boards
+        if: matrix.preset == 'cm4-an386'
+        run: |
+          tools/bench/freertos-cm4/build.sh nucleo_f446re
+          tools/bench/freertos-cm4/build.sh mps2_an386
+          # a functional check, not a timing (SIM-003): every measurement reported, every wake taken
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until BENCH_END --timeout 120 \
+            --qemu-args "-M mps2-an386 -icount shift=5,sleep=off -kernel" \
+            build/freertos-cm4-mps2_an386/bench_compare.elf | tee freertos-cm4.log
+          test "$(grep -c '^BENCH v1' freertos-cm4.log)" -eq 4
+          ! grep -q 'isr_wake woke' freertos-cm4.log
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json

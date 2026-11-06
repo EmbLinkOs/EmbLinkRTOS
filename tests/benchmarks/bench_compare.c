@@ -4,8 +4,9 @@
  * The same four measurements for EmbLinkRTOS and for FreeRTOS on the same board (R-003 §6,
  * the review's F14): one source, two kernels. Built here for EmbLinkRTOS; built for FreeRTOS with
  * -DBENCH_FREERTOS by tools/bench/freertos-avr/build.sh on the Uno, and as an ESP-IDF application
- * by tools/bench/freertos-esp32/ on the ESP32 (ESP-IDF's FreeRTOS, as ESP32 projects run it). On
- * the Uno both count Timer1 at F_CPU / 64 (250 kHz); on the ESP32 both count CCOUNT, CPU cycles.
+ * by tools/bench/freertos-esp32/ on the ESP32 (ESP-IDF's FreeRTOS, as ESP32 projects run it), and
+ * by tools/bench/freertos-cm4/ on Cortex-M4 boards. On the Uno both count Timer1 at F_CPU / 64
+ * (250 kHz); on the ESP32 both count CCOUNT; on Cortex-M both count CPU cycles from SysTick.
  * Each figure is a total over thousands of operations:
  *
  *   notify_handover  a direct-to-thread notification bounced between two threads (2 switches)
@@ -23,7 +24,8 @@
 
 #define ITER     10000u
 #define ISR_ITER 5000u
-#define STACK    192u /* FreeRTOS's words on AVR, bytes for EmbLinkRTOS (below) */
+#define STACK    192u  /* on the Uno: FreeRTOS's words, EmbLinkRTOS's bytes */
+#define STACK32  1024u /* elsewhere: bytes for both kernels */
 #define M_NOTIFY 0u
 #define M_SEM    1u
 #define M_ISR    2u
@@ -77,6 +79,77 @@ static void os_put_u32(uint32_t v)
 static uint32_t os_unit_hz(void)
 {
     return esp_rom_get_cpu_ticks_per_us() * 1000000u;
+}
+
+#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
+/* ---- FreeRTOS on a Cortex-M4 board (tools/bench/freertos-cm4/) ------------------------- */
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "task.h"
+
+#define OS_NAME   "freertos"
+#define BENCH_AVR 0
+#define BENCH_FAST
+typedef TaskHandle_t os_thread_t;
+typedef SemaphoreHandle_t os_sem_t;
+static StaticSemaphore_t sem_buf[4];
+static StaticTask_t tcb[2];
+static StackType_t stacks[2][STACK32 / sizeof(StackType_t)];
+
+void bench_platform_init(void);
+void bench_puts(const char *s);
+void bench_test_irq_enable(void);
+void bench_isr(void);
+
+#define SYST_RVR  (*(volatile uint32_t *)0xE000E014u)
+#define SYST_CVR  (*(volatile uint32_t *)0xE000E018u)
+#define SCB_ICSR  (*(volatile uint32_t *)0xE000ED04u)
+#define NVIC_ISPR (*(volatile uint32_t *)(0xE000E200u + 4u * (BENCH_TEST_IRQ / 32u)))
+
+/* CPU cycles from SysTick, as the EmbLinkRTOS Cortex-M port's emb_arch_cycles(): the ticks
+ * times the reload, plus the current count, with a tick pending but not yet counted added */
+static uint32_t os_now(void)
+{
+    uint32_t ticks;
+    uint32_t cvr;
+    taskENTER_CRITICAL();
+    ticks = (uint32_t)xTaskGetTickCount();
+    cvr = SYST_CVR;
+    if ((SCB_ICSR & (1u << 26)) != 0u) {
+        ticks++;
+        cvr = SYST_CVR;
+    }
+    taskEXIT_CRITICAL();
+    return ticks * (SYST_RVR + 1u) + (SYST_RVR - cvr);
+}
+
+static void os_puts(const char *s)
+{
+    bench_puts(s);
+}
+
+static void os_put_u32(uint32_t v)
+{
+    char d[11];
+    int i = 10;
+    d[i] = '\0';
+    do {
+        d[--i] = (char)('0' + (v % 10u));
+        v /= 10u;
+    } while (v != 0u && i > 0);
+    os_puts(&d[i]);
+}
+
+#define os_sem_init(i, s)  ((s) = xSemaphoreCreateBinaryStatic(&sem_buf[i]))
+#define os_sem_give(s)     ((void)xSemaphoreGive(s))
+#define os_sem_take(s)     ((void)xSemaphoreTake((s), portMAX_DELAY))
+#define os_sem_take_now(s) ((void)xSemaphoreTake((s), 0))
+#define os_notify(t)       ((void)xTaskNotifyGive(t))
+#define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
+#define os_idle()          vTaskSuspend(NULL)
+static uint32_t os_unit_hz(void)
+{
+    return (uint32_t)configCPU_CLOCK_HZ;
 }
 
 #elif defined(BENCH_FREERTOS)
@@ -167,11 +240,16 @@ static uint32_t os_unit_hz(void)
 
 #include <emb_board.h>
 
-#define OS_NAME            "emblink"
-#define BENCH_AVR          CONFIG_EMB_ARCH_AVR
-#define BENCH_FAST         /* the whole image runs from RAM on every board it measures */
+#define OS_NAME    "emblink"
+#define BENCH_AVR  CONFIG_EMB_ARCH_AVR
+#define BENCH_FAST /* the whole image runs from RAM on every board it measures */
 /* STACK bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
-#define EMB_STACK          (EMB_THREAD_STACK_MIN > STACK ? EMB_THREAD_STACK_MIN : STACK)
+#if CONFIG_EMB_ARCH_AVR
+#define EMB_STACK_WANT STACK
+#else
+#define EMB_STACK_WANT STACK32
+#endif
+#define EMB_STACK          (EMB_THREAD_STACK_MIN > EMB_STACK_WANT ? EMB_THREAD_STACK_MIN : EMB_STACK_WANT)
 typedef emb_thread_t os_thread_t;
 typedef emb_sem_t os_sem_t;
 static emb_sem_storage_t sem_buf[4];
@@ -255,6 +333,19 @@ static void BENCH_FAST isr_give(void *arg)
     }
 }
 #define TRIGGER() DPORT_REG_WRITE(DPORT_CPU_INTR_FROM_CPU_2_REG, 1)
+#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
+/* the board's test line, pended in the NVIC as emb_irq_pend() does */
+void bench_isr(void)
+{
+    BaseType_t woken = pdFALSE;
+    (void)xSemaphoreGiveFromISR(s_isr, &woken);
+    portYIELD_FROM_ISR(woken);
+}
+#define TRIGGER()                                    \
+    do {                                             \
+        NVIC_ISPR = 1u << (BENCH_TEST_IRQ % 32u);    \
+        __asm__ volatile("dsb\n\tisb" ::: "memory"); \
+    } while (0)
 #elif defined(BENCH_FREERTOS)
 ISR(USART_UDRE_vect)
 {
@@ -396,6 +487,34 @@ void app_main(void)
     driver = xTaskCreateStatic(driver_entry, "drv", IDF_STACK, NULL, 2, stacks[0], &tcb[0]);
     echo = xTaskCreateStatic(echo_entry, "echo", IDF_STACK, NULL, 3, stacks[1], &tcb[1]);
     (void)xTaskResumeAll();
+}
+#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
+static StaticTask_t idle_tcb;
+static StackType_t idle_stack[configMINIMAL_STACK_SIZE];
+void vApplicationGetIdleTaskMemory(StaticTask_t **tcb_out, StackType_t **stack_out,
+                                   configSTACK_DEPTH_TYPE *size_out)
+{
+    *tcb_out = &idle_tcb;
+    *stack_out = idle_stack;
+    *size_out = configMINIMAL_STACK_SIZE;
+}
+
+int main(void)
+{
+    bench_platform_init();
+    os_sem_init(0, s_go);
+    os_sem_init(1, s_back);
+    os_sem_init(2, s_self);
+    os_sem_init(3, s_isr);
+    bench_test_irq_enable();
+    os_puts("bench_compare: FreeRTOS " tskKERNEL_VERSION_NUMBER "\n");
+    driver = xTaskCreateStatic(driver_entry, "drv", STACK32 / sizeof(StackType_t), NULL, 2,
+                               stacks[0], &tcb[0]);
+    echo = xTaskCreateStatic(echo_entry, "echo", STACK32 / sizeof(StackType_t), NULL, 3, stacks[1],
+                             &tcb[1]);
+    vTaskStartScheduler();
+    for (;;) {
+    }
 }
 #elif defined(BENCH_FREERTOS)
 /* static allocation only, as EmbLinkRTOS: the idle task's memory comes from here */
