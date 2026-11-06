@@ -65,7 +65,13 @@ emb_tick_t embk_deadline_from_timeout(emb_timeout_t timeout);
  * of a NO_WAIT take). Callers pass EMB_TIMEOUT_IS_NO_WAIT() alongside, and never use the 0. */
 static EMB_INLINE emb_tick_t embk_deadline_if_blocking(emb_timeout_t timeout)
 {
-    return EMB_TIMEOUT_IS_NO_WAIT(timeout) ? 0u : embk_deadline_from_timeout(timeout);
+    /* no deadline for EMB_NO_WAIT, which never reads it, nor for EMB_WAIT_FOREVER, whose deadline
+     * is a constant: neither reads the clock (A94, A97) */
+    if (EMB_TIMEOUT_IS_NO_WAIT(timeout)) {
+        return 0u;
+    }
+    return (timeout.ticks == EMB_TICK_MAX) ? EMBK_DEADLINE_FOREVER
+                                           : embk_deadline_from_timeout(timeout);
 }
 bool embk_tick_before(emb_tick_t a, emb_tick_t b);
 bool embk_deadline_passed(emb_tick_t deadline);

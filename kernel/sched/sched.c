@@ -40,7 +40,7 @@ static embk_word_t ready_summary; /* bit w: ready_map[w] != 0 */
 #endif
 #endif
 
-static bool thread_runnable(const embk_thread_t *t)
+static EMB_ALWAYS_INLINE bool thread_runnable(const embk_thread_t *t)
 {
     return t->wait_state != EMBK_WAIT_BLOCKED &&
            (t->tflags & (EMBK_THREAD_SUSPENDED | EMBK_THREAD_TERMINATED)) == 0u &&
