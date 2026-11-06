@@ -10,3 +10,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   # EmbCC's C library keeps errno itself
   target_compile_definitions(emb_arch PRIVATE EMBN_XT_NEWLIB=1)
 endif()
+# The vectors include the generated <emb/config.h>. EmbCC writes no dependency file for assembly
+# (cmake/toolchains/embcc-depfile.cmake), so the dependency is named here, for every compiler.
+set_source_files_properties(xt_vectors.S PROPERTIES OBJECT_DEPENDS "${EMB_CONFIG_HEADER}")
