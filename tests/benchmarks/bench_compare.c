@@ -2,9 +2,11 @@
 /* Copyright 2026 Junior Deogracias */
 /*
  * The same four measurements for EmbLinkRTOS and for FreeRTOS on the same board (R-003 §6,
- * the review's F14): one source, two kernels. Built here for EmbLinkRTOS; built for FreeRTOS by
- * tools/bench/freertos-avr/build.sh with -DBENCH_FREERTOS. Both count in the same unit, Timer1
- * at F_CPU / 64 (250 kHz on the Uno), and each figure is a total over thousands of operations:
+ * the review's F14): one source, two kernels. Built here for EmbLinkRTOS; built for FreeRTOS with
+ * -DBENCH_FREERTOS by tools/bench/freertos-avr/build.sh on the Uno, and as an ESP-IDF application
+ * by tools/bench/freertos-esp32/ on the ESP32 (ESP-IDF's FreeRTOS, as ESP32 projects run it). On
+ * the Uno both count Timer1 at F_CPU / 64 (250 kHz); on the ESP32 both count CCOUNT, CPU cycles.
+ * Each figure is a total over thousands of operations:
  *
  *   notify_handover  a direct-to-thread notification bounced between two threads (2 switches)
  *   sem_handover     a binary semaphore each way between two threads (2 switches)
@@ -27,8 +29,58 @@
 #define M_ISR    2u
 #define M_DONE   3u
 
-#if defined(BENCH_FREERTOS)
-/* ---- FreeRTOS ------------------------------------------------------------------------ */
+#if defined(BENCH_FREERTOS) && defined(ESP_PLATFORM)
+/* ---- FreeRTOS in ESP-IDF, on the ESP32 ------------------------------------------------- */
+#include "esp_attr.h"
+#include "esp_cpu.h"
+#include "esp_intr_alloc.h"
+#include "esp_rom_sys.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "soc/dport_reg.h"
+
+#include <inttypes.h>
+
+#define OS_NAME    "freertos"
+#define BENCH_AVR  0
+#define BENCH_FAST IRAM_ATTR /* in IRAM, as the whole EmbLinkRTOS image is */
+#define IDF_STACK  2048u     /* bytes: ESP-IDF's stack depth unit */
+typedef TaskHandle_t os_thread_t;
+typedef SemaphoreHandle_t os_sem_t;
+static StaticSemaphore_t sem_buf[4];
+static StaticTask_t tcb[2];
+static StackType_t stacks[2][IDF_STACK];
+
+static inline uint32_t os_now(void)
+{
+    return (uint32_t)esp_cpu_get_cycle_count();
+}
+
+static void os_puts(const char *s)
+{
+    esp_rom_printf("%s", s);
+}
+
+static void os_put_u32(uint32_t v)
+{
+    esp_rom_printf("%" PRIu32, v);
+}
+
+#define os_sem_init(i, s)  ((s) = xSemaphoreCreateBinaryStatic(&sem_buf[i]))
+#define os_sem_give(s)     ((void)xSemaphoreGive(s))
+#define os_sem_take(s)     ((void)xSemaphoreTake((s), portMAX_DELAY))
+#define os_sem_take_now(s) ((void)xSemaphoreTake((s), 0))
+#define os_notify(t)       ((void)xTaskNotifyGive(t))
+#define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
+#define os_idle()          vTaskSuspend(NULL)
+static uint32_t os_unit_hz(void)
+{
+    return esp_rom_get_cpu_ticks_per_us() * 1000000u;
+}
+
+#elif defined(BENCH_FREERTOS)
+/* ---- FreeRTOS on the Uno ------------------------------------------------------------- */
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
@@ -37,7 +89,8 @@
 #include <avr/io.h>
 
 #define OS_NAME   "freertos"
-#define BENCH_AVR 1 /* FreeRTOS's side runs on the Uno only so far */
+#define BENCH_AVR 1
+#define BENCH_FAST
 typedef TaskHandle_t os_thread_t;
 typedef SemaphoreHandle_t os_sem_t;
 static StaticSemaphore_t sem_buf[4];
@@ -116,6 +169,7 @@ static uint32_t os_unit_hz(void)
 
 #define OS_NAME            "emblink"
 #define BENCH_AVR          CONFIG_EMB_ARCH_AVR
+#define BENCH_FAST         /* the whole image runs from RAM on every board it measures */
 /* STACK bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
 #define EMB_STACK          (EMB_THREAD_STACK_MIN > STACK ? EMB_THREAD_STACK_MIN : STACK)
 typedef emb_thread_t os_thread_t;
@@ -188,7 +242,20 @@ static void report(const char *name, uint32_t units, uint32_t ops)
 }
 
 /* The interrupt: off again, then the give that wakes the echo thread. */
-#if defined(BENCH_FREERTOS)
+#if defined(BENCH_FREERTOS) && defined(ESP_PLATFORM)
+/* FROM_CPU_INTR2: ESP-IDF keeps 0 and 1 for its cross-core calls */
+static void BENCH_FAST isr_give(void *arg)
+{
+    BaseType_t woken = pdFALSE;
+    (void)arg;
+    DPORT_REG_WRITE(DPORT_CPU_INTR_FROM_CPU_2_REG, 0);
+    (void)xSemaphoreGiveFromISR(s_isr, &woken);
+    if (woken != pdFALSE) {
+        portYIELD_FROM_ISR();
+    }
+}
+#define TRIGGER() DPORT_REG_WRITE(DPORT_CPU_INTR_FROM_CPU_2_REG, 1)
+#elif defined(BENCH_FREERTOS)
 ISR(USART_UDRE_vect)
 {
     BaseType_t woken = pdFALSE;
@@ -217,7 +284,7 @@ static void isr_give(void *arg)
 #define TRIGGER() ((void)emb_irq_pend((emb_irq_t)EMB_HW_TEST_IRQ))
 #endif
 
-static void echo_entry(void *arg)
+static void BENCH_FAST echo_entry(void *arg)
 {
     (void)arg;
     for (;;) {
@@ -241,7 +308,7 @@ static void echo_entry(void *arg)
     }
 }
 
-static void driver_entry(void *arg)
+static void BENCH_FAST driver_entry(void *arg)
 {
     uint32_t i;
     uint32_t t0;
@@ -298,7 +365,24 @@ static void driver_entry(void *arg)
     }
 }
 
-#if defined(BENCH_FREERTOS)
+#if defined(BENCH_FREERTOS) && defined(ESP_PLATFORM)
+/* ESP-IDF has started the scheduler and runs this in its main task, at priority 1: both tasks
+ * are created with the scheduler suspended, so that neither runs before both handles exist. */
+void app_main(void)
+{
+    os_sem_init(0, s_go);
+    os_sem_init(1, s_back);
+    os_sem_init(2, s_self);
+    os_sem_init(3, s_isr);
+    DPORT_REG_WRITE(DPORT_CPU_INTR_FROM_CPU_2_REG, 0);
+    (void)esp_intr_alloc(ETS_FROM_CPU_INTR2_SOURCE, ESP_INTR_FLAG_IRAM, isr_give, NULL, NULL);
+    os_puts("bench_compare: FreeRTOS " tskKERNEL_VERSION_NUMBER " (ESP-IDF)\n");
+    vTaskSuspendAll();
+    driver = xTaskCreateStatic(driver_entry, "drv", IDF_STACK, NULL, 2, stacks[0], &tcb[0]);
+    echo = xTaskCreateStatic(echo_entry, "echo", IDF_STACK, NULL, 3, stacks[1], &tcb[1]);
+    (void)xTaskResumeAll();
+}
+#elif defined(BENCH_FREERTOS)
 /* static allocation only, as EmbLinkRTOS: the idle task's memory comes from here */
 static StaticTask_t idle_tcb;
 static StackType_t idle_stack[configMINIMAL_STACK_SIZE];

@@ -564,6 +564,32 @@ jobs:
             build/xt-esp32-clang/**/*.bin
           retention-days: 30
 
+  # bench_compare against ESP-IDF's FreeRTOS on the ESP32 (A96): built in Espressif's ESP-IDF
+  # v6.1 container, pinned by digest, and kept for a run on the board, which CI does not have.
+  freertos-esp32:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: espressif/idf:v6.1@sha256:81893c71bb5e570088901f21def8684c25cd2a9020281bd01b843a7655edb18c
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build bench_compare against ESP-IDF's FreeRTOS
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          tools/bench/freertos-esp32/build.sh build/freertos-esp32
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freertos-esp32-images
+          path: |
+            build/freertos-esp32/bootloader/bootloader.bin
+            build/freertos-esp32/partition_table/partition-table.bin
+            build/freertos-esp32/bench_compare_freertos.bin
+            build/freertos-esp32/bench_compare_freertos.elf
+            build/freertos-esp32/sdkconfig
+          retention-days: 30
+
   application:
     # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four
     # boards, run natively and under QEMU until its own end line
