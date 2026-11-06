@@ -124,7 +124,7 @@ Measured one part at a time:
 
 The window traffic is inherent to the windowed ABI. The kernel's own C path is the larger part, and it is the compiler's. The same source built by Espressif's GCC in CI, flashed on the same board, hands over in 1163 cycles against EmbCC's 2090 (checked builds), and gives and takes in 226 against 436. Espressif's Clang lands in between, close to GCC: 1325 and 218 ([report](../engineering/hil-esp32-port-2026-11-05.md)).
 
-The comparison with FreeRTOS on this board is the next step: ESP-IDF's FreeRTOS, built in CI, timed in cycles.
+Against ESP-IDF's FreeRTOS on the same board, configured as the release build and counted in cycles, the GCC build takes 34–50% fewer cycles on each measurement ([comparison](../engineering/bench-esp32-freertos-2026-11-06.md)).
 
 **With Espressif's GCC,** newlib is built with `__DYNAMIC_REENT__` and asks for the running task's reentrancy block through `__getreent()`, which ESP-IDF supplies. The port supplies one block for every thread instead, as RISC-V's `tp` block (A88): `errno` is shared.
 
