@@ -57,9 +57,17 @@ typedef struct emb_thread_attr {
 #define EMB_WAIT_REASON_JOIN    ((uint8_t)5u)
 #define EMB_WAIT_REASON_NOTIFY  ((uint8_t)6u)
 
-#define EMB_STACK_ALIGN      CONFIG_EMB_ARCH_STACK_ALIGN
+#define EMB_STACK_ALIGN CONFIG_EMB_ARCH_STACK_ALIGN
+#define EMB_STACK_FILL  ((uint8_t)0xEBu)
+
+#ifdef CONFIG_EMB_AVR_ISR_STACK_RESERVE
+/* No interrupt stack on AVR: every thread's stack also holds its interrupt reserve (SPEC-012
+ * §5), so the minimum includes it. */
+#define EMB_THREAD_STACK_MIN \
+    ((size_t)CONFIG_EMB_ARCH_STACK_MIN + (size_t)CONFIG_EMB_AVR_ISR_STACK_RESERVE)
+#else
 #define EMB_THREAD_STACK_MIN ((size_t)CONFIG_EMB_ARCH_STACK_MIN)
-#define EMB_STACK_FILL       ((uint8_t)0xEBu)
+#endif
 
 /* Declares an aligned stack array of at least `size` bytes (SPEC-008 §10). MISRA Dev
  * CS-12: rule 20.7, `name` is a token. */
@@ -366,8 +374,13 @@ uint8_t emb_thread_get_effective_priority(emb_thread_t thread);
 void emb_thread_yield(void);
 
 /**
- * emb_thread_sleep() - Block the caller for @d (SPEC-003 §6).
+ * emb_thread_sleep() - Block the caller until @d ticks have passed (SPEC-003 §6).
  * @d: Zero behaves as emb_thread_yield().
+ *
+ * The sleep ends at the @d-th tick edge after the call. The call lands inside a tick
+ * period, so on a real clock more than @d - 1 and at most @d periods pass: EMB_MS(1) can
+ * return after microseconds when called just before an edge. For at least @d of real
+ * time, sleep EMB_AT_LEAST(d). Wake-up then waits for the scheduler as any wake does.
  *
  * @ctx      thread
  * @blocks   timeout

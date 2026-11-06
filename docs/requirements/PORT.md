@@ -142,3 +142,10 @@ PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restate
 **Status.** Accepted 2026-10-07
 **Verification.** Release checklist; CI gates.
 **Trace.** SPEC-011 §16
+
+### PORT-015  The C library's thread pointer
+**Statement.** A port whose toolchain's C library keeps state in thread-local storage (picolibc's `errno` on RISC-V) shall point the thread pointer at a thread-local block, initialized from the image's `.tdata` and `.tbss`, before `main`; one block shared by every thread satisfies this, and the port page shall say whether such state is per thread.
+**Rationale.** The kernel uses no C library, but an application does: with the thread pointer at 0, the first libc call that sets `errno` faults (review 2026-11-05, A88).
+**Status.** Proposed 2026-11-05
+**Verification.** Test: `smoke_libc_errno_from_a_thread` on every port.
+**Trace.** SPEC-011 §10; A88

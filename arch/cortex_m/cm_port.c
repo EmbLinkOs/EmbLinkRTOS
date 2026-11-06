@@ -304,6 +304,15 @@ bool emb_arch_in_isr(void)
 
 static uint32_t tick_reload; /* counts per tick minus one */
 
+/* The reload is 24 bits: a tick longer than 2^24 processor cycles cannot be counted, and a
+ * clamp would run a wrong tick rate without a word (the kernel's only caller passes the
+ * configured rate, so the check is the configuration's). */
+#define EMBN_CM_TICK_COUNTS \
+    ((uint32_t)CONFIG_EMB_CM_CPU_HZ / (1000000000u / (uint32_t)CONFIG_EMB_TICK_NS))
+EMB_STATIC_ASSERT(EMBN_CM_TICK_COUNTS >= 1u && EMBN_CM_TICK_COUNTS <= 0x01000000u,
+                  "CONFIG_EMB_TICK_NS needs between 1 and 2^24 SysTick counts per tick at "
+                  "CONFIG_EMB_CM_CPU_HZ: shorten the tick or lower the clock");
+
 emb_status_t emb_arch_timer_init(void)
 {
     REG32(SYST_CSR) = 0u;
@@ -314,11 +323,9 @@ emb_status_t emb_arch_timer_init(void)
 void emb_arch_timer_start_periodic(uint32_t hz)
 {
     uint32_t counts = (uint32_t)CONFIG_EMB_CM_CPU_HZ / hz;
-    if (counts == 0u) {
-        counts = 1u;
-    }
-    if (counts > 0x01000000u) {
-        counts = 0x01000000u; /* 24-bit reload */
+    if (counts == 0u || counts > 0x01000000u) {
+        /* only a rate other than the configured one gets here (the assertion above) */
+        emb_fault(EMB_FAULT_KERNEL_INVARIANT, 0x5715u, "SysTick reload out of range");
     }
     tick_reload = counts - 1u;
     REG32(SYST_RVR) = tick_reload;

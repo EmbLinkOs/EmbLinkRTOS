@@ -27,7 +27,7 @@ Frame, from the saved stack pointer upward: r4..r11, EXC_RETURN, then the hardwa
 
 ## Time
 
-SysTick on the processor clock gives the periodic tick (`CONFIG_EMB_CM_CPU_HZ`, 25 MHz on MPS2, a reload of 25,000 for 1 ms). The cycle counter is derived from the tick count and SysTick, because QEMU does not model DWT CYCCNT. Tickless mode is refused by the configuration in this milestone.
+SysTick on the processor clock gives the periodic tick (`CONFIG_EMB_CM_CPU_HZ`, 25 MHz on MPS2, a reload of 25,000 for 1 ms). The cycle counter is derived from the tick count and SysTick, because QEMU does not model DWT CYCCNT. Tickless mode is refused by the configuration in this milestone. The reload is 24 bits, so a tick of more than 2^24 processor cycles (about 93 ms at 180 MHz) fails the build instead of running at a wrong rate.
 
 ## Faults
 

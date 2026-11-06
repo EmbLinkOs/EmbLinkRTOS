@@ -21,7 +21,7 @@ features:
   mpu: none
   fpu_lazy: [armv7em, armv8m-main]
   cycle_counter: [armv6m, armv7m, armv7em, armv8m-main]
-  tickless: true
+  tickless: false # periodic tick only: the port refuses EMB_TICKLESS (Kconfig)
   smp: false
   syscall_trap: none
   fault_entry: true

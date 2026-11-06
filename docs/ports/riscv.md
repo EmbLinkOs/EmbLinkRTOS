@@ -20,7 +20,7 @@ One 128-byte frame serves the thread switch, the trap path and the initial frame
 | 29 | mstatus |
 | 30-31 | padding to 16 bytes |
 
-A context resumes by writing mstatus and mepc from its frame and executing `mret`, so MIE comes back from the frame's MPIE. A thread interrupted with interrupts on, or a fresh thread, resumes with MIE set. A thread that switched out inside its critical section resumes with MIE clear. gp and tp are not used by the port and are not saved.
+A context resumes by writing mstatus and mepc from its frame and executing `mret`, so MIE comes back from the frame's MPIE. A thread interrupted with interrupts on, or a fresh thread, resumes with MIE set. A thread that switched out inside its critical section resumes with MIE clear. gp is not used by the port and is not saved. tp points from reset at the one thread-local block of the C library, so picolibc's `errno` works (A88). Every thread shares that block, so `errno` is not per thread, and no frame carries tp.
 
 - `emb_arch_switch_to(next)` is called with MIE clear. It saves the caller as a frame whose mepc is the return address and whose MPIE is clear, makes `next` current, and resumes it. The switch is synchronous, as on AVR.
 - The trap entry saves the interrupted frame on the interrupted stack, records it in the current thread, and runs the C handler on a dedicated interrupt stack (`CONFIG_EMB_ISR_STACK_SIZE`). It then resumes whatever context the kernel's interrupt exit returns.

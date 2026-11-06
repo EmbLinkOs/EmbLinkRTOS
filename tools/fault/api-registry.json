@@ -876,6 +876,12 @@
       "name": "emb_crash_record_clear",
       "header": "crash.h",
       "state": "active"
+    },
+    {
+      "id": 147,
+      "name": "emb_ticks_at_least",
+      "header": "time.h",
+      "state": "active"
     }
   ]
 }

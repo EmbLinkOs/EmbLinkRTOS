@@ -23,7 +23,9 @@ config EMB_AVR_ISR_STACK_RESERVE
 	range 40 255
 	help
 	  SPEC-002 §7.2, SPEC-012 §5: the 37-byte EMB_ISR frame plus the largest
-	  kernel-aware handler's C frame. Added to every thread stack budget.
+	  kernel-aware handler's C frame. Interrupts run on the interrupted thread's
+	  stack, so EMB_THREAD_STACK_MIN includes this reserve (emb_thread_init refuses a
+	  smaller stack).
 
 config EMB_AVR_TIMER1_PRESCALER
 	int "Timer1 prescaler for the periodic tick"

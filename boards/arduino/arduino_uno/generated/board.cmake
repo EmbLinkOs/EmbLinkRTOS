@@ -3,7 +3,7 @@
 # description and run hw/gen/emb-hwgen.py generate --board boards/arduino/arduino_uno (HW-003).
 # Inputs (SHA-256):
 #   arch/avr/arch.yaml
-#     2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2
+#     58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42
 #   boards/arduino/arduino_uno/board.yaml
 #     45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6
 #   soc/microchip/atmega/atmega328p.yaml
@@ -21,7 +21,7 @@ set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_cras
 set(EMB_BOARD_EMBSIM_TARGET emblink/arduino_uno) # EMB_TEST_EMULATOR=embsim
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
-    "arch/avr/arch.yaml=2521f714d375ab83aede78b2027886b2d7d0c29596e2e15ae4429a96538786a2"
+    "arch/avr/arch.yaml=58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42"
     "boards/arduino/arduino_uno/board.yaml=45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6"
     "soc/microchip/atmega/atmega328p.yaml=f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18"
 )

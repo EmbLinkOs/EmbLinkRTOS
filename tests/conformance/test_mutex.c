@@ -2,6 +2,9 @@
 /* Copyright 2026 Junior Deogracias */
 /* Mutex conformance (SPEC-005 §2, §3; KRN-SYNC-001 to 019). */
 #include <emb_test.h>
+#if CONFIG_EMB_SCHED_TABLE
+#include <embk/sched.h> /* embk_sched_raised_count: white-box (mutex_exit_while_raised) */
+#endif
 
 static emb_mutex_storage_t st1;
 static emb_mutex_storage_t st2;
@@ -235,6 +238,33 @@ EMB_TEST(mutex_ceiling_violation_is_misuse)
     EMB_ASSERT_OK(emb_mutex_destroy(m1));
 }
 
+static void lock_m1_and_wait(void *arg)
+{
+    emb_status_t st = emb_mutex_lock(m1, EMB_WAIT_FOREVER);
+    (void)arg;
+    emb_test_mark(st == EMB_EPERM ? 1 : 2);
+    if (st == EMB_OK) {
+        (void)emb_mutex_unlock(m1);
+    }
+}
+
+/* Above the ceiling while the mutex is owned: the check must not wait for the hand-off. */
+EMB_TEST(mutex_ceiling_violation_when_owned)
+{
+    EMB_TEST_REQ("KRN-SYNC-006");
+    make(&st1, &m1, EMB_MUTEX_CEILING, 3u, 0u);
+    EMB_ASSERT_OK(emb_mutex_lock(m1, EMB_NO_WAIT)); /* the runner, below the ceiling */
+#if CONFIG_EMB_CHECKED
+    EMB_ASSERT_FAULTS((void)emb_test_thread(EMB_TEST_NAME("hi"), 6u, 0u, lock_m1_and_wait, NULL));
+#else
+    (void)emb_test_thread(EMB_TEST_NAME("hi"), 6u, 0u, lock_m1_and_wait, NULL);
+    EMB_ASSERT_MARKS(1); /* refused at once, not queued behind the owner */
+#endif
+    EMB_ASSERT_OK(emb_mutex_unlock(m1));
+    emb_test_threads_reset();
+    EMB_ASSERT_OK(emb_mutex_destroy(m1));
+}
+
 static void dies_owning(void *arg)
 {
     (void)arg;
@@ -259,6 +289,31 @@ EMB_TEST(mutex_owner_death_policy)
     EMB_ASSERT_OK(emb_mutex_destroy(m1));
 #endif
 }
+
+#if CONFIG_EMB_SCHED_TABLE && !(CONFIG_EMB_CHECKED && CONFIG_EMB_MUTEX_OWNER_DEATH_FAULT)
+static void dies_raised(void *arg)
+{
+    (void)arg;
+    EMB_ASSERT_OK(emb_mutex_lock(m1, EMB_NO_WAIT)); /* raised to the ceiling */
+}
+
+/* A thread that exits raised must leave the table scheduler's count of raised threads as
+ * it found it, or every later decision takes the slow scan. */
+EMB_TEST(mutex_exit_while_raised)
+{
+    uint8_t before;
+    EMB_TEST_REQ("KRN-SYNC-011", "KRN-SCH-036");
+    make(&st1, &m1, EMB_MUTEX_CEILING, 5u, 0u);
+    before = embk_sched_raised_count;
+    (void)emb_test_thread(EMB_TEST_NAME("d"), 2u, 0u, dies_raised, NULL);
+    EMB_ASSERT_EQ(embk_sched_raised_count, before);
+    EMB_ASSERT_STATUS(emb_mutex_lock(m1, EMB_NO_WAIT), EMB_EOWNERDEAD);
+    EMB_ASSERT_OK(emb_mutex_unlock(m1));
+    EMB_ASSERT_EQ(embk_sched_raised_count, before);
+    emb_test_threads_reset();
+    EMB_ASSERT_OK(emb_mutex_destroy(m1));
+}
+#endif
 
 EMB_TEST(mutex_destroy_rules)
 {

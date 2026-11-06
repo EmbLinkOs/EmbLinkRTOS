@@ -4,6 +4,19 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Fixed (technical review, 2026-11-05)
+
+- Mutex ceiling: a thread above a `EMB_MUTEX_CEILING` mutex's ceiling is refused when the mutex is owned too (SPEC-005 §3.4). Before, it blocked and later received the mutex by hand-off with no check. Checked builds fault, release builds return `EMB_EPERM`.
+- Table scheduler (tiny profile): a thread that exits while raised by a mutex now returns to its base priority through `embk_sched_prio_changed()`. Before, the count of raised threads stayed one too high, and every later scheduling decision took the slow scan.
+- RISC-V: `tp` points at a thread-local block from reset, so picolibc's `errno` works (A88). Before, the first libc call that set `errno` faulted at address 8. The block is shared by every thread. The toolchain file passes `--specs=picolibc.specs` when compiling, so applications find the C library's headers.
+- Cortex-M: a tick that needs more than 2^24 SysTick counts no longer clamps silently to a wrong rate. It fails the build (a static assertion over `CONFIG_EMB_CM_CPU_HZ` and `CONFIG_EMB_TICK_NS`).
+- AVR: `EMB_THREAD_STACK_MIN` includes `CONFIG_EMB_AVR_ISR_STACK_RESERVE`, as the option's help always said. `emb_thread_init()` refuses a stack too small for its interrupt reserve (96 + 64 = 160 bytes by default).
+- The AVR, RISC-V and Cortex-M manifests no longer claim `tickless: true`. All three ports refuse `EMB_TICKLESS`, and their timer deadline functions are stubs.
+
+### Added (technical review, 2026-11-05)
+
+- `EMB_AT_LEAST(d)` and `emb_ticks_at_least()`: a relative wait that lasts at least `d` of real time (A87). A relative wait of n ticks ends at the n-th tick edge after the call, so between n − 1 and n periods pass. This is now stated in SPEC-003 §5.2, KRN-TIM-024 and `emb_thread_sleep()`.
+
 ### Changed
 
 - The MPS2 AN385 and AN386 and QEMU's RV32 virt build from their generated descriptions (A75). Their hand-written board files are gone, and their board support moved to `soc/arm/mps2/` and `soc/qemu/virt/`. The configuration hashes are unchanged, and the images are identical except for the build id. Only the ESP32-C3 is still hand-written.

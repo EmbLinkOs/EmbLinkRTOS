@@ -19,6 +19,7 @@ if(CONFIG_EMB_SEM)
 endif()
 if(CONFIG_EMB_MUTEX)
   emb_add_test(test_mutex test_mutex.c)
+  target_link_libraries(test_mutex PRIVATE emb_kernel_private) # embk_sched_raised_count
 endif()
 if(CONFIG_EMB_EVENT)
   emb_add_test(test_event test_event.c)
