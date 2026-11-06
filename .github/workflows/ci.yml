@@ -32,8 +32,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build clang python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build clang python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -91,8 +92,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -160,8 +162,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -215,8 +218,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-avr avr-libc binutils-avr qemu-system-misc python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-avr avr-libc binutils-avr qemu-system-misc python3-yaml
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -256,8 +260,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh clang-format-18 python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: clang-format-18 python3-yaml
       - name: clang-format
         run: |
           find include kernel arch boards soc drivers samples tests \( -name '*.c' -o -name '*.h' \) -print0 \
@@ -329,8 +334,9 @@ jobs:
           path: embsim
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-avr avr-libc binutils-avr python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-avr avr-libc binutils-avr python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -374,8 +380,9 @@ jobs:
           path: embsim
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -420,8 +427,9 @@ jobs:
           path: embsim
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf python3-yaml
       - name: Build EmbSIM
         run: |
           cmake -S embsim -B embsim/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DEMBSIM_SERVER=OFF -DEMBSIM_BUILD_TESTS=OFF
@@ -459,8 +467,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
-        run: |
-          scripts/ci-apt-install.sh ninja-build python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build python3-yaml
       - name: Install EmbCC
         run: |
           archive="embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
@@ -599,9 +608,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm \
-            gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
       - name: Copy the example out of the tree
         run: cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
       - name: Build it for native, the MPS2 AN386, RV32 virt and the Uno
