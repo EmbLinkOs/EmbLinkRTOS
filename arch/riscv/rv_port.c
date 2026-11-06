@@ -35,6 +35,12 @@ struct embk_thread *embn_rv_current = (struct embk_thread *)(void *)&boot_contex
 static uint8_t embn_rv_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(16);
 uint8_t *const embn_rv_isr_stack_top = &embn_rv_isr_stack[CONFIG_EMB_ISR_STACK_SIZE];
 
+uint8_t *emb_arch_isr_stack(size_t *size)
+{
+    *size = sizeof(embn_rv_isr_stack); /* A90: filled at init, its guard checked at exit */
+    return embn_rv_isr_stack;
+}
+
 void embn_rv_start(void);
 embk_thread_t *embn_rv_trap(uint32_t mcause, uintptr_t mepc, uintptr_t mtval,
                             const uint32_t *frame);

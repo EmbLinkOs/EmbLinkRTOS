@@ -207,16 +207,16 @@ bool embk_sched_current_runnable(void)
 
 /* ---- the decision --------------------------------------------------------------- */
 
-static void check_stack(const embk_thread_t *t)
-{
 #if CONFIG_EMB_STACK_CHECK
+void embk_stack_guard_check(const embk_thread_t *t)
+{
     unsigned i;
 #if EMBK_IDLE_SLIM
     if (t == EMBK_IDLE) {
         return; /* it runs on the pre-kernel stack and keeps no stack record (ADR-050) */
     }
 #endif
-    if (t->stack_base != NULL) {
+    if (t != NULL && t->stack_base != NULL) {
         /* bounded: EMBK_STACK_GUARD_BYTES */
         for (i = 0u; i < EMBK_STACK_GUARD_BYTES; i++) {
             if (t->stack_base[i] != EMB_STACK_FILL) {
@@ -224,6 +224,13 @@ static void check_stack(const embk_thread_t *t)
             }
         }
     }
+}
+#endif
+
+static void check_stack(const embk_thread_t *t)
+{
+#if CONFIG_EMB_STACK_CHECK
+    embk_stack_guard_check(t);
     if (!emb_arch_stack_check(t)) {
         embk_fault_raise(EMB_FAULT_STACK_OVERFLOW, embk_thread_index(t), 1u, "arch stack check");
     }

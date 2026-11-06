@@ -614,6 +614,15 @@ static void runner(void *arg)
         }
         emb_test_logf(EMB_TEST_STR(" asserts=%u skips=%u\n"), current_asserts, current_skips);
     }
+    {
+        /* the interrupt stack's deepest use over the run, for sizing it (A90) */
+        size_t isr_size = 0u;
+        size_t isr_used = 0u;
+        if (emb_isr_stack_info(&isr_size, &isr_used) == EMB_OK) {
+            emb_test_logf(EMB_TEST_STR("ISR_STACK size=%lu used=%lu\n"), (unsigned long)isr_size,
+                          (unsigned long)isr_used);
+        }
+    }
     emb_test_logf(EMB_TEST_STR("%u tests, %u failed, %u skipped, %lu ticks\n"), ran, failures,
                   skips, (unsigned long)EMB_TEST_NOW());
     emb_test_exit((failures != 0u) ? 1 : 0);

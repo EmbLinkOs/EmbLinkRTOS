@@ -3,8 +3,8 @@
 /*
  * Cortex-M vector table, reset entry, PendSV, and fault entry (docs/ports/cortex_m.md).
  * The board's linker script places .vectors at the boot address and defines the
- * symbols used here: __stack_top (the MSP), __data_load, __data_start, __data_end,
- * __bss_start, __bss_end.
+ * symbols used here: __stack_top (the top of the interrupt stack, MSP, A90), __data_load,
+ * __data_start, __data_end, __bss_start, __bss_end.
  */
 #include <emb/arch.h>
 
@@ -91,10 +91,24 @@ EMB_USED EMB_SECTION(".vectors") const embn_cm_vectors_t embn_cm_vector_table = 
 
 /* Reset: enable the FPU before any floating-point instruction, copy .data, clear .bss,
  * run main() (which never returns once the kernel starts). */
+#if defined(__ARM_ARCH_8M_MAIN__)
+/* MSPLIM sits this far above the interrupt stack's bottom: the room the fault path runs in
+ * after the limit stopped an overflow (A90). */
+#define EMBN_CM_MSP_FAULT_ROOM 384u
+extern uint8_t embn_cm_isr_stack[];
+#endif
+
 void embn_cm_reset(void)
 {
     uint32_t *src = __data_load;
     uint32_t *dst = __data_start;
+#if defined(__ARM_ARCH_8M_MAIN__)
+    /* MSPLIM bounds the interrupt stack (A90); CCR.STKOFHFNMIGN lets HardFault run below it */
+    *(volatile uint32_t *)(uintptr_t)0xE000ED14u |= (1u << 10);
+    __asm__ __volatile__("msr msplim, %0\n\t"
+                         "isb" ::"r"((uintptr_t)embn_cm_isr_stack + EMBN_CM_MSP_FAULT_ROOM)
+                         : "memory");
+#endif
 #if defined(__ARM_FP)
     *(volatile uint32_t *)(uintptr_t)0xE000ED88u |= (0xFu << 20); /* CPACR: CP10, CP11 */
     __asm__ __volatile__("dsb\n\t"
@@ -178,7 +192,9 @@ EMB_NAKED void embn_cm_pendsv(void)
                          "b 2f\n\t"
                          "1:\n\t"
                          "ldr r3, =embn_cm_exiting\n\t"
-                         "str r1, [r3]\n\t" /* r1 is 0: the exited thread's stack is left */
+                         "str r1, [r3]\n\t"         /* r1 is 0: the exited thread's stack is left */
+                         "ldr r3, =__stack_top\n\t" /* nothing below on MSP is live (A90) */
+                         "msr msp, r3\n\t"
                          "2:\n\t"
                          "ldr r3, =embn_cm_next\n\t"
                          "ldr r1, [r3]\n\t"
@@ -239,6 +255,10 @@ EMB_NAKED void embn_cm_pendsv(void)
                                       "movt r3, #:upper16:embn_cm_exiting\n\t"
                                       "str r1, [r3]\n\t" /* r1 is 0: the exited thread's stack is
                                                             left */
+                                      /* no context on MSP is live: main()'s frames go (A90) */
+                                      "movw r3, #:lower16:__stack_top\n\t"
+                                      "movt r3, #:upper16:__stack_top\n\t"
+                                      "msr msp, r3\n\t"
                                       "2:\n\t"
                                       "movw r3, #:lower16:embn_cm_next\n\t"
                                       "movt r3, #:upper16:embn_cm_next\n\t"
@@ -254,14 +274,20 @@ EMB_NAKED void embn_cm_pendsv(void)
 
 /* Fault entry for HardFault, MemManage, BusFault and UsageFault: the stacked frame is
  * on PSP or MSP by EXC_RETURN bit 2; the exception number from IPSR. */
+#if defined(__ARM_ARCH_8M_MAIN__)
+/* MSPLIM off first: the fault path may run below it (A90) */
+#define EMBN_CM_FAULT_UNLIMIT "movs r0, #0\n\tmsr msplim, r0\n\t"
+#else
+#define EMBN_CM_FAULT_UNLIMIT
+#endif
 EMB_NAKED void embn_cm_fault_entry(void)
 {
-    __asm__ __volatile__("tst lr, #4\n\t"
-                         "ite eq\n\t"
-                         "mrseq r0, msp\n\t"
-                         "mrsne r0, psp\n\t"
-                         "mrs r1, ipsr\n\t"
-                         "b embn_cm_fault\n\t");
+    __asm__ __volatile__(EMBN_CM_FAULT_UNLIMIT "tst lr, #4\n\t"
+                                               "ite eq\n\t"
+                                               "mrseq r0, msp\n\t"
+                                               "mrsne r0, psp\n\t"
+                                               "mrs r1, ipsr\n\t"
+                                               "b embn_cm_fault\n\t");
 }
 #endif
 

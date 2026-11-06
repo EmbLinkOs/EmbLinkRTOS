@@ -107,7 +107,7 @@ class Runner(unittest.TestCase):
         out = (b"EVIDENCE v1 suite=test_x config=abc profile=base board=b checked=1\nTEST a\n"
                b"  fault checks that reset the board: 3\n  -> ok\n"
                b"CASE a outcome=passed asserts=3 skips=0\nTEST c\nCASE c outcome=skipped asserts=0 skips=1\n"
-               b"2 tests, 0 failed, 1 skipped, 7 ticks\nEMB_TEST_END\n")
+               b"ISR_STACK size=2048 used=312\n2 tests, 0 failed, 1 skipped, 7 ticks\nEMB_TEST_END\n")
         b = self.board(out)
         arch = b.dir / "archive"
         rc, _, _ = b.run("--archive", str(arch))
@@ -118,6 +118,7 @@ class Runner(unittest.TestCase):
         self.assertEqual(rec["summary"], {"tests": 2, "failed": 0, "skipped": 1})
         self.assertEqual([c["name"] for c in rec["cases"]], ["a", "c"])
         self.assertEqual(rec["fault_checks_by_reset"], 3)
+        self.assertEqual(rec["isr_stack"], {"size": 2048, "used": 312})
         self.assertEqual(rec["evidence"]["suite"], "test_x")
         self.assertEqual(len(rec["image_sha256"]), 64)
         self.assertEqual(rec["flashed_sha256"], {})  # the stand-in command names no file

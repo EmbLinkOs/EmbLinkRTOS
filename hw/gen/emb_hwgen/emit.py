@@ -237,6 +237,14 @@ SECTIONS
 
   .ARM.exidx : {{ *(.ARM.exidx* .gnu.linkonce.armexidx.*) }} > FLASH
 
+  /* the interrupt stack, MSP (CONFIG_EMB_ISR_STACK_SIZE, A90): first in RAM, so that an
+     overflow runs off the bottom of RAM into a bus fault, not into .data */
+  .emb_isr_stack (NOLOAD) : ALIGN(8) {{
+    __emb_isr_stack_start = .;
+    KEEP(*(.emb_isr_stack))
+    __emb_isr_stack_end = .;
+  }} > RAM
+
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {{
     __data_start = .;
@@ -260,7 +268,8 @@ SECTIONS
   /* below it, 32 bytes the test framework keeps across the resets of its fault checks (A89) */
   __emb_test_retained_end = __emb_retained_start;
   __emb_test_retained_start = __emb_test_retained_end - 32;
-  __stack_top = __emb_test_retained_start;
+  __stack_top = __emb_isr_stack_end;
+  ASSERT(end <= __emb_test_retained_start, "RAM overflow: .data and .bss reach the retained memory")
 }}
 """
 

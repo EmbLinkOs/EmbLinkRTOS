@@ -30,6 +30,12 @@ extern embk_thread_t *embk_thread_table[CONFIG_EMB_PRIORITY_COUNT - 1];
 
 void embk_sched_init(void);
 
+#if CONFIG_EMB_STACK_CHECK
+/* Fault when @t's guard bytes are no longer the fill (KRN-MEM-010): at switch-out, and at
+ * every outermost kernel-aware interrupt exit for the interrupted thread (A90). */
+void embk_stack_guard_check(const embk_thread_t *t);
+#endif
+
 /* Insert @t into the ready structure, behind its peers, or ahead of them when
  * @ahead (KRN-SCH-041). Sets reschedule_pending when @t should preempt. */
 void embk_sched_make_ready(embk_thread_t *t, bool ahead);

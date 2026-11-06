@@ -7,6 +7,8 @@
  * the interrupt entry and exit hooks (SPEC-002 §6.2), and the initialization table
  * (SPEC-001 §6.4).
  */
+#include <emb/arch.h>
+#include <emb/irq.h>
 #include <emb/kernel.h>
 #include <emb/sched.h>
 #include <emb/version.h>
@@ -39,12 +41,94 @@ static void run_init_table(void)
     }
 }
 
+/* ---- the interrupt stack (A90, PORT-016) ------------------------------------------- */
+
+#if CONFIG_EMB_STACK_CHECK || CONFIG_EMB_STACK_STATS
+#define ISR_STACK_FILLED 1
+#define ISR_STACK_LIVE   64u /* kept clear of the fill: the frames above the caller's */
+#else
+#define ISR_STACK_FILLED 0
+#endif
+
+/* Fill the port's interrupt stack below the frames now live on it. Before the kernel
+ * starts, interrupts are masked, so nothing else uses it. */
+static void isr_stack_fill(void)
+{
+#if ISR_STACK_FILLED
+    size_t size = 0u;
+    uint8_t *base = emb_arch_isr_stack(&size);
+    uint8_t here = 0u;
+    uintptr_t at = (uintptr_t)&here; /* this frame: a bound for the live part */
+    size_t n = size;
+    size_t i;
+    if (base == NULL) {
+        return;
+    }
+    if (at >= (uintptr_t)base && at < (uintptr_t)base + size) {
+        n = (size_t)(at - (uintptr_t)base); /* running on it: fill below this frame only */
+        n = (n > ISR_STACK_LIVE) ? n - ISR_STACK_LIVE : 0u;
+    }
+    /* bounded by the stack's size */
+    for (i = 0u; i < n; i++) {
+        base[i] = EMB_STACK_FILL;
+    }
+#endif
+}
+
+#if CONFIG_EMB_STACK_CHECK
+/* The outermost exit (A90): the interrupt stack's guard bytes, and the interrupted thread's,
+ * whose stack takes at least the exception frame on every port. */
+static void isr_stack_check(void)
+{
+    size_t size = 0u;
+    const uint8_t *base = emb_arch_isr_stack(&size);
+    unsigned i;
+    if (base != NULL && size >= EMBK_STACK_GUARD_BYTES) {
+        /* bounded: EMBK_STACK_GUARD_BYTES */
+        for (i = 0u; i < EMBK_STACK_GUARD_BYTES; i++) {
+            if (base[i] != EMB_STACK_FILL) {
+                embk_fault_raise(EMB_FAULT_STACK_OVERFLOW, 0xFFu, 2u, "interrupt stack guard");
+            }
+        }
+    }
+    if (embk_cpu.kernel_state == EMBK_KERNEL_RUNNING) {
+        embk_stack_guard_check(embk_cpu.current);
+    }
+}
+#endif
+
+emb_status_t emb_isr_stack_info(size_t *out_size, size_t *out_high_water)
+{
+    size_t size = 0u;
+    const uint8_t *base = emb_arch_isr_stack(&size);
+    if (base == NULL) {
+        return EMB_ENOTSUP;
+    }
+    if (out_size != NULL) {
+        *out_size = size;
+    }
+    if (out_high_water != NULL) {
+        size_t used = 0u;
+#if ISR_STACK_FILLED
+        size_t i = 0u;
+        /* bounded by the stack's size: the first byte that is not the fill */
+        while (i < size && base[i] == EMB_STACK_FILL) {
+            i++;
+        }
+        used = size - i;
+#endif
+        *out_high_water = used;
+    }
+    return EMB_OK;
+}
+
 void emb_kernel_init(void)
 {
     if (embk_cpu.kernel_state != EMBK_KERNEL_UNINIT) {
         embk_fault_raise_api(EMB_API_ID_KERNEL_INIT, EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
     }
     emb_arch_init();
+    isr_stack_fill();
 #if CONFIG_EMB_CRASH_RECORD
     embk_crash_record_boot(); /* what the previous run left, before anything can fault */
 #endif
@@ -204,6 +288,11 @@ embk_thread_t *embk_isr_exit(void)
     embk_thread_t *next = NULL;
     EMBK_ASSERT(embk_cpu.irq_nesting_depth != 0u);
     embk_cpu.irq_nesting_depth--;
+#if CONFIG_EMB_STACK_CHECK
+    if (embk_cpu.irq_nesting_depth == 0u) {
+        isr_stack_check(); /* SPEC-002 §7.2: the fill check at the outermost exit */
+    }
+#endif
     if (embk_cpu.irq_nesting_depth == 0u && embk_cpu.reschedule_pending != 0u &&
         embk_cpu.sched_lock_depth == 0u && embk_cpu.kernel_state == EMBK_KERNEL_RUNNING) {
         next = embk_sched_select(false); /* P1; a nested exit never switches (KRN-SCH-021) */

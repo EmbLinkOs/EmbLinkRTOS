@@ -82,6 +82,12 @@ void emb_arch_idle(void);
 /* ---- stacks (§10) ------------------------------------------------------------- */
 bool emb_arch_stack_check(const embk_thread_t *t);
 void emb_arch_stack_limit_set(void *limit);
+/* The stack that is no thread's (A90, PORT-016): the interrupt stack where the port has one
+ * (Cortex-M's MSP, RISC-V's trap stack), or the pre-kernel stack the idle context and its
+ * interrupts run on (AVR). Its lowest address, *size its bytes; NULL when there is none to
+ * report (native). The kernel fills it below the live frames at init and checks its lowest
+ * EMBK_STACK_GUARD_BYTES at every outermost kernel-aware interrupt exit. */
+uint8_t *emb_arch_isr_stack(size_t *size);
 
 /* ---- faults and debug (§11, §14) ---------------------------------------------- */
 EMB_NORETURN void emb_arch_fault_halt(

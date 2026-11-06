@@ -525,6 +525,12 @@ uint32_t emb_arch_cycles_hz(void)
 
 /* ---- stacks, faults, debug ---------------------------------------------------------------- */
 
+uint8_t *emb_arch_isr_stack(size_t *size)
+{
+    *size = 0u; /* host stacks: interrupts run on the host thread's own (A90) */
+    return NULL;
+}
+
 bool emb_arch_stack_check(const embk_thread_t *t)
 {
     (void)t;

@@ -6,7 +6,10 @@
 
 ## Switching
 
-Threads run in thread mode on PSP; handlers on MSP, which is `main()`'s stack. Every context change is made by PendSV at the lowest priority, so it happens only when no other handler is active.
+Threads run in thread mode on PSP; handlers on MSP, the interrupt stack ([A90](../specs/AMENDMENTS-M3.md)).
+- It is `embn_cm_isr_stack`, `CONFIG_EMB_ISR_STACK_SIZE` bytes (2048 by default), placed by the linker script first in RAM, so an overflow runs off the bottom of RAM into a bus fault instead of into `.data`. A link-time `ASSERT` refuses an image whose `.data` and `.bss` would reach the retained memory at the top of RAM.
+- `main()` runs on it before the kernel starts, and the first PendSV resets MSP to its top, so none of it stays used.
+- Checked builds fill it at `emb_kernel_init()` and check its lowest 8 bytes at every outermost interrupt exit, as they check the interrupted thread's guard, which took the exception frame. `emb_isr_stack_info()` reports its high-water mark, and every test run prints it as `ISR_STACK size=... used=...`: 140 of 2048 bytes on QEMU's MPS2. Every context change is made by PendSV at the lowest priority, so it happens only when no other handler is active.
 
 - The port keeps `embn_cm_running` (the thread whose registers are on the CPU) and `embn_cm_next` (the kernel's latest decision).
 - `emb_arch_switch_to(next)` is called in the kernel's critical section. It stores `next`, pends PendSV, sets BASEPRI to 0 for the instant PendSV needs, and on resumption restores its own BASEPRI from a local of its frame, so each thread gets its own critical-section state back.
@@ -79,7 +82,7 @@ The header accepts `__ARM_ARCH_8M_MAIN__`, and the manifest lists the variant fo
 **Stack limits ([A80](../specs/AMENDMENTS-M3.md)).**
 - Each thread's PSPLIM is its stack's base, saved in its frame below r4 and restored by PendSV before PSP.
 - A push below the base faults at once (CFSR.STKOF), before the thread writes outside its stack. The fault is reported as `EMB_FAULT_STACK_OVERFLOW`, with the fault status in the crash record and no frame: the hardware does not stack one at the limit.
-- MSPLIM (the interrupt stack) is not set yet.
+- MSPLIM bounds the interrupt stack (A90). The reset sets it 384 bytes above the stack's bottom, and CCR.STKOFHFNMIGN so that HardFault may run below it. The fault entry clears it first, so the fault path runs in those 384 bytes. An interrupt that overflows faults as `EMB_FAULT_STACK_OVERFLOW` (`isr_stack_limit_stops_an_overflowing_interrupt`).
 
 **Not yet used:** the Armv8-M MPU, the Security Attribution Unit, and non-secure images.
 
@@ -94,4 +97,4 @@ It reuses the MPS2 board support unchanged.
 
 ## Next
 
-MSPLIM for the interrupt stack, the Armv6-M crash and priority tests on a physical Cortex-M0, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
+The Armv6-M crash and priority tests on a physical Cortex-M0, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
