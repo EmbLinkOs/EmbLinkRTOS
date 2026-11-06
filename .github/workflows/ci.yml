@@ -515,9 +515,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
         timeout-minutes: 15
-        run: |
-          scripts/ci-apt-install.sh ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm \
-            gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
       - name: Copy the example out of the tree
         run: cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
       - name: Build it for native, the MPS2 AN386, RV32 virt and the Uno
