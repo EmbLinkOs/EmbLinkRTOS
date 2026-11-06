@@ -139,6 +139,7 @@ static _Atomic uintptr_t async_holder;
 static atomic_bool async_on;
 static atomic_int async_host_depth; /* the holder is in host or port code: defer */
 static atomic_int async_missed;     /* deferred: delivered at the next crossing */
+static atomic_bool async_running;   /* the injector thread has not returned yet */
 static unsigned async_period_us;
 static emb_irq_t async_irq = EMB_ARCH_IRQ_COUNT; /* also raised every fourth signal, if set */
 static unsigned async_count;
@@ -214,13 +215,16 @@ static void async_inject(void);
 
 void embn_irq_unlock(emb_irq_key_t key)
 {
+#if CONFIG_EMB_NATIVE_INVARIANTS
+    if (key == 0u && g.started != 0u && g.in_isr == 0u) {
+        /* after the operation, at the crossing (SPEC-013 §8), and still masked: an injected
+         * interrupt that preempted the checker would leave it walking lists that changed under
+         * it, and report invariants the kernel never broke (ADR-055's first runs) */
+        embk_invariants_check();
+    }
+#endif
     g.masked = key;
     if (key == 0u) {
-#if CONFIG_EMB_NATIVE_INVARIANTS
-        if (g.started != 0u && g.in_isr == 0u) {
-            embk_invariants_check(); /* after the operation, at the crossing (SPEC-013 §8) */
-        }
-#endif
         if (atomic_exchange(&async_missed, 0) != 0) {
             async_inject(); /* a signal the thread could not take then */
         }
@@ -568,6 +572,7 @@ static void *async_injector(void *arg)
             (void)pthread_kill((pthread_t)h, SIGUSR2);
         }
     }
+    atomic_store(&async_running, false);
     return NULL;
 }
 
@@ -586,17 +591,45 @@ void emb_native_async_start(unsigned period_us, emb_irq_t also_raise)
     (void)sigemptyset(&sa.sa_mask);
     (void)sigaction(SIGUSR2, &sa, NULL);
     atomic_store(&async_on, true);
+    atomic_store(&async_running, true);
     atomic_fetch_add(&async_host_depth, 1);
     if (!embh_thread_create(&t, async_injector, NULL, 0u)) {
         (void)fprintf(stderr, "emb native: the asynchronous injector failed to start\n");
         atomic_store(&async_on, false);
+        atomic_store(&async_running, false);
     }
     atomic_fetch_sub(&async_host_depth, 1);
 }
 
+/* Nothing injected lands after this returns: the injector thread has ended, a signal still in
+ * flight is ignored, and a deferred event or an interrupt raised but not yet delivered is
+ * dropped. Before, a late one could reach a handler after the test destroyed its object (the
+ * async stress test's intermittent fault in emb_sem_give, 2026-11-06). */
 void emb_native_async_stop(void)
 {
-    atomic_store(&async_on, false); /* the injector ends after its current period */
+    struct sigaction sa;
+    emb_irq_key_t key;
+    if (!atomic_exchange(&async_on, false)) {
+        return;
+    }
+    atomic_fetch_add(&async_host_depth, 1); /* host code: a signal now defers */
+    while (atomic_load(&async_running)) {   /* bounded: the injector's period */
+        struct timespec ts = {0, 100000};
+        (void)nanosleep(&ts, NULL);
+    }
+    (void)memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    (void)sigemptyset(&sa.sa_mask);
+    (void)sigaction(SIGUSR2, &sa, NULL);
+    atomic_fetch_sub(&async_host_depth, 1);
+    key = embn_irq_lock();
+    atomic_store(&async_missed, 0);
+    if (async_irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && g.pending[async_irq] != 0u) {
+        g.pending[async_irq] = 0u;
+        g.pending_count--;
+    }
+    async_irq = EMB_ARCH_IRQ_COUNT;
+    embn_irq_unlock(key);
 }
 
 void emb_native_async_stats(uint64_t *delivered, uint64_t *deferred)

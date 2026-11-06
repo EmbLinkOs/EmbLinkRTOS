@@ -55,6 +55,7 @@ uint64_t emb_native_switch_count(void);
  * Time then advances with the signals, not only in idle, and runs are not reproducible.
  * The environment variable EMB_NATIVE_ASYNC_US starts it with ticks only at kernel start. */
 void emb_native_async_start(unsigned period_us, emb_irq_t also_raise);
+/* Ends the mode: when it returns, nothing injected lands any more, deferred or pending. */
 void emb_native_async_stop(void);
 /* Signals handled where they landed, and signals deferred to a crossing, so far. */
 void emb_native_async_stats(uint64_t *delivered, uint64_t *deferred);
