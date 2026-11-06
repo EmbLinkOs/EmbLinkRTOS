@@ -30,8 +30,8 @@ Hypothesis enables additional randomized model coverage; pytest can run the same
 | Counting/binary semaphore | `emb_sem_take`, `give` | Hand-off prevents barging; unsatisfied NO_WAIT returns `EMB_ETIMEDOUT`; take is thread-only in M1 |
 | Mutex | `emb_mutex_lock`, `unlock` | Transitive inheritance within configured depth, multi-lock restore, recursion opt-in, owner-death result |
 | Task notification | Notification bits | Bits coalesce; no count/value mode; only owner waits; kernel bits reserved |
-| Queue set or poll | Planned source bindings plus one notification wait | One binding per object; one-bit masks; bind/check before waiting and drain readiness; only semaphore binding exists today |
-| Queue/event group/timer | SPEC-007/SPEC-005/SPEC-003 target APIs | These APIs are unimplemented; there is no drop-in replacement yet |
+| Queue set or poll | Planned source bindings plus one notification wait | One binding per object; one-bit masks; bind/check before waiting and drain readiness; semaphores, message queues and event groups bind (`emb_*_bind_notify`) |
+| Queue/event group/timer | `emb_msgq_*`, `emb_event_*`, `emb_timer_*` (SPEC-007, SPEC-005, SPEC-003) | Implemented, with different contracts from FreeRTOS's: caller-owned storage, no timer command queue, timer callbacks on a work queue by default. Not a drop-in replacement |
 | `FromISR` operation | Only functions explicitly annotated ISR-safe | NO_WAIT alone does not authorize an ISR call; rescheduling is automatic at legal exit points |
 | Forced task delete | Cooperative cancel and cleanup | No arbitrary asynchronous kill; partition restart is a separate future mechanism |
 | Vendor HAL/peripheral calls | Future thin class driver around the supported HAL | Preserve buffer ownership, completion context, partial-transfer and cancellation rules |

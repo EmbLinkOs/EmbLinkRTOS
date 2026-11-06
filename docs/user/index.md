@@ -7,6 +7,7 @@ The current usable workflow is native kernel development and conformance testing
 
 getting-started
 application
+interrupts
 feature-status
 concepts
 tasks

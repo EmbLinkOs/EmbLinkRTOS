@@ -3,7 +3,7 @@
 **Specification:** SPEC-012 (port), SPEC-011 (contract), SPEC-002 §13 and SPEC-003 §13 (AVR rows).
 **Status (M1):** periodic tick, context switch, `EMB_ISR` prologue and epilogue, critical sections, interrupt mask table, idle, faults by halt or watchdog reset. Tickless mode, the `.noinit` crash record, come with later milestones; the configuration refuses `CONFIG_EMB_TICKLESS` on this port until then.
 **Boards:** `arduino_uno` (ATmega328P at 16 MHz, USART0 console at 115200, LED on PB5, Optiboot keeps the top 512 bytes of flash). The board is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory. The ATmega board support (`soc/microchip/atmega/board.c`) and the inline drivers in `drivers/microchip/include/` build it; the images are byte-identical to the hand-written board's.
-**Verified on:** QEMU `arduino-uno` machine (SIM-002): the first-execution sequence and the conformance suite. No hardware run yet: every figure below marked *measured* comes from the toolchain's output, not from a board, and no latency number is published (SIM-003).
+**Verified on:** QEMU `arduino-uno` machine (SIM-002), EmbSIM's Uno, and a physical Arduino Uno: checked, release and T1 builds, 17, 17 and 13 images passed on [2026-11-05](../engineering/hil-uno-2026-11-05.md), with 53 misuse checks executed on the part ([first run 2026-11-04](../engineering/hil-uno-2026-11-04.md)). The one timing figure from the board is `bench_switch`'s notification hand-over: 81.1 µs checked, 67.8 µs release, 66.4 µs T1, at 4 µs resolution. Figures below marked *measured* come from the toolchain's output, not from the board.
 
 ## Context frame
 

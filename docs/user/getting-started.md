@@ -4,19 +4,49 @@
 
 Native development requires a C compiler with POSIX threads, CMake 3.20 or newer, Ninja, Python 3.10 or newer and PyYAML. The documentation toolchain uses Python 3.12 and pinned packages; it does not require compiling the kernel. See [Building documentation](../engineering/documentation.md).
 
-Use the existing checkout. Build outputs go under `build/` and virtual environments stay ignored. The cloud environment already has native tools in `.venv`; activate it for native commands. On another machine install the prerequisites with its supported package manager and Python environment.
+Run the commands from your checkout. Configuration needs PyYAML, so give CMake a Python that has it, for example a virtual environment in the checkout (`.venv` is ignored by git):
 
 ```sh
-cd /workspace/EmbLinkRTOS
-source .venv/bin/activate
-cmake --preset native-gcc
+python3 -m venv .venv && .venv/bin/pip install pyyaml
+cmake --preset native-gcc -DPython3_EXECUTABLE=$PWD/.venv/bin/python3
 cmake --build --preset native-gcc --parallel 4
 ctest --preset native-gcc --output-on-failure --no-tests=error
 ```
 
-For a local checkout, replace `/workspace/EmbLinkRTOS` with your checkout directory. Passing CTest should report thirteen targets: ten conformance executables (including IRQ priorities), the differential bridge, timer regressions and evidence workflow check. Individual case counts and skipped model scenarios are inside the runner logs. A zero-test run is a setup failure.
+Passing CTest reports 23 entries:
+- 20 conformance executables, one per area, such as `test_sem`, `test_isr_stack` and `test_crash`;
+- the differential bridge against the reference model, its timer regressions, and the evidence workflow check.
+
+Each executable's cases print a `CASE ... outcome=` line in its log ([case evidence](../engineering/case-evidence.md)). A zero-test run is a setup failure.
 
 Experimental Linux x86-64 presets can compile the kernel with EmbCC while GCC supplies the POSIX host and final link. See [EmbCC native integration](../engineering/embcc-native-linux.md) for compiler selection, the ABI guard and qualification limits.
+
+## Embedded tests under QEMU
+
+The emulated boards run the same suites under QEMU (SIM-002). Install the cross compilers and QEMU:
+- Debian or Ubuntu: `apt install gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc`;
+- macOS: `brew install qemu riscv64-elf-gcc osx-cross/avr/avr-gcc@14`, Arm's GNU toolchain from developer.arm.com, and picolibc built for `riscv64-elf-gcc`. Name them as the toolchain files expect (`arm-none-eabi-gcc`, `riscv64-unknown-elf-gcc`, `avr-gcc`) on your `PATH`.
+
+Then use a board's preset, for example the Cortex-M4F board:
+
+```sh
+cmake --preset cm4-an386 -DPython3_EXECUTABLE=$PWD/.venv/bin/python3
+cmake --build --preset cm4-an386
+ctest --preset cm4-an386 --output-on-failure --no-tests=error
+cmake --build --preset cm4-an386 --target run_first_execution   # the sample, on your terminal
+```
+
+| Preset | QEMU machine | Core |
+|---|---|---|
+| `cm0-microbit` | `microbit` | Cortex-M0 |
+| `cm3-an385` | `mps2-an385` | Cortex-M3 |
+| `cm4-an386` | `mps2-an386` | Cortex-M4F |
+| `cm7-an500` | `mps2-an500` | Cortex-M7 |
+| `cm33-an505` | `mps2-an505` | Cortex-M33 |
+| `rv32-virt` | `virt` | RV32IMAC |
+| `avr-uno` | `arduino-uno` | ATmega328P |
+
+`run_<image>` runs any sample, and any image of [your own application](application.md), under the board's machine. Press Ctrl-A then X to leave QEMU. On the boards whose reset keeps RAM (the MPS2 machines, RV32 virt, EmbSIM and the physical boards), the misuse checks run too: each faults, resets the board and is settled on the next boot ([A89](../specs/AMENDMENTS-M3.md)). On the QEMU Uno and the micro:bit they are skipped.
 
 ## Embedded tests on EmbSIM
 
@@ -79,6 +109,6 @@ Only the standard library is needed for the basic suite. Install Hypothesis to i
 
 The native sample exits after its configured two-million A/B iterations and prints `first_execution: switches A=... B=... ticks=...`. Its A/B counters count loop iterations, not a hardware-measured context-switch total. Embedded versions continue running and print progress where the board console permits. The conformance target `test_first_execution` supplies a shorter assertion-based check. Native time is virtual and advances in idle, so host timing is not a board benchmark.
 
-For a shorter application, follow [Threads and periodic work](tasks.md), which exits after five iterations. Then try [Synchronization and notifications](synchronization.md) and [Debugging](debugging.md). These tutorials use existing native libraries and keep example outputs under ignored `build/tutorials/`.
+To build a program of your own, outside this tree, see [Your own application](application.md). For a shorter application, follow [Threads and periodic work](tasks.md), which exits after five iterations. Then try [Synchronization and notifications](synchronization.md) and [Debugging](debugging.md). These tutorials use existing native libraries and keep example outputs under ignored `build/tutorials/`.
 
 For repeatable supported operations, start with the generated current API, [core concepts](concepts.md), and [configuration](configuration.md). Consult [Project status](../STATUS.md) before attempting a planned service or hardware workflow.
