@@ -9,7 +9,7 @@
 - level-1 interrupts only, without nesting;
 - the periodic tick: no tickless idle;
 - no FPU context, no MPU;
-- the CPU at the 40 MHz the ROM leaves it on. The PLL (160 or 240 MHz) comes with the board's clock driver.
+- the CPU at 160 MHz from the PLL, as ESP-IDF's default, set by the board (`emb_board_init()`). 240 MHz needs the core voltage the chip's eFuse records, which comes later.
 
 ## Build, flash, test
 
@@ -82,7 +82,7 @@ The interrupt numbers are the interrupt matrix's sources, 0 to 68:
 
 ### Tick and cycle counter
 
-- **Tick.** CCOMPARE0 against CCOUNT, internal interrupt 6, at `CONFIG_EMB_XT_CPU_HZ / tick rate`. The handler keeps the due time apart from the compare value. A tick that fell behind is programmed just ahead of CCOUNT, so the missed ticks follow one after the other and none is lost. A compare value already passed would otherwise wait for CCOUNT to wrap, 107 s at 40 MHz.
+- **Tick.** CCOMPARE0 against CCOUNT, internal interrupt 6, at `CONFIG_EMB_XT_CPU_HZ / tick rate`. The handler keeps the due time apart from the compare value. A tick that fell behind is programmed just ahead of CCOUNT, so the missed ticks follow one after the other and none is lost. A compare value already passed would otherwise wait for CCOUNT to wrap, 27 s at 160 MHz.
 - **Cycle counter.** CCOUNT, at the CPU clock.
 
 ### The alloca exception
@@ -93,6 +93,16 @@ MOVSP raises EXCCAUSE 5 when the caller's a0–a3 are not in the register file, 
 
 - **Faults.** Any exception but a level-1 interrupt drops the faulting context's frames and runs `embk_fault_raise_hw(EXCCAUSE, EXCVADDR, EPC1, sp)` on the interrupt stack. The crash record's architecture words are EXCCAUSE, EXCVADDR and EPC1.
 - **Reset.** `emb_arch_system_reset()` sets RTC_CNTL_SW_SYS_RST. It keeps SRAM2, which holds the crash record and the test framework's record. The fault checks that reset the board and `test_crash_reset` show it on the board.
+
+### The clock
+
+The ROM leaves the CPU on the 40 MHz crystal. The board's `emb_board_init()` moves it to 160 MHz from the BBPLL, following ESP-IDF v6.1's `rtc_clk_init()` and `rtc_clk_cpu_freq_set_config()`:
+- it opens the analog I2C bus to the BBPLL and powers the BBPLL;
+- it sets the BBPLL's 320 MHz dividers through the boot ROM's I2C register write;
+- it selects 160 MHz and the PLL source, and sets REF_TICK for the 80 MHz APB clock;
+- it tells the ROM the new rates, and sets UART0's divider again for APB_CLK's 80 MHz.
+
+ESP-IDF's sequence also writes five other BBPLL registers: a calibration reset and the 320 MHz output selection. Written on this board, they left the PLL at half its rate. Read back under ESP-IDF at 160 MHz, those registers hold the values the board's reset leaves, so the board writes only the three divider registers. The board's source records the measurement.
 
 ### Memory and stacks
 
@@ -106,7 +116,7 @@ A thread that blocks in the kernel with an interrupt frame on top used 528 to 56
 
 ## Measured on the board
 
-The release build, built by EmbCC, at 40 MHz, in CPU cycles ([2026-11-05](../engineering/hil-esp32-port-2026-11-05.md)):
+The release build, built by EmbCC, with the CPU still at 40 MHz, in CPU cycles ([2026-11-05](../engineering/hil-esp32-port-2026-11-05.md)):
 
 | | cycles |
 |---|---|

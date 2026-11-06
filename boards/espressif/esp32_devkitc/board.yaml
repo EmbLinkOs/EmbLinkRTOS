@@ -6,7 +6,7 @@ board: esp32_devkitc
 soc: espressif/esp32/esp32
 oscillators:
   main: { hz: 40000000, source: external_crystal } # the module's 40 MHz crystal
-cpu_hz: 40000000 # the boot ROM leaves the CPU on the crystal; measured 2026-11-05 (docs/ports/xtensa.md)
+cpu_hz: 160000000 # PLL_CLK (320 MHz) / 2: emb_board_init() selects it, as ESP-IDF's startup does
 console: { device: uart0, baud: 115200, pins: { tx: GPIO1, rx: GPIO3 } } # the board's USB-serial bridge
 leds: [] # the DevKitC has none the CPU drives; the "ESP-32S" copies' blue LED on GPIO2 differs between makers
 buttons: [ { name: boot, gpio: GPIO0, active: low } ]
