@@ -13,7 +13,7 @@ The toolchains column names each compiler CI builds the board with, from its pre
 
 | Board | SoC | Core | Tier | Toolchains in CI | Evidence |
 |---|---|---|---|---|---|
-| `arduino_uno` | ATmega328P | avr5 | 1 hardware | GCC | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); `avr-uno-hil` checked 17/17, release 17/17, T1 13/13 (2026-11-05, [report](hil-uno-2026-11-05.md)); CI also runs `avr-uno`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1` |
+| `arduino_uno` | ATmega328P | avr5 | 1 hardware | GCC | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); `avr-uno-hil` checked 17/17, release 17/17, T1 13/13, checked 19/19 (2026-11-05, [report](hil-uno-2026-11-05.md)); CI also runs `avr-uno`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1` |
 | `esp32c3_devkitm1` | (no description yet) | rv32imc | 2 emulated | GCC | CI runs `rv32-c3-embsim` |
 | `microbit` | nRF51822 | cortex-m0 | 2 emulated | GCC | CI runs `cm0-microbit`, `cm0-microbit-release` |
 | `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | GCC | CI runs `cm3-an385` |

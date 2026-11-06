@@ -1,0 +1,47 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avr-uno-hil/tests/conformance/test_sem.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_sem.elf sha256 dce6101bf7baec8ca11af3ea9279d3a6b2fa8cfe3a39fafa2040162a16de7423
+EVIDENCE v1 suite=test_sem config=3b582919390c2f6b profile=tiny board=arduino_uno checked=1
+TEST sem_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE sem_define_constructs_in_init_table outcome=passed asserts=6 skips=0
+TEST sem_blocking_take_from_prekernel_or_isr_rejected
+  -> ok
+  req API-012 API-013
+CASE sem_blocking_take_from_prekernel_or_isr_rejected outcome=passed asserts=4 skips=0
+TEST sem_destroy_with_waiters_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001 API-013
+CASE sem_destroy_with_waiters_is_misuse outcome=passed asserts=7 skips=0
+TEST sem_destroy_aborts_waiters_when_allowed
+  -> ok
+  req KRN-OBJ-001 KRN-WAIT-018
+CASE sem_destroy_aborts_waiters_when_allowed outcome=passed asserts=5 skips=0
+TEST sem_init_validates_arguments
+  fault checks that reset the board: 2
+  -> ok
+  req API-015
+CASE sem_init_validates_arguments outcome=passed asserts=2 skips=0
+TEST sem_max_overflow_and_saturate
+  -> ok
+  req KRN-SYNC-020
+CASE sem_max_overflow_and_saturate outcome=passed asserts=13 skips=0
+TEST sem_give_from_isr_wakes_at_exit
+  -> ok
+  req KRN-SYNC-022 KRN-IRQ-010 KRN-IRQ-033
+CASE sem_give_from_isr_wakes_at_exit outcome=passed asserts=6 skips=0
+TEST sem_take_times_out_and_disarms
+  -> ok
+  req KRN-WAIT-004 KRN-WAIT-013
+CASE sem_take_times_out_and_disarms outcome=passed asserts=9 skips=0
+TEST sem_give_hands_off_to_highest_waiter
+  -> ok
+  req KRN-WAIT-001 KRN-WAIT-012 KRN-SYNC-022
+CASE sem_give_hands_off_to_highest_waiter outcome=passed asserts=13 skips=0
+TEST sem_counts_and_nowait
+  -> ok
+  req KRN-SYNC-020 KRN-SYNC-021
+CASE sem_counts_and_nowait outcome=passed asserts=8 skips=0
+ISR_STACK size=526 used=85
+10 tests, 0 failed, 0 skipped, 97 ticks
+EMB_TEST_END

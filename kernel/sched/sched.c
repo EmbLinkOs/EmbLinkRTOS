@@ -114,6 +114,68 @@ void embk_sched_remove_ready(embk_thread_t *t)
 #endif
 }
 
+/* ---- the invariant checker (SPEC-013 §8, A93) ------------------------------------- */
+
+#if CONFIG_EMB_CHECKED
+static void invariant(bool holds, uint16_t code)
+{
+    if (!holds) {
+        embk_fault_raise(EMB_FAULT_KERNEL_INVARIANT, code, 0u, "scheduler invariant");
+    }
+}
+
+void embk_invariants_check(void)
+{
+    unsigned p;
+    if (embk_cpu.kernel_state != EMBK_KERNEL_RUNNING) {
+        return;
+    }
+#if CONFIG_EMB_SCHED_TABLE
+#if CONFIG_EMB_MUTEX
+    unsigned raised = 0u;
+#endif
+    invariant((ready_set & EMBK_WORD_BIT(0u)) == 0u, 0x5101u); /* idle is never in the set */
+    /* bounded by CONFIG_EMB_PRIORITY_COUNT */
+    for (p = 1u; p < (unsigned)CONFIG_EMB_PRIORITY_COUNT; p++) {
+        const embk_thread_t *t = EMBK_TABLE_SLOT(p);
+        if ((ready_set & EMBK_WORD_BIT(p)) != 0u) {
+            invariant(t != NULL && t->base_prio == p, 0x5102u);
+            invariant(thread_runnable(t), 0x5103u);    /* a ready thread can run */
+            invariant(t != embk_cpu.current, 0x5104u); /* the running one is not in the set */
+        }
+#if CONFIG_EMB_MUTEX
+        if (t != NULL && t->eff_prio != t->base_prio) {
+            raised++;
+        }
+#endif
+    }
+#if CONFIG_EMB_MUTEX
+    invariant(raised == embk_sched_raised_count, 0x5105u); /* the fast path's count (F8) */
+#endif
+#else
+    /* bounded by CONFIG_EMB_PRIORITY_COUNT levels and the threads ready at each */
+    for (p = 0u; p < (unsigned)CONFIG_EMB_PRIORITY_COUNT; p++) {
+        bool bit = (ready_map[p / EMBK_WORD_BITS] & EMBK_WORD_BIT(p % EMBK_WORD_BITS)) != 0u;
+        embk_list_node_t *n;
+        unsigned count = 0u;
+        invariant(bit == !embk_list_is_empty(&ready_lists[p]), 0x5111u);
+#if READY_WORDS > 1
+        invariant(!bit || (ready_summary & EMBK_WORD_BIT(p / EMBK_WORD_BITS)) != 0u, 0x5112u);
+#endif
+        for (n = embk_list_first(&ready_lists[p]); n != NULL;
+             n = embk_list_next(&ready_lists[p], n)) {
+            embk_thread_t *t = EMB_CONTAINER_OF(n, embk_thread_t, ready_node);
+            invariant(t->eff_prio == p, 0x5113u);      /* listed at its effective level */
+            invariant(thread_runnable(t), 0x5114u);    /* a ready thread can run */
+            invariant(t != embk_cpu.current, 0x5115u); /* the running one is not listed */
+            count++;
+            invariant(count <= 255u, 0x5116u); /* a cycle in the list */
+        }
+    }
+#endif
+}
+#endif
+
 bool embk_sched_is_ready(const embk_thread_t *t)
 {
 #if CONFIG_EMB_SCHED_TABLE

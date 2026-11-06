@@ -8,10 +8,13 @@ menu "Native port"
 
 config EMB_NATIVE_INVARIANTS
 	bool "Run the kernel invariant checker after every operation"
+	depends on EMB_CHECKED
 	default EMB_CHECKED
 	help
-	  SPEC-013 §8: calls the checked-build invariant functions after every kernel
-	  operation; the primary oracle in asynchronous interrupt mode.
+	  SPEC-013 §8, A93: embk_invariants_check() at every gate crossing (each unlock
+	  of the outermost critical section): the scheduler's ready structure against the
+	  threads' states, and the table scheduler's count of raised threads. The primary
+	  oracle in asynchronous interrupt mode.
 
 config EMB_NATIVE_MAX_IRQS
 	int "Number of simulated interrupt sources"

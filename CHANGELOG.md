@@ -17,6 +17,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Added (technical review, 2026-11-05)
 
+- The native port's asynchronous interrupt mode (A93): `emb_native_async_start()` or `EMB_NATIVE_ASYNC_US` lands ticks between any two statements through SIGUSR2. `tests/stress/test_async_irq` runs the kernel under it, with `embk_invariants_check()` at every gate crossing. That checker now backs `CONFIG_EMB_NATIVE_INVARIANTS`, which did nothing before, in every checked native run.
 - The interrupt stack is bounded and checked (A90, PORT-016).
   - Cortex-M: MSP is a `CONFIG_EMB_ISR_STACK_SIZE` array (2048 bytes by default) first in RAM, and the first PendSV drops `main()`'s frames from it.
   - Armv8-M Mainline: MSPLIM stops an overflowing interrupt.
