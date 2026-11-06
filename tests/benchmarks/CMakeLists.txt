@@ -6,12 +6,14 @@ if(CONFIG_EMB_ARCH_CORTEX_M OR CONFIG_EMB_ARCH_RISCV)
   emb_add_executable(bench_irq bench_irq.c) # the board's test line and a dynamic handler
 endif()
 # On a board (EMB_TEST_EMULATOR=hil) the benchmarks are ctest entries too, ending at BENCH_END
+# with valid BENCH v1 results (--bench, A89)
 if(EMB_TEST_EMULATOR STREQUAL "hil" AND EMB_HIL_PORT)
   foreach(_bench bench_switch bench_irq)
     if(TARGET ${_bench})
       add_test(NAME ${_bench} COMMAND "${Python3_EXECUTABLE}" -I "${CMAKE_SOURCE_DIR}/tools/hil/run_hil.py"
-               --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}" --until BENCH_END
-               --log "${CMAKE_CURRENT_BINARY_DIR}/${_bench}.console.log" $<TARGET_FILE:${_bench}>)
+               --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}" --until BENCH_END --bench
+               --log "${CMAKE_CURRENT_BINARY_DIR}/${_bench}.console.log" --archive "${EMB_HIL_ARCHIVE}"
+               $<TARGET_FILE:${_bench}>)
       set_tests_properties(${_bench} PROPERTIES RUN_SERIAL TRUE LABELS bench TIMEOUT 300)
     endif()
   endforeach()

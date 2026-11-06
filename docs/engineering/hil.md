@@ -1,6 +1,6 @@
 # Running on a physical board (HIL)
 
-M3a's evidence comes from physical boards: the conformance suite run on the board, cycle counts, and latency measured from outside. The NUCLEO-F446RE is the M3a board. The Arduino Uno R3 runs the tiny profile the same way. This page is the procedure for both. The runner, the preset and the benchmark images exist and are tested without a board. **Nothing on this page has been run on hardware yet.**
+M3a's evidence comes from physical boards: the conformance suite run on the board, cycle counts, and latency measured from outside. The NUCLEO-F446RE is the M3a board. The Arduino Uno R3 runs the tiny profile the same way. This page is the procedure for both. The runner, the presets and the benchmark images are tested without a board too. The Uno has run on hardware ([2026-11-04](hil-uno-2026-11-04.md), and again with its fault checks executed, below). **The NUCLEO has not run on hardware yet.**
 
 ## What you need
 
@@ -41,16 +41,30 @@ ctest --preset cm4-nucleo-hil -L bench   # only the benchmarks
 Each CTest entry runs `tools/hil/run_hil.py`, one at a time (`RUN_SERIAL`):
 1. It opens the console at the baud rate `hw.json` gives (115200), raw, and discards anything already waiting.
 2. It flashes the ELF and resets the part: `openocd -f board/st_nucleo_f4.cfg -c "program <elf> verify reset exit"`. `--flash-cmd` replaces this command, for example with `st-flash` or pyOCD.
-3. It reads the console until the summary line and `EMB_TEST_END`. A benchmark ends at `BENCH_END` instead.
+3. It reads the console until the summary line and `EMB_TEST_END`. A benchmark ends at `BENCH_END` instead. With `--bench` (the benchmarks' CTest entries), the run also needs at least one `BENCH v1 name=... key=value` line, with every value an unsigned integer and a nonzero operation count and measurements. Reaching `BENCH_END` alone proves nothing.
 
 The exit status is 0 on a pass, 1 on failures, and 2 on a flash failure or a timeout, as with the emulator runners. Each run also writes `<image>.console.log` next to the image. The runner's first line names the board, the probe, the port and the image's SHA-256, for the evidence record (05 §4.4).
+
+**Fault checks run on the board (A89).** A misuse check (`EMB_ASSERT_FAULTS`, `EMB_ASSERT_MISUSE` in checked builds) runs its statement in place on a board whose reset keeps RAM (`EMB_BOARD_RESETS_IN` in `board.cmake`: the Uno and the NUCLEO on hardware and EmbSIM, the MPS2 and RV32 virt boards under QEMU).
+- The kernel's fault resets the board through the test framework's fault hook, after the kernel has written the crash record.
+- The next boot reads the framework's 64 retained bytes and skips the cases already finished. It replays the faulting case with its output held back, up to that check, and when the case ends it prints `fault checks that reset the board: N`. The record carries N across the boots.
+- The run's console therefore spans several boots, and the runner reads straight through them.
+- A check whose statement returns fails in a checked build. A fault fails in a release build.
+
+**The record of each run (A89).** Every CTest entry also passes `--archive ${EMB_HIL_ARCHIVE}` (default `<build>/hil-archive`). For each image the runner writes `<image>.log`, its `hil:` line followed by the console, and `<image>.json`. The JSON holds:
+- the board, the port and the flash command;
+- the SHA-256 of the image and of every file the command programs, such as the Uno's `.hex`;
+- the git commit and whether the tree was dirty;
+- the start and end times and the outcome;
+- the summary, each case's `CASE` line, and the number of fault checks the board reset for;
+- any `BENCH` results.
 
 Without `EMB_HIL_PORT`, configuration builds the images and registers no tests. Only a board described in YAML has the `hw.json` the runner needs.
 
 **Archive the outcome.** A run counts toward the board's tier only once it is archived ([support matrix](support-matrix.md), A81):
-1. Add one entry per build to `docs/engineering/hardware-runs.json`: board, preset, build, date, configuration hash, passed and total.
-2. Name the report that records the run, a `hil-<board>-<date>.md` page that names the preset.
-3. Run `python3 -I tools/support/matrix.py`.
+1. File the records: `python3 -I tools/hil/archive.py build/<preset>/hil-archive --to docs/engineering/hil-runs/<date>-<board>-<build> --preset <preset> --build <build> --report hil-<board>-<date>.md --update docs/engineering/hardware-runs.json`. It refuses records from more than one board, commit or configuration. It copies the logs and records, writes the run's `index.json`, and adds the entry, with its `archive`, to `hardware-runs.json`.
+2. Write the report, a `hil-<board>-<date>.md` page that names the preset.
+3. Run `python3 -I tools/support/matrix.py`, which also checks each entry against its archive's `index.json`.
 
 Only a run with every test passed earns tier 1.
 

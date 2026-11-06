@@ -1,0 +1,17 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_crash.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_crash.elf sha256 29622392b3b81281c4a913047cb73cef02740803b6ef3d04472cbf5a3d4ebb2b
+EVIDENCE v1 suite=test_crash config=458476d870ee237b profile=tiny board=arduino_uno checked=0
+TEST crash_record_get_refuses_null
+  -> ok
+  req OBS-016 API-015
+CASE crash_record_get_refuses_null outcome=passed asserts=1 skips=0
+TEST crash_record_corruption_is_ignored
+  -> ok
+  req OBS-016
+CASE crash_record_corruption_is_ignored outcome=passed asserts=6 skips=0
+TEST crash_record_round_trip
+EMB_CRASH 454d424302002200f8b5bd642400000001050203020129007856bc7a3412b96d3fef
+  -> ok
+  req OBS-016 API-017
+CASE crash_record_round_trip outcome=passed asserts=21 skips=0
+3 tests, 0 failed, 0 skipped, 52 ticks
+EMB_TEST_END

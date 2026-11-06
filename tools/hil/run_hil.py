@@ -18,12 +18,23 @@ hint the default flash command is built from:
   EmbCC's embflash (--stk500) when the one installed has it, else avrdude (--flasher).
 
 It reads until the test framework's summary ("<n> tests, <m> failed") and EMB_TEST_END, or
---until's text for a benchmark, or the timeout.
+--until's text for a benchmark, or the timeout. A suite whose fault checks reset the board
+(A89) prints across several boots; the runner reads through them, as it reads one.
 Exit status as the emulator runners': 0 when the summary reports no failure (or --until's
 text appeared), 1 on failures, 2 on a flash failure, a timeout or a usage error.
 
+With --bench, --until's text is not enough: the console must also carry at least one
+"BENCH v1 name=... key=value" line whose values are all unsigned integers, with a nonzero
+operation count and nonzero measurements, or the run fails (exit 1). A benchmark that only
+reaches its end marker proves nothing.
+
 Unlike the emulators' (SIM-003), a run here is timing evidence: the runner prints a "hil:"
 line with the board, the probe, the port and the image's SHA-256 for the record of 05 §4.4.
+With --archive DIR it also keeps the record (A89): DIR/<image>.log holds that line and the
+console, and DIR/<image>.json the board, the port, the flash command, the SHA-256 of the
+image and of every file the command flashes, the git commit, the times, the outcome, the
+summary, each case's outcome line and any BENCH results. tools/hil/archive.py files a run's
+records under docs/engineering/hil-runs/.
 """
 import argparse
 import hashlib
@@ -40,8 +51,13 @@ import time
 import tty
 from pathlib import Path
 
-SUMMARY = re.compile(rb"(\d+) tests, (\d+) failed")
+SUMMARY = re.compile(rb"(\d+) tests, (\d+) failed(?:, (\d+) skipped)?")
 END = b"EMB_TEST_END"
+CASE = re.compile(rb"^CASE (\S+) outcome=(\w+) asserts=(\d+) skips=(\d+)", re.M)
+EVIDENCE = re.compile(rb"^EVIDENCE v1 (.*)$", re.M)
+BENCH = re.compile(rb"^BENCH v1 name=(\S+)(.*)$", re.M)
+FAULT_CHECKS = re.compile(rb"^  fault checks that reset the board: (\d+)", re.M)
+ROOT = Path(__file__).resolve().parents[2]
 BAUD = {9600: termios.B9600, 19200: termios.B19200, 38400: termios.B38400, 57600: termios.B57600,
         115200: termios.B115200, 230400: getattr(termios, "B230400", termios.B115200)}
 
@@ -118,7 +134,91 @@ def flash(cmd, timeout):
     return None
 
 
+def bench_results(buf):
+    """The BENCH v1 lines: [{"name": ..., key: int, ...}]; ValueError on a malformed value."""
+    out = []
+    for m in BENCH.finditer(buf):
+        r = {"name": m.group(1).decode(errors="replace")}
+        for field in m.group(2).decode(errors="replace").split():
+            key, sep, value = field.partition("=")
+            if not sep or not value.isdigit():
+                raise ValueError(f"BENCH {r['name']}: {field!r} is not key=unsigned integer")
+            r[key] = int(value)
+        out.append(r)
+    return out
+
+
+def bench_problem(results):
+    """None when the results are numbers a board measured, else what is wrong."""
+    if not results:
+        return "no BENCH v1 result line"
+    for r in results:
+        ops = r.get("ops", 0)
+        if ops == 0:
+            return f"BENCH {r['name']}: no operation count"
+        measured = {k: v for k, v in r.items() if k not in ("name", "ops", "unit_hz", "checked")}
+        if not measured or any(v == 0 for v in measured.values()):
+            return f"BENCH {r['name']}: a zero measurement ({measured}): is the cycle counter running?"
+    return None
+
+
+def git_state():
+    try:
+        commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True,
+                                text=True, timeout=10).stdout.strip()
+        dirty = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=no"],
+                               capture_output=True, text=True, timeout=10).stdout.strip() != ""
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return {"commit": commit, "dirty": dirty} if commit else None
+
+
+def parse_console(buf):
+    """The facts of a run's console for its record."""
+    rec = {}
+    m = SUMMARY.search(buf)
+    if m:
+        rec["summary"] = {"tests": int(m.group(1)), "failed": int(m.group(2)),
+                          "skipped": int(m.group(3)) if m.group(3) else None}
+    rec["cases"] = [{"name": c.group(1).decode(errors="replace"), "outcome": c.group(2).decode(),
+                     "asserts": int(c.group(3)), "skips": int(c.group(4))} for c in CASE.finditer(buf)]
+    rec["fault_checks_by_reset"] = sum(int(n) for n in FAULT_CHECKS.findall(buf))
+    ev = EVIDENCE.search(buf)
+    if ev:
+        rec["evidence"] = dict(f.split("=", 1) for f in ev.group(1).decode(errors="replace").split() if "=" in f)
+    try:
+        rec["bench"] = bench_results(buf)
+    except ValueError as e:
+        rec["bench_error"] = str(e)
+    return rec
+
+
+def write_archive(directory, rec, buf):
+    d = Path(directory)
+    d.mkdir(parents=True, exist_ok=True)
+    stem = Path(rec["image"]).stem
+    (d / f"{stem}.log").write_bytes(rec["header"].encode() + b"\n" + buf)
+    rec = dict(rec, **parse_console(buf))
+    del rec["header"]
+    (d / f"{stem}.json").write_text(json.dumps(rec, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def run(args):
+    rec = {"format": "emb-hil-run v1", "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+    buf = bytearray()
+    rc = 2
+    try:
+        rc = run_board(args, rec, buf)
+    finally:
+        rec["ended"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        rec["exit"] = rc
+        rec["outcome"] = {0: "passed", 1: "failed"}.get(rc, "error")
+        if args.archive and "image" in rec:
+            write_archive(args.archive, rec, bytes(buf))
+    return rc
+
+
+def run_board(args, rec, console):
     hw = json.loads(Path(args.hw_json).read_text(encoding="utf-8"))
     image = Path(args.image)
     digest = hashlib.sha256(image.read_bytes()).hexdigest()
@@ -129,9 +229,18 @@ def run(args):
     except (KeyError, ValueError) as e:
         print(f"run_hil: {e}", file=sys.stderr)
         return 2
-    print(f"hil: board {hw['board']['name']}, soc {hw['soc'].get('part', hw['soc']['name'])}, "
-          f"probe {' '.join(cmd[:3])}, port {args.port} at {baud} baud, image {image.name} sha256 {digest}",
-          flush=True)  # before the console's bytes, which go out unbuffered
+    header = (f"hil: board {hw['board']['name']}, soc {hw['soc'].get('part', hw['soc']['name'])}, "
+              f"probe {' '.join(cmd[:3])}, port {args.port} at {baud} baud, image {image.name} sha256 {digest}")
+    print(header, flush=True)  # before the console's bytes, which go out unbuffered
+    flashed = {}
+    for word in cmd:  # every file the command programs, by its hash (the .hex beside the ELF)
+        for part in re.split(r"[\s:,]", word):
+            f = Path(part)
+            if f.suffix in (".hex", ".bin", ".elf", ".uf2") and f.is_file():
+                flashed[f.name] = hashlib.sha256(f.read_bytes()).hexdigest()
+    rec.update({"header": header, "board": hw["board"]["name"], "soc": hw["soc"].get("part", hw["soc"]["name"]),
+                "port": args.port, "baud": baud, "flash_command": cmd, "image": image.name,
+                "image_sha256": digest, "flashed_sha256": flashed, "git": git_state()})
     if shared:
         # the bootloader needs the port: flash, then open the console (which resets the board)
         problem = flash(cmd, args.flash_timeout)
@@ -169,8 +278,17 @@ def run(args):
             if log:
                 log.write(chunk)
             buf += chunk
+            console += chunk
             if until is not None:
                 if until in buf:
+                    if args.bench:
+                        try:
+                            problem = bench_problem(bench_results(buf))
+                        except ValueError as e:
+                            problem = str(e)
+                        if problem:
+                            print(f"\nrun_hil: {problem}", file=sys.stderr)
+                            return 1
                     return 0
                 continue
             m = SUMMARY.search(buf)
@@ -194,6 +312,9 @@ def main(argv=None):
     ap.add_argument("--timeout", type=float, default=120.0, help="seconds to wait for the result")
     ap.add_argument("--flash-timeout", type=float, default=60.0)
     ap.add_argument("--log", help="also write the console to this file")
+    ap.add_argument("--archive", help="keep the run's record: DIR/<image>.log and DIR/<image>.json")
+    ap.add_argument("--bench", action="store_true",
+                    help="with --until: also require valid, nonzero BENCH v1 result lines")
     ap.add_argument("--flasher", choices=["auto", "embflash", "avrdude"], default="auto",
                     help="a serial bootloader's programmer: EmbCC's embflash when it has --stk500 (auto)")
     ap.add_argument("--shared-port", dest="shared_port", action="store_true", default=None,

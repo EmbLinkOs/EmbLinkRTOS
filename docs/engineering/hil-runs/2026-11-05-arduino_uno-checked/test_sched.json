@@ -1,0 +1,85 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "sched_raising_a_ready_thread_above_the_caller_preempts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_thread_self_and_priorities",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sched_idle_runs_when_nothing_is_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "sched_blocking_under_scheduler_lock_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_yield_never_to_lower_priority",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_lock_defers_preemption_until_unlock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_higher_priority_runs_first",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T19:22:51Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "1",
+    "config": "3b582919390c2f6b",
+    "profile": "tiny",
+    "suite": "test_sched"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "embflash",
+    "/Users/teooff1700/EmbLinkRTOS/build/avr-uno-hil/tests/conformance/test_sched.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_sched.hex": "0454055972a74740d0547a4fe4defb820d91de0c84544b6367b8eb4140a04be6"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "cdd12f5e914dc6f92877f9ce59a4e7a5838bb58f",
+    "dirty": false
+  },
+  "image": "test_sched.elf",
+  "image_sha256": "29ab235e4c76ebbece3ea3c5ea60a5bfdc7a82abc83715d015375303d33a138d",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T19:22:44Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

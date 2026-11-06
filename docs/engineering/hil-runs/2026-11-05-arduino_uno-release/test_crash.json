@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 1,
+      "name": "crash_record_get_refuses_null",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "crash_record_corruption_is_ignored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 21,
+      "name": "crash_record_round_trip",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-05T19:28:30Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "458476d870ee237b",
+    "profile": "tiny",
+    "suite": "test_crash"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_crash.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_crash.hex": "490ce17a4f4262f0b6c8799251ef3891a9dd1ca7212b1bf9cf1ab6aa36109ca7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "c07ff61c9ae4f040844233ca88bb0d8a3fbfd4ab",
+    "dirty": false
+  },
+  "image": "test_crash.elf",
+  "image_sha256": "29622392b3b81281c4a913047cb73cef02740803b6ef3d04472cbf5a3d4ebb2b",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T19:28:24Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

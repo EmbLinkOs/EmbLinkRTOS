@@ -1,0 +1,22 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /Users/teooff1700/EmbLinkRTOS/build/avr-uno-hil/tests/conformance/test_irq_priority.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_irq_priority.elf sha256 b65ffd7b7009ff4a9336eebfe681eb4d1a418f9de066603d1f83c98ad6250c41
+EVIDENCE v1 suite=test_irq_priority config=3b582919390c2f6b profile=tiny board=arduino_uno checked=1
+TEST irq_priority_port_rejects_invalid_inputs
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_port_rejects_invalid_inputs outcome=passed asserts=2 skips=0
+TEST irq_priority_rejects_unknown_number
+  fault checks that reset the board: 1
+  -> ok
+  req API-015 KRN-IRQ-029
+CASE irq_priority_rejects_unknown_number outcome=passed asserts=1 skips=0
+TEST irq_priority_rejects_out_of_range_level
+  fault checks that reset the board: 2
+  -> ok
+  req API-015 KRN-IRQ-028
+CASE irq_priority_rejects_out_of_range_level outcome=passed asserts=2 skips=0
+TEST irq_priority_accepts_advertised_endpoints
+  -> ok
+  req KRN-IRQ-028 KRN-IRQ-029
+CASE irq_priority_accepts_advertised_endpoints outcome=passed asserts=2 skips=0
+4 tests, 0 failed, 0 skipped, 26 ticks
+EMB_TEST_END

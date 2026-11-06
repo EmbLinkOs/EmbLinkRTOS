@@ -1,0 +1,12 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_fault.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_fault.elf sha256 a9978d64b1a4c81dd8ed5b6ad526beb099f60717478a11f183f5a1c9f1945e00
+EVIDENCE v1 suite=test_fault config=458476d870ee237b profile=tiny board=arduino_uno checked=0
+TEST fault_status_policy_is_preserved
+  -> ok
+  req API-015
+CASE fault_status_policy_is_preserved outcome=passed asserts=2 skips=0
+TEST fault_successful_check_preserves_status
+  -> ok
+  req API-015 API-017
+CASE fault_successful_check_preserves_status outcome=passed asserts=3 skips=0
+2 tests, 0 failed, 0 skipped, 32 ticks
+EMB_TEST_END

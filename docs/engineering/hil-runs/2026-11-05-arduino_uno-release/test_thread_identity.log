@@ -1,0 +1,24 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/conformance/test_thread_identity.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_thread_identity.elf sha256 82ce3a13a064532e248110488f6deec8e267853acd49b348304c1a18cfe8be46
+EVIDENCE v1 suite=test_thread_identity config=458476d870ee237b profile=tiny board=arduino_uno checked=0
+TEST idle_context_is_not_an_application_thread
+  -> ok
+  req KRN-THR-025 KRN-THR-026
+CASE idle_context_is_not_an_application_thread outcome=passed asserts=6 skips=0
+TEST thread_storage_reuse_requires_destroy
+  -> ok
+  req KRN-THR-015 KRN-THR-023
+CASE thread_storage_reuse_requires_destroy outcome=passed asserts=9 skips=0
+TEST thread_identity_survives_suspend_and_resume
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_suspend_and_resume outcome=passed asserts=12 skips=0
+TEST thread_identity_repeated_construction_does_not_alias_live_object
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_repeated_construction_does_not_alias_live_object outcome=passed asserts=1200 skips=0
+TEST thread_identity_survives_priority_and_termination
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_priority_and_termination outcome=passed asserts=15 skips=0
+5 tests, 0 failed, 0 skipped, 113 ticks
+EMB_TEST_END

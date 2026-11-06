@@ -1,0 +1,39 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "checked": 0,
+      "name": "notify_handover",
+      "ops": 20000,
+      "per_op_x100": 1696,
+      "unit_hz": 250000,
+      "units": 339347
+    }
+  ],
+  "board": "arduino_uno",
+  "cases": [],
+  "ended": "2026-11-05T19:28:42Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/Users/teooff1700/EmbLinkRTOS/build/uno-hil-release/tests/benchmarks/bench_switch.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "bench_switch.hex": "7ff4342a7b7b3b1db30c5b5991069f1f8a443829093ad4234b0eeca0610647e9"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "c07ff61c9ae4f040844233ca88bb0d8a3fbfd4ab",
+    "dirty": false
+  },
+  "image": "bench_switch.elf",
+  "image_sha256": "a6ab1eaa536928bbc284881ae3195429ef7e8e6e8d230dffa3cf90db758f6e06",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-05T19:28:36Z"
+}
