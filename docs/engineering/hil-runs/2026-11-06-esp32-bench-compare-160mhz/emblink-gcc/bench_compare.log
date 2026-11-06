@@ -1,0 +1,16 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash build/xt-esp32-gcc-rel/tests/benchmarks/bench_compare.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image bench_compare.elf sha256 523cd3886ce58e82ce92d9666343b34d9e0d708aa4366a11025ffddc2fdc41f6
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:520
+load:0x40080400,len:10584
+entry 0x40082234
+bench_compare: EmbLinkRTOS 0.2.0
+BENCH v1 name=notify_handover units=19375548 ops=20000 per_op_x100=96877 unit_hz=160000000 os=emblink
+BENCH v1 name=sem_handover units=19464428 ops=20000 per_op_x100=97322 unit_hz=160000000 os=emblink
+BENCH v1 name=sem_give_take units=2075263 ops=10000 per_op_x100=20752 unit_hz=160000000 os=emblink
+BENCH v1 name=isr_wake units=9756238 ops=5000 per_op_x100=195124 unit_hz=160000000 os=emblink
+BENCH_END

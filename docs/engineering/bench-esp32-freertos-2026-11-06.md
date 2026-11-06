@@ -34,6 +34,19 @@ CPU cycles per operation (`per_op_x100` / 100). The records are under `hil-runs/
 
 Built by GCC, as FreeRTOS is, EmbLinkRTOS takes 34–50% fewer cycles than ESP-IDF's FreeRTOS on all four. Built by EmbCC, it is behind FreeRTOS on three of the four, by up to 30%. That is the same kernel and port, so the gap is EmbCC's code for the kernel's C, as the [port's report](hil-esp32-port-2026-11-05.md) found: EmbCC takes about 1.8 times GCC's cycles.
 
+## Both at 160 MHz
+
+Later the same day, the EmbLinkRTOS board moved its CPU to 160 MHz (the board's PLL setup), and FreeRTOS's build moved to 160 MHz too (`CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_160`). Rerun on the same board, with the records under `hil-runs/2026-11-06-esp32-bench-compare-160mhz/`, CPU cycles per operation:
+
+| | FreeRTOS V10.5.1 | EmbLinkRTOS, GCC 16.1 | EmbLinkRTOS, Clang 22.1.4 | EmbLinkRTOS, EmbCC |
+|---|---|---|---|---|
+| `notify_handover` | 1535 | 969 (−37%) | 1135 (−26%) | 1749 (+14%) |
+| `sem_handover` | 1959 | 973 (−50%) | 1056 (−46%) | 1742 (−11%) |
+| `sem_give_take` | 316 | 208 (−34%) | 200 (−37%) | 406 (+28%) |
+| `isr_wake` | 3201 | 1951 (−39%) | 2105 (−34%) | 3247 (+1%) |
+
+Every figure is within 1% of the run with different clocks above. Counting in cycles had removed the clock from the comparison, as intended. The EmbLinkRTOS images are from `d72aaeb` (GCC, Clang) and `957b45d` (EmbCC, rebuilt after a stale-object bug in EmbCC builds: CMake tracked no header dependencies for EmbCC, so the first EmbCC rerun still carried the 40 MHz tick). FreeRTOS's image is from `d72aaeb`.
+
 ## What differs besides the kernel
 
 - **The kernels' scope.** ESP-IDF's FreeRTOS is built for two cores and keeps their machinery in unicore builds:
@@ -44,7 +57,7 @@ Built by GCC, as FreeRTOS is, EmbLinkRTOS takes 34–50% fewer cycles than ESP-I
 
   That is part of what ESP32 projects pay, and part of what this comparison measures. EmbLinkRTOS's port is one core.
 - **The compiler.** ESP-IDF v6.1 pins GCC 15.2, and EmbLinkRTOS was built by Espressif's GCC 16.1, the newer release. The same version for both would mean building ESP-IDF with a toolchain it does not pin.
-- **The clock.** 80 MHz against 40 MHz, as above. Only the interrupt trigger's peripheral accesses see it.
+- **The clock.** 80 MHz against 40 MHz in the first run, as above; both at 160 MHz in the rerun, with the same results.
 - **No sizes.** An ESP-IDF image carries its bootloader, partition table, startup, heap and drivers, so its size says nothing about the kernel. The Uno's comparison could compare sizes; this one does not.
 
 ## Records

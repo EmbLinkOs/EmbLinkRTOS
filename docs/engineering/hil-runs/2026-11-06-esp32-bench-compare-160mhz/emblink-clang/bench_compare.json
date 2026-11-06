@@ -1,0 +1,65 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 113475,
+      "unit_hz": 160000000,
+      "units": 22695166
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 105610,
+      "unit_hz": 160000000,
+      "units": 21122010
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "emblink",
+      "per_op_x100": 19956,
+      "unit_hz": 160000000,
+      "units": 1995625
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "emblink",
+      "per_op_x100": 210524,
+      "unit_hz": 160000000,
+      "units": 10526202
+    }
+  ],
+  "board": "esp32_devkitc",
+  "cases": [],
+  "ended": "2026-11-06T01:14:16Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "build/xt-esp32-clang-rel/tests/benchmarks/bench_compare.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "bench_compare.bin": "b87416a70e0acf08c80eb8cfa7cd1e740659d9078d3f34d84844cfcff00325ac"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "d72aaeb2533c83ff945d83b6e711660ee754a836",
+    "dirty": false
+  },
+  "image": "bench_compare.elf",
+  "image_sha256": "71b87e4d45014860c56398230c6e94d02f39f109631d703a06071cec2f614b0c",
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:14:14Z"
+}
