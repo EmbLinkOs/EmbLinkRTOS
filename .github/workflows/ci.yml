@@ -512,7 +512,9 @@ jobs:
           python3 -I tools/esp/bringup/check_probe.py build/esp32-gcc/esp32_hello.bin
       - name: Install tools
         timeout-minutes: 15
-        run: scripts/ci-apt-install.sh ninja-build python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build python3-yaml
       - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
         run: |
           cmake --preset xt-esp32-gcc
@@ -557,7 +559,9 @@ jobs:
           echo "$clang_bin" >> "$GITHUB_PATH"
       - name: Install tools
         timeout-minutes: 15
-        run: scripts/ci-apt-install.sh ninja-build python3-yaml
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build python3-yaml
       - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
         run: |
           clang --version | head -1
