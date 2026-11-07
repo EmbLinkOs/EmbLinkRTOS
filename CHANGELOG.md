@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Changed (fast paths, 2026-11-07)
+
+- Four helpers on the API's fast paths are always inline on 32-bit ports (`EMBK_HOT`, A104). GCC at `-Os` had kept them out of line. On the NUCLEO-F446RE with `EMB_LTO`, the uncontended semaphore give and take drops from 191 to 146 cycles, within 11% of FreeRTOS built the same way, and every switching path gains 1–4%. AVR code is unchanged or smaller.
+
 ### Added (link-time optimization, 2026-11-07)
 
 - `-DEMB_LTO=ON` builds the kernel, the port, the board and the application with link-time optimization (ADR-056, A103). This works with GCC and Clang. On the NUCLEO-F446RE the release build's switching paths take 17–20% fewer cycles and its image is 18% smaller ([report](docs/engineering/perf-lto-2026-11-07.md)). The notification hand-over drops from 794 to 632 cycles, the semaphore hand-over from 746 to 648, and the interrupt wake from 1,514 to 1,285. The suites pass with it on every QEMU and EmbSIM preset and on the NUCLEO, built by GCC and by Clang.
