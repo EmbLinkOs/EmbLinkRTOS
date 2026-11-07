@@ -79,7 +79,9 @@ def hw_config_h(r):
         clocks[f"EMB_HW_{_sym(s['name'])}_HZ"] = f"{hz}u"
     clocks["EMB_HW_CPU_HZ"] = f"{clk['hclk_hz']}u"
     has_pll = bool(soc.get("clocks", {}).get("plls"))
-    if has_pll:
+    # the STM32 RCC's SYSCLK and PLL source encodings: only for a SoC with its HSI and HSE
+    src_names = {s["name"] for s in soc.get("clocks", {}).get("sources", [])}
+    if has_pll and {"hsi", "hse"} <= src_names:
         clocks["EMB_HW_SYSCLK_SOURCE"] = f"EMB_HW_SYSCLK_{'PLL' if clk['pll'] else _sym(clk['source'])}"
         clocks["EMB_HW_SYSCLK_HSI"] = "0"
         clocks["EMB_HW_SYSCLK_HSE"] = "1"
@@ -88,7 +90,7 @@ def hw_config_h(r):
         clocks["EMB_HW_PLL_SOURCE_HSE"] = "1" if clk["pll"] and clk["source"] == "hse" else "0"
     if clk["pll"]:
         pll = clk["pll"]
-        for f in ("m", "n", "p", "q", "r"):
+        for f in ("m", "n", "p", "q", "r", "postdiv1", "postdiv2"):
             if f in pll:
                 clocks[f"EMB_HW_PLL_{f.upper()}"] = f"{pll[f]}u"
         clocks["EMB_HW_PLL_VCO_HZ"] = f"{int(pll['vco_hz'])}u"

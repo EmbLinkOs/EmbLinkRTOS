@@ -47,7 +47,18 @@ The Pico 2 W's USB port is the boot ROM's loader, not a console. The console is 
 - **Input:** the tests only print, so the Pico's RX (pin 2) can stay unconnected.
 - **Port:** the console is the DevKitC's port, `/dev/cu.usbserial-*` on macOS.
 
-A USB-UART adapter at 3.3 V, or a Raspberry Pi Debug Probe, replaces the DevKitC the same way. The Debug Probe also offers SWD, for which the runner has no support yet.
+**Or the NUCLEO-F446RE's ST-LINK, through a relay.** Its morpho headers are male, so female-female jumper wires fit, and its ST-LINK has a virtual COM port. The STM32 relays the other board's UART to it in software, because on a stock NUCLEO the header pins named PA2 and PA3 (CN10 pins 35 and 37, Arduino D1 and D0) are not connected to the STM32: solder bridges SB62 and SB63 are open, and the ST-LINK keeps PA2 and PA3 for itself.
+
+`tools/hil/nucleo-uart-relay/build.sh --flash` programs the relay: USART1 receives on PA10, and every byte goes out of USART2 to the ST-LINK's port, at 115200 8N1. The green LED toggles on each byte. Hold the NUCLEO with its USB connector at the top, and use the right-hand double header, CN10, in its inner column, the one nearer the STM32:
+
+| Wire | From | To |
+|---|---|---|
+| 1 | Pico 2 W pin 1, GPIO0 (UART0 TX) | CN10 pin 33, PA10: the inner column's 17th pin from the top, the third from the bottom |
+| 2 | Pico 2 W pin 3, GND | CN10 pin 9: the inner column's 5th pin from the top. The 4th is AVDD, the STM32's 3.3 V: a ground wire there shorts it. |
+
+The console is then the NUCLEO's port, `/dev/cu.usbmodem*`. A wire one pin off is easy to place. Before the first run, put the other board's TX on PA5 (the 6th pin) for a moment: if the board drives it high, the NUCLEO's green LED lights.
+
+A USB-UART adapter at 3.3 V, or a Raspberry Pi Debug Probe, replaces the DevKitC or the NUCLEO the same way. The Debug Probe also offers SWD, for which the runner has no support yet.
 
 ```sh
 cmake --preset cm33-pico2w-hil -DEMB_HIL_PORT=/dev/cu.usbserial-0001
@@ -55,7 +66,7 @@ cmake --build --preset cm33-pico2w-hil
 ctest --preset cm33-pico2w-hil
 ```
 
-`-DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchains/arm-none-eabi-clang.cmake` builds the same images with Clang and LLD. The CPU runs from the 12 MHz crystal in this first increment, so cycle counts are in 12 MHz units.
+`-DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchains/arm-none-eabi-clang.cmake` builds the same images with Clang and LLD. The CPU runs at 150 MHz from PLL_SYS, and cycle counts are in 150 MHz units. The boot ROM's flash setup (quad reads at a divider of 3) already suits that clock.
 
 ## Running the suite
 

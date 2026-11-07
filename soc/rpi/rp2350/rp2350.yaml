@@ -29,7 +29,15 @@ memory:
     - { name: sram_xy, base: 0x20080000, size: 8K, attrs: [r, w, x], doc: "SRAM8 and SRAM9" }
 clocks:
   sources:
-    - { name: xosc, hz: board, min_hz: 1MHz, max_hz: 50MHz, doc: "the crystal oscillator; clk_ref and clk_sys run from it" }
+    - { name: xosc, hz: board, min_hz: 1MHz, max_hz: 50MHz, doc: "the crystal oscillator: clk_ref, and clk_sys without the PLL" }
+  plls:
+    # RP2350 datasheet §8.6: VCO input = XOSC / REFDIV (M), at least 5 MHz; VCO = input x FBDIV
+    # (N, 16 to 320), 750 to 1600 MHz; clk_sys = VCO / (POSTDIV1 x POSTDIV2), each 1 to 7
+    - { name: pll_sys, inputs: [xosc], m: [1, 63], n: [16, 320], postdiv: [1, 7],
+        vco_in_hz: [5MHz, 800MHz], vco_out_hz: [750MHz, 1600MHz] }
+  buses:
+    # clk_sys: the processors and the bus fabric, 150 MHz at the default core voltage (§1.2)
+    - { name: sys, from: hclk, max_hz: 150MHz }
 interrupts:
   controller: nvic
   count: 52
@@ -43,8 +51,11 @@ peripherals:
   - { name: io_bank0, compatible: "rpi,rp2350-io-bank", base: 0x40028000, size: 0x4000, irqs: [{ name: bank0, number: 21 }] }
   - { name: pads_bank0, compatible: "rpi,rp2350-pads", base: 0x40038000, size: 0x4000 }
   - { name: xosc, compatible: "rpi,rp2350-xosc", base: 0x40048000, size: 0x4000 }
+  - { name: pll_sys, compatible: "rpi,rp2350-pll", base: 0x40050000, size: 0x4000 }
   - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }] }
   - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }] }
+  # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
+  - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
 # The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX)
 alternate_functions:

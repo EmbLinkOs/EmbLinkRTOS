@@ -88,9 +88,8 @@ static void ping_b(void *arg)
     emb_native_exit(0);
 #else
     emb_board_puts("BENCH_END\n");
-    for (;;) {
-        (void)emb_thread_sleep(EMB_SEC(1));
-    }
+    /* the board's end: QEMU exits, a Pico returns to BOOTSEL for the next image, others halt */
+    emb_board_exit(0);
 #endif
 }
 

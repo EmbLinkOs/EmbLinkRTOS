@@ -76,6 +76,12 @@ static void os_put_u32(uint32_t v)
 #define os_notify(t)       ((void)xTaskNotifyGive(t))
 #define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
 #define os_idle()          vTaskSuspend(NULL)
+#define os_end()                \
+    do {                        \
+        for (;;) {              \
+            vTaskSuspend(NULL); \
+        }                       \
+    } while (0)
 static uint32_t os_unit_hz(void)
 {
     return esp_rom_get_cpu_ticks_per_us() * 1000000u;
@@ -147,6 +153,12 @@ static void os_put_u32(uint32_t v)
 #define os_notify(t)       ((void)xTaskNotifyGive(t))
 #define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
 #define os_idle()          vTaskSuspend(NULL)
+#define os_end()                \
+    do {                        \
+        for (;;) {              \
+            vTaskSuspend(NULL); \
+        }                       \
+    } while (0)
 static uint32_t os_unit_hz(void)
 {
     return (uint32_t)configCPU_CLOCK_HZ;
@@ -228,6 +240,12 @@ static void os_put_u32(uint32_t v)
 #define os_notify(t)       ((void)xTaskNotifyGive(t))
 #define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
 #define os_idle()          vTaskSuspend(NULL)
+#define os_end()                \
+    do {                        \
+        for (;;) {              \
+            vTaskSuspend(NULL); \
+        }                       \
+    } while (0)
 static uint32_t os_unit_hz(void)
 {
     return (uint32_t)(F_CPU / 64UL);
@@ -287,6 +305,8 @@ static void os_sem_init_(unsigned i, emb_sem_t *s)
     do {                                    \
         (void)emb_thread_sleep(EMB_SEC(1)); \
     } while (0)
+/* the board's end: QEMU exits, a Pico returns to BOOTSEL for the next image, others halt */
+#define os_end() emb_board_exit(0)
 static uint32_t os_unit_hz(void)
 {
     return emb_arch_cycles_hz();
@@ -462,9 +482,7 @@ static void BENCH_FAST driver_entry(void *arg)
     }
     mode = M_DONE;
     os_puts("BENCH_END\n");
-    for (;;) {
-        os_idle();
-    }
+    os_end();
 }
 
 #if defined(BENCH_FREERTOS) && defined(ESP_PLATFORM)

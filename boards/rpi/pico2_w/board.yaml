@@ -11,7 +11,8 @@ soc: rpi/rp2350/rp2350a.yaml
 curated: false
 doc: >-
   The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs
-  from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the
+  at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri,
+  the UARTs' clock, follows clk_sys. The user LED is on the
   CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files,
   copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while
   the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into
@@ -19,8 +20,9 @@ doc: >-
 oscillators:
   xosc: { hz: 12MHz, source: external_crystal }
 clocks:
-  cpu_hz: 12MHz
+  cpu_hz: 150MHz
   source: xosc
+  pll: { m: 1, n: 125, p: 10 }
 pins:
   uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }
 console: { device: uart0, baud: 115200 }
