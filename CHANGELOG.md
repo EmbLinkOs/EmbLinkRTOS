@@ -4,6 +4,13 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the controller's memory, 2026-11-07)
+
+- `tools/footprint/memory_report.py` accounts for an image's flash and RAM, by component and by purpose, reconciled with its sections.
+- `tools/footprint/stack_bound.py` computes a static worst-case bound for each thread's stack and the interrupt stack. The call graph comes from the image's disassembly and the frames from GCC's `-fstack-usage`. A roots file resolves the indirect calls.
+- For the reference controller ([report](docs/engineering/controller-memory-2026-11-07.md)): 18,096 bytes of flash and 7,624 of RAM. The bounds are 484, 532 and 612 bytes for its threads (1,024 each) and 1,604 for the interrupt stack (2,048), each above what the board measured. CI checks both for the two NUCLEO-F446 boards.
+- `footprint.py` names the drivers and the C library, and can count merged string constants apart.
+
 ### Added (the controller's timing, 2026-11-07)
 
 - The reference controller drives marker pins for a logic analyzer: its timer's trigger in hardware, its ADC handler, its control thread and its console.
