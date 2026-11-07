@@ -197,5 +197,9 @@ void emb_board_fault_report(const emb_fault_info_t *info)
     emb_board_puts(" at ");
     emb_board_puts((info != NULL && info->where != NULL) ? info->where : "?");
     emb_board_puts("\n");
-    emb_board_exit(2);
+#if CONFIG_EMB_FAULT_ACTION_REBOOT
+    tx_wait_idle(); /* the port resets next: the line must leave first */
+#else
+    emb_board_exit(2); /* the halt action: the run ends here */
+#endif
 }

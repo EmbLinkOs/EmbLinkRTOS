@@ -33,6 +33,7 @@ hil-clang-2026-11-06
 hil-nucleo-2026-11-07
 hil-pico2w-2026-11-07
 perf-lto-2026-11-07
+controller-nucleo-2026-11-07
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07

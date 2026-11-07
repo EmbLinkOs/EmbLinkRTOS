@@ -6,7 +6,9 @@
 
 Prepare one interrupt-driven controller on the NUCLEO-F446RE: periodic acquisition, a control thread, UART command/telemetry, contention on a shared peripheral, and retained failure diagnostics. Begin with trusted threads in the base profile. Use the same application later to demonstrate a protected/restartable acquisition subsystem after isolation is implemented.
 
-The baseline must run continuously, handle overload and missed deadlines explicitly, produce diagnostic artifacts for an injected failure, and build with the documented reference toolchains. It is a concrete development target; no such complete application is currently shipped. Physical board availability is not established by the repository.
+The baseline must run continuously, handle overload and missed deadlines explicitly, produce diagnostic artifacts for an injected failure, and build with the documented reference toolchains.
+
+The baseline is [`examples/controller`](https://github.com/EmbLinkOs/EmbLinkRTOS/tree/main/examples/controller), built by GCC and by Clang. It ran on a NUCLEO-F446RE on 2026-11-07 ([report](engineering/controller-nucleo-2026-11-07.md)). The protected, restartable acquisition subsystem waits for isolation.
 
 ## Native development today
 
