@@ -87,8 +87,8 @@ static uint32_t os_unit_hz(void)
     return esp_rom_get_cpu_ticks_per_us() * 1000000u;
 }
 
-#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
-/* ---- FreeRTOS on a Cortex-M4 board (tools/bench/freertos-cm4/) ------------------------- */
+#elif defined(BENCH_FREERTOS) && (defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_8M_MAIN__))
+/* ---- FreeRTOS on a Cortex-M4 or M33 board (tools/bench/freertos-cm4/, freertos-cm33/) -- */
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "task.h"
@@ -107,6 +107,7 @@ void bench_puts(const char *s);
 void bench_test_irq_enable(void);
 void bench_isr(void);
 void bench_trigger(void);
+void bench_end(void); /* the board's end: a halt, or the Pico's return to BOOTSEL */
 
 #define SYST_RVR (*(volatile uint32_t *)0xE000E014u)
 #define SYST_CVR (*(volatile uint32_t *)0xE000E018u)
@@ -153,12 +154,7 @@ static void os_put_u32(uint32_t v)
 #define os_notify(t)       ((void)xTaskNotifyGive(t))
 #define os_notify_wait()   ((void)ulTaskNotifyTake(pdTRUE, portMAX_DELAY))
 #define os_idle()          vTaskSuspend(NULL)
-#define os_end()                \
-    do {                        \
-        for (;;) {              \
-            vTaskSuspend(NULL); \
-        }                       \
-    } while (0)
+#define os_end()           bench_end()
 static uint32_t os_unit_hz(void)
 {
     return (uint32_t)configCPU_CLOCK_HZ;
@@ -353,7 +349,7 @@ static void BENCH_FAST isr_give(void *arg)
     }
 }
 #define TRIGGER() DPORT_REG_WRITE(DPORT_CPU_INTR_FROM_CPU_2_REG, 1)
-#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
+#elif defined(BENCH_FREERTOS) && (defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_8M_MAIN__))
 /* the board's test line, pended in the NVIC as emb_irq_pend() does */
 void bench_isr(void)
 {
@@ -518,7 +514,7 @@ void app_main(void)
     echo = xTaskCreateStatic(echo_entry, "echo", IDF_STACK, NULL, 3, stacks[1], &tcb[1]);
     (void)xTaskResumeAll();
 }
-#elif defined(BENCH_FREERTOS) && defined(__ARM_ARCH_7EM__)
+#elif defined(BENCH_FREERTOS) && (defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_8M_MAIN__))
 static StaticTask_t idle_tcb;
 static StackType_t idle_stack[configMINIMAL_STACK_SIZE];
 void vApplicationGetIdleTaskMemory(StaticTask_t **tcb_out, StackType_t **stack_out,

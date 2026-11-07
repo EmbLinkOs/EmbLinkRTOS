@@ -131,6 +131,15 @@ void bench_test_irq_enable(void)
     REG32(NVIC_ISER(BENCH_TEST_IRQ / 32u)) = 1u << (BENCH_TEST_IRQ % 32u);
 }
 
+/* the image's end: nothing to return to */
+void bench_end(void);
+void bench_end(void)
+{
+    for (;;) {
+        __asm__ volatile("wfi");
+    }
+}
+
 /* bench_compare's interrupt: the test line pended in the NVIC, as emb_irq_pend() does */
 void bench_trigger(void);
 void bench_trigger(void)

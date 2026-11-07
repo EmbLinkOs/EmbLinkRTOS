@@ -20,6 +20,9 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - `CONFIG_EMB_FAULT_ACTION_REBOOT` halted the part instead of rebooting it on the STM32F4, RP2350, ESP32 and ESP32-C3 boards (A106). The board's fault report ended the run before the port's reset. It now returns under the reboot action.
 
+### Added (FreeRTOS on the Pico 2 W, 2026-11-07)
+
+- A measured comparison with FreeRTOS V11.1.0 on the Pico 2 W ([report](docs/engineering/bench-pico2w-freertos-2026-11-07.md), A105), on the same board, clocks and console. Release, GCC, `-Os`, CPU cycles, EmbLinkRTOS against FreeRTOS: notification hand-over 482 against 599, semaphore hand-over 456 against 733, give and take 151 against 211, interrupt wake 873 against 1,226. With both built with LTO: 402 against 545, 402 against 668, 125 against 168, and 775 against 1,151. `tools/bench/freertos-cm33/` builds the FreeRTOS side.
 ### Changed (fast paths, 2026-11-07)
 
 - Six helpers on the API's fast paths are always inline on 32-bit ports (`EMBK_HOT`, A104). GCC at `-Os` had kept them out of line. On the NUCLEO-F446RE with `EMB_LTO`, the notification hand-over is now at parity with FreeRTOS built the same way (567 against 565 cycles). The semaphore hand-over is 22% faster and the interrupt wake 12% faster than FreeRTOS. The uncontended give and take is within 11%. AVR code is unchanged or smaller.
