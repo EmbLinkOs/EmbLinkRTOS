@@ -360,10 +360,20 @@ void embk_trace_emit(uint16_t id, uintptr_t a0, uintptr_t a1, uintptr_t a2);
     } while (0)
 #endif
 
+/* A helper on the API's fast paths, a few instructions long: always inlined on 32-bit ports,
+ * where GCC at -Os would keep a widely used inline function out of line and every give and
+ * take would pay a call for a test; only a hint on 8- and 16-bit ports, where the call is
+ * the smaller code and the tiny profile's footprint gate (R-003 T1) counts every byte. */
+#if CONFIG_EMB_ARCH_WORD_BITS >= 32
+#define EMBK_HOT EMB_ALWAYS_INLINE
+#else
+#define EMBK_HOT EMB_INLINE
+#endif
+
 /* ---- handles (POINTER model, SPEC-009) ---------------------------------------- */
 
 /* Returns the object behind a handle after checking its type tag and state, or NULL. */
-static EMB_INLINE void *embk_obj_from_raw(uintptr_t raw, uint8_t type, size_t obj_offset)
+static EMBK_HOT void *embk_obj_from_raw(uintptr_t raw, uint8_t type, size_t obj_offset)
 {
     const embk_obj_t *o;
     if (raw == 0u) {
