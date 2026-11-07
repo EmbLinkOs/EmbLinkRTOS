@@ -33,7 +33,16 @@ EmbLinkRTOS takes fewer cycles than FreeRTOS on every operation here, built eith
 ## Against the NUCLEO-F446RE
 
 The same benchmark on the NUCLEO-F446RE, release, built with LTO, puts the two kernels much closer: the notification hand-over at parity (567 against 565 cycles), the give and take 11% behind. The two boards differ in more than the core:
-- **FreeRTOS's ports:** on the Cortex-M33 it uses its Armv8-M port, which takes more cycles per operation than its Cortex-M4F port. Its notification hand-over is 545 cycles on the Pico against 565 on the NUCLEO, but its semaphore paths and give and take are slower than its own NUCLEO figures relative to EmbLinkRTOS.
+- **How each kernel moves between the cores:** with LTO, from the NUCLEO's Cortex-M4F to the Pico's Cortex-M33, in cycles per operation:
+
+  | Operation | EmbLinkRTOS, NUCLEO | EmbLinkRTOS, Pico | FreeRTOS, NUCLEO | FreeRTOS, Pico |
+  |---|---|---|---|---|
+  | `notify_handover` | 567 | 402 (−29%) | 565 | 545 (−4%) |
+  | `sem_handover` | 569 | 402 (−29%) | 731 | 668 (−9%) |
+  | `sem_give_take` | 146 | 125 (−14%) | 131 | 168 (+28%) |
+  | `isr_wake` | 1,164 | 775 (−33%) | 1,328 | 1,151 (−13%) |
+
+  EmbLinkRTOS's single Cortex-M port runs 14–33% faster on the Cortex-M33. FreeRTOS uses a different port there, its Armv8-M one, and gains less, or loses on the give and take.
 - **Memories:** the RP2350 executes from QSPI flash through a cache, the STM32F446 from on-chip flash through its ART accelerator. Layout affects each differently.
 
 No profile of FreeRTOS on the Pico was taken. The figures say how the two kernels compare on this board, not why.
