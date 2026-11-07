@@ -68,7 +68,9 @@ END = b"EMB_TEST_END"
 CASE = re.compile(rb"^CASE (\S+) outcome=(\w+) asserts=(\d+) skips=(\d+)", re.M)
 EVIDENCE = re.compile(rb"^EVIDENCE v1 (.*)$", re.M)
 BENCH = re.compile(rb"^BENCH v1 name=(\S+)(.*)$", re.M)
-FAULT_CHECKS = re.compile(rb"^  fault checks that reset the board: (\d+)", re.M)
+# Not anchored at a line start: a fault check resets the board while the case's TEST line is still
+# leaving the UART, so the next boot's count often continues a cut line ("TEST name\xff  fault ...").
+FAULT_CHECKS = re.compile(rb"fault checks that reset the board: (\d+)")
 ISR_STACK = re.compile(rb"^ISR_STACK size=(\d+) used=(\d+)", re.M)
 ROOT = Path(__file__).resolve().parents[2]
 BAUD = {9600: termios.B9600, 19200: termios.B19200, 38400: termios.B38400, 57600: termios.B57600,

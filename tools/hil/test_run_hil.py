@@ -244,6 +244,13 @@ class Runner(unittest.TestCase):
             finally:
                 os.environ["PATH"] = old
 
+    def test_fault_checks_counted_after_a_line_cut_by_the_reset(self):
+        # the reset cuts the TEST line mid-transfer; the next boot's count continues it
+        buf = (b"TEST mutex_init_validates_argument\xff  fault checks that reset the board: 3\n"
+               b"CASE mutex_init_validates_arguments outcome=passed asserts=3 skips=0\n"
+               b"  fault checks that reset the board: 2\n")
+        self.assertEqual(run_hil.parse_console(buf)["fault_checks_by_reset"], 5)
+
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
         self.assertEqual(run_hil.flash_command(hw, Path("t.elf"), None)[:3], ["openocd", "-f", "board/st_nucleo_f4.cfg"])
