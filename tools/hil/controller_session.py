@@ -47,7 +47,7 @@ import run_hil  # noqa: E402  (open_console, git_state)
 
 FORMAT = "emb-controller-session v1"
 ROOT = Path(__file__).resolve().parents[2]
-TLM = re.compile(r"^TLM (.*)$", re.M)
+TLM = re.compile(r"^TLM (.*)\r?\n", re.M)  # complete lines only: the last may still be arriving
 STACK = re.compile(r"^STACK (\S+) used=(\d+) size=(\d+)", re.M)
 RESET = re.compile(r"^CTL reset(.*)$", re.M)
 CRASH_LINE = re.compile(r"^EMB_CRASH [0-9a-f]+", re.M)
@@ -63,8 +63,9 @@ def parse_tlm(line):
             out[key] = value
         elif key == "temp":
             whole, _, frac = value.partition(".")
-            sign = -1 if whole.startswith("-") else 1
-            out["temp_mc"] = sign * (abs(int(whole)) * 1000 + int(frac or "0") * 100)
+            if whole.lstrip("-").isdigit() and (frac.isdigit() or not frac):
+                sign = -1 if whole.startswith("-") else 1
+                out["temp_mc"] = sign * (int(whole.lstrip("-")) * 1000 + int(frac or "0") * 100)
         elif value.lstrip("-").isdigit():
             out[key] = int(value)
     return out
@@ -365,6 +366,10 @@ def main(argv=None):
     con = Console(args.port)
     try:
         phases = run(args, con, out_dir)
+    except Exception as e:  # keep what the board said, and fail the run, whatever went wrong here
+        phases = [phase("session", [f"the tool failed: {type(e).__name__}: {e}"], {})]
+        (out_dir / "controller.log").write_text(con.log, encoding="utf-8")
+        raise
     finally:
         os.close(con.fd)
     passed = sum(p["outcome"] == "pass" for p in phases)

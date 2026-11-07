@@ -15,6 +15,11 @@ def tlm(t, mode="normal", samples=0, shed=0, degraded=0, deadline_miss=0, missed
             f"lat_max_us=9 proc_max_us=12 load=0 rx=4/4 rx_drops=0")
 
 
+def console(lines):
+    """Lines as the console sends them: each ends with a newline."""
+    return "".join(line + "\n" for line in lines)
+
+
 class Parse(unittest.TestCase):
     def test_fields(self):
         f = cs.parse_tlm(tlm(3, samples=300)[4:])
@@ -32,6 +37,13 @@ class Parse(unittest.TestCase):
         lines = cs.tlm_lines(text)
         self.assertEqual([line["t"] for line in lines], [1, 2])
 
+    def test_partial_line_ignored(self):
+        text = tlm(1) + "\n" + tlm(2)[:60]  # the second line is still arriving
+        self.assertEqual([line["t"] for line in cs.tlm_lines(text)], [1])
+
+    def test_cut_temperature(self):
+        self.assertNotIn("temp_mc", cs.parse_tlm("t=5 temp= samples=3"))
+
     def test_boot_facts(self):
         f = cs.boot_facts("CTL boot\nCTL reset watchdog pin\nCTL crash none\n")
         self.assertEqual(f, {"reset": ["watchdog", "pin"], "crash": "none"})
@@ -41,7 +53,7 @@ class Parse(unittest.TestCase):
 
 class Checks(unittest.TestCase):
     def steady(self, **kw):
-        return cs.tlm_lines("\n".join(tlm(t, samples=100 * t, **kw) for t in range(1, 6)))
+        return cs.tlm_lines(console(tlm(t, samples=100 * t, **kw) for t in range(1, 6)))
 
     def test_steady_holds(self):
         self.assertEqual(cs.check_steady(self.steady(), 100), [])
@@ -58,7 +70,7 @@ class Checks(unittest.TestCase):
         self.assertEqual(cs.check_steady([], 100), ["fewer than two TLM lines"])
 
     def test_degraded(self):
-        lines = cs.tlm_lines("\n".join([tlm(1, samples=100), tlm(2, "degraded", 150, 50, 1, 3),
+        lines = cs.tlm_lines(console([tlm(1, samples=100), tlm(2, "degraded", 150, 50, 1, 3),
                                         tlm(3, "degraded", 200, 100, 1, 3)]))
         self.assertEqual(cs.check_degraded(lines), [])
 
@@ -68,7 +80,7 @@ class Checks(unittest.TestCase):
         self.assertIn("no sample shed", problems)
 
     def test_rate_counts_shed(self):
-        lines = cs.tlm_lines("\n".join([tlm(1, "degraded", 100, 100), tlm(2, "degraded", 150, 150)]))
+        lines = cs.tlm_lines(console([tlm(1, "degraded", 100, 100), tlm(2, "degraded", 150, 150)]))
         self.assertEqual(cs.rate_of(lines), 100.0)
 
 
