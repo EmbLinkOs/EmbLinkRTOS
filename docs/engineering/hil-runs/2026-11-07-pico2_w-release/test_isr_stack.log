@@ -1,0 +1,9 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11203 at 115200 baud, image test_isr_stack.elf sha256 6e1ede7ef0d3f2e43e95da13856582df969387aee1b7b3330785d26256762459
+EVIDENCE v1 suite=test_isr_stack config=097edee415c887c6 profile=base board=pico2_w checked=0
+TEST isr_stack_info_reports_size_and_use
+  -> ok
+  req PORT-016 KRN-MEM-009
+CASE isr_stack_info_reports_size_and_use outcome=passed asserts=4 skips=0
+ISR_STACK size=2048 used=0
+1 tests, 0 failed, 0 skipped, 20 ticks
+EMB_TEST_END

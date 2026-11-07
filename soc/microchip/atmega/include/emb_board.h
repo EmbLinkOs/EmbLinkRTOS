@@ -21,6 +21,9 @@ void emb_board_init(void);
 void emb_board_led_toggle(void);
 void emb_board_puts(const char *s);
 void emb_board_put_u32(uint32_t v);
+/* The end of an image (a benchmark's, after BENCH_END): no host to report the code to, so the
+ * CPU stops with its interrupts masked; the last character still leaves the USART. */
+EMB_NORETURN void emb_board_exit(int code);
 
 #ifdef __cplusplus
 }

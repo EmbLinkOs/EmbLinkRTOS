@@ -8,6 +8,11 @@ Factors the board gives are checked, never changed. Otherwise the search is dete
 M ascending (the highest VCO input, which RM0390 §6.3.2 recommends to limit jitter), then N
 ascending, then P ascending; the first exact match wins. Q is the divider whose 48 MHz-domain
 output is closest to 48 MHz without exceeding it, R the smallest allowed value.
+
+A PLL with two post-dividers (`postdiv`, the RP2350's POSTDIV1 and POSTDIV2) has P their
+product: every product of two values in the range is a P value, and P splits into
+POSTDIV1 >= POSTDIV2 (RP2350 datasheet §8.6.3: the higher divider first saves power), POSTDIV1
+the smallest such.
 """
 from fractions import Fraction
 
@@ -119,6 +124,20 @@ def solve(soc, board, fail):
     return out
 
 
+def _p_values(spec):
+    """The P values a PLL allows: its own list, or the products of its two post-dividers."""
+    if "postdiv" in spec:
+        lo, hi = spec["postdiv"]
+        return sorted({a * b for a in range(lo, hi + 1) for b in range(lo, hi + 1)})
+    return sorted(spec["p"])
+
+
+def _postdivs(spec, p):
+    """P as (POSTDIV1, POSTDIV2), POSTDIV1 >= POSTDIV2 and the smallest such."""
+    lo, hi = spec["postdiv"]
+    return min((a, p // a) for a in range(lo, hi + 1) if p % a == 0 and lo <= p // a <= hi and a >= p // a)
+
+
 def _q_r(spec, vco):
     out = {}
     if "q" in spec:
@@ -133,6 +152,8 @@ def _q_r(spec, vco):
 def _record(spec, in_hz, m, n, p, extra):
     vco = Fraction(in_hz, m) * n
     rec = {"name": spec["name"], "m": m, "n": n, "p": p}
+    if "postdiv" in spec:
+        rec["postdiv1"], rec["postdiv2"] = _postdivs(spec, p)
     rec.update(extra)
     rec["vco_in_hz"] = int(Fraction(in_hz, m)) if Fraction(in_hz, m).denominator == 1 else float(Fraction(in_hz, m))
     rec["vco_hz"] = int(vco) if vco.denominator == 1 else float(vco)
@@ -150,7 +171,7 @@ def _search(spec, in_hz, want):
             vco = vin * n
             if not _in(vco, spec["vco_out_hz"]):
                 continue
-            for p in sorted(spec["p"]):
+            for p in _p_values(spec):
                 if vco / p == want:
                     return _record(spec, in_hz, m, n, p, _q_r(spec, vco))
     return None
@@ -166,8 +187,10 @@ def _check(spec, in_hz, want, given, fail):
             elif not _in(given[f], spec[f]):
                 fail(f"clocks.pll.{f}", f"{given[f]} is outside {spec['name']}'s {f} range {spec[f][0]} to {spec[f][1]}")
                 ok = False
-    if given["p"] not in spec["p"]:
-        fail("clocks.pll.p", f"{given['p']} is not one of {spec['name']}'s P values {spec['p']}")
+    if given["p"] not in _p_values(spec):
+        what = (f"a product of two post-dividers {spec['postdiv'][0]} to {spec['postdiv'][1]}"
+                if "postdiv" in spec else f"one of {spec['name']}'s P values {spec['p']}")
+        fail("clocks.pll.p", f"{given['p']} is not {what}")
         ok = False
     if not ok:
         return None

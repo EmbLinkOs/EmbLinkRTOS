@@ -1,0 +1,13 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11203 at 115200 baud, image test_stack_limit.elf sha256 afae572902f8f10184ae68d16c5914503495cdc4d90ef43c08cc97c5af463410
+EVIDENCE v1 suite=test_stack_limit config=097edee415c887c6 profile=base board=pico2_w checked=0
+TEST stack_limit_stops_an_overflowing_thread
+stack_limit_stops_an_overflowing_thòrst boot, overflowing
+EVIDENCE v1 suite=test_stack_limit config=097edee415c887c6 profile=base board=pico2_w checked=0
+TEST stack_limit_stops_an_overflowing_thread
+EMB_CRASH 454d424301006c0062c46b171f86bd001f3d7137d86ecc44c230a799302e322e300000000f0000000000000002000000070006000000000001000000000010000000000000000000a81b0020000000000000000004000000000010000000000034ed00e038ed00e00750e719
+  -> ok
+  req KRN-MEM-010 OBS-016
+CASE stack_limit_stops_an_overflowing_thread outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=0
+1 tests, 0 failed, 0 skipped, 42 ticks
+EMB_TEST_END

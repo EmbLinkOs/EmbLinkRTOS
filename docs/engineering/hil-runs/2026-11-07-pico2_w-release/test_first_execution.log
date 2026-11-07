@@ -1,0 +1,10 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11203 at 115200 baud, image test_first_execution.elf sha256 4ae0992057541e05dcc34ad11379914ce96092c2bfc28c6ddee50e3050332ede
+EVIDENCE v1 suite=test_first_execution config=097edee415c887c6 profile=base board=pico2_w checked=0
+TEST first_execution_sequence_repeats_reliably
+  ticks seen 201, elapsed 202, timer start +1, late 0
+  -> ok
+  req KRN-SCH-001 KRN-SCH-004 KRN-IRQ-010 KRN-TIM-010 KRN-NOTIF-003
+CASE first_execution_sequence_repeats_reliably outcome=passed asserts=80414 skips=0
+ISR_STACK size=2048 used=0
+1 tests, 0 failed, 0 skipped, 229 ticks
+EMB_TEST_END

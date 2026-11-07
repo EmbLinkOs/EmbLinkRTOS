@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     d1a8f8521dd26c12843f00516f064393a3e30587c56b9bc0f1c6cda63423d213
+ *     97b3bb549b7b6550d4cc64d945dd9b41683494b3f3b1aab59a7316759bf8993c
  *   soc/rpi/rp2350/rp2350.yaml
- *     a68970a2c779c23f4b8e5efb8abc76bdd81f34610c3a03aa71e69beec4087b60
+ *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -21,10 +21,18 @@
 #define EMB_HW_SOC         "RP2350A"
 #define EMB_HW_SOC_PACKAGE "qfn60"
 
-/* clock tree (12 MHz) */
-#define EMB_HW_CPU_HZ      12000000u
-#define EMB_HW_XOSC_BYPASS 0
-#define EMB_HW_XOSC_HZ     12000000u
+/* clock tree (150 MHz) */
+#define EMB_HW_AHB_DIV      1u
+#define EMB_HW_CPU_HZ       150000000u
+#define EMB_HW_PLL_M        1u
+#define EMB_HW_PLL_N        125u
+#define EMB_HW_PLL_P        10u
+#define EMB_HW_PLL_POSTDIV1 5u
+#define EMB_HW_PLL_POSTDIV2 2u
+#define EMB_HW_PLL_VCO_HZ   1500000000u
+#define EMB_HW_SYS_HZ       150000000u
+#define EMB_HW_XOSC_BYPASS  0
+#define EMB_HW_XOSC_HZ      12000000u
 
 /* memory regions */
 #define EMB_HW_SRAM_BASE    0x20000000u
@@ -44,6 +52,8 @@
 #define EMB_HW_IO_BANK0_BASE      0x40028000u
 #define EMB_HW_IO_BANK0_IRQ_BANK0 21u
 #define EMB_HW_PADS_BANK0_BASE    0x40038000u
+#define EMB_HW_PLL_SYS_BASE       0x40050000u
+#define EMB_HW_QMI_BASE           0x400D0000u
 #define EMB_HW_RESETS_BASE        0x40020000u
 #define EMB_HW_SIO_BASE           0xD0000000u
 #define EMB_HW_UART0_BASE         0x40070000u
@@ -55,7 +65,7 @@
 /* console: uart0 */
 #define EMB_HW_CONSOLE_BASE     EMB_HW_UART0_BASE
 #define EMB_HW_CONSOLE_BAUD     115200u
-#define EMB_HW_CONSOLE_CLOCK_HZ 12000000u
+#define EMB_HW_CONSOLE_CLOCK_HZ 150000000u
 #define EMB_HW_CONSOLE_IRQ      EMB_HW_UART0_IRQ
 
 /* the conformance framework's software interrupts: lines with no peripheral */

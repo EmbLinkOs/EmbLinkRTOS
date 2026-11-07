@@ -5,6 +5,8 @@
  * megaAVR drivers, with the console and LED from the board's generated hw_config.h (SPEC-012 §11,
  * SPEC-014). The clock is the board's oscillator, selected by the fuses: nothing to set up.
  */
+#include <emb/irq.h>
+
 #include <emb_avr_drivers.h>
 #include <emb_board.h>
 #include <hw_config.h>
@@ -44,4 +46,12 @@ void emb_board_put_u32(uint32_t v)
         v /= 10u;
     } while (v != 0u && i > 0u);
     emb_board_puts(&buf[i]);
+}
+
+void emb_board_exit(int code)
+{
+    (void)code;
+    (void)emb_irq_lock(); /* never unlocked: the image is over */
+    for (;;) {
+    }
 }

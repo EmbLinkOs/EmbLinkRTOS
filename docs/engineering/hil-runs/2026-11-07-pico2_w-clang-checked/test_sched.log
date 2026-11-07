@@ -1,0 +1,42 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11203 at 115200 baud, image test_sched.elf sha256 42ccdbc04d247369992b5f4d8b5d94fd1f1627d924b2a59c2189fdd8de1cefcc
+EVIDENCE v1 suite=test_sched config=74f22deec579c00f profile=base board=pico2_w checked=1
+TEST sched_higher_priority_runs_first
+  -> ok
+  req KRN-SCH-001 KRN-SCH-002
+CASE sched_higher_priority_runs_first outcome=passed asserts=3 skips=0
+TEST sched_lock_defers_preemption_until_unlock
+  -> ok
+  req KRN-SCH-016 KRN-SCH-017 KRN-SCH-018
+CASE sched_lock_defers_preemption_until_unlock outcome=passed asserts=4 skips=0
+TEST sched_yield_never_to_lower_priority
+  -> ok
+  req KRN-SCH-008
+CASE sched_yield_never_to_lower_priority outcome=passed asserts=3 skips=0
+TEST sched_fifo_within_level_and_yield_rotates
+  -> ok
+  req KRN-SCH-003 KRN-SCH-008
+CASE sched_fifo_within_level_and_yield_rotates outcome=passed asserts=5 skips=0
+TEST sched_preempted_thread_goes_ahead_of_its_peers
+  -> ok
+  req KRN-SCH-041 KRN-IRQ-013
+CASE sched_preempted_thread_goes_ahead_of_its_peers outcome=passed asserts=8 skips=0
+TEST sched_blocking_uþheduler_lock_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-SCH-019 API-013
+CASE sched_blocking_under_scheduler_lock_is_misuse outcome=passed asserts=1 skips=0
+TEST sched_idle_runs_when_nothing_is_ready
+  -> ok
+  req KRN-SCH-043 SIM-005
+CASE sched_idle_runs_when_nothing_is_ready outcome=passed asserts=2 skips=0
+TEST sched_thread_self_and_priorities
+  -> ok
+  req KRN-THR-002 KRN-SCH-009
+CASE sched_thread_self_and_priorities outcome=passed asserts=4 skips=0
+TEST sched_raising_a_ready_thread_above_the_caller_preempts
+  -> ok
+  req KRN-THR-022 KRN-SYNC-032
+CASE sched_raising_a_ready_thread_above_the_caller_preempts outcome=passed asserts=6 skips=0
+ISR_STACK size=2048 used=116
+9 tests, 0 failed, 0 skipped, 57 ticks
+EMB_TEST_END

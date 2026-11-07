@@ -30,6 +30,7 @@ EMB_USED static const uint32_t *const emb_boot_block_ref = emb_boot_block;
 #define RESETS_RESET_DONE (EMB_HW_RESETS_BASE + 0x08u)
 #define RESET_IO_BANK0    (1u << 6)
 #define RESET_PADS_BANK0  (1u << 9)
+#define RESET_PLL_SYS     (1u << 14)
 #define RESET_UART0       (1u << 26)
 #define RESET_UART1       (1u << 27)
 
@@ -52,10 +53,44 @@ EMB_USED static const uint32_t *const emb_boot_block_ref = emb_boot_block;
 #define CLK_PERI_DIV     (EMB_HW_CLOCKS_BASE + 0x4Cu)
 #define CLK_REF_SRC_XOSC 2u
 #define CLK_SYS_SRC_REF  0u
+#define CLK_SYS_SRC_AUX  1u         /* AUXSRC 0: clksrc_pll_sys */
 #define CLK_PERI_ENABLE  (1u << 11) /* AUXSRC 0: clk_sys */
 #define CLK_DIV_ONE      (1u << 16) /* INT 1, FRAC 0 */
 
 #define POLL_LIMIT 1000000u
+
+/* ---- PLL_SYS (RP2350 datasheet §8.6) ----------------------------------------------------- */
+#define PLL_CS            (EMB_HW_PLL_SYS_BASE + 0x00u)
+#define PLL_PWR           (EMB_HW_PLL_SYS_BASE + 0x04u)
+#define PLL_FBDIV_INT     (EMB_HW_PLL_SYS_BASE + 0x08u)
+#define PLL_PRIM          (EMB_HW_PLL_SYS_BASE + 0x0Cu)
+#define PLL_CS_LOCK       (1u << 31)
+#define PLL_PWR_PD        (1u << 0)
+#define PLL_PWR_POSTDIVPD (1u << 3)
+#define PLL_PWR_VCOPD     (1u << 5)
+#define PLL_PRIM_POSTDIV1 16u
+#define PLL_PRIM_POSTDIV2 12u
+
+/* ---- the QSPI flash interface (QMI, datasheet §12.14) ------------------------------------ */
+#define QMI_M0_TIMING     (EMB_HW_QMI_BASE + 0x0Cu)
+#define QMI_TIMING_CLKDIV 0xFFu
+/* The boot ROM leaves window 0 on the flash's EBh quad read, CLKDIV 3 and RXDELAY 2 (read back
+ * on a Pico 2 W, 2026-11-07): 50 MHz of SCK at a 150 MHz clk_sys, the speed it prepares for. */
+#define QMI_SCK_MAX_HZ 50000000u
+
+#ifdef EMB_HW_PLL_N
+/* SCK is clk_sys / CLKDIV: raise CLKDIV, never lower it, so that SCK stays at or under
+ * QMI_SCK_MAX_HZ once clk_sys runs at EMB_HW_CPU_HZ. With the boot ROM's 3 at 150 MHz it is
+ * already there. Changed only while clk_sys is still slow, so a slower SCK is always safe. */
+static void flash_for_clk_sys(void)
+{
+    uint32_t need = (EMB_HW_CPU_HZ + QMI_SCK_MAX_HZ - 1u) / QMI_SCK_MAX_HZ;
+    uint32_t timing = REG(QMI_M0_TIMING);
+    if ((timing & QMI_TIMING_CLKDIV) < need) {
+        REG(QMI_M0_TIMING) = (timing & ~QMI_TIMING_CLKDIV) | need;
+    }
+}
+#endif
 
 /* ---- the pins ------------------------------------------------------------------------------ */
 #define IO_GPIO_CTRL(n) (EMB_HW_IO_BANK0_BASE + 0x04u + 8u * (n))
@@ -91,8 +126,8 @@ static int poll_set(uint32_t addr, uint32_t mask, uint32_t want)
     return -1;
 }
 
-/* clk_ref from the crystal, clk_sys from clk_ref, clk_peri (the UARTs') from clk_sys: all at the
- * crystal's frequency, EMB_HW_CPU_HZ. The PLL is not used in this first increment. */
+/* clk_ref from the crystal, clk_sys from clk_ref and then, where the board asks for more,
+ * from PLL_SYS at EMB_HW_CPU_HZ; clk_peri (the UARTs') follows clk_sys. */
 static int clock_init(void)
 {
     REG(XOSC_STARTUP) = XOSC_DELAY;
@@ -110,6 +145,30 @@ static int clock_init(void)
     if (poll_set(CLK_SYS_SELECTED, 0x3u, 1u << CLK_SYS_SRC_REF) != 0) {
         return -1;
     }
+#ifdef EMB_HW_PLL_N
+    /* clk_sys from PLL_SYS, as pico-sdk's pll_init and clock_configure do it: clk_sys is on
+     * clk_ref (above), so the PLL can be reset; lock the VCO, then the post-dividers, then the
+     * glitchless switch. The flash interface slows first (flash_for_clk_sys). */
+    flash_for_clk_sys();
+    REG(RESETS_RESET + SET_ALIAS) = RESET_PLL_SYS;
+    REG(RESETS_RESET + CLR_ALIAS) = RESET_PLL_SYS;
+    if (poll_set(RESETS_RESET_DONE, RESET_PLL_SYS, RESET_PLL_SYS) != 0) {
+        return -1;
+    }
+    REG(PLL_CS) = EMB_HW_PLL_M;
+    REG(PLL_FBDIV_INT) = EMB_HW_PLL_N;
+    REG(PLL_PWR + CLR_ALIAS) = PLL_PWR_PD | PLL_PWR_VCOPD;
+    if (poll_set(PLL_CS, PLL_CS_LOCK, PLL_CS_LOCK) != 0) {
+        return -1;
+    }
+    REG(PLL_PRIM) = (EMB_HW_PLL_POSTDIV1 << PLL_PRIM_POSTDIV1) |
+                    (EMB_HW_PLL_POSTDIV2 << PLL_PRIM_POSTDIV2);
+    REG(PLL_PWR + CLR_ALIAS) = PLL_PWR_POSTDIVPD;
+    REG(CLK_SYS_CTRL) = CLK_SYS_SRC_AUX; /* AUXSRC pll_sys, SRC the aux mux */
+    if (poll_set(CLK_SYS_SELECTED, 0x3u, 1u << CLK_SYS_SRC_AUX) != 0) {
+        return -1;
+    }
+#endif
     REG(CLK_PERI_DIV) = CLK_DIV_ONE;
     REG(CLK_PERI_CTRL) = CLK_PERI_ENABLE;
     return 0;

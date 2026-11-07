@@ -79,9 +79,8 @@ static void bench(void *arg)
     emb_board_put_u32(emb_arch_cycles_hz());
     emb_board_puts("\n");
     emb_board_puts("BENCH_END\n");
-    for (;;) {
-        (void)emb_thread_sleep(EMB_SEC(1));
-    }
+    /* the board's end: QEMU exits, a Pico returns to BOOTSEL for the next image, others halt */
+    emb_board_exit(0);
 }
 
 /* 512 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */

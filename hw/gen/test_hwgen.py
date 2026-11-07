@@ -710,6 +710,45 @@ class Clock(unittest.TestCase):
         self.assertEqual(c["flash_wait_states"], 0)
 
 
+class PostDividers(unittest.TestCase):
+    """A PLL with two post-dividers (the RP2350's PLL_SYS): P is their product (A101)."""
+    SOC = {"clocks": {"sources": [{"name": "xosc", "hz": "board", "min_hz": 1_000_000, "max_hz": 50_000_000}],
+                      "plls": [{"name": "pll_sys", "inputs": ["xosc"], "m": [1, 63], "n": [16, 320],
+                                "postdiv": [1, 7], "vco_in_hz": [5_000_000, 800_000_000],
+                                "vco_out_hz": [750_000_000, 1_600_000_000]}],
+                      "buses": [{"name": "sys", "from": "hclk", "max_hz": 150_000_000}]}}
+
+    def solve(self, cpu_hz, pll=None):
+        from emb_hwgen import clock
+        board = {"oscillators": {"xosc": {"hz": 12_000_000, "source": "external_crystal"}},
+                 "clocks": {"cpu_hz": cpu_hz, "source": "xosc"}}
+        if pll:
+            board["clocks"]["pll"] = pll
+        problems = []
+        out = clock.solve(self.SOC, board, lambda where, what: problems.append((where, what)))
+        return out, problems
+
+    def test_pico_sdk_factors_checked_and_split(self):
+        c, problems = self.solve(150_000_000, {"m": 1, "n": 125, "p": 10})
+        self.assertEqual(problems, [])
+        self.assertEqual((c["pll"]["postdiv1"], c["pll"]["postdiv2"], c["pll"]["vco_hz"]), (5, 2, 1_500_000_000))
+
+    def test_search_finds_a_split(self):
+        c, problems = self.solve(150_000_000)
+        self.assertEqual(problems, [])
+        pll = c["pll"]
+        self.assertEqual(pll["vco_hz"] // (pll["postdiv1"] * pll["postdiv2"]), 150_000_000)
+        self.assertGreaterEqual(pll["postdiv1"], pll["postdiv2"])
+
+    def test_p_must_be_a_product_of_two_postdividers(self):
+        _, problems = self.solve(125_000_000, {"m": 1, "n": 125, "p": 11})  # 11 is prime, above 7
+        self.assertIn("clocks.pll.p", [w for w, _ in problems])
+
+    def test_above_the_bus_limit_refused(self):
+        _, problems = self.solve(200_000_000, {"m": 1, "n": 100, "p": 6})
+        self.assertIn("clocks.cpu_hz", [w for w, _ in problems])
+
+
 class Loader(unittest.TestCase):
     def test_units(self):
         self.assertEqual(load.normalize("512K"), 524288)

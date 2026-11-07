@@ -24,7 +24,7 @@ The toolchains column names each compiler CI builds the board with, from its pre
 | `native` | host | posix | 2 emulated | Clang, EmbCC, GCC, GCC or Clang | CI runs, on the host, `native-asan`, `native-clang`, `native-coverage`, `native-embcc`, `native-embcc-periodic`, `native-embcc-release`, `native-embcc-tiny`, `native-gcc`, `native-periodic`, `native-release`, `native-timeslice`, `native-timeslice-tickless`, `native-tiny`, `native-tsan` |
 | `nucleo_f446re` | STM32F446RE | cortex-m4f | 1 hardware | GCC | `cm4-nucleo-hil` checked 26/26, release 26/26, checked 26/26, release 26/26 (2026-11-07, [report](hil-nucleo-2026-11-07.md)); CI also runs `cm4-nucleo-embsim` |
 | `nucleo_f446ze` | STM32F446ZE | cortex-m4f | 2 emulated | GCC | CI runs `cm4-nucleo-f446ze` |
-| `pico2_w` | RP2350A | cortex-m33f | 3 described | GCC | CI builds `cm33-pico2w` |
+| `pico2_w` | RP2350A | cortex-m33f | 1 hardware | GCC | `cm33-pico2w-hil` checked 27/27, release 27/27, checked 27/27, release 27/27 (2026-11-07, [report](hil-pico2w-2026-11-07.md)) |
 | `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | Clang, GCC | CI runs `rv32-virt`, `rv32-virt-clang`, `rv32-virt-release`, `rv32-virt-release-clang`, `rv32-virt-tiny` |
 
-Totals: 1 hardware: 3, 2 emulated: 9, 3 described: 1, untested: 0.
+Totals: 1 hardware: 4, 2 emulated: 9, 3 described: 0, untested: 0.

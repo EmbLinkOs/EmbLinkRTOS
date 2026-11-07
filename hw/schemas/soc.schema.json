@@ -94,7 +94,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["name", "inputs", "m", "n", "p", "vco_in_hz", "vco_out_hz"],
+            "required": ["name", "inputs", "m", "n", "vco_in_hz", "vco_out_hz"],
             "additionalProperties": false,
             "properties": {
               "name": { "$ref": "#/$defs/ident" },
@@ -104,6 +104,7 @@
               "p": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
               "q": { "$ref": "#/$defs/range" },
               "r": { "$ref": "#/$defs/range" },
+              "postdiv": { "$ref": "#/$defs/range" },
               "vco_in_hz": { "$ref": "#/$defs/range" },
               "vco_out_hz": { "$ref": "#/$defs/range" },
               "doc": { "type": "string" }
