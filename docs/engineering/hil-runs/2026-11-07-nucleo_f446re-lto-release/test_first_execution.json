@@ -1,0 +1,46 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 80415,
+      "name": "first_execution_sequence_repeats_reliably",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T16:03:44Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-prof/build/nuc-lto-release/tests/conformance/test_first_execution.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_first_execution.elf": "1b1dc3608e79b6b74b5e5f6b6e7489bb6921e85ecbcd1a8ccf32eab1cb3ce2f1"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fcd8aa22e198d692233dd07b1ae34690a421dd6f",
+    "dirty": false
+  },
+  "image": "test_first_execution.elf",
+  "image_sha256": "1b1dc3608e79b6b74b5e5f6b6e7489bb6921e85ecbcd1a8ccf32eab1cb3ce2f1",
+  "isr_stack": {
+    "size": 2048,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T16:03:43Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 1
+  }
+}

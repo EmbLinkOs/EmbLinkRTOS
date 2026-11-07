@@ -1,0 +1,100 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 2,
+      "name": "cond_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "cond_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "cond_wait_requires_single_ownership",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "cond_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "cond_destroy_aborts_waiters_which_relock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "cond_cancel_returns_with_the_mutex_owned",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "cond_relock_after_timeout_waits_for_the_mutex",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "cond_signal_is_not_stored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 18,
+      "name": "cond_broadcast_wakes_all_in_priority_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "cond_signal_wakes_one_waiter_which_owns_the_mutex",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T16:03:02Z",
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-prof/build/nuc-lto-checked/tests/conformance/test_cond.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_cond.elf": "48fa3357cd5663597e7224b712896fa2e288c34d32c6632318a61b74a503e373"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fcd8aa22e198d692233dd07b1ae34690a421dd6f",
+    "dirty": false
+  },
+  "image": "test_cond.elf",
+  "image_sha256": "48fa3357cd5663597e7224b712896fa2e288c34d32c6632318a61b74a503e373",
+  "isr_stack": {
+    "size": 2048,
+    "used": 96
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T16:03:00Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 10
+  }
+}

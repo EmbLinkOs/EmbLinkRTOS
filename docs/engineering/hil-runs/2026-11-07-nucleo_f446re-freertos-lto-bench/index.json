@@ -1,0 +1,65 @@
+{
+  "board": "nucleo_f446re",
+  "build": "FreeRTOS V11.1.0 bench_compare, BENCH_LTO=1",
+  "configuration": null,
+  "date": "2026-11-07",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "8d195be5a499cdd4695edc413465a0045a797aad",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "name": "notify_handover",
+          "ops": 20000,
+          "os": "freertos",
+          "per_op_x100": 56525,
+          "unit_hz": 180000000,
+          "units": 11305165
+        },
+        {
+          "name": "sem_handover",
+          "ops": 20000,
+          "os": "freertos",
+          "per_op_x100": 73079,
+          "unit_hz": 180000000,
+          "units": 14615870
+        },
+        {
+          "name": "sem_give_take",
+          "ops": 10000,
+          "os": "freertos",
+          "per_op_x100": 13107,
+          "unit_hz": 180000000,
+          "units": 1310768
+        },
+        {
+          "name": "isr_wake",
+          "ops": 5000,
+          "os": "freertos",
+          "per_op_x100": 132844,
+          "unit_hz": 180000000,
+          "units": 6642225
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_compare.elf": "1726a86a706e8784bc1aa9e36fd98429335c4b2d7e19177ba680508efc69a7d0"
+      },
+      "image": "bench_compare.elf",
+      "image_sha256": "1726a86a706e8784bc1aa9e36fd98429335c4b2d7e19177ba680508efc69a7d0",
+      "isr_stack": null,
+      "log": "bench_compare.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:12:06Z"
+    }
+  ],
+  "isr_stack_max_used": null,
+  "passed": 1,
+  "preset": "cm4-nucleo-hil",
+  "total": 1
+}

@@ -765,3 +765,33 @@ The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in th
 | ESP32, GCC | −7% | −7% | −10% | −1% |
 
 Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](../engineering/hil-clang-2026-11-06.md). On the NUCLEO, the GCC build's notification switch is still 27% behind FreeRTOS V11.1.0 (794 against 623 cycles), so the hand-over path is the next profiling target.
+
+## ADR-056 Link-time optimization as a build option
+
+**Context.** On the NUCLEO-F446RE, the GCC release build's notification hand-over took 794 cycles against FreeRTOS V11.1.0's 623, though their instruction counts under QEMU differed by about 10%.
+- **The profile:** a PC-sampling profile on the board (`tools/hil/pcsample.py`) put about 940 of the round trip's 1,587 cycles in the scheduler's and the wait layer's small functions. These are calls across `notify.c`, `wait.c`, `sched.c` and `time.c`, which GCC cannot inline without link-time optimization. FreeRTOS's task logic is one file.
+- **The experiments:** built with LTO at `-Os`, every switching path took 17–20% fewer cycles and the image was 18% smaller. Compiling the hot files as one translation unit (a unity build) was slower than the plain build. [Report](../engineering/perf-lto-2026-11-07.md).
+
+**Decision.**
+- `EMB_LTO` (off by default) turns on CMake's interprocedural optimization for every target made after `cmake/emb_flags.cmake`: the kernel, the port, the board, the tests and the application.
+- **Which compilers:** GCC, Clang and AppleClang. EmbCC and any other compiler are refused, and so is a toolchain file that sets `EMB_TOOLCHAIN_NO_LTO`: avr-clang, whose link by GNU ld cannot read Clang's objects. GCC needs `gcc-ar` and `gcc-ranlib`.
+- **GCC:** it adds `-fno-ipa-reference`. A kernel call during which another thread or an interrupt handler may run must stay a barrier for the variables they share. With the whole call graph in view but not the switch (PendSV, an interrupt), the ipa-reference pass folded a static, written only by an address-taken thread entry, across such a call. Three suites failed that way.
+- **The sources:**
+  - What only assembly or a linker script references carries `EMB_USED`.
+  - The layout probe opts out.
+  - The slim idle context (ADR-050) gives way to the full control block under LTO.
+- **Measurements:** the benchmarks' FreeRTOS builds take `BENCH_LTO=1`, so the two kernels can be compared built the same way. With both at `-Os` and LTO, EmbLinkRTOS leads on the semaphore hand-over (−11%) and the interrupt wake (−3%), and trails on the notification hand-over (+12%) and the uncontended give and take (+46%).
+
+**Consequences.**
+- An application gets the gain by passing `-DEMB_LTO=ON`; its own code is optimized with the kernel's.
+- **A port:** every symbol a new port reaches only from assembly or its linker script needs `EMB_USED`. The LTO legs in CI find a missing one: a link error, or a fault at reset.
+- **Footprint:** the T1 footprint gate and the footprint reports stay on builds without LTO, since LTO's objects no longer map to source files.
+- **Debugging:** an LTO image is harder to step through. The option stays off by default.
+
+**Alternatives considered.**
+- *Forced inlining of the hot path's functions:* A97 tried it and paid in size on AVR; it reaches only what is marked, and not across into the application.
+- *One translation unit for the kernel:* measured slower (above), and it needs every static name made unique.
+- *`-O2` without LTO:* 11% faster, 7% larger, and still no inlining across files.
+
+**Status.** Proposed 2026-11-07 with the measurements above, for the project owner's review.
+

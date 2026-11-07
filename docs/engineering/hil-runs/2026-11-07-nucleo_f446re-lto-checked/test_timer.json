@@ -1,0 +1,82 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "timer_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "timer_init_needs_a_queue_or_isr_context",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_expiries_during_a_long_callback_are_overruns",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_stop_sync_waits_for_a_running_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "timer_callback_runs_on_its_work_queue",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 22,
+      "name": "timer_restart_remaining_and_stop_states",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 22,
+      "name": "timer_isr_context_one_shot_and_periodic_without_drift",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T16:03:07Z",
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-prof/build/nuc-lto-checked/tests/conformance/test_timer.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_timer.elf": "3836d83843624c86ebfec31857dd3d1d601d9612deb93f39488f82e0d01e1b57"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fcd8aa22e198d692233dd07b1ae34690a421dd6f",
+    "dirty": false
+  },
+  "image": "test_timer.elf",
+  "image_sha256": "3836d83843624c86ebfec31857dd3d1d601d9612deb93f39488f82e0d01e1b57",
+  "isr_stack": {
+    "size": 2048,
+    "used": 120
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T16:03:05Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "freertos",
+      "per_op_x100": 56525,
+      "unit_hz": 180000000,
+      "units": 11305165
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "freertos",
+      "per_op_x100": 73079,
+      "unit_hz": 180000000,
+      "units": 14615870
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "freertos",
+      "per_op_x100": 13107,
+      "unit_hz": 180000000,
+      "units": 1310768
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "freertos",
+      "per_op_x100": 132844,
+      "unit_hz": 180000000,
+      "units": 6642225
+    }
+  ],
+  "board": "nucleo_f446re",
+  "cases": [],
+  "ended": "2026-11-07T16:12:07Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program build/frc-lto/bench_compare.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "bench_compare.elf": "1726a86a706e8784bc1aa9e36fd98429335c4b2d7e19177ba680508efc69a7d0"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "8d195be5a499cdd4695edc413465a0045a797aad",
+    "dirty": false
+  },
+  "image": "bench_compare.elf",
+  "image_sha256": "1726a86a706e8784bc1aa9e36fd98429335c4b2d7e19177ba680508efc69a7d0",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T16:12:06Z"
+}
