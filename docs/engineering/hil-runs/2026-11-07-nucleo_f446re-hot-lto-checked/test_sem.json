@@ -1,0 +1,112 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "sem_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sem_blocking_take_from_prekernel_or_isr_rejected",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "sem_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "sem_destroy_aborts_waiters_when_allowed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sem_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_max_overflow_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sem_give_from_isr_wakes_at_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_take_times_out_and_disarms",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_fifo_option_orders_by_arrival",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_give_hands_off_to_highest_waiter",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "sem_counts_and_nowait",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T17:28:49Z",
+  "exit": 0,
+  "fault_checks_by_reset": 4,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-gt/build/nuchot-lto-checked/tests/conformance/test_sem.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_sem.elf": "6e2d40862ae4957e7982e586a9be1e6767bdb15d29d6e0097f1710162cd19df7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fd86994d2a0bc92b09deaee7c7b190776d316dae",
+    "dirty": false
+  },
+  "image": "test_sem.elf",
+  "image_sha256": "6e2d40862ae4957e7982e586a9be1e6767bdb15d29d6e0097f1710162cd19df7",
+  "isr_stack": {
+    "size": 2048,
+    "used": 96
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T17:28:47Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 12
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "idle_context_is_not_an_application_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "thread_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "thread_identity_survives_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1200,
+      "name": "thread_identity_repeated_construction_does_not_alias_live_object",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "thread_identity_survives_priority_and_termination",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T17:29:23Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-gt/build/nuchot-lto-release/tests/conformance/test_thread_identity.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_thread_identity.elf": "4c27dd88a5fe817786d0cfd9e30747b33887cf390f50ac606dd33d569452db43"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fd86994d2a0bc92b09deaee7c7b190776d316dae",
+    "dirty": false
+  },
+  "image": "test_thread_identity.elf",
+  "image_sha256": "4c27dd88a5fe817786d0cfd9e30747b33887cf390f50ac606dd33d569452db43",
+  "isr_stack": {
+    "size": 2048,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T17:29:22Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

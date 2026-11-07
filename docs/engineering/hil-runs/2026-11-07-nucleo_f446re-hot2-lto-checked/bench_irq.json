@@ -1,0 +1,40 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "avg_x100": 11445,
+      "checked": 1,
+      "max": 528,
+      "min": 114,
+      "name": "irq_pend_to_handler",
+      "ops": 1000,
+      "unit_hz": 180000000
+    }
+  ],
+  "board": "nucleo_f446re",
+  "cases": [],
+  "ended": "2026-11-07T17:42:16Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-gt/build/nuchot2-lto-checked/tests/benchmarks/bench_irq.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "bench_irq.elf": "3dc0eff3af8e591b69f70962bfc541333b45c8512a79fe39d1527ed1ef2db894"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "5032f40662d488199fb3c833481f1db42ff58422",
+    "dirty": false
+  },
+  "image": "bench_irq.elf",
+  "image_sha256": "3dc0eff3af8e591b69f70962bfc541333b45c8512a79fe39d1527ed1ef2db894",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T17:42:15Z"
+}
