@@ -35,7 +35,7 @@ bool embk_wait_queue_is_empty(const embk_wait_queue_t *q)
 #endif
 }
 
-static void enqueue(embk_wait_queue_t *q, embk_thread_t *t)
+static EMBK_HOT void enqueue(embk_wait_queue_t *q, embk_thread_t *t)
 {
 #if CONFIG_EMB_SCHED_TABLE
     q->set |= EMBK_WORD_BIT(t->base_prio);
@@ -66,16 +66,6 @@ static void dequeue(embk_wait_queue_t *q, embk_thread_t *t)
 #else
     (void)q;
     embk_list_remove(&t->wait_node);
-#endif
-}
-
-embk_thread_t *embk_wait_first(const embk_wait_queue_t *q)
-{
-#if CONFIG_EMB_SCHED_TABLE
-    return embk_sched_table_best(q->set);
-#else
-    embk_list_node_t *n = embk_list_first(&q->waiters);
-    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_thread_t, wait_node);
 #endif
 }
 

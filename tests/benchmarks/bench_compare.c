@@ -439,6 +439,14 @@ static void BENCH_FAST driver_entry(void *arg)
         os_notify_wait();
     }
 #endif
+#ifdef BENCH_PROFILE_GIVE_TAKE
+    /* a profiling image: the uncontended give and take on one thread, forever */
+    os_puts("PROFILE sem_give_take\n");
+    for (;;) {
+        os_sem_give(s_self);
+        os_sem_take_now(s_self);
+    }
+#endif
     /* notify: the last kick moves the echo thread on to the next mode */
     t0 = os_now();
     for (i = 0u; i < ITER; i++) {

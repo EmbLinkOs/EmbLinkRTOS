@@ -72,7 +72,7 @@ embk_thread_t *embk_sched_select(bool yield);
 void embk_sched_reschedule_slow(void);
 /* The reschedule check every give, set and wake ends with: the call only when a decision is
  * pending, which on the fast paths it rarely is. */
-static EMB_INLINE void embk_sched_reschedule_if_needed(void)
+static EMBK_HOT void embk_sched_reschedule_if_needed(void)
 {
     if (embk_cpu.reschedule_pending != 0u) {
         embk_sched_reschedule_slow();

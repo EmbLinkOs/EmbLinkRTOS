@@ -1,0 +1,58 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 1,
+      "name": "crash_record_get_refuses_null",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "crash_record_corruption_is_ignored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 38,
+      "name": "crash_record_round_trip",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T17:29:39Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-gt/build/nuchot-lto-release/tests/conformance/test_crash.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_crash.elf": "db4479e2e97b09d9fb819d0fed4405c8310778f2588628ddc8a8509d282d7334"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fd86994d2a0bc92b09deaee7c7b190776d316dae",
+    "dirty": false
+  },
+  "image": "test_crash.elf",
+  "image_sha256": "db4479e2e97b09d9fb819d0fed4405c8310778f2588628ddc8a8509d282d7334",
+  "isr_stack": {
+    "size": 2048,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T17:29:38Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

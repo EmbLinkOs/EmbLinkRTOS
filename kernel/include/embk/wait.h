@@ -5,6 +5,7 @@
 #define EMBK_WAIT_H
 
 #include <embk/kernel.h>
+#include <embk/sched.h> /* embk_sched_table_best */
 
 /* A deadline value that means "no deadline". */
 #define EMBK_DEADLINE_FOREVER EMB_TICK_MAX
@@ -25,8 +26,16 @@ embk_wait_result_t embk_wait_commit(emb_tick_t deadline, uintptr_t *data_out);
 embk_wait_result_t embk_block_on(embk_wait_queue_t *q, uint8_t reason, emb_tick_t deadline,
                                  emb_irq_key_t key, uintptr_t *data_out);
 
-/* Wakers, object lock held. */
-embk_thread_t *embk_wait_first(const embk_wait_queue_t *q);
+/* Wakers, object lock held: the waiter a wake would pick, or NULL. */
+static EMBK_HOT embk_thread_t *embk_wait_first(const embk_wait_queue_t *q)
+{
+#if CONFIG_EMB_SCHED_TABLE
+    return embk_sched_table_best(q->set);
+#else
+    embk_list_node_t *n = embk_list_first(&q->waiters);
+    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_thread_t, wait_node);
+#endif
+}
 
 /* Walk @q's waiters in wake order while waking some of them (event flags, SPEC-005 §5.2):
  * the cursor is taken before the waiter is returned, so waking it is safe. Waking other
