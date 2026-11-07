@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (FreeRTOS on the Pico 2 W, 2026-11-07)
+
+- A measured comparison with FreeRTOS V11.1.0 on the Pico 2 W ([report](docs/engineering/bench-pico2w-freertos-2026-11-07.md), A105), on the same board, clocks and console. Release, GCC, `-Os`, CPU cycles, EmbLinkRTOS against FreeRTOS: notification hand-over 482 against 599, semaphore hand-over 456 against 733, give and take 151 against 211, interrupt wake 873 against 1,226. With both built with LTO: 402 against 545, 402 against 668, 125 against 168, and 775 against 1,151. `tools/bench/freertos-cm33/` builds the FreeRTOS side.
+
 ### Added (link-time optimization, 2026-11-07)
 
 - `-DEMB_LTO=ON` builds the kernel, the port, the board and the application with link-time optimization (ADR-056, A103). This works with GCC and Clang. On the NUCLEO-F446RE the release build's switching paths take 17–20% fewer cycles and its image is 18% smaller ([report](docs/engineering/perf-lto-2026-11-07.md)). The notification hand-over drops from 794 to 632 cycles, the semaphore hand-over from 746 to 648, and the interrupt wake from 1,514 to 1,285. The suites pass with it on every QEMU and EmbSIM preset and on the NUCLEO, built by GCC and by Clang.

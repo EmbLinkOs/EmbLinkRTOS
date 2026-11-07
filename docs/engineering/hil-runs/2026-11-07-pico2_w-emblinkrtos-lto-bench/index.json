@@ -1,0 +1,65 @@
+{
+  "board": "pico2_w",
+  "build": "release bench_compare (GCC 14.2.1, EMB_LTO, 7965bf1)",
+  "configuration": null,
+  "date": "2026-11-07",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "7965bf1c32edf32e3178ff189db5eca76f253015",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "name": "notify_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 40234,
+          "unit_hz": 150000000,
+          "units": 8046827
+        },
+        {
+          "name": "sem_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 40198,
+          "unit_hz": 150000000,
+          "units": 8039603
+        },
+        {
+          "name": "sem_give_take",
+          "ops": 10000,
+          "os": "emblink",
+          "per_op_x100": 12515,
+          "unit_hz": 150000000,
+          "units": 1251545
+        },
+        {
+          "name": "isr_wake",
+          "ops": 5000,
+          "os": "emblink",
+          "per_op_x100": 77506,
+          "unit_hz": 150000000,
+          "units": 3875343
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_compare.uf2": "b5b22989c8906a4a292f62f169a08ee9c4dae6ccd25ad673808eecb9542f4c47"
+      },
+      "image": "bench_compare.elf",
+      "image_sha256": "86564c974b75764811cb57d48ea9eae8d68aa7980ef563f823a64d151c46695f",
+      "isr_stack": null,
+      "log": "bench_compare.log",
+      "outcome": "passed",
+      "started": "2026-11-07T17:50:40Z"
+    }
+  ],
+  "isr_stack_max_used": null,
+  "passed": 1,
+  "preset": "cm33-pico2w-hil",
+  "total": 1
+}

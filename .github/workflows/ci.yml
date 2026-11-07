@@ -66,6 +66,11 @@ jobs:
             build/freertos-cm4-mps2_an386/bench_compare.elf | tee freertos-cm4.log
           test "$(grep -c '^BENCH v1' freertos-cm4.log)" -eq 4
           ! grep -q 'isr_wake woke' freertos-cm4.log
+      - name: FreeRTOS's side of bench_compare for the Pico 2 W (tools/bench/freertos-cm33), build only
+        if: matrix.preset == 'cm33-an505'
+        run: |
+          tools/bench/freertos-cm33/build.sh
+          test -s build/freertos-cm33-pico2_w/bench_compare.uf2
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
