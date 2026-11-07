@@ -1,0 +1,26 @@
+{
+  "comment": "tools/footprint/stack_bound.py's roots for the reference controller: its threads, the interrupt levels lowest first, and the targets of each indirect call. embk_isr_dispatch calls the handlers main() connects; emb_kernel_init the linker table's initializers; raise_info the fault hook, which the controller never sets; timer_work and embk_timer_expired a software timer's callback, and the controller has none.",
+  "threads": {
+    "control": {"entry": "control", "size": 1024},
+    "command": {"entry": "command", "size": 1024},
+    "telemetry": {"entry": "telemetry", "size": 1024}
+  },
+  "isr": {
+    "size": 2048,
+    "boot": "embn_cm_reset",
+    "levels": [
+      {"name": "PendSV (the switch, lowest)", "roots": ["embn_cm_pendsv"]},
+      {"name": "peripheral interrupts (ADC1, USART2)", "roots": ["embn_cm_irq_entry"]},
+      {"name": "SysTick", "roots": ["embn_cm_systick"]},
+      {"name": "faults", "roots": ["embn_cm_fault_entry"]},
+      {"name": "NMI", "roots": ["embn_cm_nmi"]}
+    ]
+  },
+  "indirect": {
+    "embk_isr_dispatch": ["adc_isr", "usart_isr"],
+    "emb_kernel_init": {"table": "emb_init_table"},
+    "raise_info": [],
+    "timer_work": [],
+    "embk_timer_expired": []
+  }
+}
