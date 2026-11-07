@@ -6,7 +6,7 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ### Changed (fast paths, 2026-11-07)
 
-- Four helpers on the API's fast paths are always inline on 32-bit ports (`EMBK_HOT`, A104). GCC at `-Os` had kept them out of line. On the NUCLEO-F446RE with `EMB_LTO`, the uncontended semaphore give and take drops from 191 to 146 cycles, within 11% of FreeRTOS built the same way, and every switching path gains 1–4%. AVR code is unchanged or smaller.
+- Six helpers on the API's fast paths are always inline on 32-bit ports (`EMBK_HOT`, A104). GCC at `-Os` had kept them out of line. On the NUCLEO-F446RE with `EMB_LTO`, the notification hand-over is now at parity with FreeRTOS built the same way (567 against 565 cycles). The semaphore hand-over is 22% faster and the interrupt wake 12% faster than FreeRTOS. The uncontended give and take is within 11%. AVR code is unchanged or smaller.
 
 ### Added (link-time optimization, 2026-11-07)
 
