@@ -18,7 +18,13 @@
  * blocks, times out, takes notifications, joins or changes priority, so only the control
  * block's prefix that the scheduler, the switch path and diagnostics read (arch through
  * lock_depth) is allocated, by sched/idle_context.c; nothing reads past it (ADR-050). */
-#define EMBK_IDLE_SLIM (CONFIG_EMB_SCHED_TABLE && !CONFIG_EMB_IDLE_THREAD)
+/* The slim idle context (ADR-050) defines embk_idle_thread with another type than this
+ * declaration, which an LTO build would see and may optimize against (ADR-056): there the
+ * full control block. */
+#ifndef EMB_LTO
+#define EMB_LTO 0
+#endif
+#define EMBK_IDLE_SLIM (CONFIG_EMB_SCHED_TABLE && !CONFIG_EMB_IDLE_THREAD && !EMB_LTO)
 extern embk_thread_t embk_idle_thread;
 #define EMBK_IDLE (&embk_idle_thread)
 

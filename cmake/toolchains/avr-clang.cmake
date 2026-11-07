@@ -33,4 +33,5 @@ set(CMAKE_C_LINK_EXECUTABLE
 # warns about once Clang's objects are linked with them; the AVR has no executable-stack notion
 set(EMB_TOOLCHAIN_LINK_FLAGS -mmcu=${EMB_AVR_MCU} -mrelax -Wl,--gc-sections -Wl,-z,noexecstack)
 set(EMB_TOOLCHAIN_DEFINES)
+set(EMB_TOOLCHAIN_NO_LTO "avr-clang links with avr-gcc's GNU ld, which cannot read Clang's LTO objects")
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")

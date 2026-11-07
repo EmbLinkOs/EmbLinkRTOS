@@ -271,7 +271,10 @@ unsigned emb_sched_lock_depth(void)
 
 /* ---- interrupt entry and exit (SPEC-002 §6.2, §7.1) ----------------------------- */
 
-void embk_isr_enter(void)
+/* Both are called from the ports' interrupt entry assembly (the AVR's EMB_ISR vectors among
+ * them), which LTO cannot see: EMB_USED keeps them (ADR-056). */
+
+EMB_USED void embk_isr_enter(void)
 {
     embk_cpu.irq_nesting_depth++;
 #if CONFIG_EMB_CHECKED
@@ -281,7 +284,7 @@ void embk_isr_enter(void)
 #endif
 }
 
-embk_thread_t *embk_isr_exit(void)
+EMB_USED embk_thread_t *embk_isr_exit(void)
 {
     embk_thread_t *next = NULL;
     EMBK_ASSERT(embk_cpu.irq_nesting_depth != 0u);

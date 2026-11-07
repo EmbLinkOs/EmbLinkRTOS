@@ -8,8 +8,8 @@
  * must not include that header.
  *
  * MISRA Dev CS-12: rules 8.3/8.4, the definition's type differs from the declaration on
- * purpose. The kernel is not built with LTO, since the layout probe needs real object
- * code; an LTO build would report this mismatch (-Wlto-type-mismatch) and fail.
+ * purpose. An LTO build (EMB_LTO, ADR-056) would see the mismatch, so it leaves this file out
+ * and defines the full control block (embk/sched.h).
  */
 #include <embk/kernel.h>
 

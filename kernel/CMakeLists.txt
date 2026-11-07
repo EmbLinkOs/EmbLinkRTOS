@@ -12,7 +12,7 @@ set(EMB_KERNEL_SOURCES
   fault/fault.c
   trace/trace.c
   irq/irq.c)
-if(CONFIG_EMB_SCHED_TABLE AND NOT CONFIG_EMB_IDLE_THREAD)
+if(CONFIG_EMB_SCHED_TABLE AND NOT CONFIG_EMB_IDLE_THREAD AND NOT EMB_LTO) # embk/sched.h: EMBK_IDLE_SLIM
   list(APPEND EMB_KERNEL_SOURCES sched/idle_context.c) # the slim idle context (ADR-050)
 endif()
 if(CONFIG_EMB_NOTIFY)
