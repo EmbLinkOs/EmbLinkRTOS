@@ -238,7 +238,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "eda69135dd4cd1f08770781c6a482828b908920a98e49b2a46774e1e5afbbf3c"
+      "sha256": "31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",
@@ -562,6 +562,34 @@
     "part": "STM32F446RE",
     "peripherals": [
       {
+        "base": 1073815552,
+        "clock": {
+          "bit": 8,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32f4-adc",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 18
+          }
+        ],
+        "name": "adc1",
+        "size": 256
+      },
+      {
+        "base": 1073816320,
+        "compatible": "st,stm32f4-adc-common",
+        "name": "adc_common",
+        "size": 256
+      },
+      {
+        "base": 536836650,
+        "compatible": "st,stm32f4-factory-cal",
+        "name": "factory_cal",
+        "size": 6
+      },
+      {
         "base": 1073888256,
         "compatible": "st,stm32f4-flash",
         "irqs": [
@@ -662,6 +690,12 @@
         "size": 1024
       },
       {
+        "base": 1073754112,
+        "compatible": "st,stm32f4-iwdg",
+        "name": "iwdg",
+        "size": 1024
+      },
+      {
         "base": 1073770496,
         "clock": {
           "bit": 28,
@@ -687,6 +721,22 @@
           }
         ],
         "name": "rcc",
+        "size": 1024
+      },
+      {
+        "base": 1073741824,
+        "clock": {
+          "bit": 0,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 28
+          }
+        ],
+        "name": "tim2",
         "size": 1024
       },
       {

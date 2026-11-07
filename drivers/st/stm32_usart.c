@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32 USART, polled transmit only (RM0390 Rev 6 §25.6): the console. */
+/* STM32 USART (RM0390 Rev 6 §25.6): the console's polled transmit, and an interrupt-driven
+ * receive for commands. */
 #include <emb_stm32_drivers.h>
 
 #define REG32(a)  (*(volatile uint32_t *)(uintptr_t)(a))
@@ -8,9 +9,13 @@
 #define USART_DR  0x04u
 #define USART_BRR 0x08u
 #define USART_CR1 0x0Cu
+#define SR_ORE    (1u << 3)
+#define SR_RXNE   (1u << 5)
 #define SR_TC     (1u << 6)
 #define SR_TXE    (1u << 7)
+#define CR1_RE    (1u << 2)
 #define CR1_TE    (1u << 3)
+#define CR1_RXNEI (1u << 5)
 #define CR1_UE    (1u << 13)
 
 /* One character at 115200 baud from a 180 MHz core is ~15 600 cycles, a few thousand polls. */
@@ -42,4 +47,19 @@ void emb_stm32_usart_flush(uintptr_t base)
             break;
         }
     }
+}
+
+void emb_stm32_usart_rx_irq_enable(uintptr_t base)
+{
+    REG32(base + USART_CR1) |= CR1_RE | CR1_RXNEI;
+}
+
+int emb_stm32_usart_getc_isr(uintptr_t base)
+{
+    uint32_t sr = REG32(base + USART_SR);
+    if ((sr & (SR_RXNE | SR_ORE)) == 0u) {
+        return -1;
+    }
+    /* reading SR then DR clears RXNE and an overrun (ORE): the overrun's lost byte is gone */
+    return (int)(REG32(base + USART_DR) & 0xFFu);
 }

@@ -10,7 +10,7 @@
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     eda69135dd4cd1f08770781c6a482828b908920a98e49b2a46774e1e5afbbf3c
+ *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -67,6 +67,12 @@
 #define EMB_HW_IRQ_PRIORITY_BITS 4u
 
 /* peripherals: register blocks, interrupt lines, clock gates */
+#define EMB_HW_ADC1_BASE           0x40012000u
+#define EMB_HW_ADC1_CLKEN_BIT      8u
+#define EMB_HW_ADC1_CLKEN_OFFSET   0x44u
+#define EMB_HW_ADC1_IRQ            18u
+#define EMB_HW_ADC_COMMON_BASE     0x40012300u
+#define EMB_HW_FACTORY_CAL_BASE    0x1FFF7A2Au
 #define EMB_HW_FLASH_IF_BASE       0x40023C00u
 #define EMB_HW_FLASH_IF_IRQ        4u
 #define EMB_HW_GPIOA_BASE          0x40020000u
@@ -93,12 +99,17 @@
 #define EMB_HW_GPIOH_BASE          0x40021C00u
 #define EMB_HW_GPIOH_CLKEN_BIT     7u
 #define EMB_HW_GPIOH_CLKEN_OFFSET  0x30u
+#define EMB_HW_IWDG_BASE           0x40003000u
 #define EMB_HW_PWR_BASE            0x40007000u
 #define EMB_HW_PWR_CLKEN_BIT       28u
 #define EMB_HW_PWR_CLKEN_OFFSET    0x40u
 #define EMB_HW_PWR_IRQ_PVD         1u
 #define EMB_HW_RCC_BASE            0x40023800u
 #define EMB_HW_RCC_IRQ             5u
+#define EMB_HW_TIM2_BASE           0x40000000u
+#define EMB_HW_TIM2_CLKEN_BIT      0u
+#define EMB_HW_TIM2_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM2_IRQ            28u
 #define EMB_HW_UART4_BASE          0x40004C00u
 #define EMB_HW_UART4_CLKEN_BIT     19u
 #define EMB_HW_UART4_CLKEN_OFFSET  0x40u
