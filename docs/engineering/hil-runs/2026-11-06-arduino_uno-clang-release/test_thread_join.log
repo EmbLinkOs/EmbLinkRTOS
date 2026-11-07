@@ -1,0 +1,29 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-release/tests/conformance/test_thread_join.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_thread_join.elf sha256 bf721dac80393cce63e8786f8aaa9ee4e90b470a1131a0715fabf8173eef6323
+EVIDENCE v1 suite=test_thread_join config=213d7661442a6057 profile=tiny board=arduino_uno checked=0
+TEST thread_join_after_exit_returns_code
+  -> ok
+  req KRN-THR-004 KRN-THR-006 KRN-THR-017
+CASE thread_join_after_exit_returns_code outcome=passed asserts=4 skips=0
+TEST thread_join_before_exit_blocks_and_hands_off
+  -> ok
+  req KRN-THR-017 KRN-WAIT-012
+CASE thread_join_before_exit_blocks_and_hands_off outcome=passed asserts=6 skips=0
+TEST thread_join_timeout_then_success
+  -> ok
+  req KRN-THR-017 KRN-WAIT-004
+CASE thread_join_timeout_then_success outcome=passed asserts=5 skips=0
+TEST thread_second_joiner_is_ebusy
+  -> ok
+  req KRN-THR-018
+CASE thread_second_joiner_is_ebusy outcome=passed asserts=10 skips=0
+TEST thread_join_self_and_detached_are_errors
+  -> ok
+  req KRN-THR-017
+CASE thread_join_self_and_detached_are_errors outcome=passed asserts=5 skips=0
+TEST thread_detach_after_exit_makes_reusable
+  -> ok
+  req KRN-THR-017 KRN-THR-022
+CASE thread_detach_after_exit_makes_reusable outcome=passed asserts=5 skips=0
+ISR_STACK size=824 used=0
+6 tests, 0 failed, 0 skipped, 129 ticks
+EMB_TEST_END

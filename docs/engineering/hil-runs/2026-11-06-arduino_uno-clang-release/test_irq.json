@@ -1,0 +1,89 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "irq_lock_is_nestable_and_lifo",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "irq_isr_wake_switches_at_outermost_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "irq_delivery_is_deferred_while_masked",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "irq_scheduler_lock_defers_the_switch_not_the_handler",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "irq_disabled_source_stays_pending",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "irq_blocking_call_from_isr_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 0,
+      "name": "irq_unlock_without_lock_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T04:12:09Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "213d7661442a6057",
+    "profile": "tiny",
+    "suite": "test_irq"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-release/tests/conformance/test_irq.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_irq.hex": "a47c9821b8d3efa9342c49c273fd14a4aafe5cd340ca3df5520d40a938d6eb48"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "test_irq.elf",
+  "image_sha256": "0de7f1d5c8d02669190359e9a5a5f15caaba55a2ae7032a21b26ff5587efbf54",
+  "isr_stack": {
+    "size": 751,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-06T04:12:02Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

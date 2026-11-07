@@ -4,6 +4,26 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (NUCLEO-F446RE on hardware, 2026-11-07)
+
+- The M3a board runs the suite ([report](docs/engineering/hil-nucleo-2026-11-07.md)): `cm4-nucleo-hil` passed 26 of 26, checked and release, built by GCC and by Clang. The checked runs executed 74 fault checks that reset the STM32F446, the crash record survived a real reset, and a hardware fault's registers were recorded.
+- Against FreeRTOS V11.1.0 on the same board, release, GCC, CPU cycles: semaphore hand-over 746 against 831 (−10%), interrupt wake 1,514 against 1,474 (+3%), give and take 194 against 178 (+9%), notification hand-over 794 against 623 (+27%). Clang's build is 2–12% faster than GCC's.
+- ADR-055 measured on the NUCLEO: 8–11% fewer cycles on every switching path.
+
+### Fixed (NUCLEO-F446RE on hardware, 2026-11-07)
+
+- `run_hil.py` counted fault checks only at a line start. On the NUCLEO a reset cuts the case's line, so the first count was 31 of 74.
+
+### Added (Pico 2 W on the bench, 2026-11-06)
+
+- The Pico 2 W runs the suite from `run_hil.py` (`cmake --preset cm33-pico2w-hil`, A101): picotool loads each image in BOOTSEL, and each test image reboots into BOOTSEL when it ends, so no button is pressed between images. The console is UART0 through any 3.3 V USB-UART, and [the HIL guide](docs/engineering/hil.md) shows the ESP32 DevKitC's bridge doing that job. Built by GCC and by Clang with LLD.
+
+### Added (Clang cross builds, 2026-11-06)
+
+- The Cortex-M and RISC-V ports build with Clang and link with LLD (A100), against the GNU toolchains' C libraries: `-DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-none-eabi-clang.cmake` or `riscv-clang.cmake`, or the presets `cm0-microbit-clang`, `cm3-an385-clang`, `cm4-an386-clang`, `cm4-an386-release-clang`, `cm7-an500-clang`, `cm33-an505-clang`, `rv32-virt-clang` and `rv32-virt-release-clang`. Every suite passes under QEMU with Clang 23.1.5 and LLD, and CI's `clang-cross` job runs them with Ubuntu's Clang. `EMB_CLANG` names another `clang`.
+- The AVR port builds with Clang too (`avr-clang.cmake`, presets `avr-uno-clang` and `avr-uno-t1-clang`), linked by avr-gcc's driver. Its code is about 28% larger than avr-gcc's, so `test_mutex` and, checked, `test_msgq` do not fit the Uno's flash.
+- On the boards ([report](docs/engineering/hil-clang-2026-11-06.md)): Espressif's Clang build of the ESP32 port passed 24 of 24, checked and release, with 74 fault checks resetting the part. The Clang build of the AVR port passed every image that fits on the Uno: 18 of 18 checked, with 37 fault checks, and 19 of 19 release. On the Uno, Clang's code is 3–8% faster than avr-gcc's and 16% larger. On the ESP32, Espressif's GCC stays 4–18% ahead of its Clang.
+
 ### Added (Xtensa port, 2026-11-05)
 
 - The kernel on the classic ESP32 (Xtensa LX6, PRO_CPU), the board `esp32_devkitc` ([port](docs/ports/xtensa.md), ADR-054, A95). It runs on hardware: 21 of 21 tests, 157 cases and 74 fault checks that reset the board, built by EmbCC ([report](docs/engineering/hil-esp32-port-2026-11-05.md)). Every switch happens in the level-1 entry, after every register window is spilled to the thread's own stack. The tick is CCOMPARE0, the interrupt numbers are the interrupt matrix's sources, and the CPU stays at 40 MHz in this milestone.

@@ -360,9 +360,11 @@ static uint16_t resume_case = NO_CASE;
 static uint16_t case_index;  /* the running case's position in the table */
 static uint16_t case_check;  /* fault checks begun in the running case */
 static uint8_t armed;        /* a check's statement is running */
-static unsigned armed_line;  /* and where it is */
 static uint8_t case_settled; /* the running case's checks that reset the board as expected */
+#if CONFIG_EMB_CHECKED
+static unsigned armed_line; /* and where it is: read only where a check that returns fails */
 static const char *armed_what;
+#endif
 
 static uint32_t fnv(const uint8_t *p, size_t n, uint32_t h)
 {
@@ -502,8 +504,13 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
     resume.settled = case_settled;
     resume.case_failed = (uint8_t)current_failed;
     hook_install(true);
+#if CONFIG_EMB_CHECKED
     armed_line = line;
     armed_what = what_flash;
+#else
+    (void)line; /* a release build returns the misuse's status: nothing to report */
+    (void)what_flash;
+#endif
     armed = 1u;
     return true;
 }

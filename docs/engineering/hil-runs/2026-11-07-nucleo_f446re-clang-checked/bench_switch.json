@@ -1,0 +1,39 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "checked": 1,
+      "name": "notify_handover",
+      "ops": 20000,
+      "per_op_x100": 91678,
+      "unit_hz": 180000000,
+      "units": 18335610
+    }
+  ],
+  "board": "nucleo_f446re",
+  "cases": [],
+  "ended": "2026-11-07T11:13:33Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/nuc-hil-clang-checked/tests/benchmarks/bench_switch.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "bench_switch.elf": "b05cd90448d956d09e87e622dfe035b790e94da3df12d4be18058e2af9bf2b48"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "56ba8ac1766ed4399f1752ca9c72ea63c950eadc",
+    "dirty": false
+  },
+  "image": "bench_switch.elf",
+  "image_sha256": "b05cd90448d956d09e87e622dfe035b790e94da3df12d4be18058e2af9bf2b48",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem1103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T11:13:31Z"
+}

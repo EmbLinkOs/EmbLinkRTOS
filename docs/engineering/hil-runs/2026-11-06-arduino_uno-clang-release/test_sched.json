@@ -1,0 +1,89 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 3,
+      "name": "sched_higher_priority_runs_first",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_lock_defers_preemption_until_unlock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_yield_never_to_lower_priority",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "sched_blocking_under_scheduler_lock_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sched_idle_runs_when_nothing_is_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_thread_self_and_priorities",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sched_raising_a_ready_thread_above_the_caller_preempts",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T04:12:02Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "213d7661442a6057",
+    "profile": "tiny",
+    "suite": "test_sched"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-release/tests/conformance/test_sched.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_sched.hex": "fbb72bbdd8d6ed4b21fc6bb731f2b0b2d30a1f69f94225d6757f142d9f70cb9c"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "test_sched.elf",
+  "image_sha256": "1bce7bd9793295a624a1fd27ac0c3f70458fcae8caba79ed74d201acbc5618ea",
+  "isr_stack": {
+    "size": 748,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-06T04:11:54Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

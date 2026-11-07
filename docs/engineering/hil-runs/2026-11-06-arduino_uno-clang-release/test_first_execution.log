@@ -1,0 +1,10 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-release/tests/conformance/test_first_execution.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_first_execution.elf sha256 5a2740b630f5a0e90a1fa660e979470fd6612324c8e54d8d6eea974554b292f3
+EVIDENCE v1 suite=test_first_execution config=213d7661442a6057 profile=tiny board=arduino_uno checked=0
+TEST first_execution_sequence_repeats_reliably
+  ticks seen 3001, elapsed 3002, timer start +1, late 0
+  -> ok
+  req KRN-SCH-001 KRN-SCH-004 KRN-IRQ-010 KRN-TIM-010 KRN-NOTIF-003
+CASE first_execution_sequence_repeats_reliably outcome=passed asserts=17678 skips=0
+ISR_STACK size=889 used=0
+1 tests, 0 failed, 0 skipped, 3035 ticks
+EMB_TEST_END

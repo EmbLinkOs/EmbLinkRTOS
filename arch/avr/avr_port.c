@@ -11,7 +11,6 @@
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-#include <avr/wdt.h>
 
 /* ---- interrupt controller: one mask bit per vector (SPEC-012 §5) ---------------------- */
 
@@ -321,22 +320,44 @@ void emb_arch_reset(const emb_fault_info_t *info)
     emb_arch_system_reset();
 }
 
+/* The watchdog at its shortest timeout (15 ms, prescaler 0), then wait for it: wdt_enable()'s
+ * timed sequence (WDCE and WDE together, then WDE within four cycles), in assembly because
+ * the older avr-libc's wdt_enable() has a branch for other parts that Clang refuses to
+ * assemble ("I" constraint, WDTCSR outside the I/O space). */
 void emb_arch_system_reset(void)
 {
-    __asm__ __volatile__("cli" ::: "memory");
-    wdt_enable(WDTO_15MS);
+    __asm__ __volatile__(
+        "cli\n\t"
+        "wdr\n\t"
+        "sts %[wdtcsr], %[change]\n\t"
+        "sts %[wdtcsr], %[enable]\n\t"
+        :
+        : [wdtcsr] "n"(_SFR_MEM_ADDR(WDTCSR)), [change] "r"((uint8_t)((1u << WDCE) | (1u << WDE))),
+          [enable] "r"((uint8_t)(1u << WDE))
+        : "memory");
     for (;;) {
     }
 }
 
 /* A watchdog reset leaves the watchdog running with its shortest timeout (DS40002061B
  * §10.9.2): clear WDRF and stop it before the C runtime starts, or the part resets again
- * every 15 ms. Placed in .init3, which avr-libc's startup runs before main(). */
+ * every 15 ms. Placed in .init3, which avr-libc's startup runs before main(), with r1 already
+ * zero and interrupts still off from reset. Naked, so it falls through to .init4; assembly
+ * only, as Clang allows nothing else in a naked function: MCUSR = 0, then wdt_disable()'s
+ * timed sequence (WDCE and WDE together, then 0 within four cycles). */
 void embn_avr_watchdog_off(void) EMB_NAKED EMB_SECTION(".init3");
 void embn_avr_watchdog_off(void)
 {
-    MCUSR = 0u;
-    wdt_disable();
+    __asm__ __volatile__("sts %[mcusr], __zero_reg__\n\t"
+                         "wdr\n\t"
+                         "lds r24, %[wdtcsr]\n\t"
+                         "ori r24, %[change]\n\t"
+                         "sts %[wdtcsr], r24\n\t"
+                         "sts %[wdtcsr], __zero_reg__\n\t"
+                         :
+                         : [mcusr] "n"(_SFR_MEM_ADDR(MCUSR)), [wdtcsr] "n"(_SFR_MEM_ADDR(WDTCSR)),
+                           [change] "n"((1 << WDCE) | (1 << WDE))
+                         : "r24", "memory");
 }
 
 #if CONFIG_EMB_CRASH_RECORD

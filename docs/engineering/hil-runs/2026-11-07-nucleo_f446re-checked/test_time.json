@@ -1,0 +1,88 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 40,
+      "name": "time_now_is_monotonic_across_sleeps",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_instant_helpers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_at_least_adds_one_tick",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "time_conversions_round_up_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "time_timeouts_expire_in_deadline_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "time_zero_sleep_and_past_deadline_yield",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "time_sleep_until_does_not_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "time_sleep_is_exact_in_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T11:11:53Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/nuc-hil-checked/tests/conformance/test_time.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_time.elf": "9accba11e269bc46f0963b0013461961972ce2520ec47865e2f9b1d7e27f71f3"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "56ba8ac1766ed4399f1752ca9c72ea63c950eadc",
+    "dirty": false
+  },
+  "image": "test_time.elf",
+  "image_sha256": "9accba11e269bc46f0963b0013461961972ce2520ec47865e2f9b1d7e27f71f3",
+  "isr_stack": {
+    "size": 2048,
+    "used": 140
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem1103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T11:11:51Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 15,
+      "name": "thread_identity_survives_priority_and_termination",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1200,
+      "name": "thread_identity_repeated_construction_does_not_alias_live_object",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "thread_identity_survives_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "thread_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "idle_context_is_not_an_application_thread",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T04:12:49Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "0",
+    "config": "213d7661442a6057",
+    "profile": "tiny",
+    "suite": "test_thread_identity"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-release/tests/conformance/test_thread_identity.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_thread_identity.hex": "1958ec1b13f098a105482f2193acff7fe926c78e3a264aa16fa9f91a87d64a4c"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "test_thread_identity.elf",
+  "image_sha256": "a4861a07136a1ccf17196ffea4df5b602bd381c3e998986a85868e1be5f44c8b",
+  "isr_stack": {
+    "size": 916,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-06T04:12:40Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

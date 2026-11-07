@@ -757,4 +757,11 @@ The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in th
 - The tiny profile's table scheduler (ADR-036) keeps one thread per priority. The running thread then stays in its slot, which removes a store pair there too.
 - Expected gain: about two list operations per hand-over round trip, some 25 instructions on Cortex-M. To be measured on the NUCLEO before and after.
 
-**Status.** Proposed and implemented on 2026-11-06 on its own branch (`feat/sched-current-listed`, A99), to be measured on the NUCLEO, the Uno and the ESP32 against the build without it before it merges. Its first stress runs found two races in the native port's asynchronous mode, which A98 fixed: neither was in the scheduler.
+**Status.** Accepted and merged (#85, A99). It was implemented on 2026-11-06 on its own branch (`feat/sched-current-listed`). Its first stress runs found two races in the native port's asynchronous mode, which A98 fixed: neither was in the scheduler. Measured against the build without it, release, CPU cycles:
+
+| Board | Notification switch | Semaphore switch | Interrupt wake | Give + take |
+|---|---|---|---|---|
+| NUCLEO-F446RE, GCC | −9.6% | −11.4% | −8.1% | unchanged |
+| ESP32, GCC | −7% | −7% | −10% | −1% |
+
+Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](../engineering/hil-clang-2026-11-06.md). On the NUCLEO, the GCC build's notification switch is still 27% behind FreeRTOS V11.1.0 (794 against 623 cycles), so the hand-over path is the next profiling target.

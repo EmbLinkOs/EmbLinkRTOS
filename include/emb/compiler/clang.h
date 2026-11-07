@@ -61,7 +61,12 @@
  * (SPEC-012 §8). Registration tables go to .progmem.<name>, which the board's linker
  * script brackets with __start_<name>/__stop_<name>. */
 #include <avr/pgmspace.h>
-#define EMB_FLASH_CONST          const __attribute__((__progmem__))
+/* Clang has no progmem attribute; avr-gcc's only places the object in .progmem.data, which
+ * the section attribute does, and every read goes through the LPM forms below. avr-libc's
+ * PROGMEM and PSTR() expand __ATTR_PROGMEM__ where they are used, so they take it too. */
+#undef __ATTR_PROGMEM__
+#define __ATTR_PROGMEM__         __attribute__((__section__(".progmem.data")))
+#define EMB_FLASH_CONST          const __ATTR_PROGMEM__
 #define EMB_FLASH_READ_U8(p)     pgm_read_byte(p)
 #define EMB_FLASH_READ_U16(p)    pgm_read_word(p)
 #define EMB_FLASH_READ_PTR(p)    ((void *)pgm_read_word(p))

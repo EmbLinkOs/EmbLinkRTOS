@@ -18,6 +18,7 @@
 #define EMB_NORETURN           __attribute__((noreturn))
 #define EMB_UNUSED             __attribute__((unused))
 #define EMB_USED               __attribute__((used))
+#define EMB_EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #define EMB_WEAK               __attribute__((weak))
 #define EMB_ALIAS(sym)         __attribute__((alias(#sym)))
 #define EMB_SECTION(name)      __attribute__((section(name)))

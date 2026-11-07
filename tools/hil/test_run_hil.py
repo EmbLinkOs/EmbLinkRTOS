@@ -211,6 +211,46 @@ class Runner(unittest.TestCase):
                 os.environ["EMBFLASH"] = old
         self.assertEqual(hw["derived"]["console"]["baud"], 115200)
 
+    def test_picotool_command_from_the_committed_pico2_w(self):
+        hw = json.loads((HERE.parent.parent / "boards/rpi/pico2_w/generated/hw.json").read_text())
+        self.assertFalse(run_hil.shares_port(hw))  # the console is a USB-UART on UART0
+        self.assertFalse(run_hil.resets_after_open(hw))
+        self.assertTrue(run_hil.uses_picotool(hw))
+        cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbserial-0001")
+        self.assertEqual(cmd, ["picotool", "load", "-v", "-x", "/b/test_sem.uf2", "-t", "uf2"])
+
+    def test_wait_bootsel_gives_up_with_the_button_hint(self):
+        old = os.environ["PATH"]
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "picotool"  # a picotool that never finds a board
+            fake.write_text("#!/bin/sh\nexit 249\n")
+            fake.chmod(0o755)
+            os.environ["PATH"] = d + os.pathsep + old
+            try:
+                problem = run_hil.wait_bootsel(0.2, poll=0.05)
+            finally:
+                os.environ["PATH"] = old
+        self.assertIn("BOOTSEL", problem)
+
+    def test_wait_bootsel_returns_once_a_board_answers(self):
+        old = os.environ["PATH"]
+        with tempfile.TemporaryDirectory() as d:
+            fake = Path(d) / "picotool"
+            fake.write_text("#!/bin/sh\nexit 0\n")
+            fake.chmod(0o755)
+            os.environ["PATH"] = d + os.pathsep + old
+            try:
+                self.assertIsNone(run_hil.wait_bootsel(5.0))
+            finally:
+                os.environ["PATH"] = old
+
+    def test_fault_checks_counted_after_a_line_cut_by_the_reset(self):
+        # the reset cuts the TEST line mid-transfer; the next boot's count continues it
+        buf = (b"TEST mutex_init_validates_argument\xff  fault checks that reset the board: 3\n"
+               b"CASE mutex_init_validates_arguments outcome=passed asserts=3 skips=0\n"
+               b"  fault checks that reset the board: 2\n")
+        self.assertEqual(run_hil.parse_console(buf)["fault_checks_by_reset"], 5)
+
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
         self.assertEqual(run_hil.flash_command(hw, Path("t.elf"), None)[:3], ["openocd", "-f", "board/st_nucleo_f4.cfg"])

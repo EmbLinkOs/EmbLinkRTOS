@@ -1,0 +1,14 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xtg-hil-release/tests/benchmarks/bench_switch.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image bench_switch.elf sha256 6dbd91ac3cf593d9e8c59c766ce972dcd8ebe92170aef26807b2f5784f51a1d5
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:544
+load:0x40080400,len:9528
+entry 0x40081e84
+bench notify round trip (2 switches): total 17843673 cycle-units over 20000 ops; per op x100 = 89218
+BENCH v1 name=notify_handover units=17843673 ops=20000 per_op_x100=89218 unit_hz=160000000 checked=0
+meta: board esp32_devkitc, compiler gcc, profile base, checked 0, cycle unit hz 160000000
+BENCH_END

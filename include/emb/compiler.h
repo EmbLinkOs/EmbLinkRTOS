@@ -58,6 +58,11 @@ extern "C" {
 #ifndef EMB_UNUSED
 #define EMB_UNUSED
 #endif
+/* Keeps a symbol visible through link-time optimization (GCC's externally_visible); Clang has
+ * none, and EMB_USED already keeps the symbol there. */
+#ifndef EMB_EXTERNALLY_VISIBLE
+#define EMB_EXTERNALLY_VISIBLE
+#endif
 #ifndef EMB_USED
 #define EMB_USED
 #endif

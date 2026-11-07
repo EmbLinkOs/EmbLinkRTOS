@@ -1,0 +1,76 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "thread_join_after_exit_returns_code",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "thread_join_before_exit_blocks_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_timeout_then_success",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "thread_second_joiner_is_ebusy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_self_and_detached_are_errors",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_detach_after_exit_makes_reusable",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T11:13:06Z",
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/nuc-hil-clang-checked/tests/conformance/test_thread_join.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_thread_join.elf": "d0911bc2addc5559da0d6e31711a6b4e00e638edde505a1f59c9cd4d69051450"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "56ba8ac1766ed4399f1752ca9c72ea63c950eadc",
+    "dirty": false
+  },
+  "image": "test_thread_join.elf",
+  "image_sha256": "d0911bc2addc5559da0d6e31711a6b4e00e638edde505a1f59c9cd4d69051450",
+  "isr_stack": {
+    "size": 2048,
+    "used": 116
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem1103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T11:13:04Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

@@ -9,11 +9,16 @@
       "device": "uart0"
     },
     "curated": false,
+    "debug_probe": {
+      "picotool": {
+        "family": "rp2350-arm-s"
+      }
+    },
     "defaults": {
       "CONFIG_EMB_PROFILE": "base",
       "CONFIG_EMB_TICK_NS": 1000000
     },
-    "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in).",
+    "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
     "flash_partitions": [
       {
         "base": 268435456,
@@ -36,6 +41,11 @@
       }
     },
     "schema_version": 0,
+    "simulation": {
+      "resets_in": [
+        "hil"
+      ]
+    },
     "soc": "rpi/rp2350/rp2350a.yaml",
     "test_irqs": [
       46,
@@ -138,7 +148,7 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "17e85e6232b5f3faea11a919eaae32573074dbdd9047edb32864462b54f8a245"
+      "sha256": "d1a8f8521dd26c12843f00516f064393a3e30587c56b9bc0f1c6cda63423d213"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",

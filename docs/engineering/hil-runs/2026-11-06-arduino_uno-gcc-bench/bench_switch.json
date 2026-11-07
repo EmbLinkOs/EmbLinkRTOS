@@ -1,0 +1,39 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "checked": 0,
+      "name": "notify_handover",
+      "ops": 20000,
+      "per_op_x100": 1508,
+      "unit_hz": 250000,
+      "units": 301640
+    }
+  ],
+  "board": "arduino_uno",
+  "cases": [],
+  "ended": "2026-11-06T04:15:16Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrg-hil-release/tests/benchmarks/bench_switch.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "bench_switch.hex": "c4ee7610b9d4823c0d1b7d3677c81fac2f1bbf2d2517b6868dbb14d5a308388d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "bench_switch.elf",
+  "image_sha256": "44037801365e0394217be2712470aa2d0cb6fa964507e81760e968d2cb6f238e",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-06T04:15:10Z"
+}

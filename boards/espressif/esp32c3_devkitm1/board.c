@@ -85,8 +85,6 @@ typedef void (*rom_cpu_freq_t)(uint32_t ticks_per_us);
 #define CPU_MHZ 160u
 #define APB_HZ  80000000u
 
-static unsigned led_state;
-
 static void tx_wait_idle(void)
 {
     uint32_t n;
@@ -136,13 +134,12 @@ static void clock_to_pll_160m(void)
 
 void emb_board_init(void)
 {
-    led_state = 0u;
     clock_to_pll_160m(); /* UART0 stays 115200 8N1 */
 }
 
 void emb_board_led_toggle(void)
 {
-    led_state ^= 1u;
+    /* no LED driver yet: the console is the board's only output */
 }
 
 static void put_char(char c)
