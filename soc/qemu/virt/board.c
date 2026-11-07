@@ -16,16 +16,13 @@
 #define FINISHER_ERR 0x3333u
 #define FINISHER_RST 0x7777u /* the sifive_test device: system reset */
 
-static unsigned led_state;
-
 void emb_board_init(void)
 {
-    led_state = 0u;
 }
 
 void emb_board_led_toggle(void)
 {
-    led_state ^= 1u; /* no LED on the virt machine */
+    /* no LED on the virt machine */
 }
 
 static void put_char(char c)

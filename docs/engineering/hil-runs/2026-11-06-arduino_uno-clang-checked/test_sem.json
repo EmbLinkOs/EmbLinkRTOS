@@ -1,0 +1,107 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "arduino_uno",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "sem_counts_and_nowait",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_give_hands_off_to_highest_waiter",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "sem_take_times_out_and_disarms",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sem_give_from_isr_wakes_at_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "sem_max_overflow_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sem_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "sem_destroy_aborts_waiters_when_allowed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "sem_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sem_blocking_take_from_prekernel_or_isr_rejected",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sem_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T04:10:48Z",
+  "evidence": {
+    "board": "arduino_uno",
+    "checked": "1",
+    "config": "e8eee1ae70ccea44",
+    "profile": "tiny",
+    "suite": "test_sem"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avrc-hil-checked/tests/conformance/test_sem.hex",
+    "--stk500",
+    "serial:/dev/cu.usbmodem11101@115200",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_sem.hex": "7cbcb0a97392c66456e82975a64b9572be8daa0f47fbc936da35f550b61c0180"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "test_sem.elf",
+  "image_sha256": "a07861e29891e230be2601023de758b71fa5e0898a2e1be4762a6108cb7afb66",
+  "isr_stack": {
+    "size": 519,
+    "used": 73
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11101",
+  "soc": "ATmega328P",
+  "started": "2026-11-06T04:10:38Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 10
+  }
+}

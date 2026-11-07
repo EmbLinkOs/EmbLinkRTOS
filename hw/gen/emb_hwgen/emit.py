@@ -321,6 +321,9 @@ SECTIONS
 
   .data : ALIGN(16) {{
     *(.data .data.* .sdata .sdata.*)
+    /* the GOT, which LLD makes for Clang's medany code: an undefined weak symbol may be 0,
+       out of auipc's reach, so Clang loads the table bounds' addresses from it */
+    *(.got .got.*)
   }} > RAM
 
   /* the C library's thread-local block (errno in picolibc), one for every thread: .tdata in

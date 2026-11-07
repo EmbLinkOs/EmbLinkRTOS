@@ -1,0 +1,21 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xtc-hil-release/tests/conformance/test_first_execution.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_first_execution.elf sha256 9e893be875583fc9940ef9ba59e1dfa850d261858262c750003a5b29b17585e4
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:1936
+load:0x3ffb0790,len:4
+ho 8 tail 4 room 4
+load:0x40080400,len:18624
+entry 0x40083894
+EVIDENCE v1 suite=test_first_execution config=166b84ac4a276048 profile=base board=esp32_devkitc checked=0
+TEST first_execution_sequence_repeats_reliably
+  ticks seen 401, elapsed 401, timer start +0, late 0
+  -> ok
+  req KRN-SCH-001 KRN-SCH-004 KRN-IRQ-010 KRN-TIM-010 KRN-NOTIF-003
+CASE first_execution_sequence_repeats_reliably outcome=passed asserts=80614 skips=0
+ISR_STACK size=1024 used=0
+1 tests, 0 failed, 0 skipped, 414 ticks
+EMB_TEST_END

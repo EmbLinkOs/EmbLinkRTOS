@@ -197,7 +197,9 @@ SECTIONS
    __data_load_start = LOADADDR(.data);
    __data_load_end = __data_load_start + SIZEOF(.data);
   /* Global data not cleared after reset.  */
-  .noinit  ADDR(.bss) + SIZEOF (.bss)  :  AT (ADDR (.noinit))
+  /* NOLOAD: Clang emits a section named .noinit with contents (PROGBITS), where GCC emits
+     none; without it the output section would be loaded at its RAM address (A100) */
+  .noinit  ADDR(.bss) + SIZEOF (.bss)  (NOLOAD) :  AT (ADDR (.noinit))
   {{
      PROVIDE (__noinit_start = .) ;
     *(.noinit*)

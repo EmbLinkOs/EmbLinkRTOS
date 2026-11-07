@@ -212,6 +212,45 @@ jobs:
           name: footprint-${{ matrix.preset }}
           path: footprint-${{ matrix.preset }}.*
 
+  # The Cortex-M and RISC-V ports built by Clang and linked by LLD (ADR-053), against the GNU
+  # toolchains' C libraries and libgcc (cmake/toolchains/{arm-none-eabi,riscv}-clang.cmake), and
+  # the AVR port built by Clang and linked by avr-gcc (avr-clang.cmake), then run under QEMU: the
+  # same suites as the GCC jobs. Ubuntu's Clang is an older release than the
+  # one used locally, so the two together cover a range.
+  clang-cross:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [cm0-microbit-clang, cm3-an385-clang, cm4-an386-clang, cm4-an386-release-clang, cm7-an500-clang, cm33-an505-clang, rv32-virt-clang, rv32-virt-release-clang, avr-uno-clang, avr-uno-t1-clang]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tools
+        timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build clang lld gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
+      - name: Configure
+        run: |
+          clang --version | head -1
+          ld.lld --version
+          cmake --preset ${{ matrix.preset }}
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Test under QEMU
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
+      - name: Upload case evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: case-evidence-${{ matrix.preset }}
+          path: case-evidence-${{ matrix.preset }}.json
+          if-no-files-found: warn
+
   avr:
     runs-on: ubuntu-24.04
     timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
@@ -647,7 +686,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint]
+    needs: [native, cortex_m, riscv, clang-cross, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

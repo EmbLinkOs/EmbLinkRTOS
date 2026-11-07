@@ -123,6 +123,17 @@
       }
     },
     {
+      "name": "avr-uno-clang",
+      "displayName": "Arduino Uno, Clang (avr-gcc links), tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny"
+      }
+    },
+    {
       "name": "avr-uno-release",
       "displayName": "Arduino Uno, avr-gcc, tiny profile, release (footprint reference)",
       "generator": "Ninja",
@@ -140,6 +151,18 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/avr-uno-t1",
       "toolchainFile": "${sourceDir}/cmake/toolchains/avr-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "arduino_uno",
+        "EMB_PROFILE": "tiny",
+        "EMB_CONF": "configs/footprint-t1.conf"
+      }
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "displayName": "Arduino Uno, Clang (avr-gcc links), tiny profile, release, the R-003 T1 feature set (the footprint gate measures the avr-gcc build)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/avr-uno-t1-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/avr-clang.cmake",
       "cacheVariables": {
         "EMB_BOARD": "arduino_uno",
         "EMB_PROFILE": "tiny",
@@ -170,6 +193,16 @@
       }
     },
     {
+      "name": "cm0-microbit-clang",
+      "displayName": "Cortex-M0 (QEMU microbit, nRF51822), Clang and LLD, tiny profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm0-microbit-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "microbit"
+      }
+    },
+    {
       "name": "cm0-microbit-release",
       "displayName": "Cortex-M0 (QEMU microbit, nRF51822), GCC, tiny profile, release",
       "generator": "Ninja",
@@ -191,6 +224,16 @@
       }
     },
     {
+      "name": "cm3-an385-clang",
+      "displayName": "Cortex-M3 (QEMU mps2-an385), Clang and LLD, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm3-an385-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an385"
+      }
+    },
+    {
       "name": "cm4-an386",
       "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, checked",
       "generator": "Ninja",
@@ -201,11 +244,32 @@
       }
     },
     {
+      "name": "cm4-an386-clang",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), Clang and LLD, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386"
+      }
+    },
+    {
       "name": "cm4-an386-release",
       "displayName": "Cortex-M4F (QEMU mps2-an386), GCC, base profile, release",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/cm4-an386-release",
       "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an386",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "cm4-an386-release-clang",
+      "displayName": "Cortex-M4F (QEMU mps2-an386), Clang and LLD, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm4-an386-release-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
       "cacheVariables": {
         "EMB_BOARD": "mps2_an386",
         "EMB_CONF": "configs/release.conf"
@@ -233,6 +297,16 @@
       }
     },
     {
+      "name": "cm7-an500-clang",
+      "displayName": "Cortex-M7 (QEMU mps2-an500), Clang and LLD, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm7-an500-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an500"
+      }
+    },
+    {
       "name": "cm7-an500-release",
       "displayName": "Cortex-M7 (QEMU mps2-an500), GCC, base profile, release",
       "generator": "Ninja",
@@ -249,6 +323,16 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/cm33-an505",
       "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "mps2_an505"
+      }
+    },
+    {
+      "name": "cm33-an505-clang",
+      "displayName": "Cortex-M33 (QEMU mps2-an505), Clang and LLD, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-an505-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-clang.cmake",
       "cacheVariables": {
         "EMB_BOARD": "mps2_an505"
       }
@@ -375,11 +459,32 @@
       }
     },
     {
+      "name": "rv32-virt-clang",
+      "displayName": "RV32IMAC (QEMU virt), Clang and LLD, base profile, checked",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-clang.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt"
+      }
+    },
+    {
       "name": "rv32-virt-release",
       "displayName": "RV32IMAC (QEMU virt), GCC, base profile, release",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/rv32-virt-release",
       "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "riscv32_virt",
+        "EMB_CONF": "configs/release.conf"
+      }
+    },
+    {
+      "name": "rv32-virt-release-clang",
+      "displayName": "RV32IMAC (QEMU virt), Clang and LLD, base profile, release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/rv32-virt-release-clang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv-clang.cmake",
       "cacheVariables": {
         "EMB_BOARD": "riscv32_virt",
         "EMB_CONF": "configs/release.conf"
@@ -482,12 +587,20 @@
       "configurePreset": "avr-uno"
     },
     {
+      "name": "avr-uno-clang",
+      "configurePreset": "avr-uno-clang"
+    },
+    {
       "name": "avr-uno-release",
       "configurePreset": "avr-uno-release"
     },
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1"
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "configurePreset": "avr-uno-t1-clang"
     },
     {
       "name": "avr-uno-embsim",
@@ -498,6 +611,10 @@
       "configurePreset": "cm0-microbit"
     },
     {
+      "name": "cm0-microbit-clang",
+      "configurePreset": "cm0-microbit-clang"
+    },
+    {
       "name": "cm0-microbit-release",
       "configurePreset": "cm0-microbit-release"
     },
@@ -506,12 +623,24 @@
       "configurePreset": "cm3-an385"
     },
     {
+      "name": "cm3-an385-clang",
+      "configurePreset": "cm3-an385-clang"
+    },
+    {
       "name": "cm4-an386",
       "configurePreset": "cm4-an386"
     },
     {
+      "name": "cm4-an386-clang",
+      "configurePreset": "cm4-an386-clang"
+    },
+    {
       "name": "cm4-an386-release",
       "configurePreset": "cm4-an386-release"
+    },
+    {
+      "name": "cm4-an386-release-clang",
+      "configurePreset": "cm4-an386-release-clang"
     },
     {
       "name": "cm4-an386-tiny",
@@ -522,12 +651,20 @@
       "configurePreset": "cm7-an500"
     },
     {
+      "name": "cm7-an500-clang",
+      "configurePreset": "cm7-an500-clang"
+    },
+    {
       "name": "cm7-an500-release",
       "configurePreset": "cm7-an500-release"
     },
     {
       "name": "cm33-an505",
       "configurePreset": "cm33-an505"
+    },
+    {
+      "name": "cm33-an505-clang",
+      "configurePreset": "cm33-an505-clang"
     },
     {
       "name": "cm33-an505-release",
@@ -574,12 +711,20 @@
       "configurePreset": "rv32-virt"
     },
     {
+      "name": "rv32-virt-clang",
+      "configurePreset": "rv32-virt-clang"
+    },
+    {
       "name": "rv32-c3-embsim",
       "configurePreset": "rv32-c3-embsim"
     },
     {
       "name": "rv32-virt-release",
       "configurePreset": "rv32-virt-release"
+    },
+    {
+      "name": "rv32-virt-release-clang",
+      "configurePreset": "rv32-virt-release-clang"
     },
     {
       "name": "rv32-virt-tiny",
@@ -681,6 +826,13 @@
       }
     },
     {
+      "name": "avr-uno-clang",
+      "configurePreset": "avr-uno-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "avr-uno-release",
       "configurePreset": "avr-uno-release",
       "output": {
@@ -690,6 +842,13 @@
     {
       "name": "avr-uno-t1",
       "configurePreset": "avr-uno-t1",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "avr-uno-t1-clang",
+      "configurePreset": "avr-uno-t1-clang",
       "output": {
         "outputOnFailure": true
       }
@@ -709,6 +868,13 @@
       }
     },
     {
+      "name": "cm0-microbit-clang",
+      "configurePreset": "cm0-microbit-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "cm0-microbit-release",
       "configurePreset": "cm0-microbit-release",
       "output": {
@@ -723,6 +889,13 @@
       }
     },
     {
+      "name": "cm3-an385-clang",
+      "configurePreset": "cm3-an385-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "cm4-an386",
       "configurePreset": "cm4-an386",
       "output": {
@@ -730,8 +903,22 @@
       }
     },
     {
+      "name": "cm4-an386-clang",
+      "configurePreset": "cm4-an386-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "cm4-an386-release",
       "configurePreset": "cm4-an386-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm4-an386-release-clang",
+      "configurePreset": "cm4-an386-release-clang",
       "output": {
         "outputOnFailure": true
       }
@@ -751,6 +938,13 @@
       }
     },
     {
+      "name": "cm7-an500-clang",
+      "configurePreset": "cm7-an500-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "cm7-an500-release",
       "configurePreset": "cm7-an500-release",
       "output": {
@@ -760,6 +954,13 @@
     {
       "name": "cm33-an505",
       "configurePreset": "cm33-an505",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm33-an505-clang",
+      "configurePreset": "cm33-an505-clang",
       "output": {
         "outputOnFailure": true
       }
@@ -814,6 +1015,13 @@
       }
     },
     {
+      "name": "rv32-virt-clang",
+      "configurePreset": "rv32-virt-clang",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "rv32-c3-embsim",
       "configurePreset": "rv32-c3-embsim",
       "output": {
@@ -823,6 +1031,13 @@
     {
       "name": "rv32-virt-release",
       "configurePreset": "rv32-virt-release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "rv32-virt-release-clang",
+      "configurePreset": "rv32-virt-release-clang",
       "output": {
         "outputOnFailure": true
       }

@@ -1,0 +1,114 @@
+{
+  "board": "esp32_devkitc",
+  "build": "release (Espressif GCC 16.1.0), benchmarks only",
+  "configuration": null,
+  "date": "2026-11-06",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "name": "notify_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 89889,
+          "unit_hz": 160000000,
+          "units": 17977884
+        },
+        {
+          "name": "sem_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 90907,
+          "unit_hz": 160000000,
+          "units": 18181412
+        },
+        {
+          "name": "sem_give_take",
+          "ops": 10000,
+          "os": "emblink",
+          "per_op_x100": 20644,
+          "unit_hz": 160000000,
+          "units": 2064475
+        },
+        {
+          "name": "isr_wake",
+          "ops": 5000,
+          "os": "emblink",
+          "per_op_x100": 175248,
+          "unit_hz": 160000000,
+          "units": 8762425
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_compare.bin": "1f4096a6c3d3100201c0e48288b5d184ee974ac63d811df0c18b1ea81edca354"
+      },
+      "image": "bench_compare.elf",
+      "image_sha256": "b282273953ed2b71278ad49a39a975fcb879562a4478833f202e6bda28707a88",
+      "isr_stack": null,
+      "log": "bench_compare.log",
+      "outcome": "passed",
+      "started": "2026-11-06T04:15:43Z"
+    },
+    {
+      "bench": [
+        {
+          "avg_x100": 26303,
+          "checked": 0,
+          "max": 299,
+          "min": 263,
+          "name": "irq_pend_to_handler",
+          "ops": 1000,
+          "unit_hz": 160000000
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_irq.bin": "1c42c4fc79369deb279d2afe99e749c7869a27b64ab92001f2fae07c29922c4b"
+      },
+      "image": "bench_irq.elf",
+      "image_sha256": "745debcfd36bfd317699ada1aed5c48079d1979001d10d541ad26daabbc4c743",
+      "isr_stack": null,
+      "log": "bench_irq.log",
+      "outcome": "passed",
+      "started": "2026-11-06T04:15:42Z"
+    },
+    {
+      "bench": [
+        {
+          "checked": 0,
+          "name": "notify_handover",
+          "ops": 20000,
+          "per_op_x100": 89218,
+          "unit_hz": 160000000,
+          "units": 17843673
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_switch.bin": "99055454eaba2e4cf72a7996500fd0bb2f763ae20e19d199fa113d091fa9aaf9"
+      },
+      "image": "bench_switch.elf",
+      "image_sha256": "6dbd91ac3cf593d9e8c59c766ce972dcd8ebe92170aef26807b2f5784f51a1d5",
+      "isr_stack": null,
+      "log": "bench_switch.log",
+      "outcome": "passed",
+      "started": "2026-11-06T04:15:41Z"
+    }
+  ],
+  "isr_stack_max_used": null,
+  "passed": 3,
+  "preset": "xt-esp32-gcc",
+  "total": 3
+}

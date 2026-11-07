@@ -1,0 +1,85 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "esp32_devkitc",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "thread_join_after_exit_returns_code",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "thread_join_before_exit_blocks_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_timeout_then_success",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "thread_second_joiner_is_ebusy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_self_and_detached_are_errors",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_detach_after_exit_makes_reusable",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-06T04:09:40Z",
+  "evidence": {
+    "board": "esp32_devkitc",
+    "checked": "1",
+    "config": "b529ce7ae629fe93",
+    "profile": "base",
+    "suite": "test_thread_join"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xtc-hil-checked/tests/conformance/test_thread_join.bin",
+    "--esp",
+    "serial:/dev/cu.usbserial-0001",
+    "--base",
+    "0x1000",
+    "--verify"
+  ],
+  "flashed_sha256": {
+    "test_thread_join.bin": "0c845361cfbff5cda101f083eea3fd1a73bf54192b43a73ea117959665dc90e8"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2661b893ff249c788ba17cd089d4c26a4b4f44a0",
+    "dirty": false
+  },
+  "image": "test_thread_join.elf",
+  "image_sha256": "def882503bceac14e39a40cc0459cc387afaa244f906381faf73f3ed1b96cffe",
+  "isr_stack": {
+    "size": 1024,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T04:09:37Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

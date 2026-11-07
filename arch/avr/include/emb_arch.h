@@ -108,7 +108,7 @@ static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
 
 #define EMBN_ISR_DEFINE_(num, body)                                                                \
     static void body(void) __attribute__((used));                                                  \
-    void __vector_##num(void) __attribute__((naked, used, externally_visible));                    \
+    void __vector_##num(void) __attribute__((naked, used)) EMB_EXTERNALLY_VISIBLE;                 \
     void __vector_##num(void)                                                                      \
     {                                                                                              \
         __asm__ __volatile__(                                                                      \
@@ -122,8 +122,8 @@ static EMB_ALWAYS_INLINE bool emb_arch_irq_locked(void)
 #define EMBN_ISR_EXPAND_(num, body) EMBN_ISR_DEFINE_(num, body)
 #define EMB_ISR(name)               EMBN_ISR_EXPAND_(EMB_VECTOR_##name, embk_isr_body_##name)
 
-#define EMBN_ISR_RAW_DEFINE_(num)                                                \
-    void __vector_##num(void) __attribute__((signal, used, externally_visible)); \
+#define EMBN_ISR_RAW_DEFINE_(num)                                                   \
+    void __vector_##num(void) __attribute__((signal, used)) EMB_EXTERNALLY_VISIBLE; \
     void __vector_##num(void)
 #define EMBN_ISR_RAW_EXPAND_(num) EMBN_ISR_RAW_DEFINE_(num)
 #define EMB_ISR_RAW(name)         EMBN_ISR_RAW_EXPAND_(EMB_VECTOR_##name)

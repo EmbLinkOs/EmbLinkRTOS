@@ -13,18 +13,18 @@ The toolchains column names each compiler CI builds the board with, from its pre
 
 | Board | SoC | Core | Tier | Toolchains in CI | Evidence |
 |---|---|---|---|---|---|
-| `arduino_uno` | ATmega328P | avr5 | 1 hardware | GCC | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); `avr-uno-hil` checked 17/17, release 17/17, T1 13/13, checked 19/19 (2026-11-05, [report](hil-uno-2026-11-05.md)); CI also runs `avr-uno`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1` |
-| `esp32_devkitc` | (no description yet) | lx6 | 1 hardware | Clang, GCC | `xt-esp32-hil` checked 24/24, release 24/24 (2026-11-05, [report](hil-esp32-port-2026-11-05.md)); `xt-esp32-hil` checked 24/24, release 24/24 (2026-11-06, [report](hil-esp32-port-2026-11-05.md)) |
+| `arduino_uno` | ATmega328P | avr5 | 1 hardware | Clang, GCC | `avr-uno-hil` checked 17/17, release 15/15, T1 12/12 (2026-11-04, [report](hil-uno-2026-11-04.md)); `avr-uno-hil` checked 17/17, release 17/17, T1 13/13, checked 19/19 (2026-11-05, [report](hil-uno-2026-11-05.md)); `avr-uno-hil` checked 18/18, release 19/19 (2026-11-06, [report](hil-clang-2026-11-06.md)); CI also runs `avr-uno`, `avr-uno-clang`, `avr-uno-embsim`, `avr-uno-release`, `avr-uno-t1`, `avr-uno-t1-clang` |
+| `esp32_devkitc` | (no description yet) | lx6 | 1 hardware | Clang, GCC | `xt-esp32-hil` checked 24/24, release 24/24 (2026-11-05, [report](hil-esp32-port-2026-11-05.md)); `xt-esp32-hil` checked 24/24, release 24/24 (2026-11-06, [report](hil-esp32-port-2026-11-05.md)); `xt-esp32-clang` checked 24/24, release 24/24 (2026-11-06, [report](hil-clang-2026-11-06.md)) |
 | `esp32c3_devkitm1` | (no description yet) | rv32imc | 2 emulated | GCC | CI runs `rv32-c3-embsim` |
-| `microbit` | nRF51822 | cortex-m0 | 2 emulated | GCC | CI runs `cm0-microbit`, `cm0-microbit-release` |
-| `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | GCC | CI runs `cm3-an385` |
-| `mps2_an386` | Cortex-M4F | cortex-m4f | 2 emulated | GCC | CI runs `cm4-an386`, `cm4-an386-release`, `cm4-an386-tiny` |
-| `mps2_an500` | Cortex-M7 | cortex-m7f | 2 emulated | GCC | CI runs `cm7-an500`, `cm7-an500-release` |
-| `mps2_an505` | Cortex-M33 | cortex-m33f | 2 emulated | GCC | CI runs `cm33-an505`, `cm33-an505-release`, `cm33-an505-tiny` |
+| `microbit` | nRF51822 | cortex-m0 | 2 emulated | Clang, GCC | CI runs `cm0-microbit`, `cm0-microbit-clang`, `cm0-microbit-release` |
+| `mps2_an385` | Cortex-M3 | cortex-m3 | 2 emulated | Clang, GCC | CI runs `cm3-an385`, `cm3-an385-clang` |
+| `mps2_an386` | Cortex-M4F | cortex-m4f | 2 emulated | Clang, GCC | CI runs `cm4-an386`, `cm4-an386-clang`, `cm4-an386-release`, `cm4-an386-release-clang`, `cm4-an386-tiny` |
+| `mps2_an500` | Cortex-M7 | cortex-m7f | 2 emulated | Clang, GCC | CI runs `cm7-an500`, `cm7-an500-clang`, `cm7-an500-release` |
+| `mps2_an505` | Cortex-M33 | cortex-m33f | 2 emulated | Clang, GCC | CI runs `cm33-an505`, `cm33-an505-clang`, `cm33-an505-release`, `cm33-an505-tiny` |
 | `native` | host | posix | 2 emulated | Clang, EmbCC, GCC, GCC or Clang | CI runs, on the host, `native-asan`, `native-clang`, `native-coverage`, `native-embcc`, `native-embcc-periodic`, `native-embcc-release`, `native-embcc-tiny`, `native-gcc`, `native-periodic`, `native-release`, `native-timeslice`, `native-timeslice-tickless`, `native-tiny`, `native-tsan` |
 | `nucleo_f446re` | STM32F446RE | cortex-m4f | 2 emulated | GCC | CI runs `cm4-nucleo-embsim` |
 | `nucleo_f446ze` | STM32F446ZE | cortex-m4f | 2 emulated | GCC | CI runs `cm4-nucleo-f446ze` |
 | `pico2_w` | RP2350A | cortex-m33f | 3 described | GCC | CI builds `cm33-pico2w` |
-| `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | GCC | CI runs `rv32-virt`, `rv32-virt-release`, `rv32-virt-tiny` |
+| `riscv32_virt` | qemu-virt-rv32 | rv32imac | 2 emulated | Clang, GCC | CI runs `rv32-virt`, `rv32-virt-clang`, `rv32-virt-release`, `rv32-virt-release-clang`, `rv32-virt-tiny` |
 
 Totals: 1 hardware: 2, 2 emulated: 10, 3 described: 1, untested: 0.
