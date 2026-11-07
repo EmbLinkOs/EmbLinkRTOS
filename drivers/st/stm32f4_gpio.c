@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32F4 GPIO (RM0390 Rev 6 §7.4): the board's pin table and output toggling. */
+/* STM32F4 GPIO (RM0390 Rev 6 §7.4): the board's pin table and output setting and toggling. */
 #include <emb_stm32_drivers.h>
 #include <hw_config.h>
 
@@ -32,4 +32,14 @@ void emb_stm32_gpio_toggle(uintptr_t port, unsigned pin)
 {
     uint32_t bit = 1u << pin;
     REG32(port + GPIO_BSRR) = ((REG32(port + GPIO_ODR) & bit) != 0u) ? (bit << 16) : bit;
+}
+
+void emb_stm32_gpio_set(uintptr_t port, unsigned pin)
+{
+    REG32(port + GPIO_BSRR) = 1u << pin;
+}
+
+void emb_stm32_gpio_clear(uintptr_t port, unsigned pin)
+{
+    REG32(port + GPIO_BSRR) = 1u << (pin + 16u);
 }

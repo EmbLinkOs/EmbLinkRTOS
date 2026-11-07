@@ -11,10 +11,15 @@
 #define TIM_EGR     0x14u
 #define TIM_PSC     0x28u
 #define TIM_ARR     0x2Cu
+#define TIM_CCMR1   0x18u
+#define TIM_CCER    0x20u
+#define TIM_CCR1    0x34u
 #define CR1_CEN     (1u << 0)
 #define CR1_ARPE    (1u << 7)
 #define CR2_MMS_UPD (2u << 4) /* master mode: the update event is TRGO */
 #define EGR_UG      (1u << 0)
+#define OC1M_TOGGLE (3u << 4) /* CCMR1: CC1S = 0 (output), OC1M = toggle on match */
+#define CCER_CC1E   (1u << 0)
 
 #define TICK_HZ 1000000u /* the counter's rate: 1 MHz, so the period is in microseconds */
 
@@ -44,4 +49,11 @@ int emb_stm32_tim_trgo_periodic(uintptr_t base, uint32_t tim_clk_hz, uint32_t ra
 void emb_stm32_tim_stop(uintptr_t base)
 {
     REG32(base + TIM_CR1) = 0u;
+}
+
+void emb_stm32_tim_ch1_toggle_on_update(uintptr_t base)
+{
+    REG32(base + TIM_CCR1) = 0u; /* matches as the counter restarts, with the update event */
+    REG32(base + TIM_CCMR1) = (REG32(base + TIM_CCMR1) & ~0xFFu) | OC1M_TOGGLE;
+    REG32(base + TIM_CCER) |= CCER_CC1E;
 }
