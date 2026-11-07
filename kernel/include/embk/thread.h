@@ -14,7 +14,7 @@ void embk_thread_init_idle(embk_thread_t *t, void *stack, size_t stack_size);
 /* Deliver a pending cancel request to the current thread if enabled, lock held. */
 /* A cancellation to deliver at this point, consumed (SPEC-008 §7): inline, since every blocking
  * call asks it on its fast path. Lock held. */
-static EMB_INLINE bool embk_thread_take_cancel_locked(embk_thread_t *self)
+static EMBK_HOT bool embk_thread_take_cancel_locked(embk_thread_t *self)
 {
     if ((self->tflags & EMBK_THREAD_CANCEL_PENDING) != 0u && self->cancel_disable == 0u) {
         self->tflags &= (uint8_t)~EMBK_THREAD_CANCEL_PENDING;
