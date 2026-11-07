@@ -58,6 +58,20 @@ static void bench(void *arg)
     emb_board_puts(" cycle-units over ");
     emb_board_put_u32(RUNS);
     emb_board_puts(" runs\n");
+    /* the machine-readable form the HIL runner checks and archives (A89) */
+    emb_board_puts("BENCH v1 name=irq_pend_to_handler min=");
+    emb_board_put_u32(lo);
+    emb_board_puts(" max=");
+    emb_board_put_u32(hi);
+    emb_board_puts(" avg_x100=");
+    emb_board_put_u32((uint32_t)((sum * 100u) / RUNS));
+    emb_board_puts(" ops=");
+    emb_board_put_u32(RUNS);
+    emb_board_puts(" unit_hz=");
+    emb_board_put_u32(emb_arch_cycles_hz());
+    emb_board_puts(" checked=");
+    emb_board_put_u32((uint32_t)CONFIG_EMB_CHECKED);
+    emb_board_puts("\n");
     emb_board_puts("meta: board " EMB_HW_BOARD_NAME ", compiler " EMB_COMPILER_NAME
                    ", profile " CONFIG_EMB_PROFILE ", checked ");
     emb_board_put_u32((uint32_t)CONFIG_EMB_CHECKED);
@@ -70,7 +84,9 @@ static void bench(void *arg)
     }
 }
 
-EMB_THREAD_DEFINE(bench_thread, bench, NULL, 2u, 512u, 0u);
+/* 512 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 512u ? EMB_THREAD_STACK_MIN : 512u)
+EMB_THREAD_DEFINE(bench_thread, bench, NULL, 2u, STACK_SIZE, 0u);
 
 int main(void)
 {

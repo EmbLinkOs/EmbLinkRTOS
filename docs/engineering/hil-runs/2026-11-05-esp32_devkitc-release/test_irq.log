@@ -1,0 +1,47 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_irq.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_irq.elf sha256 1b323efb09b52fa3f92f8812a6619fc87bc055bdfd011d923ce3350a474961ac
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:2528
+load:0x3ffb09e0,len:8
+load:0x40080400,len:24964
+entry 0x40083df8
+EVIDENCE v1 suite=test_irq config=a6675cd36514cdfd profile=base board=esp32_devkitc checked=0
+TEST irq_lock_is_nestable_and_lifo
+  -> ok
+  req KRN-IRQ-001 KRN-IRQ-002
+CASE irq_lock_is_nestable_and_lifo outcome=passed asserts=5 skips=0
+TEST irq_isr_wake_switches_at_outermost_exit
+  -> ok
+  req KRN-IRQ-010 KRN-IRQ-012 KRN-IRQ-013 KRN-SCH-021
+CASE irq_isr_wake_switches_at_outermost_exit outcome=passed asserts=7 skips=0
+TEST irq_delivery_is_deferred_while_masked
+  -> ok
+  req KRN-IRQ-001 KRN-IRQ-033
+CASE irq_delivery_is_deferred_while_masked outcome=passed asserts=4 skips=0
+TEST irq_scheduler_lock_defers_the_switch_not_the_handler
+  -> ok
+  req KRN-SCH-016 KRN-SCH-018 KRN-SCH-019
+CASE irq_scheduler_lock_defers_the_switch_not_the_handler outcome=passed asserts=4 skips=0
+TEST irq_disabled_source_stays_pending
+  -> ok
+  req KRN-IRQ-020
+CASE irq_disabled_source_stays_pending outcome=passed asserts=5 skips=0
+TEST irq_blocking_call_from_isr_is_misuse
+  -> ok
+  req API-013 KRN-IRQ-014
+CASE irq_blocking_call_from_isr_is_misuse outcome=passed asserts=1 skips=0
+TEST irq_connect_validates_arguments
+  -> ok
+  req KRN-IRQ-021
+CASE irq_connect_validates_arguments outcome=passed asserts=2 skips=0
+TEST irq_unlock_without_lock_is_misuse
+  -> ok
+  req KRN-IRQ-002
+CASE irq_unlock_without_lock_is_misuse outcome=passed asserts=0 skips=0
+ISR_STACK size=1024 used=0
+8 tests, 0 failed, 0 skipped, 108 ticks
+EMB_TEST_END

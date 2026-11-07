@@ -235,7 +235,7 @@ emb_status_t emb_event_wait(emb_event_t event, emb_event_bits_t mask, uint8_t mo
                             emb_timeout_t timeout, emb_event_bits_t *out_satisfied)
 {
     return wait_common(EMB_API_ID_EVENT_WAIT, event_from_handle(event), mask, mode,
-                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout),
+                       embk_deadline_if_blocking(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout),
                        out_satisfied);
 }
 

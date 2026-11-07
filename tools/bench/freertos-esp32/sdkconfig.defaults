@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# FreeRTOS configured as the EmbLinkRTOS side it is compared with (docs/engineering/
+# bench-esp32-freertos-*.md): one core, a 1 kHz tick, optimised for size, assertions off (the
+# release build), and no watchdog interrupting the measurements. The CPU at 160 MHz, ESP-IDF's
+# default and the EmbLinkRTOS board's rate; both kernels are counted in CPU cycles (CCOUNT). FreeRTOS in IRAM, as the whole
+# EmbLinkRTOS image is: ESP-IDF v6.1 otherwise runs its queue and notification code from flash.
+# No stack-overflow check at each switch, as the EmbLinkRTOS release build has none
+# (CONFIG_EMB_STACK_CHECK is off with CONFIG_EMB_CHECKED off).
+CONFIG_IDF_TARGET="esp32"
+CONFIG_FREERTOS_UNICORE=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_FREERTOS_IN_IRAM=y
+CONFIG_FREERTOS_CHECK_STACKOVERFLOW_NONE=y
+CONFIG_FREERTOS_SUPPORT_STATIC_ALLOCATION=y
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_160=y
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_DISABLE=y
+CONFIG_ESP_TASK_WDT_EN=n
+CONFIG_ESP_INT_WDT=n

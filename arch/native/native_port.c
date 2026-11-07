@@ -7,17 +7,26 @@
  * (deterministic mode); time is virtual and advances only in idle. The kernel's
  * scheduling decisions are therefore exact and every run is reproducible (SIM-004).
  *
+ * Asynchronous mode (§5, A93), for stress runs: an injector host thread sends SIGUSR2 to
+ * the host thread holding the gate every period, and the handler delivers a tick (and,
+ * when asked, one more interrupt) at whatever statement that thread is on. It defers to
+ * the next gate crossing when the thread is masked, already in a handler, or in host code
+ * (the gate's own operations, or a section the board marks). Not reproducible.
+ *
  * Host usage is confined to this file's embh_* wrappers (§3) and the diagnostic
  * printing of the fault path.
  */
 #include <emb/arch.h>
 #include <emb/irq.h>
 
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <emb_native.h>
+#include <errno.h>
 #include <pthread.h>
+#include <signal.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -103,9 +112,9 @@ EMB_STATIC_ASSERT(sizeof(embn_thread_t) <= EMB_ARCH_TCB_EXTENSION,
 
 static struct embn_state {
     embh_mutex_t gate;
-    embk_thread_t *running; /* the port's view of the running thread */
-    unsigned masked;        /* kernel-aware interrupts masked (the critical section) */
-    unsigned in_isr;        /* a handler is running: no nested delivery in this milestone */
+    embk_thread_t *running;   /* the port's view of the running thread */
+    volatile unsigned masked; /* kernel-aware interrupts masked (the critical section) */
+    volatile unsigned in_isr; /* a handler is running: no nested delivery in this milestone */
     unsigned started;
     uint8_t enabled[EMB_ARCH_IRQ_COUNT];
     uint8_t pending[EMB_ARCH_IRQ_COUNT];
@@ -121,6 +130,26 @@ static struct embn_state {
 } g;
 
 static void port_switch(embk_thread_t *next);
+
+/* ---- asynchronous mode state (§5, A93) --------------------------------------------- */
+
+/* The host thread running simulated code, as an integer, or 0 between two of them: the
+ * injector signals it, and the handler acts only on it. */
+static _Atomic uintptr_t async_holder;
+static atomic_bool async_on;
+static atomic_int async_host_depth; /* the holder is in host or port code: defer */
+static atomic_int async_missed;     /* deferred: delivered at the next crossing */
+static atomic_bool async_running;   /* the injector thread has not returned yet */
+static unsigned async_period_us;
+static emb_irq_t async_irq = EMB_ARCH_IRQ_COUNT; /* also raised every fourth signal, if set */
+static unsigned async_count;
+static atomic_ullong async_delivered;
+static atomic_ullong async_deferred;
+
+static void holder_set(bool running)
+{
+    atomic_store(&async_holder, running ? (uintptr_t)pthread_self() : (uintptr_t)0);
+}
 
 /* ---- interrupts and delivery (§5) ------------------------------------------------- */
 
@@ -156,17 +185,21 @@ static void deliver_pending(void)
     while (g.masked == 0u && g.in_isr == 0u && g.pending_count != 0u) {
         unsigned i;
         emb_irq_t found = EMB_ARCH_IRQ_COUNT;
+        atomic_fetch_add(&async_host_depth, 1); /* the table is the port's: no signal inside */
         for (i = 0u; i < (unsigned)EMB_ARCH_IRQ_COUNT; i++) { /* lowest number first: the timer */
             if (g.pending[i] != 0u && g.enabled[i] != 0u) {
                 found = (emb_irq_t)i;
                 break;
             }
         }
+        if (found != EMB_ARCH_IRQ_COUNT) {
+            g.pending[found] = 0u;
+            g.pending_count--;
+        }
+        atomic_fetch_sub(&async_host_depth, 1);
         if (found == EMB_ARCH_IRQ_COUNT) {
             return; /* pending but disabled */
         }
-        g.pending[found] = 0u;
-        g.pending_count--;
         run_isr(found);
     }
 }
@@ -178,10 +211,23 @@ emb_irq_key_t embn_irq_lock(void)
     return key;
 }
 
+static void async_inject(void);
+
 void embn_irq_unlock(emb_irq_key_t key)
 {
+#if CONFIG_EMB_NATIVE_INVARIANTS
+    if (key == 0u && g.started != 0u && g.in_isr == 0u) {
+        /* after the operation, at the crossing (SPEC-013 §8), and still masked: an injected
+         * interrupt that preempted the checker would leave it walking lists that changed under
+         * it, and report invariants the kernel never broke (ADR-055's first runs) */
+        embk_invariants_check();
+    }
+#endif
     g.masked = key;
     if (key == 0u) {
+        if (atomic_exchange(&async_missed, 0) != 0) {
+            async_inject(); /* a signal the thread could not take then */
+        }
         deliver_pending(); /* a gate crossing */
     }
 }
@@ -196,10 +242,12 @@ void emb_native_irq_raise(emb_irq_t irq)
     if (irq >= (emb_irq_t)EMB_ARCH_IRQ_COUNT) {
         return;
     }
+    atomic_fetch_add(&async_host_depth, 1); /* the table is the port's: no signal inside */
     if (g.pending[irq] == 0u) {
         g.pending[irq] = 1u;
         g.pending_count++;
     }
+    atomic_fetch_sub(&async_host_depth, 1);
     deliver_pending();
 }
 
@@ -248,10 +296,12 @@ emb_status_t emb_arch_irq_clear_pending(emb_irq_t irq)
     if (irq >= (emb_irq_t)EMB_ARCH_IRQ_COUNT) {
         return EMB_EINVAL;
     }
+    atomic_fetch_add(&async_host_depth, 1);
     if (g.pending[irq] != 0u) {
         g.pending[irq] = 0u;
         g.pending_count--;
     }
+    atomic_fetch_sub(&async_host_depth, 1);
     return EMB_OK;
 }
 
@@ -274,6 +324,7 @@ static void *trampoline(void *arg)
     while (x->run == 0u) {
         embh_cond_wait(&x->cv, &g.gate);
     }
+    holder_set(true);
     g.masked = 0u; /* a fresh context starts with interrupts enabled */
     deliver_pending();
     embk_thread_launch(x->entry, x->arg);
@@ -307,6 +358,7 @@ static void port_switch(embk_thread_t *next)
     embk_thread_t *self = g.running;
     embn_thread_t *x = EXT(self);
     g.switches++;
+    holder_set(false); /* host code from here: no asynchronous delivery */
     x->saved_mask = g.masked;
     x->run = 0u;
     g.running = next;
@@ -315,6 +367,7 @@ static void port_switch(embk_thread_t *next)
         embh_cond_wait(&x->cv, &g.gate); /* parked: the gate is released while waiting */
     }
     g.masked = x->saved_mask;
+    holder_set(true);
 }
 
 void emb_arch_context_init(embk_thread_t *t, void *stack_base, size_t stack_size,
@@ -342,6 +395,7 @@ void emb_arch_switch_final(embk_thread_t *next)
     embk_thread_t *self = g.running;
     embn_thread_t *x = EXT(self);
     g.switches++;
+    holder_set(false);
     g.running = next;
     wake_host(next);
     embh_cond_destroy(&x->cv);
@@ -400,7 +454,12 @@ void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)
         port_switch(first);
     }
     /* resumed as the idle context */
+    holder_set(true);
     g.masked = 0u;
+    if (getenv("EMB_NATIVE_ASYNC_US") != NULL) {
+        emb_native_async_start((unsigned)strtoul(getenv("EMB_NATIVE_ASYNC_US"), NULL, 10),
+                               EMB_ARCH_IRQ_COUNT);
+    }
     embk_thread_launch(ix->entry, ix->arg);
 }
 
@@ -410,6 +469,12 @@ void emb_arch_idle(void)
 {
     deliver_pending();
     if (g.pending_count != 0u) {
+        return;
+    }
+    if (atomic_load(&async_on)) {
+        /* the next signal brings the time: wait for it, interruptible (not host code) */
+        struct timespec ts = {0, 200000};
+        (void)nanosleep(&ts, NULL);
         return;
     }
     if (g.deadline_set != 0u &&
@@ -447,16 +512,140 @@ void emb_native_set_deadline_filter(bool (*filter)(uint64_t deadline_raw, uint64
 
 void emb_native_tick(void)
 {
-    g.now_raw += 1u; /* raw units are ticks (emb_arch_timer_hz) */
+    atomic_fetch_add(&async_host_depth, 1); /* the clock is the port's: no signal inside */
+    g.now_raw += 1u;                        /* raw units are ticks (emb_arch_timer_hz) */
     if (g.deadline_set != 0u && g.deadline_raw <= g.now_raw) {
         g.deadline_set = 0u;
     }
+    atomic_fetch_sub(&async_host_depth, 1);
     emb_native_irq_raise(EMB_NATIVE_IRQ_TIMER);
 }
 
 uint64_t emb_native_switch_count(void)
 {
     return g.switches;
+}
+
+/* ---- asynchronous mode (§5, A93) ------------------------------------------------------ */
+
+/* One asynchronous event, on the holder, unmasked, outside host code. */
+static void async_inject(void)
+{
+    async_count++;
+    if (async_irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && (async_count % 4u) == 0u &&
+        g.pending[async_irq] == 0u) {
+        g.pending[async_irq] = 1u;
+        g.pending_count++;
+    }
+    emb_native_tick(); /* the tick, delivered at once: we are unmasked */
+}
+
+static void async_signal(int sig)
+{
+    int saved = errno;
+    (void)sig;
+    if (atomic_load(&async_holder) != (uintptr_t)pthread_self() ||
+        atomic_load(&async_host_depth) != 0 || g.masked != 0u || g.in_isr != 0u) {
+        atomic_store(&async_missed, 1); /* taken at the next crossing, as a masked one is */
+        atomic_fetch_add(&async_deferred, 1u);
+    } else {
+        atomic_fetch_add(&async_delivered, 1u);
+        async_inject(); /* may switch: this handler then resumes when the thread runs again */
+    }
+    errno = saved;
+}
+
+static void *async_injector(void *arg)
+{
+    unsigned seed = 12345u;
+    (void)arg;
+    while (atomic_load(&async_on)) {
+        uintptr_t h;
+        struct timespec ts;
+        /* bounded by the run: a period with jitter, so the signal lands anywhere */
+        seed = seed * 1103515245u + 12345u;
+        ts.tv_sec = 0;
+        ts.tv_nsec = (long)(async_period_us / 2u + (seed >> 16) % (async_period_us + 1u)) * 1000L;
+        (void)nanosleep(&ts, NULL);
+        h = atomic_load(&async_holder);
+        if (h != 0u) {
+            (void)pthread_kill((pthread_t)h, SIGUSR2);
+        }
+    }
+    atomic_store(&async_running, false);
+    return NULL;
+}
+
+void emb_native_async_start(unsigned period_us, emb_irq_t also_raise)
+{
+    struct sigaction sa;
+    pthread_t t;
+    if (atomic_load(&async_on) || period_us == 0u) {
+        return;
+    }
+    async_period_us = period_us;
+    async_irq = also_raise;
+    (void)memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = async_signal;
+    sa.sa_flags = SA_RESTART;
+    (void)sigemptyset(&sa.sa_mask);
+    (void)sigaction(SIGUSR2, &sa, NULL);
+    atomic_store(&async_on, true);
+    atomic_store(&async_running, true);
+    atomic_fetch_add(&async_host_depth, 1);
+    if (!embh_thread_create(&t, async_injector, NULL, 0u)) {
+        (void)fprintf(stderr, "emb native: the asynchronous injector failed to start\n");
+        atomic_store(&async_on, false);
+        atomic_store(&async_running, false);
+    }
+    atomic_fetch_sub(&async_host_depth, 1);
+}
+
+/* Nothing injected lands after this returns: the injector thread has ended, a signal still in
+ * flight is ignored, and a deferred event or an interrupt raised but not yet delivered is
+ * dropped. Before, a late one could reach a handler after the test destroyed its object (the
+ * async stress test's intermittent fault in emb_sem_give, 2026-11-06). */
+void emb_native_async_stop(void)
+{
+    struct sigaction sa;
+    emb_irq_key_t key;
+    if (!atomic_exchange(&async_on, false)) {
+        return;
+    }
+    atomic_fetch_add(&async_host_depth, 1); /* host code: a signal now defers */
+    while (atomic_load(&async_running)) {   /* bounded: the injector's period */
+        struct timespec ts = {0, 100000};
+        (void)nanosleep(&ts, NULL);
+    }
+    (void)memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    (void)sigemptyset(&sa.sa_mask);
+    (void)sigaction(SIGUSR2, &sa, NULL);
+    atomic_fetch_sub(&async_host_depth, 1);
+    key = embn_irq_lock();
+    atomic_store(&async_missed, 0);
+    if (async_irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT && g.pending[async_irq] != 0u) {
+        g.pending[async_irq] = 0u;
+        g.pending_count--;
+    }
+    async_irq = EMB_ARCH_IRQ_COUNT;
+    embn_irq_unlock(key);
+}
+
+void emb_native_async_stats(uint64_t *delivered, uint64_t *deferred)
+{
+    *delivered = (uint64_t)atomic_load(&async_delivered);
+    *deferred = (uint64_t)atomic_load(&async_deferred);
+}
+
+void emb_native_host_begin(void)
+{
+    atomic_fetch_add(&async_host_depth, 1);
+}
+
+void emb_native_host_end(void)
+{
+    atomic_fetch_sub(&async_host_depth, 1);
 }
 
 emb_status_t emb_arch_timer_init(void)
@@ -524,6 +713,12 @@ uint32_t emb_arch_cycles_hz(void)
 }
 
 /* ---- stacks, faults, debug ---------------------------------------------------------------- */
+
+uint8_t *emb_arch_isr_stack(size_t *size)
+{
+    *size = 0u; /* host stacks: interrupts run on the host thread's own (A90) */
+    return NULL;
+}
 
 bool emb_arch_stack_check(const embk_thread_t *t)
 {

@@ -16,7 +16,7 @@ set(EMB_BOARD_VARIANT armv6m)
 set(EMB_BOARD_DEFAULT_PROFILE tiny)
 set(EMB_BOARD_C_FLAGS -mcpu=cortex-m0 -mfloat-abi=soft)
 # the SoC family's board support and drivers build this board (generated/CMakeLists.txt)
-set(EMB_SOC_DIR "${CMAKE_SOURCE_DIR}/soc/nordic/nrf51")
+set(EMB_SOC_DIR "${EMB_BASE}/soc/nordic/nrf51")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M microbit -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel)
 # the inputs this directory was generated from, for the configure-time staleness check

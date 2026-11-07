@@ -107,6 +107,9 @@ void emb_test_logf(const char *fmt_flash, ...)
 {
     char buf[128];
     va_list ap;
+    if (emb_test_muted()) {
+        return;
+    }
     va_start(ap, fmt_flash);
     format(buf, sizeof(buf), fmt_flash, ap);
     va_end(ap);
@@ -115,11 +118,17 @@ void emb_test_logf(const char *fmt_flash, ...)
 
 void emb_test_puts_flash(const char *s_flash)
 {
+    if (emb_test_muted()) {
+        return;
+    }
     emb_board_puts(s_flash);
 }
 
 void emb_test_puts(const char *s)
 {
+    if (emb_test_muted()) {
+        return;
+    }
     emb_board_puts(s);
 }
 
@@ -182,6 +191,18 @@ void emb_test_platform_irq_settle(void)
     while (fired == masked_before && spin < 1000000u) { /* bounded */
         spin++;
     }
+}
+
+/* ---- memory the reset keeps (A89) ------------------------------------------------------------ */
+
+/* The linker script's 32 bytes below the crash record, outside every loaded segment. */
+extern uint8_t __emb_test_retained_start[];
+extern uint8_t __emb_test_retained_end[];
+
+uint8_t *emb_test_platform_retained(size_t *size)
+{
+    *size = (size_t)(__emb_test_retained_end - __emb_test_retained_start);
+    return __emb_test_retained_start;
 }
 
 /* ---- no fork on a microcontroller (TEST-010 runs on the native port) ------------------------ */

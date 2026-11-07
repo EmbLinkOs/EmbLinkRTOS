@@ -16,18 +16,24 @@ void emb_test_logf(const char *fmt_flash, ...)
 {
     va_list ap;
     va_start(ap, fmt_flash);
+    emb_native_host_begin(); /* the C library is host code (A93) */
     (void)vprintf(fmt_flash, ap);
+    emb_native_host_end();
     va_end(ap);
 }
 
 void emb_test_puts_flash(const char *s_flash)
 {
+    emb_native_host_begin();
     (void)fputs(s_flash, stdout);
+    emb_native_host_end();
 }
 
 void emb_test_puts(const char *s)
 {
+    emb_native_host_begin();
     (void)fputs(s, stdout);
+    emb_native_host_end();
 }
 
 void emb_test_exit(int code)

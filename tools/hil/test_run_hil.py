@@ -87,6 +87,69 @@ class Runner(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("bench notify", out)
 
+    def test_benchmark_values_are_required_with_bench(self):
+        good = (b"BENCH v1 name=notify_handover units=1234 ops=20 per_op_x100=6170 unit_hz=250000 checked=1\n"
+                b"BENCH v1 name=sem units=5 ops=1 unit_hz=1 os=freertos\nBENCH_END\n")
+        rc, _, _ = self.board(good).run("--until", "BENCH_END", "--bench")
+        self.assertEqual(rc, 0)
+        rc, _, err = self.board(b"bench: total 100\nBENCH_END\n").run("--until", "BENCH_END", "--bench")
+        self.assertEqual(rc, 1)
+        self.assertIn("no BENCH v1 result line", err)
+        zero = b"BENCH v1 name=irq min=0 max=9 avg_x100=400 ops=100 unit_hz=1 checked=0\nBENCH_END\n"
+        rc, _, err = self.board(zero).run("--until", "BENCH_END", "--bench")
+        self.assertEqual(rc, 1)
+        self.assertIn("zero measurement", err)
+        bad = b"BENCH v1 name=irq min=-3 ops=1\nBENCH_END\n"
+        rc, _, err = self.board(bad).run("--until", "BENCH_END", "--bench")
+        self.assertEqual(rc, 1)
+        self.assertIn("unsigned integer", err)
+
+    def test_archive_keeps_the_record(self):
+        out = (b"EVIDENCE v1 suite=test_x config=abc profile=base board=b checked=1\nTEST a\n"
+               b"  fault checks that reset the board: 3\n  -> ok\n"
+               b"CASE a outcome=passed asserts=3 skips=0\nTEST c\nCASE c outcome=skipped asserts=0 skips=1\n"
+               b"ISR_STACK size=2048 used=312\n2 tests, 0 failed, 1 skipped, 7 ticks\nEMB_TEST_END\n")
+        b = self.board(out)
+        arch = b.dir / "archive"
+        rc, _, _ = b.run("--archive", str(arch))
+        self.assertEqual(rc, 0)
+        rec = json.loads((arch / "test.json").read_text())
+        self.assertEqual(rec["format"], "emb-hil-run v1")
+        self.assertEqual(rec["outcome"], "passed")
+        self.assertEqual(rec["summary"], {"tests": 2, "failed": 0, "skipped": 1})
+        self.assertEqual([c["name"] for c in rec["cases"]], ["a", "c"])
+        self.assertEqual(rec["fault_checks_by_reset"], 3)
+        self.assertEqual(rec["isr_stack"], {"size": 2048, "used": 312})
+        self.assertEqual(rec["evidence"]["suite"], "test_x")
+        self.assertEqual(len(rec["image_sha256"]), 64)
+        self.assertEqual(rec["flashed_sha256"], {})  # the stand-in command names no file
+        log = (arch / "test.log").read_bytes()
+        self.assertTrue(log.startswith(b"hil: board nucleo_f446re"))
+        self.assertIn(b"EMB_TEST_END", log)
+
+    def test_archive_hashes_what_the_command_flashes(self):
+        b = self.board(b"1 tests, 0 failed, 0 skipped, 1 ticks\nEMB_TEST_END\n")
+        hexfile = b.dir / "test.hex"
+        hexfile.write_bytes(b":00000001FF\n")
+        arch = b.dir / "archive"
+        flag = str(b.flag)
+        cmd = (f"{sys.executable} -c \"import sys; open({flag!r}, 'w').close()\" "
+               f"-Uflash:w:{hexfile}:i")
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            rc = run_hil.main([str(b.image), "--hw-json", str(b.hw), "--port", b.port, "--flash-cmd", cmd,
+                               "--timeout", "3", "--archive", str(arch)])
+        self.assertEqual(rc, 0)
+        rec = json.loads((arch / "test.json").read_text())
+        self.assertEqual(set(rec["flashed_sha256"]), {"test.hex"})
+
+    def test_archive_records_a_timeout(self):
+        b = self.board(b"TEST a\n")
+        arch = b.dir / "archive"
+        rc, _, _ = b.run("--archive", str(arch))
+        self.assertEqual(rc, 2)
+        self.assertEqual(json.loads((arch / "test.json").read_text())["outcome"], "error")
+
     def test_flash_failure(self):
         rc, _, err = self.board(b"").run(code=3)
         self.assertEqual(rc, 2)
@@ -129,6 +192,24 @@ class Runner(unittest.TestCase):
         cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101", "embflash")
         self.assertEqual(cmd, ["embflash", "/b/test_sem.hex", "--stk500", "serial:/dev/cu.usbmodem1101@115200",
                                "--verify"])
+
+    def test_esp_command_from_the_committed_esp32(self):
+        hw = json.loads((HERE.parent.parent / "boards/espressif/esp32_devkitc/hw.json").read_text())
+        self.assertTrue(run_hil.shares_port(hw))
+        self.assertTrue(run_hil.resets_after_open(hw))
+        old = os.environ.pop("EMBFLASH", None)
+        try:
+            cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbserial-0001")
+            self.assertEqual(cmd, ["embflash", "/b/test_sem.bin", "--esp", "serial:/dev/cu.usbserial-0001",
+                                   "--base", "0x1000", "--verify"])
+            os.environ["EMBFLASH"] = "/opt/embcc/bin/embflash"
+            cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbserial-0001")
+            self.assertEqual(cmd[0], "/opt/embcc/bin/embflash")
+        finally:
+            os.environ.pop("EMBFLASH", None)
+            if old is not None:
+                os.environ["EMBFLASH"] = old
+        self.assertEqual(hw["derived"]["console"]["baud"], 115200)
 
     def test_the_committed_board_has_the_hints(self):
         hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())

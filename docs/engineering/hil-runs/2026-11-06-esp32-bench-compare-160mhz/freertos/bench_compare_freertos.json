@@ -1,0 +1,57 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "freertos",
+      "per_op_x100": 153520,
+      "unit_hz": 160000000,
+      "units": 30704088
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "freertos",
+      "per_op_x100": 195918,
+      "unit_hz": 160000000,
+      "units": 39183789
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "freertos",
+      "per_op_x100": 31558,
+      "unit_hz": 160000000,
+      "units": 3155880
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "freertos",
+      "per_op_x100": 320062,
+      "unit_hz": 160000000,
+      "units": 16003103
+    }
+  ],
+  "board": "esp32_devkitc",
+  "cases": [],
+  "ended": "2026-11-06T01:14:13Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "true"
+  ],
+  "flashed_sha256": {},
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "d72aaeb2533c83ff945d83b6e711660ee754a836",
+    "dirty": false
+  },
+  "image": "bench_compare_freertos.elf",
+  "image_sha256": "a4d48d9bf6858a0f08e19b90f1786d6695afbab3d1e323fcbe335543f322574b",
+  "outcome": "passed",
+  "port": "/dev/cu.usbserial-0001",
+  "soc": "ESP32-D0WD (ESP-WROOM-32)",
+  "started": "2026-11-06T01:14:12Z"
+}

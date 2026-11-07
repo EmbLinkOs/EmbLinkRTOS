@@ -3,7 +3,7 @@
 **Specification:** SPEC-012 (port), SPEC-011 (contract), SPEC-002 §13 and SPEC-003 §13 (AVR rows).
 **Status (M1):** periodic tick, context switch, `EMB_ISR` prologue and epilogue, critical sections, interrupt mask table, idle, faults by halt or watchdog reset. Tickless mode, the `.noinit` crash record, come with later milestones; the configuration refuses `CONFIG_EMB_TICKLESS` on this port until then.
 **Boards:** `arduino_uno` (ATmega328P at 16 MHz, USART0 console at 115200, LED on PB5, Optiboot keeps the top 512 bytes of flash). The board is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory. The ATmega board support (`soc/microchip/atmega/board.c`) and the inline drivers in `drivers/microchip/include/` build it; the images are byte-identical to the hand-written board's.
-**Verified on:** QEMU `arduino-uno` machine (SIM-002): the first-execution sequence and the conformance suite. No hardware run yet: every figure below marked *measured* comes from the toolchain's output, not from a board, and no latency number is published (SIM-003).
+**Verified on:** QEMU `arduino-uno` machine (SIM-002), EmbSIM's Uno, and a physical Arduino Uno: checked, release and T1 builds, 17, 17 and 13 images passed on [2026-11-05](../engineering/hil-uno-2026-11-05.md), with 53 misuse checks executed on the part ([first run 2026-11-04](../engineering/hil-uno-2026-11-04.md)). The one timing figure from the board is `bench_switch`'s notification hand-over: 81.1 µs checked, 67.8 µs release, 66.4 µs T1, at 4 µs resolution. Figures below marked *measured* come from the toolchain's output, not from the board.
 
 ## Context frame
 
@@ -21,6 +21,8 @@ One layout serves the switch, the interrupt epilogue, and the initial frame (SPE
 The manifest budgets 37 bytes per context (`stack.context_frame`), two more than the frame for the return address of the call into the switch routine. The initial frame returns into `embk_thread_launch(entry, arg)` with `entry` in r24:r25 and `arg` in r22:r23, which calls `entry(arg)` and exits the thread with code 0 (KRN-THR-005).
 
 ## Switch and interrupt exit
+
+**Stacks ([A89, A90](../specs/AMENDMENTS-M3.md)).** Interrupts run on the interrupted context's stack. The idle context runs on the pre-kernel stack, from the end of `.noinit` to `RAMEND`, which `emb_arch_kernel_start()` restarts at `RAMEND`. `emb_arch_isr_stack()` reports that region. Checked builds fill it at kernel init and, at every outermost kernel-aware exit, check its lowest 8 bytes and the interrupted thread's guard. `emb_isr_stack_info()` gives its size and high-water mark.
 
 - `emb_arch_switch_to(next)` is a naked routine: push the frame with `cli` after reading SREG, store SP into the outgoing thread's `arch.sp`, make `next` current, load its SP, restore, `ret`. Masked for its whole length: 33 software pushes, 33 pops, the two-byte return address and the pointer exchange, cycle cost not yet established on a board; push/pop instruction counts must not be equated with cycles.
 - `EMB_ISR(name)` defines `__vector_<n>` from the board's `EMB_VECTOR_<name>`: the same frame push with the I bit forced set in the saved SREG (`set; bld r0,7`, since `ori` needs r16 or above), `embk_isr_enter()`, the C body `embk_isr_body_<name>()`, `embk_isr_exit()`, an unconditional SP exchange with the thread the kernel named (the running one when nothing changed: no branch, no label, per SPEC-011 §15), restore, `ret`.

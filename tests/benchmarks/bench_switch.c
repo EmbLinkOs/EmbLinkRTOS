@@ -46,6 +46,25 @@ static void report(const char *what, uint32_t units, uint32_t count)
     emb_board_puts("\n");
 }
 
+/* The machine-readable form the HIL runner checks and archives (A89): every value an
+ * unsigned integer, the cycle unit's rate included. */
+static void report_line(const char *name, uint32_t units, uint32_t count)
+{
+    emb_board_puts("BENCH v1 name=");
+    emb_board_puts(name);
+    emb_board_puts(" units=");
+    emb_board_put_u32(units);
+    emb_board_puts(" ops=");
+    emb_board_put_u32(count);
+    emb_board_puts(" per_op_x100=");
+    emb_board_put_u32((uint32_t)(((uint64_t)units * 100u) / count));
+    emb_board_puts(" unit_hz=");
+    emb_board_put_u32(emb_arch_cycles_hz());
+    emb_board_puts(" checked=");
+    emb_board_put_u32((uint32_t)CONFIG_EMB_CHECKED);
+    emb_board_puts("\n");
+}
+
 static void ping_b(void *arg)
 {
     uint32_t i;
@@ -57,6 +76,7 @@ static void ping_b(void *arg)
     }
     t_end = emb_arch_cycles();
     report("notify round trip (2 switches)", t_end - t_start, ITERATIONS * 2u);
+    report_line("notify_handover", t_end - t_start, ITERATIONS * 2u);
     emb_board_puts("meta: board " EMB_HW_BOARD_NAME ", compiler " EMB_COMPILER_NAME
                    ", profile " CONFIG_EMB_PROFILE ", checked ");
     emb_board_put_u32((uint32_t)CONFIG_EMB_CHECKED);
@@ -74,8 +94,10 @@ static void ping_b(void *arg)
 #endif
 }
 
-EMB_THREAD_DEFINE(thread_a, ping_a, NULL, 2u, 256u, 0u);
-EMB_THREAD_DEFINE(thread_b, ping_b, NULL, 3u, 256u, 0u);
+/* 256 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 256u ? EMB_THREAD_STACK_MIN : 256u)
+EMB_THREAD_DEFINE(thread_a, ping_a, NULL, 2u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_b, ping_b, NULL, 3u, STACK_SIZE, 0u);
 
 int main(void)
 {

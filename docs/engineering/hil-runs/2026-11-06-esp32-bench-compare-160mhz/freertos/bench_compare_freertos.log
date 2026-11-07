@@ -1,0 +1,66 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe true, port /dev/cu.usbserial-0001 at 115200 baud, image bench_compare_freertos.elf sha256 a4d48d9bf6858a0f08e19b90f1786d6695afbab3d1e323fcbe335543f322574b
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0040,len:5172
+load:0x40078000,len:15260
+load:0x40080400,len:3652
+entry 0x400805fc
+I (27) boot: ESP-IDF v6.1 2nd stage bootloader
+I (27) boot: compile time Nov  6 2026 02:14:02
+W (28) boot: Unicore bootloader
+I (28) boot: chip revision: v3.1
+I (31) boot.esp32: SPI Speed      : 40MHz
+I (35) boot.esp32: SPI Mode       : DIO
+I (38) boot.esp32: SPI Flash Size : 2MB
+I (42) boot: Enabling RNG early entropy source...
+I (47) boot: Partition Table:
+I (49) boot: ## Label            Usage          Type ST Offset   Length
+I (55) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (62) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (69) boot:  2 factory          factory app      00 00 00010000 00100000
+I (75) boot: End of partition table
+I (78) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=03424h ( 13348) map
+I (91) esp_image: segment 1: paddr=0001344c vaddr=3ffb0000 size=015b8h (  5560) load
+I (95) esp_image: segment 2: paddr=00014a0c vaddr=40080000 size=08f60h ( 36704) load
+I (116) esp_image: segment 3: paddr=0001d974 vaddr=50000000 size=00028h (    40) load
+I (116) esp_image: segment 4: paddr=0001d9a4 vaddr=00000000 size=02674h (  9844) 
+I (123) esp_image: segment 5: paddr=00020020 vaddr=400d0020 size=081f4h ( 33268) map
+I (143) boot: Loaded app from partition at offset 0x10000
+I (143) boot: Disabling RNG early entropy source...
+I (153) cpu_start: Unicore app
+I (153) cpu_start: Single core mode
+I (161) cpu_start: GPIO 3 and 1 are used as console UART I/O pins
+I (162) cpu_start: Pro cpu start user code
+I (162) cpu_start: cpu freq: 160000000 Hz
+I (165) app_init: Application information:
+I (169) app_init: Project name:     bench_compare_freertos
+I (174) app_init: App version:      d72aaeb
+I (178) app_init: Compile time:     Nov  6 2026 02:13:58
+I (183) app_init: ELF file SHA256:  a4d48d9bf...
+I (188) app_init: ESP-IDF:          v6.1
+I (191) efuse_init: Min chip rev:     v0.0
+I (195) efuse_init: Max chip rev:     v3.99 
+I (199) efuse_init: Chip rev:         v3.1
+I (203) heap_init: Initializing. RAM available for dynamic allocation:
+I (209) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM
+I (214) heap_init: At 3FFB30E8 len 0002CF18 (179 KiB): DRAM
+I (220) heap_init: At 3FFE0440 len 0001FBC0 (126 KiB): D/IRAM
+I (225) heap_init: At 40078000 len 00008000 (32 KiB): IRAM
+I (230) heap_init: At 40088F60 len 000170A0 (92 KiB): IRAM
+I (236) heap_init: At 3FF80000 len 00002000 (8 KiB): RTCRAM
+I (242) spi_flash: detected chip: generic
+I (245) spi_flash: flash io: dio
+W (248) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+I (260) main_task: Started on CPU0
+I (262) main_task: Calling app_main()
+bench_compare: FreeRTOS V10.5.1 (ESP-IDF)
+BENCH v1 name=notify_handover units=30704088 ops=20000 per_op_x100=153520 unit_hz=160000000 os=freertos
+BENCH v1 name=sem_handover units=39183789 ops=20000 per_op_x100=195918 unit_hz=160000000 os=freertos
+BENCH v1 name=sem_give_take units=3155880 ops=10000 per_op_x100=31558 unit_hz=160000000 os=freertos
+BENCH v1 name=isr_wake units=16003103 ops=5000 per_op_x100=320062 unit_hz=160000000 os=freertos
+BENCH_END
+I (826) main_task: R

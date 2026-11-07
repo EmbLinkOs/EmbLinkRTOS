@@ -1,0 +1,7 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash build/cmp-checked/tests/benchmarks/bench_compare.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image bench_compare.elf sha256 7cf25916c4d5bfed6609ea8d345a2fc4d7f2833a55d94b25ebef0916e5804507
+bench_compare: EmbLinkRTOS 0.2.0
+BENCH v1 name=notify_handover units=414394 ops=20000 per_op_x100=2071 unit_hz=250000 os=emblink
+BENCH v1 name=sem_handover units=421371 ops=20000 per_op_x100=2106 unit_hz=250000 os=emblink
+BENCH v1 name=sem_give_take units=64965 ops=10000 per_op_x100=649 unit_hz=250000 os=emblink
+BENCH v1 name=isr_wake units=202337 ops=5000 per_op_x100=4046 unit_hz=250000 os=emblink
+BENCH_END

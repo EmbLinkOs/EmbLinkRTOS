@@ -1,12 +1,15 @@
 # Cortex-M port
 
-**Status:** Armv6-M (Cortex-M0, A86), Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F and Cortex-M7, A83) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`microbit`, `mps2-an385`, `mps2-an386`, `mps2-an500`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv8-M Baseline follows (07 §2, M3). No hardware run yet: QEMU timing is never evidence (SIM-003).
+**Status:** Armv6-M (Cortex-M0, A86), Armv7-M (Cortex-M3), Armv7E-M (Cortex-M4F and Cortex-M7, A83) and Armv8-M Mainline (Cortex-M33, A78) running the full conformance suite under QEMU (`microbit`, `mps2-an385`, `mps2-an386`, `mps2-an500`, `mps2-an505`); the M4F also on EmbSIM's NUCLEO-F446RE. This was the first 32-bit target, together with RISC-V (ADR-038). Armv8-M Baseline follows (07 §2, M3). The misuse checks run on every MPS2 machine, each through a fault and a reset (A89), and are skipped on the micro:bit. No Cortex-M hardware run yet: QEMU timing is never evidence (SIM-003).
 
 **Sources:** `arch/cortex_m/` (`cm_port.c` switching, interrupts, SysTick, faults; `cm_vectors.c` vector table, reset, PendSV, fault entry; `cm_services.c` semihosting exit, halt and FPU probes), boards `boards/arm/mps2_an385`, `boards/arm/mps2_an386`, `boards/arm/mps2_an500`, `boards/arm/mps2_an505` (their board support in `soc/arm/mps2/`), `boards/rpi/pico2_w` (the RP2350's board support in `soc/rpi/rp2350/`, built only), and `boards/st/nucleo_f446re`. Every Cortex-M board is a `board.yaml` and its generated `generated/` directory ([hardware generator](../engineering/hwgen.md)). The NUCLEO-F446RE has no C of its own: it is `board.yaml` plus its [generated](../engineering/hwgen.md) `generated/` directory, built by the STM32F4 board support (`soc/st/stm32f4/board.c`) over the drivers in `drivers/st/`. So is `boards/st/nucleo_f446ze`, a second board on the STM32F446, which runs the suite on EmbSIM's NUCLEO-F446ZE (preset `cm4-nucleo-f446ze`).
 
 ## Switching
 
-Threads run in thread mode on PSP; handlers on MSP, which is `main()`'s stack. Every context change is made by PendSV at the lowest priority, so it happens only when no other handler is active.
+Threads run in thread mode on PSP; handlers on MSP, the interrupt stack ([A90](../specs/AMENDMENTS-M3.md)).
+- It is `embn_cm_isr_stack`, `CONFIG_EMB_ISR_STACK_SIZE` bytes (2048 by default), placed by the linker script first in RAM, so an overflow runs off the bottom of RAM into a bus fault instead of into `.data`. A link-time `ASSERT` refuses an image whose `.data` and `.bss` would reach the retained memory at the top of RAM.
+- `main()` runs on it before the kernel starts, and the first PendSV resets MSP to its top, so none of it stays used.
+- Checked builds fill it at `emb_kernel_init()` and check its lowest 8 bytes at every outermost interrupt exit, as they check the interrupted thread's guard, which took the exception frame. `emb_isr_stack_info()` reports its high-water mark, and every test run prints it as `ISR_STACK size=... used=...`: 140 of 2048 bytes on QEMU's MPS2. Every context change is made by PendSV at the lowest priority, so it happens only when no other handler is active.
 
 - The port keeps `embn_cm_running` (the thread whose registers are on the CPU) and `embn_cm_next` (the kernel's latest decision).
 - `emb_arch_switch_to(next)` is called in the kernel's critical section. It stores `next`, pends PendSV, sets BASEPRI to 0 for the instant PendSV needs, and on resumption restores its own BASEPRI from a local of its frame, so each thread gets its own critical-section state back.
@@ -19,7 +22,7 @@ Frame, from the saved stack pointer upward: r4..r11, EXC_RETURN, then the hardwa
 
 ## Interrupts and critical sections
 
-- The critical section raises BASEPRI to `CONFIG_EMB_CM_KERNEL_BASEPRI` (default 32, level 1 with three priority bits). Interrupts above it are zero-latency: never masked by the kernel and not allowed to call it (SPEC-002 §3). Unlock writes BASEPRI back and issues `isb`, so a pending interrupt is taken at once.
+- The critical section raises BASEPRI to `CONFIG_EMB_CM_KERNEL_BASEPRI` (default 32). With three priority bits that is hardware priority 1, the most urgent kernel-aware one, which is the API's highest generic level, 5 (`EMB_IRQ_LEVEL_MAX`, larger is more urgent). Interrupts above it are zero-latency: never masked by the kernel and not allowed to call it (SPEC-002 §3). Unlock writes BASEPRI back and issues `isb`, so a pending interrupt is taken at once.
 - Every external interrupt starts at raw `CONFIG_EMB_CM_IRQ_PRIORITY` (default 128). `emb_irq_set_level()` accepts advertised generic levels, with larger values more urgent: `encoding = (256 - 2*S) - S*level`, `S = 1 << (8 - CONFIG_EMB_CM_IRQ_PRIORITY_BITS)`. MPS2 exposes three bits (levels 0–5 at BASEPRI 32); F446 exposes four (0–12). Invalid values are rejected before any write. `PRIGROUP=0` makes the declared 3–7 high bits preemption bits; the least-urgent encoding stays reserved for PendSV. `CONFIG_EMB_CM_TIMER_LEVEL` defaults to the highest kernel-aware level. Threshold/default encodings are validated and public limits are derived; non-nesting configurations require a single kernel-aware level; raw kernel-independent vectors are not implemented and enabling that class fails configuration. See [IRQ evidence](../engineering/m2-02-irq-priority.md).
 - All external vectors enter one common entry, which reads IPSR and runs the handler bound with `emb_irq_connect()`; `CONFIG_EMB_IRQ_DYNAMIC` is required. `EMB_ISR(name)` declares such a handler.
 - `emb_irq_pend()` pends a line through NVIC ISPR, which is a true software interrupt. The test framework uses the board's spare line `EMB_HW_TEST_IRQ` (30 on MPS2).
@@ -79,7 +82,7 @@ The header accepts `__ARM_ARCH_8M_MAIN__`, and the manifest lists the variant fo
 **Stack limits ([A80](../specs/AMENDMENTS-M3.md)).**
 - Each thread's PSPLIM is its stack's base, saved in its frame below r4 and restored by PendSV before PSP.
 - A push below the base faults at once (CFSR.STKOF), before the thread writes outside its stack. The fault is reported as `EMB_FAULT_STACK_OVERFLOW`, with the fault status in the crash record and no frame: the hardware does not stack one at the limit.
-- MSPLIM (the interrupt stack) is not set yet.
+- MSPLIM bounds the interrupt stack (A90). The reset sets it 384 bytes above the stack's bottom, and CCR.STKOFHFNMIGN so that HardFault may run below it. The fault entry clears it first, so the fault path runs in those 384 bytes. An interrupt that overflows faults as `EMB_FAULT_STACK_OVERFLOW` (`isr_stack_limit_stops_an_overflowing_interrupt`).
 
 **Not yet used:** the Armv8-M MPU, the Security Attribution Unit, and non-secure images.
 
@@ -94,4 +97,4 @@ It reuses the MPS2 board support unchanged.
 
 ## Next
 
-MSPLIM for the interrupt stack, the Armv6-M crash and priority tests on a physical Cortex-M0, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).
+The Armv6-M crash and priority tests on a physical Cortex-M0, tickless SysTick, DWT cycle counter on hardware, the STM32F407 Discovery board, and the NUCLEO-F446RE on hardware (M3).

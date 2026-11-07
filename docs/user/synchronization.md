@@ -7,7 +7,10 @@ Use an implemented primitive according to the information it preserves:
 | Protect shared state | Mutex | An owner unlocks; inheritance can raise its effective priority |
 | Count available units | Semaphore | A take consumes one unit; give may hand it directly to a waiter |
 | Signal “inspect this source” | Thread notification | Bits persist and coalesce; repeated sets do not count events |
-| Carry messages or schedule deferred callbacks | Planned queues/work queues | These services have specifications but no current public implementation |
+| Carry fixed-size messages | Message queue (`emb_msgq_*`) | Items are copied in and out; a full queue blocks the sender or returns `EMB_ETIMEDOUT` |
+| Wait for any or all of several conditions | Event group (`emb_event_*`) | Bits are set and cleared by name; a waiter chooses any or all, and whether to clear |
+| Run a callback later, in a thread | Work queue and delayed work (`emb_workq_*`, `emb_dwork_*`) | An item is queued once; it runs on the queue's thread, in submission order |
+| Run something periodically | Software timer (`emb_timer_*`) | The callback runs on a work queue by default, or in the tick's interrupt with `EMB_TIMER_ISR_CONTEXT` |
 
 ## A complete producer/consumer program
 

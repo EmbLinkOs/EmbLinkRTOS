@@ -4,6 +4,15 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (Xtensa port, 2026-11-05)
+
+- The kernel on the classic ESP32 (Xtensa LX6, PRO_CPU), the board `esp32_devkitc` ([port](docs/ports/xtensa.md), ADR-054, A95). It runs on hardware: 21 of 21 tests, 157 cases and 74 fault checks that reset the board, built by EmbCC ([report](docs/engineering/hil-esp32-port-2026-11-05.md)). Every switch happens in the level-1 entry, after every register window is spilled to the thread's own stack. The tick is CCOMPARE0, the interrupt numbers are the interrupt matrix's sources, and the CPU stays at 40 MHz in this milestone.
+- The ESP32 board runs its CPU at 160 MHz from the PLL, ESP-IDF's default; the ROM leaves it on the 40 MHz crystal. All six builds (EmbCC, GCC and Clang, checked and release) pass on the board at 160 MHz.
+- EmbCC builds track header dependencies (`cmake/toolchains/embcc-depfile.cmake`). Before, CMake asked EmbCC for no dependency files, and a changed header such as the generated `<emb/config.h>` left stale objects behind.
+- `cmake --preset xt-esp32-hil` builds it with EmbCC for a run on the board. CI builds `xt-esp32-gcc` with Espressif's GCC and `xt-esp32-clang` with Espressif's Clang and LLD, and keeps the images. Both passed the suite on the board. `run_hil.py` flashes an ESP32 with `embflash --esp` and resets it into a normal boot once its console is open.
+- `bench_compare` runs on the ESP32 too, with the board's test line raising the interrupt. The first numbers, in cycles at 40 MHz, are in the report.
+- A measured comparison with FreeRTOS on the ESP32 ([report](docs/engineering/bench-esp32-freertos-2026-11-06.md), A96): ESP-IDF v6.1's FreeRTOS V10.5.1, configured as the EmbLinkRTOS release build, counted in CPU cycles on the same board. Built by GCC, EmbLinkRTOS takes 37% fewer cycles per notification switch, 50% fewer per semaphore switch, 34% fewer per uncontended give and take, and 39% fewer per interrupt-to-thread wake. Built by EmbCC it is behind on three of the four. `tools/bench/freertos-esp32/` builds the FreeRTOS side, locally or in CI's ESP-IDF container.
+
 ### Fixed (technical review, 2026-11-05)
 
 - Mutex ceiling: a thread above a `EMB_MUTEX_CEILING` mutex's ceiling is refused when the mutex is owned too (SPEC-005 §3.4). Before, it blocked and later received the mutex by hand-off with no check. Checked builds fault, release builds return `EMB_EPERM`.
@@ -12,9 +21,25 @@ User-visible changes are recorded here. There are no released versions or releas
 - Cortex-M: a tick that needs more than 2^24 SysTick counts no longer clamps silently to a wrong rate. It fails the build (a static assertion over `CONFIG_EMB_CM_CPU_HZ` and `CONFIG_EMB_TICK_NS`).
 - AVR: `EMB_THREAD_STACK_MIN` includes `CONFIG_EMB_AVR_ISR_STACK_RESERVE`, as the option's help always said. `emb_thread_init()` refuses a stack too small for its interrupt reserve (96 + 64 = 160 bytes by default).
 - The AVR, RISC-V and Cortex-M manifests no longer claim `tickless: true`. All three ports refuse `EMB_TICKLESS`, and their timer deadline functions are stubs.
+- AVR: the idle context's stack restarts at `RAMEND` when the kernel starts (A89). Before, the idle loop and the interrupts it takes ran below `main()`'s dead frames, within about 200 bytes of `.noinit`. Running the fault checks on the Uno found it.
+- Delayed work: an item that a nested interrupt cancelled and scheduled again while its expiry was running no longer runs at once (A92). It keeps the new delay. The window needs a kernel-aware interrupt above SysTick's level, so it can only open with `CONFIG_EMB_CM_TIMER_LEVEL` lowered from its default.
 
 ### Added (technical review, 2026-11-05)
 
+- A measured comparison with FreeRTOS 11.1.0 on the Uno ([report](docs/engineering/bench-uno-freertos-2026-11-05.md), A94). It uses one benchmark source for both kernels, the same compiler, flags and timer, and FreeRTOS built by `tools/bench/freertos-avr/build.sh`. EmbLinkRTOS release: interrupt-to-thread 5% faster, semaphore hand-over level, notification hand-over 12% slower, give-and-take 34% slower, 34% less RAM, 14% more flash.
+- The native port's asynchronous interrupt mode (A93): `emb_native_async_start()` or `EMB_NATIVE_ASYNC_US` lands ticks between any two statements through SIGUSR2. `tests/stress/test_async_irq` runs the kernel under it, with `embk_invariants_check()` at every gate crossing. That checker now backs `CONFIG_EMB_NATIVE_INVARIANTS`, which did nothing before, in every checked native run.
+- The interrupt stack is bounded and checked (A90, PORT-016).
+  - Cortex-M: MSP is a `CONFIG_EMB_ISR_STACK_SIZE` array (2048 bytes by default) first in RAM, and the first PendSV drops `main()`'s frames from it.
+  - Armv8-M Mainline: MSPLIM stops an overflowing interrupt.
+  - Every port: checked builds check the interrupt stack's guard, and the interrupted thread's, at every outermost interrupt exit.
+  - `emb_isr_stack_info()` reports the high-water mark, and test runs print it. Before, the Cortex-M main stack had no bound, and an overflow overwrote `.bss` silently.
+- User guide: an [Interrupts](docs/user/interrupts.md) page, covering handlers, what they may call, nesting and stacks. Its table of interrupt-safe functions is generated from the headers' `@ctx` tags (`tools/docs/isr_table.py`, checked in CI). [Getting started](docs/user/getting-started.md) gains the QEMU path with `run_<image>`, and [Debugging](docs/user/debugging.md) gains crash records on a board and GDB through OpenOCD.
+- Corrected documentation (F13): the native CTest count and setup (no `/workspace`, no preinstalled `.venv`), the synchronization and adoption tables that called message queues, event groups, work queues and timers unimplemented, the "no hardware run" sentences of the AVR and HIL pages, the RISC-V suite counts, and the BASEPRI wording: 32 is the API's level 5, not level 1.
+- The classic ESP32's bring-up probe ran on a physical board: built by EmbCC, flashed by `embflash --esp` from EmbCC #173 ([report](docs/engineering/hil-esp32-2026-11-05.md)).
+- Applications outside the tree (A91): `find_package(EmbLinkRTOS)` before `project()` picks the board's toolchain, then `emb_kernel()` and `emb_add_executable()` build the image, and `run_<name>` runs it natively or under QEMU. `examples/hello_app/` and the new [user guide page](docs/user/application.md) show it, and CI builds it for four boards and runs it on two. It ran on the physical Uno too.
+- Fault checks run on boards (A89). `EMB_ASSERT_FAULTS` and checked-build `EMB_ASSERT_MISUSE` were skipped on every embedded build. On a board whose reset keeps RAM (QEMU's MPS2 and RV32 virt, EmbSIM, the Uno and the NUCLEO on hardware), the statement now runs in place, the fault resets the board, and the next boot replays the case to the check and records it. On the MPS2 AN386 that executes 72 checks that were skipped.
+- Hardware runs keep their record (A89). `run_hil.py --archive` writes each image's console and a JSON record with the SHA-256 of what was flashed, the git commit, the cases and the benchmark values. `tools/hil/archive.py` files a run under `docs/engineering/hil-runs/`, and `matrix.py` checks `hardware-runs.json` against it.
+- `bench_switch` and `bench_irq` print `BENCH v1` lines, and their HIL entries fail without valid, nonzero values (`--bench`). Before, reaching `BENCH_END` passed.
 - `EMB_AT_LEAST(d)` and `emb_ticks_at_least()`: a relative wait that lasts at least `d` of real time (A87). A relative wait of n ticks ends at the n-th tick edge after the call, so between n − 1 and n periods pass. This is now stated in SPEC-003 §5.2, KRN-TIM-024 and `emb_thread_sleep()`.
 
 ### Changed

@@ -1,0 +1,263 @@
+{
+  "board": "arduino_uno",
+  "build": "checked",
+  "configuration": "3b582919390c2f6b",
+  "date": "2026-11-05",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "cdd12f5e914dc6f92877f9ce59a4e7a5838bb58f",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "checked": 1,
+          "name": "notify_handover",
+          "ops": 20000,
+          "per_op_x100": 2027,
+          "unit_hz": 250000,
+          "units": 405438
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_switch.hex": "da6104b95bfaef41ba99aefff4e8bbd078acac81b0fc0b99cd3621ccddcc8571"
+      },
+      "image": "bench_switch.elf",
+      "image_sha256": "fe0f95c63a9668924f68adf53f3ff3307904bfd7a3b5bb28bf6101ff0cd2c66f",
+      "log": "bench_switch.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:52Z"
+    },
+    {
+      "bench": [],
+      "cases": 3,
+      "cases_passed": 3,
+      "fault_checks_by_reset": 1,
+      "flashed_sha256": {
+        "test_crash.hex": "7c27db39533efaac0d539ecb910ea3ded537df001b6dc152f0c79992d7ac5a74"
+      },
+      "image": "test_crash.elf",
+      "image_sha256": "3a7931fd52203e47b7100fd8ad31c616d22432510058c1275bb733631675d53e",
+      "log": "test_crash.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:39Z"
+    },
+    {
+      "bench": [],
+      "cases": 1,
+      "cases_passed": 1,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_crash_reset.hex": "b694ad0287d3cb44791f93e51f5dde1471f3b56aa555b6f4cad9d063bf55560c"
+      },
+      "image": "test_crash_reset.elf",
+      "image_sha256": "4fe4e77992eb820ce0557ff2889d4e2fc8764da47b99e25e78ed5fadd82b9914",
+      "log": "test_crash_reset.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:46Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 4,
+      "flashed_sha256": {
+        "test_event.hex": "043bb7cf05136580f55209b7f3d3e4d59a02ca5b5ad7fa64bb03d679ab6a261c"
+      },
+      "image": "test_event.elf",
+      "image_sha256": "daf8c4b57cf2f3e98eda35ee827a4e15fd1743ba30d075268da493271fc55aae",
+      "log": "test_event.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:06Z"
+    },
+    {
+      "bench": [],
+      "cases": 2,
+      "cases_passed": 2,
+      "fault_checks_by_reset": 2,
+      "flashed_sha256": {
+        "test_fault.hex": "448def9bea48372ae139b6c6b546574f9f78caa1e8ec4a853e753bd65f975814"
+      },
+      "image": "test_fault.elf",
+      "image_sha256": "e28f8b8531e5dc24ab98b51bace24d75130669009cc0302e78e6819f0fe81740",
+      "log": "test_fault.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:22:38Z"
+    },
+    {
+      "bench": [],
+      "cases": 1,
+      "cases_passed": 1,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_first_execution.hex": "146fb570931a1c0c5173bee0a25b505e67fd4d9285dda46ac885010703efdb4f"
+      },
+      "image": "test_first_execution.elf",
+      "image_sha256": "62621de13ca4dc577be152be8c0f0ba7c103fdfdcd04feb1b366b31493149a2f",
+      "log": "test_first_execution.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:27Z"
+    },
+    {
+      "bench": [],
+      "cases": 7,
+      "cases_passed": 7,
+      "fault_checks_by_reset": 2,
+      "flashed_sha256": {
+        "test_irq.hex": "e6a5c87cfcf28b80c1874c31c7aeda45192398b240a04836b4e40f726c5db887"
+      },
+      "image": "test_irq.elf",
+      "image_sha256": "b47fb979b00781a4af6ece75953e4f8d3995307e31a87ef82079a7f22fd1ed1d",
+      "log": "test_irq.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:22:51Z"
+    },
+    {
+      "bench": [],
+      "cases": 4,
+      "cases_passed": 4,
+      "fault_checks_by_reset": 3,
+      "flashed_sha256": {
+        "test_irq_priority.hex": "4bb0609d6ee52d37d3d0973ddf131e58e3cfad908184327c32625a0eff9d4fb0"
+      },
+      "image": "test_irq_priority.elf",
+      "image_sha256": "b65ffd7b7009ff4a9336eebfe681eb4d1a418f9de066603d1f83c98ad6250c41",
+      "log": "test_irq_priority.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:22:58Z"
+    },
+    {
+      "bench": [],
+      "cases": 12,
+      "cases_passed": 12,
+      "fault_checks_by_reset": 8,
+      "flashed_sha256": {
+        "test_msgq.hex": "5bc2f32620bd481d38a9de5d521c09803a5456c5e383dff1f6faadebdd17d0e0"
+      },
+      "image": "test_msgq.elf",
+      "image_sha256": "df6f37e241dde14396a0c386908abac102163947b282299ef64c1f175c835a80",
+      "log": "test_msgq.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:24:16Z"
+    },
+    {
+      "bench": [],
+      "cases": 14,
+      "cases_passed": 14,
+      "fault_checks_by_reset": 10,
+      "flashed_sha256": {
+        "test_mutex.hex": "446b2c78f96257754d1be39acf58ba0c51fae99c0d79fdf412f118ff399e8c97"
+      },
+      "image": "test_mutex.elf",
+      "image_sha256": "135a3caa444c759b9ca8fb853fd8d266a0c802c2ecdf34b789b001dcc80cd3a6",
+      "log": "test_mutex.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:53Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 4,
+      "flashed_sha256": {
+        "test_notify.hex": "d98c0f0845483f346971244c9cc00e0553d750c5919968fc567627a9b5e9f3e6"
+      },
+      "image": "test_notify.elf",
+      "image_sha256": "27049888c4229cf09aed8c8abb79bf642de3a672971f89d13202bfc8327404f2",
+      "log": "test_notify.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:34Z"
+    },
+    {
+      "bench": [],
+      "cases": 7,
+      "cases_passed": 7,
+      "fault_checks_by_reset": 1,
+      "flashed_sha256": {
+        "test_sched.hex": "0454055972a74740d0547a4fe4defb820d91de0c84544b6367b8eb4140a04be6"
+      },
+      "image": "test_sched.elf",
+      "image_sha256": "29ab235e4c76ebbece3ea3c5ea60a5bfdc7a82abc83715d015375303d33a138d",
+      "log": "test_sched.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:22:44Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 3,
+      "flashed_sha256": {
+        "test_sem.hex": "72bdad14a806753e6b90dec6623d5dab4127c73906ae7809e28d05835364312c"
+      },
+      "image": "test_sem.elf",
+      "image_sha256": "5c3dbd66509adff447ce543122afa60c904db7ced3350e54ef66e853ee1cfbbd",
+      "log": "test_sem.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:44Z"
+    },
+    {
+      "bench": [],
+      "cases": 3,
+      "cases_passed": 3,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_smoke.hex": "afa0784b27046dd59b9b55a3eb5053aa78195cd753eed5f49ec99c34b3938e96"
+      },
+      "image": "test_smoke.elf",
+      "image_sha256": "9697a4ecb7a5a10104a67d17831b4a915e6d122f1bad39a815875222f0888fc3",
+      "log": "test_smoke.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:22:31Z"
+    },
+    {
+      "bench": [],
+      "cases": 17,
+      "cases_passed": 17,
+      "fault_checks_by_reset": 10,
+      "flashed_sha256": {
+        "test_thread.hex": "8852b8b47d4864b02cee1765e730359f0d1d6b3e22f3514d65c2a3276d309a1a"
+      },
+      "image": "test_thread.elf",
+      "image_sha256": "f58792c57451c50ca0f4deba87fa780bb1141a6b80d420bbfe303ec0dc9dffa2",
+      "log": "test_thread.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:04Z"
+    },
+    {
+      "bench": [],
+      "cases": 5,
+      "cases_passed": 5,
+      "fault_checks_by_reset": 5,
+      "flashed_sha256": {
+        "test_thread_identity.hex": "d78e3d31d6ebff6dcb6bd96edaeb1dab8ceb363eca2d67b7b9595dcb14a95c77"
+      },
+      "image": "test_thread_identity.elf",
+      "image_sha256": "87ceb13ce5dae29a4c60004ac507f92b3cc1f9b42f2979b73b4a472c3db9546a",
+      "log": "test_thread_identity.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:17Z"
+    },
+    {
+      "bench": [],
+      "cases": 8,
+      "cases_passed": 8,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_time.hex": "2fa36cc09a795e4c26df9653b376f2b162f05b2f476cc4e08af81c1fac73c464"
+      },
+      "image": "test_time.elf",
+      "image_sha256": "dd4a68f4f94408dce79b93a02af5a249d32be9d0ec4c0779b76681ebf9bf0a25",
+      "log": "test_time.log",
+      "outcome": "passed",
+      "started": "2026-11-05T19:23:26Z"
+    }
+  ],
+  "passed": 17,
+  "preset": "avr-uno-hil",
+  "total": 17
+}

@@ -151,5 +151,6 @@
 #define EMB_API_ID_CRASH_RECORD_GET              0x0091u
 #define EMB_API_ID_CRASH_RECORD_CLEAR            0x0092u
 #define EMB_API_ID_TICKS_AT_LEAST                0x0093u
+#define EMB_API_ID_ISR_STACK_INFO                0x0094u
 
 #endif /* EMB_API_IDS_H */

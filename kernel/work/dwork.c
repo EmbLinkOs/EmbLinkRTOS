@@ -33,19 +33,22 @@ static EMB_INLINE embk_dwork_t *dwork_of(emb_dwork_t *dw)
     return (embk_dwork_t *)(void *)&dw->timer_;
 }
 
-static EMB_INLINE uintptr_t caller_index(void)
+static EMB_INLINE EMB_UNUSED uintptr_t caller_index(void) /* the trace hooks only */
 {
     return (embk_cpu.current != NULL) ? embk_thread_index(embk_cpu.current) : 0xFFu;
 }
 
-/* The internal timer's callback: the expiry path, interrupt context, timeout lock released. */
+/* The internal timer's callback: the expiry path, interrupt context, timeout lock released.
+ * The pass took the timer off its list before the call, and a nested interrupt may cancel
+ * and schedule the item again before this takes the lock: the timer is then armed again,
+ * and this expiry is not the one that submits (review 2026-11-05, F6). */
 static void fire(emb_timer_t timer, void *arg)
 {
     emb_dwork_t *dw = (emb_dwork_t *)arg;
     embk_dwork_t *d = dwork_of(dw);
     emb_irq_key_t key = embk_lock_sched();
     (void)timer;
-    if (d->target != NULL) {
+    if (d->target != NULL && !embk_list_node_is_linked(&d->timer.node.node)) {
         (void)embk_work_submit_locked(d->target, item_of(dw)); /* O(1) (KRN-WQ-007) */
         d->target->timer_refs--;
         d->target = NULL;

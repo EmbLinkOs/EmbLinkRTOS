@@ -1,0 +1,33 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_crash_reset.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_crash_reset.elf sha256 5d56058eee428490e5c8a0d9676406a7e45c378b702184fab0cb5fd14a9dbf0d
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:1920
+load:0x3ffb0780,len:8
+load:0x40080400,len:21332
+entry 0x40083480
+EVIDENCE v1 suite=test_crash_reset config=a6675cd36514cdfd profile=base board=esp32_devkitc checked=0
+TEST crash_record_survives_reset
+crash_record_survives_reset: first boot, faulting
+ets Jul 29 2019 12:21:46
+
+rst:0x3 (SW_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:1920
+load:0x3ffb0780,len:8
+load:0x40080400,len:21332
+entry 0x40083480
+EVIDENCE v1 suite=test_crash_reset config=a6675cd36514cdfd profile=base board=esp32_devkitc checked=0
+TEST crash_record_survives_reset
+EMB_CRASH 454d424301005c00badbe7ee656cd387c91ee347437c7590467bbef3302e322e300000000700000000000000020000000b00ed5e00000000000000000000000000000000000000000000000000000000000000000000000074e50295
+  -> ok
+  req OBS-016 KRN-IRQ-030 ARCH-AVR-008
+CASE crash_record_survives_reset outcome=passed asserts=7 skips=0
+ISR_STACK size=1024 used=0
+1 tests, 0 failed, 0 skipped, 31 ticks
+EMB_TEST_END

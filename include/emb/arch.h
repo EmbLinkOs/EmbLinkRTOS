@@ -82,6 +82,12 @@ void emb_arch_idle(void);
 /* ---- stacks (§10) ------------------------------------------------------------- */
 bool emb_arch_stack_check(const embk_thread_t *t);
 void emb_arch_stack_limit_set(void *limit);
+/* The stack that is no thread's (A90, PORT-016): the interrupt stack where the port has one
+ * (Cortex-M's MSP, RISC-V's trap stack), or the pre-kernel stack the idle context and its
+ * interrupts run on (AVR). Its lowest address, *size its bytes; NULL when there is none to
+ * report (native). The kernel fills it below the live frames at init and checks its lowest
+ * EMBK_STACK_GUARD_BYTES at every outermost kernel-aware interrupt exit. */
+uint8_t *emb_arch_isr_stack(size_t *size);
 
 /* ---- faults and debug (§11, §14) ---------------------------------------------- */
 EMB_NORETURN void emb_arch_fault_halt(
@@ -104,7 +110,11 @@ uint8_t emb_arch_crash_regs(const emb_fault_info_t *info, uint32_t *regs, uint8_
                             uint8_t *status_count, uint32_t *lr);
 
 /* ---- kernel hooks the port calls ---------------------------------------------- */
-void embk_isr_enter(void);             /* kernel-aware interrupt entry: depth++ */
+void embk_isr_enter(void); /* kernel-aware interrupt entry: depth++ */
+/* Fault when the scheduler's ready structure contradicts the threads' states (checked builds;
+ * SPEC-013 §8, A93): the native port calls it at gate crossings with CONFIG_EMB_NATIVE_INVARIANTS.
+ */
+void embk_invariants_check(void);
 embk_thread_t *embk_isr_exit(void);    /* outermost exit: the thread to switch to, or NULL */
 void embk_time_timer_isr(void);        /* SPEC-003 §4.3 */
 void embk_time_on_wake(void);          /* tickless: at the outermost exit of a wake-up interrupt */

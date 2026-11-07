@@ -24,6 +24,9 @@ extern "C" {
 #define EMB_TEST_MARKS_MAX    32
 #define EMB_TEST_ISR(name)    static void name(void *emb_isr_arg_)
 #define EMB_TEST_PRINTF       /* the format is a flash pointer, not a checkable literal */
+/* A fault check's failure names its line, not its statement's text: 32 KB of flash do not
+ * hold the text of every check (A89). */
+#define EMB_TEST_FAULT_WHAT(s) ((const char *)0)
 #elif CONFIG_EMB_ARCH_NATIVE
 #define EMB_TEST_STR(s)       (s)
 #define EMB_TEST_HAS_FORK     1
@@ -59,6 +62,10 @@ extern "C" {
 #define EMB_TEST_PRINTF       /* own formatter in platform_target.c: not checked yet */
 #endif
 
+#ifndef EMB_TEST_FAULT_WHAT
+#define EMB_TEST_FAULT_WHAT(s) EMB_TEST_STR(s)
+#endif
+
 /* Object names: kept only where the kernel keeps them (CONFIG_EMB_OBJ_NAMES), so the
  * tiny profile does not pay RAM for name literals. */
 #if CONFIG_EMB_OBJ_NAMES
@@ -76,6 +83,12 @@ void emb_test_puts(const char *s);
 EMB_NORETURN void emb_test_exit(int code);
 
 void emb_test_platform_init(void);
+
+/* Fault checks by reset and replay (EMB_TEST_FAULT_BY_RESET, A89): memory the board's reset
+ * keeps, and a switch that holds back the platform's output while a case replays up to the
+ * check its last boot faulted at. */
+uint8_t *emb_test_platform_retained(size_t *size);
+bool emb_test_muted(void);
 
 /* Port-level software interrupt, used by the framework's slot layer. */
 void emb_test_platform_irq_bind(void (*dispatch)(void));

@@ -453,6 +453,16 @@ void emb_arch_idle(void)
                              : "memory");
 }
 
+/* The interrupt stack (MSP, A90): sized by CONFIG_EMB_ISR_STACK_SIZE, placed by the linker
+ * script first in RAM (.emb_isr_stack), its top the vector table's initial SP. */
+uint8_t embn_cm_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(8) EMB_SECTION(".emb_isr_stack");
+
+uint8_t *emb_arch_isr_stack(size_t *size)
+{
+    *size = sizeof(embn_cm_isr_stack);
+    return embn_cm_isr_stack;
+}
+
 bool emb_arch_stack_check(const embk_thread_t *t)
 {
     (void)t;

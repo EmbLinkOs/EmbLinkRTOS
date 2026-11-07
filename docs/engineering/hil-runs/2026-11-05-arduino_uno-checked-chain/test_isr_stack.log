@@ -1,0 +1,19 @@
+hil: board arduino_uno, soc ATmega328P, probe embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/avr-uno-hil/tests/conformance/test_isr_stack.hex --stk500, port /dev/cu.usbmodem11101 at 115200 baud, image test_isr_stack.elf sha256 ae633c9827be1ea37f58ca1f08bcbdfe68d7d759f26f77d183e43cc0dab46beb
+EVIDENCE v1 suite=test_isr_stack config=3b582919390c2f6b profile=tiny board=arduino_uno checked=1
+TEST thread_guard_is_checked_at_the_outermost_exit
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-MEM-010 PORT-016
+CASE thread_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+TEST isr_stack_guard_is_checked_at_the_outermost_exit
+  fault checks that reset the board: 1
+  -> ok
+  req PORT-016 KRN-MEM-010
+CASE isr_stack_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+TEST isr_stack_info_reports_size_and_use
+  -> ok
+  req PORT-016 KRN-MEM-009
+CASE isr_stack_info_reports_size_and_use outcome=passed asserts=6 skips=0
+ISR_STACK size=802 used=85
+3 tests, 0 failed, 0 skipped, 30 ticks
+EMB_TEST_END

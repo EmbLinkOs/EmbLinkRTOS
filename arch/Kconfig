@@ -9,7 +9,7 @@ menu "Architecture"
 config EMB_ARCH
 	string
 	help
-	  Port name from the manifest: native, avr, cortex_m, riscv.
+	  Port name from the manifest: native, avr, cortex_m, riscv, xtensa.
 
 config EMB_ARCH_VARIANT
 	string
@@ -24,6 +24,9 @@ config EMB_ARCH_CORTEX_M
 	bool
 
 config EMB_ARCH_RISCV
+	bool
+
+config EMB_ARCH_XTENSA
 	bool
 
 config EMB_ARCH_WORD_BITS
@@ -84,5 +87,6 @@ source "native/Kconfig"
 source "avr/Kconfig"
 source "cortex_m/Kconfig"
 source "riscv/Kconfig"
+source "xtensa/Kconfig"
 
 endmenu

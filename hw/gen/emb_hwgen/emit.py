@@ -237,6 +237,14 @@ SECTIONS
 
   .ARM.exidx : {{ *(.ARM.exidx* .gnu.linkonce.armexidx.*) }} > FLASH
 
+  /* the interrupt stack, MSP (CONFIG_EMB_ISR_STACK_SIZE, A90): first in RAM, so that an
+     overflow runs off the bottom of RAM into a bus fault, not into .data */
+  .emb_isr_stack (NOLOAD) : ALIGN(8) {{
+    __emb_isr_stack_start = .;
+    KEEP(*(.emb_isr_stack))
+    __emb_isr_stack_end = .;
+  }} > RAM
+
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {{
     __data_start = .;
@@ -257,7 +265,11 @@ SECTIONS
      segment, so neither startup nor a loader's reset clears it */
   __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
   __emb_retained_start = __emb_retained_end - 192;
-  __stack_top = __emb_retained_start;
+  /* below it, 32 bytes the test framework keeps across the resets of its fault checks (A89) */
+  __emb_test_retained_end = __emb_retained_start;
+  __emb_test_retained_start = __emb_test_retained_end - 32;
+  __stack_top = __emb_isr_stack_end;
+  ASSERT(end <= __emb_test_retained_start, "RAM overflow: .data and .bss reach the retained memory")
 }}
 """
 
@@ -333,7 +345,10 @@ SECTIONS
      segment, so neither startup nor a loader's reset clears it */
   __emb_retained_end = ORIGIN(RAM) + LENGTH(RAM);
   __emb_retained_start = __emb_retained_end - 192;
-  __stack_top = __emb_retained_start;
+  /* below it, 32 bytes the test framework keeps across the resets of its fault checks (A89) */
+  __emb_test_retained_end = __emb_retained_start;
+  __emb_test_retained_start = __emb_test_retained_end - 32;
+  __stack_top = __emb_test_retained_start;
 }}
 """
 
@@ -408,7 +423,7 @@ def board_cmake(r):
         # <root>/boards/<vendor>/<board>/generated
         out += f"get_filename_component(EMB_SOC_DIR \"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{soc_dir}\" ABSOLUTE)\n"
     else:
-        out += f"set(EMB_SOC_DIR \"${{CMAKE_SOURCE_DIR}}/{soc_dir}\")\n"
+        out += f"set(EMB_SOC_DIR \"${{EMB_BASE}}/{soc_dir}\")\n"
     out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
     qemu = r["board"].get("simulation", {}).get("qemu")
     if qemu:

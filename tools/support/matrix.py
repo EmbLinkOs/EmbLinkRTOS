@@ -7,7 +7,8 @@
     matrix.py --check          # CI: the page is current and the inventory is consistent
 
   tier 1  hardware   an archived run on the physical board, every test passed
-                     (docs/engineering/hardware-runs.json, each entry naming its report)
+                     (docs/engineering/hardware-runs.json, each entry naming its report and,
+                     since A89, the directory of its console logs and records)
   tier 2  emulated   the suite runs in CI on the board's emulator (or, for native, the host)
   tier 3  described  CI builds the board from its description; nothing runs it
   -       untested   the board exists, but CI neither runs nor builds it
@@ -32,7 +33,7 @@ TIERS = {1: "1 hardware", 2: "2 emulated", 3: "3 described", None: "untested"}
 TOOLCHAINS = {"arm-none-eabi-gcc": "GCC", "avr-gcc": "GCC", "riscv-gcc": "GCC", "native-gcc": "GCC",
               "native-coverage": "GCC", "native-clang": "Clang", "native-sanitizers": "GCC or Clang",
               "native-tsan": "GCC or Clang", "embcc-native": "EmbCC", "embcc-native-mixed": "EmbCC",
-              "embcc-avr": "EmbCC"}
+              "embcc-avr": "EmbCC", "embcc-xtensa": "EmbCC", "xtensa-esp32-gcc": "GCC", "xtensa-esp32-clang": "Clang"}
 
 
 class MatrixError(Exception):
@@ -144,6 +145,15 @@ def derive(root):
             problems.append(f"{at}: no report docs/engineering/{r.get('report')}")
         elif r.get("preset", "") not in report.read_text(encoding="utf-8"):
             problems.append(f"{at}: its report does not name the preset")
+        if "archive" in r:  # the run's console logs and records (tools/hil/archive.py, A89)
+            index = root / "docs" / "engineering" / r["archive"] / "index.json"
+            if not index.is_file():
+                problems.append(f"{at}: no archive docs/engineering/{r['archive']}/index.json")
+            else:
+                ix = json.loads(index.read_text(encoding="utf-8"))
+                if (ix.get("board"), ix.get("passed"), ix.get("total")) != (r.get("board"), r.get("passed"), r.get("total")):
+                    problems.append(f"{at}: the archive's index says {ix.get('board')} "
+                                    f"{ix.get('passed')}/{ix.get('total')}")
     if problems:
         raise MatrixError(problems)
     rows = []

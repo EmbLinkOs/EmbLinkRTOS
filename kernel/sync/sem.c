@@ -161,7 +161,7 @@ static emb_status_t take_common(uint16_t api_id, embk_sem_t *s, emb_tick_t deadl
 emb_status_t emb_sem_take(emb_sem_t sem, emb_timeout_t timeout)
 {
     return take_common(EMB_API_ID_SEM_TAKE, sem_from_handle(sem),
-                       embk_deadline_from_timeout(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
+                       embk_deadline_if_blocking(timeout), EMB_TIMEOUT_IS_NO_WAIT(timeout));
 }
 
 emb_status_t emb_sem_take_until(emb_sem_t sem, emb_instant_t deadline)

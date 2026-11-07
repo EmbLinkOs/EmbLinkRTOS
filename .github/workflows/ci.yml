@@ -55,6 +55,17 @@ jobs:
         with:
           name: coverage
           path: coverage.*
+      - name: FreeRTOS's side of bench_compare for Cortex-M4 (tools/bench/freertos-cm4), both boards
+        if: matrix.preset == 'cm4-an386'
+        run: |
+          tools/bench/freertos-cm4/build.sh nucleo_f446re
+          tools/bench/freertos-cm4/build.sh mps2_an386
+          # a functional check, not a timing (SIM-003): every measurement reported, every wake taken
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until BENCH_END --timeout 120 \
+            --qemu-args "-M mps2-an386 -icount shift=5,sleep=off -kernel" \
+            build/freertos-cm4-mps2_an386/bench_compare.elf | tee freertos-cm4.log
+          test "$(grep -c '^BENCH v1' freertos-cm4.log)" -eq 4
+          ! grep -q 'isr_wake woke' freertos-cm4.log
       - name: Collect case evidence
         if: always()
         run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
@@ -225,6 +236,9 @@ jobs:
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
+      - name: FreeRTOS's build of the comparison benchmark (A94)
+        if: matrix.preset == 'avr-uno'
+        run: tools/bench/freertos-avr/build.sh build/freertos-avr
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
       - name: Collect case evidence
@@ -290,6 +304,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/coverage -p 'test_*.py' -v
       - name: Resource-bound inventory covers every non-constant cost
         run: python3 -I tools/evidence/check_bounds.py
+      - name: The interrupt-safe function table is current
+        run: python3 -I tools/docs/isr_table.py --check
       - name: Configuration tool self-check
         run: |
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
@@ -480,8 +496,8 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
 
-  # The ESP32 probe built by Espressif's own GCC and GNU ld with the same esp32.ld that EmbCC's
-  # embld reads (ADR-052, ADR-053): a vendor toolchain as a CI leg. The archive is Espressif's
+  # The ESP32 probe and the kernel's Xtensa port built by Espressif's own GCC and GNU ld with the
+  # same scripts EmbCC's embld reads (ADR-052, ADR-053, ADR-054): a vendor toolchain as a CI leg. The archive is Espressif's
   # release, pinned by the SHA-256 Espressif publishes beside it.
   xtensa-gcc:
     runs-on: ubuntu-24.04
@@ -505,11 +521,133 @@ jobs:
           xtensa-esp32-elf-gcc --version | head -1
           XTENSA_GCC=xtensa-esp32-elf-gcc tools/esp/bringup/build.sh build/esp32-gcc
           python3 -I tools/esp/bringup/check_probe.py build/esp32-gcc/esp32_hello.bin
+      - name: Install tools
+        timeout-minutes: 15
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build python3-yaml
+      - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
+        run: |
+          cmake --preset xt-esp32-gcc
+          cmake --build --preset xt-esp32-gcc
+          ls build/xt-esp32-gcc/tests/conformance/*.bin | wc -l
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: esp32-gcc-images
+          path: |
+            build/xt-esp32-gcc/**/*.elf
+            build/xt-esp32-gcc/**/*.bin
+          retention-days: 30
+
+  # The kernel's Xtensa port built by Espressif's Clang, its newlib and LLD (ADR-053): the third
+  # toolchain for the ESP32 after EmbCC and Espressif's GCC. Each archive is pinned by the SHA-256
+  # GitHub records for the release asset.
+  xtensa-clang:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      ESP_CLANG_RELEASE: esp-22.1.4_20260825
+      ESP_CLANG_VERSION: 22.1.4_20260825
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Espressif's Clang, newlib and LLD for Xtensa (pinned, checksum-verified)
+        timeout-minutes: 20
+        run: |
+          base="https://github.com/espressif/llvm-project/releases/download/$ESP_CLANG_RELEASE"
+          while read -r sum name; do
+            curl -sSfL --retry 3 -o "$name" "$base/$name"
+            echo "$sum  $name" | sha256sum -c -
+            tar -xJf "$name"
+            rm "$name"
+          done <<LIST
+          4700ed4eb331d70d2e8b0846a233b299f43f958d2ab824ce886764d8bd6eb0a1 clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          34fa17a12ccdfc4b23c36928aed81ef6bd52af305a5246edf3712cc59129197b libs-clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          62b6b572a0e9c930da0dcb17b642737feafbe1fbbfc207d02d07213d0969b681 lld-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
+          LIST
+          clang_bin=$(dirname "$(find "$PWD" -path '*/bin/clang' \( -type f -o -type l \) | head -1)")
+          ls "$clang_bin" | grep -E '^(clang|ld\.lld|llvm-(objcopy|size|nm|ar|ranlib))$'
+          echo "$clang_bin" >> "$GITHUB_PATH"
+      - name: Install tools
+        timeout-minutes: 15
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build python3-yaml
+      - name: Build the kernel port with it, every test and benchmark (esp32_devkitc, ADR-054)
+        run: |
+          clang --version | head -1
+          cmake --preset xt-esp32-clang
+          cmake --build --preset xt-esp32-clang
+          ls build/xt-esp32-clang/tests/conformance/*.bin | wc -l
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: esp32-clang-images
+          path: |
+            build/xt-esp32-clang/**/*.elf
+            build/xt-esp32-clang/**/*.bin
+          retention-days: 30
+
+  # bench_compare against ESP-IDF's FreeRTOS on the ESP32 (A96): built in Espressif's ESP-IDF
+  # v6.1 container, pinned by digest, and kept for a run on the board, which CI does not have.
+  freertos-esp32:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: espressif/idf:v6.1@sha256:81893c71bb5e570088901f21def8684c25cd2a9020281bd01b843a7655edb18c
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build bench_compare against ESP-IDF's FreeRTOS
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          tools/bench/freertos-esp32/build.sh build/freertos-esp32
+      - name: Keep the images for a run on the board, flashed and timed by hand (CI has no ESP32)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: freertos-esp32-images
+          path: |
+            build/freertos-esp32/bootloader/bootloader.bin
+            build/freertos-esp32/partition_table/partition-table.bin
+            build/freertos-esp32/bench_compare_freertos.bin
+            build/freertos-esp32/bench_compare_freertos.elf
+            build/freertos-esp32/sdkconfig
+          retention-days: 30
+
+  application:
+    # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four
+    # boards, run natively and under QEMU until its own end line
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tools
+        timeout-minutes: 15
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
+      - name: Copy the example out of the tree
+        run: cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
+      - name: Build it for native, the MPS2 AN386, RV32 virt and the Uno
+        run: |
+          for b in native mps2_an386 riscv32_virt arduino_uno; do
+            cmake -S "$RUNNER_TEMP/hello_app" -B "build/hello-$b" -G Ninja \
+                  -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
+            cmake --build "build/hello-$b"
+          done
+      - name: Run it natively and under QEMU
+        run: |
+          build/hello-native/hello | tee hello-native.log
+          grep -q "hello_app: done" hello-native.log
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until "hello_app: done" --timeout 60 \
+            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello-mps2_an386/hello.elf
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "hello_app: done" --timeout 60 \
+            --qemu-args "-M virt -bios none -kernel" build/hello-riscv32_virt/hello.elf
 
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, lint]
+    needs: [native, cortex_m, riscv, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

@@ -11,9 +11,9 @@ find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
 # Boards are looked up in the tree and in each EMB_BOARD_ROOT, a directory that holds the same
 # boards/<vendor>/<board>/ layout: a project's own boards, kept outside the tree (A76).
 set(EMB_BOARD_ROOT "" CACHE STRING "Extra board roots, semicolon separated: each holds boards/<vendor>/<board>/ (relative to the source tree)")
-set(_emb_roots "${CMAKE_SOURCE_DIR}")
+set(_emb_roots "${EMB_BASE}")
 foreach(_r ${EMB_BOARD_ROOT})
-  get_filename_component(_r "${_r}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+  get_filename_component(_r "${_r}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}") # relative to the project: the RTOS, or an application
   if(NOT IS_DIRECTORY "${_r}/boards")
     message(FATAL_ERROR "EMB_BOARD_ROOT: ${_r} has no boards/ directory (a board root holds boards/<vendor>/<board>/)")
   endif()
@@ -56,7 +56,7 @@ if(DEFINED EMB_BOARD_HW_INPUTS)
       # a board outside the tree records its own files from its directory (emb-hwgen, A76)
       get_filename_component(_path "${_bd}/${CMAKE_MATCH_1}" ABSOLUTE)
     else()
-      set(_path "${CMAKE_SOURCE_DIR}/${_rel}")
+      set(_path "${EMB_BASE}/${_rel}")
     endif()
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${_path}")
     if(NOT EXISTS "${_path}")
@@ -64,7 +64,7 @@ if(DEFINED EMB_BOARD_HW_INPUTS)
     endif()
     file(SHA256 "${_path}" _have)
     if(NOT _have STREQUAL _want)
-      file(RELATIVE_PATH _rbd "${CMAKE_SOURCE_DIR}" "${_bd}")
+      file(RELATIVE_PATH _rbd "${EMB_BASE}" "${_bd}")
       if(_rbd MATCHES "^\\.\\./")
         set(_rbd "${_bd}")   # outside the tree: its absolute path
       endif()
@@ -76,7 +76,7 @@ endif()
 if(NOT EMB_PROFILE)
   set(EMB_PROFILE "${EMB_BOARD_DEFAULT_PROFILE}")
 endif()
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/configs/${EMB_PROFILE}.conf")
+if(NOT EXISTS "${EMB_BASE}/configs/${EMB_PROFILE}.conf")
   message(FATAL_ERROR "EMB_PROFILE='${EMB_PROFILE}': no configs/${EMB_PROFILE}.conf")
 endif()
 
@@ -85,24 +85,29 @@ set(EMB_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated")
 set(EMB_CONFIG_HEADER "${EMB_GENERATED_DIR}/include/emb/config.h")
 math(EXPR _host_word_bits "${CMAKE_SIZEOF_VOID_P} * 8")
 set(_args
-  "${CMAKE_SOURCE_DIR}/tools/kconfig/embconfig.py"
-  --kconfig "${CMAKE_SOURCE_DIR}/Kconfig"
-  --manifest "${CMAKE_SOURCE_DIR}/arch/${EMB_BOARD_ARCH}/arch.yaml"
+  "${EMB_BASE}/tools/kconfig/embconfig.py"
+  --kconfig "${EMB_BASE}/Kconfig"
+  --manifest "${EMB_BASE}/arch/${EMB_BOARD_ARCH}/arch.yaml"
   --variant "${EMB_BOARD_VARIANT}"
   --host-word-bits "${_host_word_bits}"
   --conf "${EMB_BOARD_DIR}/board.conf"
-  --conf "${CMAKE_SOURCE_DIR}/configs/${EMB_PROFILE}.conf"
+  --conf "${EMB_BASE}/configs/${EMB_PROFILE}.conf"
   --out-header "${EMB_CONFIG_HEADER}"
   --out-cmake "${EMB_GENERATED_DIR}/config.cmake"
   --out-json "${EMB_GENERATED_DIR}/config.json"
   --out-dotconfig "${CMAKE_BINARY_DIR}/.config")
-set(_deps "${CMAKE_SOURCE_DIR}/Kconfig" "${EMB_BOARD_DIR}/board.conf"
-          "${CMAKE_SOURCE_DIR}/configs/${EMB_PROFILE}.conf"
-          "${CMAKE_SOURCE_DIR}/arch/${EMB_BOARD_ARCH}/arch.yaml"
-          "${CMAKE_SOURCE_DIR}/tools/kconfig/embconfig.py")
+set(_deps "${EMB_BASE}/Kconfig" "${EMB_BOARD_DIR}/board.conf"
+          "${EMB_BASE}/configs/${EMB_PROFILE}.conf"
+          "${EMB_BASE}/arch/${EMB_BOARD_ARCH}/arch.yaml"
+          "${EMB_BASE}/tools/kconfig/embconfig.py")
 foreach(_c ${EMB_CONF})
   if(NOT IS_ABSOLUTE "${_c}")
-    set(_c "${CMAKE_SOURCE_DIR}/${_c}")
+    # the project's own fragment first (an application's), else the RTOS's configs/
+    if(EXISTS "${CMAKE_SOURCE_DIR}/${_c}")
+      set(_c "${CMAKE_SOURCE_DIR}/${_c}")
+    else()
+      set(_c "${EMB_BASE}/${_c}")
+    endif()
   endif()
   list(APPEND _args --conf "${_c}")
   list(APPEND _deps "${_c}")
@@ -110,7 +115,7 @@ endforeach()
 foreach(_s ${EMB_SET})
   list(APPEND _args --set "${_s}")
 endforeach()
-file(GLOB_RECURSE _kconfigs "${CMAKE_SOURCE_DIR}/kernel/Kconfig" "${CMAKE_SOURCE_DIR}/arch/*/Kconfig" "${CMAKE_SOURCE_DIR}/arch/Kconfig")
+file(GLOB_RECURSE _kconfigs "${EMB_BASE}/kernel/Kconfig" "${EMB_BASE}/arch/*/Kconfig" "${EMB_BASE}/arch/Kconfig")
 list(APPEND _deps ${_kconfigs})
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${_deps})
 
@@ -126,7 +131,7 @@ if(NOT CONFIG_EMB_ARCH STREQUAL EMB_BOARD_ARCH)
 endif()
 
 function(emb_print_summary)
-  message(STATUS "EmbLinkRTOS ${PROJECT_VERSION}: board ${EMB_BOARD} (${CONFIG_EMB_ARCH}/${CONFIG_EMB_ARCH_VARIANT}), "
+  message(STATUS "EmbLinkRTOS ${EmbLinkRTOS_VERSION}: board ${EMB_BOARD} (${CONFIG_EMB_ARCH}/${CONFIG_EMB_ARCH_VARIANT}), "
                  "profile ${CONFIG_EMB_PROFILE}, checked=${CONFIG_EMB_CHECKED}, "
                  "config ${EMB_CONFIG_HASH}, compiler ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
 endfunction()

@@ -8,27 +8,14 @@ cmake_minimum_required(VERSION 3.20)
 
 project(EmbLinkRTOS VERSION 0.2.0 LANGUAGES C)
 
-set(EMB_BOARD "native" CACHE STRING "Board name: a directory boards/<vendor>/<board>/")
-set(EMB_PROFILE "" CACHE STRING "Reference profile: tiny or base (default from the board)")
-set(EMB_CONF "" CACHE STRING "Extra configuration fragments, semicolon separated, applied after the profile")
-set(EMB_SET "" CACHE STRING "Symbol overrides SYMBOL=value, semicolon separated, applied last")
+set(EMB_BASE "${CMAKE_CURRENT_SOURCE_DIR}")
 option(EMB_BUILD_TESTS "Build the test suites (native only)" ON)
 option(EMB_BUILD_SAMPLES "Build the samples" ON)
-option(EMB_WERROR "Treat warnings as errors (CODING-STANDARD CS-13.1)" ON)
-# compile_commands.json for clangd and clang-tidy; .clangd reads build/native-gcc's
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(emb_config)      # board lookup, embconfig run, CONFIG_EMB_* variables
-include(emb_native_compiler) # optional explicit EmbCC kernel / GCC host boundary
-include(emb_flags)       # warning set and per-toolchain flags
-include(emb_target)      # emb_add_executable(), footprint targets
-
-add_subdirectory(include)
-add_subdirectory(arch/${CONFIG_EMB_ARCH})
-add_subdirectory(kernel)
-emb_check_native_abi()
-add_subdirectory(${EMB_BOARD_DIR} boards/${EMB_BOARD})
+# the kernel, the port and the board for EMB_BOARD: the same macro an application calls
+# after find_package(EmbLinkRTOS) (cmake/emb_kernel.cmake, docs/user/application.md)
+include(cmake/emb_kernel.cmake)
+emb_kernel()
 if(EMB_BUILD_SAMPLES)
   add_subdirectory(samples)
 endif()
@@ -41,6 +28,8 @@ if(EMB_BUILD_TESTS)
     set(EMB_TEST_EMULATOR "qemu" CACHE STRING "where ctest runs the test images: qemu, embsim or hil (a physical board)")
     set_property(CACHE EMB_TEST_EMULATOR PROPERTY STRINGS qemu embsim hil)
     set(EMB_HIL_PORT "" CACHE STRING "EMB_TEST_EMULATOR=hil: the board console's serial device")
+    set(EMB_HIL_ARCHIVE "${CMAKE_BINARY_DIR}/hil-archive" CACHE PATH
+        "EMB_TEST_EMULATOR=hil: where each run's console log and record go (tools/hil/archive.py)")
     if(EMB_TEST_EMULATOR STREQUAL "hil")
       # a board described in YAML: its generated hw.json names the probe and the console
       if(EMB_HIL_PORT AND EXISTS "${EMB_BOARD_DIR}/hw.json")
@@ -56,11 +45,7 @@ if(EMB_BUILD_TESTS)
         message(STATUS "no EmbSIM board for ${EMB_BOARD} (or no embsim): test images are built without ctest entries")
       endif()
     else()
-      set(_qemu_for_avr qemu-system-avr)
-      set(_qemu_for_cortex_m qemu-system-arm)
-      set(_qemu_for_riscv qemu-system-riscv32)
-      find_program(EMB_QEMU ${_qemu_for_${CONFIG_EMB_ARCH}})
-      if(EMB_QEMU AND EMB_BOARD_QEMU_ARGS)
+      if(EMB_QEMU AND EMB_BOARD_QEMU_ARGS) # found by emb_kernel()
         enable_testing()
       else()
         message(STATUS "no emulator for ${EMB_BOARD}: test images are built without ctest entries")
@@ -70,4 +55,3 @@ if(EMB_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-emb_print_summary()

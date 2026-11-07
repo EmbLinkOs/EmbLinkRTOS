@@ -882,6 +882,12 @@
       "name": "emb_ticks_at_least",
       "header": "time.h",
       "state": "active"
+    },
+    {
+      "id": 148,
+      "name": "emb_isr_stack_info",
+      "header": "irq.h",
+      "state": "active"
     }
   ]
 }

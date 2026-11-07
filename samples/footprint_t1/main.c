@@ -30,9 +30,11 @@ static void producer(void *arg);
 static void consumer(void *arg);
 static void ticker(void *arg);
 
-EMB_THREAD_DEFINE(thread_p, producer, NULL, 2u, 512u, 0u);
-EMB_THREAD_DEFINE(thread_c, consumer, NULL, 3u, 512u, 0u);
-EMB_THREAD_DEFINE(thread_t, ticker, NULL, 4u, 512u, 0u);
+/* 512 bytes, or the port's minimum where that is larger (Xtensa's windowed frames) */
+#define STACK_SIZE (EMB_THREAD_STACK_MIN > 512u ? EMB_THREAD_STACK_MIN : 512u)
+EMB_THREAD_DEFINE(thread_p, producer, NULL, 2u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_c, consumer, NULL, 3u, STACK_SIZE, 0u);
+EMB_THREAD_DEFINE(thread_t, ticker, NULL, 4u, STACK_SIZE, 0u);
 
 static void units_init(void)
 {

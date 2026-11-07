@@ -97,6 +97,22 @@ class Tiers(unittest.TestCase):
         self.assertIn("is not a preset of that board", text)
         self.assertIn("no report docs/engineering/missing.md", text)
 
+    def test_an_archive_must_agree_with_its_entry(self):
+        entry = {"board": "hwboard", "preset": "hw-x", "build": "checked", "date": "d", "passed": 3,
+                 "total": 3, "report": "run.md", "archive": "hil-runs/r1"}
+        self.repo.runs([entry])
+        with self.assertRaises(matrix.MatrixError) as cm:
+            matrix.derive(self.repo.d)
+        self.assertIn("no archive docs/engineering/hil-runs/r1/index.json", cm.exception.args[0][0])
+        arch = self.repo.d / "docs" / "engineering" / "hil-runs" / "r1"
+        arch.mkdir(parents=True)
+        (arch / "index.json").write_text(json.dumps({"board": "hwboard", "passed": 2, "total": 3}))
+        with self.assertRaises(matrix.MatrixError) as cm:
+            matrix.derive(self.repo.d)
+        self.assertIn("the archive's index says hwboard 2/3", cm.exception.args[0][0])
+        (arch / "index.json").write_text(json.dumps({"board": "hwboard", "passed": 3, "total": 3}))
+        self.assertEqual(self.tiers()["hwboard"], 1)
+
     def test_check_mode(self):
         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             self.assertEqual(matrix.main(["--root", str(self.repo.d), "--check"]), 1)

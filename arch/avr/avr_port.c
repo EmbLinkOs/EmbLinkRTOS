@@ -284,6 +284,17 @@ void emb_arch_idle(void)
     SMCR = 0u;
 }
 
+/* No interrupt stack: interrupts run on the interrupted context's stack. The stack that is
+ * no thread's is the pre-kernel one, from the end of .noinit to RAMEND, which the idle
+ * context restarts at RAMEND (A89) and whose interrupts it takes (A90). */
+extern uint8_t __heap_start[]; /* avr-libc's linker scripts: the end of .noinit */
+
+uint8_t *emb_arch_isr_stack(size_t *size)
+{
+    *size = (size_t)((uintptr_t)RAMEND + 1u - (uintptr_t)__heap_start);
+    return __heap_start;
+}
+
 bool emb_arch_stack_check(const embk_thread_t *t)
 {
     (void)t;

@@ -1,0 +1,49 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-hil/tests/conformance/test_isr_stack.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_isr_stack.elf sha256 d471d2e206f31481ad118738c5037da3bf42ce3055876c12293974ef3ea8038f
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:3392
+load:0x3ffb0d40,len:8
+load:0x40080400,len:24116
+entry 0x40083940
+EVIDENCE v1 suite=test_isr_stack config=1fc9c964c0006f0f profile=base board=esp32_devkitc checked=1
+TEST isr_stack_info_reports_size_and_use
+  -> ok
+  req PORT-016 KRN-MEM-009
+CASE isr_stack_info_reports_size_and_use outcome=passed asserts=6 skips=0
+TEST isr_stack_guard_is_checked_at_the_outermost_exit
+ets Jul 29 2019 12:21:46
+
+rst:0x3 (SW_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:3392
+load:0x3ffb0d40,len:8
+load:0x40080400,len:24116
+entry 0x40083940
+  fault checks that reset the board: 1
+  -> ok
+  req PORT-016 KRN-MEM-010
+CASE isr_stack_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+TEST thread_guard_is_checked_at_the_outermost_exit
+ets Jul 29 2019 12:21:46
+
+rst:0x3 (SW_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:3392
+load:0x3ffb0d40,len:8
+load:0x40080400,len:24116
+entry 0x40083940
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-MEM-010 PORT-016
+CASE thread_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+ISR_STACK size=1024 used=160
+3 tests, 0 failed, 0 skipped, 6 ticks
+EMB_TEST_END

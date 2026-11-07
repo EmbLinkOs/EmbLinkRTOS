@@ -48,6 +48,22 @@ void emb_native_tick(void);
 /* Number of host-level context switches performed so far. */
 uint64_t emb_native_switch_count(void);
 
+/* Asynchronous interrupt mode (SPEC-013 §5, A93), for stress runs: every @period_us
+ * microseconds, with jitter, a tick lands at whatever statement the running thread is on,
+ * and every fourth time @also_raise too (EMB_ARCH_IRQ_COUNT for none). Interrupts that find
+ * the thread masked, in a handler or in host code are taken at its next gate crossing.
+ * Time then advances with the signals, not only in idle, and runs are not reproducible.
+ * The environment variable EMB_NATIVE_ASYNC_US starts it with ticks only at kernel start. */
+void emb_native_async_start(unsigned period_us, emb_irq_t also_raise);
+/* Ends the mode: when it returns, nothing injected lands any more, deferred or pending. */
+void emb_native_async_stop(void);
+/* Signals handled where they landed, and signals deferred to a crossing, so far. */
+void emb_native_async_stats(uint64_t *delivered, uint64_t *deferred);
+/* Bracket host code that simulated code runs, such as console output through the C library:
+ * no asynchronous interrupt lands inside it (it might hold a library lock). */
+void emb_native_host_begin(void);
+void emb_native_host_end(void);
+
 #ifdef __cplusplus
 }
 #endif

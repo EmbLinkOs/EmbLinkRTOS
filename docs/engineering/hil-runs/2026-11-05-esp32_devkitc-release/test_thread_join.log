@@ -1,0 +1,39 @@
+hil: board esp32_devkitc, soc ESP32-D0WD (ESP-WROOM-32), probe /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/embflash-esp2/embflash /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-f4/build/xt-esp32-rel/tests/conformance/test_thread_join.bin --esp, port /dev/cu.usbserial-0001 at 115200 baud, image test_thread_join.elf sha256 added43e0da583576dfa8eb47962a6a0ed23d96a6af88ede51e4c6a083c702f4
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3ffb0000,len:2816
+load:0x3ffb0b00,len:8
+load:0x40080400,len:24628
+entry 0x40083cf8
+EVIDENCE v1 suite=test_thread_join config=a6675cd36514cdfd profile=base board=esp32_devkitc checked=0
+TEST thread_join_after_exit_returns_code
+  -> ok
+  req KRN-THR-004 KRN-THR-006 KRN-THR-017
+CASE thread_join_after_exit_returns_code outcome=passed asserts=4 skips=0
+TEST thread_join_before_exit_blocks_and_hands_off
+  -> ok
+  req KRN-THR-017 KRN-WAIT-012
+CASE thread_join_before_exit_blocks_and_hands_off outcome=passed asserts=6 skips=0
+TEST thread_join_timeout_then_success
+  -> ok
+  req KRN-THR-017 KRN-WAIT-004
+CASE thread_join_timeout_then_success outcome=passed asserts=5 skips=0
+TEST thread_second_joiner_is_ebusy
+  -> ok
+  req KRN-THR-018
+CASE thread_second_joiner_is_ebusy outcome=passed asserts=10 skips=0
+TEST thread_join_self_and_detached_are_errors
+  -> ok
+  req KRN-THR-017
+CASE thread_join_self_and_detached_are_errors outcome=passed asserts=5 skips=0
+TEST thread_detach_after_exit_makes_reusable
+  -> ok
+  req KRN-THR-017 KRN-THR-022
+CASE thread_detach_after_exit_makes_reusable outcome=passed asserts=5 skips=0
+ISR_STACK size=1024 used=0
+6 tests, 0 failed, 0 skipped, 94 ticks
+EMB_TEST_END
