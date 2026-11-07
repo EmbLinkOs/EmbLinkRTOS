@@ -12,6 +12,12 @@
  * no thread is raised; otherwise the ready set is scanned, bounded by
  * CONFIG_EMB_PRIORITY_COUNT. The count of raised threads keeps the fast path.
  *
+ * The running thread stays in the ready structure while it is runnable, first at its level
+ * (ADR-055): it was first when picked, threads made ready later queue behind it, and a
+ * preemption leaves it in place, so it keeps its place ahead of its peers (KRN-SCH-041) without
+ * being unlinked and linked again. A yield or an exhausted quantum moves it behind its peers;
+ * it leaves the structure when it blocks, suspends or exits.
+ *
  * Lock: every function here runs with the scheduler domain held.
  */
 #include <embk/kernel.h>
@@ -135,13 +141,16 @@ void embk_invariants_check(void)
     unsigned raised = 0u;
 #endif
     invariant((ready_set & EMBK_WORD_BIT(0u)) == 0u, 0x5101u); /* idle is never in the set */
+    /* the running thread is in the set exactly while it can run (ADR-055) */
+    invariant(embk_cpu.current == EMBK_IDLE ||
+                  thread_runnable(embk_cpu.current) == embk_sched_is_ready(embk_cpu.current),
+              0x5104u);
     /* bounded by CONFIG_EMB_PRIORITY_COUNT */
     for (p = 1u; p < (unsigned)CONFIG_EMB_PRIORITY_COUNT; p++) {
         const embk_thread_t *t = EMBK_TABLE_SLOT(p);
         if ((ready_set & EMBK_WORD_BIT(p)) != 0u) {
             invariant(t != NULL && t->base_prio == p, 0x5102u);
-            invariant(thread_runnable(t), 0x5103u);    /* a ready thread can run */
-            invariant(t != embk_cpu.current, 0x5104u); /* the running one is not in the set */
+            invariant(thread_runnable(t), 0x5103u); /* a ready thread can run */
         }
 #if CONFIG_EMB_MUTEX
         if (t != NULL && t->eff_prio != t->base_prio) {
@@ -165,12 +174,20 @@ void embk_invariants_check(void)
         for (n = embk_list_first(&ready_lists[p]); n != NULL;
              n = embk_list_next(&ready_lists[p], n)) {
             embk_thread_t *t = EMB_CONTAINER_OF(n, embk_thread_t, ready_node);
-            invariant(t->eff_prio == p, 0x5113u);      /* listed at its effective level */
-            invariant(thread_runnable(t), 0x5114u);    /* a ready thread can run */
-            invariant(t != embk_cpu.current, 0x5115u); /* the running one is not listed */
+            invariant(t->eff_prio == p, 0x5113u);   /* listed at its effective level */
+            invariant(thread_runnable(t), 0x5114u); /* a ready thread can run */
             count++;
             invariant(count <= 255u, 0x5116u); /* a cycle in the list */
         }
+    }
+    /* the running thread is listed exactly while it can run, and then first at its level
+     * (ADR-055) */
+    if (embk_cpu.current != EMBK_IDLE) {
+        const embk_thread_t *cur = embk_cpu.current;
+        bool listed = embk_sched_is_ready(cur);
+        invariant(thread_runnable(cur) == listed, 0x5115u);
+        invariant(!listed || embk_list_first(&ready_lists[cur->eff_prio]) == &cur->ready_node,
+                  0x5117u);
     }
 #endif
 }
@@ -301,10 +318,20 @@ static void check_stack(const embk_thread_t *t)
 #endif
 }
 
+#if !CONFIG_EMB_SCHED_TABLE
+/* A yield or an exhausted quantum: the running thread, first at its level, goes behind its
+ * peers (KRN-SCH-041). The level stays non-empty, so the bitmap does not change. */
+static void requeue_behind_peers(embk_thread_t *t)
+{
+    embk_list_remove(&t->ready_node);
+    embk_list_append(&ready_lists[t->eff_prio], &t->ready_node);
+}
+#endif
+
 embk_thread_t *embk_sched_select(bool yield)
 {
     embk_thread_t *cur = embk_cpu.current;
-    embk_thread_t *next = embk_sched_peek();
+    embk_thread_t *next;
     bool runnable = cur != EMBK_IDLE && thread_runnable(cur);
 
     embk_cpu.reschedule_pending = 0u;
@@ -313,19 +340,42 @@ embk_thread_t *embk_sched_select(bool yield)
     embk_cpu.rotate = 0u;
 #endif
     if (runnable) {
+        /* listed, first at its level (ADR-055): a preemption leaves it there */
+#if CONFIG_EMB_SCHED_TABLE
+        next = embk_sched_table_best(ready_set & (embk_word_t)~EMBK_WORD_BIT(cur->base_prio));
         if (next == NULL || next->eff_prio < cur->eff_prio ||
             (next->eff_prio == cur->eff_prio && !yield)) {
             return NULL; /* KRN-SCH-004: nothing changed the decision */
         }
-        insert(cur, !yield); /* KRN-SCH-041: a preempted thread goes ahead of its peers */
-    }
-    if (next != NULL) {
-        embk_sched_remove_ready(next);
+        /* one thread per level: a yield has no order to change */
+#else
+        if (yield) {
+            requeue_behind_peers(cur);
+        }
+        next = embk_sched_peek();
+        if (next == cur) {
+            return NULL; /* KRN-SCH-004: nothing changed the decision */
+        }
+        EMBK_ASSERT(yield || next->eff_prio > cur->eff_prio);
+#endif
     } else {
-        next = EMBK_IDLE;
-    }
-    if (next == cur) {
-        return NULL;
+        /* it blocked, suspended or exited: out of the structure */
+#if CONFIG_EMB_SCHED_TABLE
+        if (cur != EMBK_IDLE) {
+            embk_sched_remove_ready(cur); /* its own slot's bit: clearing it again is harmless */
+        }
+#else
+        if (cur != EMBK_IDLE && embk_list_node_is_linked(&cur->ready_node)) {
+            embk_sched_remove_ready(cur);
+        }
+#endif
+        next = embk_sched_peek();
+        if (next == NULL) {
+            next = EMBK_IDLE;
+        }
+        if (next == cur) {
+            return NULL;
+        }
     }
     check_stack(cur);
     EMBK_TRACE(EMB_TRACE_SWITCH, embk_thread_index(cur), embk_thread_index(next), 0u);
@@ -390,8 +440,8 @@ void embk_sched_slice_expired(void)
 {
     const embk_thread_t *cur = embk_cpu.current;
     if (cur == EMBK_IDLE || !thread_runnable(cur) ||
-        embk_list_is_empty(&ready_lists[cur->eff_prio])) {
-        return; /* no peer: the quantum is renewed */
+        embk_list_next(&ready_lists[cur->eff_prio], &cur->ready_node) == NULL) {
+        return; /* no peer behind it (ADR-055: it is first at its level): the quantum is renewed */
     }
     embk_cpu.rotate = 1u;
     embk_cpu.reschedule_pending = 1u;
@@ -418,7 +468,8 @@ void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
 #endif
 #else
     if (embk_sched_is_ready(t)) {
-        /* unlink from the old level, relink behind the peers of the new one (SPEC-005 §2.1) */
+        /* unlink from the old level, relink behind the peers of the new one (SPEC-005 §2.1);
+         * the running thread is listed too (ADR-055) */
         unsigned p = old_eff;
         embk_list_remove(&t->ready_node);
         if (embk_list_is_empty(&ready_lists[p])) {
@@ -429,7 +480,9 @@ void embk_sched_prio_changed(embk_thread_t *t, uint8_t old_eff)
             }
 #endif
         }
-        insert(t, false);
+        /* the running thread stays first at its new level (ADR-055), as it would go ahead of
+         * its peers when preempted (KRN-SCH-041) */
+        insert(t, t == embk_cpu.current);
     }
 #endif
     if (t == embk_cpu.current) {

@@ -149,10 +149,8 @@ void emb_kernel_start(void)
     }
     key = embk_lock_sched();
     embk_time_start();
-    first = embk_sched_peek();
-    if (first != NULL) {
-        embk_sched_remove_ready(first);
-    } else {
+    first = embk_sched_peek(); /* it stays in the ready structure while it runs (ADR-055) */
+    if (first == NULL) {
         first = EMBK_IDLE;
     }
     embk_cpu.current = first;
