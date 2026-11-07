@@ -338,7 +338,9 @@ void emb_thread_exit(int code)
     thread_exit(code);
 }
 
-void embk_thread_launch(emb_thread_entry_t entry, void *arg)
+/* reached from a port's first-switch frame or assembly, not a call LTO can see: EMB_USED
+ * keeps it (ADR-056) */
+EMB_USED void embk_thread_launch(emb_thread_entry_t entry, void *arg)
 {
     /* A fresh context starts with interrupts enabled (SPEC-012 §4.2) and at critical
      * section depth 0, which the scheduler restored from the thread's own record. */

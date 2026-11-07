@@ -435,6 +435,14 @@ static void BENCH_FAST driver_entry(void *arg)
     uint32_t i;
     uint32_t t0;
     (void)arg;
+#ifdef BENCH_PROFILE_NOTIFY
+    /* a profiling image (tools/hil/pcsample.py): the notification hand-over, forever */
+    os_puts("PROFILE notify_handover\n");
+    for (;;) {
+        os_notify(echo);
+        os_notify_wait();
+    }
+#endif
     /* notify: the last kick moves the echo thread on to the next mode */
     t0 = os_now();
     for (i = 0u; i < ITER; i++) {

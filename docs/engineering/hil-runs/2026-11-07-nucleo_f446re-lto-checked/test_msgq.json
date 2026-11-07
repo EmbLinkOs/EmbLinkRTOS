@@ -1,0 +1,112 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "msgq_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "msgq_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "msgq_binding_fires_on_empty_to_nonempty_only",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "msgq_init_validates_the_ring",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "msgq_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "msgq_destroy_aborts_receivers_and_senders",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "msgq_isr_send_and_receive_never_wait",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "msgq_waits_time_out_and_cancel_without_storing",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "msgq_receive_refills_the_freed_slot_from_a_waiting_sender",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "msgq_waiting_receivers_get_items_directly_in_priority_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "msgq_send_front_is_received_first_and_never_waits",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 25,
+      "name": "msgq_fifo_order_counts_and_peek",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T16:03:03Z",
+  "exit": 0,
+  "fault_checks_by_reset": 8,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-prof/build/nuc-lto-checked/tests/conformance/test_msgq.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_msgq.elf": "dac7b394eb8eb8db6b9d87c2122327ed13376973380f9b8ccc6103719e2778a3"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fcd8aa22e198d692233dd07b1ae34690a421dd6f",
+    "dirty": false
+  },
+  "image": "test_msgq.elf",
+  "image_sha256": "dac7b394eb8eb8db6b9d87c2122327ed13376973380f9b8ccc6103719e2778a3",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T16:03:02Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 12
+  }
+}

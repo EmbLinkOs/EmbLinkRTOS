@@ -79,3 +79,37 @@ if(EMB_TOOLCHAIN_GCC_LIBS)
   endforeach()
   target_link_options(emb_flags INTERFACE ${_emb_libdirs} ${_emb_libflags})
 endif()
+
+# Link-time optimization (ADR-056): the kernel, the port, the board and the application
+# optimized as one program, so the kernel's small functions inline across its files and into
+# the caller. GCC and Clang only; a toolchain file whose link cannot read the compiler's LTO
+# objects sets EMB_TOOLCHAIN_NO_LTO (avr-clang: GNU ld links Clang's objects). CMake's own IPO
+# support picks the flags and the LTO-aware archiver (gcc-ar, llvm-ar). Every target made after
+# this point inherits it; the layout probe opts out (include/CMakeLists.txt).
+option(EMB_LTO "Link-time optimization of the whole image (ADR-056; GCC and Clang)" OFF)
+if(EMB_LTO)
+  if(NOT CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    message(FATAL_ERROR "EMB_LTO: the ${CMAKE_C_COMPILER_ID} compiler has no link-time optimization "
+                        "this build supports (GCC and Clang do)")
+  endif()
+  if(EMB_TOOLCHAIN_NO_LTO)
+    message(FATAL_ERROR "EMB_LTO: ${EMB_TOOLCHAIN_NO_LTO}")
+  endif()
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND (NOT CMAKE_C_COMPILER_AR OR NOT CMAKE_C_COMPILER_RANLIB))
+    message(FATAL_ERROR "EMB_LTO: no gcc-ar and gcc-ranlib beside ${CMAKE_C_COMPILER}")
+  endif()
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+  # the kernel's sources ask for it where a layout trick does not survive LTO (EMBK_IDLE_SLIM)
+  target_compile_definitions(emb_flags INTERFACE EMB_LTO=1)
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    # A kernel call during which another thread or an interrupt handler may run must stay a
+    # barrier for every variable they share. Without LTO it is one: an opaque call may reach any
+    # function whose address was taken. With LTO GCC sees the whole call graph, but not the
+    # switch (PendSV, an interrupt), and its ipa-reference pass concludes that a static only
+    # those functions write survives the call unchanged; inline asm "memory" clobbers do not
+    # cover a static whose address is never taken. test_smoke, test_timer and test_irq failed
+    # that way. -fno-ipa-reference keeps the call a barrier.
+    target_compile_options(emb_flags INTERFACE -fno-ipa-reference)
+  endif()
+endif()
+

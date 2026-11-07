@@ -1,0 +1,528 @@
+{
+  "board": "nucleo_f446re",
+  "build": "checked (GCC 14.2.1, EMB_LTO)",
+  "configuration": null,
+  "date": "2026-11-07",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "fcd8aa22e198d692233dd07b1ae34690a421dd6f",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "name": "notify_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 88592,
+          "unit_hz": 180000000,
+          "units": 17718507
+        },
+        {
+          "name": "sem_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 89946,
+          "unit_hz": 180000000,
+          "units": 17989350
+        },
+        {
+          "name": "sem_give_take",
+          "ops": 10000,
+          "os": "emblink",
+          "per_op_x100": 21946,
+          "unit_hz": 180000000,
+          "units": 2194617
+        },
+        {
+          "name": "isr_wake",
+          "ops": 5000,
+          "os": "emblink",
+          "per_op_x100": 189470,
+          "unit_hz": 180000000,
+          "units": 9473519
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_compare.elf": "3e5f21da3713c8db6a7e91a769c8eb05c57cd385fa8a3a38b4fc8ef8d679dccd"
+      },
+      "image": "bench_compare.elf",
+      "image_sha256": "3e5f21da3713c8db6a7e91a769c8eb05c57cd385fa8a3a38b4fc8ef8d679dccd",
+      "isr_stack": null,
+      "log": "bench_compare.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:16Z"
+    },
+    {
+      "bench": [
+        {
+          "avg_x100": 11303,
+          "checked": 1,
+          "max": 143,
+          "min": 113,
+          "name": "irq_pend_to_handler",
+          "ops": 1000,
+          "unit_hz": 180000000
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_irq.elf": "5a5242bb1ce57ffaf276254141ed19e4fbbb71638930527c479966dcf5ab3a45"
+      },
+      "image": "bench_irq.elf",
+      "image_sha256": "5a5242bb1ce57ffaf276254141ed19e4fbbb71638930527c479966dcf5ab3a45",
+      "isr_stack": null,
+      "log": "bench_irq.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:14Z"
+    },
+    {
+      "bench": [
+        {
+          "checked": 1,
+          "name": "notify_handover",
+          "ops": 20000,
+          "per_op_x100": 76724,
+          "unit_hz": 180000000,
+          "units": 15344867
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_switch.elf": "00f7357aacc3471c601b127d16018bfbcee4ab9aee15a14f965cc5519875a232"
+      },
+      "image": "bench_switch.elf",
+      "image_sha256": "00f7357aacc3471c601b127d16018bfbcee4ab9aee15a14f965cc5519875a232",
+      "isr_stack": null,
+      "log": "bench_switch.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:13Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 3,
+      "flashed_sha256": {
+        "test_cond.elf": "48fa3357cd5663597e7224b712896fa2e288c34d32c6632318a61b74a503e373"
+      },
+      "image": "test_cond.elf",
+      "image_sha256": "48fa3357cd5663597e7224b712896fa2e288c34d32c6632318a61b74a503e373",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_cond.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:00Z"
+    },
+    {
+      "bench": [],
+      "cases": 3,
+      "cases_passed": 3,
+      "fault_checks_by_reset": 1,
+      "flashed_sha256": {
+        "test_crash.elf": "37d170e3fb1f8d029f8bd4facda61e4e0af1c2bc08ea533dbc0f51c750e6866e"
+      },
+      "image": "test_crash.elf",
+      "image_sha256": "37d170e3fb1f8d029f8bd4facda61e4e0af1c2bc08ea533dbc0f51c750e6866e",
+      "isr_stack": {
+        "size": 2048,
+        "used": 73
+      },
+      "log": "test_crash.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:09Z"
+    },
+    {
+      "bench": [],
+      "cases": 1,
+      "cases_passed": 1,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_crash_hw.elf": "04d1c3c529e1817adc6604de6d31b48fe37e21a9d49ce4e1a5b58b607fe48827"
+      },
+      "image": "test_crash_hw.elf",
+      "image_sha256": "04d1c3c529e1817adc6604de6d31b48fe37e21a9d49ce4e1a5b58b607fe48827",
+      "isr_stack": {
+        "size": 2048,
+        "used": 73
+      },
+      "log": "test_crash_hw.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:11Z"
+    },
+    {
+      "bench": [],
+      "cases": 1,
+      "cases_passed": 1,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_crash_reset.elf": "293a430014ae5d07c421947b2776cf507d8fe978c4189e85f8cf61974cf2e779"
+      },
+      "image": "test_crash_reset.elf",
+      "image_sha256": "293a430014ae5d07c421947b2776cf507d8fe978c4189e85f8cf61974cf2e779",
+      "isr_stack": {
+        "size": 2048,
+        "used": 73
+      },
+      "log": "test_crash_reset.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:10Z"
+    },
+    {
+      "bench": [],
+      "cases": 11,
+      "cases_passed": 11,
+      "fault_checks_by_reset": 5,
+      "flashed_sha256": {
+        "test_event.elf": "024f09e278b875c0b834fbd98b1d220d7df6ec8f4fb413a9814edcdd51b89106"
+      },
+      "image": "test_event.elf",
+      "image_sha256": "024f09e278b875c0b834fbd98b1d220d7df6ec8f4fb413a9814edcdd51b89106",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_event.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:58Z"
+    },
+    {
+      "bench": [],
+      "cases": 2,
+      "cases_passed": 2,
+      "fault_checks_by_reset": 2,
+      "flashed_sha256": {
+        "test_fault.elf": "20f33d159082cee6ad8d63b1989c1db7d4c05e422a326181d2fe84c0389498c9"
+      },
+      "image": "test_fault.elf",
+      "image_sha256": "20f33d159082cee6ad8d63b1989c1db7d4c05e422a326181d2fe84c0389498c9",
+      "isr_stack": {
+        "size": 2048,
+        "used": 84
+      },
+      "log": "test_fault.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:40Z"
+    },
+    {
+      "bench": [],
+      "cases": 1,
+      "cases_passed": 1,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_first_execution.elf": "9cdbebcdc884e2f3a119ab23ef2d17a031887ca5f74aa24a774249abf576eb52"
+      },
+      "image": "test_first_execution.elf",
+      "image_sha256": "9cdbebcdc884e2f3a119ab23ef2d17a031887ca5f74aa24a774249abf576eb52",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_first_execution.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:07Z"
+    },
+    {
+      "bench": [],
+      "cases": 2,
+      "cases_passed": 2,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_fpu.elf": "137a700df58514ed6f2918e7ee3b108fa2d32c000335937ece65277e255226eb"
+      },
+      "image": "test_fpu.elf",
+      "image_sha256": "137a700df58514ed6f2918e7ee3b108fa2d32c000335937ece65277e255226eb",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_fpu.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:12Z"
+    },
+    {
+      "bench": [],
+      "cases": 8,
+      "cases_passed": 8,
+      "fault_checks_by_reset": 4,
+      "flashed_sha256": {
+        "test_irq.elf": "a6bcc49b40ee9ea749cd5e3afa2971d9c580f552b724a4b033faccf706957924"
+      },
+      "image": "test_irq.elf",
+      "image_sha256": "a6bcc49b40ee9ea749cd5e3afa2971d9c580f552b724a4b033faccf706957924",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_irq.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:43Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 3,
+      "flashed_sha256": {
+        "test_irq_priority.elf": "2da96317df32dcee120202c8cfaf823ff76a5a0e47cb6efe5b58cbab7c24b6c3"
+      },
+      "image": "test_irq_priority.elf",
+      "image_sha256": "2da96317df32dcee120202c8cfaf823ff76a5a0e47cb6efe5b58cbab7c24b6c3",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_irq_priority.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:44Z"
+    },
+    {
+      "bench": [],
+      "cases": 3,
+      "cases_passed": 3,
+      "fault_checks_by_reset": 2,
+      "flashed_sha256": {
+        "test_isr_stack.elf": "9e757aee8912f70acdc0323393c8d946505b62571ca5c785bb8499149b42a249"
+      },
+      "image": "test_isr_stack.elf",
+      "image_sha256": "9e757aee8912f70acdc0323393c8d946505b62571ca5c785bb8499149b42a249",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_isr_stack.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:46Z"
+    },
+    {
+      "bench": [],
+      "cases": 12,
+      "cases_passed": 12,
+      "fault_checks_by_reset": 8,
+      "flashed_sha256": {
+        "test_msgq.elf": "dac7b394eb8eb8db6b9d87c2122327ed13376973380f9b8ccc6103719e2778a3"
+      },
+      "image": "test_msgq.elf",
+      "image_sha256": "dac7b394eb8eb8db6b9d87c2122327ed13376973380f9b8ccc6103719e2778a3",
+      "isr_stack": {
+        "size": 2048,
+        "used": 176
+      },
+      "log": "test_msgq.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:02Z"
+    },
+    {
+      "bench": [],
+      "cases": 15,
+      "cases_passed": 15,
+      "fault_checks_by_reset": 11,
+      "flashed_sha256": {
+        "test_mutex.elf": "3bf0713330d18625d103ce87bcf80a97678da475cf554d7039131263647965ae"
+      },
+      "image": "test_mutex.elf",
+      "image_sha256": "3bf0713330d18625d103ce87bcf80a97678da475cf554d7039131263647965ae",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_mutex.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:56Z"
+    },
+    {
+      "bench": [],
+      "cases": 10,
+      "cases_passed": 10,
+      "fault_checks_by_reset": 4,
+      "flashed_sha256": {
+        "test_notify.elf": "898fcdd1b3a7b2051ce9bc182ea290c5375391f20b0df7c1167f8dbbb08d8494"
+      },
+      "image": "test_notify.elf",
+      "image_sha256": "898fcdd1b3a7b2051ce9bc182ea290c5375391f20b0df7c1167f8dbbb08d8494",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_notify.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:53Z"
+    },
+    {
+      "bench": [],
+      "cases": 9,
+      "cases_passed": 9,
+      "fault_checks_by_reset": 1,
+      "flashed_sha256": {
+        "test_sched.elf": "8f960d095b6cdbdbd961c3f56d1f0176a859b2fad89ecc74b7b8d971729659ef"
+      },
+      "image": "test_sched.elf",
+      "image_sha256": "8f960d095b6cdbdbd961c3f56d1f0176a859b2fad89ecc74b7b8d971729659ef",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_sched.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:41Z"
+    },
+    {
+      "bench": [],
+      "cases": 12,
+      "cases_passed": 12,
+      "fault_checks_by_reset": 4,
+      "flashed_sha256": {
+        "test_sem.elf": "30cf3ec0a6af05f84e39891a6b50ec21cac0823f6350931d9fb0ca564fa7f39e"
+      },
+      "image": "test_sem.elf",
+      "image_sha256": "30cf3ec0a6af05f84e39891a6b50ec21cac0823f6350931d9fb0ca564fa7f39e",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_sem.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:54Z"
+    },
+    {
+      "bench": [],
+      "cases": 3,
+      "cases_passed": 3,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_smoke.elf": "de05ab7ec712d223b65640d1f6bfbbf4c7bf4580f741dc4f619d9b27f386db59"
+      },
+      "image": "test_smoke.elf",
+      "image_sha256": "de05ab7ec712d223b65640d1f6bfbbf4c7bf4580f741dc4f619d9b27f386db59",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_smoke.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:39Z"
+    },
+    {
+      "bench": [],
+      "cases": 11,
+      "cases_passed": 11,
+      "fault_checks_by_reset": 8,
+      "flashed_sha256": {
+        "test_thread.elf": "0de4ab589c0d2cea5003084d676ddcf52217b82a82cf8b4341beb2686180e30f"
+      },
+      "image": "test_thread.elf",
+      "image_sha256": "0de4ab589c0d2cea5003084d676ddcf52217b82a82cf8b4341beb2686180e30f",
+      "isr_stack": {
+        "size": 2048,
+        "used": 136
+      },
+      "log": "test_thread.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:47Z"
+    },
+    {
+      "bench": [],
+      "cases": 5,
+      "cases_passed": 5,
+      "fault_checks_by_reset": 5,
+      "flashed_sha256": {
+        "test_thread_identity.elf": "dbe92010c2a25f92b21ad95b11433c581f44001f0b1837b55a8dfef17a4545bf"
+      },
+      "image": "test_thread_identity.elf",
+      "image_sha256": "dbe92010c2a25f92b21ad95b11433c581f44001f0b1837b55a8dfef17a4545bf",
+      "isr_stack": {
+        "size": 2048,
+        "used": 104
+      },
+      "log": "test_thread_identity.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:50Z"
+    },
+    {
+      "bench": [],
+      "cases": 6,
+      "cases_passed": 6,
+      "fault_checks_by_reset": 2,
+      "flashed_sha256": {
+        "test_thread_join.elf": "ef47027e31baa6adf8eab5404070c9a8ce1dbc26de6e7b954ab53617dcc8b8c4"
+      },
+      "image": "test_thread_join.elf",
+      "image_sha256": "ef47027e31baa6adf8eab5404070c9a8ce1dbc26de6e7b954ab53617dcc8b8c4",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_thread_join.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:49Z"
+    },
+    {
+      "bench": [],
+      "cases": 8,
+      "cases_passed": 8,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "test_time.elf": "39cdfb174c07050af214ca7404c0de36a924ffccd004946ebb0374eb15cb4cae"
+      },
+      "image": "test_time.elf",
+      "image_sha256": "39cdfb174c07050af214ca7404c0de36a924ffccd004946ebb0374eb15cb4cae",
+      "isr_stack": {
+        "size": 2048,
+        "used": 96
+      },
+      "log": "test_time.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:02:51Z"
+    },
+    {
+      "bench": [],
+      "cases": 7,
+      "cases_passed": 7,
+      "fault_checks_by_reset": 5,
+      "flashed_sha256": {
+        "test_timer.elf": "3836d83843624c86ebfec31857dd3d1d601d9612deb93f39488f82e0d01e1b57"
+      },
+      "image": "test_timer.elf",
+      "image_sha256": "3836d83843624c86ebfec31857dd3d1d601d9612deb93f39488f82e0d01e1b57",
+      "isr_stack": {
+        "size": 2048,
+        "used": 120
+      },
+      "log": "test_timer.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:05Z"
+    },
+    {
+      "bench": [],
+      "cases": 16,
+      "cases_passed": 16,
+      "fault_checks_by_reset": 6,
+      "flashed_sha256": {
+        "test_workq.elf": "537e8f224abf136db01b1afad56b6a360d40df765a67c7a3eddf195a2db44f1b"
+      },
+      "image": "test_workq.elf",
+      "image_sha256": "537e8f224abf136db01b1afad56b6a360d40df765a67c7a3eddf195a2db44f1b",
+      "isr_stack": {
+        "size": 2048,
+        "used": 184
+      },
+      "log": "test_workq.log",
+      "outcome": "passed",
+      "started": "2026-11-07T16:03:03Z"
+    }
+  ],
+  "isr_stack_max_used": 184,
+  "passed": 26,
+  "preset": "cm4-nucleo-hil",
+  "total": 26
+}

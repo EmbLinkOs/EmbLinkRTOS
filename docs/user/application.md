@@ -70,3 +70,5 @@ Everything `emb_add_executable()` makes sits next to the image: on a board, `app
 ## What the build checks
 
 The configuration step runs the same checks as the RTOS's own build: the board's generated files must be current (HW-003), the configuration must be valid for the port, and the storage sizes come from the compiled layout probe. The same warnings apply to your sources (`-Wall -Wextra -Werror` and the rest, CODING-STANDARD CS-13). Pass `-DEMB_WERROR=OFF` to keep warnings from failing your build.
+
+`-DEMB_LTO=ON` optimizes your code together with the kernel at link time (GCC and Clang, [ADR-056](../architecture/06-decision-records.md)). Kernel calls then inline into your threads. On the NUCLEO-F446RE a switch takes about a fifth fewer cycles and the image is about a fifth smaller. Stepping through such an image in a debugger is harder, so the option is off by default. If your own assembly or linker script references a C symbol, mark that symbol `EMB_USED`, or LTO removes it.

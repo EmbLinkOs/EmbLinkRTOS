@@ -32,6 +32,8 @@ CC=${AVR_GCC:-avr-gcc}
 flags="-mmcu=atmega328p -DF_CPU=16000000UL -Os -g -fno-short-enums -mrelax -mcall-prologues -std=gnu11 \
  -ffunction-sections -fdata-sections -Wall -DBENCH_FREERTOS -I$here -I$port -I$src/include"
 # shellcheck disable=SC2086
+# BENCH_LTO=1: link-time optimization, as an EMB_LTO build of the EmbLinkRTOS side (ADR-056)
+[ "${BENCH_LTO:-0}" = 1 ] && flags="$flags -flto"
 $CC $flags "$root/tests/benchmarks/bench_compare.c" "$src/tasks.c" "$src/queue.c" "$src/list.c" \
     "$port/port.c" -Wl,--gc-sections -Wl,-Map="$out/bench_compare.elf.map" -o "$out/bench_compare.elf"
 ${AVR_OBJCOPY:-avr-objcopy} -O ihex -R .eeprom "$out/bench_compare.elf" "$out/bench_compare.hex"

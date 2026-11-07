@@ -12,7 +12,8 @@
 
 #include <avr/io.h> /* RAMEND */
 
-struct embk_thread *embn_avr_current;
+/* written by the switch's assembly only, which LTO cannot see: EMB_USED keeps it (ADR-056) */
+EMB_USED struct embk_thread *embn_avr_current;
 
 /* Frame bytes from the saved stack pointer upward: r31 .. r2, r1, SREG, r0, PC hi, PC lo. */
 #define FRAME_BYTES 35u

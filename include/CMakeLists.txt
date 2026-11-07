@@ -21,6 +21,8 @@ target_include_directories(emb_storage_probe PRIVATE
   "${EMB_BASE}/arch/${CONFIG_EMB_ARCH}/include"
   ${EMB_BOARD_INCLUDE_DIRS})
 target_link_libraries(emb_storage_probe PRIVATE emb_flags)
+# its markers must be real object code, never LTO bitcode (ADR-056)
+set_target_properties(emb_storage_probe PROPERTIES INTERPROCEDURAL_OPTIMIZATION OFF)
 emb_use_kernel_compiler(emb_storage_probe)
 add_custom_command(
   OUTPUT "${EMB_STORAGE_HEADER}"

@@ -57,9 +57,13 @@
 
 /* ---- switching state --------------------------------------------------------------- */
 
-struct embk_thread *embn_cm_running; /* registers on the CPU; NULL before the first switch */
-struct embk_thread *embn_cm_next;    /* the kernel's latest decision */
-struct embk_thread *embn_cm_exiting; /* an exited thread whose stack PendSV has not left */
+/* PendSV's assembly reads and writes these three, the vector table's initial SP is the interrupt
+ * stack's top and the fault entry's assembly calls embn_cm_fault: none is visible to LTO, so
+ * EMB_USED keeps them (ADR-056). */
+EMB_USED struct embk_thread
+    *embn_cm_running;                      /* registers on the CPU; NULL before the first switch */
+EMB_USED struct embk_thread *embn_cm_next; /* the kernel's latest decision */
+EMB_USED struct embk_thread *embn_cm_exiting; /* an exited thread whose stack PendSV has not left */
 
 void embn_cm_irq_entry(void);
 void embn_cm_systick(void);
@@ -455,7 +459,8 @@ void emb_arch_idle(void)
 
 /* The interrupt stack (MSP, A90): sized by CONFIG_EMB_ISR_STACK_SIZE, placed by the linker
  * script first in RAM (.emb_isr_stack), its top the vector table's initial SP. */
-uint8_t embn_cm_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(8) EMB_SECTION(".emb_isr_stack");
+EMB_USED uint8_t embn_cm_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(8)
+    EMB_SECTION(".emb_isr_stack");
 
 uint8_t *emb_arch_isr_stack(size_t *size)
 {
@@ -539,7 +544,7 @@ void emb_arch_breakpoint(void)
 #define SCB_MMFAR 0xE000ED34u
 #define SCB_BFAR  0xE000ED38u
 void embn_cm_fault(const uint32_t *frame, uint32_t exc);
-void embn_cm_fault(const uint32_t *frame, uint32_t exc)
+EMB_USED void embn_cm_fault(const uint32_t *frame, uint32_t exc)
 {
 #if EMBN_CM_V6M
     /* Armv6-M has no fault status registers: the exception number and the stacked pc */

@@ -4,6 +4,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (link-time optimization, 2026-11-07)
+
+- `-DEMB_LTO=ON` builds the kernel, the port, the board and the application with link-time optimization (ADR-056, A103). This works with GCC and Clang. On the NUCLEO-F446RE the release build's switching paths take 17–20% fewer cycles and its image is 18% smaller ([report](docs/engineering/perf-lto-2026-11-07.md)). The notification hand-over drops from 794 to 632 cycles, the semaphore hand-over from 746 to 648, and the interrupt wake from 1,514 to 1,285. The suites pass with it on every QEMU and EmbSIM preset and on the NUCLEO, built by GCC and by Clang.
+- `tools/hil/pcsample.py` profiles a Cortex-M board as it runs, by sampling its DWT PC sample register through OpenOCD.
+
 ### Changed (Pico 2 W at 150 MHz, 2026-11-07)
 
 - The Pico 2 W runs at 150 MHz from its PLL, as pico-sdk does, instead of its 12 MHz crystal (A102). The hardware generator handles a PLL with two post-dividers. At 12 MHz four timing cases failed on the board; at 150 MHz they pass.
