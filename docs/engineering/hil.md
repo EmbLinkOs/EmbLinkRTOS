@@ -119,15 +119,23 @@ Under QEMU, `bench_irq` prints figures too (on `mps2-an386`: 60 to 130 cycles). 
 
 ## External timing with the logic analyzer
 
-The cycle counter sees from the pend onward. An external measurement adds the pin and the NVIC's own latency, and catches jitter that the core's view hides.
+The cycle counter sees from the pend onward. An external measurement adds the pin and the NVIC's own latency, and catches jitter that the core's view hides. Any analyzer sigrok supports will do. The one used here is a 24 MHz, 8-channel FX2 analyzer, recorded with `sigrok-cli` (`brew install sigrok-cli`, which brings the fx2lafw firmware).
 
-| Channel | Pin (Arduino header) | Signal |
-|---|---|---|
-| CH0 | PA2 (D1) | USART2 TX: PulseView's UART decoder at 115200 8N1 shows the console |
-| CH1 | PA5 (D13) | LD2: `emb_board_led_toggle()`, a marker a test or benchmark can drive |
-| GND | any GND pin | the analyzer's ground |
+The reference controller drives marker pins for it. Its analyzer leads have female ends, so they go on the morpho header's male pins: CN10's inner column, counted from pin 1 at the USB end, and CN7 for PA0.
 
-At 24 MHz a sample is 41.7 ns, about 7.5 core cycles at 180 MHz. That suffices for microsecond-scale latency and jitter, not for single instructions. An external-trigger latency image has not been written yet: a GPIO input edge to its handler toggling a pin. It needs an EXTI line, which waits for the board's GPIO input driver.
+| Channel | Pin | Header | Signal |
+|---|---|---|---|
+| D1 | PA0 (A0) | CN7, inner column, 14th | TIM2's channel 1, toggled in hardware at each sampling trigger |
+| D2 | PA10 (D2) | CN10, inner column, 17th | high during the ADC's handler |
+| D3 | PA8 (D7) | CN10, inner column, 12th | high while the control thread processes a sample |
+| D4 | PA9 (D8) | CN10, inner column, 11th | high while a thread holds the console |
+| D5 | PA5 (D13) | CN10, inner column, 6th | LD2 |
+| GND | GND | CN10, inner column, 5th | the analyzer's ground |
+
+`tools/hil/controller_timing.py --port /dev/cu.usbmodem* --out <record directory>` sets the controller's rate and load, captures each scenario and measures every sample ([report](controller-timing-2026-11-07.md)). Things to know:
+- **The console can't be captured:** PA2 and PA3 reach only the ST-LINK on this board, because the links to the headers, SB62 and SB63, are open from the factory.
+- **Capture every channel:** libsigrok 0.5.2's VCD output mislabels a subset chosen with `-C`, so the tool captures all eight.
+- **Resolution:** at 24 MHz a sample is 41.7 ns, about 7.5 core cycles at 180 MHz. The tool uses 12 MHz, which this kind of analyzer sustains over USB. Either suffices for microsecond-scale latency and jitter, not for single instructions.
 
 ## The reference controller
 

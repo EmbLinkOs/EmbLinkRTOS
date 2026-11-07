@@ -4,6 +4,13 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the controller's timing, 2026-11-07)
+
+- The reference controller drives marker pins for a logic analyzer: its timer's trigger in hardware, its ADC handler, its control thread and its console.
+- `tools/hil/controller_timing.py` measures the controller with any analyzer sigrok supports, and keeps the captures and SVG images.
+- Measured on the NUCLEO-F446RE from the ADC's interrupt to the control thread at work: 9.50 µs at the median, 10.0 µs at most, over 24,998 samples at 100 Hz and 1 kHz and in degraded mode ([report](docs/engineering/controller-timing-2026-11-07.md)).
+- The STM32 drivers gain `emb_stm32_gpio_set()`/`_clear()` and `emb_stm32_tim_ch1_toggle_on_update()`.
+
 ### Added (the reference controller, 2026-11-07)
 
 - `examples/controller`, M3a's first application ([report](docs/engineering/controller-nucleo-2026-11-07.md)), an interrupt-driven controller on the NUCLEO-F446RE.
