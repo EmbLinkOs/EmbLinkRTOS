@@ -1,0 +1,103 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 3,
+      "name": "sched_higher_priority_runs_first",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_lock_defers_preemption_until_unlock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_yield_never_to_lower_priority",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "sched_fifo_within_level_and_yield_rotates",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "sched_preempted_thread_goes_ahead_of_its_peers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "sched_blocking_under_scheduler_lock_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sched_idle_runs_when_nothing_is_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_thread_self_and_priorities",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "sched_raising_a_ready_thread_above_the_caller_preempts",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-07T13:55:01Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "0",
+    "config": "097edee415c887c6",
+    "profile": "base",
+    "suite": "test_sched"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-pll/build/pico150-clang-release/tests/conformance/test_sched.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_sched.uf2": "b3da5a25afa0d06845a01e5f877636f82c99a4cf6de2d52d9d66e656406c12f3"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "7067cf87720d8221773a1e3b7888c8389bbb2930",
+    "dirty": false
+  },
+  "image": "test_sched.elf",
+  "image_sha256": "bf6977357ce44ff184d42a7487d1960081ef3b0fc8f99a55516aa2afea9b9934",
+  "isr_stack": {
+    "size": 2048,
+    "used": 0
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "RP2350A",
+  "started": "2026-11-07T13:54:59Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 9
+  }
+}

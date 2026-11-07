@@ -7,6 +7,7 @@ User-visible changes are recorded here. There are no released versions or releas
 ### Changed (Pico 2 W at 150 MHz, 2026-11-07)
 
 - The Pico 2 W runs at 150 MHz from its PLL, as pico-sdk does, instead of its 12 MHz crystal (A102). The hardware generator handles a PLL with two post-dividers. At 12 MHz four timing cases failed on the board; at 150 MHz they pass.
+- The Pico 2 W runs the suite on hardware ([report](docs/engineering/hil-pico2w-2026-11-07.md)): 27 of 27, checked and release, built by GCC and by Clang. The checked runs executed 75 fault checks that reset the RP2350, and its Armv8-M stack limit caught an overflow.
 - Benchmarks end through `emb_board_exit()`, so a Pico returns to BOOTSEL after each one and QEMU exits. The AVR board gains `emb_board_exit()`.
 - `tools/hil/nucleo-uart-relay` turns a NUCLEO-F446RE into a USB-UART for another board's console ([HIL guide](docs/engineering/hil.md)).
 

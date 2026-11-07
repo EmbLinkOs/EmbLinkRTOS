@@ -1,0 +1,41 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "checked": 1,
+      "name": "notify_handover",
+      "ops": 20000,
+      "per_op_x100": 63139,
+      "unit_hz": 150000000,
+      "units": 12627962
+    }
+  ],
+  "board": "pico2_w",
+  "cases": [],
+  "ended": "2026-11-07T13:52:55Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-pll/build/pico150-checked/tests/benchmarks/bench_switch.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "bench_switch.uf2": "384ee428be2d6c8f08a4366aa981571bd12c0e262d7eba388ae2285f7018821d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "7067cf87720d8221773a1e3b7888c8389bbb2930",
+    "dirty": false
+  },
+  "image": "bench_switch.elf",
+  "image_sha256": "6338325bdabf9dc5bca787876cb92f97a268fb291dacb4ce628aec39a514d6a6",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "RP2350A",
+  "started": "2026-11-07T13:52:53Z"
+}

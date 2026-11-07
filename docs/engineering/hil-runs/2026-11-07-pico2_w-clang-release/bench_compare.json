@@ -1,0 +1,65 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 48598,
+      "unit_hz": 150000000,
+      "units": 9719763
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 45612,
+      "unit_hz": 150000000,
+      "units": 9122518
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "emblink",
+      "per_op_x100": 16420,
+      "unit_hz": 150000000,
+      "units": 1642062
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "emblink",
+      "per_op_x100": 85022,
+      "unit_hz": 150000000,
+      "units": 4251102
+    }
+  ],
+  "board": "pico2_w",
+  "cases": [],
+  "ended": "2026-11-07T13:55:41Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-pll/build/pico150-clang-release/tests/benchmarks/bench_compare.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "bench_compare.uf2": "d261b764a8394047512ad0670c8de0eec238e8208ecd2da05a8849c2eae41b5c"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "7067cf87720d8221773a1e3b7888c8389bbb2930",
+    "dirty": false
+  },
+  "image": "bench_compare.elf",
+  "image_sha256": "54dcced0d77303fbd97da07e21199c4bdc8582645f7417b3fc41f7823cbdc3fa",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11203",
+  "soc": "RP2350A",
+  "started": "2026-11-07T13:55:39Z"
+}

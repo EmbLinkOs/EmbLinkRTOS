@@ -1,0 +1,17 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11203 at 115200 baud, image test_smoke.elf sha256 38fe07f8822d7508a61959ef53ce687d432cf83b305ec31637fa38f75161cc6d
+EVIDENCE v1 suite=test_smoke config=097edee415c887c6 profile=base board=pico2_w checked=0
+TEST smoke_libc_errno_from_a_thread
+  -> ok
+  req PORT-015
+CASE smoke_libc_errno_from_a_thread outcome=passed asserts=3 skips=0
+TEST smoke_sleep_advances_virtual_time
+  -> ok
+  req KRN-TIM-001 KRN-TIM-010
+CASE smoke_sleep_advances_virtual_time outcome=passed asserts=2 skips=0
+TEST smoke_thread_runs_and_exits
+  -> ok
+  req KRN-THR-001 KRN-THR-005 KRN-THR-017
+CASE smoke_thread_runs_and_exits outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=0
+3 tests, 0 failed, 0 skipped, 50 ticks
+EMB_TEST_END
