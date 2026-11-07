@@ -4,6 +4,22 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the reference controller, 2026-11-07)
+
+- `examples/controller`, M3a's first application ([report](docs/engineering/controller-nucleo-2026-11-07.md)), an interrupt-driven controller on the NUCLEO-F446RE.
+  - TIM2 triggers ADC1 conversions of the temperature sensor; the control thread runs a filter and a heater with hysteresis.
+  - Deadline misses are counted, and the controller enters degraded mode on three in a row. A watchdog is fed only while control progresses.
+  - Commands and telemetry share the console under a priority-inheriting mutex.
+  - At boot it reports the reset cause and the crash record.
+  - It builds with GCC and Clang, for both NUCLEO-F446 boards; CI builds it out of the tree.
+- STM32F4 drivers for it: a timer's periodic trigger, the temperature sensor on ADC1, the independent watchdog, the console's receive interrupt and the reset flags.
+- `tools/hil/controller_session.py` runs the controller's scenario on the board and keeps a transcript and a JSON record.
+- The [HIL guide](docs/engineering/hil.md) says to update the NUCLEO's ST-LINK firmware first. With V2J28M18 the virtual COM port stopped passing bytes to the board.
+
+### Fixed (the reference controller, 2026-11-07)
+
+- `CONFIG_EMB_FAULT_ACTION_REBOOT` halted the part instead of rebooting it on the STM32F4, RP2350, ESP32 and ESP32-C3 boards (A106). The board's fault report ended the run before the port's reset. It now returns under the reboot action.
+
 ### Added (link-time optimization, 2026-11-07)
 
 - `-DEMB_LTO=ON` builds the kernel, the port, the board and the application with link-time optimization (ADR-056, A103). This works with GCC and Clang. On the NUCLEO-F446RE the release build's switching paths take 17–20% fewer cycles and its image is 18% smaller ([report](docs/engineering/perf-lto-2026-11-07.md)). The notification hand-over drops from 794 to 632 cycles, the semaphore hand-over from 746 to 648, and the interrupt wake from 1,514 to 1,285. The suites pass with it on every QEMU and EmbSIM preset and on the NUCLEO, built by GCC and by Clang.

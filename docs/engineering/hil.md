@@ -5,6 +5,7 @@ M3a's evidence comes from physical boards: the conformance suite run on the boar
 ## What you need
 
 - A NUCLEO-F446RE and a USB cable to its ST-LINK (CN1). The ST-LINK flashes the part over SWD, and also carries the console: USART2 through its virtual COM port.
+  - **Update the ST-LINK's firmware first.** With V2J28M18 the virtual COM port stopped passing bytes from the host to the board, while the board's output still arrived. Only a USB replug brought it back, and it failed again later. V2J49M36 fixed it. The updater is ST's STSW-LINK007; its Java command line updates without the GUI: `java -jar STLinkUpgrade.jar -sn <serial> -update`, then `-checkVer`. Check the version after the next power cycle: on 2026-11-07 the first update did not persist. OpenOCD prints the version as it connects (`STLINK V2J49M36`).
 - OpenOCD on the host. On macOS: `brew install open-ocd`. On Debian or Ubuntu: `apt install openocd`. The board's `hw.json` names its script: `board/st_nucleo_f4.cfg`.
 - The Arm toolchain the other Cortex-M presets use.
 - For external timing: an 8-channel 24 MHz USB logic analyzer and PulseView (sigrok).
@@ -127,6 +128,19 @@ The cycle counter sees from the pend onward. An external measurement adds the pi
 | GND | any GND pin | the analyzer's ground |
 
 At 24 MHz a sample is 41.7 ns, about 7.5 core cycles at 180 MHz. That suffices for microsecond-scale latency and jitter, not for single instructions. An external-trigger latency image has not been written yet: a GPIO input edge to its handler toggling a pin. It needs an EXTI line, which waits for the board's GPIO input driver.
+
+## The reference controller
+
+`examples/controller` is M3a's first application (docs/adoption.md). `tools/hil/controller_session.py` flashes it, keeps the console open through the whole run and runs its scenario. The phases are boot, steady sampling, stacks, overload into degraded mode and back, 1 kHz, a soak, an injected fault and a hang:
+
+```sh
+cmake -S examples/controller -B build/controller -G Ninja -DEMB_BOARD=nucleo_f446re
+cmake --build build/controller
+python3 tools/hil/controller_session.py --port /dev/cu.usbmodem* --elf build/controller/controller.elf \
+        --out docs/engineering/hil-runs/<date>-nucleo_f446re-controller --soak 1800
+```
+
+It writes `controller.log`, the console with each command marked, and `controller.json`, each phase's facts and outcome. After the fault it decodes the crash record with `tools/crashdec` against the ELF. The STM32 sets the pin flag on every internal reset, because the reset drives NRST, so a software or watchdog reset reads `software pin` or `watchdog pin`. By hand, the console takes `help`, `status`, `load <0-400>`, `rate <10-1000>`, `setpoint <mC>`, `fault` and `hang` at 115200 baud ([report](controller-nucleo-2026-11-07.md)).
 
 ## The first session, in order
 
