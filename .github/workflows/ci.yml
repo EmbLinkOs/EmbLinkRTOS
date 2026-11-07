@@ -706,6 +706,14 @@ jobs:
             --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello-mps2_an386/hello.elf
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "hello_app: done" --timeout 60 \
             --qemu-args "-M virt -bios none -kernel" build/hello-riscv32_virt/hello.elf
+      - name: Build the reference controller for both NUCLEO-F446 boards (it runs on the board, not here)
+        run: |
+          cp -r examples/controller "$RUNNER_TEMP/controller"
+          for b in nucleo_f446re nucleo_f446ze; do
+            cmake -S "$RUNNER_TEMP/controller" -B "build/controller-$b" -G Ninja \
+                  -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
+            cmake --build "build/controller-$b"
+          done
 
   merge_gate:
     name: CI merge gate
