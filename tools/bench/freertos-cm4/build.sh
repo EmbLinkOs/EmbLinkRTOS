@@ -45,6 +45,8 @@ if [ "$nucleo" = 1 ]; then
     extra="$root/drivers/st/stm32f4_rcc.c $root/drivers/st/stm32f4_gpio.c $root/drivers/st/stm32_usart.c $bd/board_pins.c"
 fi
 # shellcheck disable=SC2086
+# BENCH_LTO=1: link-time optimization, as an EMB_LTO build of the EmbLinkRTOS side (ADR-056)
+[ "${BENCH_LTO:-0}" = 1 ] && flags="$flags -flto"
 $CC $flags "$root/tests/benchmarks/bench_compare.c" "$here/bench_platform.c" $extra \
     "$src/tasks.c" "$src/queue.c" "$src/list.c" "$port/port.c" \
     -nostartfiles --specs=nano.specs -Wl,--gc-sections -T"$bd/regions.ld" \
