@@ -1,0 +1,63 @@
+{
+  "baud": 115200,
+  "bench": [
+    {
+      "name": "notify_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 87779,
+      "unit_hz": 180000000,
+      "units": 17555842
+    },
+    {
+      "name": "sem_handover",
+      "ops": 20000,
+      "os": "emblink",
+      "per_op_x100": 84223,
+      "unit_hz": 180000000,
+      "units": 16844676
+    },
+    {
+      "name": "sem_give_take",
+      "ops": 10000,
+      "os": "emblink",
+      "per_op_x100": 19420,
+      "unit_hz": 180000000,
+      "units": 1942085
+    },
+    {
+      "name": "isr_wake",
+      "ops": 5000,
+      "os": "emblink",
+      "per_op_x100": 164812,
+      "unit_hz": 180000000,
+      "units": 8240608
+    }
+  ],
+  "board": "nucleo_f446re",
+  "cases": [],
+  "ended": "2026-11-07T11:09:41Z",
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /private/tmp/claude-501/-Users-teooff1700-EmbLinkRTOS/b6a25bd5-d134-4f67-9877-98be850e0a65/scratchpad/wt-pre055/build/nuc-pre055-release/tests/benchmarks/bench_compare.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "bench_compare.elf": "0417b8a5c5ec5c7742e269cec60e1897d64dcc966f374834ea11c4a4eaa0af51"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "befec3390012ff5c98da6f648475e8c75b0876b8",
+    "dirty": false
+  },
+  "image": "bench_compare.elf",
+  "image_sha256": "0417b8a5c5ec5c7742e269cec60e1897d64dcc966f374834ea11c4a4eaa0af51",
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem1103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-07T11:09:40Z"
+}

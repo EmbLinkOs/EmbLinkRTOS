@@ -1,0 +1,114 @@
+{
+  "board": "nucleo_f446re",
+  "build": "release before ADR-055 (befec33), benchmarks only",
+  "configuration": null,
+  "date": "2026-11-07",
+  "format": "emb-hil-archive v1",
+  "git": {
+    "commit": "befec3390012ff5c98da6f648475e8c75b0876b8",
+    "dirty": false
+  },
+  "images": [
+    {
+      "bench": [
+        {
+          "name": "notify_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 87779,
+          "unit_hz": 180000000,
+          "units": 17555842
+        },
+        {
+          "name": "sem_handover",
+          "ops": 20000,
+          "os": "emblink",
+          "per_op_x100": 84223,
+          "unit_hz": 180000000,
+          "units": 16844676
+        },
+        {
+          "name": "sem_give_take",
+          "ops": 10000,
+          "os": "emblink",
+          "per_op_x100": 19420,
+          "unit_hz": 180000000,
+          "units": 1942085
+        },
+        {
+          "name": "isr_wake",
+          "ops": 5000,
+          "os": "emblink",
+          "per_op_x100": 164812,
+          "unit_hz": 180000000,
+          "units": 8240608
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_compare.elf": "0417b8a5c5ec5c7742e269cec60e1897d64dcc966f374834ea11c4a4eaa0af51"
+      },
+      "image": "bench_compare.elf",
+      "image_sha256": "0417b8a5c5ec5c7742e269cec60e1897d64dcc966f374834ea11c4a4eaa0af51",
+      "isr_stack": null,
+      "log": "bench_compare.log",
+      "outcome": "passed",
+      "started": "2026-11-07T11:09:40Z"
+    },
+    {
+      "bench": [
+        {
+          "avg_x100": 15326,
+          "checked": 0,
+          "max": 364,
+          "min": 153,
+          "name": "irq_pend_to_handler",
+          "ops": 1000,
+          "unit_hz": 180000000
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_irq.elf": "ab5796d68d643ccccef0a5a2642da8746e7f3d835118281a392adacc5c748fe6"
+      },
+      "image": "bench_irq.elf",
+      "image_sha256": "ab5796d68d643ccccef0a5a2642da8746e7f3d835118281a392adacc5c748fe6",
+      "isr_stack": null,
+      "log": "bench_irq.log",
+      "outcome": "passed",
+      "started": "2026-11-07T11:09:39Z"
+    },
+    {
+      "bench": [
+        {
+          "checked": 0,
+          "name": "notify_handover",
+          "ops": 20000,
+          "per_op_x100": 80896,
+          "unit_hz": 180000000,
+          "units": 16179211
+        }
+      ],
+      "cases": 0,
+      "cases_passed": 0,
+      "fault_checks_by_reset": 0,
+      "flashed_sha256": {
+        "bench_switch.elf": "36d7f43a3b4b281b7c7a36b7232850864d58c367215a5f650910afb88b74551e"
+      },
+      "image": "bench_switch.elf",
+      "image_sha256": "36d7f43a3b4b281b7c7a36b7232850864d58c367215a5f650910afb88b74551e",
+      "isr_stack": null,
+      "log": "bench_switch.log",
+      "outcome": "passed",
+      "started": "2026-11-07T11:09:37Z"
+    }
+  ],
+  "isr_stack_max_used": null,
+  "passed": 3,
+  "preset": "cm4-nucleo-hil",
+  "total": 3
+}

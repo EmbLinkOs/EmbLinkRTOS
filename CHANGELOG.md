@@ -4,6 +4,16 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (NUCLEO-F446RE on hardware, 2026-11-07)
+
+- The M3a board runs the suite ([report](docs/engineering/hil-nucleo-2026-11-07.md)): `cm4-nucleo-hil` passed 26 of 26, checked and release, built by GCC and by Clang. The checked runs executed 74 fault checks that reset the STM32F446, the crash record survived a real reset, and a hardware fault's registers were recorded.
+- Against FreeRTOS V11.1.0 on the same board, release, GCC, CPU cycles: semaphore hand-over 746 against 831 (−10%), interrupt wake 1,514 against 1,474 (+3%), give and take 194 against 178 (+9%), notification hand-over 794 against 623 (+27%). Clang's build is 2–12% faster than GCC's.
+- ADR-055 measured on the NUCLEO: 8–11% fewer cycles on every switching path.
+
+### Fixed (NUCLEO-F446RE on hardware, 2026-11-07)
+
+- `run_hil.py` counted fault checks only at a line start. On the NUCLEO a reset cuts the case's line, so the first count was 31 of 74.
+
 ### Added (Pico 2 W on the bench, 2026-11-06)
 
 - The Pico 2 W runs the suite from `run_hil.py` (`cmake --preset cm33-pico2w-hil`, A101): picotool loads each image in BOOTSEL, and each test image reboots into BOOTSEL when it ends, so no button is pressed between images. The console is UART0 through any 3.3 V USB-UART, and [the HIL guide](docs/engineering/hil.md) shows the ESP32 DevKitC's bridge doing that job. Built by GCC and by Clang with LLD.
