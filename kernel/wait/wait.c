@@ -69,16 +69,6 @@ static void dequeue(embk_wait_queue_t *q, embk_thread_t *t)
 #endif
 }
 
-embk_thread_t *embk_wait_first(const embk_wait_queue_t *q)
-{
-#if CONFIG_EMB_SCHED_TABLE
-    return embk_sched_table_best(q->set);
-#else
-    embk_list_node_t *n = embk_list_first(&q->waiters);
-    return (n == NULL) ? NULL : EMB_CONTAINER_OF(n, embk_thread_t, wait_node);
-#endif
-}
-
 void embk_wait_iter_begin(const embk_wait_queue_t *q, embk_wait_iter_t *it)
 {
 #if CONFIG_EMB_SCHED_TABLE
