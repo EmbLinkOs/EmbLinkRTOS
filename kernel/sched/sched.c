@@ -81,7 +81,7 @@ void embk_sched_init(void)
 
 /* ---- the structure ------------------------------------------------------------ */
 
-static void insert(embk_thread_t *t, bool ahead)
+static EMBK_HOT void insert(embk_thread_t *t, bool ahead)
 {
 #if CONFIG_EMB_SCHED_TABLE
     (void)ahead; /* one thread per level: no order within a level */

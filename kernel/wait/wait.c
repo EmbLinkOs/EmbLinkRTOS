@@ -35,7 +35,7 @@ bool embk_wait_queue_is_empty(const embk_wait_queue_t *q)
 #endif
 }
 
-static void enqueue(embk_wait_queue_t *q, embk_thread_t *t)
+static EMBK_HOT void enqueue(embk_wait_queue_t *q, embk_thread_t *t)
 {
 #if CONFIG_EMB_SCHED_TABLE
     q->set |= EMBK_WORD_BIT(t->base_prio);
