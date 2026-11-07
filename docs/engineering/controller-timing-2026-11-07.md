@@ -14,6 +14,10 @@ From the ADC's interrupt to the control thread at work, the latency was **9.50 �
 
 **Record:** the folder `docs/engineering/hil-runs/2026-11-07-nucleo_f446re-controller-timing`. Each scenario's capture is kept (`<scenario>.vcd.gz`, every edge of every channel). `timing.json` holds the statistics and `console.log` the controller's console during the captures. `controller_timing.py --from --out <folder>` recomputes the statistics and the images from the captures, without a board.
 
+![The bench: the MacBook, a USB hub, the logic analyzer and the NUCLEO-F446RE, the analyzer's leads on the NUCLEO's morpho header](hil-runs/2026-11-07-nucleo_f446re-controller-timing/bench.jpg)
+
+The bench during the captures. The analyzer (the small box at the centre) connects to the Mac by USB, and its leads go to the NUCLEO's morpho header. The NUCLEO connects through the hub by its ST-LINK's USB. The photo's resolution does not show which lead is on which pin. Each channel was identified from its signal instead: the trigger's 50 Hz square wave, the handler's 4.3 µs pulses 22.7 µs after it, the control thread's pulses after those, the console's 16 ms once a second, and the LED's toggling.
+
 ## The marker pins
 
 | Analyzer | Pin | Driven by | Marks |
