@@ -405,6 +405,17 @@
       }
     },
     {
+      "name": "cm33-pico2w-hil",
+      "displayName": "Raspberry Pi Pico 2 W (the physical board, RP2350A Cortex-M33), GCC, base profile, checked, tests on the board: picotool loads each image in BOOTSEL (set EMB_HIL_PORT to the USB-UART on its UART0, GPIO0/GPIO1)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cm33-pico2w-hil",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "EMB_BOARD": "pico2_w",
+        "EMB_TEST_EMULATOR": "hil"
+      }
+    },
+    {
       "name": "xt-esp32-hil",
       "displayName": "ESP32 DevKitC (the physical board, Xtensa LX6), EmbCC, base profile, checked, tests on the board (set EMB_HIL_PORT to its USB serial port, EMBCC to an embcc with Xtensa scripts, EMBFLASH to an embflash with --esp)",
       "generator": "Ninja",
@@ -689,6 +700,10 @@
     {
       "name": "cm4-nucleo-hil",
       "configurePreset": "cm4-nucleo-hil"
+    },
+    {
+      "name": "cm33-pico2w-hil",
+      "configurePreset": "cm33-pico2w-hil"
     },
     {
       "name": "xt-esp32-hil",
@@ -996,6 +1011,13 @@
     {
       "name": "cm4-nucleo-hil",
       "configurePreset": "cm4-nucleo-hil",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cm33-pico2w-hil",
+      "configurePreset": "cm33-pico2w-hil",
       "output": {
         "outputOnFailure": true
       }

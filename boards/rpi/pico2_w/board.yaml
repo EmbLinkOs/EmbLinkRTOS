@@ -13,7 +13,9 @@ doc: >-
   The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs
   from the 12 MHz crystal, without the PLL, in this first increment. The user LED is on the
   CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files,
-  copied to the boot ROM's USB drive (hold BOOTSEL while plugging in).
+  copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while
+  the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into
+  BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.
 oscillators:
   xosc: { hz: 12MHz, source: external_crystal }
 clocks:
@@ -27,4 +29,7 @@ flash_partitions:
   - { name: app, base: 0x10000000, size: 4M }
 # SPAREIRQ_IRQ_0 and 1: lines no peripheral raises
 test_irqs: [46, 47]
+# picotool loads UF2 images of this family in BOOTSEL; the console is another port (UART0)
+debug_probe: { picotool: { family: rp2350-arm-s } }
+simulation: { resets_in: [hil] }
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }
