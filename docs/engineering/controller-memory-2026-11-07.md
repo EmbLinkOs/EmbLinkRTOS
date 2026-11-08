@@ -14,7 +14,7 @@ The bound comes from the image's call graph and GCC's per-function frame sizes. 
 **Image:** `examples/controller` at `27c11d6` (the image of the timing report), GCC 14.2.1, the default checked build, for the NUCLEO-F446RE. The NUCLEO-F446ZE's image differs by 32 bytes of flash and has the same bounds.
 
 **Tools:**
-- `tools/footprint/memory_report.py` accounts for flash and RAM from the linker map and the image's sections and symbols.
+- `tools/footprint/memory_report.py` accounts for flash and RAM from the linker map and the image's sections and symbols. It reads GNU ld's map and, since 2026-11-08, LLD's. LLD's map lists no memory regions, so for it they come from the linker script's `MEMORY` block: the script the link command names (`-T`, read from `build.ninja`), or `--ldscript`. LLD lists merged string constants once, after merging, so the report gives them as merged, not before merging. CI reports the Clang controller's memory too, in the `static-analysis` job.
 - `tools/footprint/stack_bound.py` computes the stack bounds from the image and the build's `.su` files.
 - `examples/controller/stack-roots.json` names the threads' entries, the interrupt levels and the targets of the indirect calls.
 - CI runs both tools on both boards' builds, and fails when a bound exceeds its stack or the accounting does not reconcile.

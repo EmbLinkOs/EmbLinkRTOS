@@ -865,6 +865,10 @@ jobs:
           cmake -S examples/controller -B build/controller-tidy -G Ninja -DEMB_BOARD=nucleo_f446re \
                 -DCMAKE_TOOLCHAIN_FILE="$tc" > /dev/null
           cmake --build build/controller-tidy
+      - name: The Clang controller's memory report, from LLD's map
+        run: |
+          python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \
+                  --elf build/controller-tidy/controller.elf
       - name: clang-tidy
         run: |
           python3 -I tools/analysis/clang_tidy.py --clang-tidy clang-tidy-18 \
