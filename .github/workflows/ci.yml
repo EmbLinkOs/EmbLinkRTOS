@@ -356,6 +356,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/storage -p 'test_*.py' -v
       - name: Mixed native compiler launcher contract
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
+      - name: Double build contract
+        run: python3 -I -m unittest discover -s tools/repro -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Debug descriptor reader (OBS-008, A107)
@@ -730,10 +732,30 @@ jobs:
                     --elf "build/controller-$b/controller.elf"
           done
 
+  reproducibility:
+    # BLD-004's double build: the same commit, checked out a second time at another path, must
+    # give byte-identical images (tools/repro/double_build.py). Native programs, Cortex-M with GCC
+    # and Clang, RV32, AVR, the Pico 2 W's UF2 images and the reference controller.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tools
+        timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build clang lld gcc-arm-none-eabi libnewlib-arm-none-eabi gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf gcc-avr avr-libc binutils-avr python3-yaml
+      - name: Double build
+        run: |
+          python3 -I tools/repro/double_build.py --work "$RUNNER_TEMP/repro" \
+            --preset native-gcc --preset native-clang --preset cm4-an386 --preset cm4-an386-clang \
+            --preset rv32-virt --preset avr-uno --preset cm33-pico2w \
+            --app examples/controller:nucleo_f446re
+
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint]
+    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, reproducibility]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

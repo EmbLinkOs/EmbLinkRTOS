@@ -16,7 +16,7 @@ The documentation publishing `deploy` job is manual and **not** a merge requirem
 
 Official checkout, Python setup and artifact/Pages actions are pinned to full reviewed release commit SHAs, with version comments. They use the supported Node 24 runtime on GitHub-hosted Ubuntu 24.04; update pins by checking the official release/runtime compatibility and rerunning the affected workflows. Pinning these actions does not pin every compiler/package or establish release reproducibility.
 
-These checks do not yet enforce complete statement/branch coverage, semantic requirement traceability, clang-tidy/cppcheck, reproducibility, SBOM generation, fuzzing or HIL. Those remain delivery/release gates with explicit evidence obligations. The presence of a workflow or ruleset file is not proof that a remote run passed or that GitHub settings are active.
+The `reproducibility` job checks BLD-004's double build, and the merge gate requires it ([reproducible builds](reproducible-builds.md)). These checks do not yet enforce complete statement/branch coverage, semantic requirement traceability, clang-tidy/cppcheck, SBOM generation, fuzzing or HIL. Those remain delivery/release gates with explicit evidence obligations. The presence of a workflow or ruleset file is not proof that a remote run passed or that GitHub settings are active.
 
 ## DCO certification
 

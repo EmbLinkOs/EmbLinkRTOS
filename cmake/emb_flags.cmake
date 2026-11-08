@@ -43,17 +43,21 @@ target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_
 # Reproducible images (BLD-004): the same sources, configuration and toolchain give the same
 # bytes, wherever the tree and the build are. Code and data already do; the debug information
 # and __FILE__ would name the absolute directories. They name these instead: the build
-# directory as `build`, the application's directory as `.`, and the RTOS's as `.` when it is
-# the application (an in-tree build) or `emblinkrtos` when it is a package. The most specific
-# directory comes last, which is the one GCC and Clang apply. A debugger started at the
-# source root finds the files; elsewhere, `set substitute-path` in GDB.
+# directory as `.`; the RTOS's tree as `.` when the application is in it (the RTOS's own build,
+# examples/), so a file reads `kernel/sched/sched.c` or `examples/controller/main.c`; and for
+# an application outside it, the application's directory as `.` and the RTOS as `emblinkrtos`.
+# The compilation directory, the build directory, is then `.`, so a debugger or addr2line
+# started at the source root (the application's, outside the tree) finds the files; elsewhere,
+# `set substitute-path` in GDB. The most specific directory comes last, which is the one GCC
+# and Clang apply.
 if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
-  if(EMB_BASE STREQUAL CMAKE_SOURCE_DIR)
+  string(FIND "${CMAKE_SOURCE_DIR}/" "${EMB_BASE}/" _emb_in_tree)
+  if(_emb_in_tree EQUAL 0)
     set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=.")
   else()
     set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=emblinkrtos" "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
   endif()
-  list(APPEND _emb_prefix_maps "-ffile-prefix-map=${CMAKE_BINARY_DIR}=build")
+  list(APPEND _emb_prefix_maps "-ffile-prefix-map=${CMAKE_BINARY_DIR}=.")
   target_compile_options(emb_flags INTERFACE ${_emb_prefix_maps})
 endif()
 

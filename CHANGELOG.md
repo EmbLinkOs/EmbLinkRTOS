@@ -4,6 +4,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (reproducible builds, 2026-11-08)
+
+- Images no longer depend on where the source tree or the build directory is. GCC and Clang builds name them `.`, `build` and `emblinkrtos` in the debug information and `__FILE__` (`-ffile-prefix-map`); code and data never did depend on it.
+- `tools/repro/double_build.py` builds a commit in a second checkout at another path and compares every image byte for byte. CI's `reproducibility` job runs it on native, Cortex-M (GCC and Clang), RV32, AVR, the Pico 2 W and the reference controller, and the merge gate requires it (BLD-004, [page](docs/engineering/reproducible-builds.md)).
+
 ### Added (the debug descriptor, 2026-11-08)
 
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.
