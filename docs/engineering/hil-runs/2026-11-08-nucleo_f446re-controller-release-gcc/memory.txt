@@ -1,0 +1,44 @@
+| Region | Size | Used | Free |
+|---|---:|---:|---:|
+| FLASH | 524,288 | 16,432 (3.1%) | 507,856 |
+| RAM | 131,072 | 7,624 (5.8%) | 123,448 |
+
+| Flash, by component | Bytes |
+|---|---:|
+| app | 3,073 |
+| arch | 1,706 |
+| kernel/thread | 1,212 |
+| kernel/crash | 1,172 |
+| kernel/msgq | 1,162 |
+| kernel/mutex | 1,110 |
+| runtime | 874 |
+| drivers | 842 |
+| kernel/sched | 740 |
+| kernel/wait | 595 |
+| kernel/time | 544 |
+| kernel/exec | 439 |
+| board | 388 |
+| kernel/descriptor | 378 |
+| kernel/fault | 262 |
+| kernel/timer | 262 |
+| kernel/irq | 138 |
+| kernel/workq | 88 |
+| kernel/notify | 82 |
+| kernel/build_id | 20 |
+| string constants after merging, vector table alignment, linker tables | 1,345 |
+| **total** | **16,432** |
+
+String constants before the linker merged them: 2,503 bytes.
+
+| RAM, by purpose | Bytes |
+|---|---:|
+| thread stacks | 3,328 |
+| interrupt stack | 2,048 |
+| kernel state | 1,137 |
+| thread control blocks | 480 |
+| kernel objects and queue rings | 296 |
+| retained crash record area | 192 |
+| application state | 99 |
+| port state | 16 |
+| alignment padding | 28 |
+| **total** | **7,624** |

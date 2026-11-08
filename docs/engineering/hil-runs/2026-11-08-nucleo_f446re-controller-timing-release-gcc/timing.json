@@ -1,0 +1,368 @@
+{
+  "format": "emb-controller-timing v1",
+  "board": "nucleo_f446re",
+  "port": "/dev/cu.usbmodem11103",
+  "analyzer": "fx2lafw (sigrok-cli)",
+  "samplerate": "12m",
+  "seconds": 20.0,
+  "channels": {
+    "trigger": "D1",
+    "isr": "D2",
+    "control": "D3",
+    "console": "D4",
+    "led": "D5"
+  },
+  "git": {
+    "commit": "81cdd1404b66cea240bc5c507af5b2d002b9d0a9",
+    "dirty": false
+  },
+  "started": "2026-11-08T21:29:50+0100",
+  "ended": "2026-11-08T21:31:33+0100",
+  "outcome": "pass",
+  "scenarios": [
+    {
+      "name": "normal",
+      "replies": [
+        "OK rate 100",
+        "OK load 0"
+      ],
+      "doc": "100 Hz, no added load",
+      "rate_hz": 100,
+      "load_pct": 0,
+      "capture": "normal.vcd.gz",
+      "samples": 2000,
+      "processed": 2000,
+      "unprocessed": 0,
+      "conversion_ns": {
+        "n": 2000,
+        "min": 22500.0,
+        "median": 22583.3,
+        "p99": 22583.4,
+        "max": 22666.7,
+        "stdev": 29.7
+      },
+      "handler_ns": {
+        "n": 2000,
+        "min": 4083.3,
+        "median": 4166.6,
+        "p99": 4166.7,
+        "max": 4250.0,
+        "stdev": 43.3
+      },
+      "wake_ns": {
+        "n": 2000,
+        "min": 3166.6,
+        "median": 3250.0,
+        "p99": 3416.7,
+        "max": 3500.0,
+        "stdev": 49.2
+      },
+      "latency_ns": {
+        "n": 2000,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7666.7,
+        "max": 7750.0,
+        "stdev": 55.2
+      },
+      "processing_ns": {
+        "n": 2000,
+        "min": 2333.3,
+        "median": 2416.7,
+        "p99": 2416.7,
+        "max": 2416.7,
+        "stdev": 26.2
+      },
+      "trigger_period_ns": {
+        "n": 1999,
+        "min": 10000500.0,
+        "median": 10000500.0,
+        "p99": 10000583.4,
+        "max": 10000583.4,
+        "stdev": 26.5
+      },
+      "control_period_ns": {
+        "n": 1999,
+        "min": 10000083.3,
+        "median": 10000500.0,
+        "p99": 10000583.4,
+        "max": 10000833.4,
+        "stdev": 53.9
+      },
+      "latency_console_busy_ns": {
+        "n": 40,
+        "min": 7583.3,
+        "median": 7666.7,
+        "p99": 7750.0,
+        "max": 7750.0,
+        "stdev": 26.0
+      },
+      "latency_console_idle_ns": {
+        "n": 1960,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7416.7,
+        "max": 7416.7,
+        "stdev": 34.0
+      }
+    },
+    {
+      "name": "load30",
+      "replies": [
+        "OK rate 100",
+        "OK load 30"
+      ],
+      "doc": "100 Hz, 3 ms of work per sample (the soak's load)",
+      "rate_hz": 100,
+      "load_pct": 30,
+      "capture": "load30.vcd.gz",
+      "samples": 2000,
+      "processed": 1999,
+      "unprocessed": 1,
+      "conversion_ns": {
+        "n": 2000,
+        "min": 22500.0,
+        "median": 22583.3,
+        "p99": 22583.4,
+        "max": 22583.4,
+        "stdev": 41.2
+      },
+      "handler_ns": {
+        "n": 2000,
+        "min": 4083.3,
+        "median": 4166.6,
+        "p99": 4166.7,
+        "max": 4250.0,
+        "stdev": 43.2
+      },
+      "wake_ns": {
+        "n": 1999,
+        "min": 3166.6,
+        "median": 3250.0,
+        "p99": 3416.7,
+        "max": 3500.0,
+        "stdev": 49.6
+      },
+      "latency_ns": {
+        "n": 1999,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7666.7,
+        "max": 7750.0,
+        "stdev": 54.9
+      },
+      "processing_ns": {
+        "n": 1999,
+        "min": 3000583.3,
+        "median": 3000666.7,
+        "p99": 3000750.0,
+        "max": 3000833.4,
+        "stdev": 39.6
+      },
+      "trigger_period_ns": {
+        "n": 1999,
+        "min": 10000500.0,
+        "median": 10000500.0,
+        "p99": 10000583.4,
+        "max": 10000583.4,
+        "stdev": 26.0
+      },
+      "control_period_ns": {
+        "n": 1998,
+        "min": 10000083.4,
+        "median": 10000500.0,
+        "p99": 10000583.4,
+        "max": 10000833.4,
+        "stdev": 53.2
+      },
+      "latency_console_busy_ns": {
+        "n": 40,
+        "min": 7583.3,
+        "median": 7666.7,
+        "p99": 7750.0,
+        "max": 7750.0,
+        "stdev": 28.8
+      },
+      "latency_console_idle_ns": {
+        "n": 1959,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7416.7,
+        "max": 7416.7,
+        "stdev": 33.7
+      }
+    },
+    {
+      "name": "fast",
+      "replies": [
+        "OK rate 1000",
+        "OK load 50"
+      ],
+      "doc": "1 kHz, 0.5 ms of work per sample",
+      "rate_hz": 1000,
+      "load_pct": 50,
+      "capture": "fast.vcd.gz",
+      "samples": 19999,
+      "processed": 19998,
+      "unprocessed": 1,
+      "conversion_ns": {
+        "n": 19999,
+        "min": 22583.3,
+        "median": 22666.6,
+        "p99": 22666.7,
+        "max": 22750.0,
+        "stdev": 37.8
+      },
+      "handler_ns": {
+        "n": 19999,
+        "min": 4083.3,
+        "median": 4083.4,
+        "p99": 4250.0,
+        "max": 4250.0,
+        "stdev": 42.3
+      },
+      "wake_ns": {
+        "n": 19998,
+        "min": 3166.6,
+        "median": 3250.0,
+        "p99": 3500.0,
+        "max": 3500.0,
+        "stdev": 53.0
+      },
+      "latency_ns": {
+        "n": 19998,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7666.7,
+        "max": 7750.0,
+        "stdev": 55.6
+      },
+      "processing_ns": {
+        "n": 19998,
+        "min": 500500.0,
+        "median": 500583.4,
+        "p99": 500666.7,
+        "max": 500916.7,
+        "stdev": 45.6
+      },
+      "trigger_period_ns": {
+        "n": 19998,
+        "min": 1000000.0,
+        "median": 1000083.3,
+        "p99": 1000083.4,
+        "max": 1000083.4,
+        "stdev": 40.6
+      },
+      "control_period_ns": {
+        "n": 19997,
+        "min": 999666.6,
+        "median": 1000083.3,
+        "p99": 1000083.4,
+        "max": 1000416.7,
+        "stdev": 43.4
+      },
+      "latency_console_busy_ns": {
+        "n": 540,
+        "min": 7583.3,
+        "median": 7666.7,
+        "p99": 7666.7,
+        "max": 7750.0,
+        "stdev": 32.0
+      },
+      "latency_console_idle_ns": {
+        "n": 19458,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7416.7,
+        "max": 7416.7,
+        "stdev": 21.7
+      }
+    },
+    {
+      "name": "overload",
+      "replies": [
+        "OK rate 100",
+        "OK load 150"
+      ],
+      "doc": "100 Hz, 15 ms of work per 10 ms period: degraded mode",
+      "rate_hz": 100,
+      "load_pct": 150,
+      "capture": "overload.vcd.gz",
+      "samples": 2000,
+      "processed": 999,
+      "unprocessed": 1001,
+      "conversion_ns": {
+        "n": 2000,
+        "min": 22500.0,
+        "median": 22500.0,
+        "p99": 22750.0,
+        "max": 22833.3,
+        "stdev": 49.2
+      },
+      "handler_ns": {
+        "n": 2000,
+        "min": 3000.0,
+        "median": 3583.4,
+        "p99": 4250.0,
+        "max": 4250.0,
+        "stdev": 554.8
+      },
+      "wake_ns": {
+        "n": 999,
+        "min": 3166.6,
+        "median": 3250.0,
+        "p99": 3500.0,
+        "max": 3500.0,
+        "stdev": 66.4
+      },
+      "latency_ns": {
+        "n": 999,
+        "min": 7333.3,
+        "median": 7333.4,
+        "p99": 7666.7,
+        "max": 7750.0,
+        "stdev": 82.2
+      },
+      "processing_ns": {
+        "n": 999,
+        "min": 15001166.6,
+        "median": 15001250.0,
+        "p99": 15001416.7,
+        "max": 15001500.0,
+        "stdev": 37.0
+      },
+      "trigger_period_ns": {
+        "n": 1999,
+        "min": 10000500.0,
+        "median": 10000500.0,
+        "p99": 10000583.4,
+        "max": 10000583.4,
+        "stdev": 24.6
+      },
+      "control_period_ns": {
+        "n": 998,
+        "min": 20000583.4,
+        "median": 20001000.0,
+        "p99": 20001333.3,
+        "max": 20001333.4,
+        "stdev": 72.4
+      },
+      "latency_console_busy_ns": {
+        "n": 60,
+        "min": 7583.3,
+        "median": 7666.7,
+        "p99": 7750.0,
+        "max": 7750.0,
+        "stdev": 26.4
+      },
+      "latency_console_idle_ns": {
+        "n": 939,
+        "min": 7333.3,
+        "median": 7333.3,
+        "p99": 7416.7,
+        "max": 7416.7,
+        "stdev": 33.7
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# arm-none-eabi-size -A build/ctl-rel-clang/controller.elf (memory_report.py reads only GNU ld maps)
+build/ctl-rel-clang/controller.elf  :
+section                size        addr
+.vectors                512   134217728
+.text                 17648   134218240
+.ARM.exidx               16   134235888
+.emb_isr_stack         2048   536870912
+.data                    24   536872960
+.bss                   5344   536872984
+.debug_loclists       20650           0
+.debug_abbrev         13212           0
+.debug_info           60875           0
+.debug_rnglists        3403           0
+.debug_str_offsets    12084           0
+.debug_str            13367           0
+.debug_addr            4540           0
+.comment                 59           0
+.ARM.attributes          73           0
+.debug_frame           7236           0
+.debug_line           34787           0
+.debug_line_str        1815           0
+Total                197693
+
+

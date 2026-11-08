@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the controller's release builds on the board, 2026-11-08)
+
+- The reference controller's release builds ran their 9-phase session and the external timing on the NUCLEO-F446RE: GCC with a 30-minute soak, GCC with LTO, and Clang, each 9/9 with nothing missed ([report](docs/engineering/controller-release-2026-11-08.md)). From the conversion interrupt to the control thread at work, the analyzer measured a median of 7.33 µs for GCC, 6.25 µs for Clang and 5.92 µs for GCC with LTO, against 9.50 µs for the checked build. The run found that under LTO neither the stack bound nor the image's source paths hold, and that the memory report reads GNU ld's map only.
+
 ### Changed (the README, 2026-11-08)
 
 - The README says what the kernel is, what it provides, which boards it is tested on, how to build and run it in five commands, and how it compares with FreeRTOS on four boards, with a link to each run. CONTRIBUTING.md lists ways to contribute now, from running the suites on a board to adding one.
