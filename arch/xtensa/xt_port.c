@@ -67,7 +67,7 @@ static uint32_t tick_period;
 static uint32_t tick_due; /* the CCOUNT the next tick is for */
 
 /* the interrupt stack and its top, read by the level-1 entry and the fault entry */
-static uint8_t embn_xt_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(16);
+EMB_USED uint8_t embn_xt_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(16);
 uint8_t *const embn_xt_isr_stack_top = &embn_xt_isr_stack[CONFIG_EMB_ISR_STACK_SIZE];
 
 extern const uint8_t embn_xt_vectors[];
