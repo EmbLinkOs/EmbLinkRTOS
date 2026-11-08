@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group: # the merge queue tests a pull request on the latest main before merging it
   workflow_dispatch:
     inputs:
       publish:

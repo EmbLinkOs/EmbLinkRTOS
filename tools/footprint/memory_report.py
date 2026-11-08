@@ -4,7 +4,12 @@
 """An image's complete flash and RAM accounting, reconciled with its sections (05 §5, KRN-MEM-009).
 
     memory_report.py build/controller/controller.elf.map --elf build/controller/controller.elf \\
-                     [--nm arm-none-eabi-nm] [--readelf arm-none-eabi-readelf] [--json out.json]
+                     [--ldscript regions.ld] [--nm arm-none-eabi-nm] [--readelf arm-none-eabi-readelf]
+                     [--json out.json]
+
+It reads GNU ld's map and LLD's. GNU ld's map lists the memory regions; LLD's does not, so for an
+LLD map they come from the linker script's MEMORY block: --ldscript, or else the script the
+link command names with -T in the build's build.ninja, next to the map.
 
 footprint.py attributes each input section to the component that contributed it. This report
 adds what that leaves out and checks that the parts add up:
@@ -45,9 +50,50 @@ PURPOSES = [
 ]
 
 
-def regions(map_path):
+MEMORY_LINE = re.compile(r"^\s*(\w+)\s*(?:\([^)]*\))?\s*:\s*ORIGIN\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*,"
+                         r"\s*LENGTH\s*=\s*(0x[0-9a-fA-F]+|\d+)\s*([KM]?)\s*$")
+SCALE = {"": 1, "K": 1024, "M": 1024 * 1024}
+
+
+def script_regions(script, seen=None):
+    """The regions of a linker script's MEMORY block, following INCLUDE."""
+    seen = set() if seen is None else seen
+    script = Path(script).resolve()
+    if script in seen:
+        return []
+    seen.add(script)
+    text = re.sub(r"/\*.*?\*/", "", script.read_text(encoding="utf-8", errors="replace"), flags=re.S)
+    out = []
+    for inc in re.findall(r"^\s*INCLUDE\s+(\S+)", text, re.M):
+        out += script_regions(script.parent / inc.strip('"'), seen)
+    block = re.search(r"\bMEMORY\s*\{(.*?)\}", text, re.S)
+    for line in (block.group(1).splitlines() if block else []):
+        m = MEMORY_LINE.match(line)
+        if m:
+            out.append({"name": m.group(1), "origin": int(m.group(2), 0),
+                        "length": int(m.group(3), 0) * SCALE[m.group(4)]})
+    return out
+
+
+def link_script(map_path):
+    """The linker script the link command names (-T), from build.ninja beside the map or above it."""
+    for d in [Path(map_path).resolve().parent, *Path(map_path).resolve().parents]:
+        ninja = d / "build.ninja"
+        if ninja.is_file():
+            m = re.search(r"(?:-T\s*|-Wl,-T,)(\S+\.ld)\b", ninja.read_text(encoding="utf-8", errors="replace"))
+            return Path(m.group(1)) if m else None
+    return None
+
+
+def regions(map_path, ldscript=None):
+    text = Path(map_path).read_text(encoding="utf-8", errors="replace")
+    if footprint.is_lld(text):
+        script = ldscript or link_script(map_path)
+        if not script:
+            raise OSError(f"{map_path}: LLD's map has no memory regions; give the linker script with --ldscript")
+        return script_regions(script)
     out, inside = [], False
-    for line in Path(map_path).read_text(encoding="utf-8", errors="replace").splitlines():
+    for line in text.splitlines():
         if line.startswith("Memory Configuration"):
             inside = True
             continue
@@ -99,6 +145,10 @@ def symbols(elf, nm):
 
 def owners(map_path):
     """{symbol: component} from the map's input-section lines (.bss.<name>, .data.<name>)."""
+    text = Path(map_path).read_text(encoding="utf-8", errors="replace")
+    if footprint.is_lld(text):
+        return {m.group(1): footprint.component(obj) for sec, _, obj in footprint.lld_inputs(text)
+                for m in [re.match(r"^\.(?:bss|data|noinit)\.(\S+)$", sec)] if m}
     out, pending = {}, None
     sec_re = re.compile(r"^\s(\.(?:bss|data|noinit)\.(\S+?))(?:\s+0x[0-9a-fA-F]+\s+0x[0-9a-fA-F]+\s+(\S+))?\s*$")
     cont = re.compile(r"^\s+0x[0-9a-fA-F]+\s+0x[0-9a-fA-F]+\s+(\S+)\s*$")
@@ -122,8 +172,10 @@ def in_region(addr, reg):
     return reg["origin"] <= addr < reg["origin"] + reg["length"]
 
 
-def build_report(map_path, elf, nm, readelf):
-    regs = regions(map_path)
+def build_report(map_path, elf, nm, readelf, ldscript=None):
+    regs = regions(map_path, ldscript)
+    if not regs:
+        raise OSError(f"{map_path}: no memory regions found")
     secs = sections(elf, readelf)
     sized, addrs = symbols(elf, nm)
     flash = next((r for r in regs if "x" in r["name"].lower() or r["name"].upper().startswith("FLASH")), regs[0])
@@ -173,7 +225,9 @@ def build_report(map_path, elf, nm, readelf):
         "sections": [{"name": s["name"], "addr": s["addr"], "lma": s["lma"], "size": s["size"],
                       "nobits": s["nobits"]} for s in secs],
         "flash": {"components": dict(sorted(flash_parts.items(), key=lambda kv: -kv[1])),
-                  "unattributed": flash_rest, "strings_before_merging": sum(merged.values()),
+                  "unattributed": flash_rest,
+                  "strings_before_merging": sum(v for k, v in merged.items() if k != "<linker>"),
+                  "strings_after_merging": merged.get("<linker>", 0),
                   "total": flash_used},
         "ram": {"purposes": {k: {"bytes": v["bytes"], "symbols": v["symbols"][:12]}
                              for k, v in sorted(purposes.items(), key=lambda kv: -kv[1]["bytes"])},
@@ -192,7 +246,10 @@ def text(rep):
     out.append(f"| string constants after merging, vector table alignment, linker tables "
                f"| {rep['flash']['unattributed']:,} |")
     out.append(f"| **total** | **{rep['flash']['total']:,}** |")
-    out.append(f"\nString constants before the linker merged them: {rep['flash']['strings_before_merging']:,} bytes.")
+    if rep["flash"].get("strings_after_merging"):
+        out.append(f"\nString constants, as the linker merged them: {rep['flash']['strings_after_merging']:,} bytes.")
+    else:
+        out.append(f"\nString constants before the linker merged them: {rep['flash']['strings_before_merging']:,} bytes.")
     out += ["", "| RAM, by purpose | Bytes |", "|---|---:|"]
     for p, v in rep["ram"]["purposes"].items():
         out.append(f"| {p} | {v['bytes']:,} |")
@@ -210,9 +267,10 @@ def main(argv=None):
     ap.add_argument("--nm", default="arm-none-eabi-nm")
     ap.add_argument("--readelf", default="arm-none-eabi-readelf")
     ap.add_argument("--json")
+    ap.add_argument("--ldscript", help="the linker script with the MEMORY block (for an LLD map)")
     args = ap.parse_args(argv)
     try:
-        rep = build_report(args.map, args.elf, args.nm, args.readelf)
+        rep = build_report(args.map, args.elf, args.nm, args.readelf, args.ldscript)
     except (OSError, subprocess.CalledProcessError, StopIteration, IndexError) as e:
         print(f"memory_report: {e}", file=sys.stderr)
         return 2

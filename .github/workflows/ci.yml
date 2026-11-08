@@ -12,6 +12,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group: # the merge queue tests a pull request on the latest main before merging it
 
 permissions:
   contents: read
@@ -357,6 +358,10 @@ jobs:
             | xargs -0 clang-format-18 --dry-run -Werror
       - name: Banned constructs
         run: python3 -I scripts/check-banned.py
+      - name: Changelog entries (changes/)
+        run: |
+          python3 -I -m unittest discover -s tools/release -p 'test_*.py' -v
+          python3 -I tools/release/changes.py check
       - name: API ID registry and decoder contract
         run: |
           python3 -I tools/fault/generate.py --check
@@ -876,6 +881,10 @@ jobs:
         run: |
           python3 -I tools/footprint/stack_bound.py --elf build/controller-tidy/controller.elf \
                   --build build/controller-tidy --roots examples/controller/stack-roots.json
+      - name: The Clang controller's memory report, from LLD's map
+        run: |
+          python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \
+                  --elf build/controller-tidy/controller.elf
       - name: clang-tidy
         run: |
           python3 -I tools/analysis/clang_tidy.py --clang-tidy clang-tidy-18 \
@@ -946,7 +955,7 @@ jobs:
           python3 -I tools/repro/double_build.py --work "$RUNNER_TEMP/repro" \
             --preset native-gcc --preset native-clang --preset cm4-an386 --preset cm4-an386-clang \
             --preset rv32-virt --preset avr-uno --preset cm33-pico2w \
-            --app examples/controller:nucleo_f446re
+            --app examples/controller:nucleo_f446re --app examples/controller:nucleo_f446re+EMB_LTO=ON
 
   merge_gate:
     name: CI merge gate

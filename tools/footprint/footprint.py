@@ -61,14 +61,48 @@ def component(obj: str) -> str:
     return "other:" + obj.rsplit("/", 1)[-1]
 
 
+# LLD's map: a header naming its columns, then one line per output section, input section and
+# symbol. An input line ends in `file:(section)`; the linker's own inputs are `<internal>`.
+LLD_HEADER = re.compile(r"^\s*VMA\s+LMA\s+Size\s+Align\s+Out\s+In\s+Symbol\s*$")
+LLD_INPUT = re.compile(r"^\s*[0-9a-fA-F]+\s+[0-9a-fA-F]+\s+([0-9a-fA-F]+)\s+\d+\s+(\S.*?):\((\S+)\)\s*$")
+
+
+def is_lld(text: str) -> bool:
+    """Whether a map is LLD's (else GNU ld's)."""
+    first = next((line for line in text.splitlines() if line.strip()), "")
+    return bool(LLD_HEADER.match(first))
+
+
+def lld_inputs(text: str, internal=False):
+    """(section, size, object) of each input section of an LLD map; the linker's own inputs
+    (`<internal>`) only with internal."""
+    for line in text.splitlines():
+        m = LLD_INPUT.match(line)
+        if m and (internal or m.group(2) != "<internal>"):
+            yield m.group(3), int(m.group(1), 16), m.group(2)
+
+
 def parse_map(path: str, merged=None):
-    """{component: {text, data, bss}}. The map gives a mergeable string section
+    """{component: {text, data, bss}}. GNU ld's map gives a mergeable string section
     (.rodata.str1.1, or .rodata.<function>.str1.1 with -fdata-sections) its size before the
     linker merged it; with merged a dict, those go to merged[component]
-    instead of text, so that the components' sums do not exceed the image."""
+    instead of text, so that the components' sums do not exceed the image. LLD's map lists
+    merged strings once, after merging, as the linker's own input: in no component, and with
+    merged a dict, in merged["<linker>"]."""
     sums = defaultdict(lambda: {"text": 0, "data": 0, "bss": 0})
     with open(path, encoding="utf-8", errors="replace") as f:
-        lines = f.read().split("\n")
+        text = f.read()
+    if is_lld(text):
+        for sec, size, obj in lld_inputs(text, internal=True):
+            kind = classify(sec)
+            if obj == "<internal>":
+                if merged is not None and MERGED_STRINGS.search(sec):
+                    merged["<linker>"] = merged.get("<linker>", 0) + size
+                continue
+            if kind != "other" and size:
+                sums[component(obj)][kind] += size
+        return sums
+    lines = text.split("\n")
     in_memory_map = False
     pending = None
     for line in lines:

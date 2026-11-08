@@ -1,8 +1,17 @@
 # Changelog
 
-User-visible changes are recorded here. There are no released versions or release tags in the reviewed repository; `0.2.0` in the headers identifies development, not a supported release. Move relevant Unreleased entries into a dated version section only when the [release checklist](docs/engineering/releases.md) is complete. Record support scope and known limits with each release.
+User-visible changes are recorded here. There are no released versions or release tags in the reviewed repository; `0.2.0` in the headers identifies development, not a supported release. Move relevant Unreleased entries into a dated version section only when the [release checklist](docs/engineering/releases.md) is complete. Changes not yet folded in are one file each in [`changes/`](changes/README.md). Record support scope and known limits with each release.
 
 ## Unreleased
+
+### Fixed (reproducible LTO builds, 2026-11-08)
+
+- An image built with `EMB_LTO=ON` by GCC no longer names the absolute build directory. The code GCC generates at the link goes into one more compilation unit, whose compilation directory the compile-time prefix maps did not reach; they are now link options too under LTO ([page](docs/engineering/reproducible-builds.md)). CI's double build now includes the reference controller with LTO.
+- `tools/repro/double_build.py` resolves its default work directory. On macOS that directory is under a symbolic link, and every image differed in its debug information.
+
+### Added (reproducible LTO builds, 2026-11-08)
+
+- `double_build.py --app` takes CMake options after `+`, for example `examples/controller:nucleo_f446re+EMB_LTO=ON`.
 
 ### Added (the controller's release builds on the board, 2026-11-08)
 
