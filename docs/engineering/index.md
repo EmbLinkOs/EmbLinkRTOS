@@ -25,6 +25,7 @@ any-board-plan
 support-matrix
 crash-record
 debug-descriptor
+reproducible-builds
 static-analysis
 sbom
 hil

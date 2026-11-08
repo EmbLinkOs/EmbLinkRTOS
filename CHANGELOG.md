@@ -4,6 +4,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (reproducible builds, 2026-11-08)
+
+- Images no longer depend on where the source tree or the build directory is. GCC and Clang builds name them `.`, `build` and `emblinkrtos` in the debug information and `__FILE__` (`-ffile-prefix-map`); code and data never did depend on it.
+- `tools/repro/double_build.py` builds a commit in a second checkout at another path and compares every image byte for byte. CI's `reproducibility` job runs it on native, Cortex-M (GCC and Clang), RV32, AVR, the Pico 2 W and the reference controller, and the merge gate requires it (BLD-004, [page](docs/engineering/reproducible-builds.md)).
+
 ### Added (the clang-tidy gate, 2026-11-08)
 
 - CI's `static-analysis` job runs clang-tidy 18 over the product code: kernel, ports, boards, SoCs, drivers and the reference controller. It covers 14 configurations: native profiles and clock modes, Armv6-M, Armv7E-M, Armv8-M, RV32, AVR, and the NUCLEO-F446RE and Pico 2 W boards. The merge gate requires it, and any finding fails it ([page](docs/engineering/static-analysis.md)).
