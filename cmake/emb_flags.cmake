@@ -134,6 +134,12 @@ if(EMB_LTO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
   # the kernel's sources ask for it where a layout trick does not survive LTO (EMBK_IDLE_SLIM)
   target_compile_definitions(emb_flags INTERFACE EMB_LTO=1)
+  # GCC generates code again at the link, into one more compilation unit (`<artificial>`) whose
+  # compilation directory is where the link runs: the build directory, as an absolute path,
+  # unless the link command maps it too (BLD-004)
+  if(_emb_prefix_maps)
+    target_link_options(emb_flags INTERFACE ${_emb_prefix_maps})
+  endif()
   if(CMAKE_C_COMPILER_ID STREQUAL "GNU")
     # A kernel call during which another thread or an interrupt handler may run must stay a
     # barrier for every variable they share. Without LTO it is one: an opaque call may reach any

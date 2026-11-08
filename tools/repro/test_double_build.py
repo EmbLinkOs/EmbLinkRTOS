@@ -84,9 +84,18 @@ class Targets(unittest.TestCase):
                                                 "controller-nucleo_f446re-arm-none-eabi-clang"])
         self.assertEqual(t[0][2], Path("build/cm4-an386"))
 
+    def test_an_app_with_cmake_options(self):
+        t = db.targets(db.argparse.Namespace(preset=None, app=["examples/controller:nucleo_f446re+EMB_LTO=ON"]))
+        name, how, bdir = t[0]
+        self.assertEqual(name, "controller-nucleo_f446re-emb_lto-on")
+        self.assertEqual(how, ("app", "examples/controller", "nucleo_f446re", None, ("EMB_LTO=ON",)))
+        self.assertEqual(bdir, Path("build/repro/controller-nucleo_f446re-emb_lto-on"))
+
     def test_a_bad_app_spec(self):
         with self.assertRaises(SystemExit):
             db.targets(db.argparse.Namespace(preset=None, app=["examples/controller"]))
+        with self.assertRaises(SystemExit):  # an option without a value
+            db.targets(db.argparse.Namespace(preset=None, app=["examples/controller:nucleo_f446re+EMB_LTO"]))
 
 
 if __name__ == "__main__":

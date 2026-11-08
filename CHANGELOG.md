@@ -4,6 +4,15 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Fixed (reproducible LTO builds, 2026-11-08)
+
+- An image built with `EMB_LTO=ON` by GCC no longer names the absolute build directory. The code GCC generates at the link goes into one more compilation unit, whose compilation directory the compile-time prefix maps did not reach; they are now link options too under LTO ([page](docs/engineering/reproducible-builds.md)). CI's double build now includes the reference controller with LTO.
+- `tools/repro/double_build.py` resolves its default work directory. On macOS that directory is under a symbolic link, and every image differed in its debug information.
+
+### Added (reproducible LTO builds, 2026-11-08)
+
+- `double_build.py --app` takes CMake options after `+`, for example `examples/controller:nucleo_f446re+EMB_LTO=ON`.
+
 ### Added (the controller's release builds on the board, 2026-11-08)
 
 - The reference controller's release builds ran their 9-phase session and the external timing on the NUCLEO-F446RE: GCC with a 30-minute soak, GCC with LTO, and Clang, each 9/9 with nothing missed ([report](docs/engineering/controller-release-2026-11-08.md)). From the conversion interrupt to the control thread at work, the analyzer measured a median of 7.33 µs for GCC, 6.25 µs for Clang and 5.92 µs for GCC with LTO, against 9.50 µs for the checked build. The run found that under LTO neither the stack bound nor the image's source paths hold, and that the memory report reads GNU ld's map only.
