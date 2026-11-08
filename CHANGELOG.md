@@ -11,6 +11,14 @@ User-visible changes are recorded here. There are no released versions or releas
 ### Fixed (the debug descriptor on a board, 2026-11-08)
 
 - `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
+### Added (evidence and coverage gates, 2026-11-08)
+
+- CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.
+- The `native-coverage` job fails when kernel coverage falls below `tools/coverage/thresholds.json`: 92.5% of lines and 70.7% of branches, what every run had (05 §5).
+
+### Fixed (evidence and coverage gates, 2026-11-08)
+
+- Five CI jobs collected their case evidence after a later `ctest` run of one test. In four configurations (`native-gcc`, `cm4-an386`, `rv32-virt`, `avr-uno-embsim`) that rewrote the log it reads, so they reported one test's evidence instead of the suite's. All five now collect right after the suite.
 
 ### Added (the debug descriptor, 2026-11-08)
 

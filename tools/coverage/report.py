@@ -8,6 +8,10 @@ native-coverage preset after its tests ran, and reports per-file and total line 
 branch coverage. Only kernel .c files count: header inline functions are reported per
 translation unit by gcov and cannot be merged from its summaries. Files listed in the
 exclusions file are reported with their reason and left out of the totals.
+
+With --thresholds, the totals are a regression gate (05 §5, "coverage not regressed on kernel"):
+the line and branch percentages, to one decimal as reported, must reach the file's floors, and
+every kernel file must have run. Raising a floor after adding tests is a change to that file.
 """
 import argparse
 import json
@@ -76,6 +80,17 @@ def render(files, exclusions, title):
     return "\n".join(md), total
 
 
+def below(total, files, thresholds):
+    """The ways the coverage misses its floors, as messages; empty when it reaches them."""
+    out = []
+    for key, name in (("line_pct", "lines"), ("branch_pct", "branches")):
+        floor = thresholds.get(key)
+        if floor is not None and total[key] < floor:
+            out.append(f"{name} {total[key]}% is below the floor {floor}%")
+    out += [f"{f} never ran" for f, v in sorted(files.items()) if not v.get("executed", True)]
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--build", type=Path, default=ROOT / "build/native-coverage")
@@ -84,6 +99,7 @@ def main(argv=None):
     ap.add_argument("--json", type=Path)
     ap.add_argument("--markdown", type=Path)
     ap.add_argument("--title", default="Kernel coverage")
+    ap.add_argument("--thresholds", type=Path, help="fail below these floors (tools/coverage/thresholds.json)")
     args = ap.parse_args(argv)
     exclusions = json.loads(args.exclusions.read_text())["files"] if args.exclusions.is_file() else {}
     files = collect(args.build.resolve(), shlex.split(args.gcov))
@@ -98,6 +114,14 @@ def main(argv=None):
         args.markdown.write_text(md)
     print(f"coverage: lines {total['line_pct']}% of {total['lines']}, branches {total['branch_pct']}% "
           f"of {total['branches']} ({len(files)} kernel files, {len(exclusions)} excluded)")
+    if args.thresholds:
+        problems = below(total, {f: v for f, v in files.items() if f not in exclusions},
+                         json.loads(args.thresholds.read_text(encoding="utf-8")))
+        for p in problems:
+            print(f"coverage: regression: {p}", file=sys.stderr)
+        if problems:
+            return 1
+        print(f"coverage: at or above the floors of {args.thresholds.name}")
     return 0
 
 
