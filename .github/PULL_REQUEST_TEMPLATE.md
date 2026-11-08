@@ -12,5 +12,5 @@ List commands/configurations and their results, including skipped, failed or unr
 - [ ] Scope and implementation limits are reflected in the user/API documentation and Project status where applicable.
 - [ ] Contract changes update requirements/specifications; architecture decisions have an ADR. Explain N/A in Validation.
 - [ ] Kernel semantics changes update the reference model and conformance evidence in the same PR. Explain N/A for other changes.
-- [ ] User-visible changes have an Unreleased changelog entry, or Validation explains why none is needed.
+- [ ] User-visible changes have an entry file in `changes/` (not an edit of `CHANGELOG.md`), or Validation explains why none is needed.
 - [ ] Required checks pass, review conversations are resolved, and known failures are disclosed before merge.

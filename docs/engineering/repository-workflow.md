@@ -37,13 +37,19 @@ Keep the failing commit intact while diagnosing it; if it belongs to your unmerg
 
 The reviewed JSON policy is [`.github/rulesets/main.json`](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/.github/rulesets/main.json). It defines an **active branch ruleset for `refs/heads/main`**:
 
-- Require a pull request, passing checks and a branch up to date with `main`.
+- Require a pull request and passing checks, and merge through a **merge queue**: GitHub tests the pull request merged with the latest `main`, and merges it if the checks pass. A branch does not have to be up to date with `main` by hand.
 - Require resolution of review conversations.
 - Block branch deletion and non-fast-forward pushes.
 - Require the three named checks from GitHub Actions.
 - Include administrators by providing no bypass actors.
 
 The initial approval count is **zero** because CODEOWNERS currently has one maintainer, who cannot approve their own PR. Human review still follows CONTRIBUTING; this setting avoids an impossible self-approval requirement. When another active maintainer joins, update CODEOWNERS and set at least one approval plus required code-owner review. Cryptographically signed commits are not required by this initial ruleset; signed release tags are a separate release obligation. Merge, squash and rebase methods are allowed, subject to preserving DCO certification.
+
+**Why a merge queue.** With "require branches to be up to date", every merge made every other open pull request stale: each had to merge `main` in and run CI again before it could merge, one after the other. The merge queue does that itself. **Merge when ready** puts a pull request in the queue; GitHub builds it on top of `main` and of the pull requests queued before it, runs the required checks on that (the workflows run on `merge_group`), and merges it when they pass. A pull request whose checks fail there leaves the queue, and `main` is unchanged. Up to five are tested at once, and CI gets 6 hours to answer, since its runners have been slow.
+
+**Changelog entries are files** (`changes/`), not edits of `CHANGELOG.md`, so two pull requests do not conflict on the changelog's first lines ([releases](releases.md)).
+
+**To switch an existing ruleset to the queue:** Settings → Rules → Rulesets → EmbLinkRTOS main → Edit. Turn on **Require merge queue** (merge method: Merge commit; build concurrency 5; minimum group size 1; wait 0 minutes; status check timeout 360 minutes), turn off **Require branches to be up to date before merging**, and save. A pull request in progress keeps its checks; **Merge when ready** then appears instead of the merge button.
 
 A repository administrator activates this policy after the new workflows have run on a PR:
 
@@ -68,4 +74,4 @@ During preparation, the API exposed an existing `Ruleset 1` with an empty branch
 
 ## Before merging
 
-Confirm the three checks ran on the current PR revision, read case-level skips/known limits, resolve feedback and update the Unreleased changelog for user-visible changes. Passing the minimum checks does not override a relevant unimplemented release gate or known semantic failure. Keep the source SHA and workflow artifacts with any validation claim. Publishing the updated docs is a separate reviewed manual operation after merge.
+Confirm the three checks ran on the current PR revision, read case-level skips/known limits, resolve feedback and add a `changes/` entry for user-visible changes. Passing the minimum checks does not override a relevant unimplemented release gate or known semantic failure. Keep the source SHA and workflow artifacts with any validation claim. Publishing the updated docs is a separate reviewed manual operation after merge.

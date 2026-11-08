@@ -53,7 +53,7 @@ Use the bug/feature issue forms and PR checklist. The required GitHub check name
 
 For editor support, run `cmake --preset native-gcc` once: every configure writes `compile_commands.json`, and the repository's `.clangd` points clangd at that build so it sees the include paths, the generated headers and the `.clang-tidy` checks. Format with clang-format 18, the version the lint job runs; later versions lay out some existing files differently.
 
-User-visible changes update [CHANGELOG.md](CHANGELOG.md) under Unreleased. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
+A user-visible change adds a file to [`changes/`](changes/README.md), not an edit of `CHANGELOG.md`, so pull requests do not conflict on the changelog. Maintainers merge through a merge queue, so a pull request never needs `main` merged in just to be up to date. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
 
 ## Hardware data and licences
 

@@ -12,6 +12,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group: # the merge queue tests a pull request on the latest main before merging it
 
 permissions:
   contents: read
@@ -357,6 +358,10 @@ jobs:
             | xargs -0 clang-format-18 --dry-run -Werror
       - name: Banned constructs
         run: python3 -I scripts/check-banned.py
+      - name: Changelog entries (changes/)
+        run: |
+          python3 -I -m unittest discover -s tools/release -p 'test_*.py' -v
+          python3 -I tools/release/changes.py check
       - name: API ID registry and decoder contract
         run: |
           python3 -I tools/fault/generate.py --check

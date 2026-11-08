@@ -4,9 +4,9 @@ The repository is in `0.2` development and has no recorded release tags. Version
 
 ## Maintain the changelog
 
-Edit the root [CHANGELOG.md](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/CHANGELOG.md) in the same PR as a user-visible change. Write observable behavior, API/configuration compatibility and a migration instruction when needed. Use Added, Changed, Fixed, Removed and Known limits as applicable. Do not put a fix under Fixed while the reproduction is still unexplained or failing. Keep entries in Unreleased until the exact release commit is approved and validated.
+Record a user-visible change in the same PR as one file in [`changes/`](https://github.com/EmbLinkOs/EmbLinkRTOS/tree/main/changes), in the changelog's form, rather than in [CHANGELOG.md](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/CHANGELOG.md) itself: two PRs then never edit the same lines. CI checks the files' form. Write observable behavior, API/configuration compatibility and a migration instruction when needed. Use Added, Changed, Fixed, Removed and Known limits as applicable. Do not put a fix under Fixed while the reproduction is still unexplained or failing. Keep entries in Unreleased until the exact release commit is approved and validated.
 
-At release time move only delivered entries into `## [version] - YYYY-MM-DD`, using the actual release date and an immutable tag/source link. Keep unfinished entries in Unreleased. Avoid claiming an Accepted specification is an implemented feature. A versioned support statement must name the actual supported profile, board, compiler versions and maintenance dates.
+At release time, first fold the entry files into Unreleased with `python3 tools/release/changes.py collect`, which deletes them. Then move only delivered entries into `## [version] - YYYY-MM-DD`, using the actual release date and an immutable tag/source link. Keep unfinished entries in Unreleased. Avoid claiming an Accepted specification is an implemented feature. A versioned support statement must name the actual supported profile, board, compiler versions and maintenance dates.
 
 ## Scope and source checkpoint
 
