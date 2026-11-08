@@ -4,6 +4,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (blinky example, 2026-11-08)
+
+- A drift-free blinky example toggles the board LED every 500 ms and reports
+  each transition on the board console.
+
 ### Added (safety readiness, 2026-11-08)
 
 - [Functional safety readiness](docs/engineering/safety-readiness.md): what an IEC 61508 assessment of the kernel would ask for, what exists, what is missing, and the order of the work. The project makes no safety claim.
