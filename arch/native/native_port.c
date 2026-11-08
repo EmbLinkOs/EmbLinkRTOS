@@ -439,6 +439,7 @@ void emb_arch_init(void)
 void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)
 {
     embn_thread_t *ix = EXT(idle);
+    const char *async_us;
     /* the host main thread becomes the idle context (§4) */
     if (ix->created == 0u) {
         embh_cond_init(&ix->cv);
@@ -456,9 +457,9 @@ void emb_arch_kernel_start(embk_thread_t *first, embk_thread_t *idle)
     /* resumed as the idle context */
     holder_set(true);
     g.masked = 0u;
-    if (getenv("EMB_NATIVE_ASYNC_US") != NULL) {
-        emb_native_async_start((unsigned)strtoul(getenv("EMB_NATIVE_ASYNC_US"), NULL, 10),
-                               EMB_ARCH_IRQ_COUNT);
+    async_us = getenv("EMB_NATIVE_ASYNC_US"); /* read once: a second read may differ */
+    if (async_us != NULL) {
+        emb_native_async_start((unsigned)strtoul(async_us, NULL, 10), EMB_ARCH_IRQ_COUNT);
     }
     embk_thread_launch(ix->entry, ix->arg);
 }

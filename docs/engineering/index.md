@@ -25,6 +25,7 @@ any-board-plan
 support-matrix
 crash-record
 debug-descriptor
+static-analysis
 sbom
 hil
 hil-uno-2026-11-04

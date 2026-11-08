@@ -104,7 +104,10 @@ static void prio_write(uint32_t base, unsigned index, uint8_t value)
     emb_arch_irq_unlock(key);
 }
 #else
-#define prio_write(base, index, value) (REG8((base) + (index)) = (value)) /* the byte itself */
+static void prio_write(uint32_t base, unsigned index, uint8_t value)
+{
+    REG8(base + index) = value; /* the byte itself */
+}
 #endif
 
 /* Frame words from the saved stack pointer upward: on Armv8-M Mainline the thread's PSPLIM

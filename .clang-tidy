@@ -7,6 +7,7 @@
 Checks: >
   -*,
   bugprone-*,
+  -bugprone-casting-through-void,
   -bugprone-easily-swappable-parameters,
   -bugprone-reserved-identifier,
   -bugprone-signed-bitwise,
@@ -36,9 +37,12 @@ Checks: >
   -readability-use-concise-preprocessor-directives,
   -readability-non-const-parameter,
   hicpp-multiway-paths-covered,
-  hicpp-no-assembler,
   misc-no-recursion
 # Reasons:
+#   bugprone-casting-through-void: the kernel casts through void * on purpose, to an object
+#     from its storage union (CS-4.5, sized by static assertion) and in EMB_CONTAINER_OF
+#     (MISRA Dev CS-12: 11.4, 18.4). The direct cast from char * is what -Wcast-align
+#     reports; the check's alternative, reinterpret_cast, is C++.
 #   bugprone-easily-swappable-parameters: the port contract fixes parameter orders.
 #   bugprone-reserved-identifier, cert-dcl37-c, cert-dcl51-cpp: the generated
 #     headers and the compiler layer legitimately define __emb_ / _EMB_ names
@@ -70,6 +74,10 @@ Checks: >
 #     pointer typedef (pthread_t) as const-able although they are written.
 #   readability-trailing-comma, readability-use-concise-preprocessor-directives:
 #     layout choices that clang-format and the #if defined/#elif chains already fix.
+#   hicpp-no-assembler is not enabled: CS-1.5 allows inline assembly in the ports and the
+#     compiler layer, the port headers included, and clang-tidy judges a header by the
+#     file that includes it, so it cannot tell a port header's assembly from a kernel
+#     file's. scripts/check-banned.py enforces CS-1.5 by path instead.
 #   misc-no-recursion is listed twice: removed from the wildcard, then re-enabled
 #     explicitly so it is applied to every file (CS-4.2).
 WarningsAsErrors: '*'
@@ -96,10 +104,16 @@ CheckOptions:
     value: UPPER_CASE
   - key: readability-identifier-naming.MacroDefinitionCase
     value: UPPER_CASE
-  # the lock-domain aliases read as the functions SMP will make them (SPEC-004 §8), and
-  # EMB_*_ are the compound-literal helpers behind the public time macros
+  # the lock-domain aliases read as the functions SMP will make them (SPEC-004 §8);
+  # EMB_*_ and EMBN_*_ are helpers behind public and port macros (the trailing _ marks
+  # them); __*__ are the C library's macros the compiler layer redefines (avr-libc's
+  # __ATTR_PROGMEM__)
   - key: readability-identifier-naming.MacroDefinitionIgnoredRegexp
-    value: '^(embk_(un)?lock_(object|sched|timeout)|EMB_[A-Z0-9_]+_)$'
+    value: '^(embk_(un)?lock_(object|sched|timeout)|EMBN?_[A-Z0-9_]+_|__[A-Z0-9_]+__)$'
+  # symbols the linker scripts define (__data_start, __emb_retained_start): their names
+  # are the scripts' and the C runtime's, declared in C only to be read
+  - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
+    value: '^__[a-z0-9_]+$'
   - key: readability-identifier-naming.GlobalConstantCase
     value: lower_case
   - key: readability-identifier-naming.GlobalVariableCase

@@ -4,11 +4,22 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the clang-tidy gate, 2026-11-08)
+
+- CI's `static-analysis` job runs clang-tidy 18 over the product code: kernel, ports, boards, SoCs, drivers and the reference controller. It covers 14 configurations: native profiles and clock modes, Armv6-M, Armv7E-M, Armv8-M, RV32, AVR, and the NUCLEO-F446RE and Pico 2 W boards. The merge gate requires it, and any finding fails it ([page](docs/engineering/static-analysis.md)).
+- `tools/analysis/clang_tidy.py` runs it on any set of builds and lists each finding once, with the builds that reported it.
+
+### Changed (the clang-tidy gate, 2026-11-08)
+
+- `.clang-tidy` turns off `bugprone-casting-through-void`, new in clang-tidy 18, and `hicpp-no-assembler`, each with its reason. The naming rules accept linker-script symbols and port helper macros.
+- The Cortex-M port's `prio_write` is a function on every architecture; on Armv7-M and later it was a macro.
+
 ### Added (the SBOM, 2026-11-08)
 
 - `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM for an image (REL-001), with the build manifest of BLD-003: commit, configuration hash, toolchain identity, hardware description hash and build identity ([page](docs/engineering/sbom.md)). It lists every project file compiled in, with checksums and licences, from the link map (GNU ld or LLD), the compile database and Ninja's dependency log. It also lists the toolchain libraries linked, and the compiler.
 - CI writes the reference controller's SBOMs for both NUCLEO-F446 boards and checks them with `spdx-tools`.
 - The generated `build_id.c` carries an SPDX licence line.
+
 ### Added (the debug descriptor on a board, 2026-11-08)
 
 - GDB read the reference controller's threads on the NUCLEO-F446RE through OpenOCD: their states, stacks and backtraces ([page](docs/engineering/debug-descriptor.md)).
@@ -16,6 +27,7 @@ User-visible changes are recorded here. There are no released versions or releas
 ### Fixed (the debug descriptor on a board, 2026-11-08)
 
 - `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
+
 ### Added (evidence and coverage gates, 2026-11-08)
 
 - CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.
