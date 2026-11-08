@@ -8,6 +8,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - A drift-free blinky example toggles the board LED every 500 ms and reports
   each transition on the board console.
+### Added (the MISRA addon, 2026-11-08)
+
+- CI's `static-analysis` job runs cppcheck's MISRA addon (MISRA C:2012, reported by rule number) over the 14 builds. It fails when a file gains a finding of a rule over `tools/analysis/misra-baseline.json`, so the baseline only shrinks, and uploads the counts it found ([page](docs/engineering/static-analysis.md)). `tools/analysis/cppcheck.py` gains `--misra`, `--misra-baseline` and `--write-misra-baseline`.
+- Rules 15.1 and 15.5, which CODING-STANDARD §12 deviates from everywhere, and 17.3, which the compilers enforce, are off tree-wide with their reasons. CODING-STANDARD §12 records that the native port and board use the host's C library by design.
 
 ### Added (safety readiness, 2026-11-08)
 
