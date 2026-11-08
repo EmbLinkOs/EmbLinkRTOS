@@ -13,7 +13,7 @@ It is also the first time the controller ran as a Clang image. The checked repor
 **Board, probe and console:** as in the checked run: NUCLEO-F446RE at 180 MHz, the ST-LINK/V2-1 (V2J49M36), OpenOCD 0.12.0, USART2 at 115200 baud, here `/dev/cu.usbmodem11103`.
 
 **Images:** `examples/controller` with `-DEMB_SET=EMB_CHECKED=n`, from commit `81cdd14` on a clean tree (every record says `"dirty": false`), configuration `15487535d65a4874`.
-- **Build id:** `6e6e2371d2a8d5b9d58d36581b42f88379385851` in all three. It digests the commit and the configuration, not the compiler ([SBOM](sbom.md)), so the three share it.
+- **Build id:** `6e6e2371d2a8d5b9d58d36581b42f88379385851` in all three. It digested the commit and the configuration, not the compiler ([SBOM](sbom.md)), so the three shared it. Since the review of 2026-11-08 it digests the toolchain too (A72, amended), and the three would have three ids.
 - **Image identity:** the images differ. Each session record holds its image's SHA-256: GCC `ba65ae56…`, LTO `a433d2b9…`, Clang `67f894fa…`.
 
 **Records,** in `docs/engineering/hil-runs/`:
