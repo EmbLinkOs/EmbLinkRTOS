@@ -9,6 +9,13 @@ User-visible changes are recorded here. There are no released versions or releas
 - `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM for an image (REL-001), with the build manifest of BLD-003: commit, configuration hash, toolchain identity, hardware description hash and build identity ([page](docs/engineering/sbom.md)). It lists every project file compiled in, with checksums and licences, from the link map (GNU ld or LLD), the compile database and Ninja's dependency log. It also lists the toolchain libraries linked, and the compiler.
 - CI writes the reference controller's SBOMs for both NUCLEO-F446 boards and checks them with `spdx-tools`.
 - The generated `build_id.c` carries an SPDX licence line.
+### Added (the debug descriptor on a board, 2026-11-08)
+
+- GDB read the reference controller's threads on the NUCLEO-F446RE through OpenOCD: their states, stacks and backtraces ([page](docs/engineering/debug-descriptor.md)).
+
+### Fixed (the debug descriptor on a board, 2026-11-08)
+
+- `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
 ### Added (evidence and coverage gates, 2026-11-08)
 
 - CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.
