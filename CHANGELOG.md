@@ -18,6 +18,11 @@ User-visible changes are recorded here. There are no released versions or releas
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.
 - `tools/descriptor`: a reader for a debugger or for memory dumps, and GDB commands (`emb threads`, `emb bt`) that list every thread and show the stack of one that is switched out. Checked under GDB on QEMU's Armv6-M, Armv7-M, Armv7E-M with FPU, Armv8-M and RV32 machines.
 
+### Added (the controller's soak, 2026-11-08)
+
+- `tools/hil/controller_soak.py` soaks the running reference controller for hours, checkpointing its record and ending cleanly on Ctrl-C or SIGTERM.
+- The controller soaked overnight on the NUCLEO-F446RE for 10 hours 6 minutes at 100 Hz with 30% load: 3,636,800 samples, none missed or dropped, no reset, latency at most 9 µs, stack high-water marks unchanged ([report](docs/engineering/controller-soak-2026-11-08.md)).
+
 ### Added (the controller's memory, 2026-11-07)
 
 - `tools/footprint/memory_report.py` accounts for an image's flash and RAM, by component and by purpose, reconciled with its sections.
