@@ -44,7 +44,7 @@ if(NOT CMAKE_TOOLCHAIN_FILE)
   set(_emb_toolchain_cortex_m arm-none-eabi-gcc)
   set(_emb_toolchain_riscv riscv-gcc)
   set(_emb_toolchain_avr avr-gcc)
-  set(_emb_toolchain_xtensa embcc-xtensa)
+  set(_emb_toolchain_xtensa xtensa-esp32-gcc) # a default is one CI builds with (ADR-053)
   if(NOT DEFINED _emb_toolchain_${_emb_arch})
     message(FATAL_ERROR "EMB_BOARD='${EMB_BOARD}': no default toolchain for architecture '${_emb_arch}'; "
                         "give -DCMAKE_TOOLCHAIN_FILE")

@@ -1,6 +1,6 @@
 # 09 - EmbCC Toolchain Profile
 
-**Status:** Compiler capability review refreshed against EmbLinkOs/EmbCC at `a3c3ef4c81f9de977b8741ed16072cadca921788`, 2026-10-14, superseding the `387eb23` snapshot. The [ten-item review](../engineering/embcc-capability-review.md) names current manuals, implementation/regression evidence and scoped local checks, and separates them from upstream-reported RTOS experiments. The *consequence* lines remain RTOS design rules unless explicitly amended; a compiler improvement does not silently relax them. Current EmbCC RTOS integration is incomplete and is not a configured CI leg.
+**Status:** Compiler capability review refreshed against EmbLinkOs/EmbCC at `a3c3ef4c81f9de977b8741ed16072cadca921788`, 2026-10-14, superseding the `387eb23` snapshot. The [ten-item review](../engineering/embcc-capability-review.md) names current manuals, implementation/regression evidence and scoped local checks, and separates them from upstream-reported RTOS experiments. The *consequence* lines remain RTOS design rules unless explicitly amended; a compiler improvement does not silently relax them. Current EmbCC RTOS integration is incomplete. Its one CI leg, since 2026-10-31, is the mixed native build, in which EmbCC compiles the kernel and GCC the rest ([native Linux](../engineering/embcc-native-linux.md)); no embedded target builds with EmbCC in CI.
 
 ---
 
