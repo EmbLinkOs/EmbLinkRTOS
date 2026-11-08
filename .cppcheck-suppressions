@@ -13,3 +13,16 @@
 # functions take the object the caller passes (emb_work_submit). 25 findings at the first run.
 constParameterPointer
 constVariablePointer
+
+# MISRA C:2012 rules 15.1 and 15.5 (the addon's rule numbers): CODING-STANDARD §12 deviates from
+# them everywhere in the product code. A function validates and returns early, and after it
+# takes a lock it has one exit through a forward goto to its unlock (CS-7.2).
+misra-c2012-15.1
+misra-c2012-15.5
+
+# MISRA C:2012 rule 17.3 (no implicit function declaration) is enforced by the compilers:
+# GCC 14 and Clang reject an implicit declaration in C11, and CS-13.1's -Wall -Werror fail the
+# build on it. The addon reads every inline assembly statement (__asm__ __volatile__, and
+# EMB_LAYOUT_MARKER, which expands to one) as a call to an undeclared function: all 43 of its
+# findings at the first run were assembly, in the ports and the layout probe (CS-1.5).
+misra-c2012-17.3
