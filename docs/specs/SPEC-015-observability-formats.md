@@ -145,6 +145,8 @@ A `const struct emb_debug_descriptor` at the exported symbol `emb_debug_descript
 | monitors | monitor block location and layout (§6) |
 | arch | context frame layout (register offsets from the saved stack pointer), fault register layout, interrupt stack bounds (SPEC-011 §14) |
 
+**Implemented (A107).** Version 1 lays these sections out as one append-only table of pointer-sized values after a 16-byte header (`include/emb/debug.h`); the partition, ring and monitor values come with their subsystems. `tools/descriptor` reads it from a debugger or from memory dumps.
+
 Tools (`embdbg`, an OpenOCD RTOS plugin, pyOCD, probe-rs) implement one generic plugin that reads the descriptor and then enumerates threads, their states and stacks, owned locks, partitions, and dumps rings, independent of the kernel version (OBS-008). The descriptor is also what the HIL runner uses to pull traces and crash records.
 
 ## 6. Monitors and statistics (ADR-034, 04 §7.5)

@@ -24,6 +24,7 @@ hwgen
 any-board-plan
 support-matrix
 crash-record
+debug-descriptor
 hil
 hil-uno-2026-11-04
 hil-uno-2026-11-05
