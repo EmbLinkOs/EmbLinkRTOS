@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 200 200">
+  <!-- SPDX-License-Identifier: Apache-2.0 -->
+  <!-- Drawn by .github/assets/brand.py; edit the script, not this file -->
+  <path d="M128 46H50V154H128" fill="none" stroke="#5eead4" stroke-width="24" stroke-linejoin="round"/><path d="M50 100.0H100" stroke="#5eead4" stroke-width="24"/><circle cx="143" cy="46" r="12.25" fill="none" stroke="#f8fafc" stroke-width="11.5"/><circle cx="115" cy="100.0" r="12.25" fill="none" stroke="#f8fafc" stroke-width="11.5"/><circle cx="143" cy="154" r="12.25" fill="none" stroke="#f8fafc" stroke-width="11.5"/>
+</svg>
