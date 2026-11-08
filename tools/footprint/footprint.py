@@ -20,8 +20,10 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
+from pathlib import Path
 
 SECTION_LINE = re.compile(r"^\s(\.[A-Za-z0-9_.$]+)(?:\s+0x([0-9a-fA-F]+)\s+0x([0-9a-fA-F]+)\s+(\S+))?\s*$")
+MERGED_STRINGS = re.compile(r"^\.rodata(\..*)?\.str\d+\.\d+$")  # .rodata.str1.1, .rodata.<fn>.str1.4
 CONT_LINE = re.compile(r"^\s+0x([0-9a-fA-F]+)\s+0x([0-9a-fA-F]+)\s+(\S+)\s*$")
 
 
@@ -35,24 +37,35 @@ def classify(section: str) -> str:
     return "other"
 
 
+# the repository's driver sources: an archive's member names them without their directory
+DRIVER_SOURCES = {p.name for p in (Path(__file__).resolve().parents[2] / "drivers").rglob("*.c")}
+
+
 def component(obj: str) -> str:
     m = re.search(r"emb_kernel\.dir/([a-z]+)/|libemb_kernel\.a\(([a-z_]+)\.c\.obj\)", obj)
     if m:
         return "kernel/" + (m.group(1) or m.group(2))
     if "/arch/" in obj or "emb_arch.dir" in obj or "libemb_arch.a" in obj:
         return "arch"
+    member = re.search(r"\(([^)]+)\.obj\)?$", obj)
+    if "/drivers/" in obj or (member and member.group(1) in DRIVER_SOURCES):
+        return "drivers"
     if "/boards/" in obj or "emb_board.dir" in obj or "libemb_board.a" in obj:
         return "board"
     if "libemb_test.a" in obj or "/tests/" in obj:
         return "test harness"
     if "/samples/" in obj or obj.endswith("main.c.obj"):
         return "app"
-    if "libgcc" in obj or "libc.a" in obj or "crt" in obj or obj.endswith((".a", ".o")):
+    if "libgcc" in obj or "libc.a" in obj or "libc_nano.a" in obj or "crt" in obj or obj.endswith((".a", ".o")):
         return "runtime"
     return "other:" + obj.rsplit("/", 1)[-1]
 
 
-def parse_map(path: str):
+def parse_map(path: str, merged=None):
+    """{component: {text, data, bss}}. The map gives a mergeable string section
+    (.rodata.str1.1, or .rodata.<function>.str1.1 with -fdata-sections) its size before the
+    linker merged it; with merged a dict, those go to merged[component]
+    instead of text, so that the components' sums do not exceed the image."""
     sums = defaultdict(lambda: {"text": 0, "data": 0, "bss": 0})
     with open(path, encoding="utf-8", errors="replace") as f:
         lines = f.read().split("\n")
@@ -84,6 +97,9 @@ def parse_map(path: str):
             continue
         # output-section summary lines have no object; input lines name a file
         if "(" not in obj and not obj.endswith((".obj", ".o", ".a")):
+            continue
+        if merged is not None and MERGED_STRINGS.search(sec):
+            merged[component(obj)] = merged.get(component(obj), 0) + size
             continue
         sums[component(obj)][kind] += size
     return sums

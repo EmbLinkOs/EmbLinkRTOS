@@ -719,6 +719,14 @@ jobs:
                   -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
             cmake --build "build/controller-$b"
           done
+      - name: The controller's static stack bound and memory accounting (KRN-MEM-009)
+        run: |
+          for b in nucleo_f446re nucleo_f446ze; do
+            python3 -I tools/footprint/stack_bound.py --elf "build/controller-$b/controller.elf" \
+                    --build "build/controller-$b" --roots examples/controller/stack-roots.json
+            python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
+                    --elf "build/controller-$b/controller.elf"
+          done
 
   merge_gate:
     name: CI merge gate

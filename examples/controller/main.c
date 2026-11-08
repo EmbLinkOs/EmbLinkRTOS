@@ -21,12 +21,16 @@
  *   mutex: the contention on a shared peripheral.
  * - At boot: the reset's cause (RCC_CSR) and the crash record the last run left, if any, as an
  *   EMB_CRASH line that tools/crashdec decodes.
+ * - Marker pins for a logic analyzer: TIM2 toggles PA0 at each sampling trigger, in hardware;
+ *   PA10 is high during the ADC's handler, PA8 while the control thread processes a sample,
+ *   PA9 while a thread holds the console. Each is one register write.
  */
 #include <emb/arch.h>
 #include <emb/emb.h>
 
 #include <emb_board.h>
 #include <emb_stm32_drivers.h>
+#include <emb_stm32_pins.h>
 #include <hw_config.h>
 #include <string.h>
 
@@ -40,6 +44,19 @@
 #define CTL_LOAD_MAX    400u  /* percent of a period, the injected work's ceiling */
 #define CTL_WDG_MS      2000u /* the watchdog's timeout */
 #define CTL_LINE_MAX    48u
+
+/* The marker pins, on GPIOA (the Arduino header's names) */
+#define MARK_PORT    EMB_HW_GPIOA_BASE
+#define MARK_CONTROL 8u  /* PA8, D7 */
+#define MARK_CONSOLE 9u  /* PA9, D8 */
+#define MARK_ISR     10u /* PA10, D2 */
+
+static const emb_stm32_pin_t markers[] = {
+    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 1u}, /* PA0, A0: TIM2_CH1 */
+    {EMB_STM32_PORT(A), MARK_CONTROL, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(A), MARK_CONSOLE, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(A), MARK_ISR, EMB_STM32_PIN_OUTPUT, 0u},
+};
 
 typedef struct sample {
     uint32_t cycles; /* emb_arch_cycles() at the conversion's interrupt */
@@ -128,10 +145,12 @@ static void out_hex(uint32_t v, unsigned digits)
 static void lock(void)
 {
     (void)emb_mutex_lock(console, EMB_WAIT_FOREVER);
+    emb_stm32_gpio_set(MARK_PORT, MARK_CONSOLE);
 }
 
 static void unlock(void)
 {
+    emb_stm32_gpio_clear(MARK_PORT, MARK_CONSOLE);
     (void)emb_mutex_unlock(console);
 }
 
@@ -146,21 +165,21 @@ static void adc_isr(void *arg)
 {
     sample_t s;
     uint16_t raw = 0u;
-    int r = emb_stm32f4_adc_take(EMB_HW_ADC1_BASE, &raw);
+    int r;
     (void)arg;
+    emb_stm32_gpio_set(MARK_PORT, MARK_ISR);
+    r = emb_stm32f4_adc_take(EMB_HW_ADC1_BASE, &raw);
     if (r < 0) {
         st.adc_overruns++;
-        return;
+    } else if (r > 0) {
+        s.cycles = (uint32_t)emb_arch_cycles();
+        s.raw = raw;
+        s.seq = adc_seq++;
+        if (emb_msgq_send(samples, &s, EMB_NO_WAIT) != EMB_OK) {
+            st.queue_drops++;
+        }
     }
-    if (r == 0) {
-        return;
-    }
-    s.cycles = (uint32_t)emb_arch_cycles();
-    s.raw = raw;
-    s.seq = adc_seq++;
-    if (emb_msgq_send(samples, &s, EMB_NO_WAIT) != EMB_OK) {
-        st.queue_drops++;
-    }
+    emb_stm32_gpio_clear(MARK_PORT, MARK_ISR);
 }
 
 static void usart_isr(void *arg)
@@ -214,6 +233,7 @@ static void control(void *arg)
             continue;
         }
         start = (uint32_t)emb_arch_cycles();
+        emb_stm32_gpio_set(MARK_PORT, MARK_CONTROL);
         if (start - s.cycles > st.lat_max) {
             st.lat_max = start - s.cycles;
         }
@@ -230,6 +250,7 @@ static void control(void *arg)
         }
         work(start, (uint32_t)(((uint64_t)period * load_pct) / 100u));
         done = (uint32_t)emb_arch_cycles();
+        emb_stm32_gpio_clear(MARK_PORT, MARK_CONTROL);
         if (done - s.cycles > st.proc_max) {
             st.proc_max = done - s.cycles;
         }
@@ -512,6 +533,8 @@ int main(void)
 
     emb_stm32_clock_enable(EMB_HW_TIM2_CLKEN_OFFSET, EMB_HW_TIM2_CLKEN_BIT);
     emb_stm32_clock_enable(EMB_HW_ADC1_CLKEN_OFFSET, EMB_HW_ADC1_CLKEN_BIT);
+    emb_stm32_pins_apply(markers, (unsigned)(sizeof(markers) / sizeof(markers[0])));
+    emb_stm32_tim_ch1_toggle_on_update(EMB_HW_TIM2_BASE);
     EMB_CHECK(emb_irq_connect(EMB_HW_ADC1_IRQ, adc_isr, NULL));
     EMB_CHECK(emb_irq_connect(EMB_HW_CONSOLE_IRQ, usart_isr, NULL));
     emb_stm32f4_adc_temp_on_tim2(EMB_HW_ADC1_BASE, EMB_HW_ADC_COMMON_BASE);

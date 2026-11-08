@@ -114,7 +114,7 @@ The STM32F446RE has 512 KiB of flash and 128 KiB of RAM. Clang 23.1.5 builds the
 
 `lat_max_us` is the time from the conversion's interrupt to the start of its processing in the control thread, by the cycle counter: the interrupt's exit, the kernel's wake of the control thread, and the switch. Over the soak it never exceeded 9 µs, about 1,600 cycles, with the command and telemetry threads printing to the shared console.
 
-It is the core's own view. It starts at the handler's timestamp, after the interrupt's entry, and it cannot show jitter in the trigger itself. A measurement from outside, with a logic analyzer on marker pins, is the next step: the timer's edge, the handler and the thread on separate channels.
+It is the core's own view. It starts at the handler's timestamp, after the interrupt's entry, and it cannot show jitter in the trigger itself. A logic analyzer on marker pins measured it from outside the same evening: 9.50 µs at the median and at most 10.0 µs, also at 1 kHz and in degraded mode ([report](controller-timing-2026-11-07.md)).
 
 ## What the run found
 
@@ -131,7 +131,7 @@ The first attempts failed. Each failure was a real defect, fixed before the run 
 - **The heater is simulated.** The LED stands in for it, and the chip's own temperature sensor, which the heater does not affect, stands in for the plant. The control loop's timing and its handling of overload and failure are real; its regulation is not.
 - **The soak is 30 minutes.** A longer one (24 hours) is still to be run.
 - **Stack use was read before the overload.** The run's later phases may have used more; a `status` at the end of the run is the next session's addition.
-- **Latency comes from the cycle counter only.** External timing is still to be measured.
+- **Latency in this run comes from the cycle counter.** The external measurement is a [separate report](controller-timing-2026-11-07.md).
 - **One board, one compiler on the board.** The Clang image was built but not run.
 - **Hardware run index:** the run is not in `hardware-runs.json`, whose entries are the suite's runs (`emb-hil-run v1`).
 

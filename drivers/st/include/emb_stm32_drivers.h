@@ -33,6 +33,9 @@ void emb_stm32_pins_apply(const emb_stm32_pin_t *pins, unsigned count);
 /* Inverts an output pin with one BSRR write, so a concurrent change to another pin of the port
  * is not lost. */
 void emb_stm32_gpio_toggle(uintptr_t port, unsigned pin);
+/* Drive an output pin high or low with one BSRR write. */
+void emb_stm32_gpio_set(uintptr_t port, unsigned pin);
+void emb_stm32_gpio_clear(uintptr_t port, unsigned pin);
 
 /* 8 data bits, no parity, 1 stop bit, transmitter on, 16x oversampling; the gate must be set. */
 void emb_stm32_usart_init(uintptr_t base, uint32_t pclk_hz, uint32_t baud);
@@ -62,6 +65,9 @@ uint32_t emb_stm32_tim_clock_hz(uint32_t pclk_hz, uint32_t apb_div);
  * clock does not fit. The gate must be set. */
 int emb_stm32_tim_trgo_periodic(uintptr_t base, uint32_t tim_clk_hz, uint32_t rate_hz);
 void emb_stm32_tim_stop(uintptr_t base);
+/* Channel 1 toggles its pin at each update event: the trigger made visible, with no software in
+ * the path. The pin's alternate function must route TIMx_CH1. */
+void emb_stm32_tim_ch1_toggle_on_update(uintptr_t base);
 
 /* ADC1 converts the temperature sensor on each TIM2 TRGO, end-of-conversion and overrun
  * interrupts on. The gate must be set. */
