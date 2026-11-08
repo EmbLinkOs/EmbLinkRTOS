@@ -558,11 +558,16 @@ jobs:
           path: ~/.cache/emb-downloads
           key: embcc-${{ env.EMBCC_VERSION }}-${{ env.EMBCC_SHA256 }}
       - name: Install EmbCC
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           archive="$HOME/.cache/emb-downloads/embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
           mkdir -p "$(dirname "$archive")"
           url="https://github.com/EmbLinkOs/EmbCC/releases/download/v${EMBCC_VERSION}/$(basename "$archive")"
-          fetch() { curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
+          # authenticated first (GitHub has throttled unauthenticated downloads), then plain HTTPS
+          fetch() { gh release download "v${EMBCC_VERSION}" --repo EmbLinkOs/EmbCC --pattern "$(basename "$archive")" \
+                      --output "$archive" --clobber ||
+                    curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
           check() { echo "${EMBCC_SHA256}  ${archive}" | sha256sum -c -; }
           [ -f "$archive" ] || fetch
           check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again
@@ -594,11 +599,16 @@ jobs:
           key: esp-gcc-${{ env.ESP_GCC_RELEASE }}-${{ env.ESP_GCC_SHA256 }}
       - name: Espressif's GCC for Xtensa (pinned, checksum-verified, cached)
         timeout-minutes: 15
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           archive="$HOME/.cache/emb-downloads/$ESP_GCC_ARCHIVE"
           mkdir -p "$(dirname "$archive")"
           url="https://github.com/espressif/crosstool-NG/releases/download/$ESP_GCC_RELEASE/$ESP_GCC_ARCHIVE"
-          fetch() { curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
+          # authenticated first (GitHub has throttled unauthenticated downloads), then plain HTTPS
+          fetch() { gh release download "$ESP_GCC_RELEASE" --repo espressif/crosstool-NG --pattern "$ESP_GCC_ARCHIVE" \
+                      --output "$archive" --clobber ||
+                    curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
           check() { echo "$ESP_GCC_SHA256  $archive" | sha256sum -c -; }
           [ -f "$archive" ] || fetch
           check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again
@@ -645,12 +655,16 @@ jobs:
           key: esp-clang-${{ env.ESP_CLANG_RELEASE }} # the step checks each archive's checksum
       - name: Espressif's Clang, newlib and LLD for Xtensa (pinned, checksum-verified, cached)
         timeout-minutes: 20
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           base="https://github.com/espressif/llvm-project/releases/download/$ESP_CLANG_RELEASE"
           mkdir -p "$HOME/.cache/emb-downloads"
           while read -r sum name; do
             archive="$HOME/.cache/emb-downloads/$name"
-            fetch() { curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$base/$name"; }
+            fetch() { gh release download "$ESP_CLANG_RELEASE" --repo espressif/llvm-project --pattern "$name" \
+                        --output "$archive" --clobber ||
+                      curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$base/$name"; }
             check() { echo "$sum  $archive" | sha256sum -c -; }
             [ -f "$archive" ] || fetch
             check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again

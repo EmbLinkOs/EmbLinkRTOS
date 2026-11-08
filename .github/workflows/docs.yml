@@ -34,15 +34,23 @@ jobs:
           path: ~/.cache/emb-downloads
           key: doxygen-${{ hashFiles('tools/docs/bootstrap.py') }}
       - name: Install documentation dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python -m pip install -r docs/requirements.txt
           archive="$HOME/.cache/emb-downloads/doxygen.linux.bin.tar.gz"
           url=$(python -c "import sys; sys.path.insert(0, 'tools/docs'); import bootstrap; print(bootstrap.URL)")
+          # .../releases/download/<tag>/<name>: authenticated first (GitHub has throttled
+          # unauthenticated downloads), then plain HTTPS
+          tag=$(basename "$(dirname "$url")")
+          fetch() { gh release download "$tag" --repo doxygen/doxygen --pattern "$(basename "$url")" \
+                      --output "$archive" --clobber ||
+                    curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
           mkdir -p "$(dirname "$archive")"
-          [ -f "$archive" ] || curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"
+          [ -f "$archive" ] || fetch
           python tools/docs/bootstrap.py --archive "$archive" || {
             rm -f "$archive"  # a damaged cached copy is fetched again
-            curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"
+            fetch
             python tools/docs/bootstrap.py --archive "$archive"
           }
       - name: Build complete documentation with warnings as errors
