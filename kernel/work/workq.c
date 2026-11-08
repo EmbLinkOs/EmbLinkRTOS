@@ -205,7 +205,7 @@ emb_status_t emb_workq_init(emb_workq_storage_t *storage, const emb_workq_attr_t
     EMBK_API_REQUIRE(EMB_API_ID_WORKQ_INIT, out_workq != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_WORKQ_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_WORKQ_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_WORKQ_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     q = (embk_workq_t *)(void *)storage;
 #if CONFIG_EMB_OBJ_LIST

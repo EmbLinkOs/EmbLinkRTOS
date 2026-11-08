@@ -115,13 +115,16 @@ void embn_cm_reset(void)
                          "isb" ::
                              : "memory");
 #endif
-    /* bounded by the linker-defined section sizes */
+    /* bounded by the linker-defined section sizes.
+     * MISRA Dev CS-12: 18.3, the bounds of one linker section, here and below */
+    /* cppcheck-suppress comparePointers */
     while (dst < __data_end) {
         *dst = *src;
         dst++;
         src++;
     }
     dst = __bss_start;
+    /* cppcheck-suppress comparePointers */
     while (dst < __bss_end) {
         *dst = 0u;
         dst++;

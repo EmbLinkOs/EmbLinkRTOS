@@ -56,7 +56,7 @@ emb_status_t emb_cond_init(emb_cond_storage_t *storage, const emb_cond_attr_t *a
     EMBK_API_REQUIRE(EMB_API_ID_COND_INIT, out_cond != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_COND_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_COND_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_COND_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_cond_attr_default(&def);
@@ -177,14 +177,13 @@ static emb_status_t wake(uint16_t api_id, emb_cond_t cond, bool all)
     embk_cond_t *c = cond_from_handle(cond);
     emb_irq_key_t key;
     unsigned woken = 0u;
-    embk_thread_t *w;
     EMBK_API_REQUIRE_THREAD(api_id);
     EMBK_API_REQUIRE(api_id, c != NULL, EMB_FAULT_API_HANDLE, EMB_EINVAL, 1u);
     key = embk_lock_object(c);
     if (all) {
         woken = embk_wait_wake_all(&c->waiters, EMBK_WAKE_SATISFIED, 0u);
     } else {
-        w = embk_wait_first(&c->waiters);
+        embk_thread_t *w = embk_wait_first(&c->waiters);
         if (w != NULL) {
             (void)embk_wait_wake(w, EMBK_WAKE_SATISFIED, 0u);
             woken = 1u;
