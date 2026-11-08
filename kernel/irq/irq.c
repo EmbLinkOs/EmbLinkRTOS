@@ -26,8 +26,10 @@ emb_status_t emb_irq_set_level(emb_irq_t irq, uint8_t level)
     EMBK_API_REQUIRE_NOT_ISR(EMB_API_ID_IRQ_SET_LEVEL);
     EMBK_API_REQUIRE(EMB_API_ID_IRQ_SET_LEVEL, irq < (emb_irq_t)EMB_ARCH_IRQ_COUNT,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMBK_API_REQUIRE(EMB_API_ID_IRQ_SET_LEVEL, level <= EMB_IRQ_LEVEL_MAX, EMB_FAULT_API_ARGUMENT,
-                     EMB_EINVAL, 2u);
+    /* written as < MAX + 1: the maximum is 0 on a port with one level, and level <= 0 reads as
+     * a test of an unsigned value against zero */
+    EMBK_API_REQUIRE(EMB_API_ID_IRQ_SET_LEVEL, level < (EMB_IRQ_LEVEL_MAX + 1u),
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     status = emb_arch_irq_set_level(irq, level);
     EMBK_API_REQUIRE(EMB_API_ID_IRQ_SET_LEVEL, status != EMB_EINVAL, EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 1u);

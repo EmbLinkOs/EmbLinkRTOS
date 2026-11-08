@@ -158,7 +158,7 @@ emb_status_t emb_timer_init(emb_timer_storage_t *storage, const emb_timer_attr_t
     EMBK_API_REQUIRE(EMB_API_ID_TIMER_INIT, out_timer != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_TIMER_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_TIMER_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_TIMER_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     isr = (attr->flags & EMB_TIMER_ISR_CONTEXT) != 0u;
 #if CONFIG_EMB_WORKQ

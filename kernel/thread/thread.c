@@ -162,7 +162,7 @@ static emb_status_t thread_construct(uint16_t api_id, embk_thread_t *t,
                      attr->priority >= EMB_PRIORITY_MIN && attr->priority <= EMB_PRIORITY_MAX,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     EMBK_API_REQUIRE(
-        api_id, attr->stack != NULL && ((uintptr_t)attr->stack % (uintptr_t)EMB_STACK_ALIGN) == 0u,
+        api_id, attr->stack != NULL && embk_is_aligned(attr->stack, (uintptr_t)EMB_STACK_ALIGN),
         EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     {
         size_t min_stack = EMB_THREAD_STACK_MIN;
@@ -243,7 +243,7 @@ emb_status_t emb_thread_init(emb_thread_storage_t *storage, const emb_thread_att
     EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT, out_thread != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      5u);
     EMBK_API_REQUIRE(EMB_API_ID_THREAD_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_THREAD_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_THREAD_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     EMB_STATIC_ASSERT(sizeof(embk_thread_t) <= EMB_THREAD_STORAGE_SIZE,
                       "generated storage too small");

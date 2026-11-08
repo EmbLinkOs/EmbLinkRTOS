@@ -32,10 +32,15 @@ static void run_init_table(void)
 {
     const emb_init_entry_t *e = EMB_TABLE_START(emb_init_table);
     const emb_init_entry_t *stop = EMB_TABLE_STOP(emb_init_table);
+    /* MISRA Dev CS-12: a false positive of the analyzer. The bounds are weak: with no entry
+     * they are undefined and their address is 0, which C's array declaration cannot say. */
+    /* cppcheck-suppress knownConditionTrueFalse */
     if (e == NULL || stop == NULL) {
         return;
     }
-    /* bounded by the number of entries the linker placed; the table may live in flash */
+    /* bounded by the number of entries the linker placed; the table may live in flash.
+     * MISRA Dev CS-12: 18.3, the bounds of one linker table */
+    /* cppcheck-suppress comparePointers */
     for (; e < stop; e++) {
         emb_init_fn_t fn = (emb_init_fn_t)EMB_FLASH_READ_FNPTR(&e->fn);
         if (fn != NULL) {
@@ -85,8 +90,8 @@ static void isr_stack_check(void)
 {
     size_t size = 0u;
     const uint8_t *base = emb_arch_isr_stack(&size);
-    unsigned i;
     if (base != NULL && size >= EMBK_STACK_GUARD_BYTES) {
+        unsigned i;
         /* bounded: EMBK_STACK_GUARD_BYTES */
         for (i = 0u; i < EMBK_STACK_GUARD_BYTES; i++) {
             if (base[i] != EMB_STACK_FILL) {

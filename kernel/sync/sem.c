@@ -63,7 +63,7 @@ emb_status_t emb_sem_init(emb_sem_storage_t *storage, const emb_sem_attr_t *attr
     EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, storage != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT, out_sem != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 3u);
     EMBK_API_REQUIRE(EMB_API_ID_SEM_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_SEM_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_SEM_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_sem_attr_default(&def);
