@@ -59,7 +59,7 @@ def main(argv):
                   f"#define EMB_{up}_STORAGE_ALIGN {align}u",
                   f"typedef union emb_{name}_storage {{",
                   f"    emb_max_align_t align_;",
-                  f"    unsigned char bytes_[EMB_{up}_STORAGE_SIZE] EMB_ALIGNED(EMB_{up}_STORAGE_ALIGN);",
+                  f"    EMB_ALIGNED(EMB_{up}_STORAGE_ALIGN) unsigned char bytes_[EMB_{up}_STORAGE_SIZE];",
                   f"}} emb_{name}_storage_t;", ""]
     lines += ["#ifdef __cplusplus", "}", "#endif", "", "#endif /* EMB_STORAGE_H */", ""]
     text = "\n".join(lines)

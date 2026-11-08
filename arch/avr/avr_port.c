@@ -183,23 +183,18 @@ void emb_arch_timer_start_periodic(uint32_t hz)
         counts = 65536u;
     }
     tick_top = (uint16_t)counts;
-    switch (CONFIG_EMB_AVR_TIMER1_PRESCALER) {
-    case 1:
-        cs = (uint8_t)(1u << CS10);
-        break;
-    case 8:
-        cs = (uint8_t)(1u << CS11);
-        break;
-    case 64:
-        cs = (uint8_t)((1u << CS11) | (1u << CS10));
-        break;
-    case 256:
-        cs = (uint8_t)(1u << CS12);
-        break;
-    default:
-        cs = (uint8_t)((1u << CS12) | (1u << CS10)); /* 1024 */
-        break;
-    }
+    /* the prescaler is a configuration constant: chosen when compiling */
+#if CONFIG_EMB_AVR_TIMER1_PRESCALER == 1
+    cs = (uint8_t)(1u << CS10);
+#elif CONFIG_EMB_AVR_TIMER1_PRESCALER == 8
+    cs = (uint8_t)(1u << CS11);
+#elif CONFIG_EMB_AVR_TIMER1_PRESCALER == 64
+    cs = (uint8_t)((1u << CS11) | (1u << CS10));
+#elif CONFIG_EMB_AVR_TIMER1_PRESCALER == 256
+    cs = (uint8_t)(1u << CS12);
+#else
+    cs = (uint8_t)((1u << CS12) | (1u << CS10)); /* 1024 */
+#endif
     OCR1A = (uint16_t)(counts - 1u);
     TCNT1 = 0u;
     TCCR1A = 0u;

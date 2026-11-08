@@ -4,6 +4,21 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the cppcheck gate, 2026-11-08)
+
+- CI's `static-analysis` job runs cppcheck 2.22.0 over the product code in the same 14 configurations as clang-tidy, and a finding fails it ([page](docs/engineering/static-analysis.md)). CI builds that version from its pinned source and caches it.
+- `tools/analysis/cppcheck.py` gives cppcheck each build's compiler macros, read from the compiler with the build's target flags, so it analyzes the code each build compiles. `.cppcheck-suppressions` lists the checks turned off tree-wide, each with its reason.
+- CODING-STANDARD §12 records a deviation of MISRA 18.2 and 18.3 for the two bounds a linker script defines for one region.
+
+### Fixed (the cppcheck gate, 2026-11-08)
+
+- The generated `<emb/storage.h>` puts `EMB_ALIGNED` before each union member, as SPEC-001 §6.2 shows. After the member, it was not valid C11 for a compiler that uses the generic `_Alignas` fallback.
+- `owned_remove()` in the mutex code tests the list slot for NULL after its loop, where it held either the mutex or NULL.
+
+### Changed (the cppcheck gate, 2026-11-08)
+
+- The kernel checks the alignment of caller storage with one function, `embk_is_aligned()`. `emb_irq_set_level()` checks the level as `< EMB_IRQ_LEVEL_MAX + 1u`, and the AVR port picks Timer1's prescaler with `#if`. Behaviour is unchanged; on ports where the alignment is 1 or the maximum level 0, the old forms read as mistakes.
+
 ### Added (reproducible builds, 2026-11-08)
 
 - Images no longer depend on where the source tree or the build directory is. GCC and Clang builds name them `.`, `build` and `emblinkrtos` in the debug information and `__FILE__` (`-ffile-prefix-map`); code and data never did depend on it.

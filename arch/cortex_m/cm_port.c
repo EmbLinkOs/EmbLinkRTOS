@@ -522,6 +522,8 @@ extern uint8_t __emb_retained_end[];
 
 uint8_t *emb_arch_retained(uint16_t *size)
 {
+    /* MISRA Dev CS-12: 18.2, the bounds of one linker area */
+    /* cppcheck-suppress subtractPointers */
     *size = (uint16_t)(__emb_retained_end - __emb_retained_start);
     return __emb_retained_start;
 }

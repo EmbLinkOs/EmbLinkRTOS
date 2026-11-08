@@ -392,6 +392,13 @@ static EMB_INLINE uintptr_t embk_obj_to_raw(const void *obj)
     return (uintptr_t)obj; /* MISRA Dev CS-12: 11.4, the handle boundary */
 }
 
+/* Whether caller-supplied storage is aligned as the object needs. The alignment is a
+ * configuration constant, 1 on AVR; a function keeps that from making the check look constant. */
+static EMB_INLINE bool embk_is_aligned(const void *p, uintptr_t align)
+{
+    return ((uintptr_t)p % align) == 0u; /* MISRA Dev CS-12: 11.4, an alignment check */
+}
+
 static EMB_INLINE embk_thread_t *embk_thread_from_handle(emb_thread_t h)
 {
     return (embk_thread_t *)embk_obj_from_raw(h.raw, EMBK_OBJ_THREAD, offsetof(embk_thread_t, obj));

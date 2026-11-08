@@ -69,7 +69,7 @@ emb_status_t emb_event_init(emb_event_storage_t *storage, const emb_event_attr_t
     EMBK_API_REQUIRE(EMB_API_ID_EVENT_INIT, out_event != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_EVENT_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_EVENT_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_EVENT_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_event_attr_default(&def);

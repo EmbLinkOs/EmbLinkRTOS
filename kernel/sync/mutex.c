@@ -49,8 +49,8 @@ static void owned_remove(embk_thread_t *t, embk_mutex_t *m)
         pp = &(*pp)->owned_next;
     }
     EMBK_ASSERT(*pp == m);
-    if (*pp == m) {
-        *pp = m->owned_next;
+    if (*pp != NULL) { /* m: the loop stops at m or at the end */
+        *pp = (*pp)->owned_next;
     }
     m->owned_next = NULL;
 }
@@ -150,7 +150,7 @@ emb_status_t emb_mutex_init(emb_mutex_storage_t *storage, const emb_mutex_attr_t
     EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT, out_mutex != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_MUTEX_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_MUTEX_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_MUTEX_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     if (attr == NULL) {
         emb_mutex_attr_default(&def);

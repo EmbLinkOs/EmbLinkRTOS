@@ -133,16 +133,16 @@ emb_status_t emb_msgq_init(emb_msgq_storage_t *storage, const emb_msgq_attr_t *a
     EMBK_API_REQUIRE(EMB_API_ID_MSGQ_INIT, out_msgq != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      3u);
     EMBK_API_REQUIRE(EMB_API_ID_MSGQ_INIT,
-                     ((uintptr_t)storage % (uintptr_t)EMB_MSGQ_STORAGE_ALIGN) == 0u,
+                     embk_is_aligned(storage, (uintptr_t)EMB_MSGQ_STORAGE_ALIGN),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     /* SPEC-007 §2.2, §7: the ring must hold capacity items; division avoids overflow */
-    EMBK_API_REQUIRE(
-        EMB_API_ID_MSGQ_INIT,
-        attr->ring != NULL && ((uintptr_t)attr->ring % (uintptr_t)EMB_MSGQ_ALIGN) == 0u &&
-            attr->item_size != 0u && attr->item_size <= CONFIG_EMB_MSGQ_MAX_ITEM &&
-            attr->capacity != 0u && (!CONFIG_EMB_IPC_SMALL || attr->capacity <= 255u) &&
-            attr->ring_size / attr->item_size >= attr->capacity,
-        EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_MSGQ_INIT,
+                     attr->ring != NULL && embk_is_aligned(attr->ring, (uintptr_t)EMB_MSGQ_ALIGN) &&
+                         attr->item_size != 0u && attr->item_size <= CONFIG_EMB_MSGQ_MAX_ITEM &&
+                         attr->capacity != 0u &&
+                         (!CONFIG_EMB_IPC_SMALL || attr->capacity <= 255u) &&
+                         attr->ring_size / attr->item_size >= attr->capacity,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     q = (embk_msgq_t *)(void *)storage;
 #if CONFIG_EMB_OBJ_LIST
     /* storage is reused only through destroy (SPEC-009 §6, KRN-OBJ-007) */

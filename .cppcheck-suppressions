@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# cppcheck checks turned off for the whole tree (CODING-STANDARD §12, CS-13.3), read by
+# tools/analysis/cppcheck.py. Each line is a check id, after a comment that gives its reason.
+# A finding at one site is fixed or recorded there (`cppcheck-suppress <id>` with a MISRA Dev
+# CS-12 comment), never here: the tool refuses an entry naming a file.
+
+# Advisory MISRA 8.13 (pointer to const where possible). cppcheck judges each configuration
+# alone, so it asks for const where another configuration writes through the pointer
+# (sched.c's insert() on the tiny profile, AVR and Armv6-M). It cannot see writes through an
+# intrusive node (EMB_CONTAINER_OF): a list pop or a wake writes the list through the nodes it
+# reaches. Port entry points have contract-fixed signatures (emb_arch_context_init), and public
+# functions take the object the caller passes (emb_work_submit). 25 findings at the first run.
+constParameterPointer
+constVariablePointer
