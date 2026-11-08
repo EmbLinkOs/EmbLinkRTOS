@@ -125,7 +125,7 @@ PORT-ABI-001 to 005 originate in the v0.1 specification (§21.5) and are restate
 ### PORT-012  Debug descriptor contribution
 **Statement.** A port shall contribute the context frame layout, TCB extension layout, fault register layout, interrupt stack bounds, and its name and variant to the debug descriptor, and shall provide `emb_arch_breakpoint` and `emb_arch_trace_timestamp`.
 **Rationale.** ADR-011 needs architecture facts a debugger cannot infer.
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07. Implemented 2026-11-08 (A107) for Cortex-M, RISC-V and native (no frame); the AVR and Xtensa frames are not described yet.
 **Verification.** Descriptor consumer test on each port.
 **Trace.** SPEC-011 §14; OBS-008
 

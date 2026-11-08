@@ -46,6 +46,10 @@ if(CONFIG_EMB_SYSTEM_WORKQ)
   list(APPEND EMB_KERNEL_SOURCES work/system_workq.c) # linked only when referenced (ADR-048)
 endif()
 
+if(CONFIG_EMB_DEBUG_DESCRIPTOR)
+  list(APPEND EMB_KERNEL_SOURCES debug/descriptor.c)
+endif()
+
 if(CONFIG_EMB_CRASH_RECORD)
   # The build identity (A72): SHA-1 over the commit, whether tracked files differ from it, and
   # the configuration hash, fixed at configure time.

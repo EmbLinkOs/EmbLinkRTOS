@@ -60,7 +60,7 @@ OBS-001 to 012 originate in `docs/architecture/04-platform-architecture.md` §7 
 ### OBS-008  Debug descriptor
 **Statement.** The image shall export a versioned debug descriptor sufficient to enumerate threads, states, priorities, stacks, owned locks, partitions, and devices without knowledge of private struct layout.
 **Rationale.** ADR-011.
-**Status.** Accepted 2026-10-07
+**Status.** Accepted 2026-10-07. Implemented 2026-11-08 (A107): threads, states, priorities, stacks and owned mutexes; partitions and devices come with their subsystems. `test_debug_descriptor` reads it on every port that enables it, and `tools/descriptor/gdb_check.py` lists the threads and their backtraces under GDB on the QEMU ports.
 **Verification.** `tools/descriptor` enumerates everything from a memory dump of the conformance run on each port.
 **Trace.** SPEC-015 §5
 

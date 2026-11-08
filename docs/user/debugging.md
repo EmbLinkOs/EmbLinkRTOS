@@ -92,6 +92,16 @@ arm-none-eabi-gdb build/my_app/app.elf \
 
 `emb_fault_hook` is called on every kernel fault: at the breakpoint, `bt` shows the call that faulted and `p *info` the fault. A checked build with `CONFIG_EMB_FAULT_HALT_FOR_DEBUG` also stops at a breakpoint instruction in the fault path when a debugger is attached. Under QEMU, add `-s -S` to the machine's arguments (`EMB_BOARD_QEMU_ARGS` in the board's `board.cmake`) and connect GDB to `:1234` in the same way.
 
+**Every thread, not just the running one.** GDB sees the context the core runs. To list the kernel's threads and walk the stack of one that is switched out, load the commands that read the [debug descriptor](../engineering/debug-descriptor.md) (`CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR):
+
+```
+(gdb) source tools/descriptor/emb_gdb.py
+(gdb) emb threads        # index, name, state and wait reason, priorities, stack, pc, owned mutexes
+(gdb) emb bt 3           # the backtrace of thread 3, from the registers its switch saved
+```
+
+The target must be halted. `emb bt` borrows the core's registers for the backtrace and puts them back. The commands need a GDB with Python: Arm's `arm-none-eabi-gdb` builds may lack it, while `gdb-multiarch` on Linux and Homebrew's `gdb` on macOS have it. They work on Cortex-M and RISC-V; a native build's threads are host threads, which GDB's own `info threads` shows. They have run under QEMU and not yet on a board.
+
 **The Uno** has no debug probe on its USB connection. Use the console and the crash record: a fault resets the part through the watchdog, and the record survives the reset ([2026-11-04 run](../engineering/hil-uno-2026-11-04.md)).
 
 ## Common symptoms

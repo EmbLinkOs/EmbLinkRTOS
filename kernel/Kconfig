@@ -438,6 +438,18 @@ endmenu
 
 menu "Observability"
 
+config EMB_DEBUG_DESCRIPTOR
+	bool "Debug descriptor for RTOS-aware tools (SPEC-015 §5, OBS-008)"
+	default n if EMB_PROFILE_TINY || EMB_ARCH_AVR
+	default y
+	help
+	  A read-only table at the symbol emb_debug_descriptor: where the
+	  kernel keeps its threads and the offsets of their fields, and the
+	  port's switch frame. A debugger plugin or tools/descriptor reads it
+	  to list threads, their states, stacks and owned mutexes, and the
+	  registers of a switched-out thread (A107). Off on AVR, where
+	  constants take RAM.
+
 config EMB_TRACE
 	bool "Kernel trace points (SPEC-015)"
 	default y if EMB_ARCH_NATIVE

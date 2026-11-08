@@ -32,7 +32,7 @@ static emb_arch_tcb_t boot_context;
 struct embk_thread *embn_rv_current = (struct embk_thread *)(void *)&boot_context;
 
 /* The interrupt stack and its top, read by the trap entry. */
-static uint8_t embn_rv_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(16);
+EMB_USED uint8_t embn_rv_isr_stack[CONFIG_EMB_ISR_STACK_SIZE] EMB_ALIGNED(16);
 uint8_t *const embn_rv_isr_stack_top = &embn_rv_isr_stack[CONFIG_EMB_ISR_STACK_SIZE];
 
 uint8_t *emb_arch_isr_stack(size_t *size)

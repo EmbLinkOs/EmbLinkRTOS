@@ -12,6 +12,9 @@
 #include <emb/kernel.h>
 #include <emb/sched.h>
 #include <emb/version.h>
+#if CONFIG_EMB_DEBUG_DESCRIPTOR
+#include <emb/debug.h>
+#endif
 
 #include <embk/crash.h>
 #include <embk/kernel.h>
@@ -128,6 +131,10 @@ void emb_kernel_init(void)
         embk_fault_raise_api(EMB_API_ID_KERNEL_INIT, EMB_FAULT_API_LIFECYCLE, 0u, 0u, EMBK_WHERE);
     }
     emb_arch_init();
+#if CONFIG_EMB_DEBUG_DESCRIPTOR
+    /* the one reference to the descriptor: it keeps it in the image (A107) */
+    (void)*(const volatile uint8_t *)&emb_debug_descriptor.magic[0];
+#endif
     isr_stack_fill();
 #if CONFIG_EMB_CRASH_RECORD
     embk_crash_record_boot(); /* what the previous run left, before anything can fault */
