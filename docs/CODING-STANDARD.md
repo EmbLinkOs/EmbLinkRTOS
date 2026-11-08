@@ -130,11 +130,11 @@ The code follows the MISRA C:2023 Mandatory and Required rules unless a deviatio
 | 18.2, 18.3 Subtracting and comparing pointers | Permitted between the two bounds a linker script defines for one region | The start-up copy of `.data` and clearing of `.bss`, the init table's walk, the retained area's size. The bounds delimit one region, which C cannot declare: they are two `extern` arrays. Each site carries the deviation comment. |
 | 18.4 Pointer arithmetic | Array indexing only, plus the two sites of CS-2.3 | |
 | 20.7 Macro parenthesization | Followed, except token-pasting and type-name parameters | `EMB_DECLARE_HANDLE(name)`, `EMB_THREAD_DEFINE`; a parameter used as a token is documented in the macro's comment. |
-| 21.x Standard library | Freestanding; none used in kernel, ports, drivers | CS-1.2; tests and host tools are hosted code and out of this scope. |
+| 21.x Standard library | Freestanding; none used in kernel, ports, drivers | CS-1.2; tests and host tools are hosted code and out of this scope. The native port and board run the kernel as a host process and use the host's C library (threads, signals, the environment, the console) by design; they are not part of any device image. |
 | Dir 4.9 Function-like macros | Permitted for the cases of CS-10.4 | EmbCC inliner limits and C++17 lack of designated initializers (SPEC-001 §6.3, §7.3). |
 | Dir 4.12, Rule 21.3 Dynamic memory | None in kernel | CS-4.1. |
 
-Static analysis: `clang-tidy` with the project `.clang-tidy`, `cppcheck --addon=misra` where the rule texts are available to the contributor, EmbCC's own diagnostics, and the compiler warning set of §13. A finding is fixed or recorded as a deviation with a `/* MISRA Dev CS-12: rule, reason */` comment at the site; a bare suppression is rejected. CI runs clang-tidy 18 and cppcheck 2.22.0 as merge gates over the product code in every configuration that selects different code; the MISRA addon is not run yet ([static analysis](engineering/static-analysis.md)).
+Static analysis: `clang-tidy` with the project `.clang-tidy`, `cppcheck --addon=misra` where the rule texts are available to the contributor, EmbCC's own diagnostics, and the compiler warning set of §13. A finding is fixed or recorded as a deviation with a `/* MISRA Dev CS-12: rule, reason */` comment at the site; a bare suppression is rejected. CI runs clang-tidy 18 and cppcheck 2.22.0 as merge gates over the product code in every configuration that selects different code. cppcheck's MISRA addon (MISRA C:2012, by rule number) runs with them against a baseline that may only shrink ([static analysis](engineering/static-analysis.md)).
 
 ## 13. Toolchain flags and formatting
 
