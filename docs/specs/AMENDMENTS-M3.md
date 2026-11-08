@@ -4,7 +4,7 @@ Corrections and implementation decisions made during M3a, where an accepted spec
 is narrowed, reordered or made concrete. Each is applied in the affected document, and this
 page keeps the audit trail. Numbering continues from the [M2 record](AMENDMENTS-M2.md).
 
-**Status:** proposed with the first hardware generator increment, awaiting the project owner's review.
+**Accepted:** A66 to A107 were reviewed by topic with the project owner on 2026-11-08 and accepted as written, with one change: A72's build identity also digests the toolchain, as the review decided (#124). The review kept A87's tick semantics (a relative wait of n ticks ends at the n-th tick edge, as FreeRTOS's does; `EMB_AT_LEAST` gives at least d), and accepted as 1.0's scope that the Cortex-M33 runs in the Secure state with TrustZone unused (A78), that the Cortex-M0 has no zero-latency interrupts (A86) and that the Cortex-M7's caches stay off (A83). It fixed the crash record's version 1 (A71) and the debug descriptor's version 1 (A107) as formats for 1.0. ADR-051 to ADR-054 and ADR-056 were accepted at the same review.
 
 | # | Document | Amendment | Where in the code |
 |---|---|---|---|
