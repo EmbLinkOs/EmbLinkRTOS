@@ -28,6 +28,7 @@ debug-descriptor
 reproducible-builds
 static-analysis
 sbom
+safety-readiness
 hil
 hil-uno-2026-11-04
 hil-uno-2026-11-05
