@@ -4,10 +4,6 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
-### Fixed (the memory report for Clang, 2026-11-08)
-
-- `tools/footprint/memory_report.py` reads LLD's map as well as GNU ld's, so it accounts for Clang images. LLD's map lists no memory regions; the report takes them from the linker script's `MEMORY` block, found through the link command or given with `--ldscript`. Before, it stopped with an index error on every Clang image ([page](docs/engineering/controller-memory-2026-11-07.md)). CI now reports the Clang controller's memory in the `static-analysis` job.
-
 ### Added (the controller's release builds on the board, 2026-11-08)
 
 - The reference controller's release builds ran their 9-phase session and the external timing on the NUCLEO-F446RE: GCC with a 30-minute soak, GCC with LTO, and Clang, each 9/9 with nothing missed ([report](docs/engineering/controller-release-2026-11-08.md)). From the conversion interrupt to the control thread at work, the analyzer measured a median of 7.33 µs for GCC, 6.25 µs for Clang and 5.92 µs for GCC with LTO, against 9.50 µs for the checked build. The run found that under LTO neither the stack bound nor the image's source paths hold, and that the memory report reads GNU ld's map only.
