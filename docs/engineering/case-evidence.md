@@ -61,7 +61,7 @@ New evidence passes. The job reports it and writes `requirement-baseline-now.jso
 
 This makes TEST-009's matrix a regression gate, not yet its completeness gate. TEST-009 asks CI to fail on uncovered normative requirements, which needs each requirement marked as in or out of the released scope. Today the catalog's status says Accepted or Proposed, and only three statuses say Implemented.
 
-The first baseline (2026-11-08) comes from `main`'s run at `f76cc7c`: 4,462 requirement/configuration pairs in 40 configurations. It still has the four truncated configurations' low counts. Their next runs add evidence, which the baseline then records.
+The first baseline (2026-11-08) comes from this change's own CI run, with the four configurations collecting their whole suite: 4,964 requirement/configuration pairs in 40 configurations. Against `main`'s run at `f76cc7c`, it has 502 more: `native-gcc` 135 requirements instead of 4, `cm4-an386` 136 instead of 2, `rv32-virt` 134 instead of 2, `avr-uno-embsim` 108 instead of 3.
 
 ## First findings
 
