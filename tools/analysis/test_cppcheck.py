@@ -47,9 +47,30 @@ class Parse(unittest.TestCase):
             self.assertEqual(cc.finding(line, root), ("kernel/irq/irq.c", 29, 5, "unsignedLessThanZero",
                                                       "Checking if unsigned expression 'level' is less than zero."))
 
+    def test_a_generated_header_is_named_without_its_build(self):
+        f = cc.finding("/r/build/cm4-an386-clang/generated/include/emb/storage.h:17:5: style: x [misra-c2012-19.2]",
+                       Path("/r"))
+        self.assertEqual(f[0], "generated/include/emb/storage.h")
+        self.assertEqual(f[4], "MISRA C:2012 rule 19.2")
+
     def test_other_lines_are_not_findings(self):
         self.assertIsNone(cc.finding("Checking kernel/irq/irq.c ...", Path("/r")))
         self.assertIsNone(cc.finding("    for (; e < stop; e++) {", Path("/r")))
+
+
+class Baseline(unittest.TestCase):
+    def test_counts_per_file_and_rule(self):
+        fs = [("a.c", 1, 1, "misra-c2012-2.5", "m"), ("a.c", 1, 1, "misra-c2012-2.5", "m2"),
+              ("a.c", 9, 1, "misra-c2012-2.5", "m"), ("a.c", 3, 2, "misra-c2012-8.7", "m"),
+              ("b.c", 4, 1, "comparePointers", "m")]
+        self.assertEqual(cc.misra_counts(fs), {"a.c": {"misra-c2012-2.5": 2, "misra-c2012-8.7": 1}})
+
+    def test_gains_fail_and_losses_are_reported(self):
+        now = {"a.c": {"misra-c2012-2.5": 3}, "c.c": {"misra-c2012-10.4": 1}}
+        was = {"a.c": {"misra-c2012-2.5": 2, "misra-c2012-8.7": 1}}
+        gains, losses = cc.against_baseline(now, was)
+        self.assertEqual(gains, [("a.c", "misra-c2012-2.5", 3, 2), ("c.c", "misra-c2012-10.4", 1, 0)])
+        self.assertEqual(losses, [("a.c", "misra-c2012-8.7", 0, 1)])
 
 
 class Suppressions(unittest.TestCase):

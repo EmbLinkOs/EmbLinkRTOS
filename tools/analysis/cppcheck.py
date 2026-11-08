@@ -19,7 +19,15 @@ reason, in the root .cppcheck-suppressions, as .clang-tidy does for clang-tidy (
 at one site is fixed or recorded there as a deviation: a MISRA Dev CS-12 comment with
 `/* cppcheck-suppress <id> */` (CS-12). The tool refuses a suppressions entry that names a file.
 
-Exit status 0 when there is no finding, 1 when there is one, 2 on a usage or tool error.
+With --misra the tool also runs cppcheck's MISRA addon (MISRA C:2012 with its amendments) and
+reports its findings by rule number: the rule texts are MISRA's and are not in the tree. MISRA
+findings are gated against a baseline (--misra-baseline): a file that gains a finding of a rule
+fails, a file that loses one is reported, so the baseline only shrinks (--write-misra-baseline
+records it). The baseline counts findings per file and rule, not per line, so edits elsewhere in
+a file do not move it. Findings of any other check are not baselined: each one fails.
+
+Exit status 0 when there is no finding (or none beyond the baseline), 1 when there is one, 2 on a
+usage or tool error.
 """
 import argparse
 import json
@@ -46,7 +54,9 @@ PROBE_FLAG = re.compile(r"^(-m\S+|-std=\S+|--target=\S+|-target|-f(no-)?(short-e
                         r"signed-char|unsigned-char|pic|PIC|pie|PIE|exceptions)|-O\S*|"
                         r"-march=\S+|-mcpu=\S+|-mabi=\S+|--sysroot=\S+|-isysroot)$")
 TAKES_VALUE = {"-target", "-isysroot"}
-DIAG = re.compile(r"^(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+): (?P<sev>\w+): (?P<msg>.*) \[(?P<id>\w+)\]$")
+DIAG = re.compile(r"^(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+): (?P<sev>\w+): (?P<msg>.*) \[(?P<id>[\w.-]+)\]$")
+GENERATED = re.compile(r"^build/[^/]+/generated/")
+MISRA = re.compile(r"^misra-c2012-(?P<rule>\d+\.\d+)$")
 TEMPLATE = "{file}:{line}:{column}: {severity}: {message} [{id}]"
 
 
@@ -63,7 +73,7 @@ def tree_wide(path=SUPPRESSIONS):
         if line.startswith("#"):
             reason = True
             continue
-        if not re.fullmatch(r"[A-Za-z]\w*", line):
+        if not re.fullmatch(r"[A-Za-z][\w.-]*", line):
             raise SystemExit(f"cppcheck: {path.name}:{n}: '{line}': only a check id, with no file; "
                              "record a site's finding at the site")
         if not reason:
@@ -151,10 +161,44 @@ def finding(line, root=ROOT):
         rel = path.resolve().relative_to(root).as_posix() if path.is_absolute() else path.as_posix()
     except ValueError:
         rel = path.as_posix()
-    return rel, int(m["line"]), int(m["col"]), m["id"], m["msg"]
+    # a generated header is named by the build it is in; the same header in every build is one
+    rel = GENERATED.sub("generated/", rel)
+    msg = m["msg"]
+    rule = MISRA.match(m["id"])
+    if rule:  # without the licensed rule texts the addon prints a placeholder
+        msg = f"MISRA C:2012 rule {rule['rule']}"
+    return rel, int(m["line"]), int(m["col"]), m["id"], msg
 
 
-def analyze(cppcheck, build, jobs, work, off=(), root=ROOT):
+def is_misra(ident):
+    """Whether a finding comes from the MISRA addon (a rule, or its configuration report)."""
+    return ident.startswith("misra-")
+
+
+def misra_counts(findings):
+    """{file: {rule id: number of distinct findings}} of the MISRA findings, sorted."""
+    out = {}
+    for (path, line, col, ident, _msg) in findings:
+        if is_misra(ident):
+            out.setdefault(path, {}).setdefault(ident, set()).add((line, col))
+    return {f: {r: len(v) for r, v in sorted(rs.items())} for f, rs in sorted(out.items())}
+
+
+def against_baseline(counts, baseline):
+    """(gains, losses): [(file, rule, now, baseline)] where a count rose above or fell below."""
+    gains, losses = [], []
+    for f in sorted(set(counts) | set(baseline)):
+        now, was = counts.get(f, {}), baseline.get(f, {})
+        for r in sorted(set(now) | set(was)):
+            a, b = now.get(r, 0), was.get(r, 0)
+            if a > b:
+                gains.append((f, r, a, b))
+            elif a < b:
+                losses.append((f, r, a, b))
+    return gains, losses
+
+
+def analyze(cppcheck, build, jobs, work, off=(), misra=False, root=ROOT):
     """cppcheck over one build: (findings, the raw output when it failed to run)."""
     us = units(build, root)
     if not us:
@@ -177,7 +221,8 @@ def analyze(cppcheck, build, jobs, work, off=(), root=ROOT):
                 f"--cppcheck-build-dir={Path(work) / f'cache-{n}'}", "--library=gnu",
                 f"--suppress=*:{pre}", "--suppress=missingIncludeSystem",
                 "--suppress=unmatchedSuppression", "--suppress=checkersReport",
-                f"--template={TEMPLATE}"] + [f"--suppress={i}" for i in off]
+                f"--template={TEMPLATE}"] + [f"--suppress={i}" for i in off] + \
+            (["--addon=misra"] if misra else [])
         (Path(work) / f"cache-{n}").mkdir(exist_ok=True)
         p = subprocess.run(argv, cwd=root, capture_output=True, text=True, check=False)
         lines = (p.stdout + p.stderr).splitlines()
@@ -193,7 +238,12 @@ def main(argv=None):
     ap.add_argument("builds", nargs="+", help="configured and built trees with compile_commands.json")
     ap.add_argument("--cppcheck", default=os.environ.get("CPPCHECK", "cppcheck"))
     ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 2)
+    ap.add_argument("--misra", action="store_true", help="also run the MISRA addon")
+    ap.add_argument("--misra-baseline", type=Path, help="gate MISRA findings against this baseline")
+    ap.add_argument("--write-misra-baseline", type=Path, help="write the MISRA findings as a baseline")
     args = ap.parse_args(argv)
+    if (args.misra_baseline or args.write_misra_baseline) and not args.misra:
+        ap.error("--misra-baseline and --write-misra-baseline need --misra")
     tool = shutil.which(args.cppcheck) or (args.cppcheck if Path(args.cppcheck).is_file() else None)
     if not tool:
         print(f"cppcheck: {args.cppcheck}: not found", file=sys.stderr)
@@ -210,7 +260,7 @@ def main(argv=None):
             work = Path(tmp) / str(i)
             work.mkdir()
             print(f"cppcheck: {build}: {len(units(build))} units")
-            found, broken = analyze(tool, build, max(1, args.jobs), work, off)
+            found, broken = analyze(tool, build, max(1, args.jobs), work, off, args.misra)
             if broken:
                 failed.append((build, broken))
             for f in found:
@@ -218,16 +268,42 @@ def main(argv=None):
 
     for b, out in failed:
         print(f"cppcheck: {b}: cppcheck failed without a diagnostic:\n{out}", file=sys.stderr)
-    for (path, line, col, ident, msg), where in sorted(seen.items()):
+    gated = args.misra_baseline is not None
+    other = {f: w for f, w in seen.items() if not is_misra(f[3])}
+    shown = other if gated else seen  # under a baseline, MISRA findings are reported by count
+    for (path, line, col, ident, msg), where in sorted(shown.items()):
         print(f"{path}:{line}:{col}: {msg} [{ident}] (in {', '.join(sorted(where))})")
     ids = {}
     for (_, _, _, ident, _) in seen:
-        ids[ident] = ids.get(ident, 0) + 1
+        key = "misra" if is_misra(ident) and gated else ident
+        ids[key] = ids.get(key, 0) + 1
     summary = ", ".join(f"{c} {n}" for c, n in sorted(ids.items())) or "none"
     print(f"cppcheck: {len(args.builds)} builds, {len(seen)} findings: {summary}")
+    counts = misra_counts(seen)
+    if args.write_misra_baseline:
+        args.write_misra_baseline.write_text(json.dumps(counts, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"cppcheck: wrote {args.write_misra_baseline}: "
+              f"{sum(sum(r.values()) for r in counts.values())} MISRA findings in {len(counts)} files")
+    status = 1 if other else 0
+    if gated:
+        baseline = json.loads(args.misra_baseline.read_text(encoding="utf-8"))
+        gains, losses = against_baseline(counts, baseline)
+        for f, r, now, was in gains:
+            lines = sorted((ln, c) for (p, ln, c, i, _m) in seen if p == f and i == r)
+            where = ", ".join(str(ln) for ln, _ in lines)
+            print(f"{f}: {r}: {now} findings, the baseline has {was} (lines {where})")
+        for f, r, now, was in losses:
+            print(f"{f}: {r}: {now} findings, down from {was}: record it with --write-misra-baseline")
+        print(f"cppcheck: MISRA against {args.misra_baseline.name}: {len(gains)} file and rule pairs above it, "
+              f"{len(losses)} below it")
+        status = 1 if (gains or other) else 0
+    elif args.misra and not args.write_misra_baseline:
+        status = 1 if seen else 0
+    elif args.write_misra_baseline:
+        status = 1 if other else 0
     if failed:
         return 2
-    return 1 if seen else 0
+    return status
 
 
 if __name__ == "__main__":
