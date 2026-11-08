@@ -37,6 +37,7 @@ perf-lto-2026-11-07
 controller-nucleo-2026-11-07
 controller-timing-2026-11-07
 controller-memory-2026-11-07
+controller-soak-2026-11-08
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07
