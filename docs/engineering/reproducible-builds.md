@@ -18,6 +18,8 @@ An image built from the same commit, with the same configuration and the same to
 
   A debugger or `addr2line` started at the source root finds the files: the RTOS's root, or an outside application's. From elsewhere, use GDB's `set substitute-path`. Generated files read `generated/...`, relative to the build directory.
 
+The build probes for the option. A compiler without it, such as Ubuntu's avr-gcc 7.3 (the option arrived in GCC 8), gets `-fdebug-prefix-map`. That is enough, because no source uses `__FILE__`. In the mixed native build, EmbCC compiles the kernel and refuses the option, so its launcher drops it; that kernel is not part of the double build.
+
 The toolchain's own paths stay in the debug information, for example the C library's headers under its install directory. They are part of the pinned toolchain: the same toolchain at the same place gives the same bytes. That is the scope BLD-004 sets.
 
 ## The double build
