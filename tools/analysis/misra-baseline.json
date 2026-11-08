@@ -95,7 +95,7 @@
   "misra-c2012-21.8": 2,
   "misra-c2012-22.8": 1,
   "misra-c2012-22.9": 1,
-  "misra-c2012-8.7": 26,
+  "misra-c2012-8.7": 22,
   "misra-c2012-8.9": 1
  },
  "arch/riscv/include/emb_arch.h": {
@@ -213,7 +213,7 @@
   "misra-config": 5
  },
  "generated/include/emb/config.h": {
-  "misra-c2012-2.5": 68
+  "misra-c2012-2.5": 66
  },
  "generated/include/emb/storage.h": {
   "misra-c2012-19.2": 20,
@@ -221,7 +221,7 @@
   "misra-c2012-5.6": 15
  },
  "include/emb/api_ids.h": {
-  "misra-c2012-2.5": 95
+  "misra-c2012-2.5": 92
  },
  "include/emb/compiler.h": {
   "misra-c2012-17.8": 3,
@@ -231,16 +231,16 @@
   "misra-c2012-7.2": 1
  },
  "include/emb/compiler/clang.h": {
-  "misra-c2012-2.5": 6,
+  "misra-c2012-2.5": 5,
   "misra-c2012-20.10": 2,
   "misra-c2012-20.5": 1,
   "misra-c2012-20.7": 1,
   "misra-c2012-21.1": 2
  },
- "include/emb/compiler/macho.h": {
-  "misra-c2012-2.5": 2,
-  "misra-c2012-20.10": 3,
-  "misra-c2012-20.7": 2
+ "include/emb/compiler/gcc.h": {
+  "misra-c2012-2.5": 5,
+  "misra-c2012-20.10": 2,
+  "misra-c2012-20.7": 1
  },
  "include/emb/cond.h": {
   "misra-c2012-19.2": 1,
@@ -275,8 +275,6 @@
   "misra-c2012-5.9": 3
  },
  "include/emb/kernel.h": {
-  "misra-c2012-2.3": 1,
-  "misra-c2012-2.4": 1,
   "misra-c2012-2.5": 3,
   "misra-c2012-20.10": 2,
   "misra-c2012-20.12": 1,
@@ -370,7 +368,7 @@
  "kernel/fault/crash.c": {
   "misra-c2012-10.5": 1,
   "misra-c2012-12.1": 14,
-  "misra-c2012-8.7": 3
+  "misra-c2012-8.7": 2
  },
  "kernel/fault/fault.c": {
   "misra-c2012-10.4": 1,
@@ -388,7 +386,7 @@
   "misra-c2012-12.1": 4,
   "misra-c2012-18.4": 1,
   "misra-c2012-2.3": 1,
-  "misra-c2012-2.5": 11,
+  "misra-c2012-2.5": 10,
   "misra-c2012-5.9": 4
  },
  "kernel/include/embk/list.h": {
@@ -467,7 +465,7 @@
   "misra-c2012-17.8": 1,
   "misra-c2012-18.4": 2,
   "misra-c2012-2.5": 1,
-  "misra-c2012-8.7": 3
+  "misra-c2012-8.7": 2
  },
  "kernel/sync/cond.c": {
   "misra-c2012-10.4": 1,
@@ -521,7 +519,7 @@
   "misra-c2012-12.1": 22,
   "misra-c2012-18.4": 1,
   "misra-c2012-19.2": 1,
-  "misra-c2012-8.7": 25,
+  "misra-c2012-8.7": 24,
   "misra-c2012-8.9": 1,
   "misra-config": 1
  },
@@ -532,7 +530,7 @@
   "misra-c2012-12.1": 10,
   "misra-c2012-18.4": 6,
   "misra-c2012-2.5": 1,
-  "misra-c2012-8.7": 12
+  "misra-c2012-8.7": 10
  },
  "kernel/time/timer.c": {
   "misra-c2012-11.4": 6,

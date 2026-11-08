@@ -102,7 +102,7 @@ The same step runs cppcheck's MISRA addon (`cppcheck.py --misra`) over the same 
 - **15.1 and 15.5:** CODING-STANDARD §12 deviates from them everywhere, for early returns and the forward `goto` to the unlock (CS-7.2).
 - **17.3** (no implicit function declaration): the compilers enforce it. GCC 14 and Clang reject an implicit declaration in C11, and CS-13.1's warnings fail the build. The addon reads every inline assembly statement as a call to an undeclared function. All 43 of its 17.3 findings at the first run were assembly.
 
-**The baseline.** `tools/analysis/misra-baseline.json` counts the MISRA findings per file and rule: 2,157 in 107 files at the first run, over the Clang builds. It counts per file, not per line, so editing a file elsewhere does not move it.
+**The baseline.** `tools/analysis/misra-baseline.json` counts the MISRA findings per file and rule: 2,140 in 107 files at the first run, from CI's own run over the Clang builds on Ubuntu 24.04. It counts per file, not per line, so editing a file elsewhere does not move it.
 - **A file that gains a finding of a rule fails the job.** The job prints the file, the rule, the count and the lines.
 - **A file that loses one is reported.** Record it with `--write-misra-baseline`, so the baseline only shrinks.
 - **The job uploads the counts it found** as the `misra-baseline-now` artifact. That is the file to commit when a change fixes findings, or when it adds a recorded deviation.
