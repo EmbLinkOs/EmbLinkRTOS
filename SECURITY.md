@@ -16,7 +16,18 @@ Include what you can of: affected component and version or commit, a description
 
 ## Supported versions
 
-EmbLinkRTOS has an implemented M1 kernel subset and is completing M2, but has no released versions or declared security-supported release lines. The support policy is described in `docs/architecture/05-engineering-system.md` §7 and the release checklist in `docs/engineering/releases.md`. Each actual release line will state its concrete support window and end-of-life date here; no standing LTS cadence or unstaffed maintenance guarantee is implied.
+EmbLinkRTOS has delivered its M1 and M2 milestones and is preparing its first release, but has no released versions or declared security-supported release lines yet. The support policy is described in `docs/architecture/05-engineering-system.md` §7 and the release checklist in `docs/engineering/releases.md`. Each actual release line will state its concrete support window and end-of-life date here; no standing LTS cadence or unstaffed maintenance guarantee is implied.
+
+## For manufacturers: the EU Cyber Resilience Act
+
+The Cyber Resilience Act's obligations fall mainly on manufacturers that place products with digital elements on the EU market. Since 11 September 2026 they must report actively exploited vulnerabilities and severe incidents; the remaining obligations apply from 11 December 2027. For a product built on EmbLinkRTOS, the project provides:
+
+- **Advisories** through GitHub Security Advisories for this repository, with a CVE identifier for each confirmed vulnerability, the affected versions or commits, and the fix.
+- **A vulnerability known to be actively exploited** is handled ahead of others, and its advisory is published as soon as a fix or a mitigation exists, so manufacturers can meet their own reporting deadlines.
+- **An SBOM for an image**: `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM with the build manifest for any build ([SBOM](docs/engineering/sbom.md)). Each release will carry its own.
+- **Reproducible builds**, so a manufacturer can check that an image comes from the source it claims ([reproducible builds](docs/engineering/reproducible-builds.md)).
+
+If you build a product on EmbLinkRTOS and find a vulnerability that affects it, report it as above, and say whether it is exploited, so it can be handled first.
 
 ## Scope
 
