@@ -367,6 +367,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: Double build contract
         run: python3 -I -m unittest discover -s tools/repro -p 'test_*.py' -v
+      - name: Static analysis runner contract
+        run: python3 -I -m unittest discover -s tools/analysis -p 'test_*.py' -v
       - name: SBOM contract
         run: python3 -I -m unittest discover -s tools/sbom -p 'test_*.py' -v
       - name: ESP32-C3 image format
@@ -824,6 +826,50 @@ jobs:
           name: requirement-matrix
           path: requirement-*
 
+  static-analysis:
+    # clang-tidy 18 with the root .clang-tidy over the product code (CODING-STANDARD §12, §13;
+    # 05 §5), in every configuration that selects different code: native profiles and clock
+    # modes, each Cortex-M architecture, RV32, AVR, the NUCLEO and Pico 2 W boards and the
+    # reference controller's drivers. A finding fails the job; it is fixed or recorded at its
+    # site as a deviation.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tools
+        timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build clang clang-tidy-18 lld gcc-arm-none-eabi libnewlib-arm-none-eabi gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf gcc-avr avr-libc binutils-avr python3-yaml
+      - name: Configure and build with Clang
+        run: |
+          clang --version | head -1
+          clang-tidy-18 --version | head -2
+          for p in native-clang cm0-microbit-clang cm4-an386-clang cm4-an386-release-clang cm33-an505-clang rv32-virt-clang avr-uno-clang; do
+            cmake --preset "$p" > /dev/null
+            cmake --build --preset "$p"
+          done
+          # the native profiles and clock modes, and the boards, built by Clang (their presets use GCC)
+          for p in native-tiny native-release native-periodic native-timeslice-tickless; do
+            cmake --preset "$p" -B "build/$p-tidy" -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ > /dev/null
+            cmake --build "build/$p-tidy"
+          done
+          tc="$PWD/cmake/toolchains/arm-none-eabi-clang.cmake"
+          for p in cm4-nucleo-embsim cm33-pico2w; do
+            cmake --preset "$p" -B "build/$p-tidy" -DCMAKE_TOOLCHAIN_FILE="$tc" > /dev/null
+            cmake --build "build/$p-tidy"
+          done
+          cmake -S examples/controller -B build/controller-tidy -G Ninja -DEMB_BOARD=nucleo_f446re \
+                -DCMAKE_TOOLCHAIN_FILE="$tc" > /dev/null
+          cmake --build build/controller-tidy
+      - name: clang-tidy
+        run: |
+          python3 -I tools/analysis/clang_tidy.py --clang-tidy clang-tidy-18 \
+            build/native-clang build/native-tiny-tidy build/native-release-tidy build/native-periodic-tidy \
+            build/native-timeslice-tickless-tidy build/cm0-microbit-clang build/cm4-an386-clang \
+            build/cm4-an386-release-clang build/cm33-an505-clang build/rv32-virt-clang build/avr-uno-clang \
+            build/cm4-nucleo-embsim-tidy build/cm33-pico2w-tidy build/controller-tidy
+
   reproducibility:
     # BLD-004's double build: the same commit, checked out a second time at another path, must
     # give byte-identical images (tools/repro/double_build.py). Native programs, Cortex-M with GCC
@@ -847,7 +893,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, evidence, reproducibility]
+    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, evidence, static-analysis, reproducibility]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

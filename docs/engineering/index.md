@@ -26,6 +26,7 @@ support-matrix
 crash-record
 debug-descriptor
 reproducible-builds
+static-analysis
 sbom
 hil
 hil-uno-2026-11-04
