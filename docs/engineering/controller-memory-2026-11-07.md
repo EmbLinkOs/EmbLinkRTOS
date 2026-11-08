@@ -85,6 +85,10 @@ Stacks account for 5,376 bytes, 71% of the RAM used.
    - The fault path calls a fault hook, which the controller never sets.
    - A software timer calls its callback, and the controller has none.
    Any other indirect call reachable from a root fails the analysis.
+
+   **Where the call sits.** The roots file names the function that makes each indirect call in the source, such as `embk_isr_dispatch`. When the compiler inlines that function, the call sits in another one: under LTO, `embk_isr_dispatch` is inlined into `embn_cm_irq_entry`. Since 2026-11-08 the tool asks the debug information which functions are inlined at each indirect call (`addr2line -i`), innermost first, and uses the first one the roots file names. A function GCC cloned (`raise_info.constprop.0`) uses its original's entry. A call that no inlined function resolves still fails the analysis. Before this, the LTO image's bound could not be computed ([release builds](controller-release-2026-11-08.md)).
+
+   **What is code.** A function's instructions end at its symbol's size. Clang places string constants after the code in the same section, and `objdump` disassembles them as the last function's instructions. As data, one decoded as an indirect branch in `embn_cm_pendsv` of the checked Clang image.
 4. **A thread's bound.** Its deepest chain, plus what preemption leaves on its stack:
    - The exception's hardware frame: 32 bytes, or 104 with an active floating-point context.
    - The registers the switch saves: 36 bytes, or 100 with s16–s31.

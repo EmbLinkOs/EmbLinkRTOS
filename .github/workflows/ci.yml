@@ -790,6 +790,13 @@ jobs:
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
+      - name: The controller's stack bound in a release build with LTO, where GCC inlines across files
+        run: |
+          cmake -S "$RUNNER_TEMP/controller" -B build/controller-lto -G Ninja -DEmbLinkRTOS_DIR="$PWD/cmake" \
+                -DEMB_BOARD=nucleo_f446re -DEMB_SET=EMB_CHECKED=n -DEMB_LTO=ON
+          cmake --build build/controller-lto
+          python3 -I tools/footprint/stack_bound.py --elf build/controller-lto/controller.elf \
+                  --build build/controller-lto --roots examples/controller/stack-roots.json
       - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
         run: |
           python3 -m venv "$RUNNER_TEMP/spdx"
@@ -870,6 +877,10 @@ jobs:
           cmake -S examples/controller -B build/controller-tidy -G Ninja -DEMB_BOARD=nucleo_f446re \
                 -DCMAKE_TOOLCHAIN_FILE="$tc" > /dev/null
           cmake --build build/controller-tidy
+      - name: The Clang controller's stack bound
+        run: |
+          python3 -I tools/footprint/stack_bound.py --elf build/controller-tidy/controller.elf \
+                  --build build/controller-tidy --roots examples/controller/stack-roots.json
       - name: The Clang controller's memory report, from LLD's map
         run: |
           python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \
