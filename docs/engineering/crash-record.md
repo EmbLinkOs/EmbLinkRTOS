@@ -93,7 +93,7 @@ The record is off by default on the tiny profile ([A73](../specs/AMENDMENTS-M3.m
 ## Limits
 
 - No flight recorder or partition mini-records: the flight recorder needs the trace rings. Software faults carry no registers.
-- The build id is fixed at configure time: two dirty builds of one commit and configuration share it.
+- The build id is fixed at configure time: two dirty builds of one commit, configuration and toolchain share it. Since 2026-11-08 it includes the toolchain: two compilers, or one with and without LTO, give one commit different ids, since their records' addresses mean something only against their own image.
 - `reset_reason` is the kernel's action, not the SoC's reset cause.
 - The F446's backup SRAM is not used.
 - Nothing has been run on a physical board.

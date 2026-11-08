@@ -6,7 +6,7 @@ BLD-004 requires reproducible builds given the pinned toolchain, verified in CI 
 
 An image built from the same commit, with the same configuration and the same toolchain, has the same bytes wherever the source tree and the build directory are.
 
-- **Code and data** already were. The build identity (A72) is computed from the commit, a dirty flag and the configuration hash, so it names no path and no time. Nothing in the build reads the clock.
+- **Code and data** already were. The build identity (A72) is computed from the commit, a dirty flag, the configuration hash and the toolchain's identity and version, so it names no path and no time. Nothing in the build reads the clock.
 - **Debug information** was not. `.debug_line` and `.debug_str` held the absolute directories of the tree and the build: 115 occurrences in the reference controller's ELF. Since 2026-11-08, `cmake/emb_flags.cmake` passes `-ffile-prefix-map` to GCC and Clang, which also covers `__FILE__`. The directories are named as follows:
 
   | Directory | Name in the image |
