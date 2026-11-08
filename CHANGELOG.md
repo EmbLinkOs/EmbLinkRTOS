@@ -9,6 +9,14 @@ User-visible changes are recorded here. There are no released versions or releas
 - `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM for an image (REL-001), with the build manifest of BLD-003: commit, configuration hash, toolchain identity, hardware description hash and build identity ([page](docs/engineering/sbom.md)). It lists every project file compiled in, with checksums and licences, from the link map (GNU ld or LLD), the compile database and Ninja's dependency log. It also lists the toolchain libraries linked, and the compiler.
 - CI writes the reference controller's SBOMs for both NUCLEO-F446 boards and checks them with `spdx-tools`.
 - The generated `build_id.c` carries an SPDX licence line.
+### Added (evidence and coverage gates, 2026-11-08)
+
+- CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.
+- The `native-coverage` job fails when kernel coverage falls below `tools/coverage/thresholds.json`: 92.5% of lines and 70.7% of branches, what every run had (05 §5).
+
+### Fixed (evidence and coverage gates, 2026-11-08)
+
+- Five CI jobs collected their case evidence after a later `ctest` run of one test. In four configurations (`native-gcc`, `cm4-an386`, `rv32-virt`, `avr-uno-embsim`) that rewrote the log it reads, so they reported one test's evidence instead of the suite's. All five now collect right after the suite.
 
 ### Added (the debug descriptor, 2026-11-08)
 
