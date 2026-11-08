@@ -136,7 +136,7 @@ The results are reported as measured, including where EmbLinkRTOS is slower. Eac
 
 Contributions are welcome: board support, drivers, tests, documentation, and reviews of the specifications. Start with [CONTRIBUTING.md](CONTRIBUTING.md), and look for issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue). Every commit carries a [Developer Certificate of Origin](DCO) sign-off (`git commit -s`); there is no CLA.
 
-Report security issues privately, as described in [SECURITY.md](SECURITY.md).
+Questions, ideas and things you built go to [Discussions](https://github.com/EmbLinkOs/EmbLinkRTOS/discussions). Report security issues privately, as described in [SECURITY.md](SECURITY.md).
 
 ## The EmbLink family
 
