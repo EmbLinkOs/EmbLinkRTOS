@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <!-- SPDX-License-Identifier: Apache-2.0 -->
+  <!-- Rendered to social-preview.png (rsvg-convert -w 1280) for GitHub's social preview -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#13233f"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+
+  <g transform="translate(110 150)">
+    <g stroke="#5eead4" stroke-width="7" stroke-linecap="round">
+      <path d="M33 0v-22M80 0v-22M127 0v-22"/>
+      <path d="M33 160v22M80 160v22M127 160v22"/>
+      <path d="M0 33h-22M0 80h-22M0 127h-22"/>
+      <path d="M160 33h22M160 80h22M160 127h22"/>
+    </g>
+    <rect width="160" height="160" rx="22" fill="#0f766e" stroke="#5eead4" stroke-width="5"/>
+    <path d="M26 104h21v-47h26v47h26v-47h26v47h10" fill="none" stroke="#ecfeff" stroke-width="8"
+          stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+
+  <g font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif">
+    <text x="360" y="228" fill="#f8fafc" font-size="92" font-weight="700" letter-spacing="-2">EmbLinkRTOS</text>
+    <text x="364" y="284" fill="#cbd5e1" font-size="32">A deterministic real-time kernel for microcontrollers</text>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22" fill="#e2e8f0">
+    <g transform="translate(364 322)">
+      <rect width="104" height="42" rx="21" fill="#1e293b" stroke="#334155"/>
+      <text x="52" y="28" text-anchor="middle">AVR</text>
+    </g>
+    <g transform="translate(480 322)">
+      <rect width="226" height="42" rx="21" fill="#1e293b" stroke="#334155"/>
+      <text x="113" y="28" text-anchor="middle">Cortex-M0 … M33</text>
+    </g>
+    <g transform="translate(718 322)">
+      <rect width="132" height="42" rx="21" fill="#1e293b" stroke="#334155"/>
+      <text x="66" y="28" text-anchor="middle">RISC-V</text>
+    </g>
+    <g transform="translate(862 322)">
+      <rect width="132" height="42" rx="21" fill="#1e293b" stroke="#334155"/>
+      <text x="66" y="28" text-anchor="middle">Xtensa</text>
+    </g>
+  </g>
+
+  <g font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="27" fill="#e2e8f0">
+    <text x="110" y="476"><tspan fill="#5eead4">●</tspan>  Runs on real boards: Arduino Uno, STM32 NUCLEO, Raspberry Pi Pico 2 W, ESP32</text>
+    <text x="110" y="522"><tspan fill="#5eead4">●</tspan>  Requirements traced to executed tests, timing numbers to their runs</text>
+    <text x="110" y="568"><tspan fill="#5eead4">●</tspan>  GCC, Clang and EmbCC  ·  MISRA-oriented C  ·  reproducible builds  ·  Apache-2.0</text>
+  </g>
+</svg>

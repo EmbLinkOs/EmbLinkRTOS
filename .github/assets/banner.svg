@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320">
+  <!-- SPDX-License-Identifier: Apache-2.0 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#13233f"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="320" rx="18" fill="url(#bg)"/>
+  <rect width="1280" height="320" rx="18" fill="url(#grid)"/>
+
+  <!-- a chip: the mark -->
+  <g transform="translate(96 92)">
+    <g stroke="#5eead4" stroke-width="6" stroke-linecap="round">
+      <path d="M28 0v-18M68 0v-18M108 0v-18"/>
+      <path d="M28 136v18M68 136v18M108 136v18"/>
+      <path d="M0 28h-18M0 68h-18M0 108h-18"/>
+      <path d="M136 28h18M136 68h18M136 108h18"/>
+    </g>
+    <rect width="136" height="136" rx="18" fill="#0f766e" stroke="#5eead4" stroke-width="4"/>
+    <!-- a periodic signal: deterministic timing -->
+    <path d="M22 88h18v-40h22v40h22v-40h22v40h8" fill="none" stroke="#ecfeff" stroke-width="7"
+          stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+
+  <text x="300" y="150" fill="#f8fafc" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif"
+        font-size="76" font-weight="700" letter-spacing="-1.5">EmbLinkRTOS</text>
+  <text x="302" y="198" fill="#cbd5e1" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif"
+        font-size="28">One deterministic kernel, from 8-bit AVR to 32-bit Arm, RISC-V and Xtensa</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" fill="#e2e8f0">
+    <g transform="translate(302 228)">
+      <rect width="96" height="36" rx="18" fill="#1e293b" stroke="#334155"/>
+      <text x="48" y="24" text-anchor="middle">AVR</text>
+    </g>
+    <g transform="translate(410 228)">
+      <rect width="196" height="36" rx="18" fill="#1e293b" stroke="#334155"/>
+      <text x="98" y="24" text-anchor="middle">Cortex-M0 … M33</text>
+    </g>
+    <g transform="translate(618 228)">
+      <rect width="120" height="36" rx="18" fill="#1e293b" stroke="#334155"/>
+      <text x="60" y="24" text-anchor="middle">RISC-V</text>
+    </g>
+    <g transform="translate(750 228)">
+      <rect width="120" height="36" rx="18" fill="#1e293b" stroke="#334155"/>
+      <text x="60" y="24" text-anchor="middle">Xtensa</text>
+    </g>
+    <g transform="translate(882 228)">
+      <rect width="108" height="36" rx="18" fill="#1e293b" stroke="#334155"/>
+      <text x="54" y="24" text-anchor="middle">native</text>
+    </g>
+  </g>
+</svg>

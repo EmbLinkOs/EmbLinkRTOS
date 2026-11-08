@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Changed (the README, 2026-11-08)
+
+- The README says what the kernel is, what it provides, which boards it is tested on, how to build and run it in five commands, and how it compares with FreeRTOS on four boards, with a link to each run. CONTRIBUTING.md lists ways to contribute now, from running the suites on a board to adding one.
+
 ### Added (the cppcheck gate, 2026-11-08)
 
 - CI's `static-analysis` job runs cppcheck 2.22.0 over the product code in the same 14 configurations as clang-tidy, and a finding fails it ([page](docs/engineering/static-analysis.md)). CI builds that version from its pinned source and caches it.
