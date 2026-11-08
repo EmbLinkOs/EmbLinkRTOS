@@ -4,6 +4,16 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the clang-tidy gate, 2026-11-08)
+
+- CI's `static-analysis` job runs clang-tidy 18 over the product code: kernel, ports, boards, SoCs, drivers and the reference controller. It covers 14 configurations: native profiles and clock modes, Armv6-M, Armv7E-M, Armv8-M, RV32, AVR, and the NUCLEO-F446RE and Pico 2 W boards. The merge gate requires it, and any finding fails it ([page](docs/engineering/static-analysis.md)).
+- `tools/analysis/clang_tidy.py` runs it on any set of builds and lists each finding once, with the builds that reported it.
+
+### Changed (the clang-tidy gate, 2026-11-08)
+
+- `.clang-tidy` turns off `bugprone-casting-through-void`, new in clang-tidy 18, and `hicpp-no-assembler`, each with its reason. The naming rules accept linker-script symbols and port helper macros.
+- The Cortex-M port's `prio_write` is a function on every architecture; on Armv7-M and later it was a macro.
+
 ### Added (the debug descriptor, 2026-11-08)
 
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.

@@ -133,7 +133,7 @@ The code follows the MISRA C:2023 Mandatory and Required rules unless a deviatio
 | Dir 4.9 Function-like macros | Permitted for the cases of CS-10.4 | EmbCC inliner limits and C++17 lack of designated initializers (SPEC-001 §6.3, §7.3). |
 | Dir 4.12, Rule 21.3 Dynamic memory | None in kernel | CS-4.1. |
 
-Static analysis: `clang-tidy` with the project `.clang-tidy`, `cppcheck --addon=misra` where the rule texts are available to the contributor, EmbCC's own diagnostics, and the compiler warning set of §13. A finding is fixed or recorded as a deviation with a `/* MISRA Dev CS-12: rule, reason */` comment at the site; a bare suppression is rejected.
+Static analysis: `clang-tidy` with the project `.clang-tidy`, `cppcheck --addon=misra` where the rule texts are available to the contributor, EmbCC's own diagnostics, and the compiler warning set of §13. A finding is fixed or recorded as a deviation with a `/* MISRA Dev CS-12: rule, reason */` comment at the site; a bare suppression is rejected. CI runs clang-tidy 18 as a merge gate over the product code in every configuration that selects different code; cppcheck is not run in CI yet ([static analysis](engineering/static-analysis.md)).
 
 ## 13. Toolchain flags and formatting
 
