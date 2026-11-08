@@ -14,10 +14,38 @@ User-visible changes are recorded here. There are no released versions or releas
 - `.clang-tidy` turns off `bugprone-casting-through-void`, new in clang-tidy 18, and `hicpp-no-assembler`, each with its reason. The naming rules accept linker-script symbols and port helper macros.
 - The Cortex-M port's `prio_write` is a function on every architecture; on Armv7-M and later it was a macro.
 
+### Added (the SBOM, 2026-11-08)
+
+- `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM for an image (REL-001), with the build manifest of BLD-003: commit, configuration hash, toolchain identity, hardware description hash and build identity ([page](docs/engineering/sbom.md)). It lists every project file compiled in, with checksums and licences, from the link map (GNU ld or LLD), the compile database and Ninja's dependency log. It also lists the toolchain libraries linked, and the compiler.
+- CI writes the reference controller's SBOMs for both NUCLEO-F446 boards and checks them with `spdx-tools`.
+- The generated `build_id.c` carries an SPDX licence line.
+
+### Added (the debug descriptor on a board, 2026-11-08)
+
+- GDB read the reference controller's threads on the NUCLEO-F446RE through OpenOCD: their states, stacks and backtraces ([page](docs/engineering/debug-descriptor.md)).
+
+### Fixed (the debug descriptor on a board, 2026-11-08)
+
+- `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
+
+### Added (evidence and coverage gates, 2026-11-08)
+
+- CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.
+- The `native-coverage` job fails when kernel coverage falls below `tools/coverage/thresholds.json`: 92.5% of lines and 70.7% of branches, what every run had (05 §5).
+
+### Fixed (evidence and coverage gates, 2026-11-08)
+
+- Five CI jobs collected their case evidence after a later `ctest` run of one test. In four configurations (`native-gcc`, `cm4-an386`, `rv32-virt`, `avr-uno-embsim`) that rewrote the log it reads, so they reported one test's evidence instead of the suite's. All five now collect right after the suite.
+
 ### Added (the debug descriptor, 2026-11-08)
 
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.
 - `tools/descriptor`: a reader for a debugger or for memory dumps, and GDB commands (`emb threads`, `emb bt`) that list every thread and show the stack of one that is switched out. Checked under GDB on QEMU's Armv6-M, Armv7-M, Armv7E-M with FPU, Armv8-M and RV32 machines.
+
+### Added (the controller's soak, 2026-11-08)
+
+- `tools/hil/controller_soak.py` soaks the running reference controller for hours, checkpointing its record and ending cleanly on Ctrl-C or SIGTERM.
+- The controller soaked overnight on the NUCLEO-F446RE for 10 hours 6 minutes at 100 Hz with 30% load: 3,636,800 samples, none missed or dropped, no reset, latency at most 9 µs, stack high-water marks unchanged ([report](docs/engineering/controller-soak-2026-11-08.md)).
 
 ### Added (the controller's memory, 2026-11-07)
 

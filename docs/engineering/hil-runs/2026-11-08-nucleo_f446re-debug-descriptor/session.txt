@@ -1,0 +1,54 @@
+0x080037d6 in emb_arch_idle () at arch/cortex_m/cm_port.c:458
+458	}
+pc             0x80037d6           0x80037d6 <emb_arch_idle+6>
+sp             0x200019a8          0x200019a8 <idle_stack+232>
+msp            0x20000800          0x20000800 <setpoint_mc>
+psp            0x200019a8          0x200019a8 <idle_stack+232>
+address       0x80045fc
+version       1
+count         54
+pointer_size  4
+endian        little
+flags         ['checked', 'thread_list', 'obj_names', 'obj_list', 'stack_stats', 'stack_check', 'idle_thread']
+kernel        0.2.0
+port          cortex_m
+variant       armv7em
+priorities    32
+build_id      41691904beaf56e8c898ccb096b2a20282b99fd2
+idx  name              state             prio  stack now/max/size  sp          pc         owns
+0    telemetry_thread  blocked (sleep)   2     340/340/1024        0x20000c4c  0x80035e2  -
+1    command_thread    blocked (object)  4     284/284/1024        0x20001104  0x80035e2  -
+2    control_thread    blocked (object)  6     236/236/1024        0x200015b4  0x80035e2  -
+254  idle              running           0     -/92/256            0x20001964  -          -
+#0  emb_arch_switch_to (next=0x20001828 <embk_idle_thread>) at arch/cortex_m/cm_port.c:172
+#1  0x08001714 in embk_sched_switch_away () at kernel/sched/sched.c:413
+#2  0x080032a6 in embk_wait_commit (deadline=<optimized out>, data_out=data_out@entry=0x20000d3c <telemetry_thread_stack_+924>) at kernel/wait/wait.c:132
+#3  0x08003324 in embk_block_on (q=<optimized out>, reason=reason@entry=3 '\003', deadline=<optimized out>, key=0, data_out=data_out@entry=0x20000d3c <telemetry_thread_stack_+924>) at kernel/wait/wait.c:151
+#4  0x08001c20 in sleep_until_deadline (api_id=api_id@entry=63, deadline=<optimized out>) at kernel/thread/thread.c:674
+#5  0x08001fd8 in emb_thread_sleep_until (t=...) at kernel/thread/thread.c:711
+#6  0x08000a3a in telemetry (arg=<optimized out>) at examples/controller/main.c:424
+#7  0x08001f46 in embk_thread_launch (entry=<optimized out>, arg=<optimized out>) at kernel/thread/thread.c:350
+#8  0x00000000 in ?? ()
+#0  emb_arch_switch_to (next=0x20000da0 <telemetry_thread_storage_>) at arch/cortex_m/cm_port.c:172
+#1  0x08001714 in embk_sched_switch_away () at kernel/sched/sched.c:413
+#2  0x080032a6 in embk_wait_commit (deadline=<optimized out>, data_out=data_out@entry=0x2000116c <command_thread_stack_+844>) at kernel/wait/wait.c:132
+#3  0x08003324 in embk_block_on (q=q@entry=0x200008d8 <rx_bytes_storage_+8>, reason=reason@entry=4 '\004', deadline=<optimized out>, key=key@entry=0, data_out=data_out@entry=0x2000116c <command_thread_stack_+844>) at kernel/wait/wait.c:151
+#4  0x08002a32 in receive_common (api_id=api_id@entry=108, q=q@entry=0x200008d0 <rx_bytes_storage_>, out_item=out_item@entry=0x200011b7 <command_thread_stack_+919>, deadline=18446744073709551615, nowait=false) at kernel/ipc/msgq.c:317
+#5  0x08002bfc in emb_msgq_receive (msgq=..., out_item=out_item@entry=0x200011b7 <command_thread_stack_+919>, timeout=...) at kernel/ipc/msgq.c:325
+#6  0x08000744 in command (arg=<optimized out>) at examples/controller/main.c:399
+#7  0x08001f46 in embk_thread_launch (entry=<optimized out>, arg=<optimized out>) at kernel/thread/thread.c:350
+#8  0x00000000 in ?? ()
+#0  emb_arch_switch_to (next=0x20001828 <embk_idle_thread>) at arch/cortex_m/cm_port.c:172
+#1  0x08001714 in embk_sched_switch_away () at kernel/sched/sched.c:413
+#2  0x080032a6 in embk_wait_commit (deadline=<optimized out>, data_out=data_out@entry=0x2000161c <control_thread_stack_+892>) at kernel/wait/wait.c:132
+#3  0x08003324 in embk_block_on (q=q@entry=0x20000960 <samples_storage_+8>, reason=reason@entry=4 '\004', deadline=<optimized out>, key=key@entry=0, data_out=data_out@entry=0x2000161c <control_thread_stack_+892>) at kernel/wait/wait.c:151
+#4  0x08002a32 in receive_common (api_id=api_id@entry=108, q=q@entry=0x20000958 <samples_storage_>, out_item=out_item@entry=0x20001668 <control_thread_stack_+968>, deadline=101149, nowait=false) at kernel/ipc/msgq.c:317
+#5  0x08002bfc in emb_msgq_receive (msgq=..., out_item=out_item@entry=0x20001668 <control_thread_stack_+968>, timeout=...) at kernel/ipc/msgq.c:325
+#6  0x08000350 in control (arg=<optimized out>) at examples/controller/main.c:221
+#7  0x08001f46 in embk_thread_launch (entry=<optimized out>, arg=<optimized out>) at kernel/thread/thread.c:350
+#8  0x00000000 in ?? ()
+pc             0x80037d6           0x80037d6 <emb_arch_idle+6>
+sp             0x200019a8          0x200019a8 <idle_stack+232>
+msp            0x20000800          0x20000800 <setpoint_mc>
+psp            0x200019a8          0x200019a8 <idle_stack+232>
+[Inferior 1 (Remote target) detached]

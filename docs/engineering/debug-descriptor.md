@@ -96,6 +96,41 @@ The other commands:
 
 The target must be halted. Any GDB server will do: QEMU's gdbstub, OpenOCD, pyOCD.
 
+### On a board
+
+On 2026-11-08 the reference controller ran on the NUCLEO-F446RE, and GDB read it through OpenOCD's GDB server, over the on-board ST-LINK:
+- **Image:** `examples/controller`, GCC 14.2.1, built at `cf23f79`: main's `f76cc7c`, which has the descriptor, plus documentation only.
+- **Tools:** OpenOCD 0.12.0 (`board/st_nucleo_f4.cfg`) and GDB 17.2.
+- **Record:** `docs/engineering/hil-runs/2026-11-08-nucleo_f446re-debug-descriptor`, holding the GDB script (`session.gdb`) and its output (`session.txt`).
+
+```
+(gdb) emb threads
+idx  name              state             prio  stack now/max/size  sp          pc         owns
+0    telemetry_thread  blocked (sleep)   2     340/340/1024        0x20000c4c  0x80035e2  -
+1    command_thread    blocked (object)  4     284/284/1024        0x20001104  0x80035e2  -
+2    control_thread    blocked (object)  6     236/236/1024        0x200015b4  0x80035e2  -
+254  idle              running           0     -/92/256            0x20001964  -          -
+(gdb) emb bt 2
+#0  emb_arch_switch_to (next=0x20001828 <embk_idle_thread>) at arch/cortex_m/cm_port.c:172
+#1  0x08001714 in embk_sched_switch_away () at kernel/sched/sched.c:413
+#2  0x080032a6 in embk_wait_commit (...) at kernel/wait/wait.c:132
+#3  0x08003324 in embk_block_on (q=q@entry=0x20000960 <samples_storage_+8>, ...) at kernel/wait/wait.c:151
+#4  0x08002a32 in receive_common (...) at kernel/ipc/msgq.c:317
+#5  0x08002bfc in emb_msgq_receive (...) at kernel/ipc/msgq.c:325
+#6  0x08000350 in control (arg=<optimized out>) at examples/controller/main.c:221
+#7  0x08001f46 in embk_thread_launch (...) at kernel/thread/thread.c:350
+#8  0x00000000 in ?? ()
+```
+
+The core was idle when halted, and each thread was where the controller's design puts it:
+- the telemetry thread sleeping until its next second (`main.c:424`);
+- the command thread waiting for console bytes (`main.c:399`);
+- the control thread waiting for the next sample (`main.c:221`).
+
+Each backtrace reached that thread's own function. The stack in use at each switch matched the controller's own `status` report: 340, 284 and 236 bytes. `pc`, `sp`, `msp` and `psp` read the same before and after the backtraces. The controller resumed with no reset and no missed sample. Its clocks pause while the core is halted, because OpenOCD's F4 setup freezes the timers and the watchdog in debug.
+
+The run found one defect in `emb bt`, fixed in the same change. OpenOCD shows `msp` and `psp` apart from `sp`, so a backtrace that set only `sp` left GDB unable to tell which stack it was on. GDB printed a warning at each thread's root, though the frames were right. `emb bt` now sets `psp` too, since threads run on the process stack.
+
 ### On a memory dump
 
 Without a debugger, the reader lays RAM dumps over the ELF:
@@ -128,7 +163,7 @@ Three tests check the descriptor:
 
 ## Not yet
 
-- **Hardware:** no debugger session on a board yet. On the NUCLEO, the plan is OpenOCD's GDB server with `emb_gdb.py`, which needs nothing new on the target.
+- **Hardware beyond one board:** one session, on the NUCLEO-F446RE (Armv7E-M). No Armv6-M, Armv8-M or RISC-V board has been read, and no other probe than the ST-LINK.
 - **OpenOCD's own thread list:** `info threads` in GDB through OpenOCD needs an RTOS module in OpenOCD itself, written in C. A module that reads this descriptor would serve every EmbLink version; it is not written. pyOCD, whose RTOS plugins are Python, is the nearer target.
 - **AVR and Xtensa frames:** not described, and the descriptor is off by default on AVR, whose constants live in RAM.
 - **Partitions, devices, trace rings and monitors:** they have no values until those subsystems exist. The crash record has its own tools ([crash record](crash-record.md)).
