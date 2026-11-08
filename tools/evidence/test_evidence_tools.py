@@ -95,6 +95,30 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class Baseline(unittest.TestCase):
+    ROWS = [{"configuration": "a", "requirement": "KRN-THR-001", "evidence_outcome": "passed"},
+            {"configuration": "a", "requirement": "KRN-THR-002", "evidence_outcome": "no case"},
+            {"configuration": "b", "requirement": "KRN-THR-001", "evidence_outcome": "passed"}]
+
+    def test_nothing_lost(self):
+        base = {"configurations": {"a": ["KRN-THR-001"], "b": ["KRN-THR-001"]}}
+        self.assertEqual(matrix.check_baseline(base, self.ROWS, {"a", "b"}), [])
+
+    def test_new_evidence_is_not_a_regression(self):
+        base = {"configurations": {"a": []}}
+        self.assertEqual(matrix.check_baseline(base, self.ROWS, {"a", "b"}), [])
+
+    def test_a_lost_requirement(self):
+        base = {"configurations": {"a": ["KRN-THR-001", "KRN-THR-002"]}}
+        problems = matrix.check_baseline(base, self.ROWS, {"a", "b"})
+        self.assertEqual(len(problems), 1)
+        self.assertIn("a: lost the evidence for 1: KRN-THR-002", problems[0])
+
+    def test_a_configuration_without_evidence(self):
+        base = {"configurations": {"c": ["KRN-THR-001"]}}
+        self.assertIn("c: no evidence", matrix.check_baseline(base, self.ROWS, {"a", "b"})[0])
+
+
 import check_bounds  # noqa: E402
 
 
