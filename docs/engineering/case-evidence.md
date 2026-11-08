@@ -22,7 +22,16 @@ A case that prints `TEST` without its `CASE` line crashed or timed out inside th
 
 ## Collection
 
-`tools/evidence/collect.py --build build/<preset> --preset <preset> --out <file>` reads the build's `Testing/Temporary/LastTest.log`, which CTest writes with every executable's full output whether it ran natively, under QEMU or on EmbSIM. Nothing runs twice. The JSON record (`emblink-case-evidence`, version 1) holds the source identity (`git rev-parse HEAD` and whether tracked files differ), the configuration identity the executables reported (the collector fails when they disagree), and per executable its CTest result and cases with outcome, assertion and skip counts, skip reasons and citations. Every CI test job collects after its CTest run, also when tests fail, and uploads `case-evidence-<preset>.json`.
+`tools/evidence/collect.py --build build/<preset> --preset <preset> --out <file>` reads the build's `Testing/Temporary/LastTest.log`, which CTest writes with every executable's full output whether it ran natively, under QEMU or on EmbSIM. Nothing runs twice. The JSON record (`emblink-case-evidence`, version 1) holds the source identity (`git rev-parse HEAD` and whether tracked files differ), the configuration identity the executables reported (the collector fails when they disagree), and per executable its CTest result and cases with outcome, assertion and skip counts, skip reasons and citations. Every CI test job collects right after its CTest run, also when tests fail, and uploads `case-evidence-<preset>.json`. The collection must come before any later `ctest` run of the same build: one that runs a single test rewrites `LastTest.log`. Until 2026-11-08, five jobs ran theirs afterwards, to decode a crash record or check a second board. In four configurations that rewrote the log, so their evidence held one test:
+
+| Configuration | Requirements passing | Its Clang sibling |
+|---|---|---|
+| `native-gcc` | 4 | 135 |
+| `cm4-an386` | 2 | 136 |
+| `rv32-virt` | 2 | 134 |
+| `avr-uno-embsim` | 3 | — |
+
+The fifth job built its second board in another directory, so its evidence was intact.
 
 ## The requirement matrix
 
@@ -39,6 +48,20 @@ A case that prints `TEST` without its `CASE` line crashed or timed out inside th
 Only a citation printed by an executed case counts. `@req` header tags, Verification fields and identifiers that merely appear in test sources are traceability links, not evidence; a requirement is never "passed" by its declaration. The inventory lists every preset with its scope, and names the hardware configurations (`avr-uno-hil`, `cm4-nucleo-hil`, `cm33-pico2w`) as unrun here, with their reasons. Their runs on boards are archived in `docs/engineering/hardware-runs.json` and counted by the [support matrix](support-matrix.md), not as case evidence. `tools/support/matrix.py` refuses a preset CI runs that this inventory does not list.
 
 Applicability follows the feature gates. A case exists in a configuration exactly when its `#if` gate is true there, so a `no case` row in a configuration that enables the feature is a gap. A `no case` row where the feature is off is out of scope for that configuration. The matrix does not yet tell the two apart automatically.
+
+## The gate
+
+CI's `evidence` job gathers every job's evidence and runs the matrix with `--baseline tools/evidence/baseline.json`. The baseline lists, per configuration, the requirements an executed case passed for. The job fails when:
+- a configuration loses one of them;
+- a baseline configuration has no evidence;
+- a case cites an unknown requirement;
+- a case failed.
+
+New evidence passes. The job reports it and writes `requirement-baseline-now.json` with the matrix (the `requirement-matrix` artifact), for a pull request to commit. Removing or moving a case is then a visible change to the baseline file. The `CI merge gate` requires the job.
+
+This makes TEST-009's matrix a regression gate, not yet its completeness gate. TEST-009 asks CI to fail on uncovered normative requirements, which needs each requirement marked as in or out of the released scope. Today the catalog's status says Accepted or Proposed, and only three statuses say Implemented.
+
+The first baseline (2026-11-08) comes from `main`'s run at `f76cc7c`: 4,462 requirement/configuration pairs in 40 configurations. It still has the four truncated configurations' low counts. Their next runs add evidence, which the baseline then records.
 
 ## First findings
 
