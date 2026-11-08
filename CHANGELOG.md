@@ -8,6 +8,13 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - Images no longer depend on where the source tree or the build directory is. GCC and Clang builds name them `.`, `build` and `emblinkrtos` in the debug information and `__FILE__` (`-ffile-prefix-map`); code and data never did depend on it.
 - `tools/repro/double_build.py` builds a commit in a second checkout at another path and compares every image byte for byte. CI's `reproducibility` job runs it on native, Cortex-M (GCC and Clang), RV32, AVR, the Pico 2 W and the reference controller, and the merge gate requires it (BLD-004, [page](docs/engineering/reproducible-builds.md)).
+### Added (the debug descriptor on a board, 2026-11-08)
+
+- GDB read the reference controller's threads on the NUCLEO-F446RE through OpenOCD: their states, stacks and backtraces ([page](docs/engineering/debug-descriptor.md)).
+
+### Fixed (the debug descriptor on a board, 2026-11-08)
+
+- `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
 ### Added (evidence and coverage gates, 2026-11-08)
 
 - CI's `evidence` job builds the requirement matrix from every job's case evidence. It fails when a configuration loses a requirement an executed case passed for, against `tools/evidence/baseline.json` (TEST-009, [page](docs/engineering/case-evidence.md)). `matrix.py` gains `--baseline` and `--write-baseline`.

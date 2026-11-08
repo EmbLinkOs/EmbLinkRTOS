@@ -128,10 +128,19 @@ class EmbBt(gdb.Command):
                     break
                 except (ValueError, gdb.error):
                     continue
+        want = dict(regs)
+        if d.port == "cortex_m" and "sp" in regs:
+            # Threads run on the process stack. A server that shows msp and psp apart from sp
+            # (OpenOCD) needs psp set too, or GDB's unwinder can't tell which stack sp is.
+            try:
+                regmap["psp"] = ("psp", int(frame.read_register("psp")) & 0xFFFFFFFF)
+                want["psp"] = regs["sp"]
+            except (ValueError, gdb.error):
+                pass
         try:
             for n, (alias, _) in regmap.items():
-                if n in regs:
-                    gdb.execute(f"set ${alias} = {regs[n]:#x}", to_string=True)
+                if n in want:
+                    gdb.execute(f"set ${alias} = {want[n]:#x}", to_string=True)
             gdb.execute("maintenance flush register-cache", to_string=True)
             gdb.execute(f"bt {frames}")
         finally:
