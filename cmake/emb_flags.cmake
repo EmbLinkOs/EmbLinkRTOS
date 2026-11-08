@@ -40,6 +40,23 @@ target_include_directories(emb_flags INTERFACE
   "${EMB_GENERATED_DIR}/include")
 target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_C_FLAGS})
 
+# Reproducible images (BLD-004): the same sources, configuration and toolchain give the same
+# bytes, wherever the tree and the build are. Code and data already do; the debug information
+# and __FILE__ would name the absolute directories. They name these instead: the build
+# directory as `build`, the application's directory as `.`, and the RTOS's as `.` when it is
+# the application (an in-tree build) or `emblinkrtos` when it is a package. The most specific
+# directory comes last, which is the one GCC and Clang apply. A debugger started at the
+# source root finds the files; elsewhere, `set substitute-path` in GDB.
+if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+  if(EMB_BASE STREQUAL CMAKE_SOURCE_DIR)
+    set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=.")
+  else()
+    set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=emblinkrtos" "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+  endif()
+  list(APPEND _emb_prefix_maps "-ffile-prefix-map=${CMAKE_BINARY_DIR}=build")
+  target_compile_options(emb_flags INTERFACE ${_emb_prefix_maps})
+endif()
+
 # A Clang toolchain that links with LLD against a GNU toolchain's C library and libgcc
 # (cmake/toolchains/*-clang.cmake): the GNU driver names the multilib directory for the board's
 # CPU flags, which only now are known (board.cmake). EMB_TOOLCHAIN_GCC_LIBS is that driver,
