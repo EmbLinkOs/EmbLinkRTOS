@@ -14,7 +14,8 @@ sections that differ are named.
 
 - --preset NAME builds a CMake preset of the RTOS (`cmake --preset NAME`, then its build).
 - --app DIR:BOARD builds an application directory of the tree for a board through
-  find_package(EmbLinkRTOS), optionally with a toolchain file relative to the tree.
+  find_package(EmbLinkRTOS), optionally with a toolchain file relative to the tree, and with
+  CMake options after `+`: `examples/controller:nucleo_f446re+EMB_LTO=ON`.
 
 The tree must be clean, since the second checkout holds only the committed sources: the build
 identity names the commit and a dirty flag (A72), and a dirty tree's images would differ.
@@ -60,12 +61,15 @@ def targets(args):
     for p in args.preset or []:
         out.append((p, ("preset", p), Path("build") / p))
     for spec in args.app or []:
-        parts = spec.split(":")
-        if len(parts) not in (2, 3):
-            raise SystemExit(f"double_build: --app {spec}: expected DIR:BOARD[:TOOLCHAIN_FILE]")
+        base, *options = spec.split("+")
+        parts = base.split(":")
+        if len(parts) not in (2, 3) or any("=" not in o for o in options):
+            raise SystemExit(f"double_build: --app {spec}: expected DIR:BOARD[:TOOLCHAIN_FILE][+NAME=VALUE...]")
         d, board = parts[0], parts[1]
         name = f"{Path(d).name}-{board}" + (f"-{Path(parts[2]).stem}" if len(parts) == 3 else "")
-        out.append((name, ("app", d, board, parts[2] if len(parts) == 3 else None), Path("build") / "repro" / name))
+        name += "".join(f"-{o.split('=', 1)[0].lower()}-{o.split('=', 1)[1].lower()}" for o in options)
+        how = ("app", d, board, parts[2] if len(parts) == 3 else None, tuple(options))
+        out.append((name, how, Path("build") / "repro" / name))
     if not out:
         raise SystemExit("double_build: give at least one --preset or --app")
     return out
@@ -80,8 +84,9 @@ def build(tree, how, bdir, log, python):
         run(["cmake", "--preset", how[1], *extra], tree, log)
         run(["cmake", "--build", "--preset", how[1]], tree, log)
     else:
-        _, d, board, toolchain = how
-        cfg = ["cmake", "-S", tree / d, "-B", full, "-G", "Ninja", f"-DEMB_BOARD={board}", *extra]
+        _, d, board, toolchain, options = how
+        cfg = ["cmake", "-S", tree / d, "-B", full, "-G", "Ninja", f"-DEMB_BOARD={board}", *extra,
+               *(f"-D{o}" for o in options)]
         if toolchain:
             cfg.append(f"-DCMAKE_TOOLCHAIN_FILE={tree / toolchain}")
         run(cfg, tree, log)
@@ -156,7 +161,8 @@ def elf_sections(path):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--preset", action="append", help="a CMake preset of the RTOS")
-    ap.add_argument("--app", action="append", help="DIR:BOARD[:TOOLCHAIN_FILE], DIR relative to the tree")
+    ap.add_argument("--app", action="append",
+                    help="DIR:BOARD[:TOOLCHAIN_FILE][+NAME=VALUE...], DIR relative to the tree")
     ap.add_argument("--work", help="where the second checkout goes (default: a temporary directory)")
     ap.add_argument("--keep", action="store_true", help="keep the second checkout")
     ap.add_argument("--python", help="Python3_EXECUTABLE for the configure (the generators need PyYAML)")
@@ -168,7 +174,10 @@ def main(argv=None):
               "holds only the commit", file=sys.stderr)
         return 2
     head = git("rev-parse", "HEAD")
-    work = Path(args.work).resolve() if args.work else Path(tempfile.mkdtemp(prefix="emb-repro-"))
+    # resolved: on macOS the temporary directory is under /var, a symbolic link to /private/var, and
+    # the compiler sees the resolved path while CMake's source directory may keep the other
+    # spelling, so a prefix map would match one and not the other
+    work = (Path(args.work) if args.work else Path(tempfile.mkdtemp(prefix="emb-repro-"))).resolve()
     second = work / "second"
     shutil.rmtree(second, ignore_errors=True)
     work.mkdir(parents=True, exist_ok=True)

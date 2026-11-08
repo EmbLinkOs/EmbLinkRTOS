@@ -935,7 +935,7 @@ jobs:
           python3 -I tools/repro/double_build.py --work "$RUNNER_TEMP/repro" \
             --preset native-gcc --preset native-clang --preset cm4-an386 --preset cm4-an386-clang \
             --preset rv32-virt --preset avr-uno --preset cm33-pico2w \
-            --app examples/controller:nucleo_f446re
+            --app examples/controller:nucleo_f446re --app examples/controller:nucleo_f446re+EMB_LTO=ON
 
   merge_gate:
     name: CI merge gate

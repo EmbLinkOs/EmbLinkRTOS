@@ -20,6 +20,8 @@ An image built from the same commit, with the same configuration and the same to
 
 The build probes for the option. A compiler without it, such as Ubuntu's avr-gcc 7.3 (the option arrived in GCC 8), gets `-fdebug-prefix-map`. That is enough, because no source uses `__FILE__`. In the mixed native build, EmbCC compiles the kernel and refuses the option, so its launcher drops it; that kernel is not part of the double build.
 
+**Link-time optimization.** With `EMB_LTO=ON`, GCC generates code again at the link, into one more compilation unit (`<artificial>`). Its compilation directory is where the link runs, the build directory, as an absolute path, unless the link command maps it too. So under LTO the prefix maps are link options as well. The controller's release run on 2026-11-08 found the gap: its LTO image's crash record named `/Users/…/build/ctl-rel-lto/./examples/controller/main.c` ([release builds](controller-release-2026-11-08.md)). Clang's LTO keeps each file's compilation unit, which the compile-time maps already cover.
+
 The toolchain's own paths stay in the debug information, for example the C library's headers under its install directory. They are part of the pinned toolchain: the same toolchain at the same place gives the same bytes. That is the scope BLD-004 sets.
 
 ## The double build
@@ -31,8 +33,11 @@ The toolchain's own paths stay in the debug information, for example the C libra
 Each target is configured and built from scratch in both. Then every image is compared byte by byte: `.elf`, `.hex`, `.bin`, `.uf2` and native programs. For an ELF that differs, the tool names the sections that differ.
 
 ```sh
-python3 tools/repro/double_build.py --preset cm4-an386 --app examples/controller:nucleo_f446re
+python3 tools/repro/double_build.py --preset cm4-an386 --app examples/controller:nucleo_f446re \
+        --app examples/controller:nucleo_f446re+EMB_LTO=ON
 ```
+
+`--app DIR:BOARD[:TOOLCHAIN_FILE]` takes CMake options after `+`. The work directory is resolved first: on macOS the temporary directory is under `/var`, a symbolic link, and the compiler would see a spelling of the path that a prefix map does not match.
 
 The tree must be clean: the second checkout holds only the commit, and the build identity includes a dirty flag.
 
@@ -44,7 +49,7 @@ CI's `reproducibility` job runs it on every pull request, and the `CI merge gate
 - RV32;
 - AVR;
 - the Pico 2 W, with its UF2 images;
-- the reference controller for the NUCLEO-F446RE.
+- the reference controller for the NUCLEO-F446RE, built with and without LTO.
 
 ## The first run (2026-11-08)
 
@@ -62,4 +67,4 @@ With the prefix maps, 293 images from six embedded targets were identical on mac
 - **Native programs on macOS are not reproducible.** Each Mach-O program differs in its `LC_UUID` from one checkout to the other, even with `ZERO_AR_DATE=1`; the cause is not established. CI checks native programs on Linux, which is where the double build is required. On macOS, the double build is meaningful for the embedded images only.
 - **Two places on one machine, not two machines.** The double build changes the path, the build directory and the time of the build. It does not change the machine or the user. CI's runner is a fresh machine each time, but both builds of one run share it.
 - **The toolchain is not built from source.** CI installs Ubuntu 24.04's packages, which the apt cache pins between runs but Ubuntu updates. A release records the exact versions (the release checklist's build manifest); an image is reproducible with those versions.
-- **EmbCC, Espressif's toolchains, LTO builds and IAR or Keil** are not in the double build yet.
+- **EmbCC, Espressif's toolchains, Clang's LTO and IAR or Keil** are not in the double build yet. GCC's LTO is, for the reference controller.
