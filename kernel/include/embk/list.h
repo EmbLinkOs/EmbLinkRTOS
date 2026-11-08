@@ -95,7 +95,11 @@ static EMB_INLINE void embk_list_prepend(embk_list_t *l, embk_list_node_t *n)
 
 static EMB_INLINE void embk_list_remove(embk_list_node_t *n)
 {
-    n->prev->next = n->next;
+    /* MISRA Dev CS-12: a false positive of the analyzer, reached from workq_main(). It
+     * pops a node, then, after calls that it cannot see keep the list intact, assumes the
+     * same removed node is the list's first again. A node on a list has both links; only a
+     * removed one has NULL, and it is not on the list. */
+    n->prev->next = n->next; /* NOLINT(clang-analyzer-core.NullDereference) */
     n->next->prev = n->prev;
     n->next = NULL;
     n->prev = NULL;
