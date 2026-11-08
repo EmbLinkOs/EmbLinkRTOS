@@ -1,0 +1,23 @@
+| Region | Size | Used | Free |
+|---|---:|---:|---:|
+| FLASH | 524,288 | 14,000 (2.7%) | 510,288 |
+| RAM | 131,072 | 7,608 (5.8%) | 123,464 |
+
+| Flash, by component | Bytes |
+|---|---:|
+| runtime | 12,755 |
+| string constants after merging, vector table alignment, linker tables | 1,245 |
+| **total** | **14,000** |
+
+String constants before the linker merged them: 1,194 bytes.
+
+| RAM, by purpose | Bytes |
+|---|---:|
+| thread stacks | 3,328 |
+| interrupt stack | 2,048 |
+| runtime and other | 1,248 |
+| thread control blocks | 480 |
+| kernel objects and queue rings | 296 |
+| retained crash record area | 192 |
+| alignment padding | 16 |
+| **total** | **7,608** |

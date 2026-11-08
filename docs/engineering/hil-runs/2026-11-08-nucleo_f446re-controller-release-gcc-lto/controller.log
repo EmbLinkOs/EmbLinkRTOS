@@ -1,0 +1,381 @@
+
+CTL boot: EmbLinkRTOS reference controller, rate=100 Hz
+CTL reset pin
+CTL crash none
+CTL ready: type help
+TLM t=1 mode=normal rate=100 temp=24.9 heater=1 samples=101 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=2 mode=normal rate=100 temp=24.9 heater=1 samples=201 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=3 mode=normal rate=100 temp=24.8 heater=1 samples=301 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=4 mode=normal rate=100 temp=24.8 heater=1 samples=401 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=5 mode=normal rate=100 temp=24.8 heater=1 samples=501 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=6 mode=normal rate=100 temp=24.9 heater=1 samples=601 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+
+>>> status
+STACK control used=196 size=1024
+STACK command used=244 size=1024
+STACK telemetry used=148 size=1024
+STACK isr used=144 size=2048
+OK status rate=100 load=0 setpoint=40.0
+
+>>> load 150
+OK load 150
+TLM t=7 mode=degraded rate=100 temp=25.4 heater=1 samples=670 missed=0 deadline_miss=4 shed=33 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=10012 proc_max_us=25012 load=150 rx=16/16 rx_drops=0
+TLM t=8 mode=degraded rate=100 temp=25.9 heater=1 samples=720 missed=0 deadline_miss=4 shed=83 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=150 rx=16/16 rx_drops=0
+TLM t=9 mode=degraded rate=100 temp=26.3 heater=1 samples=770 missed=0 deadline_miss=4 shed=133 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=150 rx=16/16 rx_drops=0
+TLM t=10 mode=degraded rate=100 temp=26.4 heater=1 samples=820 missed=0 deadline_miss=4 shed=183 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=150 rx=16/16 rx_drops=0
+TLM t=11 mode=degraded rate=100 temp=26.6 heater=1 samples=870 missed=0 deadline_miss=4 shed=233 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=150 rx=16/16 rx_drops=0
+TLM t=12 mode=degraded rate=100 temp=26.8 heater=1 samples=920 missed=0 deadline_miss=4 shed=283 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=150 rx=16/16 rx_drops=0
+
+>>> load 0
+OK load 0
+TLM t=13 mode=degraded rate=100 temp=26.2 heater=1 samples=970 missed=0 deadline_miss=4 shed=331 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=15006 load=0 rx=23/23 rx_drops=0
+TLM t=14 mode=degraded rate=100 temp=25.7 heater=1 samples=1020 missed=0 deadline_miss=4 shed=381 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=23/23 rx_drops=0
+TLM t=15 mode=normal rate=100 temp=25.5 heater=1 samples=1111 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=23/23 rx_drops=0
+TLM t=16 mode=normal rate=100 temp=25.4 heater=1 samples=1211 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=23/23 rx_drops=0
+TLM t=17 mode=normal rate=100 temp=25.2 heater=1 samples=1311 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=23/23 rx_drops=0
+TLM t=18 mode=normal rate=100 temp=25.1 heater=1 samples=1411 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=23/23 rx_drops=0
+
+>>> rate 1000
+OK rate 1000
+
+>>> load 50
+OK load 50
+TLM t=19 mode=normal rate=1000 temp=25.8 heater=1 samples=2308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+TLM t=20 mode=normal rate=1000 temp=26.1 heater=1 samples=3308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+TLM t=21 mode=normal rate=1000 temp=26.2 heater=1 samples=4308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+TLM t=22 mode=normal rate=1000 temp=26.5 heater=1 samples=5308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+TLM t=23 mode=normal rate=1000 temp=26.6 heater=1 samples=6308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+TLM t=24 mode=normal rate=1000 temp=26.6 heater=1 samples=7308 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=506 load=50 rx=41/41 rx_drops=0
+
+>>> rate 100
+OK rate 100
+
+>>> load 30
+OK load 30
+TLM t=25 mode=normal rate=100 temp=26.4 heater=1 samples=7519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=5006 load=30 rx=58/58 rx_drops=0
+TLM t=26 mode=normal rate=100 temp=26.3 heater=1 samples=7619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=27 mode=normal rate=100 temp=26.2 heater=1 samples=7719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=28 mode=normal rate=100 temp=26.1 heater=1 samples=7819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=29 mode=normal rate=100 temp=26.2 heater=1 samples=7919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=30 mode=normal rate=100 temp=26.2 heater=1 samples=8019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=31 mode=normal rate=100 temp=26.2 heater=1 samples=8119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=32 mode=normal rate=100 temp=26.3 heater=1 samples=8219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=33 mode=normal rate=100 temp=26.2 heater=1 samples=8319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=34 mode=normal rate=100 temp=26.1 heater=1 samples=8419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=35 mode=normal rate=100 temp=26.1 heater=1 samples=8519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=36 mode=normal rate=100 temp=26.2 heater=1 samples=8619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=37 mode=normal rate=100 temp=26.2 heater=1 samples=8719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=38 mode=normal rate=100 temp=26.3 heater=1 samples=8819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=39 mode=normal rate=100 temp=26.1 heater=1 samples=8919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=40 mode=normal rate=100 temp=26.2 heater=1 samples=9019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=41 mode=normal rate=100 temp=26.3 heater=1 samples=9119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=42 mode=normal rate=100 temp=26.2 heater=1 samples=9219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=43 mode=normal rate=100 temp=26.0 heater=1 samples=9319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=44 mode=normal rate=100 temp=26.0 heater=1 samples=9419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=45 mode=normal rate=100 temp=26.1 heater=1 samples=9519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=46 mode=normal rate=100 temp=26.0 heater=1 samples=9619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=47 mode=normal rate=100 temp=26.2 heater=1 samples=9719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=48 mode=normal rate=100 temp=26.0 heater=1 samples=9819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=49 mode=normal rate=100 temp=26.2 heater=1 samples=9919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=50 mode=normal rate=100 temp=26.1 heater=1 samples=10019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=51 mode=normal rate=100 temp=26.2 heater=1 samples=10119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=52 mode=normal rate=100 temp=25.9 heater=1 samples=10219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=53 mode=normal rate=100 temp=26.1 heater=1 samples=10319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=54 mode=normal rate=100 temp=26.1 heater=1 samples=10419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=55 mode=normal rate=100 temp=26.2 heater=1 samples=10519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=56 mode=normal rate=100 temp=26.0 heater=1 samples=10619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=57 mode=normal rate=100 temp=26.0 heater=1 samples=10719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=58 mode=normal rate=100 temp=26.0 heater=1 samples=10819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=59 mode=normal rate=100 temp=26.1 heater=1 samples=10919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=60 mode=normal rate=100 temp=26.2 heater=1 samples=11019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=61 mode=normal rate=100 temp=26.1 heater=1 samples=11119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=62 mode=normal rate=100 temp=26.0 heater=1 samples=11219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=63 mode=normal rate=100 temp=26.0 heater=1 samples=11319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=64 mode=normal rate=100 temp=26.0 heater=1 samples=11419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=65 mode=normal rate=100 temp=26.2 heater=1 samples=11519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=66 mode=normal rate=100 temp=26.1 heater=1 samples=11619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=67 mode=normal rate=100 temp=26.2 heater=1 samples=11719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=68 mode=normal rate=100 temp=26.1 heater=1 samples=11819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=69 mode=normal rate=100 temp=26.1 heater=1 samples=11919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=70 mode=normal rate=100 temp=26.1 heater=1 samples=12019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=71 mode=normal rate=100 temp=26.1 heater=1 samples=12119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=72 mode=normal rate=100 temp=26.0 heater=1 samples=12219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=73 mode=normal rate=100 temp=26.1 heater=1 samples=12319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=74 mode=normal rate=100 temp=25.9 heater=1 samples=12419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=75 mode=normal rate=100 temp=26.1 heater=1 samples=12519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=76 mode=normal rate=100 temp=26.2 heater=1 samples=12619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=77 mode=normal rate=100 temp=26.1 heater=1 samples=12719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=78 mode=normal rate=100 temp=26.0 heater=1 samples=12819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=79 mode=normal rate=100 temp=26.1 heater=1 samples=12919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=80 mode=normal rate=100 temp=26.2 heater=1 samples=13019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=81 mode=normal rate=100 temp=26.1 heater=1 samples=13119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=82 mode=normal rate=100 temp=26.0 heater=1 samples=13219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=83 mode=normal rate=100 temp=26.0 heater=1 samples=13319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=84 mode=normal rate=100 temp=26.2 heater=1 samples=13419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=85 mode=normal rate=100 temp=25.9 heater=1 samples=13519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=86 mode=normal rate=100 temp=26.3 heater=1 samples=13619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=87 mode=normal rate=100 temp=26.3 heater=1 samples=13719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=88 mode=normal rate=100 temp=26.1 heater=1 samples=13819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=89 mode=normal rate=100 temp=26.1 heater=1 samples=13919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=90 mode=normal rate=100 temp=26.3 heater=1 samples=14019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=91 mode=normal rate=100 temp=26.1 heater=1 samples=14119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=92 mode=normal rate=100 temp=26.1 heater=1 samples=14219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=93 mode=normal rate=100 temp=26.0 heater=1 samples=14319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=94 mode=normal rate=100 temp=26.2 heater=1 samples=14419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=95 mode=normal rate=100 temp=26.1 heater=1 samples=14519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=96 mode=normal rate=100 temp=26.1 heater=1 samples=14619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=97 mode=normal rate=100 temp=26.2 heater=1 samples=14719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=98 mode=normal rate=100 temp=25.9 heater=1 samples=14819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=99 mode=normal rate=100 temp=26.3 heater=1 samples=14919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=100 mode=normal rate=100 temp=26.2 heater=1 samples=15019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=101 mode=normal rate=100 temp=26.0 heater=1 samples=15119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=102 mode=normal rate=100 temp=26.1 heater=1 samples=15219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=103 mode=normal rate=100 temp=26.2 heater=1 samples=15319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=104 mode=normal rate=100 temp=26.1 heater=1 samples=15419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=105 mode=normal rate=100 temp=26.0 heater=1 samples=15519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=106 mode=normal rate=100 temp=26.2 heater=1 samples=15619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=107 mode=normal rate=100 temp=26.1 heater=1 samples=15719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=108 mode=normal rate=100 temp=26.1 heater=1 samples=15819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=109 mode=normal rate=100 temp=26.1 heater=1 samples=15919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=110 mode=normal rate=100 temp=26.0 heater=1 samples=16019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=111 mode=normal rate=100 temp=26.2 heater=1 samples=16119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=112 mode=normal rate=100 temp=26.0 heater=1 samples=16219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=113 mode=normal rate=100 temp=25.9 heater=1 samples=16319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=114 mode=normal rate=100 temp=26.2 heater=1 samples=16419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=115 mode=normal rate=100 temp=26.2 heater=1 samples=16519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=116 mode=normal rate=100 temp=26.0 heater=1 samples=16619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=117 mode=normal rate=100 temp=26.2 heater=1 samples=16719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=118 mode=normal rate=100 temp=26.0 heater=1 samples=16819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=119 mode=normal rate=100 temp=26.1 heater=1 samples=16919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=120 mode=normal rate=100 temp=25.9 heater=1 samples=17019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=121 mode=normal rate=100 temp=26.1 heater=1 samples=17119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=122 mode=normal rate=100 temp=26.0 heater=1 samples=17219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=123 mode=normal rate=100 temp=25.9 heater=1 samples=17319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=124 mode=normal rate=100 temp=26.1 heater=1 samples=17419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=125 mode=normal rate=100 temp=26.0 heater=1 samples=17519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=126 mode=normal rate=100 temp=26.1 heater=1 samples=17619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=127 mode=normal rate=100 temp=26.1 heater=1 samples=17719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=128 mode=normal rate=100 temp=26.2 heater=1 samples=17819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=129 mode=normal rate=100 temp=25.8 heater=1 samples=17919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=130 mode=normal rate=100 temp=26.1 heater=1 samples=18019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=131 mode=normal rate=100 temp=26.2 heater=1 samples=18119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=132 mode=normal rate=100 temp=26.1 heater=1 samples=18219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=133 mode=normal rate=100 temp=26.0 heater=1 samples=18319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=134 mode=normal rate=100 temp=26.2 heater=1 samples=18419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=135 mode=normal rate=100 temp=26.2 heater=1 samples=18519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=136 mode=normal rate=100 temp=26.0 heater=1 samples=18619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=137 mode=normal rate=100 temp=26.0 heater=1 samples=18719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=138 mode=normal rate=100 temp=26.1 heater=1 samples=18819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=139 mode=normal rate=100 temp=26.2 heater=1 samples=18919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=140 mode=normal rate=100 temp=26.1 heater=1 samples=19019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=141 mode=normal rate=100 temp=26.2 heater=1 samples=19119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=142 mode=normal rate=100 temp=26.3 heater=1 samples=19219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=143 mode=normal rate=100 temp=26.2 heater=1 samples=19319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=144 mode=normal rate=100 temp=26.0 heater=1 samples=19419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=145 mode=normal rate=100 temp=26.1 heater=1 samples=19519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=146 mode=normal rate=100 temp=26.2 heater=1 samples=19619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=147 mode=normal rate=100 temp=26.0 heater=1 samples=19719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=148 mode=normal rate=100 temp=26.2 heater=1 samples=19819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=149 mode=normal rate=100 temp=26.0 heater=1 samples=19919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=150 mode=normal rate=100 temp=26.1 heater=1 samples=20019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=151 mode=normal rate=100 temp=26.1 heater=1 samples=20119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=152 mode=normal rate=100 temp=25.9 heater=1 samples=20219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=153 mode=normal rate=100 temp=25.8 heater=1 samples=20319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=154 mode=normal rate=100 temp=26.0 heater=1 samples=20419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=155 mode=normal rate=100 temp=26.0 heater=1 samples=20519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=156 mode=normal rate=100 temp=26.0 heater=1 samples=20619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=157 mode=normal rate=100 temp=25.7 heater=1 samples=20719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=158 mode=normal rate=100 temp=26.2 heater=1 samples=20819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=159 mode=normal rate=100 temp=25.9 heater=1 samples=20919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=160 mode=normal rate=100 temp=26.0 heater=1 samples=21019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=161 mode=normal rate=100 temp=26.1 heater=1 samples=21119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=162 mode=normal rate=100 temp=25.9 heater=1 samples=21219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=163 mode=normal rate=100 temp=26.0 heater=1 samples=21319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=164 mode=normal rate=100 temp=26.1 heater=1 samples=21419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=165 mode=normal rate=100 temp=25.9 heater=1 samples=21519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=166 mode=normal rate=100 temp=26.1 heater=1 samples=21619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=167 mode=normal rate=100 temp=26.1 heater=1 samples=21719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=168 mode=normal rate=100 temp=26.1 heater=1 samples=21819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=169 mode=normal rate=100 temp=26.2 heater=1 samples=21919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=170 mode=normal rate=100 temp=26.1 heater=1 samples=22019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=171 mode=normal rate=100 temp=26.1 heater=1 samples=22119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=172 mode=normal rate=100 temp=26.0 heater=1 samples=22219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=173 mode=normal rate=100 temp=26.0 heater=1 samples=22319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=174 mode=normal rate=100 temp=25.9 heater=1 samples=22419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=175 mode=normal rate=100 temp=26.0 heater=1 samples=22519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=176 mode=normal rate=100 temp=26.2 heater=1 samples=22619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=177 mode=normal rate=100 temp=26.1 heater=1 samples=22719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=178 mode=normal rate=100 temp=26.0 heater=1 samples=22819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=179 mode=normal rate=100 temp=25.9 heater=1 samples=22919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=180 mode=normal rate=100 temp=26.1 heater=1 samples=23019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=181 mode=normal rate=100 temp=26.1 heater=1 samples=23119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=182 mode=normal rate=100 temp=26.1 heater=1 samples=23219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=183 mode=normal rate=100 temp=26.0 heater=1 samples=23319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=184 mode=normal rate=100 temp=26.0 heater=1 samples=23419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=185 mode=normal rate=100 temp=25.9 heater=1 samples=23519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=186 mode=normal rate=100 temp=26.1 heater=1 samples=23619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=187 mode=normal rate=100 temp=26.2 heater=1 samples=23719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=188 mode=normal rate=100 temp=26.1 heater=1 samples=23819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=189 mode=normal rate=100 temp=26.0 heater=1 samples=23919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=190 mode=normal rate=100 temp=26.0 heater=1 samples=24019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=191 mode=normal rate=100 temp=26.1 heater=1 samples=24119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=192 mode=normal rate=100 temp=26.1 heater=1 samples=24219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=193 mode=normal rate=100 temp=26.0 heater=1 samples=24319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=194 mode=normal rate=100 temp=26.1 heater=1 samples=24419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=195 mode=normal rate=100 temp=26.0 heater=1 samples=24519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=196 mode=normal rate=100 temp=26.0 heater=1 samples=24619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=197 mode=normal rate=100 temp=26.1 heater=1 samples=24719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=198 mode=normal rate=100 temp=26.0 heater=1 samples=24819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=199 mode=normal rate=100 temp=26.1 heater=1 samples=24919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=200 mode=normal rate=100 temp=25.9 heater=1 samples=25019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=201 mode=normal rate=100 temp=26.0 heater=1 samples=25119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=202 mode=normal rate=100 temp=26.0 heater=1 samples=25219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=203 mode=normal rate=100 temp=26.0 heater=1 samples=25319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=204 mode=normal rate=100 temp=26.2 heater=1 samples=25419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=205 mode=normal rate=100 temp=25.9 heater=1 samples=25519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=206 mode=normal rate=100 temp=26.1 heater=1 samples=25619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=207 mode=normal rate=100 temp=26.1 heater=1 samples=25719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=208 mode=normal rate=100 temp=26.1 heater=1 samples=25819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=209 mode=normal rate=100 temp=26.0 heater=1 samples=25919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=210 mode=normal rate=100 temp=26.0 heater=1 samples=26019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=211 mode=normal rate=100 temp=26.0 heater=1 samples=26119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=212 mode=normal rate=100 temp=26.1 heater=1 samples=26219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=213 mode=normal rate=100 temp=26.1 heater=1 samples=26319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=214 mode=normal rate=100 temp=26.1 heater=1 samples=26419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=215 mode=normal rate=100 temp=26.1 heater=1 samples=26519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=216 mode=normal rate=100 temp=26.1 heater=1 samples=26619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=217 mode=normal rate=100 temp=26.1 heater=1 samples=26719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=218 mode=normal rate=100 temp=26.1 heater=1 samples=26819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=219 mode=normal rate=100 temp=25.9 heater=1 samples=26919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=220 mode=normal rate=100 temp=26.2 heater=1 samples=27019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=221 mode=normal rate=100 temp=26.1 heater=1 samples=27119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=222 mode=normal rate=100 temp=26.1 heater=1 samples=27219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=223 mode=normal rate=100 temp=26.0 heater=1 samples=27319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=224 mode=normal rate=100 temp=26.2 heater=1 samples=27419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=225 mode=normal rate=100 temp=26.1 heater=1 samples=27519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=226 mode=normal rate=100 temp=26.2 heater=1 samples=27619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=227 mode=normal rate=100 temp=26.0 heater=1 samples=27719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=228 mode=normal rate=100 temp=26.2 heater=1 samples=27819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=229 mode=normal rate=100 temp=26.2 heater=1 samples=27919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=230 mode=normal rate=100 temp=25.8 heater=1 samples=28019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=231 mode=normal rate=100 temp=25.9 heater=1 samples=28119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=232 mode=normal rate=100 temp=26.0 heater=1 samples=28219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=233 mode=normal rate=100 temp=26.0 heater=1 samples=28319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=234 mode=normal rate=100 temp=26.0 heater=1 samples=28419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=235 mode=normal rate=100 temp=26.1 heater=1 samples=28519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=236 mode=normal rate=100 temp=26.1 heater=1 samples=28619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=237 mode=normal rate=100 temp=26.0 heater=1 samples=28719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=238 mode=normal rate=100 temp=26.1 heater=1 samples=28819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=239 mode=normal rate=100 temp=26.0 heater=1 samples=28919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=240 mode=normal rate=100 temp=26.0 heater=1 samples=29019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=241 mode=normal rate=100 temp=26.0 heater=1 samples=29119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=242 mode=normal rate=100 temp=26.2 heater=1 samples=29219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=243 mode=normal rate=100 temp=26.0 heater=1 samples=29319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=244 mode=normal rate=100 temp=25.9 heater=1 samples=29419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=245 mode=normal rate=100 temp=26.1 heater=1 samples=29519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=246 mode=normal rate=100 temp=26.0 heater=1 samples=29619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=247 mode=normal rate=100 temp=25.9 heater=1 samples=29719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=248 mode=normal rate=100 temp=26.0 heater=1 samples=29819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=249 mode=normal rate=100 temp=25.9 heater=1 samples=29919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=250 mode=normal rate=100 temp=26.1 heater=1 samples=30019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=251 mode=normal rate=100 temp=26.0 heater=1 samples=30119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=252 mode=normal rate=100 temp=26.1 heater=1 samples=30219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=253 mode=normal rate=100 temp=26.0 heater=1 samples=30319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=254 mode=normal rate=100 temp=26.1 heater=1 samples=30419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=255 mode=normal rate=100 temp=26.1 heater=1 samples=30519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=256 mode=normal rate=100 temp=26.1 heater=1 samples=30619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=257 mode=normal rate=100 temp=26.1 heater=1 samples=30719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=258 mode=normal rate=100 temp=26.1 heater=1 samples=30819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=259 mode=normal rate=100 temp=26.1 heater=1 samples=30919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=260 mode=normal rate=100 temp=26.1 heater=1 samples=31019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=261 mode=normal rate=100 temp=26.2 heater=1 samples=31119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=262 mode=normal rate=100 temp=26.2 heater=1 samples=31219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=263 mode=normal rate=100 temp=26.2 heater=1 samples=31319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=264 mode=normal rate=100 temp=26.1 heater=1 samples=31419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=265 mode=normal rate=100 temp=26.2 heater=1 samples=31519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=266 mode=normal rate=100 temp=26.2 heater=1 samples=31619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=267 mode=normal rate=100 temp=26.3 heater=1 samples=31719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=268 mode=normal rate=100 temp=26.0 heater=1 samples=31819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=269 mode=normal rate=100 temp=26.2 heater=1 samples=31919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=270 mode=normal rate=100 temp=26.0 heater=1 samples=32019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=271 mode=normal rate=100 temp=26.2 heater=1 samples=32119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=272 mode=normal rate=100 temp=26.2 heater=1 samples=32219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=273 mode=normal rate=100 temp=26.0 heater=1 samples=32319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=274 mode=normal rate=100 temp=26.2 heater=1 samples=32419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=275 mode=normal rate=100 temp=26.2 heater=1 samples=32519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=276 mode=normal rate=100 temp=26.2 heater=1 samples=32619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=277 mode=normal rate=100 temp=26.1 heater=1 samples=32719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=278 mode=normal rate=100 temp=26.2 heater=1 samples=32819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=279 mode=normal rate=100 temp=26.1 heater=1 samples=32919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=280 mode=normal rate=100 temp=26.3 heater=1 samples=33019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=281 mode=normal rate=100 temp=26.3 heater=1 samples=33119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=282 mode=normal rate=100 temp=26.1 heater=1 samples=33219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=283 mode=normal rate=100 temp=26.2 heater=1 samples=33319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=284 mode=normal rate=100 temp=26.2 heater=1 samples=33419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=285 mode=normal rate=100 temp=26.1 heater=1 samples=33519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=286 mode=normal rate=100 temp=26.2 heater=1 samples=33619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=287 mode=normal rate=100 temp=26.0 heater=1 samples=33719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=288 mode=normal rate=100 temp=25.9 heater=1 samples=33819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=289 mode=normal rate=100 temp=26.2 heater=1 samples=33919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=290 mode=normal rate=100 temp=26.4 heater=1 samples=34019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=291 mode=normal rate=100 temp=26.2 heater=1 samples=34119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=292 mode=normal rate=100 temp=26.1 heater=1 samples=34219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=293 mode=normal rate=100 temp=26.1 heater=1 samples=34319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=294 mode=normal rate=100 temp=26.2 heater=1 samples=34419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=295 mode=normal rate=100 temp=26.0 heater=1 samples=34519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=296 mode=normal rate=100 temp=26.0 heater=1 samples=34619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=297 mode=normal rate=100 temp=26.0 heater=1 samples=34719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=298 mode=normal rate=100 temp=25.9 heater=1 samples=34819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=299 mode=normal rate=100 temp=26.1 heater=1 samples=34919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=300 mode=normal rate=100 temp=25.9 heater=1 samples=35019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=301 mode=normal rate=100 temp=26.0 heater=1 samples=35119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=302 mode=normal rate=100 temp=26.3 heater=1 samples=35219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=303 mode=normal rate=100 temp=25.9 heater=1 samples=35319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=304 mode=normal rate=100 temp=26.1 heater=1 samples=35419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=305 mode=normal rate=100 temp=26.1 heater=1 samples=35519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=306 mode=normal rate=100 temp=26.0 heater=1 samples=35619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=307 mode=normal rate=100 temp=25.9 heater=1 samples=35719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=308 mode=normal rate=100 temp=26.1 heater=1 samples=35819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=309 mode=normal rate=100 temp=26.1 heater=1 samples=35919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=310 mode=normal rate=100 temp=26.4 heater=1 samples=36019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=311 mode=normal rate=100 temp=26.1 heater=1 samples=36119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=312 mode=normal rate=100 temp=26.1 heater=1 samples=36219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=313 mode=normal rate=100 temp=26.1 heater=1 samples=36319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=314 mode=normal rate=100 temp=26.2 heater=1 samples=36419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=315 mode=normal rate=100 temp=26.1 heater=1 samples=36519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=316 mode=normal rate=100 temp=26.0 heater=1 samples=36619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=317 mode=normal rate=100 temp=26.0 heater=1 samples=36719 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=318 mode=normal rate=100 temp=26.2 heater=1 samples=36819 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=319 mode=normal rate=100 temp=26.0 heater=1 samples=36919 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=320 mode=normal rate=100 temp=26.1 heater=1 samples=37019 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=321 mode=normal rate=100 temp=26.1 heater=1 samples=37119 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=322 mode=normal rate=100 temp=26.1 heater=1 samples=37219 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=323 mode=normal rate=100 temp=26.0 heater=1 samples=37319 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=324 mode=normal rate=100 temp=26.1 heater=1 samples=37419 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=325 mode=normal rate=100 temp=26.2 heater=1 samples=37519 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+TLM t=326 mode=normal rate=100 temp=25.9 heater=1 samples=37619 missed=0 deadline_miss=4 shed=390 degraded=1 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=3005 load=30 rx=58/58 rx_drops=0
+
+>>> load 0
+OK load 0
+
+>>> fault
+OK fault: a trap in the command thread
+
+emb: kernel fault class 10 code 6 pc 134223896 at architecture fault
+
+CTL boot: EmbLinkRTOS reference controller, rate=100 Hz
+CTL reset software pin
+CTL crash class=10 code=6 pc=0x08001818 uptime_ticks=326344
+EMB_CRASH 454d424301008c006e6e2371d2a8d5b9d58d36581b42f88379385851302e322e30000000c8fa040000000000010000000a000600000000000100000000000100181800081918000858160020000000000000000004080000000001000000000034ed00e038ed00e074300008000000a000400040007f0100000000001918000818180008000000a18e1f60cd
+CTL ready: type help
+TLM t=1 mode=normal rate=100 temp=25.4 heater=1 samples=101 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+
+>>> hang
+OK hang: the control thread stops; the watchdog resets in 2000 ms
+
+CTL boot: EmbLinkRTOS reference controller, rate=100 Hz
+CTL reset watchdog pin
+CTL crash none
+CTL ready: type help
+TLM t=1 mode=normal rate=100 temp=25.7 heater=1 samples=101 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
+TLM t=2 mode=normal rate=100 temp=25.5 heater=1 samples=201 missed=0 deadline_miss=0 shed=0 degraded=0 queue_drops=0 adc_overruns=0 lat_max_us=5 proc_max_us=7 load=0 rx=0/0 rx_drops=0
