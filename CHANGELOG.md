@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (safety readiness, 2026-11-08)
+
+- [Functional safety readiness](docs/engineering/safety-readiness.md): what an IEC 61508 assessment of the kernel would ask for, what exists, what is missing, and the order of the work. The project makes no safety claim.
+- `SECURITY.md` says what the project provides manufacturers under the EU Cyber Resilience Act: advisories with CVE identifiers, exploited vulnerabilities first, SBOMs and reproducible builds.
 ### Added (the cppcheck gate, 2026-11-08)
 
 - CI's `static-analysis` job runs cppcheck 2.22.0 over the product code in the same 14 configurations as clang-tidy, and a finding fails it ([page](docs/engineering/static-analysis.md)). CI builds that version from its pinned source and caches it.
