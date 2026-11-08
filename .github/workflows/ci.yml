@@ -827,13 +827,16 @@ jobs:
           path: requirement-*
 
   static-analysis:
-    # clang-tidy 18 with the root .clang-tidy over the product code (CODING-STANDARD §12, §13;
-    # 05 §5), in every configuration that selects different code: native profiles and clock
-    # modes, each Cortex-M architecture, RV32, AVR, the NUCLEO and Pico 2 W boards and the
-    # reference controller's drivers. A finding fails the job; it is fixed or recorded at its
-    # site as a deviation.
+    # clang-tidy 18 with the root .clang-tidy, and cppcheck 2.22.0 with the root
+    # .cppcheck-suppressions, over the product code (CODING-STANDARD §12, §13; 05 §5), in every
+    # configuration that selects different code: native profiles and clock modes, each Cortex-M
+    # architecture, RV32, AVR, the NUCLEO and Pico 2 W boards and the reference controller's
+    # drivers. A finding fails the job; it is fixed or recorded at its site as a deviation.
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    env:
+      CPPCHECK_VERSION: 2.22.0
+      CPPCHECK_SHA256: d74945deb2d50393430e07596b766f8a779512c7f60dac2a30ea64e059ece57b
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install tools
@@ -865,6 +868,41 @@ jobs:
       - name: clang-tidy
         run: |
           python3 -I tools/analysis/clang_tidy.py --clang-tidy clang-tidy-18 \
+            build/native-clang build/native-tiny-tidy build/native-release-tidy build/native-periodic-tidy \
+            build/native-timeslice-tickless-tidy build/cm0-microbit-clang build/cm4-an386-clang \
+            build/cm4-an386-release-clang build/cm33-an505-clang build/rv32-virt-clang build/avr-uno-clang \
+            build/cm4-nucleo-embsim-tidy build/cm33-pico2w-tidy build/controller-tidy
+      # cppcheck built from its tagged source, pinned by checksum; Ubuntu 24.04 ships 2.13, and
+      # versions differ in what they report. The build is cached by version and checksum.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: ${{ !cancelled() }}
+        with:
+          path: ~/cppcheck
+          key: cppcheck-${{ env.CPPCHECK_VERSION }}-${{ env.CPPCHECK_SHA256 }}-ubuntu-24.04
+      - name: Install cppcheck
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -x "$HOME/cppcheck/bin/cppcheck" ]; then
+            archive="$RUNNER_TEMP/cppcheck-${CPPCHECK_VERSION}.tar.gz"
+            url="https://github.com/danmar/cppcheck/archive/refs/tags/${CPPCHECK_VERSION}.tar.gz"
+            curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -H "Authorization: Bearer $GH_TOKEN" \
+                 -o "$archive" "$url"
+            echo "${CPPCHECK_SHA256}  ${archive}" | sha256sum -c -
+            mkdir -p "$RUNNER_TEMP/cppcheck-src"
+            tar -xzf "$archive" -C "$RUNNER_TEMP/cppcheck-src" --strip-components=1
+            cmake -S "$RUNNER_TEMP/cppcheck-src" -B "$RUNNER_TEMP/cppcheck-build" -G Ninja \
+                  -DCMAKE_BUILD_TYPE=Release -DUSE_MATCHCOMPILER=On -DHAVE_RULES=Off -DBUILD_GUI=Off \
+                  -DBUILD_TESTING=Off -DCMAKE_INSTALL_PREFIX="$HOME/cppcheck" > /dev/null
+            cmake --build "$RUNNER_TEMP/cppcheck-build"
+            cmake --install "$RUNNER_TEMP/cppcheck-build" > /dev/null
+          fi
+          "$HOME/cppcheck/bin/cppcheck" --version
+      - name: cppcheck
+        if: ${{ !cancelled() }}
+        run: |
+          python3 -I tools/analysis/cppcheck.py --cppcheck "$HOME/cppcheck/bin/cppcheck" \
             build/native-clang build/native-tiny-tidy build/native-release-tidy build/native-periodic-tidy \
             build/native-timeslice-tickless-tidy build/cm0-microbit-clang build/cm4-an386-clang \
             build/cm4-an386-release-clang build/cm33-an505-clang build/rv32-virt-clang build/avr-uno-clang \
