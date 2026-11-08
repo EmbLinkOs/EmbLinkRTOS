@@ -356,6 +356,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/storage -p 'test_*.py' -v
       - name: Mixed native compiler launcher contract
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
+      - name: SBOM contract
+        run: python3 -I -m unittest discover -s tools/sbom -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Debug descriptor reader (OBS-008, A107)
@@ -729,6 +731,19 @@ jobs:
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
+      - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/spdx"
+          "$RUNNER_TEMP/spdx/bin/pip" install --quiet spdx-tools==0.8.5
+          for b in nucleo_f446re nucleo_f446ze; do
+            python3 -I tools/sbom/sbom.py --build "build/controller-$b" --elf "build/controller-$b/controller.elf" \
+                    --out "sbom-controller-$b.spdx.json"
+            "$RUNNER_TEMP/spdx/bin/pyspdxtools" -i "sbom-controller-$b.spdx.json"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-controller
+          path: sbom-controller-*.spdx.json
 
   merge_gate:
     name: CI merge gate

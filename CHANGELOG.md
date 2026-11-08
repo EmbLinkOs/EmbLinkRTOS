@@ -4,6 +4,12 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the SBOM, 2026-11-08)
+
+- `tools/sbom/sbom.py` writes an SPDX 2.3 SBOM for an image (REL-001), with the build manifest of BLD-003: commit, configuration hash, toolchain identity, hardware description hash and build identity ([page](docs/engineering/sbom.md)). It lists every project file compiled in, with checksums and licences, from the link map (GNU ld or LLD), the compile database and Ninja's dependency log. It also lists the toolchain libraries linked, and the compiler.
+- CI writes the reference controller's SBOMs for both NUCLEO-F446 boards and checks them with `spdx-tools`.
+- The generated `build_id.c` carries an SPDX licence line.
+
 ### Added (the debug descriptor, 2026-11-08)
 
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.
