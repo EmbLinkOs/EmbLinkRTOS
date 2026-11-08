@@ -35,5 +35,14 @@ class Report(unittest.TestCase):
         self.assertIn("excluded: tiny profile only", md)
 
 
+class Floors(unittest.TestCase):
+    def test_floors(self):
+        total = {"line_pct": 92.5, "branch_pct": 70.6}
+        files = {"kernel/a.c": {"executed": True}, "kernel/b.c": {"executed": False}}
+        self.assertEqual(report.below(total, files, {"line_pct": 92.5, "branch_pct": 70.7}),
+                         ["branches 70.6% is below the floor 70.7%", "kernel/b.c never ran"])
+        self.assertEqual(report.below(total, {"kernel/a.c": {"executed": True}}, {"line_pct": 92.0}), [])
+
+
 if __name__ == "__main__":
     unittest.main()
