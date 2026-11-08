@@ -72,5 +72,5 @@ KRN-IPC-021 gained `msgq_small_counts_refuse_a_capacity_above_255` in this campa
 
 - Hardware-in-the-loop, physical timing, masked-time and jitter measurements (no board).
 - Work queues, software timers, delayed work and condition variables on the tiny profile, which has none in M2.
-- The EmbCC native flow, which CI does not build.
+- The EmbCC native flow, which CI did not build then. (Since 2026-10-31 the `embcc` job builds it: [native Linux](embcc-native-linux.md).)
 - Seed-5 of M2-01 stays closed as not reproducible.

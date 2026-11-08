@@ -26,7 +26,7 @@ At release time move only delivered entries into `## [version] - YYYY-MM-DD`, us
 - [ ] Build the documentation strictly and run its integrity checks; validate examples against the release configuration, including migration instructions.
 - [ ] Measure physical timing for advertised bounds and record total flash/RAM/stack, instrumentation overhead and interference assumptions. Label maximum observed separately from an established bound.
 - [ ] Record stress/soak, boundary/resource-limit and failure-recovery evidence for the supported application scope.
-- [ ] Produce build manifests, dependency/tool versions, licence notices and an SBOM. Preserve exact input/output identities; the current build does not generate the complete release bundle automatically.
+- [ ] Produce build manifests, dependency/tool versions, licence notices and an SBOM. Preserve exact input/output identities; the current build does not generate the complete release bundle automatically. `tools/sbom/sbom.py` writes an image's SPDX SBOM with its build manifest ([SBOM](sbom.md)); the licence notices of the toolchain's libraries come from the toolchain.
 - [ ] Demonstrate the required double-build reproducibility with pinned tools and defined build-identity treatment; preserve the comparison/attestation. CI's `reproducibility` job runs the double build on every pull request ([reproducible builds](reproducible-builds.md)); a release keeps its output for the release commit.
 - [ ] Assemble source archive, selected reference artifacts, docs, evidence, release/migration notes and checksums tied to the same SHA. Authenticate the checksum manifest along with the release identity.
 

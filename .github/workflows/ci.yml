@@ -41,6 +41,10 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        # right after the suite: a later ctest run (one test, below) rewrites LastTest.log
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Decode the crash records test_crash printed (tools/crashdec, OBS-016)
         if: matrix.preset == 'native-gcc'
         run: |
@@ -48,7 +52,13 @@ jobs:
           python3 -I tools/crashdec/crashdec.py crash.log --elf build/native-gcc/tests/conformance/test_crash
       - name: Coverage report
         if: matrix.preset == 'native-coverage'
-        run: python3 -I tools/coverage/report.py --json coverage.json --markdown coverage.md && cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          # 05 §5: kernel coverage does not regress (the floors of tools/coverage/thresholds.json)
+          status=0
+          python3 -I tools/coverage/report.py --json coverage.json --markdown coverage.md \
+                  --thresholds tools/coverage/thresholds.json || status=$?
+          cat coverage.md >> "$GITHUB_STEP_SUMMARY"
+          exit $status
       - name: Upload coverage
         if: matrix.preset == 'native-coverage'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -71,9 +81,6 @@ jobs:
         run: |
           tools/bench/freertos-cm33/build.sh
           test -s build/freertos-cm33-pico2_w/bench_compare.uf2
-      - name: Collect case evidence
-        if: always()
-        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Upload case evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -117,6 +124,10 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        # right after the suite: a later ctest run (one test, below) rewrites LastTest.log
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Build the Raspberry Pi Pico 2 W (RP2350, A79; no emulator models it, so build only)
         if: matrix.preset == 'cm33-an505'
         run: |
@@ -137,9 +148,6 @@ jobs:
             --elf build/cm4-an386/tests/conformance/test_crash_hw.elf | tee crashdec-hw.txt
           grep -q "UNDEFINSTR" crashdec-hw.txt
           grep -q "in crash_record_keeps_a_hardware_fault at" crashdec-hw.txt
-      - name: Collect case evidence
-        if: always()
-        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Upload case evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -187,6 +195,10 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
       - name: Test under QEMU
         run: ctest --preset ${{ matrix.preset }} --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        # right after the suite: a later ctest run (one test, below) rewrites LastTest.log
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Decode a hardware fault's registers (tools/crashdec, A74)
         if: matrix.preset == 'rv32-virt'
         run: |
@@ -195,9 +207,6 @@ jobs:
             --elf build/rv32-virt/tests/conformance/test_crash_hw.elf | tee crashdec-hw.txt
           grep -q "mcause     0x00000003  breakpoint" crashdec-hw.txt
           grep -q "in crash_record_keeps_a_hardware_fault at" crashdec-hw.txt
-      - name: Collect case evidence
-        if: always()
-        run: python3 -I tools/evidence/collect.py --build build/${{ matrix.preset }} --preset ${{ matrix.preset }} --out case-evidence-${{ matrix.preset }}.json
       - name: Upload case evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -358,6 +367,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: Double build contract
         run: python3 -I -m unittest discover -s tools/repro -p 'test_*.py' -v
+      - name: SBOM contract
+        run: python3 -I -m unittest discover -s tools/sbom -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Debug descriptor reader (OBS-008, A107)
@@ -430,15 +441,16 @@ jobs:
         run: cmake --build --preset avr-uno-embsim
       - name: Test on EmbSIM
         run: ctest --preset avr-uno-embsim --output-on-failure --no-tests=error
+      - name: Collect case evidence
+        # right after the suite: a later ctest run (one test, below) rewrites LastTest.log
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/avr-uno-embsim --preset avr-uno-embsim --out case-evidence-avr-uno-embsim.json
       - name: Decode and symbolize the small record that survived the watchdog reset (tools/crashdec)
         run: |
           ctest --preset avr-uno-embsim -R '^test_crash_reset$' --verbose > crash-reset.log
           python3 -I tools/crashdec/crashdec.py crash-reset.log --tool-prefix avr- \
             --elf build/avr-uno-embsim/tests/conformance/test_crash_reset.elf | tee crashdec.txt
           grep -q "in crash_record_survives_reset at" crashdec.txt
-      - name: Collect case evidence
-        if: always()
-        run: python3 -I tools/evidence/collect.py --build build/avr-uno-embsim --preset avr-uno-embsim --out case-evidence-avr-uno-embsim.json
       - name: Upload case evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -476,14 +488,15 @@ jobs:
         run: cmake --build --preset cm4-nucleo-embsim
       - name: Test on EmbSIM
         run: ctest --preset cm4-nucleo-embsim --output-on-failure --no-tests=error --verbose
+      - name: Collect case evidence
+        # right after the suite: a later ctest run (one test, below) rewrites LastTest.log
+        if: always()
+        run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json
       - name: Second STM32F446 board from its description alone, on EmbSIM's NUCLEO-F446ZE (SPEC-014 §11)
         run: |
           cmake --preset cm4-nucleo-f446ze -DEMB_EMBSIM="$PWD/embsim/build/bin/embsim"
           cmake --build --preset cm4-nucleo-f446ze
           ctest --preset cm4-nucleo-f446ze --output-on-failure --no-tests=error
-      - name: Collect case evidence
-        if: always()
-        run: python3 -I tools/evidence/collect.py --build build/cm4-nucleo-embsim --preset cm4-nucleo-embsim --out case-evidence-cm4-nucleo-embsim.json
       - name: Upload case evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -770,6 +783,46 @@ jobs:
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
+      - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/spdx"
+          "$RUNNER_TEMP/spdx/bin/pip" install --quiet spdx-tools==0.8.5
+          for b in nucleo_f446re nucleo_f446ze; do
+            python3 -I tools/sbom/sbom.py --build "build/controller-$b" --elf "build/controller-$b/controller.elf" \
+                    --out "sbom-controller-$b.spdx.json"
+            "$RUNNER_TEMP/spdx/bin/pyspdxtools" -i "sbom-controller-$b.spdx.json"
+          done
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-controller
+          path: sbom-controller-*.spdx.json
+
+  evidence:
+    # TEST-009: the requirement matrix from every job's case evidence (tools/evidence/matrix.py),
+    # gated against tools/evidence/baseline.json: a configuration that loses a requirement an
+    # executed case passed for, or has no evidence, fails; a case that cites an unknown
+    # requirement or fails does too. New evidence passes and is reported.
+    if: ${{ !cancelled() }}
+    needs: [native, cortex_m, riscv, clang-cross, avr, avr-embsim, cm4-embsim, rv32-embsim]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: case-evidence-*
+          merge-multiple: true
+          path: evidence
+      - name: Requirement matrix against the baseline
+        run: |
+          python3 -I tools/evidence/matrix.py evidence/*.json --baseline tools/evidence/baseline.json \
+            --csv requirement-matrix.csv --json requirement-matrix.json \
+            --write-baseline requirement-baseline-now.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: requirement-matrix
+          path: requirement-*
 
   reproducibility:
     # BLD-004's double build: the same commit, checked out a second time at another path, must
@@ -794,7 +847,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, reproducibility]
+    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, evidence, reproducibility]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

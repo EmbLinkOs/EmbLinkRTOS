@@ -46,7 +46,7 @@ At this review, #21 to #39 pass every required check, including the new `native-
 - **Hardware.** No physical-board run, HIL, masked-time, jitter or latency measurement; arming-overhead compensation is unmeasured.
 - **Tiny profile.** No work queues, timers, delayed work or condition variables (maintainer decision for timers, 2026-10-27).
 - **Not built.** No pipes, buffer pools, ownership queues, barriers, statistics, system freeze, or INDEXED or TABLE handles.
-- **Toolchains.** The EmbCC native flow is not built in CI. The local docs build uses a Doxygen version shim: CI's pinned Doxygen is authoritative.
+- **Toolchains.** The EmbCC native flow is not built in CI. (Since 2026-10-31, the day after this review, the `embcc` job builds it on every pull request: [native Linux](embcc-native-linux.md).) The local docs build uses a Doxygen version shim: CI's pinned Doxygen is authoritative.
 
 ## Remaining M3a work
 
