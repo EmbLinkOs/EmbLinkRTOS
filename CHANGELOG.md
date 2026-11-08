@@ -9,6 +9,10 @@ User-visible changes are recorded here. There are no released versions or releas
 - CI's `static-analysis` job runs cppcheck's MISRA addon (MISRA C:2012, reported by rule number) over the 14 builds. It fails when a file gains a finding of a rule over `tools/analysis/misra-baseline.json`, so the baseline only shrinks, and uploads the counts it found ([page](docs/engineering/static-analysis.md)). `tools/analysis/cppcheck.py` gains `--misra`, `--misra-baseline` and `--write-misra-baseline`.
 - Rules 15.1 and 15.5, which CODING-STANDARD §12 deviates from everywhere, and 17.3, which the compilers enforce, are off tree-wide with their reasons. CODING-STANDARD §12 records that the native port and board use the host's C library by design.
 
+### Added (safety readiness, 2026-11-08)
+
+- [Functional safety readiness](docs/engineering/safety-readiness.md): what an IEC 61508 assessment of the kernel would ask for, what exists, what is missing, and the order of the work. The project makes no safety claim.
+- `SECURITY.md` says what the project provides manufacturers under the EU Cyber Resilience Act: advisories with CVE identifiers, exploited vulnerabilities first, SBOMs and reproducible builds.
 ### Added (the cppcheck gate, 2026-11-08)
 
 - CI's `static-analysis` job runs cppcheck 2.22.0 over the product code in the same 14 configurations as clang-tidy, and a finding fails it ([page](docs/engineering/static-analysis.md)). CI builds that version from its pinned source and caches it.
