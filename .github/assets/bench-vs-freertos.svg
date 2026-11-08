@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="778" viewBox="0 0 1280 778">
+  <!-- SPDX-License-Identifier: Apache-2.0 -->
+  <!-- Drawn from docs/engineering/bench-*-freertos-*.md and perf-lto-2026-11-07.md -->
+  <rect width="1280" height="778" rx="16" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="40" y="52" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="28" font-weight="700" fill="#1f2328">Time per operation against FreeRTOS, measured on the board</text>
+  <text x="40" y="84" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="18" fill="#59636e">The same benchmark on the same board for both kernels, in cycles or microseconds. Bars to the left are faster.</text>
+  <line x1="672.9" y1="132" x2="672.9" y2="708" stroke="#eaeef2" stroke-width="1"/>
+  <text x="672.9" y="730" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e" text-anchor="middle">−50%</text>
+  <line x1="824.9" y1="132" x2="824.9" y2="708" stroke="#eaeef2" stroke-width="1"/>
+  <text x="824.9" y="730" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e" text-anchor="middle">−25%</text>
+  <line x1="976.9" y1="132" x2="976.9" y2="708" stroke="#57606a" stroke-width="2"/>
+  <text x="976.9" y="730" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e" text-anchor="middle">0%</text>
+  <line x1="1128.8" y1="132" x2="1128.8" y2="708" stroke="#eaeef2" stroke-width="1"/>
+  <text x="1128.8" y="730" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e" text-anchor="middle">+25%</text>
+  <text x="812.7" y="124" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#0f766e" text-anchor="middle">◀ EmbLinkRTOS faster</text>
+  <text x="1098.4" y="124" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#bc4c00" text-anchor="middle">FreeRTOS faster ▶</text>
+  <text x="40" y="168" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#1f2328">Raspberry Pi Pico 2 W</text>
+  <text x="40" y="192" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e">RP2350, Cortex-M33; GCC -Os, both</text>
+  <text x="520" y="167" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">notification hand-over</text>
+  <rect x="855.3" y="154" width="121.6" height="18" rx="3" fill="#14b8a6"/>
+  <text x="847.3" y="167" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−20%</text>
+  <text x="520" y="193" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore hand-over</text>
+  <rect x="745.9" y="180" width="231.0" height="18" rx="3" fill="#14b8a6"/>
+  <text x="737.9" y="193" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−38%</text>
+  <text x="520" y="219" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore give + take</text>
+  <rect x="806.7" y="206" width="170.2" height="18" rx="3" fill="#14b8a6"/>
+  <text x="798.7" y="219" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−28%</text>
+  <text x="520" y="245" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">interrupt wakes a thread</text>
+  <rect x="800.6" y="232" width="176.3" height="18" rx="3" fill="#14b8a6"/>
+  <text x="792.6" y="245" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−29%</text>
+  <text x="40" y="306" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#1f2328">ESP32 DevKitC</text>
+  <text x="40" y="330" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e">Xtensa LX6; GCC 16.1, ESP-IDF's GCC 15.2</text>
+  <text x="520" y="305" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">notification hand-over</text>
+  <rect x="752.0" y="292" width="224.9" height="18" rx="3" fill="#14b8a6"/>
+  <text x="744.0" y="305" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−37%</text>
+  <text x="520" y="331" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore hand-over</text>
+  <rect x="672.9" y="318" width="303.9" height="18" rx="3" fill="#14b8a6"/>
+  <text x="664.9" y="331" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−50%</text>
+  <text x="520" y="357" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore give + take</text>
+  <rect x="770.2" y="344" width="206.7" height="18" rx="3" fill="#14b8a6"/>
+  <text x="762.2" y="357" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−34%</text>
+  <text x="520" y="383" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">interrupt wakes a thread</text>
+  <rect x="739.8" y="370" width="237.1" height="18" rx="3" fill="#14b8a6"/>
+  <text x="731.8" y="383" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−39%</text>
+  <text x="40" y="444" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#1f2328">NUCLEO-F446RE</text>
+  <text x="40" y="468" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e">STM32F446, Cortex-M4F; GCC LTO, both</text>
+  <text x="520" y="443" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">notification hand-over</text>
+  <rect x="976.9" y="430" width="2.5" height="18" rx="3" fill="#8c959f"/>
+  <text x="984.9" y="443" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start">parity</text>
+  <text x="520" y="469" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore hand-over</text>
+  <rect x="843.1" y="456" width="133.7" height="18" rx="3" fill="#14b8a6"/>
+  <text x="835.1" y="469" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−22%</text>
+  <text x="520" y="495" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore give + take</text>
+  <rect x="976.9" y="482" width="66.9" height="18" rx="3" fill="#fb8f44"/>
+  <text x="1051.7" y="495" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start">+11%</text>
+  <text x="520" y="521" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">interrupt wakes a thread</text>
+  <rect x="903.9" y="508" width="72.9" height="18" rx="3" fill="#14b8a6"/>
+  <text x="895.9" y="521" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−12%</text>
+  <text x="40" y="582" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" font-weight="600" fill="#1f2328">Arduino Uno</text>
+  <text x="40" y="606" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#59636e">ATmega328P, AVR; avr-gcc, both</text>
+  <text x="520" y="581" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">notification hand-over</text>
+  <rect x="976.9" y="568" width="72.9" height="18" rx="3" fill="#fb8f44"/>
+  <text x="1057.8" y="581" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start">+12%</text>
+  <text x="520" y="607" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore hand-over</text>
+  <rect x="976.9" y="594" width="6.1" height="18" rx="3" fill="#fb8f44"/>
+  <text x="990.9" y="607" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start">+1%</text>
+  <text x="520" y="633" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">semaphore give + take</text>
+  <rect x="976.9" y="620" width="206.7" height="18" rx="3" fill="#fb8f44"/>
+  <text x="1191.5" y="633" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="start">+34%</text>
+  <text x="520" y="659" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#424a53" text-anchor="end">interrupt wakes a thread</text>
+  <rect x="946.5" y="646" width="30.4" height="18" rx="3" fill="#14b8a6"/>
+  <text x="938.5" y="659" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2328" text-anchor="end">−5%</text>
+  <text x="40" y="760" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="14" fill="#59636e">FreeRTOS 11.1.0 (on the ESP32, 10.5.1 from ESP-IDF v6.1). Release builds. Records: docs/engineering/bench-*-freertos-*.md, perf-lto-2026-11-07.md.</text>
+</svg>

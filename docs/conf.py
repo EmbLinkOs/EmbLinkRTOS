@@ -25,6 +25,13 @@ html_theme = "furo"
 html_title = "EmbLinkRTOS development documentation"
 html_static_path = ["_static"]
 html_css_files = ["emblink.css"]
+html_favicon = "_static/favicon.svg"
+html_theme_options = {
+    "light_logo": "logo-light.svg",
+    "dark_logo": "logo-dark.svg",
+    "light_css_variables": {"color-brand-primary": "#0f766e", "color-brand-content": "#0f766e"},
+    "dark_css_variables": {"color-brand-primary": "#5eead4", "color-brand-content": "#5eead4"},
+}
 html_last_updated_fmt = None
 html_show_sourcelink = True
 breathe_projects = {"EmbLinkRTOS": str(BUILD / "doxygen/xml")}

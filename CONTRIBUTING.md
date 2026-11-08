@@ -2,19 +2,23 @@
 
 Thank you for your interest. This page explains what kind of contributions are useful right now, the legal terms, and the process.
 
-## Current phase: M2, completing the blocking kernel
+## Where to start
 
-The architecture is accepted (`docs/architecture/`, `docs/specs/`, `docs/requirements/`) and the M1 kernel/ports are implemented and M2 remains incomplete. [Project status](docs/STATUS.md) distinguishes working code from target designs; the [roadmap](docs/architecture/07-roadmap.md) defines the next gates. The original implementation order was: the configuration and build system, the public headers, the kernel core, the native and AVR ports, and the conformance suite. Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements; a change to kernel semantics updates the specification, the reference model (`tools/model/`), and the conformance suite in the same pull request.
+The kernel is implemented and runs on hardware; the first release is being prepared ([project status](docs/STATUS.md), [roadmap](docs/architecture/07-roadmap.md)). Build it and run its tests first: the [quick start](README.md#quick-start) takes a few minutes on Linux or macOS.
 
-Valuable contributions now:
+Good ways to contribute now, from the smallest:
 
-- review comments and issues on the specifications and on the code against them;
-- proposals for new or changed decisions, written as an Architecture Decision Record (see the format in `docs/architecture/06-decision-records.md`);
-- answers and evidence for the items in `docs/architecture/08-open-questions.md`;
-- experience reports from other RTOSes that bear on a specific decision;
-- once the ports exist: architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, and documentation.
+- **Run the suites on a board you own** and report the result. A run on a new board, archived with `tools/hil/run_hil.py --archive`, is evidence the project cannot produce without that board ([hardware runs](docs/engineering/hil.md)).
+- **Add a board.** A board is a description, not code: an SoC the project already supports needs a short YAML file ([hardware descriptions](docs/engineering/hwgen.md), [any-board plan](docs/engineering/any-board-plan.md)).
+- **Documentation:** the [user guide](docs/user/index.md), examples, and corrections wherever the docs and the code disagree.
+- **Tests and benchmarks:** a conformance case for a requirement that has none yet ([case evidence](docs/engineering/case-evidence.md)).
+- **Review the specifications** against the code, and file an issue for each mismatch.
+- **Drivers and ports**, after an issue agrees the approach: the next milestone's drivers are planned for the STM32F4 and RP2350.
+- **Design changes**, written as an Architecture Decision Record (the format is in `docs/architecture/06-decision-records.md`), or answers to `docs/architecture/08-open-questions.md`.
 
-Once code exists, contributions are especially welcome in architecture ports, SoC and board descriptions, drivers, tooling, tests, benchmarks, documentation and the core kernel (scheduler, wait protocol, synchronization, object model).
+Issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue) are scoped for a first contribution. Ask on an issue before starting a large change.
+
+Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements. A change to kernel semantics updates the specification, the reference model (`tools/model/`) and the conformance suite in the same pull request.
 
 ## Licence and the Developer Certificate of Origin
 
@@ -49,7 +53,7 @@ Use the bug/feature issue forms and PR checklist. The required GitHub check name
 
 For editor support, run `cmake --preset native-gcc` once: every configure writes `compile_commands.json`, and the repository's `.clangd` points clangd at that build so it sees the include paths, the generated headers and the `.clang-tidy` checks. Format with clang-format 18, the version the lint job runs; later versions lay out some existing files differently.
 
-User-visible changes update [CHANGELOG.md](CHANGELOG.md) under Unreleased. The [ordered M2 checklist](docs/engineering/m2-checklist.md) starts with known failures and contract gaps before new primitives. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
+User-visible changes update [CHANGELOG.md](CHANGELOG.md) under Unreleased. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
 
 ## Hardware data and licences
 
