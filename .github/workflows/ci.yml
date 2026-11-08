@@ -553,11 +553,26 @@ jobs:
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
           packages: ninja-build python3-yaml
+      # the release archive is cached by version and checksum: a run downloads it only when the
+      # cache has none, so GitHub's release downloads failing (502/503/504) does not fail it
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/emb-downloads
+          key: embcc-${{ env.EMBCC_VERSION }}-${{ env.EMBCC_SHA256 }}
       - name: Install EmbCC
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          archive="embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
-          curl -fsSL -o "$archive" "https://github.com/EmbLinkOs/EmbCC/releases/download/v${EMBCC_VERSION}/${archive}"
-          echo "${EMBCC_SHA256}  ${archive}" | sha256sum -c -
+          archive="$HOME/.cache/emb-downloads/embcc-${EMBCC_VERSION}-linux-x86_64.tar.gz"
+          mkdir -p "$(dirname "$archive")"
+          url="https://github.com/EmbLinkOs/EmbCC/releases/download/v${EMBCC_VERSION}/$(basename "$archive")"
+          # authenticated first (GitHub has throttled unauthenticated downloads), then plain HTTPS
+          fetch() { gh release download "v${EMBCC_VERSION}" --repo EmbLinkOs/EmbCC --pattern "$(basename "$archive")" \
+                      --output "$archive" --clobber ||
+                    curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
+          check() { echo "${EMBCC_SHA256}  ${archive}" | sha256sum -c -; }
+          [ -f "$archive" ] || fetch
+          check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again
           mkdir -p "$HOME/embcc"
           tar -xzf "$archive" -C "$HOME/embcc" --strip-components=1
           "$HOME/embcc/bin/embcc" --version
@@ -580,13 +595,26 @@ jobs:
       ESP_GCC_SHA256: f708752ebb35cab21f184b2574114ed1187619db0edb8a4ba913c06ca2fa675e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Espressif's GCC for Xtensa (pinned, checksum-verified)
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/emb-downloads
+          key: esp-gcc-${{ env.ESP_GCC_RELEASE }}-${{ env.ESP_GCC_SHA256 }}
+      - name: Espressif's GCC for Xtensa (pinned, checksum-verified, cached)
         timeout-minutes: 15
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          curl -sSfL --retry 3 -o "$ESP_GCC_ARCHIVE" \
-            "https://github.com/espressif/crosstool-NG/releases/download/$ESP_GCC_RELEASE/$ESP_GCC_ARCHIVE"
-          echo "$ESP_GCC_SHA256  $ESP_GCC_ARCHIVE" | sha256sum -c -
-          tar -xJf "$ESP_GCC_ARCHIVE"
+          archive="$HOME/.cache/emb-downloads/$ESP_GCC_ARCHIVE"
+          mkdir -p "$(dirname "$archive")"
+          url="https://github.com/espressif/crosstool-NG/releases/download/$ESP_GCC_RELEASE/$ESP_GCC_ARCHIVE"
+          # authenticated first (GitHub has throttled unauthenticated downloads), then plain HTTPS
+          fetch() { gh release download "$ESP_GCC_RELEASE" --repo espressif/crosstool-NG --pattern "$ESP_GCC_ARCHIVE" \
+                      --output "$archive" --clobber ||
+                    curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
+          check() { echo "$ESP_GCC_SHA256  $archive" | sha256sum -c -; }
+          [ -f "$archive" ] || fetch
+          check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again
+          tar -xJf "$archive"
           echo "$PWD/xtensa-esp-elf/bin" >> "$GITHUB_PATH"
       - name: Build the ESP32 bring-up probe with it, and check the image
         run: |
@@ -623,15 +651,26 @@ jobs:
       ESP_CLANG_VERSION: 22.1.4_20260825
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Espressif's Clang, newlib and LLD for Xtensa (pinned, checksum-verified)
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/emb-downloads
+          key: esp-clang-${{ env.ESP_CLANG_RELEASE }} # the step checks each archive's checksum
+      - name: Espressif's Clang, newlib and LLD for Xtensa (pinned, checksum-verified, cached)
         timeout-minutes: 20
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           base="https://github.com/espressif/llvm-project/releases/download/$ESP_CLANG_RELEASE"
+          mkdir -p "$HOME/.cache/emb-downloads"
           while read -r sum name; do
-            curl -sSfL --retry 3 -o "$name" "$base/$name"
-            echo "$sum  $name" | sha256sum -c -
-            tar -xJf "$name"
-            rm "$name"
+            archive="$HOME/.cache/emb-downloads/$name"
+            fetch() { gh release download "$ESP_CLANG_RELEASE" --repo espressif/llvm-project --pattern "$name" \
+                        --output "$archive" --clobber ||
+                      curl -sSfL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$base/$name"; }
+            check() { echo "$sum  $archive" | sha256sum -c -; }
+            [ -f "$archive" ] || fetch
+            check || { rm -f "$archive"; fetch; check; } # a damaged cached copy is fetched again
+            tar -xJf "$archive"
           done <<LIST
           4700ed4eb331d70d2e8b0846a233b299f43f958d2ab824ce886764d8bd6eb0a1 clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
           34fa17a12ccdfc4b23c36928aed81ef6bd52af305a5246edf3712cc59129197b libs-clang-esp-${ESP_CLANG_VERSION}-x86_64-linux-gnu.tar.xz
