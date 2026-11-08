@@ -391,7 +391,7 @@ EMB_CLZ32(x)  EMB_CTZ32(x)  EMB_POPCOUNT32(x)   (portable fallbacks where no bui
 EMB_COMPILER_NAME  EMB_COMPILER_VERSION
 ```
 
-Each macro has a defined fallback (possibly empty) so a new compiler can start with the generic header. Attributes refused by a compiler map to nothing with a documented consequence (for example EmbCC refuses `aligned` on typedefs, so `EMB_ALIGNED` is applied to objects only, which the header rules in §8 already require).
+Each macro has a defined fallback (possibly empty) so a new compiler can start with the generic header. Attributes refused by a compiler map to nothing with a documented consequence (for example EmbCC refused `aligned` on typedefs when this was written, so `EMB_ALIGNED` is applied to objects only, which the header rules in §8 already require; EmbCC has since added typedef alignment, and the rule stands as portability policy, 09 §2).
 
 ## 11. Versioning and stability
 

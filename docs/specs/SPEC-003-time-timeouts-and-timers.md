@@ -42,7 +42,7 @@ Wall clock is monotonic clock plus an offset maintained by a time-synchronizatio
 
 ### 3.1 Reading a 64-bit clock on a 32-bit core
 
-EmbCC refuses 8-byte atomics on 32-bit targets (09 §6), and on AVR only byte accesses are atomic. `emb_time_now()` therefore reads the clock in one of two ways, chosen per architecture at build time:
+A 32-bit core has no 8-byte atomic access: EmbCC's 8-byte atomics there are runtime helpers that mask interrupts (09 §6), not lock-free instructions, and on AVR only byte accesses are atomic. `emb_time_now()` therefore reads the clock in one of two ways, chosen per architecture at build time:
 
 | Mechanism | Where | How |
 |---|---|---|
