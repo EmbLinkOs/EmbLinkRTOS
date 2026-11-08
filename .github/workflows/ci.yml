@@ -110,7 +110,7 @@ jobs:
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
-          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm python3-yaml gdb-multiarch
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -180,7 +180,7 @@ jobs:
         timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
-          packages: ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml
+          packages: ninja-build gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc python3-yaml gdb-multiarch
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
       - name: Build
@@ -358,6 +358,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/toolchain -p 'test_*.py' -v
       - name: ESP32-C3 image format
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
+      - name: Debug descriptor reader (OBS-008, A107)
+        run: python3 -I -m unittest discover -s tools/descriptor -p 'test_*.py' -v
       - name: UF2 writer (A79)
         run: python3 -I -m unittest discover -s tools/uf2 -p 'test_*.py' -v
       - name: Board support matrix (ADR-051, A81)

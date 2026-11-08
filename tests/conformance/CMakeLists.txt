@@ -59,6 +59,28 @@ if(CONFIG_EMB_CRASH_RECORD)
     endif()
   endif()
 endif()
+if(CONFIG_EMB_DEBUG_DESCRIPTOR)
+  emb_add_test(test_debug_descriptor test_debug_descriptor.c) # OBS-008, PORT-012 (A107)
+  # The same image under a debugger, through QEMU's gdbstub: the threads and their backtraces
+  # from the descriptor alone (tools/descriptor/gdb_check.py), where a GDB with Python is found.
+  if(EMB_QEMU AND NOT CONFIG_EMB_ARCH_NATIVE AND NOT EMB_TEST_EMULATOR MATCHES "^(hil|embsim)$")
+    find_program(EMB_GDB NAMES gdb-multiarch gdb)
+    if(EMB_GDB)
+      execute_process(COMMAND "${EMB_GDB}" -nx -batch -ex "python print('emb-gdb-' + 'python')"
+                      OUTPUT_VARIABLE _emb_gdb_python ERROR_QUIET TIMEOUT 30)
+    endif()
+    if(EMB_GDB AND _emb_gdb_python MATCHES "emb-gdb-python")
+      string(REPLACE ";" " " _emb_qargs "${EMB_BOARD_QEMU_ARGS}")
+      add_test(NAME test_debug_descriptor_gdb
+               COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/descriptor/gdb_check.py"
+                       --gdb "${EMB_GDB}" --qemu "${EMB_QEMU}" --qemu-args "${_emb_qargs}"
+                       "$<TARGET_FILE:test_debug_descriptor>")
+      set_tests_properties(test_debug_descriptor_gdb PROPERTIES TIMEOUT 300)
+    else()
+      message(STATUS "test_debug_descriptor_gdb: no GDB with Python (gdb-multiarch or gdb); not run")
+    endif()
+  endif()
+endif()
 if(CONFIG_EMB_ARCH_HAS_FPU_LAZY)
   emb_add_test(test_fpu test_fpu.c)
 endif()
