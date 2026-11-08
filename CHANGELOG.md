@@ -4,6 +4,14 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (the debug descriptor on a board, 2026-11-08)
+
+- GDB read the reference controller's threads on the NUCLEO-F446RE through OpenOCD: their states, stacks and backtraces ([page](docs/engineering/debug-descriptor.md)).
+
+### Fixed (the debug descriptor on a board, 2026-11-08)
+
+- `emb bt` sets `psp` along with `sp` on Cortex-M. Through OpenOCD, which shows them apart, GDB otherwise warned it could not tell which stack the thread was on.
+
 ### Added (the debug descriptor, 2026-11-08)
 
 - The debug descriptor (A107, [page](docs/engineering/debug-descriptor.md)): `emb_debug_descriptor`, a versioned table of where the kernel keeps its threads, the layout of their fields and the port's switch frame, for RTOS-aware tools. `CONFIG_EMB_DEBUG_DESCRIPTOR`, on by default except on the tiny profile and AVR; about 0.4 KiB of flash on 32-bit ports.
