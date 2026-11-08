@@ -50,6 +50,8 @@ The rest:
 - **One analyzer report, `clang-analyzer-core.NullDereference` in `embk_list_remove()`, reached from `workq_main()`.** The analyzer pops a node. After calls it cannot see into, it assumes the same removed node is first on the list again, but a removed node is on no list. This is recorded as a deviation at the site, with the reason.
 - **One error in the runner:** it tried to analyze an assembly file. It now takes C files only.
 
+- **One finding that only CI's Linux run reported, `clang-analyzer-core.NonNullParamChecker` in the native port.** It read `getenv("EMB_NATIVE_ASYNC_US")` twice: once to test for NULL, then again to parse it. glibc declares `strtoul()`'s argument non-null and macOS's headers do not, so only the Linux analysis could see the problem. The port now reads the variable once. Host headers differ in what they tell the analyzer, which is one reason the gate runs where CI builds, on Ubuntu 24.04, and not only on a developer's machine.
+
 After these changes, the 14 builds give 0 findings.
 
 ## cppcheck: not yet a gate
