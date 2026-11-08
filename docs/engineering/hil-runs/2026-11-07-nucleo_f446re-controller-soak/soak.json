@@ -1,0 +1,122 @@
+{
+  "format": "emb-controller-soak v1",
+  "board": "nucleo_f446re",
+  "port": "/dev/cu.usbmodem11103",
+  "git": {
+    "commit": "d77b11ffd1d2ac28681a76a3d97acc255986ce4a",
+    "dirty": false
+  },
+  "started": "2026-11-07T23:32:46+0100",
+  "planned_hours": 24.0,
+  "rate_hz": 100,
+  "load_pct": 30,
+  "checkpoint_s": 600.0,
+  "image": "soak-image.elf",
+  "image_sha256": "7d739f873f3c8085393d3f4c47f12f003e45b6a337496dc85d3773370019f564",
+  "replies": [
+    "OK rate 100",
+    "OK load 30"
+  ],
+  "stacks_start": {
+    "control": {
+      "used": 236,
+      "size": 1024
+    },
+    "command": {
+      "used": 284,
+      "size": 1024
+    },
+    "telemetry": {
+      "used": 340,
+      "size": 1024
+    },
+    "isr": {
+      "used": 368,
+      "size": 2048
+    }
+  },
+  "ended_because": "SIGTERM",
+  "stacks_end": {
+    "control": {
+      "used": 236,
+      "size": 1024
+    },
+    "command": {
+      "used": 284,
+      "size": 1024
+    },
+    "telemetry": {
+      "used": 340,
+      "size": 1024
+    },
+    "isr": {
+      "used": 368,
+      "size": 2048
+    }
+  },
+  "soak": {
+    "lines": 36369,
+    "board_seconds": 36368,
+    "samples_processed": 3636800,
+    "shed": 0,
+    "rate_hz": 100.0,
+    "counter_rises": {
+      "deadline_miss": 0,
+      "missed": 0,
+      "queue_drops": 0,
+      "adc_overruns": 0,
+      "rx_drops": 0
+    },
+    "lat_max_us": 9,
+    "proc_max_us": 3009,
+    "temp_mc_range": [
+      24400,
+      26200
+    ],
+    "resets": [],
+    "board_gaps": [],
+    "host_gaps": [],
+    "first": {
+      "t": 14,
+      "mode": "normal",
+      "rate": 100,
+      "temp_mc": 24500,
+      "heater": 1,
+      "samples": 1402,
+      "missed": 0,
+      "deadline_miss": 0,
+      "shed": 0,
+      "degraded": 0,
+      "queue_drops": 0,
+      "adc_overruns": 0,
+      "lat_max_us": 9,
+      "proc_max_us": 3009,
+      "load": 30,
+      "rx": "24/24",
+      "rx_drops": 0
+    },
+    "last": {
+      "t": 36382,
+      "mode": "normal",
+      "rate": 100,
+      "temp_mc": 25100,
+      "heater": 1,
+      "samples": 3638202,
+      "missed": 0,
+      "deadline_miss": 0,
+      "shed": 0,
+      "degraded": 0,
+      "queue_drops": 0,
+      "adc_overruns": 0,
+      "lat_max_us": 9,
+      "proc_max_us": 3009,
+      "load": 30,
+      "rx": "24/24",
+      "rx_drops": 0
+    },
+    "problems": []
+  },
+  "final": true,
+  "updated": "2026-11-08T09:38:59+0100",
+  "outcome": "pass"
+}

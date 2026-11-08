@@ -148,7 +148,7 @@ python3 tools/hil/controller_session.py --port /dev/cu.usbmodem* --elf build/con
         --out docs/engineering/hil-runs/<date>-nucleo_f446re-controller --soak 1800
 ```
 
-It writes `controller.log`, the console with each command marked, and `controller.json`, each phase's facts and outcome. After the fault it decodes the crash record with `tools/crashdec` against the ELF. The STM32 sets the pin flag on every internal reset, because the reset drives NRST, so a software or watchdog reset reads `software pin` or `watchdog pin`. By hand, the console takes `help`, `status`, `load <0-400>`, `rate <10-1000>`, `setpoint <mC>`, `fault` and `hang` at 115200 baud ([report](controller-nucleo-2026-11-07.md)).
+It writes `controller.log`, the console with each command marked, and `controller.json`, each phase's facts and outcome. After the fault it decodes the crash record with `tools/crashdec` against the ELF. The STM32 sets the pin flag on every internal reset, because the reset drives NRST, so a software or watchdog reset reads `software pin` or `watchdog pin`. `tools/hil/controller_soak.py` runs only a soak, for hours, on a controller already running: it checkpoints its record every ten minutes and writes the final record when stopped with Ctrl-C or SIGTERM ([report](controller-soak-2026-11-08.md)). By hand, the console takes `help`, `status`, `load <0-400>`, `rate <10-1000>`, `setpoint <mC>`, `fault` and `hang` at 115200 baud ([report](controller-nucleo-2026-11-07.md)).
 
 ## The first session, in order
 

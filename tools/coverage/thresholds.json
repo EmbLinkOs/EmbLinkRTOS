@@ -1,0 +1,5 @@
+{
+ "comment": "Kernel coverage floors for the native-coverage build (05 §5: coverage not regressed on kernel). Set 2026-11-08 to the totals every CI run had then: 2,454 of 2,652 lines, 1,254 of 1,774 branches. Raise them when tests add coverage; lowering one is a decision for review.",
+ "line_pct": 92.5,
+ "branch_pct": 70.7
+}

@@ -17,6 +17,13 @@ configuration without an evidence file is reported as not run, with its stated r
 Groups whose migration into docs/requirements/ is still pending (the README's group table)
 have no catalog entries; cases that cite them keep their evidence in rows marked
 "uncataloged" rather than being dropped. A citation outside every known group is an error.
+
+With --baseline, the matrix is also a regression gate (TEST-009, 05 §5): the baseline file
+lists, per configuration, the requirements an executed case passed for, and every one must
+still pass. A requirement that loses its evidence, or a baseline configuration with no
+evidence at all, fails the run; new evidence passes and is reported, for --write-baseline to
+record. A deliberate loss (a case removed or moved) is a change to the baseline file, which
+review sees.
 """
 import argparse
 import csv
@@ -92,12 +99,36 @@ def summary(rows: list, configs: dict) -> dict:
     return out
 
 
+def passed_by_configuration(rows: list) -> dict:
+    out = {}
+    for r in rows:
+        if r["evidence_outcome"] == "passed":
+            out.setdefault(r["configuration"], set()).add(r["requirement"])
+    return out
+
+
+def check_baseline(baseline: dict, rows: list, evidenced: set) -> list:
+    """The regressions against a baseline, as messages; empty when there are none."""
+    passed = passed_by_configuration(rows)
+    problems = []
+    for preset, reqs in sorted(baseline["configurations"].items()):
+        if preset not in evidenced:
+            problems.append(f"{preset}: no evidence (the baseline has {len(reqs)} requirements passing there)")
+            continue
+        lost = sorted(set(reqs) - passed.get(preset, set()))
+        if lost:
+            problems.append(f"{preset}: lost the evidence for {len(lost)}: {' '.join(lost)}")
+    return problems
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("evidence", nargs="*", type=Path, help="files written by collect.py")
     ap.add_argument("--configurations", type=Path, default=Path(__file__).with_name("configurations.json"))
     ap.add_argument("--csv", type=Path, help="write the matrix as CSV")
     ap.add_argument("--json", type=Path, help="write the matrix and its summary as JSON")
+    ap.add_argument("--baseline", type=Path, help="fail when a configuration loses a requirement this file lists")
+    ap.add_argument("--write-baseline", type=Path, help="record, per configuration, the requirements that passed")
     args = ap.parse_args(argv)
     configs = json.loads(args.configurations.read_text(encoding="utf-8"))["configurations"]
     evidence = [json.loads(p.read_text(encoding="utf-8")) for p in args.evidence]
@@ -127,10 +158,33 @@ def main(argv):
         print(f"{preset}: " + ", ".join(f"{v} {k}" for k, v in t.items() if v))
     if uncataloged:
         print(f"matrix: {len(uncataloged)} cited IDs belong to groups pending migration: {' '.join(uncataloged)}")
+    status = 0
     if unknown_ids:
         print(f"matrix: cases cite unknown requirements {unknown_ids}", file=sys.stderr)
-        return 1
-    return 0
+        status = 1
+    failed = sorted({(r["configuration"], r["requirement"]) for r in rows if r["evidence_outcome"] == "failed"})
+    if failed:
+        print(f"matrix: {len(failed)} requirement/configuration pairs have a failed case", file=sys.stderr)
+        status = 1
+    passed = passed_by_configuration(rows)
+    if args.write_baseline:
+        args.write_baseline.write_text(json.dumps(
+            {"comment": "Per configuration, the requirements an executed case passed for "
+                        "(tools/evidence/matrix.py --write-baseline). CI fails when one is lost.",
+             "configurations": {p: sorted(r) for p, r in sorted(passed.items())}}, indent=1) + "\n",
+            encoding="utf-8")
+    if args.baseline:
+        baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+        problems = check_baseline(baseline, rows, {e["preset"] for e in evidence})
+        for p in problems:
+            print(f"matrix: regression: {p}", file=sys.stderr)
+        gained = sum(len(r - set(baseline["configurations"].get(p, []))) for p, r in passed.items())
+        print(f"matrix: baseline {args.baseline.name}: {len(problems)} regression(s), "
+              f"{gained} requirement/configuration pairs newly evidenced"
+              + (" (record them with --write-baseline)" if gained else ""))
+        if problems:
+            status = 1
+    return status
 
 
 if __name__ == "__main__":
