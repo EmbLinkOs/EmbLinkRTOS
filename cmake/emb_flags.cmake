@@ -49,15 +49,27 @@ target_link_options(emb_flags INTERFACE ${EMB_TOOLCHAIN_LINK_FLAGS} ${EMB_BOARD_
 # The compilation directory, the build directory, is then `.`, so a debugger or addr2line
 # started at the source root (the application's, outside the tree) finds the files; elsewhere,
 # `set substitute-path` in GDB. The most specific directory comes last, which is the one GCC
-# and Clang apply.
+# and Clang apply. -ffile-prefix-map is GCC 8's and Clang 10's; an older compiler (Ubuntu's
+# avr-gcc 7.3) has -fdebug-prefix-map, which covers the debug information, all that names a
+# directory here: no source uses __FILE__.
+include(CheckCCompilerFlag)
 if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+  check_c_compiler_flag("-ffile-prefix-map=/emb-a=/emb-b" EMB_HAS_FILE_PREFIX_MAP)
+  if(EMB_HAS_FILE_PREFIX_MAP)
+    set(_emb_map "-ffile-prefix-map")
+  else()
+    check_c_compiler_flag("-fdebug-prefix-map=/emb-a=/emb-b" EMB_HAS_DEBUG_PREFIX_MAP)
+    set(_emb_map "-fdebug-prefix-map")
+  endif()
+endif()
+if(EMB_HAS_FILE_PREFIX_MAP OR EMB_HAS_DEBUG_PREFIX_MAP)
   string(FIND "${CMAKE_SOURCE_DIR}/" "${EMB_BASE}/" _emb_in_tree)
   if(_emb_in_tree EQUAL 0)
-    set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=.")
+    set(_emb_prefix_maps "${_emb_map}=${EMB_BASE}=.")
   else()
-    set(_emb_prefix_maps "-ffile-prefix-map=${EMB_BASE}=emblinkrtos" "-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+    set(_emb_prefix_maps "${_emb_map}=${EMB_BASE}=emblinkrtos" "${_emb_map}=${CMAKE_SOURCE_DIR}=.")
   endif()
-  list(APPEND _emb_prefix_maps "-ffile-prefix-map=${CMAKE_BINARY_DIR}=.")
+  list(APPEND _emb_prefix_maps "${_emb_map}=${CMAKE_BINARY_DIR}=.")
   target_compile_options(emb_flags INTERFACE ${_emb_prefix_maps})
 endif()
 

@@ -25,6 +25,19 @@ class KernelCompiler(unittest.TestCase):
             self.assertEqual(result.returncode, 7)
             self.assertEqual(json.loads(result.stdout), ["--target=x86_64-elf", *arguments])
 
+    def test_the_host_only_prefix_maps_are_dropped(self):
+        with tempfile.TemporaryDirectory() as folder:
+            compiler = Path(folder)/"compiler"
+            compiler.write_text(f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[1:]))\n")
+            compiler.chmod(0o755)
+            arguments = ["-ffile-prefix-map=/src=.", "-c", "-fdebug-prefix-map=/b=.", "k.c",
+                         "-fmacro-prefix-map=/m=.", "-ffunction-sections", "-o", "k.o"]
+            result = subprocess.run([sys.executable, "-I", str(LAUNCHER), str(compiler),
+                                     "/must/not/run/host-cc", *arguments],
+                                    text=True, capture_output=True, check=True)
+            self.assertEqual(json.loads(result.stdout),
+                             ["--target=x86_64-elf", "-c", "k.c", "-ffunction-sections", "-o", "k.o"])
+
     def test_missing_kernel_compiler_fails_without_running_host(self):
         result = subprocess.run([sys.executable, "-I", str(LAUNCHER),
                                  "/missing/compiler/embcc", sys.executable, "-c", "pass"],
