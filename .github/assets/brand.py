@@ -112,6 +112,57 @@ def social():
     return svg(1280, 640, body)
 
 
+# A real session, captured on 2026-11-08 (macOS, Arm GNU 14.2, QEMU 11.1.1): examples/hello_app built
+# for mps2_an386 and run under QEMU's Cortex-M4F machine, then that board's conformance suite.
+# The lines are as printed; "…" marks lines left out (the build's progress, the other tests).
+SESSION = [
+    ("$", "cmake -S examples/hello_app -B build/hello -DEMB_BOARD=mps2_an386"),
+    ("$", "cmake --build build/hello --target run_hello"),
+    ("…", ""),
+    ("", "[100%] run hello under QEMU (Ctrl-A X to leave)"),
+    ("out", "hello_app: start"),
+    ("out", "hello_app: reading 1 = 7"),
+    ("out", "hello_app: reading 2 = 14"),
+    ("out", "hello_app: reading 3 = 21"),
+    ("out", "hello_app: reading 4 = 28"),
+    ("out", "hello_app: reading 5 = 35"),
+    ("out", "hello_app: done"),
+    ("$", "ctest --preset cm4-an386"),
+    ("…", ""),
+    ("", "24/25 Test #24: test_debug_descriptor_gdb ........   Passed    0.37 sec"),
+    ("", "25/25 Test #25: test_fpu .........................   Passed    0.05 sec"),
+    ("", ""),
+    ("ok", "100% tests passed out of 25"),
+]
+
+
+def terminal():
+    w, line, top = 1280, 30, 86
+    h = top + line * len(SESSION) + 34
+    o = [f'<rect width="{w}" height="{h}" rx="14" fill="#0d1117" stroke="#30363d"/>',
+         f'<rect width="{w}" height="48" rx="14" fill="#161b22"/><rect y="34" width="{w}" height="14" fill="#161b22"/>',
+         '<circle cx="28" cy="24" r="7" fill="#ff5f57"/><circle cx="52" cy="24" r="7" fill="#febc2e"/>'
+         '<circle cx="76" cy="24" r="7" fill="#28c840"/>',
+         f'<text x="{w / 2}" y="30" text-anchor="middle" font-family="{FONT}" font-size="16" fill="#8b949e">'
+         'EmbLinkRTOS on an emulated Cortex-M4F (QEMU mps2-an386)</text>']
+    y = top
+    for kind, text in SESSION:
+        esc = text.replace("&", "&amp;").replace("<", "&lt;")
+        if kind == "$":
+            o.append(f'<text x="32" y="{y}" xml:space="preserve" font-family="{MONO}" font-size="20"><tspan fill="{MINT}">$</tspan>'
+                     f'<tspan fill="#e6edf3"> {esc}</tspan></text>')
+        elif kind == "…":
+            o.append(f'<text x="32" y="{y}" font-family="{MONO}" font-size="20" fill="#6e7681">…</text>')
+        elif kind == "out":
+            o.append(f'<text x="32" y="{y}" font-family="{MONO}" font-size="20" fill="#f8fafc" font-weight="600">{esc}</text>')
+        elif kind == "ok":
+            o.append(f'<text x="32" y="{y}" font-family="{MONO}" font-size="20" fill="#3fb950" font-weight="700">{esc}</text>')
+        else:
+            o.append(f'<text x="32" y="{y}" xml:space="preserve" font-family="{MONO}" font-size="20" fill="#8b949e">{esc}</text>')
+        y += line
+    return svg(w, h, "".join(o))
+
+
 def lockup(ink, accent, tile_body):
     return svg(900, 200, f'<g>{tile_body}</g>' + wordmark(232, 132, 92, ink, accent))
 
@@ -126,6 +177,7 @@ FILES = {
     ASSETS / "lockup-dark.svg": lockup(PAPER, MINT, BRAND_TILE),
     ASSETS / "banner.svg": banner(),
     ASSETS / "social-preview.svg": social(),
+    ASSETS / "demo-terminal.svg": terminal(),
     STATIC / "logo-light.svg": svg(160, 160, mark(TEAL, INK), "0 0 200 200"),
     STATIC / "logo-dark.svg": svg(160, 160, mark(MINT, PAPER), "0 0 200 200"),
     STATIC / "favicon.svg": svg(32, 32, BRAND_TILE, "0 0 200 200"),

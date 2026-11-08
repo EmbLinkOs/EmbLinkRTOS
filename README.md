@@ -114,6 +114,10 @@ cmake -S examples/hello_app -B build/hello -DEMB_BOARD=mps2_an386
 cmake --build build/hello --target run_hello   # runs under QEMU
 ```
 
+<p align="center">
+  <img src=".github/assets/demo-terminal.svg" alt="A terminal: hello_app runs under QEMU's Cortex-M4F machine and prints five readings, then the board's conformance suite passes 25 of 25 tests" width="100%">
+</p>
+
 ## Performance against FreeRTOS
 
 The same benchmark on the same board for both kernels, measured on four boards:
