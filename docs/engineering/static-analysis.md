@@ -1,6 +1,6 @@
 # Static analysis
 
-The coding standard names the static analyzers and how a finding is handled (CODING-STANDARD §12, §13). The engineering system makes them a merge gate (05 §5). This page says what runs today, on what code, and what is still missing. clang-tidy and cppcheck both run in CI's `static-analysis` job, which the `CI merge gate` requires.
+The coding standard names the static analyzers and how a finding is handled (CODING-STANDARD §12, §13). The engineering system makes them a merge gate (05 §5). This page says what runs today, on what code, and what is still missing. clang-tidy, cppcheck and cppcheck's MISRA addon all run in CI's `static-analysis` job, which the `CI merge gate` requires.
 
 ## clang-tidy: a merge gate
 
@@ -90,9 +90,38 @@ When the gate was added (2026-11-08), a first run on the native build alone, bef
 
 After these changes, the 14 builds give 0 findings.
 
-### The MISRA addon
+## The MISRA addon: a baseline gate
 
-CODING-STANDARD §12 names `cppcheck --addon=misra` where the rule texts are available. The addon needs the MISRA C:2023 rule texts, which are licensed and are not in the tree. It is not run.
+The same step runs cppcheck's MISRA addon (`cppcheck.py --misra`) over the same 14 builds.
+
+**What it checks:** MISRA C:2012 with its amendments, the rules cppcheck's open-source addon implements. The coding standard targets MISRA C:2023, which keeps most of the same rule numbers but not all of them.
+
+**Rule numbers, not rule texts.** MISRA's rule texts are licensed, and the project does not have them. Without them, the addon reports each finding by number only (`misra-c2012-10.4`), and the tool prints it as "MISRA C:2012 rule 10.4". The rule texts change nothing but the messages: a contributor who owns them can pass them to cppcheck locally (`--rule-texts`). They must never be committed.
+
+**Off tree-wide,** in `.cppcheck-suppressions`, each with its reason:
+- **15.1 and 15.5:** CODING-STANDARD §12 deviates from them everywhere, for early returns and the forward `goto` to the unlock (CS-7.2).
+- **17.3** (no implicit function declaration): the compilers enforce it. GCC 14 and Clang reject an implicit declaration in C11, and CS-13.1's warnings fail the build. The addon reads every inline assembly statement as a call to an undeclared function. All 43 of its 17.3 findings at the first run were assembly.
+
+**The baseline.** `tools/analysis/misra-baseline.json` counts the MISRA findings per file and rule: 2,157 in 107 files at the first run, over the Clang builds. It counts per file, not per line, so editing a file elsewhere does not move it.
+- **A file that gains a finding of a rule fails the job.** The job prints the file, the rule, the count and the lines.
+- **A file that loses one is reported.** Record it with `--write-misra-baseline`, so the baseline only shrinks.
+- **The job uploads the counts it found** as the `misra-baseline-now` artifact. That is the file to commit when a change fixes findings, or when it adds a recorded deviation.
+
+```sh
+python3 tools/analysis/cppcheck.py --misra --misra-baseline tools/analysis/misra-baseline.json build/cm4-an386-clang ...
+```
+
+The baseline is CI's: run locally, macOS's Mach-O native build and other host headers give other counts. Generated headers are counted as `generated/...`, whichever build they come from.
+
+**Where the findings are.** Most are advisory rules:
+- unused macros (2.5): configuration options that a build does not use;
+- external functions used from one file (8.7);
+- parentheses for precedence (12.1);
+- `union` (19.2): the storage unions.
+
+Pointer conversions (11.4, 11.5, 11.6) are mostly at the handle boundary and in `EMB_CONTAINER_OF`, which §12 already permits, and need recording at their sites. The standard-library rules (21.x, 22.x) fire only in the native port and board, which run the kernel as a host process, and in `<emb/compiler/clang.h>`'s `__ATTR_PROGMEM__` for avr-libc.
+
+**What comes next:** fixing or recording the findings of MISRA's Required rules first, file by file. Each fix lowers the baseline.
 
 ## Not covered
 

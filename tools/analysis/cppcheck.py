@@ -268,14 +268,16 @@ def main(argv=None):
 
     for b, out in failed:
         print(f"cppcheck: {b}: cppcheck failed without a diagnostic:\n{out}", file=sys.stderr)
-    gated = args.misra_baseline is not None
+    # Findings of cppcheck's own checks always fail. MISRA findings fail one by one when nothing
+    # else is said; against a baseline only those above it fail; a run that only writes the
+    # baseline lists them by count and does not fail on them.
+    by_count = args.misra_baseline is not None or args.write_misra_baseline is not None
     other = {f: w for f, w in seen.items() if not is_misra(f[3])}
-    shown = other if gated else seen  # under a baseline, MISRA findings are reported by count
-    for (path, line, col, ident, msg), where in sorted(shown.items()):
+    for (path, line, col, ident, msg), where in sorted((other if by_count else seen).items()):
         print(f"{path}:{line}:{col}: {msg} [{ident}] (in {', '.join(sorted(where))})")
     ids = {}
     for (_, _, _, ident, _) in seen:
-        key = "misra" if is_misra(ident) and gated else ident
+        key = "misra" if is_misra(ident) and by_count else ident
         ids[key] = ids.get(key, 0) + 1
     summary = ", ".join(f"{c} {n}" for c, n in sorted(ids.items())) or "none"
     print(f"cppcheck: {len(args.builds)} builds, {len(seen)} findings: {summary}")
@@ -284,26 +286,21 @@ def main(argv=None):
         args.write_misra_baseline.write_text(json.dumps(counts, indent=1, sort_keys=True) + "\n", encoding="utf-8")
         print(f"cppcheck: wrote {args.write_misra_baseline}: "
               f"{sum(sum(r.values()) for r in counts.values())} MISRA findings in {len(counts)} files")
-    status = 1 if other else 0
-    if gated:
+    gains = []
+    if args.misra_baseline:
         baseline = json.loads(args.misra_baseline.read_text(encoding="utf-8"))
         gains, losses = against_baseline(counts, baseline)
         for f, r, now, was in gains:
-            lines = sorted((ln, c) for (p, ln, c, i, _m) in seen if p == f and i == r)
-            where = ", ".join(str(ln) for ln, _ in lines)
-            print(f"{f}: {r}: {now} findings, the baseline has {was} (lines {where})")
+            lines = sorted({ln for (p, ln, _c, i, _m) in seen if p == f and i == r})
+            print(f"{f}: {r}: {now} findings, the baseline has {was} (lines {', '.join(map(str, lines))})")
         for f, r, now, was in losses:
             print(f"{f}: {r}: {now} findings, down from {was}: record it with --write-misra-baseline")
         print(f"cppcheck: MISRA against {args.misra_baseline.name}: {len(gains)} file and rule pairs above it, "
               f"{len(losses)} below it")
-        status = 1 if (gains or other) else 0
-    elif args.misra and not args.write_misra_baseline:
-        status = 1 if seen else 0
-    elif args.write_misra_baseline:
-        status = 1 if other else 0
+    misra_fails = bool(gains) if args.misra_baseline else (args.misra and not by_count and bool(counts))
     if failed:
         return 2
-    return status
+    return 1 if (other or misra_fails) else 0
 
 
 if __name__ == "__main__":
