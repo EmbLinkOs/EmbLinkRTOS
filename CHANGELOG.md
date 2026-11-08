@@ -8,6 +8,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 - A drift-free blinky example toggles the board LED every 500 ms and reports
   each transition on the board console.
+### Changed (the README, 2026-11-08)
+
+- The README says what the kernel is, what it provides, which boards it is tested on, how to build and run it in five commands, and how it compares with FreeRTOS on four boards, with a link to each run. CONTRIBUTING.md lists ways to contribute now, from running the suites on a board to adding one.
+
 ### Added (the MISRA addon, 2026-11-08)
 
 - CI's `static-analysis` job runs cppcheck's MISRA addon (MISRA C:2012, reported by rule number) over the 14 builds. It fails when a file gains a finding of a rule over `tools/analysis/misra-baseline.json`, so the baseline only shrinks, and uploads the counts it found ([page](docs/engineering/static-analysis.md)). `tools/analysis/cppcheck.py` gains `--misra`, `--misra-baseline` and `--write-misra-baseline`.

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="200" viewBox="0 0 900 200">
+  <!-- SPDX-License-Identifier: Apache-2.0 -->
+  <!-- Drawn by .github/assets/brand.py; edit the script, not this file -->
+  <g><rect width="200" height="200" rx="46" fill="#0f766e"/><path d="M143 46H50V154H143M50 100.0H115" fill="none" stroke="#f8fafc" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/><circle cx="143" cy="46" r="18" fill="#5eead4"/><circle cx="143" cy="46" r="6.5" fill="#0f766e"/><circle cx="115" cy="100.0" r="18" fill="#5eead4"/><circle cx="115" cy="100.0" r="6.5" fill="#0f766e"/><circle cx="143" cy="154" r="18" fill="#5eead4"/><circle cx="143" cy="154" r="6.5" fill="#0f766e"/></g><text x="232" y="132" fill="#0b1220" font-family="Inter, Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="-2.3">EmbLink<tspan fill="#0f766e">RTOS</tspan></text>
+</svg>
