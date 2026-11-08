@@ -27,10 +27,32 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: docs/requirements.txt
+      # Doxygen's release archive, cached by version: downloaded only when the cache has none, so
+      # GitHub's release downloads failing does not fail the build; bootstrap.py checks its SHA-512
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/emb-downloads
+          key: doxygen-${{ hashFiles('tools/docs/bootstrap.py') }}
       - name: Install documentation dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python -m pip install -r docs/requirements.txt
-          python tools/docs/bootstrap.py
+          archive="$HOME/.cache/emb-downloads/doxygen.linux.bin.tar.gz"
+          url=$(python -c "import sys; sys.path.insert(0, 'tools/docs'); import bootstrap; print(bootstrap.URL)")
+          # .../releases/download/<tag>/<name>: authenticated first (GitHub has throttled
+          # unauthenticated downloads), then plain HTTPS
+          tag=$(basename "$(dirname "$url")")
+          fetch() { gh release download "$tag" --repo doxygen/doxygen --pattern "$(basename "$url")" \
+                      --output "$archive" --clobber ||
+                    curl -fsSL --retry 6 --retry-all-errors --retry-delay 10 -o "$archive" "$url"; }
+          mkdir -p "$(dirname "$archive")"
+          [ -f "$archive" ] || fetch
+          python tools/docs/bootstrap.py --archive "$archive" || {
+            rm -f "$archive"  # a damaged cached copy is fetched again
+            fetch
+            python tools/docs/bootstrap.py --archive "$archive"
+          }
       - name: Build complete documentation with warnings as errors
         run: |
           python -m unittest discover -s tools/docs -p 'test_*.py' -v
