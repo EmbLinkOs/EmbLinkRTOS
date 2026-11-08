@@ -2,7 +2,7 @@
 
 **Status:** a kernel port, run on hardware. The classic ESP32's PRO_CPU (Xtensa LX6, the ESP-WROOM-32 module on a DevKitC-style board) runs the kernel, built by EmbCC, and passes the conformance suite on the board: 21 of 21 tests, 157 cases, 74 fault checks that reset the board ([2026-11-05](../engineering/hil-esp32-port-2026-11-05.md)). The design is [ADR-054](../architecture/06-decision-records.md). It came after the [bring-up probe](#the-bring-up-probe), which checked the toolchain, the image, the flasher and the register addresses first.
 
-**Sources:** `arch/xtensa/` (`xt_vectors.S`, `xt_port.c`, `include/emb_arch.h`), the board `boards/espressif/esp32_devkitc/`, the toolchain files `cmake/toolchains/embcc-xtensa.cmake` and `xtensa-esp32-gcc.cmake`.
+**Sources:** `arch/xtensa/` (`xt_vectors.S`, `xt_port.c`, `include/emb_arch.h`), the board `boards/espressif/esp32_devkitc/`, the toolchain files `cmake/toolchains/xtensa-esp32-gcc.cmake` (the default for an application), `xtensa-esp32-clang.cmake` and `embcc-xtensa.cmake`.
 
 **Scope of this milestone:**
 - one core (PRO_CPU); the APP_CPU stays in reset, as the ROM leaves it;
