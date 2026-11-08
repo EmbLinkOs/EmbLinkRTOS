@@ -1,6 +1,6 @@
 # Implementation plan: any board (ADR-051)
 
-**Status:** working plan, 2026-11-04. It implements [ADR-051](../architecture/06-decision-records.md), which is proposed and awaiting the owner's review. Each step is one stacked PR with its own amendment. A step is done only when its verification has run; this page records the result.
+**Status:** working plan, 2026-11-04. It implements [ADR-051](../architecture/06-decision-records.md), accepted by the owner on 2026-11-08. Each step is one stacked PR with its own amendment. A step is done only when its verification has run; this page records the result.
 
 ADR-051 grows support in three layers. A **core port** is written once per CPU family. A **SoC description** is drafted from vendor data and then curated. A **board** is a `board.yaml` only. The steps below fill each layer where it is thinnest, in the order the hardware on the bench needs them:
 

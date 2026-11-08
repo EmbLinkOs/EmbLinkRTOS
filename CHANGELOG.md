@@ -4,6 +4,10 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Changed (the M3 contract review, 2026-11-08)
+
+- The project owner reviewed the M3 amendments A66 to A107 by topic and accepted them as written, with A72's build identity extended to the toolchain ([amendments](docs/specs/AMENDMENTS-M3.md)). ADR-051 to ADR-054 and ADR-056 are accepted, and so are PORT-015 and PORT-016 with the amendments that introduced them (A88, A90).
+
 ### Added (the controller's release builds on the board, 2026-11-08)
 
 - The reference controller's release builds ran their 9-phase session and the external timing on the NUCLEO-F446RE: GCC with a 30-minute soak, GCC with LTO, and Clang, each 9/9 with nothing missed ([report](docs/engineering/controller-release-2026-11-08.md)). From the conversion interrupt to the control thread at work, the analyzer measured a median of 7.33 µs for GCC, 6.25 µs for Clang and 5.92 µs for GCC with LTO, against 9.50 µs for the checked build. The run found that under LTO neither the stack bound nor the image's source paths hold, and that the memory report reads GNU ld's map only.

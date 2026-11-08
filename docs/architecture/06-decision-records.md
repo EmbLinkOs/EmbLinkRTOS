@@ -643,7 +643,7 @@ Boards now on the owner's bench, a classic ESP32 (Xtensa LX6) and a Raspberry Pi
   - the HIL matrix of 02 §9, which covers only boards with a probe the runner knows.
 - Generated outputs must stay machine-independent for boards outside the tree too (HW-013). They name a board's own files as `@board/...`.
 
-**Status.** Proposed 2026-11-04, from the project owner's goal; awaiting review. Implementation started with A76 (boards outside the tree).
+**Status.** Accepted 2026-11-08 by the project owner at the M3 contract review; proposed 2026-11-04 from the owner's goal. Implementation started with A76 (boards outside the tree).
 
 ## ADR-052 The ESP32's layout is a GNU ld script, which EmbCC's embld and Espressif's GCC both link
 
@@ -666,7 +666,7 @@ The probe's `tools/esp/bringup/esp32.ld` is the first such script; the kernel po
 - A script has no `-Tstack` entry stub, which changes nothing on the ESP32: its ROM calls the entry as a windowed function, with a stack set.
 - EmbCC's golden test `xtensa-ldscript` runs an ESP32-like layout on QEMU's sim machine. The RTOS CI's `xtensa-gcc` job builds the probe with Espressif's GCC, pinned to release `esp-16.1.0_20260609` by the SHA-256 Espressif publishes.
 
-**Status.** Proposed 2026-11-04 and revised the same day by ADR-053, at the project owner's direction that the RTOS work with every toolchain; EmbCC #174 implements the embld side.
+**Status.** Accepted 2026-11-08 by the project owner at the M3 contract review. Proposed 2026-11-04 and revised the same day by ADR-053, at the project owner's direction that the RTOS work with every toolchain; EmbCC #174 implements the embld side.
 
 ## ADR-053 Toolchain neutrality: one port per architecture, three seams, toolchains tiered by evidence
 
@@ -702,7 +702,7 @@ EmbLinkRTOS already builds the same sources with EmbCC, GCC and Clang (09 §11).
 - **Not yet:** an IAR or Arm compiler header, a second assembler dialect, and ICF or scatter emitters. They wait for a license and a runner to prove them; until then nothing claims them.
 - The ports' inline assembly is GNU syntax, which EmbCC, GCC and Clang all accept. A port for a compiler without it, such as IAR's, would add the assembly file the seam allows.
 
-**Status.** Proposed 2026-11-04, from the project owner's direction ("work with all the vendors' own toolchains"); awaiting review.
+**Status.** Accepted 2026-11-08 by the project owner at the M3 contract review; proposed 2026-11-04 from the owner's direction ("work with all the vendors' own toolchains").
 
 ## ADR-054 The Xtensa port switches in the level-1 entry, after spilling every window
 
@@ -731,7 +731,7 @@ The kernel's ports already switch in one place: Cortex-M in PendSV, RISC-V in th
 - **Not yet.** The second core, nesting and levels 2 to 5, the FPU context and tickless idle come later. The configuration refuses tickless and nesting for this port.
 - **EmbCC.** Its Xtensa inline assembler takes instructions only. The storage probe's marker therefore has a data form for that target, with the same text in a kept constant (`include/emb/compiler/embcc.h`).
 
-**Status.** Proposed 2026-11-05, from the project owner's direction to move on with the RTOS on the ESP32 while the NUCLEO is awaited. The board runs the conformance suite: 21 of 21 tests, 157 cases.
+**Status.** Accepted 2026-11-08 by the project owner at the M3 contract review. Proposed 2026-11-05, from the project owner's direction to move on with the RTOS on the ESP32 while the NUCLEO is awaited. The board runs the conformance suite: 21 of 21 tests, 157 cases.
 
 ## ADR-055 Keep the running thread in its ready list
 
@@ -793,5 +793,5 @@ Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](
 - *One translation unit for the kernel:* measured slower (above), and it needs every static name made unique.
 - *`-O2` without LTO:* 11% faster, 7% larger, and still no inlining across files.
 
-**Status.** Proposed 2026-11-07 with the measurements above, for the project owner's review.
+**Status.** Accepted 2026-11-08 by the project owner at the M3 contract review; proposed 2026-11-07 with the measurements above. The two gaps the controller's release run found under LTO, the image's build path and the stack bound, are fixed (#121, #123).
 
