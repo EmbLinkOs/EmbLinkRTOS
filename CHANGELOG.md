@@ -4,6 +4,11 @@ User-visible changes are recorded here. There are no released versions or releas
 
 ## Unreleased
 
+### Added (safety readiness, 2026-11-08)
+
+- [Functional safety readiness](docs/engineering/safety-readiness.md): what an IEC 61508 assessment of the kernel would ask for, what exists, what is missing, and the order of the work. The project makes no safety claim.
+- `SECURITY.md` says what the project provides manufacturers under the EU Cyber Resilience Act: advisories with CVE identifiers, exploited vulnerabilities first, SBOMs and reproducible builds.
+
 ### Added (reproducible builds, 2026-11-08)
 
 - Images no longer depend on where the source tree or the build directory is. GCC and Clang builds name them `.`, `build` and `emblinkrtos` in the debug information and `__FILE__` (`-ffile-prefix-map`); code and data never did depend on it.
