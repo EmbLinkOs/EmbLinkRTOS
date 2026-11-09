@@ -1,0 +1,145 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 47,
+      "name": "drv_status_codes_are_named_in_their_ranges",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "device_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "drv_setters_ignore_a_missing_request",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 23,
+      "name": "device_optional_operations",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 24,
+      "name": "device_board_devices_ready_in_dependency_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "drv_wait_returns_the_result_or_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "drv_cancel_queued_and_running_requests_complete_once",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "drv_lanes_run_independently",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "drv_queue_is_first_in_first_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "drv_completion_targets",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "drv_request_completes_from_the_interrupt",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "drv_submit_refused_unless_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "device_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "device_list_initializes_past_a_failure",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "device_on_a_failed_dependency_fails_without_its_driver",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "device_init_reaches_ready_or_failed",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:20:32Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_device"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 11,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_device.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_device.uf2": "60531c1c3019df7a86ceca6a39d35651043e95f4d102111df654daf9bd71d9c7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_device.elf",
+  "image_sha256": "0c33c38192153d5cc474c87efccfd7423385ac44b69ee8379d2c902abe24f040",
+  "isr_stack": {
+    "size": 2048,
+    "used": 252
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:20:30Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 16
+  }
+}

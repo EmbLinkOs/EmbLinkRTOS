@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "fpu_state_survives_preemption",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "fpu_callee_saved_registers_survive_a_switch",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:21:02Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_fpu"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_fpu.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_fpu.uf2": "a3ac6d83334a47a87b1493e37c121f2bc111f85636c0cfc8450d9121f6621a3b"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_fpu.elf",
+  "image_sha256": "a2075a2fdd82bcd77593018ba321d03a8da0815739db091af3fd21e26870647d",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:21:00Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

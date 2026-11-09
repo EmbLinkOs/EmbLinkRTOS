@@ -1,0 +1,29 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_uart_loop.elf sha256 a4b0af960a25550e7c40c05a27aef51bf589618e0bfcead78a2d8f2c1d922909
+EVIDENCE v1 suite=test_uart_loop config=2e3cca609b4e6c58 profile=base board=nucleo_f446re checked=1
+TEST uart_loop_overrun_is_reported
+  -> ok
+  req DRV-005 DRV-008
+CASE uart_loop_overrun_is_reported outcome=passed asserts=4 skips=0
+TEST uart_loop_break_arrives_as_a_framing_error
+  -> ok
+  req DRV-004 DRV-008
+CASE uart_loop_break_arrives_as_a_framing_error outcome=passed asserts=4 skips=0
+TEST uart_loop_a_kilobyte_intact
+  -> ok
+  req DRV-004 DRV-005
+CASE uart_loop_a_kilobyte_intact outcome=passed asserts=6 skips=0
+TEST uart_loop_idle_line_ends_a_read
+  -> ok
+  req DRV-005
+CASE uart_loop_idle_line_ends_a_read outcome=passed asserts=5 skips=0
+TEST uart_loop_ring_keeps_what_arrives
+  -> ok
+  req DRV-005
+CASE uart_loop_ring_keeps_what_arrives outcome=passed asserts=4 skips=0
+TEST uart_loop_echo_full_duplex
+  -> ok
+  req DRV-004 DRV-005
+CASE uart_loop_echo_full_duplex outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=208
+6 tests, 0 failed, 0 skipped, 212 ticks
+EMB_TEST_END

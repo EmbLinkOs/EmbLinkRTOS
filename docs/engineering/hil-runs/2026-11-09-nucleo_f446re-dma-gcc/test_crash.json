@@ -1,0 +1,65 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 1,
+      "name": "crash_record_get_refuses_null",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "crash_record_corruption_is_ignored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 38,
+      "name": "crash_record_round_trip",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:18:28Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "2e3cca609b4e6c58",
+    "profile": "base",
+    "suite": "test_crash"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_crash.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_crash.elf": "e4424b063c9e1819d1ca0146f3d314aa8338e5e7a2e04f6ef97e1d0be4d6dc4f"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_crash.elf",
+  "image_sha256": "e4424b063c9e1819d1ca0146f3d314aa8338e5e7a2e04f6ef97e1d0be4d6dc4f",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T22:18:26Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

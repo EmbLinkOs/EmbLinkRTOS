@@ -1,0 +1,85 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "thread_detach_after_exit_makes_reusable",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_self_and_detached_are_errors",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "thread_second_joiner_is_ebusy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_join_timeout_then_success",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "thread_join_before_exit_blocks_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "thread_join_after_exit_returns_code",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:20:10Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_thread_join"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_thread_join.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_thread_join.uf2": "86ae7a7c1f32cb9bc8f1b27e1b843d7da435135cb85109b2329864873997e0c5"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_thread_join.elf",
+  "image_sha256": "702c317c400eb4c3aed96f606667748930b3ea7c6cfa281ec44601a49a873d79",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:20:08Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

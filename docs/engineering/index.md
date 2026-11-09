@@ -48,6 +48,7 @@ hil-devices-2026-11-09
 hil-uart-2026-11-09
 hil-spi-2026-11-09
 hil-i2c-2026-11-09
+hil-dma-2026-11-09
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07

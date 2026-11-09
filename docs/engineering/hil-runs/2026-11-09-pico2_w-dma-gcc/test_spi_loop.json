@@ -1,0 +1,97 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 14,
+      "name": "spi_loop_runs_by_dma",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 21,
+      "name": "spi_loop_chip_select_at_the_pin",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "spi_loop_no_transmit_buffer_sends_ones",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "spi_loop_timeout_stops_after_whole_frames",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_refuses_a_clock_too_slow",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_slow_and_fast_clocks",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "spi_loop_every_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_frames_come_back_intact",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:20:50Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_spi_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_spi_loop.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_spi_loop.uf2": "29272dad8be6480fab43183508271110fe11f685c10e24ffaa1800333aa03678"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_spi_loop.elf",
+  "image_sha256": "c237df493c270fea345e975a4d795a1f090e52dae6d969c1ffa9950ddaea97f3",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:20:48Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}
