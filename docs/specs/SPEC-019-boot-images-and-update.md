@@ -2,7 +2,7 @@
 
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; M4.5 implements it.
 
-**Status:** Proposed 2026-11-09 for the project owner's review (M4.0).
+**Status:** Accepted 2026-11-09 by the project owner at the M4.0 review, as written, with the defaults of §9.
 **Requirements:** `docs/requirements/BOOT.md` (BOOT-001, 002, 005 to 008; 003 and 004 are not in M4's scope), SEC-013, SEC-014, DRV-007.
 **Builds on:** 04 §5; ADR-008 (MCUboot's image format), ADR-058 (upstream MCUboot, proposed); SPEC-014 §4 (`flash_partitions`), SPEC-016 §7 (polled mode), SPEC-017 §9 (the flash class), SPEC-015 §7 (framing, for the update protocol).
 
