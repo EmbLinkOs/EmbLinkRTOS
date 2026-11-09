@@ -77,8 +77,8 @@ void emb_board_put_u32(uint32_t v)
 #define REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL  0x2u
 #define REBOOT2_FLAG_NO_RETURN_ON_SUCCESS 0x100u
 /* the lookup returns the function's address; as an integer, so that ISO C converts it */
-typedef uintptr_t (*rom_table_lookup_fn)(uint32_t code, uint32_t mask);
-typedef int (*rom_reboot_fn)(uint32_t flags, uint32_t delay_ms, uint32_t p0, uint32_t p1);
+typedef uintptr_t (*rom_table_lookup_fn_t)(uint32_t code, uint32_t mask);
+typedef int (*rom_reboot_fn_t)(uint32_t flags, uint32_t delay_ms, uint32_t p0, uint32_t p1);
 
 /* Back to the boot ROM's USB loader, both interfaces on, so that picotool can load the next
  * image without the BOOTSEL button (tools/hil/run_hil.py). The table pointer is read through a
@@ -87,10 +87,10 @@ static void reboot_to_bootsel(void)
 {
     const volatile uint16_t *volatile table =
         (const volatile uint16_t *)(uintptr_t)ROM_TABLE_LOOKUP;
-    rom_table_lookup_fn lookup = (rom_table_lookup_fn)(uintptr_t)*table;
+    rom_table_lookup_fn_t lookup = (rom_table_lookup_fn_t)(uintptr_t)*table;
     uintptr_t fn = lookup(ROM_FUNC_REBOOT, RT_FLAG_FUNC_ARM_SEC);
     if (fn != 0u) {
-        rom_reboot_fn reboot = (rom_reboot_fn)fn;
+        rom_reboot_fn_t reboot = (rom_reboot_fn_t)fn;
         (void)reboot(REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL | REBOOT2_FLAG_NO_RETURN_ON_SUCCESS, 10u, 0u,
                      0u);
     }
