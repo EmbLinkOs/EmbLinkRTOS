@@ -28,6 +28,8 @@ class Root:
     def __init__(self, boards=(BOARD,)):
         self.dir = Path(tempfile.mkdtemp(prefix="hwgen-"))
         shutil.copytree(ROOT / "soc", self.dir / "soc")
+        (self.dir / "drivers").mkdir()
+        shutil.copy(ROOT / "drivers" / "bindings.yaml", self.dir / "drivers" / "bindings.yaml")
         for port in ("cortex_m", "avr"):
             (self.dir / "arch" / port).mkdir(parents=True)
             shutil.copy(ROOT / "arch" / port / "arch.yaml", self.dir / "arch" / port / "arch.yaml")
@@ -333,7 +335,7 @@ class Outputs(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in ze.iterdir() if not p.name.startswith(".")), ["board.yaml", "generated"])
         c_files = [p for p in (ze / "generated").iterdir() if p.suffix in (".c", ".h")]
         files, warnings = generate.generate(ze, ROOT)
-        self.assertEqual(sorted(p.name for p in c_files), ["board_pins.c", "hw_config.h"])
+        self.assertEqual(sorted(p.name for p in c_files), ["board_pins.c", "hw_config.h", "soc_devices.c", "soc_devices.h"])
         for p in c_files:
             self.assertEqual(p.read_text(encoding="utf-8"), files[p.name])  # generated, not edited
         re_cmake = (ROOT / BOARD / "generated/board.cmake").read_text(encoding="utf-8")
@@ -443,9 +445,10 @@ class Devices(unittest.TestCase):
 
     def setUp(self):
         self.root = Root()
-        (self.root.dir / "drivers").mkdir()
         (self.root.dir / "drivers" / "bindings.yaml").write_text(BINDINGS, encoding="utf-8")
-        self.root.edit(f"{BOARD}/board.yaml", "leds:", DEVICES + "leds:")
+        board = self.root.dir / BOARD / "board.yaml"
+        text = re.sub(r"^devices:\n(?:  - .*\n)+", "", board.read_text(encoding="utf-8"), flags=re.M)
+        board.write_text(text.replace("leds:", DEVICES + "leds:", 1), encoding="utf-8")
 
     def tearDown(self):
         self.root.close()

@@ -160,7 +160,9 @@ devices:
 - **Order.** EARLY devices come first, then KERNEL ones. Within a level, each device follows its `deps`, its `bus` and, for a peripheral with a clock gate, the board's clock-class devices. Ties keep the description's order, so the order is deterministic (DRV-001).
 - **Outputs.** `soc_devices.c` and `soc_devices.h`, a Devices table in `board.md`, `derived.devices` in `hw.json`, and in `board.cmake` the sources of the drivers the devices use, each once (DRV-009). The bindings file is an input, stamped like the others. A board without devices gets none of this, and its outputs do not change.
 - **At run time.** `emb_kernel_init()` initializes the EARLY devices before its initialization table runs, and `emb_kernel_start()` the KERNEL ones before the first thread ([device model](../specs/SPEC-016-device-and-driver-model.md)).
-- **In the tree.** The four MPS2 boards declare their console, `uart0`, bound to `arm,cmsdk-uart` (`drivers/arm/cmsdk_uart.c`).
+- **In the tree.**
+  - The four MPS2 boards declare their console, `uart0`, bound to `arm,cmsdk-uart` (`drivers/arm/cmsdk_uart.c`).
+  - The NUCLEO-F446RE and F446ZE declare the clock tree (`rcc`), the GPIO ports they use and their console USART, bound to thin adapters over the STM32 drivers (`drivers/st/stm32_devices.c`). The GPIO ports and the console follow `rcc`, which gates their clocks. The independent watchdog is not a device yet: initializing it would start it, and it cannot be stopped; it waits for the watchdog class (SPEC-017 §8).
 
 ## A numbered GPIO bank: the RP2350
 

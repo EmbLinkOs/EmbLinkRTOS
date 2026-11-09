@@ -32,6 +32,24 @@
       "CONFIG_EMB_PROFILE": "base",
       "CONFIG_EMB_TICK_NS": 1000000
     },
+    "devices": [
+      {
+        "name": "rcc"
+      },
+      {
+        "doc": "the console's pins and LD2",
+        "name": "gpioa"
+      },
+      {
+        "doc": "B1",
+        "name": "gpioc"
+      },
+      {
+        "baud": 115200,
+        "doc": "the console, the ST-LINK's virtual COM port",
+        "name": "usart2"
+      }
+    ],
     "doc": "The STM32F446RE at 180 MHz from the PLL, its input the ST-LINK's 8 MHz MCO on PH0 in HSE bypass (solder bridges SB16 and SB50 as shipped). The console is USART2, which the ST-LINK carries as its virtual COM port.",
     "flash_partitions": [
       {
@@ -133,7 +151,66 @@
         }
       ]
     },
-    "devices": [],
+    "devices": [
+      {
+        "class": "clock",
+        "compatible": "st,stm32f4-rcc",
+        "deps": [],
+        "fields": {
+          "base": 1073887232
+        },
+        "level": "early",
+        "name": "rcc",
+        "peripheral": "rcc"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073872896,
+          "clken_bit": 0,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpioa",
+        "peripheral": "gpioa"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073874944,
+          "clken_bit": 2,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpioc",
+        "peripheral": "gpioc"
+      },
+      {
+        "class": "uart",
+        "compatible": "st,stm32-usart",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073759232,
+          "baud": 115200,
+          "clken_bit": 17,
+          "clken_offset": 64,
+          "clock_hz": 45000000
+        },
+        "level": "early",
+        "name": "usart2",
+        "peripheral": "usart2"
+      }
+    ],
     "kconfig": {
       "CONFIG_EMB_CM_CPU_HZ": 180000000,
       "CONFIG_EMB_CM_IRQ_COUNT": 97,
@@ -231,7 +308,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "d704e5cff223bf2de2c60338c06dbd0d8cd920d7045b593bbed3c3607dfb0415"
+      "sha256": "f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "a9bc0ae57e42753f0a8973f4ec0ca9e193f9c5075396aeca376e64a149eb6170"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

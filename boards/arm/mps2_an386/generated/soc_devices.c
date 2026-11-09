@@ -8,7 +8,7 @@
  *   boards/arm/mps2_an386/board.yaml
  *     fb8cb5a83608718313cb0609c408db174e591cc020486c73b78e8220b5ac476b
  *   drivers/bindings.yaml
- *     1151976eb0d9a3a97ce89c3c20eb242e38bc36566526a267f25e28ca14a4ed85
+ *     a9bc0ae57e42753f0a8973f4ec0ca9e193f9c5075396aeca376e64a149eb6170
  *   soc/arm/mps2/an386.yaml
  *     2c8116f38add95936ae614674500e350c6fbc406a7fe82cbd245f7198df39f04
  *   soc/arm/mps2/mps2.yaml
@@ -48,7 +48,7 @@ const emb_device_t emb_dev_uart0 = {
 
 /* in initialization order */
 static const emb_device_t *const devices[] = {
-    &emb_dev_uart0,
+    &emb_dev_uart0, /* 0: EARLY */
 };
 
 const emb_device_table_t emb_board_device_table = {devices, 1u, 1u};

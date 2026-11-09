@@ -21,3 +21,37 @@ bindings:
     config: emb_cmsdk_uart_config_t
     fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
     doc: the MPS2 boards' console UART; polled, with the UART class's requests to come (SPEC-017 §4)
+  st,stm32f4-rcc:
+    class: clock
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_rcc_api
+    config: emb_stm32_rcc_config_t
+    fields: { base: peripheral.base }
+    doc: the clock tree the board support brings up before the kernel; READY once its switch is done
+  st,stm32-gpio:
+    class: gpio
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_gpio_api
+    config: emb_stm32_gpio_config_t
+    fields: { base: peripheral.base, clken_offset: peripheral.clock.enable_offset, clken_bit: peripheral.clock.bit }
+  st,stm32-usart:
+    class: uart
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_usart_api
+    config: emb_stm32_usart_config_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      baud: device.baud
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+    doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)

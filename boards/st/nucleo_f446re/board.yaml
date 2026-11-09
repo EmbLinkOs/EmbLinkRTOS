@@ -24,6 +24,13 @@ clocks:
 pins:
   usart2: { tx: PA2.af7, rx: PA3.af7 }
 console: { device: usart2, baud: 115200 }
+# the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
+# GPIO ports in use and the console
+devices:
+  - { name: rcc }
+  - { name: gpioa, doc: "the console's pins and LD2" }
+  - { name: gpioc, doc: B1 }
+  - { name: usart2, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:
