@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="372" viewBox="0 0 860 372">
+<style>text{font:12px sans-serif;fill:#222}.s{stroke:#1f6feb;stroke-width:1.5;fill:none}.a{stroke:#888;stroke-width:1;stroke-dasharray:3 3}.b{fill:#1f6feb;opacity:.75}.g{stroke:#ddd;stroke-width:1}.t{font-weight:bold}</style>
+<defs><marker id="m" viewBox="0 0 2 10" refX="1" refY="5" markerWidth="2" markerHeight="10"><rect width="2" height="10" fill="#1f6feb"/></marker></defs>
+<rect width="860" height="372" fill="#fff"/>
+<text class="t" x="10" y="20">One sample, 100 Hz, 15 ms of work per 10 ms period: degraded mode: the median latency</text>
+<text x="10" y="73">PA0  TIM2 trigger</text>
+<polyline class="s" points="170.0,56.0 226.9,56.0 226.9,80.0 840.0,80.0"/>
+<text x="10" y="119">PA10 ADC handler</text>
+<polyline class="s" points="170.0,126.0 483.2,126.0 483.2,102.0 522.1,102.0 522.1,126.0 840.0,126.0"/>
+<text x="10" y="165">PA8  control thread</text>
+<polyline class="s" points="170.0,172.0 555.3,172.0 555.3,148.0 840.0,148.0"/>
+<text x="10" y="211">PA9  console held</text>
+<polyline class="s" points="170.0,218.0 840.0,218.0"/>
+<line class="a" x1="226.9" y1="40" x2="226.9" y2="330"/>
+<line class="a" x1="483.2" y1="40" x2="483.2" y2="330"/>
+<line class="a" x1="522.1" y1="40" x2="522.1" y2="330"/>
+<line class="a" x1="555.3" y1="40" x2="555.3" y2="330"/>
+<line class="s" x1="226.9" y1="248" x2="483.2" y2="248" marker-start="url(#m)" marker-end="url(#m)"/>
+<text x="489.2" y="252" text-anchor="start">conversion 22.50 µs</text>
+<line class="s" x1="483.2" y1="270" x2="522.1" y2="270" marker-start="url(#m)" marker-end="url(#m)"/>
+<text x="528.1" y="274" text-anchor="start">handler 3.42 µs</text>
+<line class="s" x1="522.1" y1="292" x2="555.3" y2="292" marker-start="url(#m)" marker-end="url(#m)"/>
+<text x="561.3" y="296" text-anchor="start">wake 2.92 µs</text>
+<line class="s" x1="483.2" y1="314" x2="555.3" y2="314" marker-start="url(#m)" marker-end="url(#m)"/>
+<text x="561.3" y="318" text-anchor="start">latency 6.33 µs</text>
+<line class="g" x1="170.0" y1="350" x2="170.0" y2="354"/>
+<text x="162.0" y="366" style="fill:#888">-5 µs</text>
+<line class="g" x1="226.9" y1="350" x2="226.9" y2="354"/>
+<text x="218.9" y="366" style="fill:#888">0 µs</text>
+<line class="g" x1="283.9" y1="350" x2="283.9" y2="354"/>
+<text x="275.9" y="366" style="fill:#888">5 µs</text>
+<line class="g" x1="340.8" y1="350" x2="340.8" y2="354"/>
+<text x="332.8" y="366" style="fill:#888">10 µs</text>
+<line class="g" x1="397.8" y1="350" x2="397.8" y2="354"/>
+<text x="389.8" y="366" style="fill:#888">15 µs</text>
+<line class="g" x1="454.7" y1="350" x2="454.7" y2="354"/>
+<text x="446.7" y="366" style="fill:#888">20 µs</text>
+<line class="g" x1="511.6" y1="350" x2="511.6" y2="354"/>
+<text x="503.6" y="366" style="fill:#888">25 µs</text>
+<line class="g" x1="568.6" y1="350" x2="568.6" y2="354"/>
+<text x="560.6" y="366" style="fill:#888">30 µs</text>
+<line class="g" x1="625.5" y1="350" x2="625.5" y2="354"/>
+<text x="617.5" y="366" style="fill:#888">35 µs</text>
+<line class="g" x1="682.5" y1="350" x2="682.5" y2="354"/>
+<text x="674.5" y="366" style="fill:#888">40 µs</text>
+<line class="g" x1="739.4" y1="350" x2="739.4" y2="354"/>
+<text x="731.4" y="366" style="fill:#888">45 µs</text>
+<line class="g" x1="796.3" y1="350" x2="796.3" y2="354"/>
+<text x="788.3" y="366" style="fill:#888">50 µs</text>
+</svg>

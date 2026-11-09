@@ -1,6 +1,6 @@
 # Changelog
 
-User-visible changes are recorded here. There are no released versions or release tags in the reviewed repository; `0.2.0` in the headers identifies development, not a supported release. Move relevant Unreleased entries into a dated version section only when the [release checklist](docs/engineering/releases.md) is complete. Record support scope and known limits with each release.
+User-visible changes are recorded here, newest first. A change not yet released is one file in [`changes/`](changes/README.md) until the next release folds it in. Versions before 1.0 are previews: tested, but their API and formats may change; the [release notes](docs/engineering/release-0.2.0.md) give each one's scope and limits.
 
 ## Unreleased
 
@@ -9,6 +9,45 @@ User-visible changes are recorded here. There are no released versions or releas
 - A drift-free blinky example toggles the board LED every 500 ms and reports
   each transition on the board console. On the native port, it exits after
   10 toggles.
+## [0.2.0] - 2026-11-09
+
+The first release, a preview ([notes](docs/engineering/release-0.2.0.md), [tag](https://github.com/EmbLinkOs/EmbLinkRTOS/releases/tag/v0.2.0)). Everything below was developed before it.
+
+### Changed (merging without updating every pull request, 2026-11-08)
+
+- A user-visible change records its changelog entry as one file in `changes/`, not as an edit of `CHANGELOG.md`; `tools/release/changes.py` checks the files in CI and folds them into the changelog at release. Two pull requests no longer conflict on the changelog's first lines.
+- The workflows run on `merge_group`, and `.github/rulesets/main.json` replaces "require branches to be up to date" with a merge queue, which tests each pull request on the latest `main` before merging it ([repository workflow](docs/engineering/repository-workflow.md)). The repository's live ruleset changes when an administrator applies it.
+
+### Changed (the M3 contract review, 2026-11-08)
+
+- The project owner reviewed the M3 amendments A66 to A107 by topic and accepted them as written, with A72's build identity extended to the toolchain ([amendments](docs/specs/AMENDMENTS-M3.md)). ADR-051 to ADR-054 and ADR-056 are accepted, and so are PORT-015 and PORT-016 with the amendments that introduced them (A88, A90).
+
+### Changed (the build identity includes the toolchain, 2026-11-08)
+
+- The build identity (A72), which the crash decoder uses to refuse a record from another image, also digests the toolchain: the compiler's identity and version and whether LTO is on. Before, GCC, Clang and LTO images of one commit and configuration shared an id, so a crash record could be decoded against the wrong image. The generated `build_id.c` names the toolchain. Every image's id changes once; the double build still gives one id ([page](docs/engineering/crash-record.md)).
+
+### Fixed (the memory report for Clang, 2026-11-08)
+
+- `tools/footprint/memory_report.py` reads LLD's map as well as GNU ld's, so it accounts for Clang images. LLD's map lists no memory regions; the report takes them from the linker script's `MEMORY` block, found through the link command or given with `--ldscript`. Before, it stopped with an index error on every Clang image ([page](docs/engineering/controller-memory-2026-11-07.md)). CI now reports the Clang controller's memory in the `static-analysis` job.
+
+### Fixed (the stack bound under LTO and Clang, 2026-11-08)
+
+- `tools/footprint/stack_bound.py` computes the bound of an LTO image. LTO inlines `embk_isr_dispatch`, `emb_kernel_init` and the timer path into the vector entries, so their indirect calls sat in functions the roots file does not name. The tool now resolves each indirect call through the functions inlined at it, from the debug information, and matches GCC's clones (`.constprop`, `.isra`) to their originals. The reference controller's LTO bound is 216, 264 and 208 bytes for its threads and 1,076 for the interrupt stack ([page](docs/engineering/controller-memory-2026-11-07.md)).
+- The tool takes a function's instructions only up to its symbol's size. Clang places string constants after the code, and one decoded as an indirect branch in the checked Clang image's `embn_cm_pendsv`.
+- CI computes the controller's stack bound for a release LTO build and for the Clang build as well.
+
+### Fixed (reproducible LTO builds, 2026-11-08)
+
+- An image built with `EMB_LTO=ON` by GCC no longer names the absolute build directory. The code GCC generates at the link goes into one more compilation unit, whose compilation directory the compile-time prefix maps did not reach; they are now link options too under LTO ([page](docs/engineering/reproducible-builds.md)). CI's double build now includes the reference controller with LTO.
+- `tools/repro/double_build.py` resolves its default work directory. On macOS that directory is under a symbolic link, and every image differed in its debug information.
+
+### Added (reproducible LTO builds, 2026-11-08)
+
+- `double_build.py --app` takes CMake options after `+`, for example `examples/controller:nucleo_f446re+EMB_LTO=ON`.
+
+### Added (the controller's release builds on the board, 2026-11-08)
+
+- The reference controller's release builds ran their 9-phase session and the external timing on the NUCLEO-F446RE: GCC with a 30-minute soak, GCC with LTO, and Clang, each 9/9 with nothing missed ([report](docs/engineering/controller-release-2026-11-08.md)). From the conversion interrupt to the control thread at work, the analyzer measured a median of 7.33 µs for GCC, 6.25 µs for Clang and 5.92 µs for GCC with LTO, against 9.50 µs for the checked build. The run found that under LTO neither the stack bound nor the image's source paths hold, and that the memory report reads GNU ld's map only.
 
 ### Changed (the README, 2026-11-08)
 

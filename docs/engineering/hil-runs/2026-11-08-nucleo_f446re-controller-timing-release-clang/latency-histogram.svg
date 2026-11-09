@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="440" viewBox="0 0 860 440">
+<style>text{font:12px sans-serif;fill:#222}.s{stroke:#1f6feb;stroke-width:1.5;fill:none}.a{stroke:#888;stroke-width:1;stroke-dasharray:3 3}.b{fill:#1f6feb;opacity:.75}.g{stroke:#ddd;stroke-width:1}.t{font-weight:bold}</style>
+<rect width="860" height="440" fill="#fff"/>
+<text class="t" x="10" y="20">The handler's start to the control thread at work (latency), per sample</text>
+<line class="g" x1="170" y1="115" x2="840" y2="115"/>
+<text x="10" y="70">normal</text>
+<text x="10" y="86" style="fill:#666">n=2000 max 6.50 µs</text>
+<rect class="b" x="170.0" y="50.0" width="110.7" height="65.0"/>
+<rect class="b" x="281.7" y="66.2" width="110.7" height="48.8"/>
+<rect class="b" x="393.3" y="96.8" width="110.7" height="18.2"/>
+<rect class="b" x="505.0" y="85.0" width="110.7" height="30.0"/>
+<line class="g" x1="170" y1="205" x2="840" y2="205"/>
+<text x="10" y="160">load30</text>
+<text x="10" y="176" style="fill:#666">n=2000 max 6.50 µs</text>
+<rect class="b" x="170.0" y="140.0" width="110.7" height="65.0"/>
+<rect class="b" x="281.7" y="156.5" width="110.7" height="48.5"/>
+<rect class="b" x="505.0" y="172.8" width="110.7" height="32.2"/>
+<line class="g" x1="170" y1="295" x2="840" y2="295"/>
+<text x="10" y="250">fast</text>
+<text x="10" y="266" style="fill:#666">n=19998 max 6.50 µs</text>
+<rect class="b" x="170.0" y="230.0" width="110.7" height="65.0"/>
+<rect class="b" x="281.7" y="236.8" width="110.7" height="58.2"/>
+<rect class="b" x="393.3" y="264.6" width="110.7" height="30.4"/>
+<rect class="b" x="505.0" y="254.1" width="110.7" height="40.9"/>
+<line class="g" x1="170" y1="385" x2="840" y2="385"/>
+<text x="10" y="340">overload</text>
+<text x="10" y="356" style="fill:#666">n=999 max 6.58 µs</text>
+<rect class="b" x="170.0" y="320.0" width="110.7" height="65.0"/>
+<rect class="b" x="281.7" y="327.2" width="110.7" height="57.8"/>
+<rect class="b" x="393.3" y="373.9" width="110.7" height="11.1"/>
+<rect class="b" x="505.0" y="347.1" width="110.7" height="37.9"/>
+<rect class="b" x="616.7" y="355.3" width="110.7" height="29.7"/>
+<text x="160.0" y="432" style="fill:#888">6.25 µs</text>
+<text x="271.7" y="432" style="fill:#888">6.33 µs</text>
+<text x="383.3" y="432" style="fill:#888">6.42 µs</text>
+<text x="495.0" y="432" style="fill:#888">6.50 µs</text>
+<text x="606.7" y="432" style="fill:#888">6.58 µs</text>
+<text x="718.3" y="432" style="fill:#888">6.67 µs</text>
+<text x="830.0" y="432" style="fill:#888">6.75 µs</text>
+<text x="600" y="416" style="fill:#888">bar height: log of the count</text>
+</svg>

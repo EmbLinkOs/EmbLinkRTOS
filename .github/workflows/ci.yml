@@ -12,6 +12,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  merge_group: # the merge queue tests a pull request on the latest main before merging it
 
 permissions:
   contents: read
@@ -357,6 +358,10 @@ jobs:
             | xargs -0 clang-format-18 --dry-run -Werror
       - name: Banned constructs
         run: python3 -I scripts/check-banned.py
+      - name: Changelog entries (changes/)
+        run: |
+          python3 -I -m unittest discover -s tools/release -p 'test_*.py' -v
+          python3 -I tools/release/changes.py check
       - name: API ID registry and decoder contract
         run: |
           python3 -I tools/fault/generate.py --check
@@ -785,6 +790,13 @@ jobs:
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
+      - name: The controller's stack bound in a release build with LTO, where GCC inlines across files
+        run: |
+          cmake -S "$RUNNER_TEMP/controller" -B build/controller-lto -G Ninja -DEmbLinkRTOS_DIR="$PWD/cmake" \
+                -DEMB_BOARD=nucleo_f446re -DEMB_SET=EMB_CHECKED=n -DEMB_LTO=ON
+          cmake --build build/controller-lto
+          python3 -I tools/footprint/stack_bound.py --elf build/controller-lto/controller.elf \
+                  --build build/controller-lto --roots examples/controller/stack-roots.json
       - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
         run: |
           python3 -m venv "$RUNNER_TEMP/spdx"
@@ -865,6 +877,14 @@ jobs:
           cmake -S examples/controller -B build/controller-tidy -G Ninja -DEMB_BOARD=nucleo_f446re \
                 -DCMAKE_TOOLCHAIN_FILE="$tc" > /dev/null
           cmake --build build/controller-tidy
+      - name: The Clang controller's stack bound
+        run: |
+          python3 -I tools/footprint/stack_bound.py --elf build/controller-tidy/controller.elf \
+                  --build build/controller-tidy --roots examples/controller/stack-roots.json
+      - name: The Clang controller's memory report, from LLD's map
+        run: |
+          python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \
+                  --elf build/controller-tidy/controller.elf
       - name: clang-tidy
         run: |
           python3 -I tools/analysis/clang_tidy.py --clang-tidy clang-tidy-18 \
@@ -935,7 +955,7 @@ jobs:
           python3 -I tools/repro/double_build.py --work "$RUNNER_TEMP/repro" \
             --preset native-gcc --preset native-clang --preset cm4-an386 --preset cm4-an386-clang \
             --preset rv32-virt --preset avr-uno --preset cm33-pico2w \
-            --app examples/controller:nucleo_f446re
+            --app examples/controller:nucleo_f446re --app examples/controller:nucleo_f446re+EMB_LTO=ON
 
   merge_gate:
     name: CI merge gate

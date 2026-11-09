@@ -134,12 +134,13 @@ def table_targets(elf, objdump, nm, table, funcs):
 
 
 def call_graph(funcs):
-    """{function: {"calls": set, "indirect": bool, "fp": bool}} from bl, tail branches and blx."""
+    """{function: {"calls": set, "indirect": [address], "fp": bool}} from bl, tail branches and
+    blx; "indirect" holds the address of each indirect call or jump."""
     starts = {f["start"]: name for name, f in funcs.items()}
     graph = {}
     for name, f in funcs.items():
-        calls, indirect, fp = set(), False, False
-        for _, op, args in f["insns"]:
+        calls, indirect, fp = set(), [], False
+        for addr, op, args in f["insns"]:
             base = op.split(".")[0]
             if FP_OPS.match(base) and base not in ("vmrs", "vmsr"):
                 fp = True
@@ -151,11 +152,64 @@ def call_graph(funcs):
                     if target and target != name and (base in ("bl", "blx") or not m.group(3)):
                         calls.add(target)
                 elif base == "blx" or (base == "bx" and not args.startswith("lr")):
-                    indirect = True
-            if base == "bx" and not args.startswith("lr"):
-                indirect = True
-        graph[name] = {"calls": calls, "indirect": indirect, "fp": fp}
+                    indirect.append(addr)
+            elif base == "bx" and not args.startswith("lr"):
+                indirect.append(addr)
+        graph[name] = {"calls": calls, "indirect": sorted(set(indirect)), "fp": fp}
     return graph
+
+
+CLONE = re.compile(r"\.(?:constprop|isra|part|cold|lto_priv)\.\d+")
+
+
+def base_name(name):
+    """A function's name without GCC's clone suffixes (raise_info.constprop.0 is raise_info)."""
+    return CLONE.sub("", name)
+
+
+def inline_chains(elf, addr2line, addresses):
+    """{address: [function, innermost first]}: the functions inlined at each address, from the
+    debug information (addr2line -i). Under LTO, or wherever a function is inlined, an indirect
+    call sits in a function other than the one that makes it in the source."""
+    if not addresses:
+        return {}
+    out = subprocess.run([addr2line, "-f", "-i", "-a", "-e", str(elf), *(f"{a:#x}" for a in addresses)],
+                         capture_output=True, text=True, check=True).stdout.splitlines()
+    # each address's line, then one (function, file:line) pair per inlined level, innermost first
+    chains, cur, pair = {}, None, 0
+    for line in out:
+        if re.match(r"^0x[0-9a-f]+$", line):
+            cur, pair = int(line, 16), 0
+            chains[cur] = []
+            continue
+        if cur is not None and pair % 2 == 0 and line.strip() != "??":
+            chains[cur].append(line.strip())
+        pair += 1
+    return chains
+
+
+def resolve_indirect(graph, resolve, chains_of):
+    """Each indirect call's targets, by the function that makes it in the source: the function
+    itself, or the first of the functions inlined at the call that the roots file names. Sets
+    node["targets"] and node["unresolved"]; chains_of(addresses) gives the inline chains."""
+    pending = {}
+    for name, node in graph.items():
+        node["targets"], node["unresolved"] = set(), []
+        if not node["indirect"]:
+            continue
+        key = name if name in resolve else base_name(name)
+        if key in resolve:
+            node["targets"] |= set(resolve[key])
+        else:
+            pending[name] = node
+    chains = chains_of([a for node in pending.values() for a in node["indirect"]]) if pending else {}
+    for name, node in pending.items():
+        for addr in node["indirect"]:
+            hit = next((base_name(f) for f in chains.get(addr, []) if base_name(f) in resolve), None)
+            if hit is None:
+                node["unresolved"].append(addr)
+            else:
+                node["targets"] |= set(resolve[hit])
 
 
 class Bound:
@@ -178,9 +232,14 @@ class Bound:
             self.problems.append(f"{name}: not in the image")
             return 0, [name], False
         callees = set(node["calls"])
-        if node["indirect"]:
-            if name in self.resolve:
-                callees |= set(self.resolve[name])
+        if "targets" in node:  # resolved by resolve_indirect, call by call
+            callees |= node["targets"]
+            for addr in node["unresolved"]:
+                self.problems.append(f"{name}: an indirect call the roots file does not resolve (at {addr:#x})")
+        elif node["indirect"]:  # by the function's name only
+            key = name if name in self.resolve else base_name(name)
+            if key in self.resolve:
+                callees |= set(self.resolve[key])
             else:
                 self.problems.append(f"{name}: an indirect call the roots file does not resolve")
         best, best_path, fp = 0, [], node["fp"]
@@ -194,8 +253,29 @@ class Bound:
         return result
 
 
-def analyze(elf, build, roots, objdump, nm):
-    funcs = disassemble(elf, objdump)
+def symbol_sizes(elf, nm):
+    """{function: size} of the image's sized code symbols (nm -S)."""
+    out = {}
+    for line in subprocess.run([nm, "-S", str(elf)], capture_output=True, text=True, check=True).stdout.splitlines():
+        parts = line.split()
+        if len(parts) == 4 and parts[2] in "tTwW":
+            out[parts[3]] = int(parts[1], 16)
+    return out
+
+
+def trim(funcs, sizes):
+    """Each function's instructions within its symbol's size. Bytes after a function and before
+    the next symbol, such as string constants Clang places after the code, are not code, though
+    objdump disassembles them as the function's: as data they can look like an indirect branch."""
+    for name, f in funcs.items():
+        size = sizes.get(name)
+        if size:
+            f["insns"] = [i for i in f["insns"] if i[0] < f["start"] + size]
+    return funcs
+
+
+def analyze(elf, build, roots, objdump, nm, addr2line=None):
+    funcs = trim(disassemble(elf, objdump), symbol_sizes(elf, nm))
     su = read_su(build)
     graph = call_graph(funcs)
     frames, sources, problems = {}, {}, []
@@ -214,6 +294,8 @@ def analyze(elf, build, roots, objdump, nm):
             resolve[caller] = table_targets(elf, objdump, nm, targets["table"], funcs)
         else:
             resolve[caller] = targets
+    tool = addr2line or re.sub(r"objdump$", "addr2line", objdump)
+    resolve_indirect(graph, resolve, lambda addrs: inline_chains(elf, tool, addrs))
     b = Bound(graph, frames, resolve)
     report = {"threads": {}, "isr": {}, "problems": problems, "resolved": resolve}
     for thread, spec in roots["threads"].items():
@@ -270,11 +352,12 @@ def main(argv=None):
     ap.add_argument("--roots", required=True, help="the application's roots file (JSON)")
     ap.add_argument("--objdump", default="arm-none-eabi-objdump")
     ap.add_argument("--nm", default="arm-none-eabi-nm")
+    ap.add_argument("--addr2line", help="default: the objdump's addr2line")
     ap.add_argument("--json", help="write the report here")
     args = ap.parse_args(argv)
     try:
         roots = json.loads(Path(args.roots).read_text(encoding="utf-8"))
-        rep = analyze(args.elf, args.build, roots, args.objdump, args.nm)
+        rep = analyze(args.elf, args.build, roots, args.objdump, args.nm, args.addr2line)
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as e:
         print(f"stack_bound: {e}", file=sys.stderr)
         return 2

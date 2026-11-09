@@ -1,12 +1,12 @@
 # Changelog and release checklist
 
-The repository is in `0.2` development and has no recorded release tags. Version constants in `include/emb/version.h` are not proof of a published or supported version. This page defines the release process; it does not cut a release or imply that the future evidence pipeline is implemented. The [roadmap](../architecture/07-roadmap.md), [Project status](../STATUS.md), [repository workflow](repository-workflow.md) and [timing/evidence contract](timing-and-evidence.md) determine what can be claimed.
+The first release is [0.2.0](release-0.2.0.md), a preview, tagged `v0.2.0`. Version constants in `include/emb/version.h` are not proof of a published or supported version. This page defines the release process; it does not cut a release or imply that the future evidence pipeline is implemented. The [roadmap](../architecture/07-roadmap.md), [Project status](../STATUS.md), [repository workflow](repository-workflow.md) and [timing/evidence contract](timing-and-evidence.md) determine what can be claimed.
 
 ## Maintain the changelog
 
-Edit the root [CHANGELOG.md](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/CHANGELOG.md) in the same PR as a user-visible change. Write observable behavior, API/configuration compatibility and a migration instruction when needed. Use Added, Changed, Fixed, Removed and Known limits as applicable. Do not put a fix under Fixed while the reproduction is still unexplained or failing. Keep entries in Unreleased until the exact release commit is approved and validated.
+Record a user-visible change in the same PR as one file in [`changes/`](https://github.com/EmbLinkOs/EmbLinkRTOS/tree/main/changes), in the changelog's form, rather than in [CHANGELOG.md](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/CHANGELOG.md) itself: two PRs then never edit the same lines. CI checks the files' form. Write observable behavior, API/configuration compatibility and a migration instruction when needed. Use Added, Changed, Fixed, Removed and Known limits as applicable. Do not put a fix under Fixed while the reproduction is still unexplained or failing. Keep entries in Unreleased until the exact release commit is approved and validated.
 
-At release time move only delivered entries into `## [version] - YYYY-MM-DD`, using the actual release date and an immutable tag/source link. Keep unfinished entries in Unreleased. Avoid claiming an Accepted specification is an implemented feature. A versioned support statement must name the actual supported profile, board, compiler versions and maintenance dates.
+At release time, first fold the entry files into Unreleased with `python3 tools/release/changes.py collect`, which deletes them. Then move only delivered entries into `## [version] - YYYY-MM-DD`, using the actual release date and an immutable tag/source link. Keep unfinished entries in Unreleased. Avoid claiming an Accepted specification is an implemented feature. A versioned support statement must name the actual supported profile, board, compiler versions and maintenance dates.
 
 ## Scope and source checkpoint
 
@@ -40,6 +40,14 @@ REL-001 requires a signed release, SBOM and reproducibility/conformance evidence
 - [ ] Push the verified tag and publish a GitHub release with matching notes/artifacts/checksums. There is currently no automated release workflow; do this only as the scoped release action, not as part of routine documentation setup.
 - [ ] Publish the matching reviewed documentation revision with the manual Documentation workflow. The current site is a single development snapshot, not a version switcher or immutable release archive; archive release docs with the bundle.
 - [ ] Re-download and verify the public artifacts, tag/signature and checksums, and check the published scope/support/migration links.
+
+**The signing key.** Release tags and checksum files are signed with the maintainer's SSH key (git's `gpg.format=ssh`). Its public half is in [`.github/allowed_signers`](https://github.com/EmbLinkOs/EmbLinkRTOS/blob/main/.github/allowed_signers), for the `git` and `file` namespaces, and on the maintainer's GitHub account as a signing key, so GitHub shows the tag as verified. To verify a release:
+
+```sh
+git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag v0.2.0
+ssh-keygen -Y verify -f .github/allowed_signers -I motsoujunior17@gmail.com -n file -s SHA256SUMS.sig < SHA256SUMS
+sha256sum -c SHA256SUMS
+```
 
 Example signing commands, only after the checklist is satisfied and a signing key is already configured:
 

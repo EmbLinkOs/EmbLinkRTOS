@@ -65,6 +65,37 @@ class Graph(unittest.TestCase):
         self.assertTrue(any("indirect" in p for p in b.problems))
         self.assertTrue(any("recursion" in p for p in b.problems))
 
+    def test_clone_names(self):
+        self.assertEqual(sb.base_name("raise_info.constprop.0"), "raise_info")
+        self.assertEqual(sb.base_name("send_common.isra.0"), "send_common")
+        self.assertEqual(sb.base_name("embk_sched_select"), "embk_sched_select")
+
+    def test_an_inlined_indirect_call_resolves_through_its_chain(self):
+        # under LTO, embk_isr_dispatch (named in the roots) is inlined into the vector's entry
+        funcs = {"entry": fn(0x100, ("push", "{lr}"), ("blx", "r3"), ("blx", "r4")),
+                 "isr_a": fn(0x200, ("push", "{r4, lr}"), ("bx", "lr"))}
+        g = sb.call_graph(funcs)
+        self.assertEqual(g["entry"]["indirect"], [0x102, 0x104])
+        chains = {0x102: ["embk_isr_dispatch", "entry"], 0x104: ["helper", "entry"]}
+        sb.resolve_indirect(g, {"embk_isr_dispatch": ["isr_a"]}, lambda addrs: {a: chains[a] for a in addrs})
+        self.assertEqual(g["entry"]["targets"], {"isr_a"})
+        self.assertEqual(g["entry"]["unresolved"], [0x104])  # helper is not in the roots: a problem
+        b = sb.Bound(g, {"entry": 4, "isr_a": 8}, {})
+        self.assertEqual(b.depth("entry")[1], ["entry", "isr_a"])
+        self.assertTrue(any("0x104" in p for p in b.problems))
+
+    def test_a_clone_uses_its_functions_roots(self):
+        g = sb.call_graph({"raise_info.constprop.0": fn(0x100, ("blx", "r3"))})
+        sb.resolve_indirect(g, {"raise_info": []}, lambda addrs: self.fail("no chain needed"))
+        self.assertEqual(g["raise_info.constprop.0"]["unresolved"], [])
+
+    def test_bytes_after_a_function_are_not_its_code(self):
+        # data after the last function in a section, disassembled as if it were code
+        funcs = {"pendsv": fn(0x100, ("push", "{lr}"), ("bx", "lr"), ("cmp", "r0, r0"), ("bx", "sl"))}
+        trimmed = sb.trim(funcs, {"pendsv": 4})
+        self.assertEqual([op for _, op, _ in trimmed["pendsv"]["insns"]], ["push", "bx"])
+        self.assertEqual(sb.call_graph(trimmed)["pendsv"]["indirect"], [])
+
     def test_regs(self):
         self.assertEqual(sb.regs_in("{r4-r11, lr}"), 9)
         self.assertEqual(sb.regs_in("sp!, {r3}"), 1)

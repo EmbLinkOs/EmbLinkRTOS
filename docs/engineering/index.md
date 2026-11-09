@@ -8,6 +8,7 @@ documentation-references
 timing-and-evidence
 repository-workflow
 releases
+release-0.2.0
 m2-checklist
 m2-01-investigation
 m2-01-timer-correction
@@ -42,6 +43,7 @@ controller-nucleo-2026-11-07
 controller-timing-2026-11-07
 controller-memory-2026-11-07
 controller-soak-2026-11-08
+controller-release-2026-11-08
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07

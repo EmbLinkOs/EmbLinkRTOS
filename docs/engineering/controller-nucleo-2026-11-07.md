@@ -132,7 +132,7 @@ The first attempts failed. Each failure was a real defect, fixed before the run 
 - **The soak is 30 minutes.** A later overnight soak ran 10 hours 6 minutes with nothing missed or dropped ([soak report](controller-soak-2026-11-08.md)).
 - **Stack use was read before the overload.** The run's later phases may have used more; a `status` at the end of the run is the next session's addition.
 - **Latency in this run comes from the cycle counter.** The external measurement is a [separate report](controller-timing-2026-11-07.md).
-- **One board, one compiler on the board.** The Clang image was built but not run.
+- **One board, one compiler on the board.** The Clang image was built but not run. It ran on 2026-11-08, with the release builds ([release builds](controller-release-2026-11-08.md)).
 - **Hardware run index:** the run is not in `hardware-runs.json`, whose entries are the suite's runs (`emb-hil-run v1`).
 
 ## Reproducing it

@@ -11,7 +11,7 @@
 
 **EmbLinkRTOS is a real-time kernel for microcontrollers, written in C.** The same kernel source and the same semantics run on an 8-bit ATmega328P with 2 KB of RAM, on Cortex-M0 to M33, on RISC-V and on the ESP32. Every claim it makes comes with the evidence behind it: the test that checks it, the board it ran on, the build that produced it.
 
-> **Status: before 1.0.** The kernel is implemented and runs on hardware. The first release is being prepared, and the API may still change until then. [What works today](docs/STATUS.md) · [Roadmap](docs/architecture/07-roadmap.md)
+> **Status: 0.2.0, a preview.** The kernel is implemented and runs on hardware; the API may still change before 1.0. [Release notes](docs/engineering/release-0.2.0.md) · [What works today](docs/STATUS.md) · [Roadmap](docs/architecture/07-roadmap.md)
 
 ## Why EmbLinkRTOS
 

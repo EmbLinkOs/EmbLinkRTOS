@@ -28,7 +28,7 @@ The tool reads only what the build already recorded. It runs nothing but `ninja 
 - `hardware_description_sha256`: over the board, SoC and architecture descriptions the board generator recorded as its inputs, with their paths;
 - `build_id`: the 20-byte identity the image itself carries (A72).
 
-The commit and the configuration hash are embedded in the image through the build identity, which is a digest of them. The toolchain's identity and the hardware description's hash are not part of the build identity; they are in the SBOM only.
+The commit, the configuration hash and the toolchain (the compiler's identity and version, and whether LTO is on) are embedded in the image through the build identity, which is a digest of them (A72). The hardware description's hash is not part of the build identity; it is in the SBOM only.
 
 **The document is deterministic.** Its creation time is the commit's, its namespace derives from the image's hash, and every list is sorted. The same build gives the same bytes. It does not affect the double build of BLD-004, which compares images, not SBOMs.
 
