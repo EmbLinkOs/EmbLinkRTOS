@@ -1,0 +1,5 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image bench_switch.elf sha256 b4f7b83034777e98325dc02d98c39fcfdcddceae040dde3d2356c920802b9152
+bench notify round trip (2 switches): total 19894263 cycle-units over 20000 ops; per op x100 = 99471
+BENCH v1 name=notify_handover units=19894263 ops=20000 per_op_x100=99471 unit_hz=180000000 checked=1
+meta: board nucleo_f446re, compiler gcc, profile base, checked 1, cycle unit hz 180000000
+BENCH_END
