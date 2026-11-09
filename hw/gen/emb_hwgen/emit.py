@@ -725,7 +725,11 @@ def soc_devices_c(r):
         out += f"    .dep_count = {len(d['deps'])}u,\n"
         out += "};\n"
     out += "\n/* in initialization order */\nstatic const emb_device_t *const devices[] = {\n"
-    out += "".join(f"    &emb_dev_{d['name']},\n" for d in r["devices"]) + "};\n\n"
+    width = max(len(f"&emb_dev_{d['name']},") for d in r["devices"])
+    for i, d in enumerate(r["devices"]):
+        entry = f"&emb_dev_{d['name']},"
+        out += f"    {entry.ljust(width)} /* {i}: {d['level'].upper()} */\n"
+    out += "};\n\n"
     out += f"const emb_device_table_t emb_board_device_table = {{devices, {len(r['devices'])}u, {early}u}};\n"
     out += "#else\n/* ISO C: a translation unit declares something */\ntypedef int emb_soc_devices_off_t;\n#endif\n"
     return out
