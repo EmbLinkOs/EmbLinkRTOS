@@ -20,6 +20,7 @@
 
 /* One character at 115200 baud from a 150 MHz core is ~13 000 cycles, a few thousand polls. */
 #define TX_BOUND 100000u
+#define TX_FIFO  32u /* the transmit FIFO's depth (PL011 TRM §2.4.2) */
 
 /* pico-sdk's divisor: 64ths of the 16x oversampled bit time, rounded; IBRD its upper part */
 static uint32_t divisor(uint32_t clock_hz, uint32_t baud)
@@ -51,7 +52,7 @@ void emb_pl011_putc(uintptr_t base, char c)
 void emb_pl011_flush(uintptr_t base)
 {
     uint32_t n;
-    for (n = 0u; n < TX_BOUND; n++) { /* bounded by TX_BOUND: the last character's frame */
+    for (n = 0u; n < (TX_BOUND * TX_FIFO); n++) { /* bounded: a full FIFO's character times */
         if ((REG32(base + UART_FR) & FR_BUSY) == 0u) {
             break;
         }

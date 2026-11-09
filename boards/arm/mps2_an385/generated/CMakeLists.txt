@@ -7,7 +7,7 @@
 #   boards/arm/mps2_an385/board.yaml
 #     ffb11f5ba747481a9325d7dc88102f9a7fe61b978a497e8ee77fc62acff584ce
 #   drivers/bindings.yaml
-#     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+#     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
 #   soc/arm/mps2/an385.yaml
 #     95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec
 #   soc/arm/mps2/mps2.yaml

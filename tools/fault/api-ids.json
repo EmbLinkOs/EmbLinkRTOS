@@ -1093,6 +1093,60 @@
       "name": "emb_drv_spi_transfer",
       "header": "drv_spi.h",
       "state": "active"
+    },
+    {
+      "id": 186,
+      "name": "emb_drv_gpio_configure",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 187,
+      "name": "emb_drv_gpio_write",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 188,
+      "name": "emb_drv_gpio_read",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 189,
+      "name": "emb_drv_gpio_assert",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 190,
+      "name": "emb_drv_spi_acquire",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 191,
+      "name": "emb_drv_spi_release",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 192,
+      "name": "emb_drv_spi_bus_init",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 193,
+      "name": "emb_drv_spi_begin",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 194,
+      "name": "emb_drv_spi_end",
+      "header": "drv_spi.h",
+      "state": "active"
     }
   ]
 }

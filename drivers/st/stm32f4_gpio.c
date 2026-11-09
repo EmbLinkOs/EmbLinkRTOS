@@ -17,6 +17,9 @@ void emb_stm32_pins_apply(const emb_stm32_pin_t *pins, unsigned count)
         const emb_stm32_pin_t *p = &pins[i];
         uint32_t pin = p->pin;
         emb_stm32_clock_enable(p->clken_offset, p->clken_bit);
+        if (p->mode == EMB_STM32_PIN_OUTPUT && p->level != 0u) { /* the level before the mode */
+            REG32(p->port_base + GPIO_BSRR) = 1u << pin;
+        }
         if (p->mode == EMB_STM32_PIN_AF) { /* the function first, so the pin never shows another */
             uintptr_t afr = p->port_base + GPIO_AFRL + ((pin >> 3) * 4u);
             uint32_t shift = (pin & 7u) * 4u;

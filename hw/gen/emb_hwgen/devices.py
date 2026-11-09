@@ -168,7 +168,7 @@ def resolve(board, soc, clk, bindings, err):
         d = devs[n]
         b, e = d["binding"], d["entry"]
         ctx = {"device": {k: v for k, v in e.items() if k not in ("deps", "doc")},
-               "board": board.data}
+               "board": board.data, "soc": soc.data}
         if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
         if "bus" in e:

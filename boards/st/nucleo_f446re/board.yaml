@@ -31,9 +31,10 @@ console: { device: usart2, baud: 115200 }
 devices:
   - { name: rcc }
   - { name: gpioa, doc: "the console's pins and LD2" }
+  - { name: gpiob, doc: "SPI2's chip select, PB12" }
   - { name: gpioc, doc: B1 }
   - { name: usart2, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
-  - { name: spi2, doc: "SPI2 on PB13 to PB15; the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
+  - { name: spi2, cs: [PB12], doc: "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]

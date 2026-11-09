@@ -31,6 +31,7 @@ typedef struct emb_pl022_config {
 #if CONFIG_EMB_DRV_SPI
 /* A PL022 device's RAM. */
 typedef struct emb_pl022_data {
+    emb_drv_spi_bus_t bus;   /* the class's, first */
     emb_drv_spi_req_t *xfer; /* the transfer in progress */
     const emb_device_t *dev; /* for the interrupt handler */
     size_t sent;             /* frames written to the transmit FIFO */

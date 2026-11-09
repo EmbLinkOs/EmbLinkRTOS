@@ -5,9 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     8cca7c1360078773243d7c2233daf9706a22d70211b53dd264e9530b9352c40c
+#     c8e8f52bbbcdec66759d400c131db05e49bc5224cc2ffdec76a3952ca3c502ed
 #   drivers/bindings.yaml
-#     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+#     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
 #   soc/rpi/rp2350/rp2350.yaml
 #     405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259
 #   soc/rpi/rp2350/rp2350a.yaml

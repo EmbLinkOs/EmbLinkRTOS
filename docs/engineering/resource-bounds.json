@@ -545,7 +545,27 @@
     ],
     "emb_drv_spi_transfer": [
       "spi_frames",
-      "drivers"
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_spi_acquire": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_spi_release": [
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_spi_bus_init": [
+      "active_objects"
     ]
   }
 }

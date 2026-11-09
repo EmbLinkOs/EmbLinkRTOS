@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     95002d9fc2548262abe74bc0e71265c0c75e0521919bfe987fc431c4fb659a83
+ *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
  *   drivers/bindings.yaml
- *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+ *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -23,21 +23,23 @@
 
 const emb_stm32_pin_t emb_board_pins[] = {
     /* PA0: pins.uart4.tx (uart4_tx) */
-    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 8u},
+    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 8u, 0u},
     /* PA1: pins.uart4.rx (uart4_rx) */
-    {EMB_STM32_PORT(A), 1u, EMB_STM32_PIN_AF, 8u},
+    {EMB_STM32_PORT(A), 1u, EMB_STM32_PIN_AF, 8u, 0u},
     /* PA2: pins.usart2.tx (usart2_tx) */
-    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u, 0u},
     /* PA3: pins.usart2.rx (usart2_rx) */
-    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u},
     /* PA5: leds.user (output) */
-    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u},
+    /* PB12: devices.spi2.cs[0] (spi2_cs0) */
+    {EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u},
     /* PB13: pins.spi2.sck (spi2_sck) */
-    {EMB_STM32_PORT(B), 13u, EMB_STM32_PIN_AF, 5u},
+    {EMB_STM32_PORT(B), 13u, EMB_STM32_PIN_AF, 5u, 0u},
     /* PB14: pins.spi2.miso (spi2_miso) */
-    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_AF, 5u},
+    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_AF, 5u, 0u},
     /* PB15: pins.spi2.mosi (spi2_mosi) */
-    {EMB_STM32_PORT(B), 15u, EMB_STM32_PIN_AF, 5u},
+    {EMB_STM32_PORT(B), 15u, EMB_STM32_PIN_AF, 5u, 0u},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

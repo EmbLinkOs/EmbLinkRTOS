@@ -16,6 +16,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_gpio.h>
 #endif
 #if CONFIG_EMB_DRV_UART
 #include <emb/drv_uart.h>
@@ -33,7 +34,7 @@ typedef struct emb_stm32_rcc_config {
     uintptr_t base;
 } emb_stm32_rcc_config_t;
 
-/* A GPIO port: its clock gate. */
+/* A GPIO port: its clock gate. Its 16 lines are the GPIO class's (SPEC-017 §5a). */
 typedef struct emb_stm32_gpio_config {
     uintptr_t base;
     uint32_t clken_offset; /* the bus's clock-enable register in the RCC */
@@ -74,6 +75,7 @@ typedef struct emb_stm32_spi_config {
 #if CONFIG_EMB_DRV_SPI
 /* An SPI controller's RAM. */
 typedef struct emb_stm32_spi_data {
+    emb_drv_spi_bus_t bus;   /* the class's, first */
     emb_drv_spi_req_t *xfer; /* the transfer in progress */
     const emb_device_t *dev; /* for the interrupt handler */
     bool stopping;           /* canceled: ends when the frame in flight is back */
@@ -84,7 +86,7 @@ typedef struct emb_stm32_spi_data {
 /* READY when the clock switch the board support asked for has completed. */
 extern const emb_device_api_t emb_stm32_rcc_api;
 /* Enables the port's clock. */
-extern const emb_device_api_t emb_stm32_gpio_api;
+extern const emb_drv_gpio_api_t emb_stm32_gpio_api;
 #endif
 #if CONFIG_EMB_DRV_UART
 /* The UART class's operations (SPEC-017 §4). Initialization checks the divider, enables the

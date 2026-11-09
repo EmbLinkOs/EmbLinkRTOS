@@ -7,7 +7,8 @@
 #
 # A field reads peripheral.<key> (the SoC node: base, irqs.<name>, clock.bus, clock.bit,
 # clock.enable_offset, and clock_hz, the frequency it is clocked at), device.<key> (the board
-# device's own properties; device.bus is a reference to the bus device) or board.<path>.
+# device's own properties; device.bus is a reference to the bus device), board.<path> or
+# soc.<path> (the SoC description's own facts: soc.gpio.lines).
 schema_version: 0
 kind: bindings
 bindings:
@@ -44,7 +45,7 @@ bindings:
     sources: [drivers/st/stm32_devices.c]
     include: drivers/st/include
     header: emb_stm32_devices.h
-    api: emb_stm32_gpio_api
+    api: emb_stm32_gpio_api.dev
     config: emb_stm32_gpio_config_t
     fields: { base: peripheral.base, clken_offset: peripheral.clock.enable_offset, clken_bit: peripheral.clock.bit }
   st,stm32-usart:
@@ -93,9 +94,9 @@ bindings:
     sources: [drivers/rpi/rp2350_devices.c, drivers/rpi/rp2350_gpio.c]
     include: drivers/rpi/include
     header: emb_rp2350_devices.h
-    api: emb_rp2350_io_bank_api
+    api: emb_rp2350_io_bank_api.dev
     config: emb_rp2350_io_bank_config_t
-    fields: { base: peripheral.base }
+    fields: { base: peripheral.base, lines: soc.gpio.lines }
   arm,pl022:
     class: spi
     level: kernel

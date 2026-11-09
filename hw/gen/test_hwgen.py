@@ -252,6 +252,63 @@ class Negative(unittest.TestCase):
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: nucleo_f446rx"), "name", "differs from its directory")
 
 
+class ChipSelects(unittest.TestCase):
+    """devices[].cs (SPEC-017 §5, A116): an SPI device's chip selects, each a line of one of the
+    board's GPIO devices, named in soc_devices.h and set up deasserted by the pin table."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def files(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        return files
+
+    def expect(self, needle, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        want = f"{self.board}:{self.root.line_of(self.board, needle)}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def test_active_low_by_default(self):
+        files = self.files()
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u},", files["board_pins.c"])  # starts high
+        self.assertIn("set(EMB_BOARD_SPI2_CS_COUNT 1)", files["board.cmake"])
+
+    def test_active_high(self):
+        self.root.edit(self.board, "cs: [PB12]", "cs: [{ pin: PB12, active: high }]")
+        files = self.files()
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 0u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u},", files["board_pins.c"])  # starts low
+
+    def test_needs_the_ports_device(self):
+        self.root.edit(self.board, '  - { name: gpiob, doc: "SPI2\'s chip select, PB12" }\n', "")
+        self.expect("cs: [PB12]", "devices.spi2.cs[0]", "PB12 is a line of gpiob, which the board does not list")
+
+    def test_only_spi_devices(self):
+        self.root.edit(self.board, "{ name: uart4,", "{ name: uart4, cs: [PB1],")
+        self.expect("name: uart4", "devices.uart4.cs", "not an SPI controller or a device on one")
+
+    def test_a_device_on_the_bus_names_its_own(self):
+        """SPEC-014 §4's example: a target device on an SPI controller names its chip select."""
+        self.root.edit(self.board, "  - { name: uart4,", "  - { name: flash, compatible: \"acme,flash\", bus: spi2, cs: PB1 }\n  - { name: uart4,")
+        (self.root.dir / "drivers" / "bindings.yaml").write_text(
+            (self.root.dir / "drivers" / "bindings.yaml").read_text() +
+            "  acme,flash: { class: flash, level: kernel, sources: [drivers/acme/flash.c], header: flash.h, api: flash_api, config: flash_config_t }\n",
+            encoding="utf-8")
+        files = self.files()
+        self.assertIn("#define EMB_SOC_FLASH_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["soc_devices.h"])
+        self.root.edit(self.board, "bus: spi2, cs: PB1 }", "bus: spi2, cs: [PB1, PB2] }")
+        self.expect("name: flash", "devices.flash.cs", "a device on an SPI bus has one chip select")
+
+    def test_a_pin_has_one_owner(self):
+        self.root.edit(self.board, "cs: [PB12]", "cs: [PB13]")  # SPI2's clock
+        self.expect("cs: [PB13]", "devices.spi2.cs[0]", "PB13 is already assigned")
+
+
 class Bank(unittest.TestCase):
     """A79: a SoC with one numbered GPIO bank (the RP2350): GPIO<n>.f<k> pins, the bank's line
     count, its function selects, and the RP2350 pin table."""
@@ -269,8 +326,12 @@ class Bank(unittest.TestCase):
 
     def test_pin_table(self):
         files, _ = generate.generate(ROOT / PICO, ROOT)
-        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET},", files["board_pins.c"])  # GPIO0, UART0 TX
-        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP},", files["board_pins.c"])  # RX idles high
+        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # UART0 TX
+        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # RX idles high
+        # SPI1's chip select: an SIO output, its input on so it reads back, starting deasserted
+        self.assertIn("{13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},", files["board_pins.c"])
+        self.assertIn("#define EMB_SOC_SPI1_CS0 {&emb_dev_io_bank0, 13u, 1u, {0u, 0u}} /* GPIO13 */",
+                      files["soc_devices.h"])
         self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
         self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
         self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])

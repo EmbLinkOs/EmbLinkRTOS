@@ -41,6 +41,10 @@
         "name": "gpioa"
       },
       {
+        "doc": "SPI2's chip select, PB12",
+        "name": "gpiob"
+      },
+      {
         "doc": "B1",
         "name": "gpioc"
       },
@@ -50,7 +54,10 @@
         "name": "usart2"
       },
       {
-        "doc": "SPI2 on PB13 to PB15; the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)",
+        "cs": [
+          "PB12"
+        ],
+        "doc": "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)",
         "name": "spi2"
       },
       {
@@ -219,6 +226,21 @@
           "rcc"
         ],
         "fields": {
+          "base": 1073873920,
+          "clken_bit": 1,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpiob",
+        "peripheral": "gpiob"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
           "base": 1073874944,
           "clken_bit": 2,
           "clken_offset": 48
@@ -373,6 +395,16 @@
         "port": "A"
       },
       {
+        "gpio": "gpiob",
+        "level": 1,
+        "mode": "output",
+        "number": 12,
+        "owner": "devices.spi2.cs[0]",
+        "pin": "PB12",
+        "port": "B",
+        "signal": "spi2_cs0"
+      },
+      {
         "af": 5,
         "gpio": "gpiob",
         "mode": "af",
@@ -432,11 +464,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "95002d9fc2548262abe74bc0e71265c0c75e0521919bfe987fc431c4fb659a83"
+      "sha256": "033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74"
+      "sha256": "d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

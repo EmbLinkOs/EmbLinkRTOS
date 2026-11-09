@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+ *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -56,7 +56,7 @@ static emb_device_state_t gpiob_state;
 static const emb_device_t *const gpiob_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpiob = {
     .name = "gpiob",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpiob_config,
     .state = &gpiob_state,
     .data = NULL,
@@ -76,7 +76,7 @@ static emb_device_state_t gpioc_state;
 static const emb_device_t *const gpioc_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioc = {
     .name = "gpioc",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioc_config,
     .state = &gpioc_state,
     .data = NULL,
@@ -96,7 +96,7 @@ static emb_device_state_t gpiod_state;
 static const emb_device_t *const gpiod_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpiod = {
     .name = "gpiod",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpiod_config,
     .state = &gpiod_state,
     .data = NULL,

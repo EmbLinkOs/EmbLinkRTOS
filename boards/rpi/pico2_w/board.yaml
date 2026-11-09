@@ -34,7 +34,7 @@ devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
   - { name: uart0, baud: 115200, deps: [io_bank0], doc: "the console, GPIO0 and GPIO1" }
-  - { name: spi1, deps: [io_bank0], doc: "SPI1 on GPIO10 to GPIO12; the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)" }
+  - { name: spi1, deps: [io_bank0], cs: [GPIO13], doc: "SPI1 on GPIO10 to GPIO12, its chip select GPIO13 (pin 17); the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)" }
   - { name: uart1, baud: 115200, deps: [io_bank0], doc: "a spare UART; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:

@@ -30,12 +30,12 @@
 #define BR_MAX     7u
 #define ONES       0xFFu
 
-static const emb_stm32_spi_config_t *config(const emb_device_t *dev)
+static const emb_stm32_spi_config_t *stm32_spi_config(const emb_device_t *dev)
 {
     return (const emb_stm32_spi_config_t *)dev->config;
 }
 
-static emb_stm32_spi_data_t *data(const emb_device_t *dev)
+static emb_stm32_spi_data_t *stm32_spi_data(const emb_device_t *dev)
 {
     return (emb_stm32_spi_data_t *)dev->data;
 }
@@ -55,7 +55,7 @@ static void stm32_spi_finish(uintptr_t base, emb_stm32_spi_data_t *d)
 static void stm32_spi_isr(void *arg)
 {
     emb_stm32_spi_data_t *d = (emb_stm32_spi_data_t *)arg;
-    uintptr_t base = config(d->dev)->base;
+    uintptr_t base = stm32_spi_config(d->dev)->base;
     emb_drv_spi_req_t *x = d->xfer;
     uint32_t sr = REG32(base + SPI_SR);
     if (x == NULL) {
@@ -65,6 +65,7 @@ static void stm32_spi_isr(void *arg)
     if ((sr & SR_MODF) != 0u) {
         REG32(base + SPI_CR1) = REG32(base + SPI_CR1); /* the write after the read clears it */
         stm32_spi_finish(base, d);
+        emb_drv_spi_end(d->dev, x);
         emb_drv_complete(d->dev, &x->req, EMB_EMODEFAULT, x->req.done);
         return;
     }
@@ -81,6 +82,7 @@ static void stm32_spi_isr(void *arg)
         {
             emb_status_t st = d->stopping ? EMB_ECANCELED : EMB_OK;
             stm32_spi_finish(base, d);
+            emb_drv_spi_end(d->dev, x);
             emb_drv_complete(d->dev, &x->req, st, x->req.done);
         }
     }
@@ -88,14 +90,17 @@ static void stm32_spi_isr(void *arg)
 
 static emb_status_t stm32_spi_init(const emb_device_t *dev)
 {
-    const emb_stm32_spi_config_t *cfg = config(dev);
-    emb_stm32_spi_data_t *d = data(dev);
+    const emb_stm32_spi_config_t *cfg = stm32_spi_config(dev);
+    emb_stm32_spi_data_t *d = stm32_spi_data(dev);
     emb_stm32_clock_enable(cfg->clken_offset, cfg->clken_bit);
     REG32(cfg->base + SPI_CR1) = 0u;
     REG32(cfg->base + SPI_CR2) = 0u;
     d->xfer = NULL;
     d->dev = dev;
     d->stopping = false;
+    if (emb_drv_spi_bus_init(dev) != EMB_OK) {
+        return EMB_EINVAL;
+    }
     if (emb_irq_connect((emb_irq_t)cfg->irq, stm32_spi_isr, d) != EMB_OK) {
         return EMB_EINVAL;
     }
@@ -104,17 +109,17 @@ static emb_status_t stm32_spi_init(const emb_device_t *dev)
 
 static emb_status_t stm32_spi_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
-    const emb_stm32_spi_config_t *cfg = config(dev);
-    emb_stm32_spi_data_t *d = data(dev);
+    const emb_stm32_spi_config_t *cfg = stm32_spi_config(dev);
+    emb_stm32_spi_data_t *d = stm32_spi_data(dev);
     emb_drv_spi_req_t *x = EMB_DRV_SPI_REQ(req);
     const emb_drv_spi_target_t *t = x->target;
     uint32_t br = 0u;
     emb_irq_key_t key;
-    if (t->bits != 8u || (t->flags & EMB_DRV_SPI_LOOPBACK) != 0u) {
+    if ((t->bits != 8u) || ((t->flags & EMB_DRV_SPI_LOOPBACK) != 0u)) {
         return EMB_ENOTSUP; /* 8-bit frames; no internal loopback on this SPI */
     }
     /* bounded: eight rates, the fastest not above the target's */
-    while (br < BR_MAX && (cfg->clock_hz >> (br + 1u)) > t->hz) {
+    while ((br < BR_MAX) && ((cfg->clock_hz >> (br + 1u)) > t->hz)) {
         br++;
     }
     if ((cfg->clock_hz >> (br + 1u)) > t->hz) {
@@ -131,7 +136,8 @@ static emb_status_t stm32_spi_start(const emb_device_t *dev, emb_drv_request_t *
     key = emb_irq_lock();
     d->xfer = x;
     d->stopping = false;
-    REG32(cfg->base + SPI_CR1) |= CR1_SPE;
+    REG32(cfg->base + SPI_CR1) |= CR1_SPE; /* the clock idles at its polarity from here */
+    emb_drv_spi_begin(dev, x);
     REG32(cfg->base + SPI_CR2) = CR2_RXNEIE | CR2_ERRIE;
     stm32_spi_send(cfg->base, x);
     emb_irq_unlock(key);
@@ -143,7 +149,7 @@ static emb_status_t stm32_spi_start(const emb_device_t *dev, emb_drv_request_t *
  * as RM0390 §26.3.8 requires. At most one frame time. */
 static void stm32_spi_stop(const emb_device_t *dev, emb_drv_request_t *req)
 {
-    emb_stm32_spi_data_t *d = data(dev);
+    emb_stm32_spi_data_t *d = stm32_spi_data(dev);
     emb_irq_key_t key = emb_irq_lock();
     if (d->xfer == EMB_DRV_SPI_REQ(req)) {
         d->stopping = true; /* a frame is always in flight while a transfer runs */

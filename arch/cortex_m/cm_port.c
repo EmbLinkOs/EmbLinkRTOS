@@ -505,9 +505,17 @@ void emb_arch_reset(const emb_fault_info_t *info)
     emb_arch_system_reset();
 }
 
+/* The board's last words before a reset: a console with a transmit FIFO lets its bytes out
+ * (the RP2350's PL011 holds 32, which a reset would cut off mid-line). */
+EMB_WEAK void emb_board_reset_prepare(void);
+EMB_WEAK void emb_board_reset_prepare(void)
+{
+}
+
 void emb_arch_system_reset(void)
 {
     __asm__ __volatile__("cpsid i" ::: "memory");
+    emb_board_reset_prepare();
     __asm__ __volatile__("dsb" ::: "memory");
     REG32(SCB_AIRCR) = (0x5FAu << 16) | (1u << 2); /* SYSRESETREQ */
     __asm__ __volatile__("dsb" ::: "memory");

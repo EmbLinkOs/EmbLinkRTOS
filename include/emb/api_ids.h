@@ -186,5 +186,14 @@
 #define EMB_API_ID_DRV_SPI_REQ_TRANSFER          0x00B7u
 #define EMB_API_ID_DRV_SPI_SUBMIT                0x00B8u
 #define EMB_API_ID_DRV_SPI_TRANSFER              0x00B9u
+#define EMB_API_ID_DRV_GPIO_CONFIGURE            0x00BAu
+#define EMB_API_ID_DRV_GPIO_WRITE                0x00BBu
+#define EMB_API_ID_DRV_GPIO_READ                 0x00BCu
+#define EMB_API_ID_DRV_GPIO_ASSERT               0x00BDu
+#define EMB_API_ID_DRV_SPI_ACQUIRE               0x00BEu
+#define EMB_API_ID_DRV_SPI_RELEASE               0x00BFu
+#define EMB_API_ID_DRV_SPI_BUS_INIT              0x00C0u
+#define EMB_API_ID_DRV_SPI_BEGIN                 0x00C1u
+#define EMB_API_ID_DRV_SPI_END                   0x00C2u
 
 #endif /* EMB_API_IDS_H */

@@ -14,6 +14,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_gpio.h>
 #endif
 
 #ifdef __cplusplus
@@ -25,16 +26,19 @@ typedef struct emb_rp2350_clocks_config {
     uintptr_t base;
 } emb_rp2350_clocks_config_t;
 
-/* GPIO bank 0: its function select (IO_BANK0) and its pads (PADS_BANK0). */
+/* GPIO bank 0: its function select (IO_BANK0) and its pads (PADS_BANK0); its lines, the
+ * GPIO class's (SPEC-017 §5a), are driven and read through the SIO. */
 typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
+    uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
 
 #if CONFIG_EMB_DEVICE
 /* READY when clk_ref runs from the crystal. */
 extern const emb_device_api_t emb_rp2350_clocks_api;
-/* Takes the bank and its pads out of reset; READY once they are. */
-extern const emb_device_api_t emb_rp2350_io_bank_api;
+/* Takes the bank and its pads out of reset; READY once they are. Open drain: EMB_ENOTSUP,
+ * the pads have none. */
+extern const emb_drv_gpio_api_t emb_rp2350_io_bank_api;
 #endif
 
 #ifdef __cplusplus

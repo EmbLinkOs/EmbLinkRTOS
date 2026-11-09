@@ -9,6 +9,17 @@
 #define RCC_CFGR       0x08u
 #define CFGR_SW_MASK   3u
 #define CFGR_SWS_SHIFT 2u
+/* a GPIO port (RM0390 §7.4) */
+#define GPIO_MODER  0x00u
+#define GPIO_OTYPER 0x04u
+#define GPIO_PUPDR  0x0Cu
+#define GPIO_IDR    0x10u
+#define GPIO_BSRR   0x18u
+#define GPIO_LINES  16u
+#define MODE_INPUT  0u
+#define MODE_OUTPUT 1u
+#define PUPD_UP     1u
+#define PUPD_DOWN   2u
 
 static emb_status_t rcc_init(const emb_device_t *dev)
 {
@@ -25,8 +36,56 @@ static emb_status_t gpio_init(const emb_device_t *dev)
     return EMB_OK;
 }
 
+static uintptr_t stm32_gpio_base(const emb_device_t *dev)
+{
+    return ((const emb_stm32_gpio_config_t *)dev->config)->base;
+}
+
+static void stm32_gpio_write(const emb_device_t *dev, uint32_t line, bool high)
+{
+    REG32(stm32_gpio_base(dev) + GPIO_BSRR) = high ? (1u << line) : (1u << (line + 16u));
+}
+
+static bool stm32_gpio_read(const emb_device_t *dev, uint32_t line)
+{
+    return ((REG32(stm32_gpio_base(dev) + GPIO_IDR) >> line) & 1u) != 0u;
+}
+
+/* In the class's critical section: MODER, OTYPER and PUPDR hold all 16 lines. */
+static emb_status_t stm32_gpio_configure(const emb_device_t *dev, uint32_t line, uint32_t flags)
+{
+    uintptr_t base = stm32_gpio_base(dev);
+    uint32_t shift = line * 2u;
+    uint32_t pupd = 0u;
+    bool output = (flags & EMB_DRV_GPIO_OUTPUT) != 0u;
+    if (line >= GPIO_LINES) {
+        return EMB_EINVAL;
+    }
+    if ((flags & EMB_DRV_GPIO_PULL_UP) != 0u) {
+        pupd = PUPD_UP;
+    } else if ((flags & EMB_DRV_GPIO_PULL_DOWN) != 0u) {
+        pupd = PUPD_DOWN;
+    } else {
+        pupd = 0u;
+    }
+    REG32(base + GPIO_PUPDR) = (REG32(base + GPIO_PUPDR) & ~(3u << shift)) | (pupd << shift);
+    if (output) { /* the level and the output type first, so the line never shows another */
+        stm32_gpio_write(dev, line, (flags & EMB_DRV_GPIO_INIT_HIGH) != 0u);
+        REG32(base + GPIO_OTYPER) = (REG32(base + GPIO_OTYPER) & ~(1u << line)) |
+                                    (((flags & EMB_DRV_GPIO_OPEN_DRAIN) != 0u) ? (1u << line) : 0u);
+    }
+    REG32(base + GPIO_MODER) = (REG32(base + GPIO_MODER) & ~(3u << shift)) |
+                               ((output ? MODE_OUTPUT : MODE_INPUT) << shift);
+    return EMB_OK;
+}
+
 const emb_device_api_t emb_stm32_rcc_api = {rcc_init, NULL, NULL, NULL, NULL, 0u};
-const emb_device_api_t emb_stm32_gpio_api = {gpio_init, NULL, NULL, NULL, NULL, 0u};
+const emb_drv_gpio_api_t emb_stm32_gpio_api = {
+    {gpio_init, NULL, NULL, NULL, NULL, EMB_DRV_GPIO_CAP_OPEN_DRAIN | EMB_DRV_GPIO_CAP_PULL_DOWN},
+    stm32_gpio_configure,
+    stm32_gpio_write,
+    stm32_gpio_read,
+};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_stm32_devices_off_t;

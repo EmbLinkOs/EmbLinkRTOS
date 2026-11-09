@@ -36,12 +36,12 @@
 #define SCR_MAX   255u
 #define ONES      0xFFu
 
-static const emb_pl022_config_t *config(const emb_device_t *dev)
+static const emb_pl022_config_t *pl022_config(const emb_device_t *dev)
 {
     return (const emb_pl022_config_t *)dev->config;
 }
 
-static emb_pl022_data_t *data(const emb_device_t *dev)
+static emb_pl022_data_t *pl022_data(const emb_device_t *dev)
 {
     return (emb_pl022_data_t *)dev->data;
 }
@@ -54,7 +54,7 @@ static bool pl022_rate(uint32_t clock_hz, uint32_t hz, uint32_t *cpsr, uint32_t 
     for (c = 2u; c <= CPSR_MAX; c += 2u) { /* bounded: 127 prescalers */
         uint32_t q = clock_hz / c;
         uint32_t s = (q / hz) + (((q % hz) != 0u) ? 1u : 0u); /* 1 + SCR, rounded up */
-        if (s >= 1u && s <= SCR_MAX + 1u) {
+        if ((s >= 1u) && (s <= (SCR_MAX + 1u))) {
             *cpsr = c;
             *scr = s - 1u;
             return true;
@@ -70,7 +70,7 @@ static bool pl022_service(uintptr_t base, emb_pl022_data_t *d, emb_drv_spi_req_t
     /* bounded: each pass takes a frame back or sends one, and the transfer has len of each */
     while (moved) {
         moved = false;
-        while ((REG32(base + SSP_SR) & SR_RNE) != 0u && (size_t)x->req.done < x->len) {
+        while (((REG32(base + SSP_SR) & SR_RNE) != 0u) && ((size_t)x->req.done < x->len)) {
             uint8_t frame = (uint8_t)REG32(base + SSP_DR);
             if (x->rx != NULL) {
                 x->rx[x->req.done] = frame;
@@ -78,8 +78,9 @@ static bool pl022_service(uintptr_t base, emb_pl022_data_t *d, emb_drv_spi_req_t
             x->req.done++;
             moved = true;
         }
-        while (!d->stopping && d->sent < x->len && (d->sent - (size_t)x->req.done) < IN_FLIGHT &&
-               (REG32(base + SSP_SR) & SR_TNF) != 0u) {
+        while (!d->stopping && (d->sent < x->len) &&
+               ((d->sent - (size_t)x->req.done) < IN_FLIGHT) &&
+               ((REG32(base + SSP_SR) & SR_TNF) != 0u)) {
             REG32(base + SSP_DR) = (x->tx != NULL) ? x->tx[d->sent] : ONES;
             d->sent++;
             moved = true;
@@ -98,7 +99,7 @@ static void pl022_finish(uintptr_t base, emb_pl022_data_t *d)
 static void pl022_isr(void *arg)
 {
     emb_pl022_data_t *d = (emb_pl022_data_t *)arg;
-    uintptr_t base = config(d->dev)->base;
+    uintptr_t base = pl022_config(d->dev)->base;
     emb_drv_spi_req_t *x = d->xfer;
     REG32(base + SSP_ICR) = ICR_ALL; /* the receive timeout and overrun */
     if (x == NULL) {
@@ -108,20 +109,24 @@ static void pl022_isr(void *arg)
     if (pl022_service(base, d, x)) {
         emb_status_t st = d->stopping ? EMB_ECANCELED : EMB_OK;
         pl022_finish(base, d);
+        emb_drv_spi_end(d->dev, x);
         emb_drv_complete(d->dev, &x->req, st, x->req.done);
     }
 }
 
 static emb_status_t pl022_init(const emb_device_t *dev)
 {
-    const emb_pl022_config_t *cfg = config(dev);
-    emb_pl022_data_t *d = data(dev);
+    const emb_pl022_config_t *cfg = pl022_config(dev);
+    emb_pl022_data_t *d = pl022_data(dev);
     d->xfer = NULL;
     d->dev = dev;
     d->sent = 0u;
     d->stopping = false;
     REG32(cfg->base + SSP_CR1) = 0u;
     REG32(cfg->base + SSP_IMSC) = 0u;
+    if (emb_drv_spi_bus_init(dev) != EMB_OK) {
+        return EMB_EINVAL;
+    }
     if (emb_irq_connect((emb_irq_t)cfg->irq, pl022_isr, d) != EMB_OK) {
         return EMB_EINVAL;
     }
@@ -130,15 +135,15 @@ static emb_status_t pl022_init(const emb_device_t *dev)
 
 static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
-    const emb_pl022_config_t *cfg = config(dev);
-    emb_pl022_data_t *d = data(dev);
+    const emb_pl022_config_t *cfg = pl022_config(dev);
+    emb_pl022_data_t *d = pl022_data(dev);
     emb_drv_spi_req_t *x = EMB_DRV_SPI_REQ(req);
     const emb_drv_spi_target_t *t = x->target;
     uint32_t cpsr = 0u;
     uint32_t scr = 0u;
     emb_irq_key_t key;
     bool done;
-    if (t->bits != 8u || !pl022_rate(cfg->clock_hz, t->hz, &cpsr, &scr)) {
+    if ((t->bits != 8u) || !pl022_rate(cfg->clock_hz, t->hz, &cpsr, &scr)) {
         return EMB_ENOTSUP; /* 8-bit frames, at a reachable rate */
     }
     if (x->len == 0u) {
@@ -155,6 +160,7 @@ static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
     REG32(cfg->base + SSP_ICR) = ICR_ALL;
     REG32(cfg->base + SSP_CR1) = CR1_SSE |
                                  (((t->flags & EMB_DRV_SPI_LOOPBACK) != 0u) ? CR1_LBM : 0u);
+    emb_drv_spi_begin(dev, x); /* the clock idles at its polarity: the chip select now */
     key = emb_irq_lock();
     d->xfer = x;
     d->sent = 0u;
@@ -162,6 +168,7 @@ static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
     done = pl022_service(cfg->base, d, x);
     if (done) {
         pl022_finish(cfg->base, d);
+        emb_drv_spi_end(dev, x);
     } else {
         REG32(cfg->base + SSP_IMSC) = IM_RX | IM_RT;
     }
@@ -174,14 +181,15 @@ static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
  * At most IN_FLIGHT frame times. */
 static void pl022_stop(const emb_device_t *dev, emb_drv_request_t *req)
 {
-    emb_pl022_data_t *d = data(dev);
+    emb_pl022_data_t *d = pl022_data(dev);
     emb_drv_spi_req_t *x = EMB_DRV_SPI_REQ(req);
     bool now = false;
     emb_irq_key_t key = emb_irq_lock();
     if (d->xfer == x) {
         d->stopping = true;
-        if (pl022_service(config(dev)->base, d, x)) { /* nothing left in flight */
-            pl022_finish(config(dev)->base, d);
+        if (pl022_service(pl022_config(dev)->base, d, x)) { /* nothing left in flight */
+            pl022_finish(pl022_config(dev)->base, d);
+            emb_drv_spi_end(dev, x);
             now = true;
         }
     }

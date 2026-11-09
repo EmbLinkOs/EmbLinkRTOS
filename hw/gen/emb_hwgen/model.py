@@ -42,6 +42,12 @@ def af_key(pin, n):
     return f"f{n}" if pin["bank"] else f"af{n}"
 
 
+
+def cs_list(entry):
+    """A device entry's chip selects as a list: cs is a pin, {pin, active}, or a list of them."""
+    cs = entry.get("cs", [])
+    return cs if isinstance(cs, list) else [cs]
+
 class Resolver:
     def __init__(self, root):
         self.root = Path(root)
@@ -115,6 +121,7 @@ class Resolver:
         kconfig, profile = self._kconfig(board, soc, clk)
         devs, binding_docs = self._devices(board, soc, clk)
         self._loopbacks(board, devs)
+        self._chip_selects(board, devs, pins)
         if self.errors:
             raise HwError(self.errors)
         self._curation(board, soc)
@@ -294,7 +301,7 @@ class Resolver:
         owner = {}
         out = []
 
-        def claim(text, at, mode, signal=None):
+        def claim(text, at, mode, signal=None, level=None):
             pin = parse_pin(text)
             bank = "lines" in soc.data.get("gpio", {})
             if pin["bank"] != bank:
@@ -313,6 +320,8 @@ class Resolver:
                 return  # reported by the SoC rules: gpio.ports names a port no peripheral drives
             entry = {"pin": pin["name"], "port": pin["port"], "number": pin["number"], "mode": mode, "owner": at,
                      "gpio": gpio["name"]}
+            if level is not None:
+                entry.update({"level": level, "signal": signal})
             if mode == "af":
                 offered = afs.get(pin["name"], {})
                 if pin["af"] is None and offered.get("fixed") == signal:
@@ -342,6 +351,12 @@ class Resolver:
         for kind, mode in (("leds", "output"), ("buttons", "input")):
             for line in d.get(kind, []):
                 claim(line["gpio"], f"{kind}.{line['name']}", mode)
+        # a device's chip selects: outputs that start deasserted (SPEC-017 §5, A116)
+        for dev in d.get("devices", []):
+            for i, cs in enumerate(cs_list(dev)):
+                low = cs.get("active", "low") == "low" if isinstance(cs, dict) else True
+                claim(cs["pin"] if isinstance(cs, dict) else cs, f"devices.{dev['name']}.cs[{i}]", "output",
+                      f"{dev['name']}_cs{i}", 1 if low else 0)
         return sorted(out, key=lambda e: (e["port"], e["number"]))
 
     def _console(self, board, soc):
@@ -380,6 +395,39 @@ class Resolver:
                 self.err(board, at, f"{loop['device']} is not a UART or SPI device of the board")
             elif ("ports" in loop) == ("internal" in loop):
                 self.err(board, at, "a loopback names two ports or internal: true, one of them")
+
+    def _chip_selects(self, board, devs, pins):
+        """devices[].cs (SPEC-014 §4, A116): a device on an SPI bus names its chip select
+        (EMB_SOC_<DEVICE>_CS); an SPI controller may list spare ones for the application
+        (EMB_SOC_<DEVICE>_CS<n>). Each is a line of one of the board's GPIO devices, set on the
+        device as d["cs"] for soc_devices.h."""
+        by_name = {d["name"]: d for d in devs}
+        gpio_dev = {d["peripheral"]: d["name"] for d in devs if d["class"] == "gpio"}
+        for entry in board.data.get("devices", []):
+            if "cs" not in entry:
+                continue
+            d = by_name.get(entry["name"])
+            if d is None:
+                continue  # reported by the device rules
+            on_bus = by_name.get(entry.get("bus", ""), {}).get("class") == "spi"
+            if d["class"] != "spi" and not on_bus:
+                self.err(board, f"devices.{entry['name']}.cs",
+                         f"{entry['name']} is not an SPI controller or a device on one: only they have chip selects")
+                continue
+            if on_bus and len(cs_list(entry)) != 1:
+                self.err(board, f"devices.{entry['name']}.cs", "a device on an SPI bus has one chip select")
+                continue
+            d["cs"] = []
+            for i, _ in enumerate(cs_list(entry)):
+                at = f"devices.{entry['name']}.cs[{i}]"
+                pin = next((p for p in pins if p["owner"] == at), None)
+                if pin is None:
+                    continue  # reported by the pin rules
+                if pin["gpio"] not in gpio_dev:
+                    self.err(board, at, f"{pin['pin']} is a line of {pin['gpio']}, which the board does not list in devices:")
+                    continue
+                d["cs"].append({"index": None if on_bus else i, "pin": pin["pin"], "gpio": gpio_dev[pin["gpio"]], "line": pin["number"],
+                                "active_low": pin["level"] == 1})
 
     def _test_irqs(self, board, soc):
         irqs = board.data.get("test_irqs")

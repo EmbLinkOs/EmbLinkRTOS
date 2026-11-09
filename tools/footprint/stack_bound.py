@@ -12,7 +12,9 @@ function's start (a tail call), and every blx through a register, which the root
 resolves. Each function's frame is GCC's -fstack-usage figure (the .su files the build writes
 next to its objects), or, for code without one (assembly, naked functions, the C library),
 what its prologue pushes and subtracts. A cycle in the graph, a dynamic frame or an indirect
-call the roots file does not resolve makes the bound unknown, and the tool says where.
+call the roots file does not resolve makes the bound unknown, and the tool says where. A
+target the roots file names with a trailing "?" may be absent from the image (a device only
+some boards have); every other name must be in it.
 
 On Cortex-M, a preempted thread also holds the exception's hardware frame (32 bytes, 104
 with an active floating-point context) and what the switch saves (r4-r11 and EXC_RETURN, 36
@@ -188,6 +190,14 @@ def inline_chains(elf, addr2line, addresses):
     return chains
 
 
+def listed_targets(targets, graph):
+    """A roots file's targets for one indirect call. "name?" is a target only some images link
+    (a device one board has and another does not): absent from the image, no pointer to it
+    exists, so no call reaches it. A plain name absent stays a problem, as a misspelling would."""
+    return [t[:-1] for t in targets if t.endswith("?") and t[:-1] in graph] + \
+           [t for t in targets if not t.endswith("?")]
+
+
 def resolve_indirect(graph, resolve, chains_of):
     """Each indirect call's targets, by the function that makes it in the source: the function
     itself, or the first of the functions inlined at the call that the roots file names. Sets
@@ -293,7 +303,7 @@ def analyze(elf, build, roots, objdump, nm, addr2line=None):
         if isinstance(targets, dict):  # {"table": name}: read the image's linker table
             resolve[caller] = table_targets(elf, objdump, nm, targets["table"], funcs)
         else:
-            resolve[caller] = targets
+            resolve[caller] = listed_targets(targets, graph)
     tool = addr2line or re.sub(r"objdump$", "addr2line", objdump)
     resolve_indirect(graph, resolve, lambda addrs: inline_chains(elf, tool, addrs))
     b = Bound(graph, frames, resolve)

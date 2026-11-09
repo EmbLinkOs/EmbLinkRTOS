@@ -64,6 +64,9 @@ if(CONFIG_EMB_DEVICE)
       target_compile_definitions(test_uart_loop PRIVATE "EMB_TEST_UART_LOOP_DEV=(&emb_dev_${EMB_TEST_UART_LOOP})")
     endif()
   endif()
+  if(CONFIG_EMB_DRV_GPIO)
+    emb_add_test(test_gpio test_gpio.c) # SPEC-017 §5a
+  endif()
   if(CONFIG_EMB_DRV_SPI)
     emb_add_test(test_spi test_spi.c) # SPEC-017 §5
     # an SPI controller whose MOSI is looped to its MISO: a wire on the bench
@@ -85,6 +88,11 @@ if(CONFIG_EMB_DEVICE)
       target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_DEV=(&emb_dev_${_emb_spi_loop})")
       if(_emb_spi_internal)
         target_compile_definitions(test_spi_loop PRIVATE EMB_TEST_SPI_LOOP_INTERNAL=1)
+      endif()
+      # the board's first chip select of that device, read back at the pin
+      string(TOUPPER "${_emb_spi_loop}" _emb_spi_up)
+      if(EMB_BOARD_${_emb_spi_up}_CS_COUNT)
+        target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_CS=EMB_SOC_${_emb_spi_up}_CS0")
       endif()
     endif()
   endif()

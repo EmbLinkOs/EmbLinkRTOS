@@ -10,7 +10,7 @@
 
 ## 1. Scope
 
-The eight classes M4 delivers, on the STM32F4 and the RP2350 (ADR-057). GPIO and pin control, clock and reset, and timers stay the boards' existing functions in M4, wrapped as EARLY devices (SPEC-016 §4); their classes are specified when a second driver needs them. A class is claimed for a board only when its section here answers every checklist item and an archived run on that board passes its tests (DRV-010).
+The eight classes M4 delivers, on the STM32F4 and the RP2350 (ADR-057), and the GPIO class the SPI class's chip selects need (§5a, A116). Pin control, clock and reset, and timers stay the boards' existing functions in M4, wrapped as EARLY devices (SPEC-016 §4); their classes are specified when a second driver needs them. A class is claimed for a board only when its section here answers every checklist item and an archived run on that board passes its tests (DRV-010).
 
 ## 2. The common template
 
@@ -69,18 +69,35 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 
 | Checklist | |
 |---|---|
-| Dependencies | its clock, its pins; the chip-select GPIO of each target device; its DMA controller when configured |
-| Requests | a transfer: transmit buffer, receive buffer (either may be absent), length, the target's mode (CPOL, CPHA), speed and word size |
+| Dependencies | its clock, its pins; the chip-select line of each target (§5a), a board's set up deasserted at boot; its DMA controller when configured |
+| Requests | a transfer: transmit buffer, receive buffer (either may be absent; none to send sends ones), length, the target's mode (CPOL, CPHA), speed (a ceiling: the fastest divider not above it, `EMB_ENOTSUP` below the slowest), word size and chip select |
 | Blocking | `emb_drv_spi_transfer()` |
 | Interrupts | completion by interrupt, or by DMA for transfers above a threshold the driver states |
 | DMA | optional, both directions together |
-| Concurrency | one transfer at a time per controller; a target device acquires the bus (SPEC-016 §6) to keep its chip select across several transfers |
-| Timeouts | a canceled transfer stops after the frame in progress; chip select is released; `done` counts whole frames |
+| Concurrency | one transfer at a time per controller. A target's chip select is asserted once the controller is set up for it and released after its last frame. `emb_drv_spi_acquire()` and `emb_drv_spi_release()` hold the bus for one target, its chip select asserted across several transfers, with a recursive mutex with priority inheritance (SPEC-016 §6): other threads' transfers wait within their timeouts, and a transfer for another target, from any context, is refused with `EMB_EBUSY` |
+| Timeouts | a canceled transfer sends nothing more; the frames in flight come back whole and the driver's interrupt completes it, so the controller is never turned off mid-frame; chip select is released; `done` counts whole frames. A transfer's timeout covers its wait for the bus and the transfer together |
 | Power | suspend waits for the transfer in progress |
 | Errors | `EMB_ECRC` (hardware CRC, where enabled), `EMB_EMODEFAULT` |
 | Capabilities | `DMA`, `CRC`, `LOOPBACK` |
 
 **Drivers:** `drivers/st/stm32_spi.c` on SPI2 (PB13, PB14, PB15; PA5 is the NUCLEO's LED); `drivers/arm/pl022.c`, the RP2350's SPI. **Evidence:** the same `pl022.c` runs under QEMU's MPS2 machines, which model five PL022 controllers, in loopback, in CI; EmbSIM; on both boards, a MOSI-to-MISO jumper.
+
+## 5a. GPIO (A116)
+
+| Checklist | |
+|---|---|
+| Dependencies | its controller's clock gate (the STM32F4's ports) or reset (the RP2350's bank 0); the board's pin table sets up the lines it names |
+| Requests | none: each operation acts at once. `emb_drv_gpio_configure()` sets a line up as an input or output, with a pull, open drain, and an output's first level written before it drives; `emb_drv_gpio_write()` drives it; `emb_drv_gpio_read()` reads the level at the pin, an output's included. A named line (`emb_drv_gpio_line_t`: controller, number, sense) is asserted or released with `emb_drv_gpio_assert()` |
+| Blocking | none |
+| Interrupts | none; edge interrupts are a later addition |
+| DMA | none |
+| Concurrency | callable from any context. `write()` and `read()` are single accesses to the controller's set, clear and input registers; `configure()` runs inside the class's critical section, since a controller's mode registers hold all its lines |
+| Timeouts | none |
+| Power | the lines keep their state across the controller's suspend |
+| Errors | `EMB_EINVAL` (a line the controller does not have); `EMB_ENOTSUP` (open drain or a pull-down the controller lacks) |
+| Capabilities | `OPEN_DRAIN`, `PULL_DOWN` |
+
+**Drivers:** `drivers/st/stm32_devices.c` on the STM32F4's GPIO ports, 16 lines each, with open drain and both pulls; `drivers/rpi/rp2350_devices.c` on the RP2350's bank 0 through the SIO, its line count from the package description (30 on the RP2350A), with both pulls and no open drain. **Evidence:** the class's fake on the host; on both boards, the SPI loop test reads its chip select back at the pin.
 
 ## 6. I2C (controller and target)
 

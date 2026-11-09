@@ -117,6 +117,8 @@ The illustrative flash layout uses STM32F407 erase-sector boundaries: independen
 
 Pins are `P<port><pin>.af<n>` for alternate functions or `P<port><pin>` for GPIO; the generator checks each against the SoC's GPIO ports and against other assignments (no pin twice).
 
+A device's `cs` is a chip select (A116): a GPIO pin, active low unless written `{pin: PE3, active: high}`. A device on an SPI bus names its own, as `accel` does, and the generator names it `EMB_SOC_ACCEL_CS`; an SPI controller may list spare ones for the application, `EMB_SOC_SPI1_CS0` and on. Each must be a line of one of the board's GPIO devices, and the pin table sets it up as an output, deasserted, at boot.
+
 ## 5. System schema
 
 ```yaml

@@ -19,10 +19,15 @@ typedef struct emb_rp2350_pin {
     uint8_t funcsel;  /* IO_BANK0 GPIOn_CTRL.FUNCSEL: 2 UART, 5 SIO, 11 UART_AUX, ... */
     uint8_t input_en; /* PADS_BANK0 GPIOn.IE */
     uint8_t pull;     /* EMB_RP2350_PULL_*: the pad's reset pull-down, or a pull-up */
+    uint8_t out;      /* EMB_RP2350_OUT_*: an SIO output and its level at boot */
 } emb_rp2350_pin_t;
 
 #define EMB_RP2350_PULL_RESET 0u /* as the pad comes out of reset: pulled down */
 #define EMB_RP2350_PULL_UP    1u /* a line that idles high: a UART's receive, I2C */
+
+#define EMB_RP2350_OUT_NONE 0u /* a peripheral's pin: its function drives it */
+#define EMB_RP2350_OUT_LOW  1u /* an SIO output starting low (an LED) */
+#define EMB_RP2350_OUT_HIGH 2u /* an SIO output starting high (a chip select, deasserted) */
 
 extern const emb_rp2350_pin_t emb_board_pins[];
 extern const unsigned emb_board_pin_count;

@@ -24,6 +24,7 @@ typedef struct {
     uint8_t pin;          /* 0 to 15 */
     uint8_t mode;         /* EMB_STM32_PIN_OUTPUT or EMB_STM32_PIN_AF */
     uint8_t af;           /* the alternate function, 0 to 15; 0 for an output */
+    uint8_t level;        /* an output's level at boot: 1 for a chip select, deasserted */
 } emb_stm32_pin_t;
 
 extern const emb_stm32_pin_t emb_board_pins[];

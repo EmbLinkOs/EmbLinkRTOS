@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-104 functions, from the headers' `@ctx` tags.
+110 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -58,11 +58,17 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_device_status()` | `<emb/device.h>` | no |
 | `emb_drv_cancel()` | `<emb/device.h>` | no |
 | `emb_drv_complete()` | `<emb/device.h>` | no |
+| `emb_drv_gpio_assert()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_configure()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_read()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_write()` | `<emb/drv_gpio.h>` | no |
 | `emb_drv_on_callback()` | `<emb/device.h>` | no |
 | `emb_drv_on_notify()` | `<emb/device.h>` | no |
 | `emb_drv_on_sem()` | `<emb/device.h>` | no |
 | `emb_drv_on_work()` | `<emb/device.h>` | no |
 | `emb_drv_request_init()` | `<emb/device.h>` | no |
+| `emb_drv_spi_begin()` | `<emb/drv_spi.h>` | no |
+| `emb_drv_spi_end()` | `<emb/drv_spi.h>` | no |
 | `emb_drv_spi_req_transfer()` | `<emb/drv_spi.h>` | no |
 | `emb_drv_spi_submit()` | `<emb/drv_spi.h>` | no |
 | `emb_drv_submit()` | `<emb/device.h>` | no |

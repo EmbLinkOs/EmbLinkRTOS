@@ -201,7 +201,7 @@ def board_pins_c(r):
         g = _sym(e["gpio"])
         what = e.get("signal", e["mode"])
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u}},\n"
+        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u, {e.get('level', 0)}u}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -441,6 +441,9 @@ def board_cmake(r):
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
     classes = {d["name"]: d["class"] for d in r["devices"]}
+    for d in r["devices"]:
+        if d.get("cs"):  # its chip selects, EMB_SOC_<DEVICE>_CS<n> in soc_devices.h
+            out += f"set(EMB_BOARD_{d['name'].upper()}_CS_COUNT {len(d['cs'])})\n"
     for loop in r["board"].get("simulation", {}).get("loopbacks", []):
         cls = classes[loop["device"]].upper()  # checked by the resolver: a UART or SPI device
         if "ports" in loop:
@@ -639,19 +642,22 @@ def rp2350_pins_c(r):
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
     out += ("/* The pins board initialization configures: GPIO line, function select (SIO, 5, for an\n"
-            " * output), whether the pad's input is enabled (on for a peripheral's pins) and its pull\n"
-            " * (up for a line that idles high). Inputs left at their reset state need no entry. */\n")
+            " * output), whether the pad's input is enabled (on for a peripheral's pins), its pull (up\n"
+            " * for a line that idles high), and an output's level at boot. Inputs left at their reset\n"
+            " * state need no entry. */\n")
     out += "#include <emb_rp2350_pins.h>\n#include <hw_config.h>\n\n"
     out += "const emb_rp2350_pin_t emb_board_pins[] = {\n"
     entries = [e for e in r["pins"] if e["mode"] in ("af", "output")]
     for e in entries:
         what = e.get("signal", e["mode"])
         funcsel = e["af"] if e["mode"] == "af" else 5
-        is_input = 1 if e["mode"] == "af" else 0  # a peripheral's pad reads its line too
+        # a peripheral's pad reads its line too, and a chip select's, so a read shows its level
+        is_input = 1 if e["mode"] == "af" or "level" in e else 0
         # a UART's receive idles high: pulled up, so a line left open does not read as a break
         pull = "EMB_RP2350_PULL_UP" if str(what).endswith("_rx") else "EMB_RP2350_PULL_RESET"
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}}},\n"
+        drive = "EMB_RP2350_OUT_NONE" if e["mode"] == "af" else ("EMB_RP2350_OUT_HIGH" if e.get("level") else "EMB_RP2350_OUT_LOW")
+        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}, {drive}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -699,6 +705,15 @@ def soc_devices_h(r):
             if console is not None and d["peripheral"] == console and d["class"] == "uart":
                 out += "\n/* the console's UART device (the board's console:) */\n"
                 out += f"#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_{d['name']})\n"
+        cs = [(d, c) for d in r["devices"] for c in d.get("cs", [])]
+        if cs:
+            out += ("\n/* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin\n"
+                    " * table sets each up deasserted at boot */\n/* clang-format off */\n")
+            for d, c in cs:
+                suffix = "" if c["index"] is None else str(c["index"])  # a device's own, or a spare
+                out += (f"#define EMB_SOC_{d['name'].upper()}_CS{suffix} "
+                        f"{{&emb_dev_{c['gpio']}, {c['line']}u, {1 if c['active_low'] else 0}u, {{0u, 0u}}}} /* {c['pin']} */\n")
+            out += "/* clang-format on */\n"
     out += "#endif\n\n#endif /* EMB_SOC_DEVICES_H */\n"
     return out
 

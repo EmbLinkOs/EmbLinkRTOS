@@ -45,8 +45,11 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_spi_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
+| `emb_drv_spi_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_spi_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |
 | `emb_drv_spi_submit()` | O(1) plus the driver's start when the controller was idle | drivers |
-| `emb_drv_spi_transfer()` | O(len) of the bus's time; bounded by the timeout and the driver's stop | spi_frames, drivers |
+| `emb_drv_spi_transfer()` | O(len) of the bus's time, after a wait for the bus; bounded by the timeout and the driver's stop | spi_frames, drivers, owned, waiters, pi_depth, timeouts, reschedule |
 | `emb_drv_submit()` | O(1) plus the driver's start when the queue was empty | drivers |
 | `emb_drv_uart_poll_read()` | O(len) | uart_bytes |
 | `emb_drv_uart_poll_write()` | O(len) of the line's time | uart_bytes |

@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     95002d9fc2548262abe74bc0e71265c0c75e0521919bfe987fc431c4fb659a83
+ *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
  *   drivers/bindings.yaml
- *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+ *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -56,11 +56,31 @@ static emb_device_state_t gpioa_state;
 static const emb_device_t *const gpioa_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioa = {
     .name = "gpioa",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioa_config,
     .state = &gpioa_state,
     .data = NULL,
     .deps = gpioa_deps,
+    .class_id = EMB_DRV_CLASS_GPIO,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* gpiob: st,stm32-gpio, gpio, EARLY */
+static const emb_stm32_gpio_config_t gpiob_config = {
+    .base = 0x40020400u,         /* peripheral.base */
+    .clken_offset = 0x00000030u, /* peripheral.clock.enable_offset */
+    .clken_bit = 1u,             /* peripheral.clock.bit */
+};
+static emb_device_state_t gpiob_state;
+static const emb_device_t *const gpiob_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_gpiob = {
+    .name = "gpiob",
+    .api = &emb_stm32_gpio_api.dev,
+    .config = &gpiob_config,
+    .state = &gpiob_state,
+    .data = NULL,
+    .deps = gpiob_deps,
     .class_id = EMB_DRV_CLASS_GPIO,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
@@ -76,7 +96,7 @@ static emb_device_state_t gpioc_state;
 static const emb_device_t *const gpioc_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioc = {
     .name = "gpioc",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioc_config,
     .state = &gpioc_state,
     .data = NULL,
@@ -167,13 +187,14 @@ const emb_device_t emb_dev_spi2 = {
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
     &emb_dev_gpioa,  /* 1: EARLY */
-    &emb_dev_gpioc,  /* 2: EARLY */
-    &emb_dev_usart2, /* 3: EARLY */
-    &emb_dev_uart4,  /* 4: EARLY */
-    &emb_dev_spi2,   /* 5: KERNEL */
+    &emb_dev_gpiob,  /* 2: EARLY */
+    &emb_dev_gpioc,  /* 3: EARLY */
+    &emb_dev_usart2, /* 4: EARLY */
+    &emb_dev_uart4,  /* 5: EARLY */
+    &emb_dev_spi2,   /* 6: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 6u, 5u};
+const emb_device_table_t emb_board_device_table = {devices, 7u, 6u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

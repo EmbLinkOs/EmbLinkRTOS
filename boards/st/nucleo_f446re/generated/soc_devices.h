@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     95002d9fc2548262abe74bc0e71265c0c75e0521919bfe987fc431c4fb659a83
+ *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
  *   drivers/bindings.yaml
- *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
+ *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -22,13 +22,14 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 6u
+#define EMB_SOC_DEVICE_COUNT 7u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 
 extern const emb_device_t emb_dev_rcc;
 extern const emb_device_t emb_dev_gpioa;
+extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
 extern const emb_device_t emb_dev_uart4;
@@ -37,6 +38,7 @@ extern const emb_device_t emb_dev_spi2;
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
 #define EMB_SOC_HAS_GPIOA  1
+#define EMB_SOC_HAS_GPIOB  1
 #define EMB_SOC_HAS_GPIOC  1
 #define EMB_SOC_HAS_USART2 1
 #define EMB_SOC_HAS_UART4  1
@@ -44,6 +46,12 @@ extern const emb_device_t emb_dev_spi2;
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)
+
+/* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin
+ * table sets each up deasserted at boot */
+/* clang-format off */
+#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */
+/* clang-format on */
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */
