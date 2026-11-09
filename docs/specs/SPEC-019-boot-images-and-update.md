@@ -48,7 +48,7 @@ boot: { loader: mcuboot, header_size: 0x200, mode: swap_scratch }
 
 - **With `boot:`**, the generator links the application at slot 0 plus `header_size` and lifts today's refusal of an application partition that does not start at the boot base (`hw/gen/emb_hwgen/model.py`).
 - **Without `boot:`**, the layout and the refusal are unchanged.
-- **The reset path writes VTOR** from a linker symbol, the image's own vector table (an amendment to SPEC-011 §11 with M4.5). On the F446 the vector table needs 512-byte alignment: slot 0 plus 0x200 gives it.
+- **The reset path writes VTOR** from a linker symbol, the image's own vector table. SPEC-011 §4 already gives `emb_arch_early_init()` the vector table base; the Cortex-M port, which has always booted from the boot base, implements it with M4.5. On the F446 the vector table needs 512-byte alignment: slot 0 plus 0x200 gives it.
 - **The generator checks** that every partition is whole sectors of the flash's geometry, that the slots are equal in size, and that the scratch is at least as large as the largest sector a slot uses.
 
 ## 4. Images (BOOT-001)
