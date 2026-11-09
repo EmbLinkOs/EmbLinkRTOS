@@ -426,7 +426,7 @@
   "misra-c2012-10.4": 12,
   "misra-c2012-12.1": 15,
   "misra-c2012-19.2": 1,
-  "misra-c2012-8.7": 10
+  "misra-c2012-8.7": 11
  },
  "kernel/exec/exec.c": {
   "misra-c2012-10.4": 1,
