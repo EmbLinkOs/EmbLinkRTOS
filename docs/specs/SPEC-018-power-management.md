@@ -2,7 +2,7 @@
 
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; M4.4 implements it.
 
-**Status:** Proposed 2026-11-09 for the project owner's review (M4.0).
+**Status:** Accepted 2026-11-09 by the project owner at the M4.0 review, as written, with the defaults of §10.
 **Requirements:** `docs/requirements/PWR.md` (PWR-001 to 007); DRV-002; KRN-TIM-017, KRN-TIM-036.
 **Builds on:** 04 §4 (the model); ADR-059 (tickless through a SoC timer), ADR-057 (the two families); SPEC-003 (time), SPEC-014 §3 (the SoC's `power:` states), SPEC-016 (device lifecycle, suspend and resume), SPEC-017 §8 (the watchdog), §10 (RTC wake-up); A108 (sleep in the port contract).
 
