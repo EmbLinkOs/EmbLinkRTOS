@@ -21,7 +21,8 @@ M4's driver classes, power states and updates need more than the boards (SPEC-01
 | Part | For | Status |
 |---|---|---|
 | Resistors, 4.7 kΩ among them | I2C pull-ups: the chips' own are weak, and the analyzer shows the edges | to buy |
-| Jumper wires, male-male and male-female; a half-size breadboard | SPI loopback (MOSI to MISO), I2C between two controllers of one chip, the modules below | to buy |
+| Jumper wires | SPI loopback (MOSI to MISO), I2C between two controllers of one chip, the modules below | on the bench (2026-11-09) |
+| A half-size breadboard | the pull-ups and the modules | to buy |
 | A 3.3 V USB-to-serial adapter (CP2102 or CH340) | the Pico 2 W's own console, so the NUCLEO no longer relays it while it is also the board under test or the power-cut injector | to buy |
 | A powered USB hub | plugging a device into the hub the ST-LINK shares made it re-enumerate in the middle of a run (2026-11-08) | to buy |
 | BME280 module (I2C) | a real sensor for the field node and the I2C class; some modules sold as BME280 are BMP280s, without humidity | to buy |
