@@ -27,6 +27,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **device_queue**: requests queued on one device | not limited by the kernel: the requests callers have submitted and not yet seen complete | application | application | yes | a singly linked FIFO per device; cancel walks it in the device's critical section | SPEC-016 §5, §6; DRV-006 |
 | **drivers**: a driver's operations (init, start, stop, suspend, resume) and a request's completion target | not bounded by the kernel: each driver's own, stated with its class | the driver and the application | application | no | called outside the device's critical section; completion delivery too | SPEC-016 §5; SPEC-017 |
 | **uart_bytes**: bytes of one UART request, or of a polled call | the caller's: the length it passes; a read also stops at the ring's bytes when it starts | application | application | yes | base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section | SPEC-017 §4; test_uart |
+| **spi_frames**: frames of one SPI transfer | the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt | application | application | no | base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section | SPEC-017 §5; test_spi, test_spi_loop |
 
 ## Public functions
 
@@ -44,6 +45,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_spi_submit()` | O(1) plus the driver's start when the controller was idle | drivers |
+| `emb_drv_spi_transfer()` | O(len) of the bus's time; bounded by the timeout and the driver's stop | spi_frames, drivers |
 | `emb_drv_submit()` | O(1) plus the driver's start when the queue was empty | drivers |
 | `emb_drv_uart_poll_read()` | O(len) | uart_bytes |
 | `emb_drv_uart_poll_write()` | O(len) of the line's time | uart_bytes |

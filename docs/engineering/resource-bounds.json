@@ -212,6 +212,16 @@
       "masked": true,
       "profiles": "base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section",
       "evidence": "SPEC-017 \u00a74; test_uart"
+    },
+    {
+      "id": "spi_frames",
+      "input": "frames of one SPI transfer",
+      "bound": "the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section",
+      "evidence": "SPEC-017 \u00a75; test_spi, test_spi_loop"
     }
   ],
   "apis": {
@@ -528,6 +538,13 @@
       "drivers"
     ],
     "emb_drv_uart_rx_stop": [
+      "drivers"
+    ],
+    "emb_drv_spi_submit": [
+      "drivers"
+    ],
+    "emb_drv_spi_transfer": [
+      "spi_frames",
       "drivers"
     ]
   }

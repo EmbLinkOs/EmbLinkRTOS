@@ -61,6 +61,9 @@ peripherals:
   # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §18): its update event is ADC1's trigger
   - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, clock: { bus: apb1, bit: 0 },
       irqs: [ { name: global, number: 28 } ] }
+  # SPI2 (RM0390 §26), on APB1; its pins PB13 to PB15 keep PA5, the NUCLEO's LED, free
+  - { name: spi2, compatible: "st,stm32-spi", base: 0x40003800, size: 0x400, clock: { bus: apb1, bit: 14 },
+      irqs: [ { name: global, number: 36 } ] }
   - { name: uart4, compatible: "st,stm32-usart", base: 0x40004C00, size: 0x400, clock: { bus: apb1, bit: 19 },
       irqs: [ { name: global, number: 52 } ] }
   - { name: uart5, compatible: "st,stm32-usart", base: 0x40005000, size: 0x400, clock: { bus: apb1, bit: 20 },
@@ -85,6 +88,9 @@ alternate_functions:
   PB6: { af7: usart1_tx }
   PB7: { af7: usart1_rx }
   PB10: { af7: usart3_tx }
+  PB13: { af5: spi2_sck }
+  PB14: { af5: spi2_miso }
+  PB15: { af5: spi2_mosi }
   PC5: { af7: usart3_rx }
   PC6: { af8: usart6_tx }
   PC7: { af8: usart6_rx }

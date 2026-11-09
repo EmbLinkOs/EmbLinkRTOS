@@ -24,6 +24,7 @@ clocks:
 pins:
   usart2: { tx: PA2.af7, rx: PA3.af7 }
   uart4: { tx: PA0.af8, rx: PA1.af8 }    # A0 and A1 on the Arduino header
+  spi2: { sck: PB13.af5, miso: PB14.af5, mosi: PB15.af5 } # CN10-30, -28 and -26
 console: { device: usart2, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
 # GPIO ports in use and the console
@@ -32,6 +33,7 @@ devices:
   - { name: gpioa, doc: "the console's pins and LD2" }
   - { name: gpioc, doc: B1 }
   - { name: usart2, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
+  - { name: spi2, doc: "SPI2 on PB13 to PB15; the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
@@ -44,5 +46,7 @@ simulation:
   embsim: emblink/nucleo_f446re
   resets_in: [embsim, hil]
   # EmbSIM's board wires A0 to A1 as the bench does, for test_uart_loop
-  loopbacks: [ { device: uart4, ports: [A0, A1] } ]
+  loopbacks:
+    - { device: uart4, ports: [A0, A1] }
+    - { device: spi2, ports: [CN10_26, CN10_28] } # PB15 (MOSI) to PB14 (MISO)
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

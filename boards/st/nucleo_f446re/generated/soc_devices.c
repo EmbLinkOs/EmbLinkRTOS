@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     30a6065f35afa11a53307802f8a6e1927cf6208fce96196a314bfc54bae9cd5c
+ *     95002d9fc2548262abe74bc0e71265c0c75e0521919bfe987fc431c4fb659a83
  *   drivers/bindings.yaml
- *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
+ *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -140,6 +140,29 @@ const emb_device_t emb_dev_uart4 = {
     .dep_count = 1u,
 };
 
+/* spi2: st,stm32-spi, spi, KERNEL */
+static const emb_stm32_spi_config_t spi2_config = {
+    .base = 0x40003800u,         /* peripheral.base */
+    .clock_hz = 45000000u,       /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 14u,            /* peripheral.clock.bit */
+    .irq = 36u,                  /* peripheral.irqs.global */
+};
+static emb_device_state_t spi2_state;
+static emb_stm32_spi_data_t spi2_data;
+static const emb_device_t *const spi2_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_spi2 = {
+    .name = "spi2",
+    .api = &emb_stm32_spi_api,
+    .config = &spi2_config,
+    .state = &spi2_state,
+    .data = &spi2_data,
+    .deps = spi2_deps,
+    .class_id = EMB_DRV_CLASS_SPI,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
@@ -147,9 +170,10 @@ static const emb_device_t *const devices[] = {
     &emb_dev_gpioc,  /* 2: EARLY */
     &emb_dev_usart2, /* 3: EARLY */
     &emb_dev_uart4,  /* 4: EARLY */
+    &emb_dev_spi2,   /* 5: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 5u, 5u};
+const emb_device_table_t emb_board_device_table = {devices, 6u, 5u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

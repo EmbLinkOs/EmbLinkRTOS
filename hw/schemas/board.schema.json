@@ -128,11 +128,12 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["device", "ports"],
+            "required": ["device"],
             "additionalProperties": false,
             "properties": {
               "device": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-              "ports": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } }
+              "ports": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } },
+              "internal": { "const": true }
             }
           }
         }

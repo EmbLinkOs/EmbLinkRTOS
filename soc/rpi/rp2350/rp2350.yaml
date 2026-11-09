@@ -54,10 +54,14 @@ peripherals:
   - { name: pll_sys, compatible: "rpi,rp2350-pll", base: 0x40050000, size: 0x4000 }
   - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }] }
   - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }] }
+  # the SPI controllers are PL022s (datasheet §12.3), clocked by clk_peri
+  - { name: spi0, compatible: "arm,pl022", base: 0x40080000, size: 0x4000, irqs: [{ name: global, number: 31 }] }
+  - { name: spi1, compatible: "arm,pl022", base: 0x40088000, size: 0x4000, irqs: [{ name: global, number: 32 }] }
   # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
   - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
-# The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX)
+# The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX);
+# SPI1's, f1, on the lines of its first bank the Pico 2 W brings out
 alternate_functions:
   GPIO0: { f2: uart0_tx }
   GPIO1: { f2: uart0_rx }
@@ -69,9 +73,9 @@ alternate_functions:
   GPIO7: { f11: uart1_rx }
   GPIO8: { f2: uart1_tx }
   GPIO9: { f2: uart1_rx }
-  GPIO10: { f11: uart1_tx }
-  GPIO11: { f11: uart1_rx }
-  GPIO12: { f2: uart0_tx }
+  GPIO10: { f1: spi1_sck, f11: uart1_tx }
+  GPIO11: { f1: spi1_mosi, f11: uart1_rx }
+  GPIO12: { f1: spi1_miso, f2: uart0_tx }
   GPIO13: { f2: uart0_rx }
   GPIO14: { f11: uart0_tx }
   GPIO15: { f11: uart0_rx }

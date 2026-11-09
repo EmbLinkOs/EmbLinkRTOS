@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/arm/mps2_an385/board.yaml
- *     2a7130675188dddd09ddb7f030ddffe38f38f2780e7cdaed98dc5b378214a1d9
+ *     ffb11f5ba747481a9325d7dc88102f9a7fe61b978a497e8ee77fc62acff584ce
  *   drivers/bindings.yaml
- *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
+ *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
  *   soc/arm/mps2/an385.yaml
  *     95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec
  *   soc/arm/mps2/mps2.yaml
- *     44b9daa6b78741215980bd1bd15ae68b64f31aa99c63a4c05cfc3def203c4a43
+ *     5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7
  */
 /* The board's devices (SPEC-016 §8): each one's configuration, RAM and instance, and the
  * table the kernel initializes them from: EARLY first, each device after its dependencies. */
@@ -26,6 +26,7 @@
 #include <stddef.h>
 
 #include <emb_cmsdk_uart.h>
+#include <emb_pl022.h>
 
 /* uart0: arm,cmsdk-uart, uart, EARLY */
 static uint8_t uart0_rx[64];
@@ -52,12 +53,33 @@ const emb_device_t emb_dev_uart0 = {
     .dep_count = 0u,
 };
 
+/* spi0: arm,pl022, spi, KERNEL */
+static const emb_pl022_config_t spi0_config = {
+    .base = 0x40025000u,   /* peripheral.base */
+    .clock_hz = 25000000u, /* peripheral.clock_hz */
+    .irq = 22u,            /* peripheral.irqs.global */
+};
+static emb_device_state_t spi0_state;
+static emb_pl022_data_t spi0_data;
+const emb_device_t emb_dev_spi0 = {
+    .name = "spi0",
+    .api = &emb_pl022_api,
+    .config = &spi0_config,
+    .state = &spi0_state,
+    .data = &spi0_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_SPI,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 0u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_uart0, /* 0: EARLY */
+    &emb_dev_spi0,  /* 1: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 1u, 1u};
+const emb_device_table_t emb_board_device_table = {devices, 2u, 1u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

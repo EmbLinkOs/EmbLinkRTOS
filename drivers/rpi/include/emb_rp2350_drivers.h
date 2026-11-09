@@ -21,6 +21,8 @@ extern "C" {
 #define EMB_RP2350_RESET_IO_BANK0   (1u << 6)
 #define EMB_RP2350_RESET_PADS_BANK0 (1u << 9)
 #define EMB_RP2350_RESET_PLL_SYS    (1u << 14)
+#define EMB_RP2350_RESET_SPI0       (1u << 18)
+#define EMB_RP2350_RESET_SPI1       (1u << 19)
 #define EMB_RP2350_RESET_UART0      (1u << 26)
 #define EMB_RP2350_RESET_UART1      (1u << 27)
 

@@ -1,5 +1,5 @@
 {
-  "comment": "tools/footprint/stack_bound.py's roots for the reference controller: its threads, the interrupt levels lowest first, and the targets of each indirect call. embk_isr_dispatch calls the handlers main() connects; emb_kernel_init the linker table's initializers; raise_info the fault hook, which the controller never sets; timer_work and embk_timer_expired a software timer's callback, and the controller has none; emb_device_init the board's devices' init operations (the NUCLEO-F446RE's rcc, GPIO ports and USART2, SPEC-016); the dispatcher also the USART2 driver's handler, which the controller replaces with its own but another application keeps; run_lane a lane's next request's start, which on this board only the USART has; deliver a request's callback, and the controller sets none.",
+  "comment": "tools/footprint/stack_bound.py's roots for the reference controller: its threads, the interrupt levels lowest first, and the targets of each indirect call. embk_isr_dispatch calls the handlers main() connects; emb_kernel_init the linker table's initializers; raise_info the fault hook, which the controller never sets; timer_work and embk_timer_expired a software timer's callback, and the controller has none; emb_device_init the board's devices' init operations (the NUCLEO-F446RE's rcc, GPIO ports, USARTs and SPI2, SPEC-016); the dispatcher also the USART and SPI drivers' handlers, USART2's of which the controller replaces with its own but another application keeps; run_lane a lane's next request's start, the USART's or the SPI's; deliver a request's callback, and the controller sets none.",
   "threads": {
     "control": {"entry": "control", "size": 1024},
     "command": {"entry": "command", "size": 1024},
@@ -17,13 +17,13 @@
     ]
   },
   "indirect": {
-    "embk_isr_dispatch": ["adc_isr", "usart_isr", "stm32_usart_isr"],
+    "embk_isr_dispatch": ["adc_isr", "usart_isr", "stm32_usart_isr", "stm32_spi_isr"],
     "emb_kernel_init": {"table": "emb_init_table"},
     "raise_info": [],
     "timer_work": [],
     "embk_timer_expired": [],
-    "emb_device_init": ["rcc_init", "gpio_init", "usart_init"],
-    "run_lane": ["usart_start"],
+    "emb_device_init": ["rcc_init", "gpio_init", "usart_init", "stm32_spi_init"],
+    "run_lane": ["usart_start", "stm32_spi_start"],
     "deliver": []
   }
 }

@@ -1074,6 +1074,24 @@
       "name": "emb_drv_uart_req_break",
       "header": "drv_uart.h",
       "state": "active"
+    },
+    {
+      "id": 183,
+      "name": "emb_drv_spi_req_transfer",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 184,
+      "name": "emb_drv_spi_submit",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 185,
+      "name": "emb_drv_spi_transfer",
+      "header": "drv_spi.h",
+      "state": "active"
     }
   ]
 }

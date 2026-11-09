@@ -24,7 +24,8 @@ void emb_board_init(void)
 {
     int clocked = emb_rp2350_clock_init();
     (void)emb_rp2350_unreset(EMB_RP2350_RESET_IO_BANK0 | EMB_RP2350_RESET_PADS_BANK0 |
-                             EMB_RP2350_RESET_UART0 | EMB_RP2350_RESET_UART1);
+                             EMB_RP2350_RESET_UART0 | EMB_RP2350_RESET_UART1 |
+                             EMB_RP2350_RESET_SPI0 | EMB_RP2350_RESET_SPI1);
     emb_rp2350_pins_apply(emb_board_pins, emb_board_pin_count);
     /* the polled console, before anything else; its device (uart0, SPEC-016) finds it running
      * at its rate and leaves it as it is */

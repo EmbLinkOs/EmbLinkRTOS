@@ -114,6 +114,7 @@ class Resolver:
         linker = self._linker(board, soc)
         kconfig, profile = self._kconfig(board, soc, clk)
         devs, binding_docs = self._devices(board, soc, clk)
+        self._loopbacks(board, devs)
         if self.errors:
             raise HwError(self.errors)
         self._curation(board, soc)
@@ -369,6 +370,16 @@ class Resolver:
         table = devices.Bindings(files, lambda m, p, msg: self.errors.append(f"{m.at(p)}: {msg}"))
         devs = devices.resolve(board, soc, clk, table, lambda p, m: self.err(board, p, m))
         return devs, [d for m in table.models for d in m.docs]
+
+    def _loopbacks(self, board, devs):
+        """simulation.loopbacks: each a UART or SPI device, wired by two ports or looped inside."""
+        classes = {d["name"]: d["class"] for d in devs}
+        for i, loop in enumerate(board.data.get("simulation", {}).get("loopbacks", [])):
+            at = f"simulation.loopbacks[{i}]"
+            if classes.get(loop["device"]) not in ("uart", "spi"):
+                self.err(board, at, f"{loop['device']} is not a UART or SPI device of the board")
+            elif ("ports" in loop) == ("internal" in loop):
+                self.err(board, at, "a loopback names two ports or internal: true, one of them")
 
     def _test_irqs(self, board, soc):
         irqs = board.data.get("test_irqs")

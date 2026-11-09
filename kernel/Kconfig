@@ -290,6 +290,14 @@ config EMB_DRV_UART
 	  Requests to write and read bytes, their blocking wrappers, the polled
 	  calls, and the receive core every UART driver shares.
 
+config EMB_DRV_SPI
+	bool "The SPI controller class (SPEC-017 §5)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Transfers to a target in its mode, at its speed and word size, and their
+	  blocking wrapper.
+
 config EMB_WORKQ
 	bool "Work queues (SPEC-006 §4)"
 	depends on EMB_NOTIFY && !EMB_SCHED_TABLE

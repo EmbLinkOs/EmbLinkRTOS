@@ -96,3 +96,29 @@ bindings:
     api: emb_rp2350_io_bank_api
     config: emb_rp2350_io_bank_config_t
     fields: { base: peripheral.base }
+  arm,pl022:
+    class: spi
+    level: kernel
+    sources: [drivers/arm/pl022.c]
+    include: drivers/arm/include
+    header: emb_pl022.h
+    api: emb_pl022_api
+    config: emb_pl022_config_t
+    data: emb_pl022_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global }
+    doc: the RP2350's SPI controllers, and QEMU's MPS2 models (SPEC-017 §5)
+  st,stm32-spi:
+    class: spi
+    level: kernel
+    sources: [drivers/st/stm32_spi.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_spi_api
+    config: emb_stm32_spi_config_t
+    data: emb_stm32_spi_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global

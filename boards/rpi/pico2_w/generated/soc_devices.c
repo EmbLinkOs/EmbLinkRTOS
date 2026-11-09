@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     d361fc6693ddec9946eb0f1125709d38aae1dbbc8c493455a1d1a31218c443e4
+ *     8cca7c1360078773243d7c2233daf9706a22d70211b53dd264e9530b9352c40c
  *   drivers/bindings.yaml
- *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
+ *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
  *   soc/rpi/rp2350/rp2350.yaml
- *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
+ *     405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -26,6 +26,7 @@
 #include <stddef.h>
 
 #include <emb_pl011.h>
+#include <emb_pl022.h>
 #include <emb_rp2350_devices.h>
 
 /* clocks: rpi,rp2350-clocks, clock, EARLY */
@@ -113,15 +114,37 @@ const emb_device_t emb_dev_uart1 = {
     .dep_count = 1u,
 };
 
+/* spi1: arm,pl022, spi, KERNEL */
+static const emb_pl022_config_t spi1_config = {
+    .base = 0x40088000u,    /* peripheral.base */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+    .irq = 32u,             /* peripheral.irqs.global */
+};
+static emb_device_state_t spi1_state;
+static emb_pl022_data_t spi1_data;
+static const emb_device_t *const spi1_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_spi1 = {
+    .name = "spi1",
+    .api = &emb_pl022_api,
+    .config = &spi1_config,
+    .state = &spi1_state,
+    .data = &spi1_data,
+    .deps = spi1_deps,
+    .class_id = EMB_DRV_CLASS_SPI,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
     &emb_dev_io_bank0, /* 1: EARLY */
     &emb_dev_uart0,    /* 2: EARLY */
     &emb_dev_uart1,    /* 3: EARLY */
+    &emb_dev_spi1,     /* 4: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 4u, 4u};
+const emb_device_table_t emb_board_device_table = {devices, 5u, 4u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

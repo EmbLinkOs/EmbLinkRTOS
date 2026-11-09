@@ -183,5 +183,8 @@
 #define EMB_API_ID_DRV_UART_RX_START             0x00B4u
 #define EMB_API_ID_DRV_UART_RX_STOP              0x00B5u
 #define EMB_API_ID_DRV_UART_REQ_BREAK            0x00B6u
+#define EMB_API_ID_DRV_SPI_REQ_TRANSFER          0x00B7u
+#define EMB_API_ID_DRV_SPI_SUBMIT                0x00B8u
+#define EMB_API_ID_DRV_SPI_TRANSFER              0x00B9u
 
 #endif /* EMB_API_IDS_H */

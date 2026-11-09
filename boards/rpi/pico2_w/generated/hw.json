@@ -42,6 +42,13 @@
         "name": "uart0"
       },
       {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "SPI1 on GPIO10 to GPIO12; the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)",
+        "name": "spi1"
+      },
+      {
         "baud": 115200,
         "deps": [
           "io_bank0"
@@ -67,6 +74,11 @@
       }
     },
     "pins": {
+      "spi1": {
+        "miso": "GPIO12.f1",
+        "mosi": "GPIO11.f1",
+        "sck": "GPIO10.f1"
+      },
       "uart0": {
         "rx": "GPIO1.f2",
         "tx": "GPIO0.f2"
@@ -184,6 +196,21 @@
         "level": "early",
         "name": "uart1",
         "peripheral": "uart1"
+      },
+      {
+        "class": "spi",
+        "compatible": "arm,pl022",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074298880,
+          "clock_hz": 150000000,
+          "irq": 32
+        },
+        "level": "kernel",
+        "name": "spi1",
+        "peripheral": "spi1"
       }
     ],
     "kconfig": {
@@ -254,6 +281,36 @@
         "pin": "GPIO5",
         "port": "",
         "signal": "uart1_rx"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 10,
+        "owner": "pins.spi1.sck",
+        "pin": "GPIO10",
+        "port": "",
+        "signal": "spi1_sck"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 11,
+        "owner": "pins.spi1.mosi",
+        "pin": "GPIO11",
+        "port": "",
+        "signal": "spi1_mosi"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 12,
+        "owner": "pins.spi1.miso",
+        "pin": "GPIO12",
+        "port": "",
+        "signal": "spi1_miso"
       }
     ],
     "profile": "base",
@@ -277,15 +334,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "d361fc6693ddec9946eb0f1125709d38aae1dbbc8c493455a1d1a31218c443e4"
+      "sha256": "8cca7c1360078773243d7c2233daf9706a22d70211b53dd264e9530b9352c40c"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11"
+      "sha256": "ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf"
+      "sha256": "405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -302,12 +359,15 @@
         "f2": "uart0_rx"
       },
       "GPIO10": {
+        "f1": "spi1_sck",
         "f11": "uart1_tx"
       },
       "GPIO11": {
+        "f1": "spi1_mosi",
         "f11": "uart1_rx"
       },
       "GPIO12": {
+        "f1": "spi1_miso",
         "f2": "uart0_tx"
       },
       "GPIO13": {
@@ -592,6 +652,30 @@
           }
         ],
         "name": "uart1",
+        "size": 16384
+      },
+      {
+        "base": 1074266112,
+        "compatible": "arm,pl022",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 31
+          }
+        ],
+        "name": "spi0",
+        "size": 16384
+      },
+      {
+        "base": 1074298880,
+        "compatible": "arm,pl022",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 32
+          }
+        ],
+        "name": "spi1",
         "size": 16384
       },
       {

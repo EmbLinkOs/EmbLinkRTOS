@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     d361fc6693ddec9946eb0f1125709d38aae1dbbc8c493455a1d1a31218c443e4
+ *     8cca7c1360078773243d7c2233daf9706a22d70211b53dd264e9530b9352c40c
  *   drivers/bindings.yaml
- *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
+ *     ee35d19e17cc107dd61b219a1d37f01ba72678d25ec6c4b3a19302170512bc74
  *   soc/rpi/rp2350/rp2350.yaml
- *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
+ *     405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -20,7 +20,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 4u
+#define EMB_SOC_DEVICE_COUNT 5u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -29,12 +29,14 @@ extern const emb_device_t emb_dev_clocks;
 extern const emb_device_t emb_dev_io_bank0;
 extern const emb_device_t emb_dev_uart0;
 extern const emb_device_t emb_dev_uart1;
+extern const emb_device_t emb_dev_spi1;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_CLOCKS   1
 #define EMB_SOC_HAS_IO_BANK0 1
 #define EMB_SOC_HAS_UART0    1
 #define EMB_SOC_HAS_UART1    1
+#define EMB_SOC_HAS_SPI1     1
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_uart0)

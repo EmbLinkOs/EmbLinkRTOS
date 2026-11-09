@@ -39,4 +39,6 @@ peripherals:
   # QEMU hw/arm/mps2-tz.c: UART0's receive and transmit lines
   - { name: uart0, compatible: "arm,cmsdk-uart", base: 0x50200000, size: 0x1000,
       irqs: [ { name: rx, number: 32 }, { name: tx, number: 33 } ] }
+  # QEMU's first PL022 of the five on the AN505, its interrupt measured: 51
+  - { name: spi0, compatible: "arm,pl022", base: 0x50205000, size: 0x1000, irqs: [ { name: global, number: 51 } ] }
   - { name: fpgaio, compatible: "arm,mps2-fpgaio", base: 0x50302000, size: 0x1000, doc: LED0 at offset 0 }

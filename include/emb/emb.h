@@ -16,6 +16,9 @@
 #if CONFIG_EMB_DRV_UART
 #include <emb/drv_uart.h>
 #endif
+#if CONFIG_EMB_DRV_SPI
+#include <emb/drv_spi.h>
+#endif
 #if CONFIG_EMB_CRASH_RECORD
 #include <emb/crash.h>
 #endif

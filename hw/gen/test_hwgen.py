@@ -448,6 +448,7 @@ class Devices(unittest.TestCase):
         (self.root.dir / "drivers" / "bindings.yaml").write_text(BINDINGS, encoding="utf-8")
         board = self.root.dir / BOARD / "board.yaml"
         text = re.sub(r"^devices:\n(?:  - .*\n)+", "", board.read_text(encoding="utf-8"), flags=re.M)
+        text = re.sub(r"^  # [^\n]*\n  loopbacks:\n(?:    - .*\n)+|^  loopbacks:\n(?:    - .*\n)+", "", text, flags=re.M)
         board.write_text(text.replace("leds:", DEVICES + "leds:", 1), encoding="utf-8")
 
     def tearDown(self):
@@ -521,6 +522,19 @@ class Devices(unittest.TestCase):
         self.assertIn("static uint8_t console_rx[256];", self.files()["soc_devices.c"])
         self.root.edit(f"{BOARD}/board.yaml", "rx_buffer: 256", "rx_buffer: 70000")
         self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console")
+
+    def test_loopbacks(self):
+        """simulation.loopbacks: a UART or SPI device, wired by two ports or looped inside."""
+        self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console, ports: [A0, A1] } ]\n")
+        self.assertIn('set(EMB_BOARD_EMBSIM_UART_LOOP console "A0,A1")', self.files()["board.cmake"])
+        self.root.edit(f"{BOARD}/board.yaml", "{ device: console, ports: [A0, A1] }", "{ device: console, internal: true }")
+        self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["board.cmake"])
+        self.root.edit(f"{BOARD}/board.yaml", "{ device: console, internal: true }", "{ device: rcc, internal: true }")
+        self.expect(r"rcc is not a UART or SPI device", needle="device: rcc", path="simulation.loopbacks[0]")
+
+    def test_loopback_names_one_way(self):
+        self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console } ]\n")
+        self.expect(r"two ports or internal: true", needle="device: console }", path="simulation.loopbacks[0]")
 
     def test_presence_and_console_macros(self):
         h = self.files()["soc_devices.h"]
