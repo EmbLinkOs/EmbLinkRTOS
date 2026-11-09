@@ -40,6 +40,10 @@ The RP2350's board support was split into drivers at `04ebb04`: the clock tree, 
 
 The board-devices case finds the three READY in order. The suite also passed at `d5a3249`, before the split (29 of 29), so the drivers write what the board support did.
 
+## The reference controller
+
+`examples/controller` on the NUCLEO-F446RE at `16e389d`, GCC, checked, its image now carrying the board's four devices: all nine phases of `tools/hil/controller_session.py` passed, with a 5-minute soak. The phases are boot, normal sampling, stacks, overload, recovery, 1 kHz, the soak, a decoded fault and the watchdog reset. The commands it answers come in on USART2's receive side, which the console's device left as the board set it. The record is under [hil-runs/2026-11-09-nucleo_f446re-controller-devices](hil-runs/2026-11-09-nucleo_f446re-controller-devices/controller.json). The image is 19,240 bytes of flash and 7,496 bytes of RAM, against 18,096 and 7,624 at the [first memory accounting](controller-memory-2026-11-07.md), which predates the later kernel changes as well as the devices. Its static stack bounds pass in CI with the devices' initialization included.
+
 ## The run before the fix
 
 The first runs, at `7929a44` the evening before, also passed 28 of 28. In them only `test_device` had the board's devices: the kernel's weak empty table won over the board's at link time, so the other images started without devices. That is fixed in `afccf47`, which every board's table makes impossible to lose (the [generator](hwgen.md#devices-spec-016)). These runs replace them.
