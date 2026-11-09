@@ -795,3 +795,67 @@ Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](
 
 **Status.** Accepted 2026-11-08 by the project owner at the M3 contract review; proposed 2026-11-07 with the measurements above. The two gaps the controller's release run found under LTO, the image's build path and the stack bound, are fixed (#121, #123).
 
+
+## ADR-057 M4's second SoC family is the RP2350
+
+**Context.** M4 (07 §2) asks for platform services, drivers among them, and "a second SoC family", without naming it. ADR-025 brought in the RP2350 (Raspberry Pi Pico 2) beside the STM32F4 for Armv8-M, RISC-V and multicore. The Pico 2 W is on the bench and runs the suites (27/27, [report](../engineering/hil-pico2w-2026-11-07.md)). Its board support is a single `board.c`: clocks, resets, GPIO and the UART console, with no driver model.
+
+**Decision.** The RP2350 is M4's second family. Every driver class M4 delivers is written for both the STM32F4 and the RP2350, and each claims a board only with an archived run on that board. The project owner chose it on 2026-11-08, from the boards on the bench.
+
+**Alternatives.**
+- *STM32U5 or STM32H5:* the closest to shipping products and the same vendor tooling, but not on the bench, and a second ST family proves less about the driver model than a different vendor's peripherals do.
+- *nRF52/nRF53:* radio products, but none on the bench.
+- *The ESP32 or ESP32-C3:* on the bench, but their peripherals' documentation and Espressif's own HAL make drivers outside ESP-IDF costly, and the C3 lacks hardware evidence.
+
+**Consequences.**
+- The two families differ where a driver model must hold: ST's peripherals against the RP2350's PL011, PL022 and DesignWare I2C, separate DMA engines, ST's sector flash against QSPI flash behind XIP, and ST's RTC against the RP2350's always-on timer.
+- **Absent features stay absent:** the RP2350 has no calendar RTC and the STM32F446 no entropy source; capability discovery reports them, and nothing fakes them.
+- The RP2350's PL022 SPI is what QEMU's MPS2 machines model, so one driver gets emulator evidence in CI.
+- ADR-025 is unchanged; this records which family M4 takes.
+
+**Status.** Accepted 2026-11-08 by the project owner, when M4 was planned.
+
+## ADR-058 Updates through upstream MCUboot, ported bare-metal, in swap mode
+
+**Context.** M4 asks for MCUboot-compatible updates, tested by power-loss injection. ADR-008 chose MCUboot's image format and slot semantics, and left the bootloader open (Q11). Nothing boots the RTOS today but the chip's own reset: the port never writes VTOR, and the generator refuses an application partition that does not start at the boot base (`hw/gen/emb_hwgen/model.py`).
+
+**Decision.**
+- **The bootloader is upstream MCUboot,** pinned to a reviewed commit, with the parts it needs vendored in `third_party/mcuboot/` (bootutil and its ECDSA P-256 and SHA-256 support), its licence and its SBOM entry. Signing uses MCUboot's `imgtool`, pinned.
+- **Ported bare-metal:** `boot/mcuboot/` gives MCUboot a flash map over the flash driver class in polled mode, a console, and the jump into the application (VTOR, the main stack pointer, pending interrupts cleared). It builds as its own image per board, with GCC and Clang.
+- **Swap mode, so a failed update reverts:** swap with a scratch sector on the STM32F446, whose 128 KiB sectors make swap-move costly; swap-move on the RP2350's 4 KiB sectors. The application confirms an update after its self-test (`emb_boot_confirm()`); one that is not confirmed is swapped back at the next reset.
+- **The application links at its slot**, after MCUboot's header, when the board declares a bootloader partition. A board without one keeps today's layout and refusal.
+- **Power-loss evidence at three levels:** an exhaustive sweep over every flash operation in a native simulator in CI; a deterministic reset after operation N on both boards; and random external power cuts on the bench.
+- It asks the owner to accept ADR-008 with it, which answers Q11.
+
+**Alternatives.**
+- *A project bootloader of the same format:* one maintainer would redo, and then have to prove, MCUboot's power-loss safety.
+- *The RP2350 boot ROM's A/B images ("try before you buy"):* a second update path with no STM32 counterpart, and anti-rollback only in OTP. It stays a later option for the Pico.
+- *MCUboot's direct-XIP:* a build per slot, and BOOT-002's swap is never exercised.
+
+**Consequences.**
+- Anti-rollback is a counter in a flash partition. OTP is documented only, and CI and HIL never burn it (SEC-014).
+- The STM32F446's layout: MCUboot in sectors 0–2 (48 KiB), configuration in 3, a log in 4, the two slots in 5 and 6, scratch in 7. If MCUboot does not fit in 48 KiB, it takes sectors 0–3 and the log shrinks.
+- Upstream MCUboot moves; the pin is updated deliberately, with the review recorded.
+
+**Status.** Proposed 2026-11-09 for the project owner's review, as the approved M4 plan describes it.
+
+## ADR-059 Tickless on Cortex-M through a SoC timer, behind a port seam
+
+**Context.** Tickless operation runs on the native port only: no embedded port declares `EMB_ARCH_HAS_TICKLESS`, and the Cortex-M port's `emb_arch_timer_set_deadline_raw()` is a stub. SysTick is a 24-bit down-counter: at 180 MHz it wraps in under 0.1 s, and it stops in the low-power modes M4's power management needs.
+
+**Decision.**
+- **A SoC timer keeps tickless time,** chosen by the board with a new key, `system_timer`, and reached through `emb_soc_systimer_*()`. The Cortex-M port implements the deadline hooks on it and declares tickless only when the board names a timer.
+- **SysTick stays the default:** periodic, unchanged, for every board without the key.
+- **The first two:** TIM5 on the STM32F446, a 32-bit timer at 1 MHz with a compare channel for the deadline (TIM2 stays the reference controller's); TIMER0 on the RP2350, a 64-bit microsecond counter with an alarm.
+- **Measured:** the latency of arming a deadline (KRN-TIM-036), and that tickless and periodic modes pass the same conformance suite on the board.
+
+**Alternatives.**
+- *Reprogramming SysTick for each deadline:* a 24-bit range at full clock, and it does not run in deep sleep.
+- *The RTC's wake-up timer:* it runs in STOP, but its resolution is coarse. It is the power manager's wake source for the deepest states (SPEC-018), not the scheduler's clock.
+- *A timer per SoC inside the port:* the port would learn SoC details; the seam keeps it to the core.
+
+**Consequences.**
+- The deeper power states reuse the seam: the power manager switches the timebase to the RTC or the always-on timer while the main timer is stopped.
+- A board that wants tickless names its timer; nothing changes for one that does not.
+
+**Status.** Proposed 2026-11-09 for the project owner's review, as the approved M4 plan describes it.

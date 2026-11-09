@@ -49,7 +49,7 @@ This is the highest-impact platform decision. Own schema costs generator work up
 **Q10. First Cortex-M SoC family for M3.** STM32F4 (ubiquitous, Discovery boards cheap), STM32L4/U5 (low power plus Armv8-M for isolation), nRF52/nRF53 (BLE later, nRF53 is dual-core Armv8-M), RP2350 (Armv8-M plus RISC-V on one chip, cheap, ideal for AMP and for proving two ports on one board)?
 *Decided:* STM32F4 (STM32F407 Discovery or NUCLEO-F446RE) for the port, with the RP2350 (Pico 2) acquired at the same time for Armv8-M isolation in M3, RISC-V in M5, and SMP and AMP in M6; an STM32U5 or H5 class part as the second family in M4 (ADR-025).
 
-**Q11. Image format.** MCUboot-compatible (recommended, ADR-008) or project-specific?
+**Q11. Image format.** MCUboot-compatible (recommended, ADR-008) or project-specific? *Proposed answer (2026-11-09):* MCUboot's format and upstream MCUboot as the bootloader, ADR-058 with ADR-008.
 
 **Q12. Trace format.** CTF (recommended, ADR-021), or a simpler project format with an EmbDebug-only viewer?
 

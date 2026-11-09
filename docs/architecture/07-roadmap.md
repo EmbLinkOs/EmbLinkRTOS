@@ -57,7 +57,7 @@ Exit: the defined attack/fault campaign passes, including active DMA and remote 
 
 ### M4 - Platform services and wider adoption
 
-Extend drivers as demanded by real applications: SPI/I2C, DMA mediation, watchdog, flash, RTC and entropy. Add power management with measured residency/wake constraints, MCUboot-compatible updates with power-loss injection, richer observability and transports, full importers/CLI, expanded adapters and a second SoC family. Each service has an independent conformance, HIL and support gate.
+Extend drivers as demanded by real applications: SPI/I2C, DMA mediation, watchdog, flash, RTC and entropy. Add power management with measured residency/wake constraints, MCUboot-compatible updates with power-loss injection, richer observability and transports, full importers/CLI, expanded adapters and a second SoC family, the RP2350 (ADR-057). Each service has an independent conformance, HIL and support gate. Updates go through upstream MCUboot (ADR-058, proposed), and Cortex-M tickless through a SoC timer (ADR-059, proposed).
 
 Exit: an application validates each included service on hardware; update recovery and power behavior are measured; support matrix comes from archived outcomes; maintenance commitments match available resources.
 
