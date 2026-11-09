@@ -112,7 +112,7 @@ typedef struct emb_drv_request {
 
 ### 5.2 Blocking calls are wrappers
 
-A blocking class call (`emb_uart_write(dev, buf, len, timeout)`) is a wrapper over submit (DRV-004):
+A blocking class call (`emb_drv_uart_write(dev, buf, len, timeout)`) is a wrapper over submit (DRV-004):
 1. it builds the request on the caller's stack, with a binary semaphore in the caller's stack frame as its target;
 2. submits it and takes the semaphore with the caller's timeout;
 3. on timeout, cancels the request (§5.3) and waits for its completion, which is then certain and bounded, and returns `EMB_ETIMEDOUT` with `done` telling how much was transferred.
@@ -132,7 +132,7 @@ The wrapper's cost is a request and a semaphore's storage on the caller's stack.
 
 ## 7. Polled mode (DRV-007)
 
-The EARLY classes (clock, GPIO, console UART, flash) offer polled functions, `emb_uart_poll_write()` and the like, that use no kernel service, and do not need the device to be READY in the kernel's sense, only initialized at the EARLY level. They serve the boot path, the fault report and the bootloader (ADR-058). Once the kernel runs, a device's polled and request APIs must not be mixed on the same device, except by the fault report, which takes the device over.
+The EARLY classes (clock, GPIO, console UART, flash) offer polled functions, `emb_drv_uart_poll_write()` and the like, that use no kernel service, and do not need the device to be READY in the kernel's sense, only initialized at the EARLY level. They serve the boot path, the fault report and the bootloader (ADR-058). Once the kernel runs, a device's polled and request APIs must not be mixed on the same device, except by the fault report, which takes the device over.
 
 ## 8. Binding and generation (DRV-009)
 
