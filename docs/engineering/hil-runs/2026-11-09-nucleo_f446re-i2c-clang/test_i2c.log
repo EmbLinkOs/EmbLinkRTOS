@@ -1,0 +1,30 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_i2c.elf sha256 95bbb6eaed9617733de546ae683e4fef44631628f499ac77bc57b6c126a363cc
+EVIDENCE v1 suite=test_i2c config=58171f48454d7671 profile=base board=nucleo_f446re checked=1
+TEST i2c_write_then_read_a_register
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_write_then_read_a_register outcome=passed asserts=7 skips=0
+TEST i2c_segments_count_bytes
+  -> ok
+  req DRV-005
+CASE i2c_segments_count_bytes outcome=passed asserts=5 skips=0
+TEST i2c_errors_and_timeout
+  -> ok
+  req DRV-006
+CASE i2c_errors_and_timeout outcome=passed asserts=6 skips=0
+TEST i2c_target_answers_its_address
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_target_answers_its_address outcome=passed asserts=9 skips=0
+TEST i2c_controller_and_target_at_once
+  -> ok
+  req DRV-004
+CASE i2c_controller_and_target_at_once outcome=passed asserts=8 skips=0
+TEST i2c_misuse_faults
+  fault checks that reset the board: 12
+  -> ok
+  req DRV-004
+CASE i2c_misuse_faults outcome=passed asserts=13 skips=0
+ISR_STACK size=2048 used=164
+6 tests, 0 failed, 0 skipped, 12 ticks
+EMB_TEST_END
