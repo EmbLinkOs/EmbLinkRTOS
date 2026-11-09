@@ -8,6 +8,7 @@ documentation-references
 timing-and-evidence
 repository-workflow
 releases
+release-0.2.0
 m2-checklist
 m2-01-investigation
 m2-01-timer-correction
