@@ -16,7 +16,7 @@ Good ways to contribute now, from the smallest:
 - **Drivers and ports**, after an issue agrees the approach: the next milestone's drivers are planned for the STM32F4 and RP2350.
 - **Design changes**, written as an Architecture Decision Record (the format is in `docs/architecture/06-decision-records.md`), or answers to `docs/architecture/08-open-questions.md`.
 
-Issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue) are scoped for a first contribution. Ask on an issue before starting a large change.
+Issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue) are scoped for a first contribution. Ask on an issue before starting a large change. Everyone whose pull request has merged is listed in [CONTRIBUTORS.md](CONTRIBUTORS.md); add your row there in your first pull request.
 
 Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements. A change to kernel semantics updates the specification, the reference model (`tools/model/`) and the conformance suite in the same pull request.
 
