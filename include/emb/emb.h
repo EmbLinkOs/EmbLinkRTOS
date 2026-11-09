@@ -21,6 +21,7 @@
 #include <emb/drv_gpio.h>
 #include <emb/drv_i2c.h>
 #include <emb/drv_spi.h>
+#include <emb/drv_wdt.h>
 #endif
 #if CONFIG_EMB_CRASH_RECORD
 #include <emb/crash.h>

@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-115 functions, from the headers' `@ctx` tags.
+117 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -88,6 +88,8 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_drv_uart_rx_start()` | `<emb/drv_uart.h>` | no |
 | `emb_drv_uart_rx_stop()` | `<emb/drv_uart.h>` | no |
 | `emb_drv_uart_submit()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_wdt_caused_reset()` | `<emb/drv_wdt.h>` | no |
+| `emb_drv_wdt_feed()` | `<emb/drv_wdt.h>` | no |
 | `emb_duration_is_saturated()` | `<emb/time.h>` | no |
 | `emb_duration_to_ns()` | `<emb/time.h>` | no |
 | `emb_dwork_cancel()` | `<emb/work.h>` | no |

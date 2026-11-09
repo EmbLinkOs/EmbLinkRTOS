@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960
+ *     aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e
  *   drivers/bindings.yaml
- *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
+ *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
  *   soc/rpi/rp2350/rp2350.yaml
- *     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
+ *     49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -64,6 +64,7 @@
 #define EMB_HW_IO_BANK0_IRQ_BANK0 21u
 #define EMB_HW_PADS_BANK0_BASE    0x40038000u
 #define EMB_HW_PLL_SYS_BASE       0x40050000u
+#define EMB_HW_PSM_BASE           0x40018000u
 #define EMB_HW_QMI_BASE           0x400D0000u
 #define EMB_HW_RESETS_BASE        0x40020000u
 #define EMB_HW_SIO_BASE           0xD0000000u
@@ -71,10 +72,12 @@
 #define EMB_HW_SPI0_IRQ           31u
 #define EMB_HW_SPI1_BASE          0x40088000u
 #define EMB_HW_SPI1_IRQ           32u
+#define EMB_HW_TICKS_BASE         0x40108000u
 #define EMB_HW_UART0_BASE         0x40070000u
 #define EMB_HW_UART0_IRQ          33u
 #define EMB_HW_UART1_BASE         0x40078000u
 #define EMB_HW_UART1_IRQ          34u
+#define EMB_HW_WATCHDOG_BASE      0x400D8000u
 #define EMB_HW_XOSC_BASE          0x40048000u
 
 /* console: uart0 */

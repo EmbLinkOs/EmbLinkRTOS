@@ -135,14 +135,20 @@ int emb_stm32f4_clock_init(void)
     return wait_for(&RCC_CFGR, CFGR_SWS_MASK, (uint32_t)EMB_HW_SYSCLK_SOURCE << CFGR_SWS_SHIFT);
 }
 
-/* RCC_CSR (RM0390 §6.3.27): the reset flags of the last reset, cleared here so that the next
- * reset's are its own. */
+/* RCC_CSR (RM0390 §6.3.27): the reset flags of the last reset, read once and cleared so that
+ * the next reset's are its own; every later call gives the same flags, so the watchdog's
+ * driver and an application both see this boot's cause. */
 #define RCC_CSR  REG32(EMB_HW_RCC_BASE + 0x74u)
 #define CSR_RMVF (1u << 24)
 
 uint32_t emb_stm32f4_reset_flags_take(void)
 {
-    uint32_t flags = RCC_CSR & EMB_STM32F4_RESET_MASK;
-    RCC_CSR |= CSR_RMVF;
-    return flags;
+    static uint32_t boot_flags;
+    static uint8_t boot_flags_read;
+    if (boot_flags_read == 0u) {
+        boot_flags = RCC_CSR & EMB_STM32F4_RESET_MASK;
+        RCC_CSR |= CSR_RMVF;
+        boot_flags_read = 1u;
+    }
+    return boot_flags;
 }

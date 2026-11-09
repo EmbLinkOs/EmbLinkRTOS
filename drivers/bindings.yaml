@@ -191,3 +191,25 @@ bindings:
     data: emb_rp2350_dma_data_t
     fields: { base: peripheral.base, irq: peripheral.irqs.irq0 }
     doc: the RP2350's DMA, a job per channel paced by a DREQ (SPEC-017 §7); EARLY, so any device may use it
+  st,stm32f4-iwdg:
+    class: watchdog
+    level: early
+    sources: [drivers/st/stm32_iwdg.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_iwdg_api.dev
+    config: emb_stm32_iwdg_config_t
+    data: emb_stm32_iwdg_data_t
+    fields: { base: peripheral.base }
+    doc: the STM32F4's independent watchdog (SPEC-017 §8); EARLY, so the reset's cause is read at boot
+  rpi,rp2350-watchdog:
+    class: watchdog
+    level: early
+    sources: [drivers/rpi/rp2350_watchdog.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_watchdog_api.dev
+    config: emb_rp2350_watchdog_config_t
+    data: emb_rp2350_watchdog_data_t
+    fields: { base: peripheral.base }
+    doc: the RP2350's watchdog (SPEC-017 §8); EARLY, so the reset's cause is read at boot

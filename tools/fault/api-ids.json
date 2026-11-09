@@ -1219,6 +1219,24 @@
       "name": "emb_drv_dma_stop",
       "header": "drv_dma.h",
       "state": "active"
+    },
+    {
+      "id": 207,
+      "name": "emb_drv_wdt_start",
+      "header": "drv_wdt.h",
+      "state": "active"
+    },
+    {
+      "id": 208,
+      "name": "emb_drv_wdt_feed",
+      "header": "drv_wdt.h",
+      "state": "active"
+    },
+    {
+      "id": 209,
+      "name": "emb_drv_wdt_caused_reset",
+      "header": "drv_wdt.h",
+      "state": "active"
     }
   ]
 }

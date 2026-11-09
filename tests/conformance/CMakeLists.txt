@@ -74,6 +74,16 @@ if(CONFIG_EMB_DEVICE)
   if(CONFIG_EMB_DRV_DMA)
     emb_add_test(test_dma test_dma.c) # SPEC-017 §7
   endif()
+  if(CONFIG_EMB_DRV_WDT)
+    emb_add_test(test_wdt test_wdt.c) # SPEC-017 §8
+    # the board's own watchdog, where it has one: it resets the board, and says so after
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_wdt REGEX "EMB_SOC_WATCHDOG_DEVICE")
+      if(_emb_wdt)
+        emb_add_test(test_wdt_board test_wdt_board.c)
+      endif()
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_I2C)
     emb_add_test(test_i2c test_i2c.c) # SPEC-017 §6
     # two I2C controllers of the chip joined SCL to SCL and SDA to SDA: on the bench

@@ -298,6 +298,14 @@ config EMB_DRV_GPIO
 	  A controller's lines set up as inputs or outputs, driven and read from
 	  any context: chip selects, resets, LEDs.
 
+config EMB_DRV_WDT
+	bool "The watchdog class (SPEC-017 §8)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A hardware watchdog started once with its timeout, fed from any context,
+	  never stopped; and whether it caused the last reset.
+
 config EMB_DRV_DMA
 	bool "The DMA class (SPEC-017 §7)"
 	depends on EMB_DEVICE

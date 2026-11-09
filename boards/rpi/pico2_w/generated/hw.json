@@ -34,6 +34,10 @@
         "name": "io_bank0"
       },
       {
+        "doc": "the watchdog",
+        "name": "watchdog"
+      },
+      {
         "doc": "the DMA controller: SPI1's transfers",
         "name": "dma"
       },
@@ -197,6 +201,17 @@
         "level": "early",
         "name": "io_bank0",
         "peripheral": "io_bank0"
+      },
+      {
+        "class": "watchdog",
+        "compatible": "rpi,rp2350-watchdog",
+        "deps": [],
+        "fields": {
+          "base": 1074626560
+        },
+        "level": "early",
+        "name": "watchdog",
+        "peripheral": "watchdog"
       },
       {
         "class": "dma",
@@ -503,15 +518,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960"
+      "sha256": "aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
+      "sha256": "6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f"
+      "sha256": "49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -928,6 +943,24 @@
         ],
         "name": "dma",
         "size": 4096
+      },
+      {
+        "base": 1074626560,
+        "compatible": "rpi,rp2350-watchdog",
+        "name": "watchdog",
+        "size": 16384
+      },
+      {
+        "base": 1074823168,
+        "compatible": "rpi,rp2350-ticks",
+        "name": "ticks",
+        "size": 16384
+      },
+      {
+        "base": 1073840128,
+        "compatible": "rpi,rp2350-psm",
+        "name": "psm",
+        "size": 16384
       },
       {
         "base": 1074593792,

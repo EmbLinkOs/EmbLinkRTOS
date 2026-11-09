@@ -71,6 +71,12 @@ peripherals:
   - { name: dma, compatible: "rpi,rp2350-dma", base: 0x50000000, size: 0x1000,
       irqs: [ { name: irq0, number: 10 }, { name: irq1, number: 11 }, { name: irq2, number: 12 }, { name: irq3, number: 13 } ],
       dma: { kind: dreq, channels: 16, max_count: 268435455, memory: true } }
+  # the watchdog (datasheet §12.9), counting the TICKS block's microsecond tick; the power-on
+  # state machine (§7.4), whose WDSEL picks what a watchdog reset reaches (pico-sdk 2.1.1's
+  # addressmap.h)
+  - { name: watchdog, compatible: "rpi,rp2350-watchdog", base: 0x400D8000, size: 0x4000 }
+  - { name: ticks, compatible: "rpi,rp2350-ticks", base: 0x40108000, size: 0x4000 }
+  - { name: psm, compatible: "rpi,rp2350-psm", base: 0x40018000, size: 0x4000 }
   # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
   - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }

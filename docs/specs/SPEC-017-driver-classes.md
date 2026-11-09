@@ -137,19 +137,19 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 
 | Checklist | |
 |---|---|
-| Dependencies | its own oscillator (the STM32's LSI); none on the RP2350 beyond its tick |
-| Requests | `start` with a timeout, `feed`; the software watchdog of FLT-004 is its only feeder in a system that uses it |
+| Dependencies | its own oscillator (the STM32's LSI); on the RP2350, its microsecond tick from the crystal (the TICKS block) |
+| Requests | `emb_drv_wdt_start()` once with a timeout, `emb_drv_wdt_feed()`, `emb_drv_wdt_caused_reset()` (A120); the software watchdog of FLT-004 is its only feeder in a system that uses it |
 | Blocking | none: every operation is immediate |
 | Interrupts | none (the STM32's IWDG has none; the window watchdog is not used) |
 | DMA | none |
-| Concurrency | `feed` is safe from any context |
-| Timeouts | n/a. The class has no stop: the STM32's IWDG cannot be stopped once started, and the class does not stop the RP2350's, which could be, so both behave alike |
+| Concurrency | `feed` is safe from any context; a second `start` is refused with `EMB_ESTATE` |
+| Timeouts | the timeout is a floor, counted at the oscillator's fastest (the STM32's LSI at 47 kHz, its datasheet's upper bound), so the part is never reset early; a slow LSI lets it run up to some 2.8 times longer. One of 0, or past what the watchdog counts (some 22 s on the STM32's IWDG, 16.7 s on the RP2350's), is refused with `EMB_EINVAL`, and the watchdog is not started. The class has no stop: the STM32's IWDG cannot be stopped once started, and the class does not stop the RP2350's, which could be, so both behave alike. It counts under a debugger too |
 | Power | it keeps running in the low-power states that keep its oscillator; the power policy feeds it before sleeping longer than its timeout, or refuses the state (SPEC-018) |
-| Errors | `EMB_EWINDOW` (fed too early, where a window is configured) |
-| Capabilities | `WINDOW` |
-| Reset reason | the board reads, after a reset, whether the watchdog caused it, and FLT-004's service records which party missed its window, in retained memory |
+| Errors | `EMB_EWINDOW` (fed too early, where a window is configured): reserved, no M4 driver has a window |
+| Capabilities | `WINDOW`: none in M4 |
+| Reset reason | the driver reads at its initialization whether it caused the last reset, and the answer stays the boot's: the STM32's RCC_CSR IWDGRSTF, its flags read once for every reader, the crash record's too (`emb_stm32f4_reset_flags_take()`); the RP2350's REASON timer bit, counted only when SCRATCH4 holds the mark `start` left, since the boot ROM's own reboots go through the watchdog too. FLT-004's service records which party missed its window, in retained memory |
 
-**Drivers:** `drivers/st/stm32f4_iwdg.c` (today's); `drivers/rpi/rp2350_watchdog.c`. **Evidence:** QEMU's CMSDK watchdog and EmbSIM's IWDG in CI; on both boards, a hung thread resets the part and the reason is reported after the reset.
+**Drivers:** `drivers/st/stm32_iwdg.c`, the smallest prescaler that counts the timeout; `drivers/rpi/rp2350_watchdog.c`, resetting everything but the oscillators. A board's watchdog is named `EMB_SOC_WATCHDOG_DEVICE`. **Evidence:** the class's fake on the host; EmbSIM's NUCLEO-F446RE in CI, whose IWDG resets the board; on both boards, the watchdog fed for half a second and then starved resets the part, and after the reset it says it did (`EMB_ASSERT_RESETS`, A120). QEMU's MPS2 boards are not used: their CMSDK watchdog raises an NMI before it resets, and they have no reset-cause register for `caused_reset`.
 
 ## 9. Flash
 

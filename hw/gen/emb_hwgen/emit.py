@@ -710,6 +710,10 @@ def soc_devices_h(r):
         for d in r["devices"]:
             macro = f"EMB_SOC_HAS_{d['name'].upper()}"
             out += f"#define {macro.ljust(width)} 1\n"
+        wdt = next((d for d in r["devices"] if d["class"] == "watchdog"), None)
+        if wdt is not None:
+            out += "\n/* the board's watchdog device: the first of its class */\n"
+            out += f"#define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_{wdt['name']})\n"
         console = (r.get("console") or {}).get("device")
         for d in r["devices"]:
             if console is not None and d["peripheral"] == console and d["class"] == "uart":

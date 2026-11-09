@@ -35,6 +35,7 @@ console: { device: uart0, baud: 115200 }
 devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
+  - { name: watchdog, doc: "the watchdog" }
   - { name: dma, doc: "the DMA controller: SPI1's transfers" }
   - { name: uart0, baud: 115200, deps: [io_bank0], doc: "the console, GPIO0 and GPIO1" }
   - { name: spi1, deps: [io_bank0], cs: [GPIO13], dma: [tx, rx], doc: "SPI1 on GPIO10 to GPIO12, its chip select GPIO13 (pin 17); the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)" }

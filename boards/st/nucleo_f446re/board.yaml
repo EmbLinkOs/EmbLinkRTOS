@@ -33,6 +33,7 @@ console: { device: usart2, baud: 115200 }
 devices:
   - { name: rcc }
   - { name: gpioa, doc: "the console's pins and LD2" }
+  - { name: iwdg, doc: "the independent watchdog" }
   - { name: dma1, doc: "DMA1: SPI2's transfers, and the console's writes" }
   - { name: gpiob, doc: "SPI2's chip select, PB12" }
   - { name: gpioc, doc: B1 }

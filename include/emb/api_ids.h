@@ -207,5 +207,8 @@
 #define EMB_API_ID_DRV_I2C_RECOVER               0x00CCu
 #define EMB_API_ID_DRV_DMA_START                 0x00CDu
 #define EMB_API_ID_DRV_DMA_STOP                  0x00CEu
+#define EMB_API_ID_DRV_WDT_START                 0x00CFu
+#define EMB_API_ID_DRV_WDT_FEED                  0x00D0u
+#define EMB_API_ID_DRV_WDT_CAUSED_RESET          0x00D1u
 
 #endif /* EMB_API_IDS_H */

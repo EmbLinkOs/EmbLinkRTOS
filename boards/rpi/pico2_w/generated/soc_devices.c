@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960
+ *     aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e
  *   drivers/bindings.yaml
- *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
+ *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
  *   soc/rpi/rp2350/rp2350.yaml
- *     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
+ *     49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -65,6 +65,24 @@ const emb_device_t emb_dev_io_bank0 = {
     .class_id = EMB_DRV_CLASS_GPIO,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
+};
+
+/* watchdog: rpi,rp2350-watchdog, watchdog, EARLY */
+static const emb_rp2350_watchdog_config_t watchdog_config = {
+    .base = 0x400D8000u, /* peripheral.base */
+};
+static emb_device_state_t watchdog_state;
+static emb_rp2350_watchdog_data_t watchdog_data;
+const emb_device_t emb_dev_watchdog = {
+    .name = "watchdog",
+    .api = &emb_rp2350_watchdog_api.dev,
+    .config = &watchdog_config,
+    .state = &watchdog_state,
+    .data = &watchdog_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_WATCHDOG,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
 };
 
 /* dma: rpi,rp2350-dma, dma, EARLY */
@@ -211,15 +229,16 @@ const emb_device_t emb_dev_i2c1 = {
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
     &emb_dev_io_bank0, /* 1: EARLY */
-    &emb_dev_dma,      /* 2: EARLY */
-    &emb_dev_uart0,    /* 3: EARLY */
-    &emb_dev_uart1,    /* 4: EARLY */
-    &emb_dev_spi1,     /* 5: KERNEL */
-    &emb_dev_i2c0,     /* 6: KERNEL */
-    &emb_dev_i2c1,     /* 7: KERNEL */
+    &emb_dev_watchdog, /* 2: EARLY */
+    &emb_dev_dma,      /* 3: EARLY */
+    &emb_dev_uart0,    /* 4: EARLY */
+    &emb_dev_uart1,    /* 5: EARLY */
+    &emb_dev_spi1,     /* 6: KERNEL */
+    &emb_dev_i2c0,     /* 7: KERNEL */
+    &emb_dev_i2c1,     /* 8: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 8u, 5u};
+const emb_device_table_t emb_board_device_table = {devices, 9u, 6u};
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

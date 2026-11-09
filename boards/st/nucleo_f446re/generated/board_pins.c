@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
+ *     1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926
  *   drivers/bindings.yaml
- *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
+ *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml

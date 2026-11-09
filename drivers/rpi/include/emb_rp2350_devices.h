@@ -10,11 +10,13 @@
 
 #include <emb/config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_wdt.h>
 #endif
 #if CONFIG_EMB_DRV_DMA
 #include <emb/drv_dma.h>
@@ -35,6 +37,18 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+/* The watchdog (datasheet §12.9): its registers. */
+typedef struct emb_rp2350_watchdog_config {
+    uintptr_t base;
+} emb_rp2350_watchdog_config_t;
+
+/* Its RAM: whether it was started, and whether it caused this boot's reset. */
+typedef struct emb_rp2350_watchdog_data {
+    uint32_t load; /* the count it was started with: LOAD is write-only */
+    bool started;
+    bool caused;
+} emb_rp2350_watchdog_data_t;
 
 /* The DMA controller (datasheet §12.6): its registers and the interrupt its channels end on. */
 typedef struct emb_rp2350_dma_config {
@@ -64,6 +78,12 @@ typedef struct emb_rp2350_dma_data {
 /* The DMA class's operations (SPEC-017 §7): a job per channel, paced by its DREQ, ending on
  * DMA_IRQ_0. */
 extern const emb_drv_dma_api_t emb_rp2350_dma_api;
+#endif
+
+#if CONFIG_EMB_DRV_WDT
+/* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
+ * reaching all but the oscillators, and the reset's cause from its REASON register. */
+extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
 #endif
 
 #if CONFIG_EMB_DEVICE

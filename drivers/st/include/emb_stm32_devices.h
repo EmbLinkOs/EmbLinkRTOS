@@ -13,6 +13,7 @@
 #include <emb/device.h>
 #include <emb/drv_dma.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_wdt.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -90,6 +91,17 @@ typedef struct emb_stm32_spi_data {
 } emb_stm32_spi_data_t;
 #endif
 
+/* The independent watchdog (RM0390 §19), clocked by the LSI: no clock gate. */
+typedef struct emb_stm32_iwdg_config {
+    uintptr_t base;
+} emb_stm32_iwdg_config_t;
+
+/* Its RAM: whether it was started, and whether it caused this boot's reset. */
+typedef struct emb_stm32_iwdg_data {
+    bool started;
+    bool caused;
+} emb_stm32_iwdg_data_t;
+
 /* A DMA controller (RM0390 §9): its clock gate, each stream's interrupt, and whether it copies
  * memory to memory (DMA2 alone). */
 typedef struct emb_stm32_dma_config {
@@ -166,6 +178,11 @@ extern const emb_drv_uart_api_t emb_stm32_usart_api;
 /* The SPI class's operations (SPEC-017 §5): a controller with software chip-select
  * management, one frame in flight, carried by the receive interrupt. */
 extern const emb_device_api_t emb_stm32_spi_api;
+#endif
+#if CONFIG_EMB_DRV_WDT
+/* The watchdog class's operations (SPEC-017 §8): the IWDG, whose start chooses the prescaler
+ * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
+extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
 #endif
 #if CONFIG_EMB_DRV_DMA
 /* The DMA class's operations (SPEC-017 §7): a job per stream, direct mode for a peripheral,

@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
+ *     1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926
  *   drivers/bindings.yaml
- *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
+ *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -65,6 +65,24 @@ const emb_device_t emb_dev_gpioa = {
     .class_id = EMB_DRV_CLASS_GPIO,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
+};
+
+/* iwdg: st,stm32f4-iwdg, watchdog, EARLY */
+static const emb_stm32_iwdg_config_t iwdg_config = {
+    .base = 0x40003000u, /* peripheral.base */
+};
+static emb_device_state_t iwdg_state;
+static emb_stm32_iwdg_data_t iwdg_data;
+const emb_device_t emb_dev_iwdg = {
+    .name = "iwdg",
+    .api = &emb_stm32_iwdg_api.dev,
+    .config = &iwdg_config,
+    .state = &iwdg_state,
+    .data = &iwdg_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_WATCHDOG,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
 };
 
 /* dma1: st,stm32-dma, dma, EARLY */
@@ -274,17 +292,18 @@ const emb_device_t emb_dev_i2c2 = {
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
     &emb_dev_gpioa,  /* 1: EARLY */
-    &emb_dev_dma1,   /* 2: EARLY */
-    &emb_dev_gpiob,  /* 3: EARLY */
-    &emb_dev_gpioc,  /* 4: EARLY */
-    &emb_dev_usart2, /* 5: EARLY */
-    &emb_dev_uart4,  /* 6: EARLY */
-    &emb_dev_spi2,   /* 7: KERNEL */
-    &emb_dev_i2c1,   /* 8: KERNEL */
-    &emb_dev_i2c2,   /* 9: KERNEL */
+    &emb_dev_iwdg,   /* 2: EARLY */
+    &emb_dev_dma1,   /* 3: EARLY */
+    &emb_dev_gpiob,  /* 4: EARLY */
+    &emb_dev_gpioc,  /* 5: EARLY */
+    &emb_dev_usart2, /* 6: EARLY */
+    &emb_dev_uart4,  /* 7: EARLY */
+    &emb_dev_spi2,   /* 8: KERNEL */
+    &emb_dev_i2c1,   /* 9: KERNEL */
+    &emb_dev_i2c2,   /* 10: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 10u, 7u};
+const emb_device_table_t emb_board_device_table = {devices, 11u, 8u};
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

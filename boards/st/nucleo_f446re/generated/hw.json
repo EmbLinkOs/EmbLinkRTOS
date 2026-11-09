@@ -41,6 +41,10 @@
         "name": "gpioa"
       },
       {
+        "doc": "the independent watchdog",
+        "name": "iwdg"
+      },
+      {
         "doc": "DMA1: SPI2's transfers, and the console's writes",
         "name": "dma1"
       },
@@ -259,6 +263,17 @@
         "level": "early",
         "name": "gpioa",
         "peripheral": "gpioa"
+      },
+      {
+        "class": "watchdog",
+        "compatible": "st,stm32f4-iwdg",
+        "deps": [],
+        "fields": {
+          "base": 1073754112
+        },
+        "level": "early",
+        "name": "iwdg",
+        "peripheral": "iwdg"
       },
       {
         "class": "dma",
@@ -645,11 +660,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f"
+      "sha256": "1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
+      "sha256": "6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

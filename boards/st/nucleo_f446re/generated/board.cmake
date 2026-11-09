@@ -5,9 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/st/nucleo_f446re/board.yaml
-#     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
+#     1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926
 #   drivers/bindings.yaml
-#     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
+#     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
@@ -34,6 +34,7 @@ set(EMB_BOARD_EMBSIM_I2C_LOOP i2c1 i2c2 "D15,D6" "D14,D3")
 set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/st/stm32_devices.c"
+    "${EMB_BASE}/drivers/st/stm32_iwdg.c"
     "${EMB_BASE}/drivers/st/stm32_dma.c"
     "${EMB_BASE}/drivers/st/stm32_uart.c"
     "${EMB_BASE}/drivers/st/stm32_spi.c"
@@ -45,8 +46,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/st/nucleo_f446re/board.yaml=db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f"
-    "drivers/bindings.yaml=404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
+    "boards/st/nucleo_f446re/board.yaml=1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926"
+    "drivers/bindings.yaml=6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
     "soc/st/stm32f4/stm32f446.yaml=08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
     "soc/st/stm32f4/stm32f446re.yaml=98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd"
