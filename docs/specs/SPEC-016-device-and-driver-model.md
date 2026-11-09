@@ -2,7 +2,7 @@
 
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; M4.1 implements it.
 
-**Status:** Proposed 2026-11-09 for the project owner's review (M4.0).
+**Status:** Accepted 2026-11-09 by the project owner at the M4.0 review, as written, with the defaults of §14.
 **Requirements:** `docs/requirements/DRV.md` (DRV-001 to 010); PWR-002.
 **Builds on:** 04 §2 and §3; ADR-004 (hardware as data), ADR-007 (request and completion), ADR-051 (any board), ADR-057 (the RP2350); SPEC-001 (API conventions, status codes), SPEC-006 (notifications, work), SPEC-014 §4 and §6 (board `devices:`, `soc_devices.c`), SPEC-015 §5 (debug descriptor).
 **Classes:** SPEC-017 specifies each driver class on this model.
