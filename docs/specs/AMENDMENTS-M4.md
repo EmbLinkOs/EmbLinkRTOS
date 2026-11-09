@@ -2,7 +2,7 @@
 
 Changes M4 makes to accepted specifications and requirements, where an accepted document is narrowed, extended or made concrete. Each is applied in the affected document when M4 implements it; this page keeps the audit trail. Numbering continues from the [M3 record](AMENDMENTS-M3.md).
 
-**Status:** proposed with M4.0 (2026-11-09), awaiting the project owner's review.
+**Accepted:** A108 to A112 were reviewed with the project owner on 2026-11-09, with the rest of M4.0, and accepted as written.
 
 | # | Document | Amendment | Where in the code |
 |---|---|---|---|
