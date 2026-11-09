@@ -16,7 +16,12 @@ Include what you can of: affected component and version or commit, a description
 
 ## Supported versions
 
-EmbLinkRTOS has delivered its M1 and M2 milestones and is preparing its first release, but has no released versions or declared security-supported release lines yet. The support policy is described in `docs/architecture/05-engineering-system.md` §7 and the release checklist in `docs/engineering/releases.md`. Each actual release line will state its concrete support window and end-of-life date here; no standing LTS cadence or unstaffed maintenance guarantee is implied.
+| Version | Supported | Until |
+|---|---|---|
+| 0.2.x (preview) | Security fixes, best effort, by one maintainer | the next minor release (0.3.0), when 0.2.x ends |
+| development (`main`) | Fixes land here first | — |
+
+0.2.0 is a preview: its API and formats may change before 1.0 ([release notes](docs/engineering/release-0.2.0.md)). A fix to a supported line is a patch release (0.2.1, …) with its own signed tag. There is no long-term support; each release line states its window here. The support policy is described in `docs/architecture/05-engineering-system.md` §7 and the release checklist in `docs/engineering/releases.md`.
 
 ## For manufacturers: the EU Cyber Resilience Act
 

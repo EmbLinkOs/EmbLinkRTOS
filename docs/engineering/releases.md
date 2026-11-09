@@ -1,6 +1,6 @@
 # Changelog and release checklist
 
-The repository is in `0.2` development and has no recorded release tags. Version constants in `include/emb/version.h` are not proof of a published or supported version. This page defines the release process; it does not cut a release or imply that the future evidence pipeline is implemented. The [roadmap](../architecture/07-roadmap.md), [Project status](../STATUS.md), [repository workflow](repository-workflow.md) and [timing/evidence contract](timing-and-evidence.md) determine what can be claimed.
+The first release is [0.2.0](release-0.2.0.md), a preview, tagged `v0.2.0`. Version constants in `include/emb/version.h` are not proof of a published or supported version. This page defines the release process; it does not cut a release or imply that the future evidence pipeline is implemented. The [roadmap](../architecture/07-roadmap.md), [Project status](../STATUS.md), [repository workflow](repository-workflow.md) and [timing/evidence contract](timing-and-evidence.md) determine what can be claimed.
 
 ## Maintain the changelog
 
