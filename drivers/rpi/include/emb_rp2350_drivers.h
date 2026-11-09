@@ -23,6 +23,7 @@ extern "C" {
 #define EMB_RP2350_RESET_PLL_SYS    (1u << 14)
 #define EMB_RP2350_RESET_SPI0       (1u << 18)
 #define EMB_RP2350_RESET_SPI1       (1u << 19)
+#define EMB_RP2350_RESET_DMA        (1u << 2)
 #define EMB_RP2350_RESET_I2C0       (1u << 4)
 #define EMB_RP2350_RESET_I2C1       (1u << 5)
 #define EMB_RP2350_RESET_UART0      (1u << 26)

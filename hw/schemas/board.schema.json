@@ -74,6 +74,10 @@
           "bus": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "deps": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" } },
           "level": { "enum": ["early", "kernel"] },
+          "dma": {
+            "description": "the device's DMA request lines to give channels, by name (tx, rx): the generator assigns each a channel no other device has (A119)",
+            "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+          },
           "cs": {
             "description": "chip selects, GPIO lines active low unless active: high: a device on an SPI bus names its own, an SPI controller may list spares (SPEC-014 §4, A116)",
             "oneOf": [

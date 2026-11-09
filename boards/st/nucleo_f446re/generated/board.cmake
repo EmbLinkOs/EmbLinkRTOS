@@ -5,13 +5,13 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/st/nucleo_f446re/board.yaml
-#     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
+#     9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1
 #   drivers/bindings.yaml
-#     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+#     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
-#     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
+#     08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b
 #   soc/st/stm32f4/stm32f446re.yaml
 #     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
 # nucleo_f446re: STM32F446RE, cortex-m4f at 180 MHz.
@@ -24,6 +24,7 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446re) # EMB_TEST_EMULATOR=embsim
+set(EMB_BOARD_SPI2_DMA rx tx)
 set(EMB_BOARD_SPI2_CS_COUNT 1)
 set(EMB_BOARD_EMBSIM_UART_LOOP uart4 "A0,A1")
 set(EMB_BOARD_EMBSIM_SPI_LOOP spi2 "CN10_26,CN10_28")
@@ -32,6 +33,7 @@ set(EMB_BOARD_EMBSIM_I2C_LOOP i2c1 i2c2 "D15,D6" "D14,D3")
 set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/st/stm32_devices.c"
+    "${EMB_BASE}/drivers/st/stm32_dma.c"
     "${EMB_BASE}/drivers/st/stm32_uart.c"
     "${EMB_BASE}/drivers/st/stm32_spi.c"
     "${EMB_BASE}/drivers/st/stm32_i2c.c"
@@ -42,9 +44,9 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/st/nucleo_f446re/board.yaml=2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3"
-    "drivers/bindings.yaml=d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34"
+    "boards/st/nucleo_f446re/board.yaml=9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1"
+    "drivers/bindings.yaml=0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
-    "soc/st/stm32f4/stm32f446.yaml=c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241"
+    "soc/st/stm32f4/stm32f446.yaml=08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
     "soc/st/stm32f4/stm32f446re.yaml=98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd"
 )

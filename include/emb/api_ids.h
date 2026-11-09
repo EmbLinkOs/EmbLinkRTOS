@@ -205,5 +205,7 @@
 #define EMB_API_ID_DRV_I2C_ACQUIRE               0x00CAu
 #define EMB_API_ID_DRV_I2C_RELEASE               0x00CBu
 #define EMB_API_ID_DRV_I2C_RECOVER               0x00CCu
+#define EMB_API_ID_DRV_DMA_START                 0x00CDu
+#define EMB_API_ID_DRV_DMA_STOP                  0x00CEu
 
 #endif /* EMB_API_IDS_H */

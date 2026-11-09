@@ -107,7 +107,7 @@ bindings:
     api: emb_pl022_api
     config: emb_pl022_config_t
     data: emb_pl022_data_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global }
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global, dma_tx: dma.tx, dma_rx: dma.rx }
     doc: the RP2350's SPI controllers, and QEMU's MPS2 models (SPEC-017 §5)
   st,stm32-spi:
     class: spi
@@ -124,6 +124,8 @@ bindings:
       clken_offset: peripheral.clock.enable_offset
       clken_bit: peripheral.clock.bit
       irq: peripheral.irqs.global
+      dma_tx: dma.tx
+      dma_rx: dma.rx
   st,stm32-i2c:
     class: i2c
     level: kernel
@@ -154,3 +156,37 @@ bindings:
     data: emb_dw_i2c_data_t
     fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global, scl: pins.scl, sda: pins.sda }
     doc: Synopsys DW_apb_i2c, the RP2350's I2C0 and I2C1, controller or target (SPEC-017 §6)
+  st,stm32-dma:
+    class: dma
+    level: early
+    sources: [drivers/st/stm32_dma.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_dma_api.dev
+    config: emb_stm32_dma_config_t
+    data: emb_stm32_dma_data_t
+    fields:
+      base: peripheral.base
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq0: peripheral.irqs.s0
+      irq1: peripheral.irqs.s1
+      irq2: peripheral.irqs.s2
+      irq3: peripheral.irqs.s3
+      irq4: peripheral.irqs.s4
+      irq5: peripheral.irqs.s5
+      irq6: peripheral.irqs.s6
+      irq7: peripheral.irqs.s7
+      memory: peripheral.dma.memory
+    doc: the STM32F4's DMA1 and DMA2, a job per stream (SPEC-017 §7); EARLY, so any device may use it
+  rpi,rp2350-dma:
+    class: dma
+    level: early
+    sources: [drivers/rpi/rp2350_dma.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_dma_api.dev
+    config: emb_rp2350_dma_config_t
+    data: emb_rp2350_dma_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.irq0 }
+    doc: the RP2350's DMA, a job per channel paced by a DREQ (SPEC-017 §7); EARLY, so any device may use it

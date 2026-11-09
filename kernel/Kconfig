@@ -298,6 +298,14 @@ config EMB_DRV_GPIO
 	  A controller's lines set up as inputs or outputs, driven and read from
 	  any context: chip selects, resets, LEDs.
 
+config EMB_DRV_DMA
+	bool "The DMA class (SPEC-017 §7)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Channels a driver's device is given at generation, jobs started on them
+	  and their ends delivered to the driver: for drivers, not applications.
+
 config EMB_DRV_I2C
 	bool "The I2C class (SPEC-017 §6)"
 	depends on EMB_DEVICE && EMB_MUTEX_INHERIT

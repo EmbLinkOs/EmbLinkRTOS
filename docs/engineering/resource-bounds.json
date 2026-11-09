@@ -232,6 +232,16 @@
       "masked": false,
       "profiles": "base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time",
       "evidence": "SPEC-017 \u00a76; test_i2c, test_i2c_loop"
+    },
+    {
+      "id": "dma_regions",
+      "input": "the board's DMA regions a job's memory is checked against, and a channel's stop",
+      "bound": "the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count",
+      "limit": "the board's description",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section",
+      "evidence": "SPEC-017 \u00a77; test_dma, test_spi_loop"
     }
   ],
   "apis": {
@@ -623,6 +633,14 @@
       "waiters",
       "pi_depth",
       "timeouts"
+    ],
+    "emb_drv_dma_start": [
+      "dma_regions",
+      "drivers"
+    ],
+    "emb_drv_dma_stop": [
+      "dma_regions",
+      "drivers"
     ]
   }
 }

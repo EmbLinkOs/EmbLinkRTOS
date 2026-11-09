@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
+ *     e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0
  *   drivers/bindings.yaml
- *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+ *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
  *   soc/rpi/rp2350/rp2350.yaml
- *     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
+ *     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -20,13 +20,14 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 7u
+#define EMB_SOC_DEVICE_COUNT 8u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 
 extern const emb_device_t emb_dev_clocks;
 extern const emb_device_t emb_dev_io_bank0;
+extern const emb_device_t emb_dev_dma;
 extern const emb_device_t emb_dev_uart0;
 extern const emb_device_t emb_dev_uart1;
 extern const emb_device_t emb_dev_spi1;
@@ -36,6 +37,7 @@ extern const emb_device_t emb_dev_i2c1;
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_CLOCKS   1
 #define EMB_SOC_HAS_IO_BANK0 1
+#define EMB_SOC_HAS_DMA      1
 #define EMB_SOC_HAS_UART0    1
 #define EMB_SOC_HAS_UART1    1
 #define EMB_SOC_HAS_SPI1     1
@@ -52,6 +54,13 @@ extern const emb_device_t emb_dev_i2c1;
 #define EMB_SOC_I2C0_SDA {&emb_dev_io_bank0, 8u, 0u, {0u, 0u}} /* GPIO8 */
 #define EMB_SOC_I2C1_SCL {&emb_dev_io_bank0, 7u, 0u, {0u, 0u}} /* GPIO7 */
 #define EMB_SOC_I2C1_SDA {&emb_dev_io_bank0, 6u, 0u, {0u, 0u}} /* GPIO6 */
+/* clang-format on */
+
+/* the DMA channels the board gave its devices (devices[].dma, A119), emb_drv_dma_chan_t
+ * initializers */
+/* clang-format off */
+#define EMB_SOC_SPI1_DMA_RX {&emb_dev_dma, 1u, 27u, {0u, 0u}}
+#define EMB_SOC_SPI1_DMA_TX {&emb_dev_dma, 0u, 26u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

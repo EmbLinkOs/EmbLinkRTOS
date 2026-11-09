@@ -5,11 +5,11 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
+#     e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0
 #   drivers/bindings.yaml
-#     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+#     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
 #   soc/rpi/rp2350/rp2350.yaml
-#     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
+#     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
 #   soc/rpi/rp2350/rp2350a.yaml
 #     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
 # The board has no C of its own: its SoC family's board support builds emb_board from

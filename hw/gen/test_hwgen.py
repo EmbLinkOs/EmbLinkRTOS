@@ -309,6 +309,47 @@ class ChipSelects(unittest.TestCase):
         self.expect("cs: [PB13]", "devices.spi2.cs[0]", "PB13 is already assigned")
 
 
+class DmaChannels(unittest.TestCase):
+    """devices[].dma and peripherals[].dma_requests (A119): each request a board asks for gets
+    a channel no other device has, named in the configuration and soc_devices.h."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def errors(self):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        return cm.exception.errors
+
+    def test_assigned_and_named(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        self.assertIn(".dma_tx = {&emb_dev_dma1, 4u, 0u, {0u, 0u}}, /* dma.tx */", files["soc_devices.c"])
+        self.assertIn("#define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}", files["soc_devices.h"])
+        self.assertIn("set(EMB_BOARD_SPI2_DMA rx tx)", files["board.cmake"])
+        self.assertIn("{0x20000000u, 0x0001C000u}, /* sram1 */", files["soc_devices.c"])  # where DMA reaches
+
+    def test_a_stream_two_devices_want(self):
+        # UART4's transmit is on DMA1 stream 4 alone, which SPI2's transmit took first
+        self.root.edit(self.board, "{ name: uart4,", "{ name: uart4, dma: [tx],")
+        self.assertTrue(any("devices.uart4.dma" in e and "every channel it can use is taken" in e
+                            for e in self.errors()), self.errors())
+
+    def test_a_controller_the_board_lacks(self):
+        self.root.edit(self.board, '  - { name: dma1, doc: "DMA1: SPI2\'s transfers" }\n', "")
+        self.assertTrue(any("devices.spi2.dma" in e and "does not list in devices" in e for e in self.errors()))
+
+    def test_a_request_the_device_lacks(self):
+        self.root.edit(self.board, "dma: [tx, rx],", "dma: [tx, sideways],")
+        self.assertTrue(any("has no DMA request 'sideways'" in e for e in self.errors()))
+
+    def test_a_stream_the_controller_lacks(self):
+        self.root.edit("soc/st/stm32f4/stm32f446.yaml", "dma_requests: { tx: dma1.s4c0, rx: dma1.s3c0 }",
+                       "dma_requests: { tx: dma1.s9c0, rx: dma1.s3c0 }")
+        self.assertTrue(any("peripherals.spi2.dma_requests.tx" in e and "8 streams" in e for e in self.errors()))
+
+
 class PinLines(unittest.TestCase):
     """A binding's pins.<signal> (A118): the GPIO line a device's pin is on, in its
     configuration and as EMB_SOC_<DEVICE>_<SIGNAL>, for an I2C bus's recovery."""

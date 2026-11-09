@@ -21,6 +21,7 @@
 #define SSP_CPSR  0x10u
 #define SSP_IMSC  0x14u
 #define SSP_ICR   0x20u
+#define SSP_DMACR 0x24u
 #define CR0_SPO   (1u << 6) /* CPOL */
 #define CR0_SPH   (1u << 7) /* CPHA */
 #define CR0_SCR   8u        /* the serial clock rate's shift */
@@ -28,6 +29,11 @@
 #define CR1_SSE   (1u << 1)
 #define SR_TNF    (1u << 1)
 #define SR_RNE    (1u << 2)
+#define SR_BSY    (1u << 4)
+#define DMACR_RX  (1u << 0)
+#define DMACR_TX  (1u << 1)
+#define DMA_MIN   16u     /* frames: shorter transfers stay with the interrupt */
+#define BSY_POLL  100000u /* bounded: the frames in flight, a FIFO's worth */
 #define IM_RT     (1u << 1)
 #define IM_RX     (1u << 2)
 #define ICR_ALL   3u
@@ -96,6 +102,73 @@ static void pl022_finish(uintptr_t base, emb_pl022_data_t *d)
     d->xfer = NULL;
 }
 
+/* A DMA transfer's end: the receive job took the last frame, or failed. */
+static void pl022_dma_end(emb_pl022_data_t *d, emb_status_t st, uint32_t moved)
+{
+    const emb_pl022_config_t *cfg = pl022_config(d->dev);
+    emb_drv_spi_req_t *x = d->xfer;
+    if (x == NULL) {
+        return; /* stopped already */
+    }
+    REG32(cfg->base + SSP_DMACR) = 0u;
+    pl022_finish(cfg->base, d);
+    emb_drv_spi_end(d->dev, x);
+    emb_drv_complete(d->dev, &x->req, st, moved);
+}
+
+static void pl022_dma_rx_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    pl022_dma_end((emb_pl022_data_t *)arg, st, moved);
+}
+
+static void pl022_dma_tx_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    emb_pl022_data_t *d = (emb_pl022_data_t *)arg;
+    (void)moved;
+    if ((st != EMB_OK) && (d->xfer != NULL)) { /* the frames stopped coming: so does the transfer */
+        uint32_t got = 0u;
+        (void)emb_drv_dma_stop(&pl022_config(d->dev)->dma_rx, &got);
+        pl022_dma_end(d, st, got);
+    }
+}
+
+/* The transfer by DMA, where the board gave the device channels and the buffers are where DMA
+ * reaches; false leaves it to the interrupt. */
+static bool pl022_dma_start(const emb_pl022_config_t *cfg, emb_pl022_data_t *d,
+                            const emb_drv_spi_req_t *x)
+{
+    emb_drv_dma_job_t rx;
+    emb_drv_dma_job_t tx;
+    if ((cfg->dma_tx.dma == NULL) || (cfg->dma_rx.dma == NULL) || (x->len < DMA_MIN) ||
+        (x->len > UINT32_MAX)) {
+        return false;
+    }
+    d->fill = ONES;
+    rx.src = cfg->base + SSP_DR;
+    rx.dst = (x->rx != NULL) ? (uintptr_t)x->rx : (uintptr_t)&d->sink;
+    rx.count = (uint32_t)x->len;
+    rx.dir = EMB_DRV_DMA_FROM_PERIPH;
+    rx.width = 1u;
+    rx.flags = (uint8_t)((x->rx != NULL) ? 0u : EMB_DRV_DMA_FIXED_MEM);
+    rx.reserved_ = 0u;
+    tx.src = (x->tx != NULL) ? (uintptr_t)x->tx : (uintptr_t)&d->fill;
+    tx.dst = cfg->base + SSP_DR;
+    tx.count = (uint32_t)x->len;
+    tx.dir = EMB_DRV_DMA_TO_PERIPH;
+    tx.width = 1u;
+    tx.flags = (uint8_t)((x->tx != NULL) ? 0u : EMB_DRV_DMA_FIXED_MEM);
+    tx.reserved_ = 0u;
+    if (emb_drv_dma_start(&cfg->dma_rx, &rx, pl022_dma_rx_done, d) != EMB_OK) {
+        return false;
+    }
+    if (emb_drv_dma_start(&cfg->dma_tx, &tx, pl022_dma_tx_done, d) != EMB_OK) {
+        (void)emb_drv_dma_stop(&cfg->dma_rx, NULL);
+        return false;
+    }
+    REG32(cfg->base + SSP_DMACR) = DMACR_RX | DMACR_TX; /* the requests, the jobs ready */
+    return true;
+}
+
 static void pl022_isr(void *arg)
 {
     emb_pl022_data_t *d = (emb_pl022_data_t *)arg;
@@ -121,6 +194,7 @@ static emb_status_t pl022_init(const emb_device_t *dev)
     d->xfer = NULL;
     d->dev = dev;
     d->sent = 0u;
+    d->dma = false;
     d->stopping = false;
     REG32(cfg->base + SSP_CR1) = 0u;
     REG32(cfg->base + SSP_IMSC) = 0u;
@@ -165,6 +239,11 @@ static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
     d->xfer = x;
     d->sent = 0u;
     d->stopping = false;
+    d->dma = pl022_dma_start(cfg, d, x);
+    if (d->dma) {
+        emb_irq_unlock(key);
+        return EMB_EBUSY; /* the receive job's end completes it */
+    }
     done = pl022_service(cfg->base, d, x);
     if (done) {
         pl022_finish(cfg->base, d);
@@ -179,12 +258,47 @@ static emb_status_t pl022_start(const emb_device_t *dev, emb_drv_request_t *req)
 /* Sends nothing more; the frames in flight come back whole, and the interrupt that takes the
  * last of them completes the transfer with EMB_ECANCELED, done counting them (SPEC-017 §5).
  * At most IN_FLIGHT frame times. */
+/* By DMA: the transmit job stops, the frames already sent come back by the receive job, and
+ * then it stops too; a receive job that ends meanwhile completes the transfer itself. */
+static void pl022_dma_stop(const emb_device_t *dev, emb_pl022_data_t *d, emb_drv_spi_req_t *x)
+{
+    const emb_pl022_config_t *cfg = pl022_config(dev);
+    uint32_t moved = 0u;
+    uint32_t n;
+    bool now = false;
+    emb_irq_key_t key = emb_irq_lock();
+    (void)emb_drv_dma_stop(&cfg->dma_tx, NULL);
+    emb_irq_unlock(key);
+    for (n = 0u; n < BSY_POLL; n++) {
+        if ((REG32(cfg->base + SSP_SR) & SR_BSY) == 0u) {
+            break;
+        }
+    }
+    key = emb_irq_lock();
+    if (d->xfer == x) {
+        (void)emb_drv_dma_stop(&cfg->dma_rx, &moved);
+        REG32(cfg->base + SSP_DMACR) = 0u;
+        pl022_finish(cfg->base, d);
+        emb_drv_spi_end(dev, x);
+        now = true;
+    }
+    emb_irq_unlock(key);
+    if (now) {
+        emb_drv_complete(dev, &x->req, EMB_ECANCELED, moved);
+    }
+}
+
 static void pl022_stop(const emb_device_t *dev, emb_drv_request_t *req)
 {
     emb_pl022_data_t *d = pl022_data(dev);
     emb_drv_spi_req_t *x = EMB_DRV_SPI_REQ(req);
     bool now = false;
-    emb_irq_key_t key = emb_irq_lock();
+    emb_irq_key_t key;
+    if ((d->xfer == x) && d->dma) {
+        pl022_dma_stop(dev, d, x);
+        return;
+    }
+    key = emb_irq_lock();
     if (d->xfer == x) {
         d->stopping = true;
         if (pl022_service(pl022_config(dev)->base, d, x)) { /* nothing left in flight */

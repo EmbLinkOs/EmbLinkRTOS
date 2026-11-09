@@ -66,6 +66,24 @@ class Resolver:
             return None
         return self.board_dir.resolve().parent.parent.parent
 
+    def _dma_rules(self, soc):
+        """dma_requests (A119): each names a DMA controller of the SoC, a stream it has with a
+        channel select on a fixed one, or a request number on a dreq one."""
+        from .devices import _dma_options
+        periph = {p["name"]: p for p in soc.data["peripherals"]}
+        for p in soc.data["peripherals"]:
+            for req, text in p.get("dma_requests", {}).items():
+                at = f"peripherals.{p['name']}.dma_requests.{req}"
+                for ctrl, stream, _ in _dma_options(text):
+                    spec = periph.get(ctrl, {}).get("dma")
+                    if spec is None:
+                        self.err(soc, at, f"{ctrl} is not a DMA controller of the SoC")
+                    elif (stream is None) != (spec["kind"] == "dreq"):
+                        self.err(soc, at, f"{ctrl} is a {spec['kind']} controller: "
+                                 + ("name a DREQ, dreq<n>" if spec["kind"] == "dreq" else "name a stream and channel, s<n>c<m>"))
+                    elif stream is not None and stream >= spec["channels"]:
+                        self.err(soc, at, f"{ctrl} has {spec['channels']} streams, not a stream {stream}")
+
     def _soc_path(self, board):
         """The board's SoC description: in the tree, or in its board root's soc/ (A84), but not
         in both."""
@@ -190,6 +208,7 @@ class Resolver:
 
     def _soc_rules(self, soc):
         d = soc.data
+        self._dma_rules(soc)
         # address spaces are separate (AVR: program, data, eeprom); the default is one space
         regions = sorted(d["memory"]["regions"], key=lambda r: (r.get("space", "main"), r["base"], r["name"]))
         for a, b in zip(regions, regions[1:]):

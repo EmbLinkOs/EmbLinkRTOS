@@ -29,6 +29,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **uart_bytes**: bytes of one UART request, or of a polled call | the caller's: the length it passes; a read also stops at the ring's bytes when it starts | application | application | yes | base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section | SPEC-017 §4; test_uart |
 | **spi_frames**: frames of one SPI transfer | the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt | application | application | no | base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section | SPEC-017 §5; test_spi, test_spi_loop |
 | **i2c_bytes**: bytes and segments of one I2C transaction or listen | the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size | application | application | no | base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time | SPEC-017 §6; test_i2c, test_i2c_loop |
+| **dma_regions**: the board's DMA regions a job's memory is checked against, and a channel's stop | the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count | the board's description | configuration | yes | base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section | SPEC-017 §7; test_dma, test_spi_loop |
 
 ## Public functions
 
@@ -46,6 +47,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
+| `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
 | `emb_drv_i2c_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
 | `emb_drv_i2c_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_i2c_listen()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |

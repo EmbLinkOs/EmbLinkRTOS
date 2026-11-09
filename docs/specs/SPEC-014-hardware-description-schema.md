@@ -84,6 +84,8 @@ errata:
 debug: { swd: true, jtag: true, dwt: true, itm: true }
 ```
 
+DMA (A119): a DMA controller is a peripheral with a `dma` key, `{kind, channels, max_count, memory}`. A `fixed` controller serves each request on the streams its table lists, a channel select picking it (the STM32F4); a `dreq` controller serves any request on any channel, paced by a request number (the RP2350). A peripheral's `dma_requests` names its request lines: `{tx: dma2.s7c4, rx: [dma2.s2c4, dma2.s5c4]}` on a fixed controller, the streams it may use, or `{tx: dma.dreq26}` on a dreq one. The `dma: controllers:` section above is that form's predecessor.
+
 Required sections: `arch`, `cpu`, `memory`, `interrupts`, `peripherals`; the rest are optional with empty defaults. The `arch` line binds the SoC to a port manifest so the generator can check that the cpu's protection model, cycle counter, and nesting match the port's feature flags (PORT-001).
 
 ## 4. Board schema
@@ -116,6 +118,8 @@ defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000, CONFIG_EMB_CO
 The illustrative flash layout uses STM32F407 erase-sector boundaries: independent updates/storage must not share an erase unit. A nonoverlapping byte range alone is insufficient. Generation validates actual erase geometry and update trailer/alignment requirements before advertising A/B support.
 
 Pins are `P<port><pin>.af<n>` for alternate functions or `P<port><pin>` for GPIO; the generator checks each against the SoC's GPIO ports and against other assignments (no pin twice).
+
+A device's `dma` lists the request lines to give channels, `dma: [tx, rx]` (A119): the generator gives each a channel of one of the board's DMA devices that no other device has (on a fixed controller, the first free stream its table lists; on a dreq one, the lowest free channel), refuses a board that runs out, writes the channel into the device's configuration (a binding's `dma.<request>`) and names it `EMB_SOC_<DEVICE>_DMA_<REQUEST>`. A request with no channel is none, so a driver runs it without DMA. The regions marked `dma` become `emb_board_dma_regions`, where the DMA class takes buffers.
 
 A device's `cs` is a chip select (A116): a GPIO pin, active low unless written `{pin: PE3, active: high}`. A device on an SPI bus names its own, as `accel` does, and the generator names it `EMB_SOC_ACCEL_CS`; an SPI controller may list spare ones for the application, `EMB_SOC_SPI1_CS0` and on. Each must be a line of one of the board's GPIO devices, and the pin table sets it up as an output, deasserted, at boot.
 

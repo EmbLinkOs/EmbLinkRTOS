@@ -10,14 +10,12 @@
 #define EMB_STM32_DEVICES_H
 
 #include <emb/config.h>
+#include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_gpio.h>
 
 #include <stdbool.h>
 #include <stdint.h>
-
-#if CONFIG_EMB_DEVICE
-#include <emb/device.h>
-#include <emb/drv_gpio.h>
-#endif
 #if CONFIG_EMB_DRV_UART
 #include <emb/drv_uart.h>
 #endif
@@ -73,6 +71,8 @@ typedef struct emb_stm32_spi_config {
     uint32_t clken_offset;
     uint32_t clken_bit;
     uint32_t irq;
+    emb_drv_dma_chan_t dma_tx; /* where the board gives it DMA (dma: [tx, rx]); NULL's otherwise */
+    emb_drv_dma_chan_t dma_rx;
 } emb_stm32_spi_config_t;
 
 #if CONFIG_EMB_DRV_SPI
@@ -82,7 +82,40 @@ typedef struct emb_stm32_spi_data {
     emb_drv_spi_req_t *xfer; /* the transfer in progress */
     const emb_device_t *dev; /* for the interrupt handler */
     bool stopping;           /* canceled: ends when the frame in flight is back */
+    bool dma;                /* the transfer runs by DMA: the board gave the device channels */
+    uint8_t fill;            /* the ones a transfer with no transmit buffer sends, DMA's source */
+    uint8_t sink;            /* where a transfer with no receive buffer's frames go */
 } emb_stm32_spi_data_t;
+#endif
+
+/* A DMA controller (RM0390 §9): its clock gate, each stream's interrupt, and whether it copies
+ * memory to memory (DMA2 alone). */
+typedef struct emb_stm32_dma_config {
+    uintptr_t base;
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7;
+    bool memory;
+} emb_stm32_dma_config_t;
+
+#if CONFIG_EMB_DRV_DMA
+#define EMB_STM32_DMA_STREAMS 8u
+struct emb_stm32_dma_data;
+/* A stream's job: its end's callback, and the count it started with. */
+typedef struct emb_stm32_dma_stream {
+    struct emb_stm32_dma_data *dma;
+    emb_drv_dma_done_t done;
+    void *arg;
+    uint32_t count;
+    uint8_t index;
+    uint8_t running;
+} emb_stm32_dma_stream_t;
+
+/* A DMA controller's RAM. */
+typedef struct emb_stm32_dma_data {
+    const emb_device_t *dev;
+    emb_stm32_dma_stream_t streams[EMB_STM32_DMA_STREAMS];
+} emb_stm32_dma_data_t;
 #endif
 
 /* An I2C controller: its lines first (the class's recovery drives them), its clock gate and
@@ -131,6 +164,11 @@ extern const emb_drv_uart_api_t emb_stm32_usart_api;
 /* The SPI class's operations (SPEC-017 §5): a controller with software chip-select
  * management, one frame in flight, carried by the receive interrupt. */
 extern const emb_device_api_t emb_stm32_spi_api;
+#endif
+#if CONFIG_EMB_DRV_DMA
+/* The DMA class's operations (SPEC-017 §7): a job per stream, direct mode for a peripheral,
+ * the FIFO for memory to memory, its end by the stream's interrupt. */
+extern const emb_drv_dma_api_t emb_stm32_dma_api;
 #endif
 #if CONFIG_EMB_DRV_I2C
 /* The I2C class's operations (SPEC-017 §6): standard and fast mode, and target mode, by

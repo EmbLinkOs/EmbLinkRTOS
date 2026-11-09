@@ -1206,6 +1206,18 @@
       "name": "emb_drv_i2c_recover",
       "header": "drv_i2c.h",
       "state": "active"
+    },
+    {
+      "id": 205,
+      "name": "emb_drv_dma_start",
+      "header": "drv_dma.h",
+      "state": "active"
+    },
+    {
+      "id": 206,
+      "name": "emb_drv_dma_stop",
+      "header": "drv_dma.h",
+      "state": "active"
     }
   ]
 }

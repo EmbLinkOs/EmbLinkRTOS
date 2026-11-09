@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
+ *     e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0
  *   drivers/bindings.yaml
- *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+ *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
  *   soc/rpi/rp2350/rp2350.yaml
- *     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
+ *     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -22,6 +22,7 @@
 #include "soc_devices.h"
 
 #include <emb/device.h>
+#include <emb/drv_dma.h>
 
 #include <stddef.h>
 
@@ -64,6 +65,25 @@ const emb_device_t emb_dev_io_bank0 = {
     .class_id = EMB_DRV_CLASS_GPIO,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
+};
+
+/* dma: rpi,rp2350-dma, dma, EARLY */
+static const emb_rp2350_dma_config_t dma_config = {
+    .base = 0x50000000u, /* peripheral.base */
+    .irq = 10u,          /* peripheral.irqs.irq0 */
+};
+static emb_device_state_t dma_state;
+static emb_rp2350_dma_data_t dma_data;
+const emb_device_t emb_dev_dma = {
+    .name = "dma",
+    .api = &emb_rp2350_dma_api.dev,
+    .config = &dma_config,
+    .state = &dma_state,
+    .data = &dma_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_DMA,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
 };
 
 /* uart0: arm,pl011, uart, EARLY */
@@ -118,13 +138,15 @@ const emb_device_t emb_dev_uart1 = {
 
 /* spi1: arm,pl022, spi, KERNEL */
 static const emb_pl022_config_t spi1_config = {
-    .base = 0x40088000u,    /* peripheral.base */
-    .clock_hz = 150000000u, /* peripheral.clock_hz */
-    .irq = 32u,             /* peripheral.irqs.global */
+    .base = 0x40088000u,                         /* peripheral.base */
+    .clock_hz = 150000000u,                      /* peripheral.clock_hz */
+    .irq = 32u,                                  /* peripheral.irqs.global */
+    .dma_tx = {&emb_dev_dma, 0u, 26u, {0u, 0u}}, /* dma.tx */
+    .dma_rx = {&emb_dev_dma, 1u, 27u, {0u, 0u}}, /* dma.rx */
 };
 static emb_device_state_t spi1_state;
 static emb_pl022_data_t spi1_data;
-static const emb_device_t *const spi1_deps[] = {&emb_dev_io_bank0};
+static const emb_device_t *const spi1_deps[] = {&emb_dev_io_bank0, &emb_dev_dma};
 const emb_device_t emb_dev_spi1 = {
     .name = "spi1",
     .api = &emb_pl022_api,
@@ -134,7 +156,7 @@ const emb_device_t emb_dev_spi1 = {
     .deps = spi1_deps,
     .class_id = EMB_DRV_CLASS_SPI,
     .level = EMB_DEVICE_KERNEL,
-    .dep_count = 1u,
+    .dep_count = 2u,
 };
 
 /* i2c0: snps,designware-i2c, i2c, KERNEL */
@@ -187,14 +209,24 @@ const emb_device_t emb_dev_i2c1 = {
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
     &emb_dev_io_bank0, /* 1: EARLY */
-    &emb_dev_uart0,    /* 2: EARLY */
-    &emb_dev_uart1,    /* 3: EARLY */
-    &emb_dev_spi1,     /* 4: KERNEL */
-    &emb_dev_i2c0,     /* 5: KERNEL */
-    &emb_dev_i2c1,     /* 6: KERNEL */
+    &emb_dev_dma,      /* 2: EARLY */
+    &emb_dev_uart0,    /* 3: EARLY */
+    &emb_dev_uart1,    /* 4: EARLY */
+    &emb_dev_spi1,     /* 5: KERNEL */
+    &emb_dev_i2c0,     /* 6: KERNEL */
+    &emb_dev_i2c1,     /* 7: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 7u, 4u};
+const emb_device_table_t emb_board_device_table = {devices, 8u, 5u};
+
+#if CONFIG_EMB_DRV_DMA
+/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA
+ * class takes buffers (SPEC-017 §7) */
+const emb_drv_dma_region_t emb_board_dma_regions[] = {
+    {0x20000000u, 0x00080000u}, /* sram */
+};
+const unsigned emb_board_dma_region_count = 1u;
+#endif
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

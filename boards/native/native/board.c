@@ -4,6 +4,9 @@
 #include <emb/config.h>
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+
+#include <stdint.h>
 #endif
 
 #include <stdio.h>
@@ -37,4 +40,10 @@ void emb_board_put_u32(uint32_t v)
 #if CONFIG_EMB_DEVICE
 /* No devices yet: the board has no description to generate them from (SPEC-016 §8). */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* A host process: its DMA devices are fakes, which reach whatever it can. */
+const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, SIZE_MAX}};
+const unsigned emb_board_dma_region_count = 1u;
 #endif

@@ -80,6 +80,10 @@ def c_value(v, expr=""):
     string literal, or a device reference."""
     if isinstance(v, dict) and "device" in v:
         return f"&emb_dev_{v['device']}"
+    if isinstance(v, dict) and "dma" in v:  # a DMA channel: an emb_drv_dma_chan_t initializer
+        if v["dma"] is None:
+            return "{NULL, 0u, 0u, {0u, 0u}}"
+        return f"{{&emb_dev_{v['dma']}, {v['stream']}u, {v['request']}u, {{0u, 0u}}}}"
     if isinstance(v, dict) and "line" in v:  # a GPIO line: an emb_drv_gpio_line_t initializer
         return f"{{&emb_dev_{v['gpio']}, {v['line']}u, 0u, {{0u, 0u}}}}"
     if isinstance(v, bool):
@@ -101,6 +105,63 @@ def _pin_lines(pins, periph, gpio_devs):
         if len(owner) == 3 and owner[0] == "pins" and owner[1] == periph and p["gpio"] in gpio_devs:
             out[owner[2]] = {"gpio": gpio_devs[p["gpio"]], "line": p["number"], "pin": p["pin"]}
     return out
+
+
+def _dma_options(text):
+    """A request's streams, as (controller, stream or None, request number): s<stream>c<channel
+    select> on a fixed controller, dreq<number> on a dreq one."""
+    out = []
+    for opt in (text if isinstance(text, list) else [text]):
+        ctrl, _, sel = opt.partition(".")
+        m = re.fullmatch(r"s(\d+)c(\d+)", sel)
+        if m:
+            out.append((ctrl, int(m.group(1)), int(m.group(2))))
+        else:
+            out.append((ctrl, None, int(sel[len("dreq"):])))
+    return out
+
+
+def _dma_assign(devs, order, err):
+    """Each device's DMA request lines that its board entry asks for (dma: [tx, rx]), given a
+    channel of a board DMA device no other device has: on a fixed controller the first free
+    stream its table lists, on a dreq controller the lowest free channel (A119)."""
+    ctrl_dev = {d["peripheral"]["name"]: n for n, d in devs.items()
+                if d["peripheral"] is not None and d["binding"]["class"] == "dma"}
+    taken = {}  # (controller device, channel) -> the device and request that has it
+    for n in order:
+        d = devs[n]
+        d["dma"] = {}
+        asked = d["entry"].get("dma", [])
+        offered = (d["peripheral"] or {}).get("dma_requests", {})
+        for req in asked:
+            at = f"devices.{n}.dma"
+            if req not in offered:
+                err(at, f"{n} has no DMA request {req!r}" + (f" (it has {', '.join(sorted(offered))})" if offered else ""))
+                continue
+            got = None
+            for ctrl, stream, number in _dma_options(offered[req]):
+                if ctrl not in ctrl_dev:
+                    continue
+                cdev = ctrl_dev[ctrl]
+                spec = devs[cdev]["peripheral"]["dma"]
+                if stream is None:  # dreq: any free channel
+                    free = [c for c in range(spec["channels"]) if (cdev, c) not in taken]
+                    if free:
+                        got = (cdev, free[0], number)
+                        break
+                elif (cdev, stream) not in taken:
+                    got = (cdev, stream, number)
+                    break
+            if got is None:
+                ctrls = sorted({c for c, _, _ in _dma_options(offered[req])})
+                if not any(c in ctrl_dev for c in ctrls):
+                    err(at, f"{n}'s {req} is on {', '.join(ctrls)}, which the board does not list in devices:")
+                else:
+                    err(at, f"{n}'s {req}: every channel it can use is taken ("
+                            + ", ".join(f"{taken[k][0]}.{taken[k][1]}" for k in sorted(taken) if k[0] in ctrls or devs[k[0]]['peripheral']['name'] in ctrls) + ")")
+                continue
+            taken[(got[0], got[1])] = (n, req)
+            d["dma"][req] = {"dma": got[0], "stream": got[1], "request": got[2]}
 
 
 def resolve(board, soc, clk, bindings, err, pins=None):
@@ -141,12 +202,14 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         devs[e["name"]] = {"index": i, "entry": e, "peripheral": p, "compatible": compat, "binding": b,
                            "origin": origin, "level": e.get("level", b["level"])}
 
+    _dma_assign(devs, sorted(devs, key=lambda n: devs[n]["index"]), err)
     clock_devs = [n for n in names if n in devs and devs[n]["binding"]["class"] == "clock"]
     for n, d in devs.items():
         e, at = d["entry"], f"devices.{n}"
         deps = list(e.get("deps", []))
         if "bus" in e:
             deps.append(e["bus"])
+        deps += sorted({c["dma"] for c in d["dma"].values()})  # its DMA controllers first
         if d["peripheral"] is not None and d["peripheral"].get("clock") and d["binding"]["class"] != "clock":
             deps += clock_devs  # the clock tree first: it gates this one (SPEC-016 §4)
         d["deps"] = []
@@ -188,6 +251,7 @@ def resolve(board, soc, clk, bindings, err, pins=None):
                "board": board.data, "soc": soc.data}
         if d["peripheral"] is not None:
             ctx["pins"] = _pin_lines(pins, d["peripheral"]["name"], gpio_devs)
+        ctx["dma"] = d["dma"]
         if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
         if "bus" in e:
@@ -195,11 +259,13 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         fields = []
         for field, expr in b.get("fields", {}).items():
             v = _lookup(ctx, expr)
+            if v is None and expr.startswith("dma."):
+                v = {"dma": None}  # a request the board gives no channel: none
             if v is None and expr.startswith("pins."):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}: the board gives "
                                     f"{n} no such pin, or its port has no GPIO device in devices:")
                 continue
-            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and "device" not in v and "line" not in v):
+            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and not ({"device", "line", "dma"} & set(v))):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
             fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})
@@ -220,6 +286,7 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             "compatible": d["compatible"],
             "peripheral": d["peripheral"]["name"] if d["peripheral"] is not None else None,
             "class": b["class"],
+            "dma": d.get("dma", {}),
             "class_id": CLASSES.index(b["class"]) + 1,
             "level": d["level"],
             "deps": d["deps"],

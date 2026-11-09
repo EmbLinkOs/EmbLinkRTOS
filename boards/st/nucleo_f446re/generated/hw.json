@@ -41,6 +41,10 @@
         "name": "gpioa"
       },
       {
+        "doc": "DMA1: SPI2's transfers",
+        "name": "dma1"
+      },
+      {
         "doc": "SPI2's chip select, PB12",
         "name": "gpiob"
       },
@@ -56,6 +60,10 @@
       {
         "cs": [
           "PB12"
+        ],
+        "dma": [
+          "tx",
+          "rx"
         ],
         "doc": "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)",
         "name": "spi2"
@@ -250,6 +258,30 @@
         "peripheral": "gpioa"
       },
       {
+        "class": "dma",
+        "compatible": "st,stm32-dma",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073897472,
+          "clken_bit": 21,
+          "clken_offset": 48,
+          "irq0": 11,
+          "irq1": 12,
+          "irq2": 13,
+          "irq3": 14,
+          "irq4": 15,
+          "irq5": 16,
+          "irq6": 17,
+          "irq7": 47,
+          "memory": false
+        },
+        "level": "early",
+        "name": "dma1",
+        "peripheral": "dma1"
+      },
+      {
         "class": "gpio",
         "compatible": "st,stm32-gpio",
         "deps": [
@@ -323,6 +355,7 @@
         "class": "spi",
         "compatible": "st,stm32-spi",
         "deps": [
+          "dma1",
           "rcc"
         ],
         "fields": {
@@ -330,6 +363,16 @@
           "clken_bit": 14,
           "clken_offset": 64,
           "clock_hz": 45000000,
+          "dma_rx": {
+            "dma": "dma1",
+            "request": 0,
+            "stream": 3
+          },
+          "dma_tx": {
+            "dma": "dma1",
+            "request": 0,
+            "stream": 4
+          },
           "irq": 36
         },
         "level": "kernel",
@@ -590,11 +633,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3"
+      "sha256": "9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34"
+      "sha256": "0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -602,7 +645,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241"
+      "sha256": "08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",
@@ -1135,12 +1178,122 @@
         "size": 1024
       },
       {
+        "base": 1073897472,
+        "clock": {
+          "bit": 21,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-dma",
+        "dma": {
+          "channels": 8,
+          "kind": "fixed",
+          "max_count": 65535,
+          "memory": false
+        },
+        "irqs": [
+          {
+            "name": "s0",
+            "number": 11
+          },
+          {
+            "name": "s1",
+            "number": 12
+          },
+          {
+            "name": "s2",
+            "number": 13
+          },
+          {
+            "name": "s3",
+            "number": 14
+          },
+          {
+            "name": "s4",
+            "number": 15
+          },
+          {
+            "name": "s5",
+            "number": 16
+          },
+          {
+            "name": "s6",
+            "number": 17
+          },
+          {
+            "name": "s7",
+            "number": 47
+          }
+        ],
+        "name": "dma1",
+        "size": 1024
+      },
+      {
+        "base": 1073898496,
+        "clock": {
+          "bit": 22,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-dma",
+        "dma": {
+          "channels": 8,
+          "kind": "fixed",
+          "max_count": 65535,
+          "memory": true
+        },
+        "irqs": [
+          {
+            "name": "s0",
+            "number": 56
+          },
+          {
+            "name": "s1",
+            "number": 57
+          },
+          {
+            "name": "s2",
+            "number": 58
+          },
+          {
+            "name": "s3",
+            "number": 59
+          },
+          {
+            "name": "s4",
+            "number": 60
+          },
+          {
+            "name": "s5",
+            "number": 68
+          },
+          {
+            "name": "s6",
+            "number": 69
+          },
+          {
+            "name": "s7",
+            "number": 70
+          }
+        ],
+        "name": "dma2",
+        "size": 1024
+      },
+      {
         "base": 1073763328,
         "clock": {
           "bit": 21,
           "bus": "apb1"
         },
         "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s0c1",
+            "dma1.s5c1"
+          ],
+          "tx": [
+            "dma1.s6c1",
+            "dma1.s7c1"
+          ]
+        },
         "irqs": [
           {
             "name": "ev",
@@ -1161,6 +1314,13 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s2c7",
+            "dma1.s3c7"
+          ],
+          "tx": "dma1.s7c7"
+        },
         "irqs": [
           {
             "name": "ev",
@@ -1181,6 +1341,13 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s1c1",
+            "dma1.s2c3"
+          ],
+          "tx": "dma1.s4c3"
+        },
         "irqs": [
           {
             "name": "ev",
@@ -1201,6 +1368,10 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-spi",
+        "dma_requests": {
+          "rx": "dma1.s3c0",
+          "tx": "dma1.s4c0"
+        },
         "irqs": [
           {
             "name": "global",
@@ -1217,6 +1388,10 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s2c4",
+          "tx": "dma1.s4c4"
+        },
         "irqs": [
           {
             "name": "global",
@@ -1233,6 +1408,10 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s0c4",
+          "tx": "dma1.s7c4"
+        },
         "irqs": [
           {
             "name": "global",
@@ -1249,6 +1428,13 @@
           "bus": "apb2"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": [
+            "dma2.s2c4",
+            "dma2.s5c4"
+          ],
+          "tx": "dma2.s7c4"
+        },
         "irqs": [
           {
             "name": "global",
@@ -1265,6 +1451,10 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s5c4",
+          "tx": "dma1.s6c4"
+        },
         "irqs": [
           {
             "name": "global",
@@ -1281,6 +1471,13 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s1c4",
+          "tx": [
+            "dma1.s3c4",
+            "dma1.s4c7"
+          ]
+        },
         "irqs": [
           {
             "name": "global",
@@ -1297,6 +1494,16 @@
           "bus": "apb2"
         },
         "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": [
+            "dma2.s1c5",
+            "dma2.s2c5"
+          ],
+          "tx": [
+            "dma2.s6c5",
+            "dma2.s7c5"
+          ]
+        },
         "irqs": [
           {
             "name": "global",

@@ -33,10 +33,11 @@ console: { device: usart2, baud: 115200 }
 devices:
   - { name: rcc }
   - { name: gpioa, doc: "the console's pins and LD2" }
+  - { name: dma1, doc: "DMA1: SPI2's transfers" }
   - { name: gpiob, doc: "SPI2's chip select, PB12" }
   - { name: gpioc, doc: B1 }
   - { name: usart2, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
-  - { name: spi2, cs: [PB12], doc: "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
+  - { name: spi2, cs: [PB12], dma: [tx, rx], doc: "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
   - { name: i2c1, doc: "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2" }
   - { name: i2c2, doc: "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }

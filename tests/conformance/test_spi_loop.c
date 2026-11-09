@@ -169,3 +169,48 @@ EMB_TEST(spi_loop_chip_select_at_the_pin)
     EMB_ASSERT_TRUE(cs_high());
 }
 #endif
+
+#ifdef EMB_TEST_SPI_LOOP_DMA_TX
+/* The board gives the controller DMA channels: a long transfer runs by DMA, its transmit
+ * channel the SPI's while it does, and a cancel in the middle stops after whole frames. */
+static const emb_drv_dma_chan_t loop_dma_tx = EMB_TEST_SPI_LOOP_DMA_TX;
+static uint8_t probe;
+
+static void probe_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    (void)arg;
+    (void)st;
+    (void)moved;
+}
+
+EMB_TEST(spi_loop_runs_by_dma)
+{
+    static const emb_drv_spi_target_t slow = {200000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
+                                              NO_CS};
+    emb_drv_spi_req_t req;
+    emb_drv_dma_job_t job = {
+        (uintptr_t)&probe, (uintptr_t)&probe, 1u, EMB_DRV_DMA_TO_PERIPH, 1u, 0u, 0u};
+    EMB_TEST_REQ("DRV-004", "DRV-006");
+    pattern(sizeof(out), 0x2Bu);
+    emb_drv_spi_req_transfer(&req, &slow, out, in, sizeof(out)); /* some 11 ms of frames */
+    EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
+    EMB_ASSERT_STATUS(emb_drv_dma_start(&loop_dma_tx, &job, probe_done, NULL),
+                      EMB_EBUSY); /* the SPI's transmit job has it */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(50)));
+    EMB_ASSERT_STATUS(req.req.status, EMB_OK);
+    EMB_ASSERT_EQ(req.req.done, sizeof(out));
+    EMB_ASSERT_TRUE(memcmp(in, out, sizeof(out)) == 0);
+
+    pattern(sizeof(out), 0x3Cu);
+    emb_drv_spi_req_transfer(&req, &slow, out, in, sizeof(out));
+    EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(3)));
+    EMB_ASSERT_OK(emb_drv_cancel(LOOP, &req.req)); /* part-way */
+    EMB_ASSERT_STATUS(req.req.status, EMB_ECANCELED);
+    EMB_ASSERT_TRUE(req.req.done > 0u && req.req.done < sizeof(out));
+    EMB_ASSERT_TRUE(memcmp(in, out, req.req.done) == 0); /* whole frames, intact */
+    pattern(32u, 0x4Du);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &slow, out, in, 32u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 32u) == 0); /* and the next is clean */
+}
+#endif

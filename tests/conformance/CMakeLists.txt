@@ -67,6 +67,9 @@ if(CONFIG_EMB_DEVICE)
   if(CONFIG_EMB_DRV_GPIO)
     emb_add_test(test_gpio test_gpio.c) # SPEC-017 §5a
   endif()
+  if(CONFIG_EMB_DRV_DMA)
+    emb_add_test(test_dma test_dma.c) # SPEC-017 §7
+  endif()
   if(CONFIG_EMB_DRV_I2C)
     emb_add_test(test_i2c test_i2c.c) # SPEC-017 §6
     # two I2C controllers of the chip joined SCL to SCL and SDA to SDA: on the bench
@@ -121,6 +124,10 @@ if(CONFIG_EMB_DEVICE)
       string(TOUPPER "${_emb_spi_loop}" _emb_spi_up)
       if(EMB_BOARD_${_emb_spi_up}_CS_COUNT)
         target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_CS=EMB_SOC_${_emb_spi_up}_CS0")
+      endif()
+      # its DMA transmit channel, where the board gives it one: the transfers run by DMA
+      if("tx" IN_LIST EMB_BOARD_${_emb_spi_up}_DMA)
+        target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_DMA_TX=EMB_SOC_${_emb_spi_up}_DMA_TX")
       endif()
     endif()
   endif()

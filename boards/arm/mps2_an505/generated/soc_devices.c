@@ -8,7 +8,7 @@
  *   boards/arm/mps2_an505/board.yaml
  *     1d04e64a46283914696443579692bd1845e26091e2170d8c5e6b65b983661312
  *   drivers/bindings.yaml
- *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+ *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
  *   soc/arm/mps2/an505.yaml
  *     b534d981fc013b05354669a9a39d1344d0b327c4e713f9bb04803a7a19994834
  *   soc/arm/mps2/mps2.yaml
@@ -22,6 +22,7 @@
 #include "soc_devices.h"
 
 #include <emb/device.h>
+#include <emb/drv_dma.h>
 
 #include <stddef.h>
 
@@ -55,9 +56,11 @@ const emb_device_t emb_dev_uart0 = {
 
 /* spi0: arm,pl022, spi, KERNEL */
 static const emb_pl022_config_t spi0_config = {
-    .base = 0x50205000u,   /* peripheral.base */
-    .clock_hz = 20000000u, /* peripheral.clock_hz */
-    .irq = 51u,            /* peripheral.irqs.global */
+    .base = 0x50205000u,                /* peripheral.base */
+    .clock_hz = 20000000u,              /* peripheral.clock_hz */
+    .irq = 51u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .dma_rx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.rx */
 };
 static emb_device_state_t spi0_state;
 static emb_pl022_data_t spi0_data;
@@ -80,6 +83,13 @@ static const emb_device_t *const devices[] = {
 };
 
 const emb_device_table_t emb_board_device_table = {devices, 2u, 1u};
+
+#if CONFIG_EMB_DRV_DMA
+/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA
+ * class takes buffers (SPEC-017 §7) */
+const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}}; /* none */
+const unsigned emb_board_dma_region_count = 0u;
+#endif
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

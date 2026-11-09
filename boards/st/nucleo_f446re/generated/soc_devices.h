@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
+ *     9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1
  *   drivers/bindings.yaml
- *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+ *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
+ *     08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -22,13 +22,14 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 9u
+#define EMB_SOC_DEVICE_COUNT 10u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 
 extern const emb_device_t emb_dev_rcc;
 extern const emb_device_t emb_dev_gpioa;
+extern const emb_device_t emb_dev_dma1;
 extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
@@ -40,6 +41,7 @@ extern const emb_device_t emb_dev_i2c2;
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
 #define EMB_SOC_HAS_GPIOA  1
+#define EMB_SOC_HAS_DMA1   1
 #define EMB_SOC_HAS_GPIOB  1
 #define EMB_SOC_HAS_GPIOC  1
 #define EMB_SOC_HAS_USART2 1
@@ -58,6 +60,13 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_I2C1_SDA {&emb_dev_gpiob, 9u, 0u, {0u, 0u}} /* PB9 */
 #define EMB_SOC_I2C2_SCL {&emb_dev_gpiob, 10u, 0u, {0u, 0u}} /* PB10 */
 #define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */
+/* clang-format on */
+
+/* the DMA channels the board gave its devices (devices[].dma, A119), emb_drv_dma_chan_t
+ * initializers */
+/* clang-format off */
+#define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}
+#define EMB_SOC_SPI2_DMA_TX {&emb_dev_dma1, 4u, 0u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

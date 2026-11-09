@@ -5,11 +5,11 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
+#     e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0
 #   drivers/bindings.yaml
-#     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
+#     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
 #   soc/rpi/rp2350/rp2350.yaml
-#     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
+#     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
 #   soc/rpi/rp2350/rp2350a.yaml
 #     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
 # pico2_w: RP2350A, cortex-m33f at 150 MHz.
@@ -21,6 +21,7 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/rpi/rp2350")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_SPI1_DMA rx tx)
 set(EMB_BOARD_SPI1_CS_COUNT 1)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
@@ -29,6 +30,7 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/rpi/rp2350_devices.c"
     "${EMB_BASE}/drivers/rpi/rp2350_gpio.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_dma.c"
     "${EMB_BASE}/drivers/arm/pl011.c"
     "${EMB_BASE}/drivers/arm/pl022.c"
     "${EMB_BASE}/drivers/snps/dw_i2c.c"
@@ -41,8 +43,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5"
-    "drivers/bindings.yaml=d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34"
-    "soc/rpi/rp2350/rp2350.yaml=b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c"
+    "boards/rpi/pico2_w/board.yaml=e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0"
+    "drivers/bindings.yaml=0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+    "soc/rpi/rp2350/rp2350.yaml=d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

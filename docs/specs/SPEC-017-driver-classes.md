@@ -121,17 +121,17 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Checklist | |
 |---|---|
 | Dependencies | its clock |
-| Requests | not used by applications directly: a driver allocates a channel (stream) for its device's request line, then submits memory-to-peripheral, peripheral-to-memory or memory-to-memory transfers |
+| Requests | not used by applications directly. A device's channels are given at generation (A119): its binding's `dma.<request>` fields, `emb_drv_dma_chan_t`. Its driver starts a job on one, `emb_drv_dma_start()`: memory to peripheral, peripheral to memory or memory to memory, of 1, 2 or 4-byte items, the memory side advancing or fixed (a fill, a sink). Channels run at once, each its own, so a job does not go through the device's request queue |
 | Blocking | none; the client driver's own request is what blocks |
-| Interrupts | transfer complete and error, delivered to the client driver |
+| Interrupts | a job's end, its status and the items moved, delivered to the client driver's callback in the DMA interrupt |
 | DMA ownership | while a transfer runs, its buffer belongs to the hardware: the client must not touch it until completion. Buffers must be in a region the description marks `dma` (SPEC-014 §3); the driver refuses others with `EMB_EINVAL`. No cache maintenance on the M4F and M33 (A109) |
-| Concurrency | channels are assigned at generation from `dma_requests`; two devices never share a channel |
-| Timeouts | cancel stops the channel; `done` is the count the hardware reports; the partial data is in memory up to it (DRV-006) |
+| Concurrency | channels are assigned at generation from `dma_requests`; two devices never share a channel. Starting a running channel is refused with `EMB_EBUSY` |
+| Timeouts | `emb_drv_dma_stop()` stops the channel and gives the items moved, the partial data in memory up to it (DRV-006); no end is delivered after it returns. A client's own cancel stops its transmit job, lets the data already sent arrive, then stops its receive job: an SPI transfer canceled by DMA ends after whole frames |
 | Power | suspend refuses while a channel runs |
 | Errors | `EMB_EXFER` (a bus error during the transfer) |
 | Capabilities | `MEM_TO_MEM`, `CIRCULAR` |
 
-**Drivers:** `drivers/st/stm32f4_dma.c` (DMA1 and DMA2, streams and channel selection); `drivers/rpi/rp2350_dma.c` (16 channels, DREQ pacing). **Evidence:** EmbSIM's DMA in CI; on both boards, SPI and UART transfers over DMA, and cancellation in the middle of one.
+**Drivers:** `drivers/st/stm32_dma.c` (DMA1 and DMA2, a job per stream, direct mode for a peripheral and the FIFO for memory to memory, which only DMA2 does); `drivers/rpi/rp2350_dma.c` (16 channels, DREQ pacing, what moved counted from the advancing address, which an abort leaves as it was). **Clients:** the SPI drivers run transfers of 16 frames and more by DMA where the board gives the device channels and the buffers are where DMA reaches, and by interrupt otherwise. **Evidence:** the class's fake on the host; EmbSIM's NUCLEO-F446RE, SPI2 over DMA1 in CI; on both boards, SPI over DMA through the loop wire, with a cancel in the middle of a transfer. UART over DMA is to come.
 
 ## 8. Watchdog
 

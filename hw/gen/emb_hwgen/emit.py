@@ -445,6 +445,8 @@ def board_cmake(r):
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
     classes = {d["name"]: d["class"] for d in r["devices"]}
     for d in r["devices"]:
+        if d.get("dma"):  # its DMA channels, EMB_SOC_<DEVICE>_DMA_<REQUEST> in soc_devices.h
+            out += f"set(EMB_BOARD_{d['name'].upper()}_DMA {' '.join(sorted(d['dma']))})\n"
         if d.get("cs"):  # its chip selects, EMB_SOC_<DEVICE>_CS<n> in soc_devices.h
             out += f"set(EMB_BOARD_{d['name'].upper()}_CS_COUNT {len(d['cs'])})\n"
     for loop in r["board"].get("simulation", {}).get("loopbacks", []):
@@ -720,6 +722,14 @@ def soc_devices_h(r):
             for d, f in lines:
                 out += f"#define EMB_SOC_{d['name'].upper()}_{f['field'].upper()} {f['c']} /* {f['value']['pin']} */\n"
             out += "/* clang-format on */\n"
+        chans = [(d, req, c) for d in r["devices"] for req, c in sorted(d.get("dma", {}).items())]
+        if chans:
+            out += ("\n/* the DMA channels the board gave its devices (devices[].dma, A119), emb_drv_dma_chan_t\n"
+                    " * initializers */\n/* clang-format off */\n")
+            for d, req, c in chans:
+                out += (f"#define EMB_SOC_{d['name'].upper()}_DMA_{req.upper()} "
+                        f"{{&emb_dev_{c['dma']}, {c['stream']}u, {c['request']}u, {{0u, 0u}}}}\n")
+            out += "/* clang-format on */\n"
         cs = [(d, c) for d in r["devices"] for c in d.get("cs", [])]
         if cs:
             out += ("\n/* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin\n"
@@ -743,7 +753,7 @@ def soc_devices_c(r):
         if d["header"] not in headers:
             headers.append(d["header"])
     # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
-    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n\n#include <stddef.h>\n"
+    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n\n#include <stddef.h>\n"
     if headers:
         out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
     early = 0
@@ -789,6 +799,17 @@ def soc_devices_c(r):
     else:
         out += "\n/* the board declares no devices (its description has no devices:) */\n"
         out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
+    regions = [g for g in r["soc"]["memory"]["regions"] if "dma" in g.get("attrs", [])]
+    out += ("\n#if CONFIG_EMB_DRV_DMA\n/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA\n"
+            " * class takes buffers (SPEC-017 §7) */\n")
+    if regions:
+        out += "const emb_drv_dma_region_t emb_board_dma_regions[] = {\n"
+        for g in regions:
+            out += f"    {{0x{g['base']:08X}u, 0x{g['size']:08X}u}}, /* {g['name']} */\n"
+        out += "};\n"
+    else:
+        out += "const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}}; /* none */\n"
+    out += f"const unsigned emb_board_dma_region_count = {len(regions)}u;\n#endif\n"
     out += "#else\n/* ISO C: a translation unit declares something */\ntypedef int emb_soc_devices_off_t;\n#endif\n"
     return out
 
