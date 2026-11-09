@@ -53,34 +53,31 @@ static emb_cmsdk_uart_data_t *data(const emb_device_t *dev)
     return (emb_cmsdk_uart_data_t *)dev->data;
 }
 
-static void cmsdk_rx_isr(void *arg)
+/* Both of the UART's lines run this one handler, which serves whatever INTSTATUS says: QEMU
+ * versions differ on which of the two lines carries receive and which transmit, and a
+ * handler that served only its own would leave the other's status set and the line firing. */
+static void cmsdk_isr(void *arg)
 {
     emb_cmsdk_uart_data_t *d = (emb_cmsdk_uart_data_t *)arg;
     uintptr_t base = config(d->dev)->base;
-    REG32(base + UART_INTSTATUS) = INT_RX;
+    uint32_t status = REG32(base + UART_INTSTATUS);
+    REG32(base + UART_INTSTATUS) = status & (INT_RX | INT_TX);
     while ((REG32(base + UART_STATE) & STATE_RX_FULL) != 0u) { /* bounded: one byte buffer */
         emb_drv_uart_rx_byte(d->dev, &d->rx, (uint8_t)REG32(base + UART_DATA));
     }
-}
-
-/* A byte has left the transmitter: the next one, or the write's end. */
-static void cmsdk_tx_isr(void *arg)
-{
-    emb_cmsdk_uart_data_t *d = (emb_cmsdk_uart_data_t *)arg;
-    uintptr_t base = config(d->dev)->base;
-    emb_drv_uart_req_t *w = d->tx;
-    REG32(base + UART_INTSTATUS) = INT_TX;
-    if (w == NULL) {
-        return;
+    if ((status & INT_TX) != 0u) {
+        emb_drv_uart_req_t *w = d->tx; /* a byte has left: the next one, or the write's end */
+        if (w == NULL) {
+            REG32(base + UART_CTRL) &= ~CTRL_TX_INT_EN;
+        } else if ((size_t)w->req.done < w->len) {
+            REG32(base + UART_DATA) = w->tx[w->req.done];
+            w->req.done++;
+        } else {
+            d->tx = NULL;
+            REG32(base + UART_CTRL) &= ~CTRL_TX_INT_EN;
+            emb_drv_complete(d->dev, &w->req, EMB_OK, w->req.done);
+        }
     }
-    if ((size_t)w->req.done < w->len) {
-        REG32(base + UART_DATA) = w->tx[w->req.done];
-        w->req.done++;
-        return;
-    }
-    d->tx = NULL;
-    REG32(base + UART_CTRL) &= ~CTRL_TX_INT_EN;
-    emb_drv_complete(d->dev, &w->req, EMB_OK, w->req.done);
 }
 
 static emb_status_t uart_init(const emb_device_t *dev)
@@ -96,8 +93,8 @@ static emb_status_t uart_init(const emb_device_t *dev)
     d->tx = NULL;
     d->dev = dev;
     d->irq_on = 0u;
-    if (emb_irq_connect((emb_irq_t)cfg->irq_rx, cmsdk_rx_isr, d) != EMB_OK ||
-        emb_irq_connect((emb_irq_t)cfg->irq_tx, cmsdk_tx_isr, d) != EMB_OK) {
+    if ((emb_irq_connect((emb_irq_t)cfg->irq_rx, cmsdk_isr, d) != EMB_OK) ||
+        (emb_irq_connect((emb_irq_t)cfg->irq_tx, cmsdk_isr, d) != EMB_OK)) {
         return EMB_EINVAL;
     }
     return EMB_OK;
