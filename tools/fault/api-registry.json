@@ -1236,6 +1236,30 @@
       "name": "emb_drv_wdt_caused_reset",
       "header": "drv_wdt.h",
       "state": "active"
+    },
+    {
+      "id": 210,
+      "name": "emb_wdog_start",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 211,
+      "name": "emb_wdog_watch",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 212,
+      "name": "emb_wdog_unwatch",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 213,
+      "name": "emb_wdog_checkin",
+      "header": "wdog.h",
+      "state": "active"
     }
   ]
 }

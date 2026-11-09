@@ -242,6 +242,16 @@
       "masked": true,
       "profiles": "base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section",
       "evidence": "SPEC-017 \u00a77; test_dma, test_spi_loop"
+    },
+    {
+      "id": "wdog_parties",
+      "input": "the parties the software watchdog watches",
+      "bound": "the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section",
+      "evidence": "FLT-004, A121; test_wdog, test_wdog_board"
     }
   ],
   "apis": {
@@ -641,6 +651,12 @@
     "emb_drv_dma_stop": [
       "dma_regions",
       "drivers"
+    ],
+    "emb_wdog_start": [
+      "active_objects"
+    ],
+    "emb_wdog_unwatch": [
+      "wdog_parties"
     ]
   }
 }

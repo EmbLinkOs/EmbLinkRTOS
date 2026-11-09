@@ -34,4 +34,4 @@ FLT-001 to 004 originate in `docs/architecture/03-kernel-architecture.md` §10 a
 **Rationale.** A hardware watchdog fed by one thread proves only that thread runs; every monitored party must have shown progress.
 **Status.** Accepted 2026-10-07
 **Verification.** Test: with one party missing its window, the hardware watchdog is not fed and the reset reason records it; Demonstration: a hung thread resets the board through the watchdog on both reference boards (M4.2).
-**Trace.** 03 §10; SPEC-017 (watchdog class)
+**Trace.** 03 §10; SPEC-017 §8 (the watchdog class and the software watchdog, A120, A121)

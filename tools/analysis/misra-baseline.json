@@ -574,6 +574,11 @@
   "misra-c2012-12.1": 2,
   "misra-c2012-8.7": 5
  },
+ "kernel/fault/wdog.c": {
+  "misra-c2012-10.4": 2,
+  "misra-c2012-19.2": 1,
+  "misra-c2012-8.7": 4
+ },
  "kernel/include/embk/crash.h": {
   "misra-c2012-2.5": 2,
   "misra-c2012-20.9": 1

@@ -76,11 +76,18 @@ if(CONFIG_EMB_DEVICE)
   endif()
   if(CONFIG_EMB_DRV_WDT)
     emb_add_test(test_wdt test_wdt.c) # SPEC-017 §8
+    if(CONFIG_EMB_WDOG)
+      emb_add_test(test_wdog test_wdog.c) # FLT-004
+      target_link_libraries(test_wdog PRIVATE emb_kernel_private) # the record, as a boot reads it
+    endif()
     # the board's own watchdog, where it has one: it resets the board, and says so after
     if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
       file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_wdt REGEX "EMB_SOC_WATCHDOG_DEVICE")
       if(_emb_wdt)
         emb_add_test(test_wdt_board test_wdt_board.c)
+        if(CONFIG_EMB_WDOG)
+          emb_add_test(test_wdog_board test_wdog_board.c) # FLT-004's demonstration
+        endif()
       endif()
     endif()
   endif()

@@ -30,6 +30,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **spi_frames**: frames of one SPI transfer | the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt | application | application | no | base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section | SPEC-017 §5; test_spi, test_spi_loop |
 | **i2c_bytes**: bytes and segments of one I2C transaction or listen | the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size | application | application | no | base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time | SPEC-017 §6; test_i2c, test_i2c_loop |
 | **dma_regions**: the board's DMA regions a job's memory is checked against, and a channel's stop | the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count | the board's description | configuration | yes | base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section | SPEC-017 §7; test_dma, test_spi_loop |
+| **wdog_parties**: the parties the software watchdog watches | the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one | application | application | yes | base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section | FLT-004, A121; test_wdog, test_wdog_board |
 
 ## Public functions
 
@@ -123,6 +124,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_timer_start_at()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_start_periodic()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_stop_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_wdog_start()` | O(1); O(active timers) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_wdog_unwatch()` | O(wdog_parties): the list walked to unlink it | wdog_parties |
 | `emb_work_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_work_submit()` | O(1), plus the queue thread's wake | timeouts, reschedule |
 | `emb_workq_destroy()` | O(1) plus the queue thread's exit | timeouts, reschedule |

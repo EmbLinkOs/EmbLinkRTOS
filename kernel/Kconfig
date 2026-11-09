@@ -306,6 +306,16 @@ config EMB_DRV_WDT
 	  A hardware watchdog started once with its timeout, fed from any context,
 	  never stopped; and whether it caused the last reset.
 
+config EMB_WDOG
+	bool "The software watchdog (FLT-004)"
+	depends on EMB_DRV_WDT && EMB_TIMER
+	default y
+	help
+	  Feeds the hardware watchdog only while every party it watches has
+	  checked in within its window, from a timer in the timer interrupt. A
+	  party that misses its window is written into the crash record
+	  (EMB_FAULT_WATCHDOG), and the hardware watchdog resets the part.
+
 config EMB_DRV_DMA
 	bool "The DMA class (SPEC-017 §7)"
 	depends on EMB_DEVICE

@@ -23,6 +23,9 @@
 #include <emb/drv_spi.h>
 #include <emb/drv_wdt.h>
 #endif
+#if CONFIG_EMB_WDOG
+#include <emb/wdog.h>
+#endif
 #if CONFIG_EMB_CRASH_RECORD
 #include <emb/crash.h>
 #endif

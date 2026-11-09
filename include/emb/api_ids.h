@@ -210,5 +210,9 @@
 #define EMB_API_ID_DRV_WDT_START                 0x00CFu
 #define EMB_API_ID_DRV_WDT_FEED                  0x00D0u
 #define EMB_API_ID_DRV_WDT_CAUSED_RESET          0x00D1u
+#define EMB_API_ID_WDOG_START                    0x00D2u
+#define EMB_API_ID_WDOG_WATCH                    0x00D3u
+#define EMB_API_ID_WDOG_UNWATCH                  0x00D4u
+#define EMB_API_ID_WDOG_CHECKIN                  0x00D5u
 
 #endif /* EMB_API_IDS_H */
