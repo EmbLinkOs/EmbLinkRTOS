@@ -66,7 +66,7 @@ typedef struct emb_device_api {
 
 /* RAM: the device's lifecycle and its request queue. Lock domain: the device's critical
  * section (SPEC-016 §6). */
-typedef struct emb_device_state {
+typedef struct emb_device_ram {
     uint8_t lifecycle; /* EMB_DEVICE_* */
     uint8_t power;     /* the device's power state (SPEC-018) */
     uint8_t busy;      /* the head request has been started */
