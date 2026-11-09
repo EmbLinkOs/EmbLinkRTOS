@@ -152,5 +152,21 @@
 #define EMB_API_ID_CRASH_RECORD_CLEAR            0x0092u
 #define EMB_API_ID_TICKS_AT_LEAST                0x0093u
 #define EMB_API_ID_ISR_STACK_INFO                0x0094u
+#define EMB_API_ID_DEVICE_INIT                   0x0095u
+#define EMB_API_ID_DEVICE_INIT_LIST              0x0096u
+#define EMB_API_ID_DEVICE_STATE                  0x0097u
+#define EMB_API_ID_DEVICE_READY                  0x0098u
+#define EMB_API_ID_DEVICE_STATUS                 0x0099u
+#define EMB_API_ID_DEVICE_SUSPEND                0x009Au
+#define EMB_API_ID_DEVICE_RESUME                 0x009Bu
+#define EMB_API_ID_DRV_REQUEST_INIT              0x009Cu
+#define EMB_API_ID_DRV_ON_NOTIFY                 0x009Du
+#define EMB_API_ID_DRV_ON_SEM                    0x009Eu
+#define EMB_API_ID_DRV_ON_WORK                   0x009Fu
+#define EMB_API_ID_DRV_ON_CALLBACK               0x00A0u
+#define EMB_API_ID_DRV_SUBMIT                    0x00A1u
+#define EMB_API_ID_DRV_COMPLETE                  0x00A2u
+#define EMB_API_ID_DRV_CANCEL                    0x00A3u
+#define EMB_API_ID_DRV_WAIT                      0x00A4u
 
 #endif /* EMB_API_IDS_H */

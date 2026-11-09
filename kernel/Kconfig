@@ -271,6 +271,17 @@ endmenu
 
 menu "Work queues"
 
+config EMB_DEVICE
+	bool "Devices and driver requests (SPEC-016)"
+	depends on EMB_NOTIFY && EMB_SEM
+	default n if EMB_PROFILE_TINY || EMB_ARCH_AVR
+	default y
+	help
+	  Device instances with a lifecycle, and the request and completion core every driver
+	  class is built on: queued requests, completion by notification, semaphore, work item
+	  or callback, cancellation, and a blocking wrapper. Off on the tiny profile and AVR,
+	  whose boards keep their free functions.
+
 config EMB_WORKQ
 	bool "Work queues (SPEC-006 §4)"
 	depends on EMB_NOTIFY && !EMB_SCHED_TABLE
