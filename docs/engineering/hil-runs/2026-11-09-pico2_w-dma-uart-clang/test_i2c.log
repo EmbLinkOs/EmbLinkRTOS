@@ -1,0 +1,42 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_i2c.elf sha256 fb2cb8fe4f365b172e366ff8ceb28d0577bae6961ca0972022369f1196b879a0
+EVIDENCE v1 suite=test_i2c config=df5c8385dd9f1b46 profile=base board=pico2_w checked=1
+TEST i2c_write_then_read_a_register
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_write_then_read_a_register outcome=passed asserts=7 skips=0
+TEST i2c_segments_count_bytes
+  -> ok
+  req DRV-005
+CASE i2c_segments_count_bytes outcome=passed asserts=6 skips=0
+TEST i2c_errors_and_timeout
+  -> ok
+  req DRV-006
+CASE i2c_errors_and_timeout outcome=passed asserts=7 skips=0
+TEST i2c_target_answers_its_address
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_target_answers_its_address outcome=passed asserts=10 skips=0
+TEST i2c_controller_and_target_at_once
+  -> ok
+  req DRV-004
+CASE i2c_controller_and_target_at_once outcome=passed asserts=9 skips=0
+TEST i2c_misuse_faults
+  fault checks that reset the board: 12
+  -> ok
+  req DRV-004
+CASE i2c_misuse_faults outcome=passed asserts=13 skips=0
+TEST i2c_held_bus_keeps_one_target
+  -> ok
+  req DRV-004
+CASE i2c_held_bus_keeps_one_target outcome=passed asserts=11 skips=0
+TEST i2c_recover_clocks_a_stuck_bus_free
+  -> ok
+  req DRV-006
+CASE i2c_recover_clocks_a_stuck_bus_free outcome=passed asserts=11 skips=0
+TEST i2c_recover_waits_for_a_held_bus
+  -> ok
+  req DRV-006
+CASE i2c_recover_waits_for_a_held_bus outcome=passed asserts=6 skips=0
+ISR_STACK size=2048 used=176
+9 tests, 0 failed, 0 skipped, 44 ticks
+EMB_TEST_END

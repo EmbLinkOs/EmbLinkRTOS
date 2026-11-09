@@ -1,0 +1,77 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "uart_console_writes_by_dma",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "uart_console_polled_write",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "uart_console_break_or_not_supported",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "uart_console_read_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "uart_console_writes_by_request",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:38:25Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "2e3cca609b4e6c58",
+    "profile": "base",
+    "suite": "test_uart_board"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_uart_board.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_uart_board.elf": "69a8e6a7f7741af9388c88c6efbc25c8c82b71062d2855f4c60c36173ba03e2a"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "211c4d98e15600f78d500595cad767c34a328b07",
+    "dirty": false
+  },
+  "image": "test_uart_board.elf",
+  "image_sha256": "69a8e6a7f7741af9388c88c6efbc25c8c82b71062d2855f4c60c36173ba03e2a",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T22:38:24Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}
