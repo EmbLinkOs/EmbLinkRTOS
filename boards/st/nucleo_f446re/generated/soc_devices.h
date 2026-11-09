@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
+ *     0b1b256c9447ab759f79c963734823f0740ff0cf397d9832f951de1b55a7a419
  *   drivers/bindings.yaml
  *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/st/stm32f4/stm32f4.yaml
@@ -22,7 +22,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 4u
+#define EMB_SOC_DEVICE_COUNT 5u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -31,12 +31,14 @@ extern const emb_device_t emb_dev_rcc;
 extern const emb_device_t emb_dev_gpioa;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
+extern const emb_device_t emb_dev_uart4;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
 #define EMB_SOC_HAS_GPIOA  1
 #define EMB_SOC_HAS_GPIOC  1
 #define EMB_SOC_HAS_USART2 1
+#define EMB_SOC_HAS_UART4  1
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)

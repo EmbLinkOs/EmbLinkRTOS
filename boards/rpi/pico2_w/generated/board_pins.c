@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
+ *     d361fc6693ddec9946eb0f1125709d38aae1dbbc8c493455a1d1a31218c443e4
  *   drivers/bindings.yaml
  *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/rpi/rp2350/rp2350.yaml
@@ -25,6 +25,10 @@ const emb_rp2350_pin_t emb_board_pins[] = {
     {0u, 2u, 1u, EMB_RP2350_PULL_RESET},
     /* GPIO1: pins.uart0.rx (uart0_rx) */
     {1u, 2u, 1u, EMB_RP2350_PULL_UP},
+    /* GPIO4: pins.uart1.tx (uart1_tx) */
+    {4u, 2u, 1u, EMB_RP2350_PULL_RESET},
+    /* GPIO5: pins.uart1.rx (uart1_rx) */
+    {5u, 2u, 1u, EMB_RP2350_PULL_UP},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

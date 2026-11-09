@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
+ *     0b1b256c9447ab759f79c963734823f0740ff0cf397d9832f951de1b55a7a419
  *   drivers/bindings.yaml
  *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/st/stm32f4/stm32f4.yaml
@@ -113,15 +113,43 @@ const emb_device_t emb_dev_usart2 = {
     .dep_count = 1u,
 };
 
+/* uart4: st,stm32-usart, uart, EARLY */
+static uint8_t uart4_rx[64];
+static const emb_stm32_usart_config_t uart4_config = {
+    .base = 0x40004C00u,         /* peripheral.base */
+    .clock_hz = 45000000u,       /* peripheral.clock_hz */
+    .baud = 115200u,             /* device.baud */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 19u,            /* peripheral.clock.bit */
+    .irq = 52u,                  /* peripheral.irqs.global */
+    .rx = uart4_rx,              /* its rx buffer */
+    .rx_size = 64u,              /* device.rx_buffer */
+};
+static emb_device_state_t uart4_state;
+static emb_stm32_usart_data_t uart4_data;
+static const emb_device_t *const uart4_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_uart4 = {
+    .name = "uart4",
+    .api = &emb_stm32_usart_api.dev,
+    .config = &uart4_config,
+    .state = &uart4_state,
+    .data = &uart4_data,
+    .deps = uart4_deps,
+    .class_id = EMB_DRV_CLASS_UART,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
     &emb_dev_gpioa,  /* 1: EARLY */
     &emb_dev_gpioc,  /* 2: EARLY */
     &emb_dev_usart2, /* 3: EARLY */
+    &emb_dev_uart4,  /* 4: EARLY */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 4u, 4u};
+const emb_device_table_t emb_board_device_table = {devices, 5u, 5u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

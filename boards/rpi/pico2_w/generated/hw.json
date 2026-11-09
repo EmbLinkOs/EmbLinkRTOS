@@ -40,6 +40,14 @@
         ],
         "doc": "the console, GPIO0 and GPIO1",
         "name": "uart0"
+      },
+      {
+        "baud": 115200,
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "a spare UART; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
+        "name": "uart1"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -62,6 +70,10 @@
       "uart0": {
         "rx": "GPIO1.f2",
         "tx": "GPIO0.f2"
+      },
+      "uart1": {
+        "rx": "GPIO5.f2",
+        "tx": "GPIO4.f2"
       }
     },
     "schema_version": 0,
@@ -154,6 +166,24 @@
         "level": "early",
         "name": "uart0",
         "peripheral": "uart0"
+      },
+      {
+        "class": "uart",
+        "compatible": "arm,pl011",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074233344,
+          "baud": 115200,
+          "clock_hz": 150000000,
+          "irq": 34,
+          "rx": "uart1_rx",
+          "rx_size": 64
+        },
+        "level": "early",
+        "name": "uart1",
+        "peripheral": "uart1"
       }
     ],
     "kconfig": {
@@ -204,6 +234,26 @@
         "pin": "GPIO1",
         "port": "",
         "signal": "uart0_rx"
+      },
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 4,
+        "owner": "pins.uart1.tx",
+        "pin": "GPIO4",
+        "port": "",
+        "signal": "uart1_tx"
+      },
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 5,
+        "owner": "pins.uart1.rx",
+        "pin": "GPIO5",
+        "port": "",
+        "signal": "uart1_rx"
       }
     ],
     "profile": "base",
@@ -227,7 +277,7 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96"
+      "sha256": "d361fc6693ddec9946eb0f1125709d38aae1dbbc8c493455a1d1a31218c443e4"
     },
     {
       "path": "drivers/bindings.yaml",

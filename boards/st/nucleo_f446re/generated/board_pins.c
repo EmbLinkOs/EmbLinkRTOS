@@ -6,7 +6,7 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
+ *     0b1b256c9447ab759f79c963734823f0740ff0cf397d9832f951de1b55a7a419
  *   drivers/bindings.yaml
  *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/st/stm32f4/stm32f4.yaml
@@ -22,6 +22,10 @@
 #include <hw_config.h>
 
 const emb_stm32_pin_t emb_board_pins[] = {
+    /* PA0: pins.uart4.tx (uart4_tx) */
+    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 8u},
+    /* PA1: pins.uart4.rx (uart4_rx) */
+    {EMB_STM32_PORT(A), 1u, EMB_STM32_PIN_AF, 8u},
     /* PA2: pins.usart2.tx (usart2_tx) */
     {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u},
     /* PA3: pins.usart2.rx (usart2_rx) */

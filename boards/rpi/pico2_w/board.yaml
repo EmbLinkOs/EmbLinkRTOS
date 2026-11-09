@@ -25,6 +25,7 @@ clocks:
   pll: { m: 1, n: 125, p: 10 }
 pins:
   uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }
+  uart1: { tx: GPIO4.f2, rx: GPIO5.f2 }   # pins 6 and 7
 console: { device: uart0, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices; the RP2350's blocks have
 # no clock gates in the description, so the order is stated
@@ -32,6 +33,7 @@ devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
   - { name: uart0, baud: 115200, deps: [io_bank0], doc: "the console, GPIO0 and GPIO1" }
+  - { name: uart1, baud: 115200, deps: [io_bank0], doc: "a spare UART; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:
   - { name: app, base: 0x10000000, size: 4M }
