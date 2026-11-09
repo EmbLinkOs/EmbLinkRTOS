@@ -8,7 +8,7 @@
  *   boards/rpi/pico2_w/board.yaml
  *     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
  *   drivers/bindings.yaml
- *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
+ *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
  *   soc/rpi/rp2350/rp2350.yaml
  *     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
  *   soc/rpi/rp2350/rp2350a.yaml
@@ -44,6 +44,15 @@ extern const emb_device_t emb_dev_i2c1;
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_uart0)
+
+/* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t
+ * initializers: an I2C bus's, for its recovery */
+/* clang-format off */
+#define EMB_SOC_I2C0_SCL {&emb_dev_io_bank0, 9u, 0u, {0u, 0u}} /* GPIO9 */
+#define EMB_SOC_I2C0_SDA {&emb_dev_io_bank0, 8u, 0u, {0u, 0u}} /* GPIO8 */
+#define EMB_SOC_I2C1_SCL {&emb_dev_io_bank0, 7u, 0u, {0u, 0u}} /* GPIO7 */
+#define EMB_SOC_I2C1_SDA {&emb_dev_io_bank0, 6u, 0u, {0u, 0u}} /* GPIO6 */
+/* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin
  * table sets each up deasserted at boot */

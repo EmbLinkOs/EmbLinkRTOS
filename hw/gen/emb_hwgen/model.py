@@ -119,7 +119,7 @@ class Resolver:
         partitions = self._partitions(board, soc)
         linker = self._linker(board, soc)
         kconfig, profile = self._kconfig(board, soc, clk)
-        devs, binding_docs = self._devices(board, soc, clk)
+        devs, binding_docs = self._devices(board, soc, clk, pins)
         self._loopbacks(board, devs)
         self._chip_selects(board, devs, pins)
         if self.errors:
@@ -372,7 +372,7 @@ class Resolver:
         return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p.get("clock"),
                 "irqs": p.get("irqs", [])}
 
-    def _devices(self, board, soc, clk):
+    def _devices(self, board, soc, clk, pins=None):
         """The board's devices bound and ordered (SPEC-016 §8), and the bindings files read:
         drivers/bindings.yaml in the tree and in the board root (A84)."""
         if not board.data.get("devices"):
@@ -383,7 +383,7 @@ class Resolver:
             files.append((broot / "drivers" / "bindings.yaml", "board"))
         files = [(p, o) for p, o in files if p.is_file()]
         table = devices.Bindings(files, lambda m, p, msg: self.errors.append(f"{m.at(p)}: {msg}"))
-        devs = devices.resolve(board, soc, clk, table, lambda p, m: self.err(board, p, m))
+        devs = devices.resolve(board, soc, clk, table, lambda p, m: self.err(board, p, m), pins)
         return devs, [d for m in table.models for d in m.docs]
 
     def _loopbacks(self, board, devs):

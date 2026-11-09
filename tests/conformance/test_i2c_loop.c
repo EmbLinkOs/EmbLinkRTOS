@@ -134,3 +134,76 @@ EMB_TEST(i2c_loop_listen_times_out)
                       EMB_ETIMEDOUT); /* no controller addressed it */
     EMB_ASSERT_EQ(received, 0u);
 }
+
+#ifdef EMB_TEST_I2C_CTRL_SCL
+/* A target cut off in the middle of a byte it sends: the test, as a broken controller, clocks
+ * by hand a start, the target's address to read, its acknowledge and two bits of a byte of
+ * zeros, and stops. The target holds SDA low for its third bit; recovery clocks it free. */
+static const emb_drv_gpio_line_t scl = EMB_TEST_I2C_CTRL_SCL;
+static const emb_drv_gpio_line_t sda = EMB_TEST_I2C_CTRL_SDA;
+
+static void half(void)
+{
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(1))); /* I2C has no slowest clock */
+}
+
+static void put(const emb_drv_gpio_line_t *w, bool high)
+{
+    EMB_ASSERT_OK(emb_drv_gpio_write(w->gpio, w->line, high));
+}
+
+static bool level(const emb_drv_gpio_line_t *w)
+{
+    bool high = false;
+    EMB_ASSERT_OK(emb_drv_gpio_read(w->gpio, w->line, &high));
+    return high;
+}
+
+static void clock_bit(bool bit)
+{
+    put(&sda, bit);
+    half();
+    put(&scl, true);
+    half();
+    put(&scl, false);
+    half();
+}
+
+EMB_TEST(i2c_loop_recovers_a_stuck_target)
+{
+    static const uint8_t zeros[8] = {0u};
+    const uint32_t od = EMB_DRV_GPIO_OUTPUT | EMB_DRV_GPIO_OPEN_DRAIN | EMB_DRV_GPIO_PULL_UP |
+                        EMB_DRV_GPIO_INIT_HIGH;
+    uint32_t addr = (OWN << 1) | 1u;
+    uint8_t reg = 0x00u;
+    uint8_t got[2] = {0u};
+    int bit;
+    EMB_TEST_REQ("DRV-006");
+    listen(zeros, sizeof(zeros), sizeof(rx));
+    EMB_ASSERT_OK(emb_drv_gpio_configure(sda.gpio, sda.line, od));
+    EMB_ASSERT_OK(emb_drv_gpio_configure(scl.gpio, scl.line, od));
+    half();
+    put(&sda, false); /* start: SDA falls while SCL is high */
+    half();
+    put(&scl, false);
+    half();
+    for (bit = 7; bit >= 0; bit--) { /* the address, to read */
+        clock_bit(((addr >> (uint32_t)bit) & 1u) != 0u);
+    }
+    clock_bit(true); /* released for the target's acknowledge */
+    clock_bit(true); /* two bits of its byte, both zeros, and no more */
+    clock_bit(true);
+    EMB_ASSERT_TRUE(!level(&sda)); /* the third bit: the target holds SDA low */
+    EMB_ASSERT_OK(emb_drv_gpio_configure(scl.gpio, scl.line, EMB_DRV_GPIO_FUNCTION));
+    EMB_ASSERT_OK(emb_drv_gpio_configure(sda.gpio, sda.line, EMB_DRV_GPIO_FUNCTION));
+    EMB_ASSERT_OK(emb_drv_i2c_recover(CTRL, EMB_TIMEOUT(EMB_MS(100))));
+    EMB_ASSERT_TRUE(level(&sda) && level(&scl)); /* free */
+    settle();                                    /* the target's read ended: refused, then a stop */
+    EMB_ASSERT_STATUS(l.req.status, EMB_OK);
+    listen(zeros, sizeof(zeros), sizeof(rx));
+    EMB_ASSERT_OK(emb_drv_i2c_write_read(CTRL, &peer, &reg, 1u, got, sizeof(got),
+                                         EMB_TIMEOUT(EMB_MS(100)))); /* and the bus works */
+    settle();
+    EMB_ASSERT_STATUS(l.req.status, EMB_OK);
+}
+#endif

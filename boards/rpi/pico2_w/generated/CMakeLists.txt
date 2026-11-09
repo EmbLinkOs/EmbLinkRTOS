@@ -7,7 +7,7 @@
 #   boards/rpi/pico2_w/board.yaml
 #     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
 #   drivers/bindings.yaml
-#     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
+#     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
 #   soc/rpi/rp2350/rp2350.yaml
 #     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
 #   soc/rpi/rp2350/rp2350a.yaml

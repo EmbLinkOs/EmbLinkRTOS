@@ -8,6 +8,7 @@
 
 #include <emb/device.h>
 #include <emb/drv_bus.h>
+#include <emb/drv_gpio.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -34,6 +35,21 @@ extern "C" {
 /* What a target-mode request saw (emb_drv_i2c_req_t.op after it completes). */
 #define EMB_DRV_I2C_OP_TRANSFER 0u /* a controller's transaction */
 #define EMB_DRV_I2C_OP_LISTEN   1u /* a target's: answered one transaction */
+
+/* An I2C driver's operations: the device's, then reset(), which brings the controller back to
+ * its state after initialization (its speed and any listen waiting) once the class's recovery
+ * gave its lines back, at the KERNEL level in a thread. */
+typedef struct emb_drv_i2c_api {
+    emb_device_api_t dev;
+    void (*reset)(const emb_device_t *dev);
+} emb_drv_i2c_api_t;
+
+/* What an I2C driver's configuration begins with: the GPIO lines its SCL and SDA are on, which
+ * the class's recovery drives by hand (a binding's pins.scl and pins.sda). */
+typedef struct emb_drv_i2c_lines {
+    emb_drv_gpio_line_t scl;
+    emb_drv_gpio_line_t sda;
+} emb_drv_i2c_lines_t;
 
 /* A device on the bus, as this controller addresses it. */
 typedef struct emb_drv_i2c_target {
@@ -274,6 +290,32 @@ emb_status_t emb_drv_i2c_listen(const emb_device_t *dev, uint16_t own, void *rx,
  */
 emb_status_t emb_drv_i2c_acquire(const emb_device_t *dev, const emb_drv_i2c_target_t *target,
                                  emb_timeout_t timeout);
+
+/**
+ * emb_drv_i2c_recover() - Free a bus a target holds low: nine clocks and a stop.
+ * @dev:     A device of the I2C class whose configuration names its lines.
+ * @timeout: For another thread's hold of the bus: EMB_NO_WAIT, EMB_WAIT_FOREVER or
+ *           EMB_TIMEOUT(duration).
+ *
+ * @ctx      thread
+ * @blocks   timeout
+ * @time     O(1) plus the mutex's priority inheritance: nine clocks and a stop, about 100 us
+ * @owns     mutex
+ * @config   CONFIG_EMB_DRV_I2C
+ * @req      DRV-006
+ * @since    0.3
+ * @stable   no
+ *
+ * A target cut off in the middle of a byte it sends (a reset, a canceled transaction) holds
+ * SDA low until it sees the rest of its clocks, and no controller can start. With no
+ * transaction in progress, the class takes SCL and SDA as GPIO lines, clocks SCL at about
+ * 100 kHz until SDA goes high, nine times at most, ends with a stop, gives the lines back to
+ * the controller (EMB_DRV_GPIO_FUNCTION) and resets it (UM10204 §3.1.16).
+ *
+ * Return: EMB_OK (SDA high at the end); EMB_EBUSERR (still held low); EMB_ENOTSUP (no lines
+ * or no reset); EMB_EBUSY (the bus is held); the statuses of emb_mutex_lock().
+ */
+emb_status_t emb_drv_i2c_recover(const emb_device_t *dev, emb_timeout_t timeout);
 
 /**
  * emb_drv_i2c_release() - Release the bus emb_drv_i2c_acquire() held.

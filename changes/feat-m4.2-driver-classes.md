@@ -53,3 +53,8 @@
 ### Added (a held I2C bus, 2026-11-09)
 
 - `emb_drv_i2c_acquire()` and `emb_drv_i2c_release()` hold the bus for one target across transactions, as the SPI class's do: other threads' transactions wait within their timeouts, and one to another target, from anywhere, gets `EMB_EBUSY`. Both classes now build on one held bus (`<emb/drv_bus.h>`, `emb_drv_bus_t` first in a controller's RAM): a recursive mutex with priority inheritance and the target holding it. A driver sets it up with its class's `emb_drv_spi_bus_init()` or `emb_drv_i2c_bus_init()`.
+
+### Added (an I2C bus's recovery, 2026-11-09)
+
+- A118, proposed: `emb_drv_i2c_recover()` frees a bus a target holds low, cut off in the middle of a byte it sends: with the bus to itself, the class takes SCL and SDA as open-drain GPIO lines, clocks SCL at about 100 kHz until SDA is released, nine times at most, ends with a stop, gives the lines back and resets the controller. `test_i2c_loop` cuts a target off in its third bit by hand and recovers it, on EmbSIM and on both boards.
+- A binding's field may read `pins.<signal>`, the GPIO line the device's pin is on; the generator also names it `EMB_SOC_<DEVICE>_<SIGNAL>`. `EMB_DRV_GPIO_FUNCTION` gives a borrowed line back to what the board's pin table made it, and the STM32F4's pin table now sets each pin's output type and pull exactly. The RP2350's GPIO driver makes open drain with the output enable, since its pads have none.

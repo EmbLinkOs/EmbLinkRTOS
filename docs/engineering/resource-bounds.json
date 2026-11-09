@@ -617,6 +617,12 @@
     ],
     "emb_drv_i2c_bus_init": [
       "active_objects"
+    ],
+    "emb_drv_i2c_recover": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
     ]
   }
 }

@@ -49,6 +49,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_i2c_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
 | `emb_drv_i2c_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_i2c_listen()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
+| `emb_drv_i2c_recover()` | O(1) plus the mutex's priority inheritance: nine clocks and a stop, about 100 us | owned, waiters, pi_depth, timeouts |
 | `emb_drv_i2c_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |
 | `emb_drv_i2c_submit()` | O(segments) plus the driver's start when its lane was idle | i2c_bytes, drivers |
 | `emb_drv_i2c_transfer()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |

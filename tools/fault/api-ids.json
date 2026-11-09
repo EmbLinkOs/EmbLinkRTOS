@@ -1201,6 +1201,12 @@
       "name": "emb_drv_i2c_release",
       "header": "drv_i2c.h",
       "state": "active"
+    },
+    {
+      "id": 204,
+      "name": "emb_drv_i2c_recover",
+      "header": "drv_i2c.h",
+      "state": "active"
     }
   ]
 }

@@ -80,6 +80,8 @@ def c_value(v, expr=""):
     string literal, or a device reference."""
     if isinstance(v, dict) and "device" in v:
         return f"&emb_dev_{v['device']}"
+    if isinstance(v, dict) and "line" in v:  # a GPIO line: an emb_drv_gpio_line_t initializer
+        return f"{{&emb_dev_{v['gpio']}, {v['line']}u, 0u, {{0u, 0u}}}}"
     if isinstance(v, bool):
         return "true" if v else "false"
     if isinstance(v, int):
@@ -89,10 +91,22 @@ def c_value(v, expr=""):
     raise TypeError(v)
 
 
-def resolve(board, soc, clk, bindings, err):
+def _pin_lines(pins, periph, gpio_devs):
+    """A peripheral's pins, by signal, as the GPIO lines that carry them: what a binding's
+    pins.<signal> fields read (an I2C bus's SCL and SDA, for its recovery). A pin on a port the
+    board lists no GPIO device for has no line."""
+    out = {}
+    for p in pins or []:
+        owner = p["owner"].split(".")
+        if len(owner) == 3 and owner[0] == "pins" and owner[1] == periph and p["gpio"] in gpio_devs:
+            out[owner[2]] = {"gpio": gpio_devs[p["gpio"]], "line": p["number"], "pin": p["pin"]}
+    return out
+
+
+def resolve(board, soc, clk, bindings, err, pins=None):
     """The board's devices in initialization order: EARLY first, each level a topological
     sort of its dependencies in which ties keep the description's order. `err(path, msg)`
-    reports against the board."""
+    reports against the board; `pins` are the board's resolved pins, for pins.<signal>."""
     entries = board.data.get("devices", [])
     if not entries:
         return []
@@ -163,6 +177,9 @@ def resolve(board, soc, clk, bindings, err):
             done.add(n)
             pending.remove(n)
 
+    # each GPIO controller's device on this board, by its peripheral
+    gpio_devs = {d["peripheral"]["name"]: n for n, d in devs.items()
+                 if d["peripheral"] is not None and d["binding"]["class"] == "gpio"}
     out = []
     for n in order:
         d = devs[n]
@@ -170,13 +187,19 @@ def resolve(board, soc, clk, bindings, err):
         ctx = {"device": {k: v for k, v in e.items() if k not in ("deps", "doc")},
                "board": board.data, "soc": soc.data}
         if d["peripheral"] is not None:
+            ctx["pins"] = _pin_lines(pins, d["peripheral"]["name"], gpio_devs)
+        if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
         if "bus" in e:
             ctx["device"]["bus"] = {"device": e["bus"]}
         fields = []
         for field, expr in b.get("fields", {}).items():
             v = _lookup(ctx, expr)
-            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and "device" not in v):
+            if v is None and expr.startswith("pins."):
+                err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}: the board gives "
+                                    f"{n} no such pin, or its port has no GPIO device in devices:")
+                continue
+            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and "device" not in v and "line" not in v):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
             fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})

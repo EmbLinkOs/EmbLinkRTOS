@@ -22,7 +22,8 @@ extern "C" {
 #define EMB_DRV_GPIO_PULL_UP    0x04u
 #define EMB_DRV_GPIO_PULL_DOWN  0x08u
 #define EMB_DRV_GPIO_INIT_HIGH  0x10u /* an output's level from the start: no glitch low */
-#define EMB_DRV_GPIO_FLAGS      0x1Fu /* every flag */
+#define EMB_DRV_GPIO_FUNCTION   0x20u /* back to the board's pin table: a peripheral's again */
+#define EMB_DRV_GPIO_FLAGS      0x3Fu /* every flag */
 
 /* Capabilities (emb_device_caps()). */
 #define EMB_DRV_GPIO_CAP_OPEN_DRAIN 0x01u
@@ -53,7 +54,7 @@ typedef struct emb_drv_gpio_line {
  * @dev:   A device of the GPIO class.
  * @line:  The line's number on the controller.
  * @flags: EMB_DRV_GPIO_INPUT or _OUTPUT, with _OPEN_DRAIN, _PULL_UP or _PULL_DOWN, and
- *         _INIT_HIGH for an output.
+ *         _INIT_HIGH for an output; or EMB_DRV_GPIO_FUNCTION alone.
  *
  * @ctx      thread isr prekernel
  * @blocks   no
@@ -65,11 +66,14 @@ typedef struct emb_drv_gpio_line {
  * @stable   no
  *
  * The line becomes a plain input or output, whatever the board's pin table made it; an
- * output takes its level first, so it never shows another.
+ * output takes its level first, so it never shows another. EMB_DRV_GPIO_FUNCTION gives it
+ * back what the pin table made it, a peripheral's function with its output type and pull: a
+ * driver that borrowed its pins (an I2C bus's recovery) returns them so.
  *
  * Return: EMB_OK; EMB_EINVAL (not a GPIO device, a line it does not have, both pulls, an
- * input that starts high, or an unknown flag); EMB_ENOTSUP (open drain or a pull-down the
- * controller lacks).
+ * input that starts high, EMB_DRV_GPIO_FUNCTION with another flag or for a line the pin table
+ * does not name, or an unknown flag); EMB_ENOTSUP (open drain or a pull-down the controller
+ * lacks).
  */
 emb_status_t emb_drv_gpio_configure(const emb_device_t *dev, uint32_t line, uint32_t flags);
 

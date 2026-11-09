@@ -3,6 +3,7 @@
 /* The STM32F4 drivers as devices (SPEC-016): thin adapters over emb_stm32_drivers.h. */
 #include <emb_stm32_devices.h>
 #include <emb_stm32_drivers.h>
+#include <emb_stm32_pins.h>
 
 #if CONFIG_EMB_DEVICE
 #define REG32(a)       (*(volatile uint32_t *)(uintptr_t)(a))
@@ -51,6 +52,19 @@ static bool stm32_gpio_read(const emb_device_t *dev, uint32_t line)
     return ((REG32(stm32_gpio_base(dev) + GPIO_IDR) >> line) & 1u) != 0u;
 }
 
+/* The board's pin table's entry for the line, applied again; EMB_EINVAL when it has none. */
+static emb_status_t stm32_gpio_function(uintptr_t base, uint32_t line)
+{
+    unsigned i;
+    for (i = 0u; i < emb_board_pin_count; i++) { /* bounded by the board's pin table */
+        if ((emb_board_pins[i].port_base == base) && (emb_board_pins[i].pin == line)) {
+            emb_stm32_pins_apply(&emb_board_pins[i], 1u);
+            return EMB_OK;
+        }
+    }
+    return EMB_EINVAL;
+}
+
 /* In the class's critical section: MODER, OTYPER and PUPDR hold all 16 lines. */
 static emb_status_t stm32_gpio_configure(const emb_device_t *dev, uint32_t line, uint32_t flags)
 {
@@ -60,6 +74,9 @@ static emb_status_t stm32_gpio_configure(const emb_device_t *dev, uint32_t line,
     bool output = (flags & EMB_DRV_GPIO_OUTPUT) != 0u;
     if (line >= GPIO_LINES) {
         return EMB_EINVAL;
+    }
+    if ((flags & EMB_DRV_GPIO_FUNCTION) != 0u) {
+        return stm32_gpio_function(base, line);
     }
     if ((flags & EMB_DRV_GPIO_PULL_UP) != 0u) {
         pupd = PUPD_UP;

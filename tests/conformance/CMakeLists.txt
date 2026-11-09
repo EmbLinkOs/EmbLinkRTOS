@@ -89,6 +89,10 @@ if(CONFIG_EMB_DEVICE)
       emb_add_test(test_i2c_loop test_i2c_loop.c)
       target_compile_definitions(test_i2c_loop PRIVATE "EMB_TEST_I2C_CTRL_DEV=(&emb_dev_${_emb_i2c_ctrl})"
                                                        "EMB_TEST_I2C_TGT_DEV=(&emb_dev_${_emb_i2c_tgt})")
+      # the controller's lines, which the recovery case drives by hand (soc_devices.h)
+      string(TOUPPER "${_emb_i2c_ctrl}" _emb_i2c_up)
+      target_compile_definitions(test_i2c_loop PRIVATE "EMB_TEST_I2C_CTRL_SCL=EMB_SOC_${_emb_i2c_up}_SCL"
+                                                       "EMB_TEST_I2C_CTRL_SDA=EMB_SOC_${_emb_i2c_up}_SDA")
     endif()
   endif()
   if(CONFIG_EMB_DRV_SPI)

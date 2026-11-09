@@ -13,6 +13,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_gpio.h>
 #endif
 #if CONFIG_EMB_DRV_I2C
 #include <emb/drv_i2c.h>
@@ -22,8 +23,11 @@
 extern "C" {
 #endif
 
-/* A controller: its registers, the clock it counts SCL in, and its interrupt. */
+/* A controller: its lines first (the class's recovery drives them), its registers, the clock
+ * it counts SCL in, and its interrupt. */
 typedef struct emb_dw_i2c_config {
+    emb_drv_gpio_line_t scl;
+    emb_drv_gpio_line_t sda;
     uintptr_t base;
     uint32_t clock_hz; /* ic_clk: clk_sys on the RP2350 */
     uint32_t irq;
@@ -51,7 +55,7 @@ typedef struct emb_dw_i2c_data {
 /* The I2C class's operations: standard, fast and fast-plus speeds, and target mode. Its
  * target cannot start refusing bytes mid-transaction (IC_SLV_DATA_NACK_ONLY is written only
  * while it is idle), so bytes beyond a listen's buffer are acknowledged and dropped. */
-extern const emb_device_api_t emb_dw_i2c_api;
+extern const emb_drv_i2c_api_t emb_dw_i2c_api;
 #endif
 
 #ifdef __cplusplus

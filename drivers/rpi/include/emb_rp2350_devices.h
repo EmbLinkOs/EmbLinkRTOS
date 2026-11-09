@@ -36,8 +36,8 @@ typedef struct emb_rp2350_io_bank_config {
 #if CONFIG_EMB_DEVICE
 /* READY when clk_ref runs from the crystal. */
 extern const emb_device_api_t emb_rp2350_clocks_api;
-/* Takes the bank and its pads out of reset; READY once they are. Open drain: EMB_ENOTSUP,
- * the pads have none. */
+/* Takes the bank and its pads out of reset; READY once they are. Open drain is the output
+ * enable's: the pads have none of their own. */
 extern const emb_drv_gpio_api_t emb_rp2350_io_bank_api;
 #endif
 

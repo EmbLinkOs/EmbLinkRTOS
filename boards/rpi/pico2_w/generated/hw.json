@@ -247,7 +247,17 @@
         "fields": {
           "base": 1074331648,
           "clock_hz": 150000000,
-          "irq": 36
+          "irq": 36,
+          "scl": {
+            "gpio": "io_bank0",
+            "line": 9,
+            "pin": "GPIO9"
+          },
+          "sda": {
+            "gpio": "io_bank0",
+            "line": 8,
+            "pin": "GPIO8"
+          }
         },
         "level": "kernel",
         "name": "i2c0",
@@ -262,7 +272,17 @@
         "fields": {
           "base": 1074364416,
           "clock_hz": 150000000,
-          "irq": 37
+          "irq": 37,
+          "scl": {
+            "gpio": "io_bank0",
+            "line": 7,
+            "pin": "GPIO7"
+          },
+          "sda": {
+            "gpio": "io_bank0",
+            "line": 6,
+            "pin": "GPIO6"
+          }
         },
         "level": "kernel",
         "name": "i2c1",
@@ -444,7 +464,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
+      "sha256": "d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",

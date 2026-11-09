@@ -348,7 +348,17 @@
           "clken_offset": 64,
           "clock_hz": 45000000,
           "irq_er": 32,
-          "irq_ev": 31
+          "irq_ev": 31,
+          "scl": {
+            "gpio": "gpiob",
+            "line": 8,
+            "pin": "PB8"
+          },
+          "sda": {
+            "gpio": "gpiob",
+            "line": 9,
+            "pin": "PB9"
+          }
         },
         "level": "kernel",
         "name": "i2c1",
@@ -366,7 +376,17 @@
           "clken_offset": 64,
           "clock_hz": 45000000,
           "irq_er": 34,
-          "irq_ev": 33
+          "irq_ev": 33,
+          "scl": {
+            "gpio": "gpiob",
+            "line": 10,
+            "pin": "PB10"
+          },
+          "sda": {
+            "gpio": "gpiob",
+            "line": 3,
+            "pin": "PB3"
+          }
         },
         "level": "kernel",
         "name": "i2c2",
@@ -574,7 +594,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
+      "sha256": "d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

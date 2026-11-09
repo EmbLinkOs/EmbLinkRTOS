@@ -85,8 +85,11 @@ typedef struct emb_stm32_spi_data {
 } emb_stm32_spi_data_t;
 #endif
 
-/* An I2C controller: its clock gate and its event and error interrupts. */
+/* An I2C controller: its lines first (the class's recovery drives them), its clock gate and
+ * its event and error interrupts. */
 typedef struct emb_stm32_i2c_config {
+    emb_drv_gpio_line_t scl;
+    emb_drv_gpio_line_t sda;
     uintptr_t base;
     uint32_t clock_hz; /* its bus clock: CR2.FREQ in MHz, CCR from it */
     uint32_t clken_offset;
@@ -132,7 +135,7 @@ extern const emb_device_api_t emb_stm32_spi_api;
 #if CONFIG_EMB_DRV_I2C
 /* The I2C class's operations (SPEC-017 §6): standard and fast mode, and target mode, by
  * interrupt; one byte at a time, the receiver's acknowledge managed as RM0390 §24.3.3 asks. */
-extern const emb_device_api_t emb_stm32_i2c_api;
+extern const emb_drv_i2c_api_t emb_stm32_i2c_api;
 #endif
 
 #ifdef __cplusplus

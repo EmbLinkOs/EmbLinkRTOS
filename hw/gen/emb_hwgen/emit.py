@@ -713,6 +713,13 @@ def soc_devices_h(r):
             if console is not None and d["peripheral"] == console and d["class"] == "uart":
                 out += "\n/* the console's UART device (the board's console:) */\n"
                 out += f"#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_{d['name']})\n"
+        lines = [(d, f) for d in r["devices"] for f in d["fields"] if str(f["expr"]).startswith("pins.")]
+        if lines:
+            out += ("\n/* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t\n"
+                    " * initializers: an I2C bus's, for its recovery */\n/* clang-format off */\n")
+            for d, f in lines:
+                out += f"#define EMB_SOC_{d['name'].upper()}_{f['field'].upper()} {f['c']} /* {f['value']['pin']} */\n"
+            out += "/* clang-format on */\n"
         cs = [(d, c) for d in r["devices"] for c in d.get("cs", [])]
         if cs:
             out += ("\n/* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin\n"

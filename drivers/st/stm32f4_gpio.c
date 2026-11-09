@@ -22,13 +22,14 @@ void emb_stm32_pins_apply(const emb_stm32_pin_t *pins, unsigned count)
         if ((p->mode == EMB_STM32_PIN_OUTPUT) && (p->level != 0u)) { /* the level before the mode */
             REG32(p->port_base + GPIO_BSRR) = 1u << pin;
         }
-        if ((p->flags & EMB_STM32_PIN_OPEN_DRAIN) != 0u) { /* before the pin drives */
-            REG32(p->port_base + GPIO_OTYPER) |= 1u << pin;
-        }
-        if ((p->flags & EMB_STM32_PIN_PULL_UP) != 0u) {
-            REG32(p->port_base + GPIO_PUPDR) =
-                (REG32(p->port_base + GPIO_PUPDR) & ~(3u << (pin * 2u))) | (1u << (pin * 2u));
-        }
+        /* the output type and pull exactly, before the pin drives: the table's again after a
+         * driver borrowed the line (EMB_DRV_GPIO_FUNCTION) */
+        REG32(p->port_base + GPIO_OTYPER) =
+            (REG32(p->port_base + GPIO_OTYPER) & ~(1u << pin)) |
+            (((p->flags & EMB_STM32_PIN_OPEN_DRAIN) != 0u) ? (1u << pin) : 0u);
+        REG32(p->port_base + GPIO_PUPDR) =
+            (REG32(p->port_base + GPIO_PUPDR) & ~(3u << (pin * 2u))) |
+            (((p->flags & EMB_STM32_PIN_PULL_UP) != 0u) ? (1u << (pin * 2u)) : 0u);
         if (p->mode == EMB_STM32_PIN_AF) { /* the function first, so the pin never shows another */
             uintptr_t afr = p->port_base + GPIO_AFRL + ((pin >> 3) * 4u);
             uint32_t shift = (pin & 7u) * 4u;

@@ -22,6 +22,9 @@ static bool flags_ok(uint32_t flags)
     if ((flags & ~EMB_DRV_GPIO_FLAGS) != 0u) {
         return false;
     }
+    if ((flags & EMB_DRV_GPIO_FUNCTION) != 0u) {
+        return flags == EMB_DRV_GPIO_FUNCTION; /* alone */
+    }
     if ((flags & (EMB_DRV_GPIO_PULL_UP | EMB_DRV_GPIO_PULL_DOWN)) ==
         (EMB_DRV_GPIO_PULL_UP | EMB_DRV_GPIO_PULL_DOWN)) {
         return false;

@@ -127,10 +127,68 @@ EMB_TEST_ISR(fake_remote_isr)
     emb_drv_complete(&i2c_dev, &l->req, EMB_OK, l->req.done);
 }
 
+/* The bus's lines, on a fake GPIO controller: a target that holds SDA low for its next
+ * stuck_edges rising edges of SCL, as one cut off in the middle of a byte does. */
+#define LINE_SCL 0u
+#define LINE_SDA 1u
+static uint32_t pin_out; /* the levels driven: 1 released */
+static unsigned stuck_edges;
+static unsigned scl_edges; /* rising edges of SCL */
+static unsigned functions; /* lines given back to the controller */
+static unsigned resets;
+static emb_device_state_t gpio_state;
+
+static emb_status_t pins_configure(const emb_device_t *dev, uint32_t line, uint32_t flags)
+{
+    (void)dev;
+    if ((flags & EMB_DRV_GPIO_FUNCTION) != 0u) {
+        functions++;
+    } else if ((flags & EMB_DRV_GPIO_INIT_HIGH) != 0u) {
+        pin_out |= 1u << line;
+    } else {
+        pin_out &= ~(1u << line);
+    }
+    return EMB_OK;
+}
+
+static void pins_write(const emb_device_t *dev, uint32_t line, bool high)
+{
+    (void)dev;
+    if ((line == LINE_SCL) && high && ((pin_out & (1u << LINE_SCL)) == 0u)) {
+        scl_edges++;
+        stuck_edges = (stuck_edges > 0u) ? (stuck_edges - 1u) : 0u;
+    }
+    pin_out = high ? (pin_out | (1u << line)) : (pin_out & ~(1u << line));
+}
+
+static bool pins_read(const emb_device_t *dev, uint32_t line)
+{
+    (void)dev;
+    if ((line == LINE_SDA) && (stuck_edges > 0u)) {
+        return false; /* the target holds it */
+    }
+    return (pin_out & (1u << line)) != 0u;
+}
+
+static const emb_drv_gpio_api_t pins_api = {
+    {NULL, NULL, NULL, NULL, NULL, 0u}, pins_configure, pins_write, pins_read};
+static const emb_device_t pins_dev = {
+    "pins", &pins_api.dev, NULL, &gpio_state, NULL, NULL, EMB_DRV_CLASS_GPIO, EMB_DEVICE_EARLY, 0u};
+static const emb_drv_i2c_lines_t lines = {{&pins_dev, LINE_SCL, 0u, {0u, 0u}},
+                                          {&pins_dev, LINE_SDA, 0u, {0u, 0u}}};
+
+static void fake_reset(const emb_device_t *dev)
+{
+    (void)dev;
+    resets++;
+}
+
 #define FAKE_CAPS (EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_TARGET_NACK)
-static const emb_device_api_t fake_api = {fake_init, fake_start, fake_stop, NULL, NULL, FAKE_CAPS};
+static const emb_drv_i2c_api_t fake_api = {
+    {fake_init, fake_start, fake_stop, NULL, NULL, FAKE_CAPS}, fake_reset};
 static const emb_device_t i2c_dev = {
-    "i2c", &fake_api, NULL, &i2c_state, &fake, NULL, EMB_DRV_CLASS_I2C, EMB_DEVICE_KERNEL, 0u};
+    "i2c", &fake_api.dev, &lines, &i2c_state, &fake, NULL, EMB_DRV_CLASS_I2C, EMB_DEVICE_KERNEL,
+    0u};
 static const emb_device_api_t plain_api = {NULL, fake_start, NULL, NULL, NULL, 0u};
 static emb_device_state_t plain_state;
 static const emb_device_t plain_dev = {
@@ -309,4 +367,38 @@ EMB_TEST(i2c_held_bus_keeps_one_target)
     EMB_ASSERT_STATUS(emb_drv_i2c_release(&i2c_dev), EMB_EPERM); /* nothing held */
     EMB_ASSERT_STATUS(emb_drv_i2c_write_read(&i2c_dev, &absent, &reg, 1u, NULL, 0u, EMB_NO_WAIT),
                       EMB_ENACK); /* free again: it goes out, and nobody answers */
+}
+
+EMB_TEST(i2c_recover_clocks_a_stuck_bus_free)
+{
+    EMB_TEST_REQ("DRV-006");
+    ready();
+    stuck_edges = 5u; /* a target five bits from the end of its byte */
+    scl_edges = 0u;
+    functions = 0u;
+    resets = 0u;
+    EMB_ASSERT_OK(emb_drv_i2c_recover(&i2c_dev, EMB_NO_WAIT));
+    EMB_ASSERT_EQ(scl_edges, 6u); /* five clocks, then the stop's */
+    EMB_ASSERT_EQ(functions, 2u); /* both lines the controller's again */
+    EMB_ASSERT_EQ(resets, 1u);
+    stuck_edges = 100u; /* a target that never lets go */
+    scl_edges = 0u;
+    EMB_ASSERT_STATUS(emb_drv_i2c_recover(&i2c_dev, EMB_NO_WAIT), EMB_EBUSERR);
+    EMB_ASSERT_EQ(scl_edges, 10u); /* nine clocks at most, and the stop's */
+    EMB_ASSERT_EQ(functions, 4u);
+    stuck_edges = 0u;
+    scl_edges = 0u;
+    EMB_ASSERT_OK(emb_drv_i2c_recover(&i2c_dev, EMB_NO_WAIT)); /* a free bus: only the stop */
+    EMB_ASSERT_EQ(scl_edges, 1u);
+}
+
+EMB_TEST(i2c_recover_waits_for_a_held_bus)
+{
+    EMB_TEST_REQ("DRV-006");
+    ready();
+    stuck_edges = 0u;
+    EMB_ASSERT_OK(emb_drv_i2c_acquire(&i2c_dev, &eeprom, EMB_NO_WAIT));
+    EMB_ASSERT_STATUS(emb_drv_i2c_recover(&i2c_dev, EMB_NO_WAIT), EMB_EBUSY); /* the holder's */
+    EMB_ASSERT_OK(emb_drv_i2c_release(&i2c_dev));
+    EMB_ASSERT_OK(emb_drv_i2c_recover(&i2c_dev, EMB_NO_WAIT));
 }

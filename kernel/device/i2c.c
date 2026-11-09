@@ -35,6 +35,68 @@ static emb_timeout_t remaining(emb_timeout_t t, emb_instant_t start)
     return (spent >= t.ticks) ? EMB_NO_WAIT : EMB_TIMEOUT_(t.ticks - spent);
 }
 
+/* The class's operations: the device's first. MISRA Dev CS-12: rule 11.3. */
+static const emb_drv_i2c_api_t *i2c_api(const emb_device_t *dev)
+{
+    return (const emb_drv_i2c_api_t *)(const void *)dev->api;
+}
+
+#define RECOVER_CLOCKS 9u      /* a byte and its acknowledge */
+#define RECOVER_HZ     200000u /* half periods: SCL at 100 kHz */
+#define RECOVER_LINE \
+    (EMB_DRV_GPIO_OUTPUT | EMB_DRV_GPIO_OPEN_DRAIN | EMB_DRV_GPIO_PULL_UP | EMB_DRV_GPIO_INIT_HIGH)
+
+/* Spins @cycles of the core's clock; bounded also by the count, each turn at least one. */
+static void spin(uint32_t cycles)
+{
+    emb_cycle_t start = emb_arch_cycles();
+    uint32_t n;
+    for (n = 0u; n < cycles; n++) {
+        if ((emb_cycle_t)(emb_arch_cycles() - start) >= (emb_cycle_t)cycles) {
+            break;
+        }
+    }
+}
+
+static bool line_high(const emb_drv_gpio_line_t *l)
+{
+    bool high = false;
+    (void)emb_drv_gpio_read(l->gpio, l->line, &high);
+    return high;
+}
+
+/* SCL high, released: a target stretching the clock holds it low a while longer. */
+static void scl_release(const emb_drv_i2c_lines_t *w, uint32_t half)
+{
+    uint32_t n;
+    (void)emb_drv_gpio_write(w->scl.gpio, w->scl.line, true);
+    for (n = 0u; (n < RECOVER_CLOCKS) && !line_high(&w->scl); n++) { /* bounded: a few halves */
+        spin(half);
+    }
+    spin(half);
+}
+
+static bool recover_lines(const emb_drv_i2c_lines_t *w)
+{
+    uint32_t half = emb_arch_cycles_hz() / RECOVER_HZ;
+    uint32_t i;
+    spin(half);
+    for (i = 0u; (i < RECOVER_CLOCKS) && !line_high(&w->sda); i++) { /* bounded: nine */
+        (void)emb_drv_gpio_write(w->scl.gpio, w->scl.line, false);
+        spin(half);
+        scl_release(w, half);
+    }
+    /* a stop: SDA low while SCL is low, SCL high, then SDA high */
+    (void)emb_drv_gpio_write(w->scl.gpio, w->scl.line, false);
+    spin(half);
+    (void)emb_drv_gpio_write(w->sda.gpio, w->sda.line, false);
+    spin(half);
+    scl_release(w, half);
+    (void)emb_drv_gpio_write(w->sda.gpio, w->sda.line, true);
+    spin(half);
+    return line_high(&w->sda) && line_high(&w->scl);
+}
+
 emb_status_t emb_drv_i2c_bus_init(const emb_device_t *dev)
 {
     if (!is_i2c(dev)) {
@@ -229,4 +291,38 @@ emb_status_t emb_drv_i2c_release(const emb_device_t *dev)
     EMBK_API_REQUIRE(EMB_API_ID_DRV_I2C_RELEASE, is_i2c(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
     return embk_bus_release(bus_of(dev), &ended);
+}
+
+emb_status_t emb_drv_i2c_recover(const emb_device_t *dev, emb_timeout_t timeout)
+{
+    const emb_drv_i2c_lines_t *w;
+    emb_status_t st;
+    bool freed;
+    EMBK_API_REQUIRE_THREAD(EMB_API_ID_DRV_I2C_RECOVER);
+    EMBK_API_REQUIRE(EMB_API_ID_DRV_I2C_RECOVER, is_i2c(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
+                     1u);
+    /* MISRA Dev CS-12: rule 11.5, the configuration begins with the lines */
+    w = (const emb_drv_i2c_lines_t *)dev->config;
+    if ((w == NULL) || (w->scl.gpio == NULL) || (w->sda.gpio == NULL) ||
+        (i2c_api(dev)->reset == NULL)) {
+        return EMB_ENOTSUP;
+    }
+    st = embk_bus_enter(bus_of(dev), NULL, timeout); /* nobody's transactions meanwhile */
+    if (st != EMB_OK) {
+        return st;
+    }
+    /* both released, the target's to hold: open drain, as the bus is */
+    st = emb_drv_gpio_configure(w->sda.gpio, w->sda.line, RECOVER_LINE);
+    if (st == EMB_OK) {
+        st = emb_drv_gpio_configure(w->scl.gpio, w->scl.line, RECOVER_LINE);
+    }
+    freed = (st == EMB_OK) && recover_lines(w);
+    (void)emb_drv_gpio_configure(w->scl.gpio, w->scl.line, EMB_DRV_GPIO_FUNCTION);
+    (void)emb_drv_gpio_configure(w->sda.gpio, w->sda.line, EMB_DRV_GPIO_FUNCTION);
+    i2c_api(dev)->reset(dev);
+    embk_bus_exit(bus_of(dev));
+    if (st != EMB_OK) {
+        return EMB_ENOTSUP; /* the lines could not be driven open drain */
+    }
+    return freed ? EMB_OK : EMB_EBUSERR;
 }

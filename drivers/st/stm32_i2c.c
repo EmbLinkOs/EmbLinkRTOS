@@ -464,13 +464,29 @@ static void stm32_i2c_stop(const emb_device_t *dev, emb_drv_request_t *req)
     }
 }
 
-const emb_device_api_t emb_stm32_i2c_api = {
-    stm32_i2c_init,
-    stm32_i2c_start,
-    stm32_i2c_stop,
-    NULL,
-    NULL,
-    EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_TARGET_NACK};
+/* After the class's recovery gave the lines back: a software reset clears a BUSY the stuck bus
+ * left (§24.6.1, SWRST), then the speed and any listen waiting come back. */
+static void stm32_i2c_reset(const emb_device_t *dev)
+{
+    const emb_stm32_i2c_config_t *cfg = stm32_i2c_config(dev);
+    emb_stm32_i2c_data_t *d = stm32_i2c_data(dev);
+    emb_irq_key_t key = emb_irq_lock();
+    uint32_t hz = (d->hz != 0u) ? d->hz : EMB_DRV_I2C_STANDARD;
+    REG32(cfg->base + I2C_CR1) = CR1_SWRST;
+    REG32(cfg->base + I2C_CR1) = 0u;
+    (void)stm32_i2c_timing(cfg->base, cfg->clock_hz, hz);
+    d->hz = hz;
+    REG32(cfg->base + I2C_CR2) |= CR2_ITEVTEN | CR2_ITERREN |
+                                  ((d->listen != NULL) ? CR2_ITBUFEN : 0u);
+    stm32_i2c_target_ack(cfg->base, d);
+    emb_irq_unlock(key);
+}
+
+const emb_drv_i2c_api_t emb_stm32_i2c_api = {
+    {stm32_i2c_init, stm32_i2c_start, stm32_i2c_stop, NULL, NULL,
+     EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_TARGET_NACK},
+    stm32_i2c_reset,
+};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_stm32_i2c_off_t;

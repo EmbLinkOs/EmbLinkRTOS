@@ -391,10 +391,28 @@ static void dw_stop(const emb_device_t *dev, emb_drv_request_t *req)
     }
 }
 
-const emb_device_api_t emb_dw_i2c_api = {
-    dw_init, dw_start,
-    dw_stop, NULL,
-    NULL,    EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_FAST_MODE_PLUS};
+/* After the class's recovery gave the lines back: off, which clears the controller's state, and
+ * back to waiting as a target, or idle. */
+static void dw_reset(const emb_device_t *dev)
+{
+    const emb_dw_i2c_config_t *cfg = dw_config(dev);
+    emb_dw_i2c_data_t *d = dw_data(dev);
+    emb_irq_key_t key = emb_irq_lock();
+    REG32(cfg->base + IC_INTR_MASK) = 0u;
+    dw_disable(cfg->base);
+    (void)REG32(cfg->base + IC_CLR_INTR);
+    if (d->listen != NULL) {
+        (void)dw_timing(cfg->base, cfg->clock_hz, EMB_DRV_I2C_FAST);
+    }
+    dw_idle(cfg->base, d);
+    emb_irq_unlock(key);
+}
+
+const emb_drv_i2c_api_t emb_dw_i2c_api = {
+    {dw_init, dw_start, dw_stop, NULL, NULL,
+     EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_FAST_MODE_PLUS},
+    dw_reset,
+};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_dw_i2c_off_t;

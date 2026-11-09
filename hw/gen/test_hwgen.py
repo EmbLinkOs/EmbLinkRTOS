@@ -309,6 +309,28 @@ class ChipSelects(unittest.TestCase):
         self.expect("cs: [PB13]", "devices.spi2.cs[0]", "PB13 is already assigned")
 
 
+class PinLines(unittest.TestCase):
+    """A binding's pins.<signal> (A118): the GPIO line a device's pin is on, in its
+    configuration and as EMB_SOC_<DEVICE>_<SIGNAL>, for an I2C bus's recovery."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def test_lines_in_the_configuration_and_the_header(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        self.assertIn(".scl = {&emb_dev_gpiob, 8u, 0u, {0u, 0u}}, /* pins.scl */", files["soc_devices.c"])
+        self.assertIn("#define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */", files["soc_devices.h"])
+
+    def test_a_port_without_its_gpio_device(self):
+        self.root.edit(self.board, "  - { name: gpiob, doc: \"SPI2's chip select, PB12\" }\n", "")
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        self.assertTrue(any("devices.i2c1" in e and "reads pins.scl" in e for e in cm.exception.errors),
+                        "\n".join(cm.exception.errors))
+
+
 class Bank(unittest.TestCase):
     """A79: a SoC with one numbered GPIO bank (the RP2350): GPIO<n>.f<k> pins, the bank's line
     count, its function selects, and the RP2350 pin table."""

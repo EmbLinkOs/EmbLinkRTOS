@@ -97,7 +97,7 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Errors | `EMB_EINVAL` (a line the controller does not have); `EMB_ENOTSUP` (open drain or a pull-down the controller lacks) |
 | Capabilities | `OPEN_DRAIN`, `PULL_DOWN` |
 
-**Drivers:** `drivers/st/stm32_devices.c` on the STM32F4's GPIO ports, 16 lines each, with open drain and both pulls; `drivers/rpi/rp2350_devices.c` on the RP2350's bank 0 through the SIO, its line count from the package description (30 on the RP2350A), with both pulls and no open drain. **Evidence:** the class's fake on the host; on both boards, the SPI loop test reads its chip select back at the pin.
+**Drivers:** `drivers/st/stm32_devices.c` on the STM32F4's GPIO ports, 16 lines each, with open drain and both pulls; `drivers/rpi/rp2350_devices.c` on the RP2350's bank 0 through the SIO, its line count from the package description (30 on the RP2350A), with both pulls, and open drain by the output enable, since its pads have none. **Evidence:** the class's fake on the host; on both boards, the SPI loop test reads its chip select back at the pin.
 
 ## 6. I2C (controller and target)
 
@@ -108,8 +108,8 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Blocking | `emb_drv_i2c_transfer()`, `emb_drv_i2c_write_read()` for the common register read, and `emb_drv_i2c_listen()` |
 | Interrupts | each byte by interrupt; DMA is not used in M4 |
 | DMA | none in M4 |
-| Concurrency | one transaction at a time; a target device acquires the bus for a sequence of transactions |
-| Timeouts | a canceled or timed-out transaction ends with a stop condition; a bus held low is recovered by clocking out nine pulses and a stop |
+| Concurrency | one transaction at a time, beside one listen. `emb_drv_i2c_acquire()` and `emb_drv_i2c_release()` hold the bus for one target across transactions, on the held bus the SPI class shares (`<emb/drv_bus.h>`): other threads' transactions wait within their timeouts, and one to another target, from anywhere, is refused with `EMB_EBUSY` |
+| Timeouts | a canceled or timed-out transaction ends with a stop condition. A bus a target holds low is recovered by `emb_drv_i2c_recover()`: with the bus to itself, the class takes SCL and SDA as open-drain GPIO lines (a binding's `pins.scl` and `pins.sda`, A118), clocks SCL at about 100 kHz until SDA is released, nine times at most, ends with a stop, gives the lines back to the controller (`EMB_DRV_GPIO_FUNCTION`) and resets it (`emb_drv_i2c_api_t.reset`) |
 | Power | suspend waits for the transaction in progress |
 | Errors | `EMB_ENACK` (address or data not acknowledged), `EMB_EARBLOST`, `EMB_EBUSERR` |
 | Capabilities | `TARGET`, `FAST_MODE` (400 kHz), `FAST_MODE_PLUS`, `TARGET_NACK` (A117: a target refuses bytes beyond its listen's buffer; one without acknowledges and drops them) |

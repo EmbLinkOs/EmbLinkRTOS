@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446re/board.yaml
  *     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
  *   drivers/bindings.yaml
- *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
+ *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -50,6 +50,15 @@ extern const emb_device_t emb_dev_i2c2;
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)
+
+/* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t
+ * initializers: an I2C bus's, for its recovery */
+/* clang-format off */
+#define EMB_SOC_I2C1_SCL {&emb_dev_gpiob, 8u, 0u, {0u, 0u}} /* PB8 */
+#define EMB_SOC_I2C1_SDA {&emb_dev_gpiob, 9u, 0u, {0u, 0u}} /* PB9 */
+#define EMB_SOC_I2C2_SCL {&emb_dev_gpiob, 10u, 0u, {0u, 0u}} /* PB10 */
+#define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */
+/* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin
  * table sets each up deasserted at boot */

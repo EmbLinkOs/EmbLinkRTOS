@@ -8,7 +8,7 @@
  *   boards/rpi/pico2_w/board.yaml
  *     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
  *   drivers/bindings.yaml
- *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
+ *     d4336d23fb556eed7f7e5e83b82abb9f884d066c21a0fa07c695d5dd4a349c34
  *   soc/rpi/rp2350/rp2350.yaml
  *     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
  *   soc/rpi/rp2350/rp2350a.yaml
@@ -139,16 +139,18 @@ const emb_device_t emb_dev_spi1 = {
 
 /* i2c0: snps,designware-i2c, i2c, KERNEL */
 static const emb_dw_i2c_config_t i2c0_config = {
-    .base = 0x40090000u,    /* peripheral.base */
-    .clock_hz = 150000000u, /* peripheral.clock_hz */
-    .irq = 36u,             /* peripheral.irqs.global */
+    .base = 0x40090000u,                          /* peripheral.base */
+    .clock_hz = 150000000u,                       /* peripheral.clock_hz */
+    .irq = 36u,                                   /* peripheral.irqs.global */
+    .scl = {&emb_dev_io_bank0, 9u, 0u, {0u, 0u}}, /* pins.scl */
+    .sda = {&emb_dev_io_bank0, 8u, 0u, {0u, 0u}}, /* pins.sda */
 };
 static emb_device_state_t i2c0_state;
 static emb_dw_i2c_data_t i2c0_data;
 static const emb_device_t *const i2c0_deps[] = {&emb_dev_io_bank0};
 const emb_device_t emb_dev_i2c0 = {
     .name = "i2c0",
-    .api = &emb_dw_i2c_api,
+    .api = &emb_dw_i2c_api.dev,
     .config = &i2c0_config,
     .state = &i2c0_state,
     .data = &i2c0_data,
@@ -160,16 +162,18 @@ const emb_device_t emb_dev_i2c0 = {
 
 /* i2c1: snps,designware-i2c, i2c, KERNEL */
 static const emb_dw_i2c_config_t i2c1_config = {
-    .base = 0x40098000u,    /* peripheral.base */
-    .clock_hz = 150000000u, /* peripheral.clock_hz */
-    .irq = 37u,             /* peripheral.irqs.global */
+    .base = 0x40098000u,                          /* peripheral.base */
+    .clock_hz = 150000000u,                       /* peripheral.clock_hz */
+    .irq = 37u,                                   /* peripheral.irqs.global */
+    .scl = {&emb_dev_io_bank0, 7u, 0u, {0u, 0u}}, /* pins.scl */
+    .sda = {&emb_dev_io_bank0, 6u, 0u, {0u, 0u}}, /* pins.sda */
 };
 static emb_device_state_t i2c1_state;
 static emb_dw_i2c_data_t i2c1_data;
 static const emb_device_t *const i2c1_deps[] = {&emb_dev_io_bank0};
 const emb_device_t emb_dev_i2c1 = {
     .name = "i2c1",
-    .api = &emb_dw_i2c_api,
+    .api = &emb_dw_i2c_api.dev,
     .config = &i2c1_config,
     .state = &i2c1_state,
     .data = &i2c1_data,
