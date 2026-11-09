@@ -31,6 +31,10 @@ void embk_bus_exit(emb_drv_bus_t *bus);
 /* For a request submitted from anywhere: EMB_EBUSY while the bus is held for another key. */
 emb_status_t embk_bus_admit(const emb_drv_bus_t *bus, const void *key);
 
+/* What is left of @t since @start: a finite timeout spent waiting for the bus is not spent
+ * again on the transfer. EMB_NO_WAIT and EMB_WAIT_FOREVER are what they were. */
+emb_timeout_t embk_bus_time_left(emb_timeout_t t, emb_instant_t start);
+
 /* The key holding the bus, or NULL: one load, which only the holder's thread changes. */
 const void *embk_bus_holder(const emb_drv_bus_t *bus);
 

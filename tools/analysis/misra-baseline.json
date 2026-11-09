@@ -111,7 +111,7 @@
   "misra-c2012-10.4": 11,
   "misra-c2012-11.4": 11,
   "misra-c2012-12.1": 1,
-  "misra-c2012-8.7": 9
+  "misra-c2012-8.7": 7
  },
  "arch/riscv/rv_port.c": {
   "misra-c2012-10.4": 1,
@@ -181,16 +181,16 @@
   "misra-c2012-8.7": 5
  },
  "boards/rpi/pico2_w/generated/soc_devices.h": {
-  "misra-c2012-2.5": 10
+  "misra-c2012-2.5": 14
  },
  "boards/st/nucleo_f446re/generated/hw_config.h": {
   "misra-c2012-2.5": 110
  },
  "boards/st/nucleo_f446re/generated/soc_devices.c": {
-  "misra-c2012-8.7": 8
+  "misra-c2012-8.7": 7
  },
  "boards/st/nucleo_f446re/generated/soc_devices.h": {
-  "misra-c2012-2.5": 12
+  "misra-c2012-2.5": 16
  },
  "drivers/arm/cmsdk_uart.c": {
   "misra-c2012-10.4": 2,
@@ -225,8 +225,8 @@
   "misra-c2012-12.2": 14
  },
  "drivers/rpi/rp2350_devices.c": {
-  "misra-c2012-10.8": 5,
-  "misra-c2012-11.4": 8,
+  "misra-c2012-10.8": 7,
+  "misra-c2012-11.4": 11,
   "misra-c2012-11.5": 2,
   "misra-c2012-12.2": 2
  },
@@ -238,8 +238,8 @@
   "misra-c2012-7.3": 1
  },
  "drivers/snps/dw_i2c.c": {
-  "misra-c2012-10.4": 2,
-  "misra-c2012-11.4": 43,
+  "misra-c2012-10.4": 3,
+  "misra-c2012-11.4": 45,
   "misra-c2012-11.5": 5,
   "misra-c2012-12.2": 11,
   "misra-c2012-2.5": 1
@@ -252,10 +252,10 @@
   "misra-c2012-11.5": 3
  },
  "drivers/st/stm32_i2c.c": {
-  "misra-c2012-10.4": 4,
-  "misra-c2012-11.4": 65,
+  "misra-c2012-10.4": 5,
+  "misra-c2012-11.4": 68,
   "misra-c2012-11.5": 6,
-  "misra-c2012-12.2": 47
+  "misra-c2012-12.2": 51
  },
  "drivers/st/stm32_spi.c": {
   "misra-c2012-10.4": 3,
@@ -288,7 +288,7 @@
   "misra-c2012-8.7": 3
  },
  "drivers/st/stm32f4_gpio.c": {
-  "misra-c2012-11.4": 12,
+  "misra-c2012-11.4": 13,
   "misra-c2012-8.7": 2
  },
  "drivers/st/stm32f4_iwdg.c": {
@@ -323,10 +323,10 @@
  "generated/include/emb/storage.h": {
   "misra-c2012-19.2": 20,
   "misra-c2012-2.3": 2,
-  "misra-c2012-5.6": 15
+  "misra-c2012-5.6": 16
  },
  "include/emb/api_ids.h": {
-  "misra-c2012-2.5": 141
+  "misra-c2012-2.5": 145
  },
  "include/emb/compiler.h": {
   "misra-c2012-17.8": 3,
@@ -368,6 +368,9 @@
   "misra-c2012-2.5": 8,
   "misra-c2012-20.10": 1
  },
+ "include/emb/drv_bus.h": {
+  "misra-c2012-19.2": 1
+ },
  "include/emb/drv_gpio.h": {
   "misra-c2012-2.5": 3
  },
@@ -375,7 +378,6 @@
   "misra-c2012-2.5": 8
  },
  "include/emb/drv_spi.h": {
-  "misra-c2012-19.2": 1,
   "misra-c2012-2.5": 10
  },
  "include/emb/drv_uart.h": {
@@ -478,6 +480,10 @@
   "misra-c2012-12.1": 2,
   "misra-c2012-12.2": 1
  },
+ "kernel/device/bus.c": {
+  "misra-c2012-10.4": 3,
+  "misra-config": 1
+ },
  "kernel/device/device.c": {
   "misra-c2012-10.4": 13,
   "misra-c2012-12.1": 18,
@@ -487,18 +493,17 @@
   "misra-c2012-8.7": 10
  },
  "kernel/device/gpio.c": {
-  "misra-c2012-11.5": 1,
-  "misra-c2012-8.7": 2
+  "misra-c2012-11.5": 1
  },
  "kernel/device/i2c.c": {
-  "misra-c2012-11.5": 4,
-  "misra-c2012-8.7": 3
+  "misra-c2012-10.4": 6,
+  "misra-c2012-11.5": 7,
+  "misra-c2012-8.7": 7
  },
  "kernel/device/spi.c": {
   "misra-c2012-10.4": 3,
-  "misra-c2012-11.5": 3,
-  "misra-c2012-8.7": 7,
-  "misra-config": 1
+  "misra-c2012-11.5": 4,
+  "misra-c2012-8.7": 7
  },
  "kernel/device/uart.c": {
   "misra-c2012-11.5": 5,

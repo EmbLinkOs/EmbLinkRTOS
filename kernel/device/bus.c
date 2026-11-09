@@ -82,3 +82,13 @@ const void *embk_bus_holder(const emb_drv_bus_t *bus)
 {
     return bus->held;
 }
+
+emb_timeout_t embk_bus_time_left(emb_timeout_t t, emb_instant_t start)
+{
+    emb_tick_t spent;
+    if ((t.ticks == 0u) || (t.ticks == EMB_TICK_MAX)) {
+        return t;
+    }
+    spent = emb_instant_sub(emb_time_now(), start).ticks;
+    return (spent >= t.ticks) ? EMB_NO_WAIT : EMB_TIMEOUT_(t.ticks - spent);
+}

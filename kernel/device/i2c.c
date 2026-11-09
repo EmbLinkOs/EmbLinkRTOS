@@ -18,21 +18,9 @@ static bool is_i2c(const emb_device_t *dev)
 }
 
 /* The class's part of the driver's RAM, its first member. MISRA Dev CS-12: rule 11.5. */
-static emb_drv_bus_t *bus_of(const emb_device_t *dev)
+static emb_drv_bus_t *i2c_bus(const emb_device_t *dev)
 {
     return (emb_drv_bus_t *)dev->data;
-}
-
-/* What is left of @t since @start: a finite timeout spent waiting for the bus is not spent
- * again on the transaction. */
-static emb_timeout_t remaining(emb_timeout_t t, emb_instant_t start)
-{
-    emb_tick_t spent;
-    if ((t.ticks == 0u) || (t.ticks == EMB_TICK_MAX)) {
-        return t;
-    }
-    spent = emb_instant_sub(emb_time_now(), start).ticks;
-    return (spent >= t.ticks) ? EMB_NO_WAIT : EMB_TIMEOUT_(t.ticks - spent);
 }
 
 /* The class's operations: the device's first. MISRA Dev CS-12: rule 11.3. */
@@ -102,7 +90,7 @@ emb_status_t emb_drv_i2c_bus_init(const emb_device_t *dev)
     if (!is_i2c(dev)) {
         return EMB_EINVAL;
     }
-    return embk_bus_init(bus_of(dev), dev->name);
+    return embk_bus_init(i2c_bus(dev), dev->name);
 }
 
 static bool address_ok(uint32_t a)
@@ -186,7 +174,7 @@ emb_status_t emb_drv_i2c_submit(const emb_device_t *dev, emb_drv_i2c_req_t *req)
     EMBK_API_REQUIRE(EMB_API_ID_DRV_I2C_SUBMIT, request_ok(req), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      2u);
     if (req->op == EMB_DRV_I2C_OP_TRANSFER) {
-        emb_status_t st = embk_bus_admit(bus_of(dev), req->target);
+        emb_status_t st = embk_bus_admit(i2c_bus(dev), req->target);
         if (st != EMB_OK) {
             return st; /* the bus is held for another target */
         }
@@ -211,12 +199,12 @@ emb_status_t emb_drv_i2c_transfer(const emb_device_t *dev, const emb_drv_i2c_tar
         *done = 0u;
     }
     start = emb_time_now();
-    st = embk_bus_enter(bus_of(dev), target, timeout); /* another thread's hold ends first */
+    st = embk_bus_enter(i2c_bus(dev), target, timeout); /* another thread's hold ends first */
     if (st != EMB_OK) {
         return st;
     }
-    st = emb_drv_wait(dev, &req.req, remaining(timeout, start));
-    embk_bus_exit(bus_of(dev));
+    st = emb_drv_wait(dev, &req.req, embk_bus_time_left(timeout, start));
+    embk_bus_exit(i2c_bus(dev));
     if (done != NULL) {
         *done = (size_t)req.req.done;
     }
@@ -281,7 +269,7 @@ emb_status_t emb_drv_i2c_acquire(const emb_device_t *dev, const emb_drv_i2c_targ
     EMBK_API_REQUIRE(EMB_API_ID_DRV_I2C_ACQUIRE,
                      (target != NULL) && (target->hz != 0u) && address_ok(target->address),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    return embk_bus_acquire(bus_of(dev), target, timeout, &first);
+    return embk_bus_acquire(i2c_bus(dev), target, timeout, &first);
 }
 
 emb_status_t emb_drv_i2c_release(const emb_device_t *dev)
@@ -290,7 +278,7 @@ emb_status_t emb_drv_i2c_release(const emb_device_t *dev)
     EMBK_API_REQUIRE_THREAD(EMB_API_ID_DRV_I2C_RELEASE);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_I2C_RELEASE, is_i2c(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
-    return embk_bus_release(bus_of(dev), &ended);
+    return embk_bus_release(i2c_bus(dev), &ended);
 }
 
 emb_status_t emb_drv_i2c_recover(const emb_device_t *dev, emb_timeout_t timeout)
@@ -307,7 +295,7 @@ emb_status_t emb_drv_i2c_recover(const emb_device_t *dev, emb_timeout_t timeout)
         (i2c_api(dev)->reset == NULL)) {
         return EMB_ENOTSUP;
     }
-    st = embk_bus_enter(bus_of(dev), NULL, timeout); /* nobody's transactions meanwhile */
+    st = embk_bus_enter(i2c_bus(dev), NULL, timeout); /* nobody's transactions meanwhile */
     if (st != EMB_OK) {
         return st;
     }
@@ -320,7 +308,7 @@ emb_status_t emb_drv_i2c_recover(const emb_device_t *dev, emb_timeout_t timeout)
     (void)emb_drv_gpio_configure(w->scl.gpio, w->scl.line, EMB_DRV_GPIO_FUNCTION);
     (void)emb_drv_gpio_configure(w->sda.gpio, w->sda.line, EMB_DRV_GPIO_FUNCTION);
     i2c_api(dev)->reset(dev);
-    embk_bus_exit(bus_of(dev));
+    embk_bus_exit(i2c_bus(dev));
     if (st != EMB_OK) {
         return EMB_ENOTSUP; /* the lines could not be driven open drain */
     }
