@@ -43,5 +43,5 @@ static emb_status_t uart_init(const emb_device_t *dev)
     return EMB_OK;
 }
 
-const emb_device_api_t emb_cmsdk_uart_api = {uart_init, NULL, NULL, NULL, NULL};
+const emb_device_api_t emb_cmsdk_uart_api = {uart_init, NULL, NULL, NULL, NULL, 0u};
 #endif

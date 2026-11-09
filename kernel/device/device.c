@@ -109,6 +109,11 @@ bool emb_device_ready(const emb_device_t *dev)
     return dev->state->lifecycle == EMB_DEVICE_READY;
 }
 
+uint32_t emb_device_caps(const emb_device_t *dev)
+{
+    return (dev != NULL && dev->api != NULL) ? dev->api->caps : 0u;
+}
+
 emb_status_t emb_device_status(const emb_device_t *dev)
 {
     return (emb_status_t)dev->state->last_status;

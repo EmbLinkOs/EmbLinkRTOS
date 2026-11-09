@@ -168,5 +168,19 @@
 #define EMB_API_ID_DRV_COMPLETE                  0x00A2u
 #define EMB_API_ID_DRV_CANCEL                    0x00A3u
 #define EMB_API_ID_DRV_WAIT                      0x00A4u
+#define EMB_API_ID_DEVICE_CAPS                   0x00A8u
+#define EMB_API_ID_DRV_UART_REQ_WRITE            0x00A9u
+#define EMB_API_ID_DRV_UART_REQ_READ             0x00AAu
+#define EMB_API_ID_DRV_UART_SUBMIT               0x00ABu
+#define EMB_API_ID_DRV_UART_WRITE                0x00ACu
+#define EMB_API_ID_DRV_UART_READ                 0x00ADu
+#define EMB_API_ID_DRV_UART_POLL_WRITE           0x00AEu
+#define EMB_API_ID_DRV_UART_POLL_READ            0x00AFu
+#define EMB_API_ID_DRV_UART_RX_INIT              0x00B0u
+#define EMB_API_ID_DRV_UART_RX_BYTE              0x00B1u
+#define EMB_API_ID_DRV_UART_RX_IDLE              0x00B2u
+#define EMB_API_ID_DRV_UART_RX_ERROR             0x00B3u
+#define EMB_API_ID_DRV_UART_RX_START             0x00B4u
+#define EMB_API_ID_DRV_UART_RX_STOP              0x00B5u
 
 #endif /* EMB_API_IDS_H */

@@ -282,6 +282,14 @@ config EMB_DEVICE
 	  or callback, cancellation, and a blocking wrapper. Off on the tiny profile and AVR,
 	  whose boards keep their free functions.
 
+config EMB_DRV_UART
+	bool "The UART class (SPEC-017 §4)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Requests to write and read bytes, their blocking wrappers, the polled
+	  calls, and the receive core every UART driver shares.
+
 config EMB_WORKQ
 	bool "Work queues (SPEC-006 §4)"
 	depends on EMB_NOTIFY && !EMB_SCHED_TABLE

@@ -202,6 +202,16 @@
       "masked": false,
       "profiles": "called outside the device's critical section; completion delivery too",
       "evidence": "SPEC-016 \u00a75; SPEC-017"
+    },
+    {
+      "id": "uart_bytes",
+      "input": "bytes of one UART request, or of a polled call",
+      "bound": "the caller's: the length it passes; a read also stops at the ring's bytes when it starts",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section",
+      "evidence": "SPEC-017 \u00a74; test_uart"
     }
   ],
   "apis": {
@@ -485,6 +495,39 @@
       "drivers"
     ],
     "emb_drv_wait": [
+      "drivers"
+    ],
+    "emb_drv_uart_submit": [
+      "drivers"
+    ],
+    "emb_drv_uart_write": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_read": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_poll_write": [
+      "uart_bytes"
+    ],
+    "emb_drv_uart_poll_read": [
+      "uart_bytes"
+    ],
+    "emb_drv_uart_rx_byte": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_idle": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_error": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_start": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_rx_stop": [
       "drivers"
     ]
   }

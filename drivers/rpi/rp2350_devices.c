@@ -24,8 +24,8 @@ static emb_status_t io_bank_init(const emb_device_t *dev)
                : EMB_EIO;
 }
 
-const emb_device_api_t emb_rp2350_clocks_api = {clocks_init, NULL, NULL, NULL, NULL};
-const emb_device_api_t emb_rp2350_io_bank_api = {io_bank_init, NULL, NULL, NULL, NULL};
+const emb_device_api_t emb_rp2350_clocks_api = {clocks_init, NULL, NULL, NULL, NULL, 0u};
+const emb_device_api_t emb_rp2350_io_bank_api = {io_bank_init, NULL, NULL, NULL, NULL, 0u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_rp2350_devices_off_t;

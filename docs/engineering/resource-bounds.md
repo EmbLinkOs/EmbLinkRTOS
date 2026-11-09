@@ -26,6 +26,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **devices**: devices initialized from one list | the count passed; the board's table holds at most 65,535 (a 16-bit count) | configuration: the board's devices, fixed at generation | configuration | no | base with CONFIG_EMB_DEVICE | SPEC-016 §4, §8; DRV-003 |
 | **device_queue**: requests queued on one device | not limited by the kernel: the requests callers have submitted and not yet seen complete | application | application | yes | a singly linked FIFO per device; cancel walks it in the device's critical section | SPEC-016 §5, §6; DRV-006 |
 | **drivers**: a driver's operations (init, start, stop, suspend, resume) and a request's completion target | not bounded by the kernel: each driver's own, stated with its class | the driver and the application | application | no | called outside the device's critical section; completion delivery too | SPEC-016 §5; SPEC-017 |
+| **uart_bytes**: bytes of one UART request, or of a polled call | the caller's: the length it passes; a read also stops at the ring's bytes when it starts | application | application | yes | base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section | SPEC-017 §4; test_uart |
 
 ## Public functions
 
@@ -44,6 +45,16 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
 | `emb_drv_submit()` | O(1) plus the driver's start when the queue was empty | drivers |
+| `emb_drv_uart_poll_read()` | O(len) | uart_bytes |
+| `emb_drv_uart_poll_write()` | O(len) of the line's time | uart_bytes |
+| `emb_drv_uart_read()` | O(len) of the line's time; bounded by the timeout and the driver's stop | uart_bytes, drivers |
+| `emb_drv_uart_rx_byte()` | O(1) plus the read's completion when this byte fills it | drivers |
+| `emb_drv_uart_rx_error()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_rx_idle()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_rx_start()` | O(min(len, the ring's bytes)) | uart_bytes, drivers |
+| `emb_drv_uart_rx_stop()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_submit()` | O(1) plus the driver's start when its lane was idle | drivers |
+| `emb_drv_uart_write()` | O(len) of the line's time; bounded by the timeout and the driver's stop | uart_bytes, drivers |
 | `emb_drv_wait()` | O(1) plus the request's own time; bounded by the timeout and the driver's stop | drivers |
 | `emb_dwork_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_dwork_reschedule()` | O(armed timers) insertion | armed_timers, timeouts |

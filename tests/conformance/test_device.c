@@ -53,7 +53,7 @@ static void fake_stop(const emb_device_t *dev, emb_drv_request_t *req)
     emb_drv_complete(dev, req, EMB_ECANCELED, PARTIAL); /* stopped part-way */
 }
 
-static const emb_device_api_t fake_api = {fake_init, fake_start, fake_stop, NULL, NULL};
+static const emb_device_api_t fake_api = {fake_init, fake_start, fake_stop, NULL, NULL, 0u};
 
 static const emb_device_t dev_async; /* the one device the interrupt serves */
 
@@ -392,8 +392,8 @@ static emb_status_t fake_power(const emb_device_t *dev)
 }
 
 /* A driver with no init and no stop, and power operations; and one with nothing at all. */
-static const emb_device_api_t bare_api = {NULL, fake_start, NULL, fake_power, fake_power};
-static const emb_device_api_t empty_api = {NULL, NULL, NULL, NULL, NULL};
+static const emb_device_api_t bare_api = {NULL, fake_start, NULL, fake_power, fake_power, 0u};
+static const emb_device_api_t empty_api = {NULL, NULL, NULL, NULL, NULL, 0u};
 
 #define API_DEVICE(sym, api_)                               \
     static const fake_config_t sym##_cfg = {EMB_OK, false}; \

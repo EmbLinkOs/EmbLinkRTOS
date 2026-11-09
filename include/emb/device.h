@@ -62,6 +62,8 @@ typedef struct emb_device_api {
     /* Power transitions; NULL means the device has nothing to do. */
     emb_status_t (*suspend)(const struct emb_device *dev);
     emb_status_t (*resume)(const struct emb_device *dev);
+    /* The class's capability bits this driver has (EMB_DRV_<CLASS>_CAP_*, SPEC-016 §11). */
+    uint32_t caps;
 } emb_device_api_t;
 
 /* A device's request lanes (AMENDMENTS-M4 A114): each a queue of its own, its head started
@@ -112,6 +114,26 @@ typedef struct emb_device_table {
 } emb_device_table_t;
 
 extern const emb_device_table_t emb_board_device_table;
+
+/**
+ * emb_device_caps() - The capabilities a device's driver has.
+ * @dev: The device.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_DEVICE
+ * @req      DRV-002
+ * @since    0.3
+ * @stable   no
+ *
+ * An operation that needs a capability the device lacks returns EMB_ENOTSUP; nothing is
+ * emulated in its place (SPEC-016 §11).
+ *
+ * Return: the class's EMB_DRV_<CLASS>_CAP_* bits; 0 for a NULL @dev.
+ */
+uint32_t emb_device_caps(const emb_device_t *dev);
 
 /* ---- requests and completion (SPEC-016 §5) ---------------------------------------- */
 

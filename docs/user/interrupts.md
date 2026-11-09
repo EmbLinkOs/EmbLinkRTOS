@@ -45,13 +45,14 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-90 functions, from the headers' `@ctx` tags.
+101 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
 | `emb_check_status()` | `<emb/kernel.h>` | no |
 | `emb_cond_attr_default()` | `<emb/cond.h>` | no |
 | `emb_context()` | `<emb/context.h>` | no |
+| `emb_device_caps()` | `<emb/device.h>` | no |
 | `emb_device_ready()` | `<emb/device.h>` | no |
 | `emb_device_state()` | `<emb/device.h>` | no |
 | `emb_device_status()` | `<emb/device.h>` | no |
@@ -63,6 +64,16 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_drv_on_work()` | `<emb/device.h>` | no |
 | `emb_drv_request_init()` | `<emb/device.h>` | no |
 | `emb_drv_submit()` | `<emb/device.h>` | no |
+| `emb_drv_uart_poll_read()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_poll_write()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_req_read()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_req_write()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_byte()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_error()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_idle()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_start()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_stop()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_submit()` | `<emb/drv_uart.h>` | no |
 | `emb_duration_is_saturated()` | `<emb/time.h>` | no |
 | `emb_duration_to_ns()` | `<emb/time.h>` | no |
 | `emb_dwork_cancel()` | `<emb/work.h>` | no |

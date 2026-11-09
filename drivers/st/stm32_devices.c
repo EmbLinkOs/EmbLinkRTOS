@@ -45,9 +45,9 @@ static emb_status_t usart_init(const emb_device_t *dev)
     return EMB_OK;
 }
 
-const emb_device_api_t emb_stm32_rcc_api = {rcc_init, NULL, NULL, NULL, NULL};
-const emb_device_api_t emb_stm32_gpio_api = {gpio_init, NULL, NULL, NULL, NULL};
-const emb_device_api_t emb_stm32_usart_api = {usart_init, NULL, NULL, NULL, NULL};
+const emb_device_api_t emb_stm32_rcc_api = {rcc_init, NULL, NULL, NULL, NULL, 0u};
+const emb_device_api_t emb_stm32_gpio_api = {gpio_init, NULL, NULL, NULL, NULL, 0u};
+const emb_device_api_t emb_stm32_usart_api = {usart_init, NULL, NULL, NULL, NULL, 0u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_stm32_devices_off_t;

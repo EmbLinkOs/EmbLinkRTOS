@@ -985,6 +985,90 @@
       "name": "emb_drv_wait",
       "header": "device.h",
       "state": "active"
+    },
+    {
+      "id": 168,
+      "name": "emb_device_caps",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 169,
+      "name": "emb_drv_uart_req_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 170,
+      "name": "emb_drv_uart_req_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 171,
+      "name": "emb_drv_uart_submit",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 172,
+      "name": "emb_drv_uart_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 173,
+      "name": "emb_drv_uart_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 174,
+      "name": "emb_drv_uart_poll_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 175,
+      "name": "emb_drv_uart_poll_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 176,
+      "name": "emb_drv_uart_rx_init",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 177,
+      "name": "emb_drv_uart_rx_byte",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 178,
+      "name": "emb_drv_uart_rx_idle",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 179,
+      "name": "emb_drv_uart_rx_error",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 180,
+      "name": "emb_drv_uart_rx_start",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 181,
+      "name": "emb_drv_uart_rx_stop",
+      "header": "drv_uart.h",
+      "state": "active"
     }
   ]
 }
