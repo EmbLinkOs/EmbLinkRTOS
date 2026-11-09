@@ -28,6 +28,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **drivers**: a driver's operations (init, start, stop, suspend, resume) and a request's completion target | not bounded by the kernel: each driver's own, stated with its class | the driver and the application | application | no | called outside the device's critical section; completion delivery too | SPEC-016 §5; SPEC-017 |
 | **uart_bytes**: bytes of one UART request, or of a polled call | the caller's: the length it passes; a read also stops at the ring's bytes when it starts | application | application | yes | base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section | SPEC-017 §4; test_uart |
 | **spi_frames**: frames of one SPI transfer | the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt | application | application | no | base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section | SPEC-017 §5; test_spi, test_spi_loop |
+| **i2c_bytes**: bytes and segments of one I2C transaction or listen | the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size | application | application | no | base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time | SPEC-017 §6; test_i2c, test_i2c_loop |
 
 ## Public functions
 
@@ -45,6 +46,10 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_i2c_listen()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
+| `emb_drv_i2c_submit()` | O(segments) plus the driver's start when its lane was idle | i2c_bytes, drivers |
+| `emb_drv_i2c_transfer()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
+| `emb_drv_i2c_write_read()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
 | `emb_drv_spi_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
 | `emb_drv_spi_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_spi_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |

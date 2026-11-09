@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
+ *     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
  *   drivers/bindings.yaml
- *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+ *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715
+ *     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -183,6 +183,54 @@ const emb_device_t emb_dev_spi2 = {
     .dep_count = 1u,
 };
 
+/* i2c1: st,stm32-i2c, i2c, KERNEL */
+static const emb_stm32_i2c_config_t i2c1_config = {
+    .base = 0x40005400u,         /* peripheral.base */
+    .clock_hz = 45000000u,       /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 21u,            /* peripheral.clock.bit */
+    .irq_ev = 31u,               /* peripheral.irqs.ev */
+    .irq_er = 32u,               /* peripheral.irqs.er */
+};
+static emb_device_state_t i2c1_state;
+static emb_stm32_i2c_data_t i2c1_data;
+static const emb_device_t *const i2c1_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_i2c1 = {
+    .name = "i2c1",
+    .api = &emb_stm32_i2c_api,
+    .config = &i2c1_config,
+    .state = &i2c1_state,
+    .data = &i2c1_data,
+    .deps = i2c1_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* i2c2: st,stm32-i2c, i2c, KERNEL */
+static const emb_stm32_i2c_config_t i2c2_config = {
+    .base = 0x40005800u,         /* peripheral.base */
+    .clock_hz = 45000000u,       /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 22u,            /* peripheral.clock.bit */
+    .irq_ev = 33u,               /* peripheral.irqs.ev */
+    .irq_er = 34u,               /* peripheral.irqs.er */
+};
+static emb_device_state_t i2c2_state;
+static emb_stm32_i2c_data_t i2c2_data;
+static const emb_device_t *const i2c2_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_i2c2 = {
+    .name = "i2c2",
+    .api = &emb_stm32_i2c_api,
+    .config = &i2c2_config,
+    .state = &i2c2_state,
+    .data = &i2c2_data,
+    .deps = i2c2_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
@@ -192,9 +240,11 @@ static const emb_device_t *const devices[] = {
     &emb_dev_usart2, /* 4: EARLY */
     &emb_dev_uart4,  /* 5: EARLY */
     &emb_dev_spi2,   /* 6: KERNEL */
+    &emb_dev_i2c1,   /* 7: KERNEL */
+    &emb_dev_i2c2,   /* 8: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 7u, 6u};
+const emb_device_table_t emb_board_device_table = {devices, 9u, 6u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

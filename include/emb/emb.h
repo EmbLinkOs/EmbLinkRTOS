@@ -18,6 +18,7 @@
 #endif
 #if CONFIG_EMB_DRV_SPI
 #include <emb/drv_gpio.h>
+#include <emb/drv_i2c.h>
 #include <emb/drv_spi.h>
 #endif
 #if CONFIG_EMB_CRASH_RECORD

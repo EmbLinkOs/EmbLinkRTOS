@@ -7,7 +7,7 @@
 #   boards/arm/mps2_an385/board.yaml
 #     ffb11f5ba747481a9325d7dc88102f9a7fe61b978a497e8ee77fc62acff584ce
 #   drivers/bindings.yaml
-#     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+#     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
 #   soc/arm/mps2/an385.yaml
 #     95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec
 #   soc/arm/mps2/mps2.yaml
@@ -36,7 +36,7 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
     "boards/arm/mps2_an385/board.yaml=ffb11f5ba747481a9325d7dc88102f9a7fe61b978a497e8ee77fc62acff584ce"
-    "drivers/bindings.yaml=d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947"
+    "drivers/bindings.yaml=756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
     "soc/arm/mps2/an385.yaml=95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec"
     "soc/arm/mps2/mps2.yaml=5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7"
 )

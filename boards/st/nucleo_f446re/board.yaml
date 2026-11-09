@@ -25,6 +25,8 @@ pins:
   usart2: { tx: PA2.af7, rx: PA3.af7 }
   uart4: { tx: PA0.af8, rx: PA1.af8 }    # A0 and A1 on the Arduino header
   spi2: { sck: PB13.af5, miso: PB14.af5, mosi: PB15.af5 } # CN10-30, -28 and -26
+  i2c1: { scl: PB8.af4, sda: PB9.af4 }   # D15 and D14
+  i2c2: { scl: PB10.af4, sda: PB3.af4 }  # D6 and D3
 console: { device: usart2, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
 # GPIO ports in use and the console
@@ -35,6 +37,8 @@ devices:
   - { name: gpioc, doc: B1 }
   - { name: usart2, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
   - { name: spi2, cs: [PB12], doc: "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)" }
+  - { name: i2c1, doc: "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2" }
+  - { name: i2c2, doc: "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
@@ -50,4 +54,5 @@ simulation:
   loopbacks:
     - { device: uart4, ports: [A0, A1] }
     - { device: spi2, ports: [CN10_26, CN10_28] } # PB15 (MOSI) to PB14 (MISO)
+    - { device: i2c1, peer: i2c2, nets: [[D15, D6], [D14, D3]] } # SCL to SCL, SDA to SDA
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

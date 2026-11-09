@@ -52,6 +52,20 @@
         "name": "spi1"
       },
       {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "I2C0 on GPIO8 (pin 11, SDA) and GPIO9 (pin 12, SCL); the HIL suite wires it to I2C1",
+        "name": "i2c0"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "I2C1 on GPIO6 (pin 9, SDA) and GPIO7 (pin 10, SCL), the HIL suite's target for I2C0",
+        "name": "i2c1"
+      },
+      {
         "baud": 115200,
         "deps": [
           "io_bank0"
@@ -77,6 +91,14 @@
       }
     },
     "pins": {
+      "i2c0": {
+        "scl": "GPIO9.f3",
+        "sda": "GPIO8.f3"
+      },
+      "i2c1": {
+        "scl": "GPIO7.f3",
+        "sda": "GPIO6.f3"
+      },
       "spi1": {
         "miso": "GPIO12.f1",
         "mosi": "GPIO11.f1",
@@ -215,6 +237,36 @@
         "level": "kernel",
         "name": "spi1",
         "peripheral": "spi1"
+      },
+      {
+        "class": "i2c",
+        "compatible": "snps,designware-i2c",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074331648,
+          "clock_hz": 150000000,
+          "irq": 36
+        },
+        "level": "kernel",
+        "name": "i2c0",
+        "peripheral": "i2c0"
+      },
+      {
+        "class": "i2c",
+        "compatible": "snps,designware-i2c",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074364416,
+          "clock_hz": 150000000,
+          "irq": 37
+        },
+        "level": "kernel",
+        "name": "i2c1",
+        "peripheral": "i2c1"
       }
     ],
     "kconfig": {
@@ -287,6 +339,46 @@
         "signal": "uart1_rx"
       },
       {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.i2c1.sda",
+        "pin": "GPIO6",
+        "port": "",
+        "signal": "i2c1_sda"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 7,
+        "owner": "pins.i2c1.scl",
+        "pin": "GPIO7",
+        "port": "",
+        "signal": "i2c1_scl"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 8,
+        "owner": "pins.i2c0.sda",
+        "pin": "GPIO8",
+        "port": "",
+        "signal": "i2c0_sda"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 9,
+        "owner": "pins.i2c0.scl",
+        "pin": "GPIO9",
+        "port": "",
+        "signal": "i2c0_scl"
+      },
+      {
         "af": 1,
         "gpio": "io_bank0",
         "mode": "af",
@@ -348,15 +440,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "c8e8f52bbbcdec66759d400c131db05e49bc5224cc2ffdec76a3952ca3c502ed"
+      "sha256": "79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947"
+      "sha256": "756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259"
+      "sha256": "b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -448,16 +540,20 @@
         "f2": "uart1_rx"
       },
       "GPIO6": {
-        "f11": "uart1_tx"
+        "f11": "uart1_tx",
+        "f3": "i2c1_sda"
       },
       "GPIO7": {
-        "f11": "uart1_rx"
+        "f11": "uart1_rx",
+        "f3": "i2c1_scl"
       },
       "GPIO8": {
-        "f2": "uart1_tx"
+        "f2": "uart1_tx",
+        "f3": "i2c0_sda"
       },
       "GPIO9": {
-        "f2": "uart1_rx"
+        "f2": "uart1_rx",
+        "f3": "i2c0_scl"
       }
     },
     "arch": {
@@ -690,6 +786,30 @@
           }
         ],
         "name": "spi1",
+        "size": 16384
+      },
+      {
+        "base": 1074331648,
+        "compatible": "snps,designware-i2c",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 36
+          }
+        ],
+        "name": "i2c0",
+        "size": 16384
+      },
+      {
+        "base": 1074364416,
+        "compatible": "snps,designware-i2c",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 37
+          }
+        ],
+        "name": "i2c1",
         "size": 16384
       },
       {

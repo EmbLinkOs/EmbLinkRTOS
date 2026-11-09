@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
+ *     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
  *   drivers/bindings.yaml
- *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+ *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715
+ *     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -22,7 +22,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 7u
+#define EMB_SOC_DEVICE_COUNT 9u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -34,6 +34,8 @@ extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
 extern const emb_device_t emb_dev_uart4;
 extern const emb_device_t emb_dev_spi2;
+extern const emb_device_t emb_dev_i2c1;
+extern const emb_device_t emb_dev_i2c2;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
@@ -43,6 +45,8 @@ extern const emb_device_t emb_dev_spi2;
 #define EMB_SOC_HAS_USART2 1
 #define EMB_SOC_HAS_UART4  1
 #define EMB_SOC_HAS_SPI2   1
+#define EMB_SOC_HAS_I2C1   1
+#define EMB_SOC_HAS_I2C2   1
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)

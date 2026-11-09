@@ -61,6 +61,14 @@
         "name": "spi2"
       },
       {
+        "doc": "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2",
+        "name": "i2c1"
+      },
+      {
+        "doc": "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1",
+        "name": "i2c2"
+      },
+      {
         "baud": 115200,
         "doc": "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)",
         "name": "uart4"
@@ -95,6 +103,14 @@
       }
     },
     "pins": {
+      "i2c1": {
+        "scl": "PB8.af4",
+        "sda": "PB9.af4"
+      },
+      "i2c2": {
+        "scl": "PB10.af4",
+        "sda": "PB3.af4"
+      },
       "spi2": {
         "miso": "PB14.af5",
         "mosi": "PB15.af5",
@@ -127,6 +143,20 @@
             "CN10_26",
             "CN10_28"
           ]
+        },
+        {
+          "device": "i2c1",
+          "nets": [
+            [
+              "D15",
+              "D6"
+            ],
+            [
+              "D14",
+              "D3"
+            ]
+          ],
+          "peer": "i2c2"
         }
       ],
       "resets_in": [
@@ -305,6 +335,42 @@
         "level": "kernel",
         "name": "spi2",
         "peripheral": "spi2"
+      },
+      {
+        "class": "i2c",
+        "compatible": "st,stm32-i2c",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073763328,
+          "clken_bit": 21,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "irq_er": 32,
+          "irq_ev": 31
+        },
+        "level": "kernel",
+        "name": "i2c1",
+        "peripheral": "i2c1"
+      },
+      {
+        "class": "i2c",
+        "compatible": "st,stm32-i2c",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073764352,
+          "clken_bit": 22,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "irq_er": 34,
+          "irq_ev": 33
+        },
+        "level": "kernel",
+        "name": "i2c2",
+        "peripheral": "i2c2"
       }
     ],
     "kconfig": {
@@ -395,6 +461,46 @@
         "port": "A"
       },
       {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 3,
+        "owner": "pins.i2c2.sda",
+        "pin": "PB3",
+        "port": "B",
+        "signal": "i2c2_sda"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 8,
+        "owner": "pins.i2c1.scl",
+        "pin": "PB8",
+        "port": "B",
+        "signal": "i2c1_scl"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 9,
+        "owner": "pins.i2c1.sda",
+        "pin": "PB9",
+        "port": "B",
+        "signal": "i2c1_sda"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 10,
+        "owner": "pins.i2c2.scl",
+        "pin": "PB10",
+        "port": "B",
+        "signal": "i2c2_scl"
+      },
+      {
         "gpio": "gpiob",
         "level": 1,
         "mode": "output",
@@ -464,11 +570,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71"
+      "sha256": "2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947"
+      "sha256": "756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -476,7 +582,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715"
+      "sha256": "c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",
@@ -501,10 +607,14 @@
       "PA3": {
         "af7": "usart2_rx"
       },
+      "PA8": {
+        "af4": "i2c3_scl"
+      },
       "PA9": {
         "af7": "usart1_tx"
       },
       "PB10": {
+        "af4": "i2c2_scl",
         "af7": "usart3_tx"
       },
       "PB13": {
@@ -516,11 +626,25 @@
       "PB15": {
         "af5": "spi2_mosi"
       },
+      "PB3": {
+        "af4": "i2c2_sda"
+      },
+      "PB4": {
+        "af4": "i2c3_sda"
+      },
       "PB6": {
+        "af4": "i2c1_scl",
         "af7": "usart1_tx"
       },
       "PB7": {
+        "af4": "i2c1_sda",
         "af7": "usart1_rx"
+      },
+      "PB8": {
+        "af4": "i2c1_scl"
+      },
+      "PB9": {
+        "af4": "i2c1_sda"
       },
       "PC10": {
         "af7": "usart3_tx",
@@ -531,6 +655,7 @@
         "af8": "uart4_rx"
       },
       "PC12": {
+        "af4": "i2c2_sda",
         "af8": "uart5_tx"
       },
       "PC5": {
@@ -541,6 +666,9 @@
       },
       "PC7": {
         "af8": "usart6_rx"
+      },
+      "PC9": {
+        "af4": "i2c3_sda"
       },
       "PD2": {
         "af8": "uart5_rx"
@@ -984,6 +1112,66 @@
           }
         ],
         "name": "tim2",
+        "size": 1024
+      },
+      {
+        "base": 1073763328,
+        "clock": {
+          "bit": 21,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 31
+          },
+          {
+            "name": "er",
+            "number": 32
+          }
+        ],
+        "name": "i2c1",
+        "size": 1024
+      },
+      {
+        "base": 1073764352,
+        "clock": {
+          "bit": 22,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 33
+          },
+          {
+            "name": "er",
+            "number": 34
+          }
+        ],
+        "name": "i2c2",
+        "size": 1024
+      },
+      {
+        "base": 1073765376,
+        "clock": {
+          "bit": 23,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 72
+          },
+          {
+            "name": "er",
+            "number": 73
+          }
+        ],
+        "name": "i2c3",
         "size": 1024
       },
       {

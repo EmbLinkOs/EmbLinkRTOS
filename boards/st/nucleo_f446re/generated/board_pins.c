@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     033b8ac08f67b4362cc969ff01f64514436c5bc94ba590d0a8e5ada1fce72f71
+ *     2be1c28d9aca679b50dfe940c3c5f62f1715932bc8053ad45f779ddd477dcee3
  *   drivers/bindings.yaml
- *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+ *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715
+ *     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -23,23 +23,31 @@
 
 const emb_stm32_pin_t emb_board_pins[] = {
     /* PA0: pins.uart4.tx (uart4_tx) */
-    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 8u, 0u},
+    {EMB_STM32_PORT(A), 0u, EMB_STM32_PIN_AF, 8u, 0u, 0u},
     /* PA1: pins.uart4.rx (uart4_rx) */
-    {EMB_STM32_PORT(A), 1u, EMB_STM32_PIN_AF, 8u, 0u},
+    {EMB_STM32_PORT(A), 1u, EMB_STM32_PIN_AF, 8u, 0u, 0u},
     /* PA2: pins.usart2.tx (usart2_tx) */
-    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u, 0u},
+    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
     /* PA3: pins.usart2.rx (usart2_rx) */
-    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u},
+    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
     /* PA5: leds.user (output) */
-    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u},
+    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
+    /* PB3: pins.i2c2.sda (i2c2_sda) */
+    {EMB_STM32_PORT(B), 3u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
+    /* PB8: pins.i2c1.scl (i2c1_scl) */
+    {EMB_STM32_PORT(B), 8u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
+    /* PB9: pins.i2c1.sda (i2c1_sda) */
+    {EMB_STM32_PORT(B), 9u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
+    /* PB10: pins.i2c2.scl (i2c2_scl) */
+    {EMB_STM32_PORT(B), 10u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
     /* PB12: devices.spi2.cs[0] (spi2_cs0) */
-    {EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u},
+    {EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u, 0u},
     /* PB13: pins.spi2.sck (spi2_sck) */
-    {EMB_STM32_PORT(B), 13u, EMB_STM32_PIN_AF, 5u, 0u},
+    {EMB_STM32_PORT(B), 13u, EMB_STM32_PIN_AF, 5u, 0u, 0u},
     /* PB14: pins.spi2.miso (spi2_miso) */
-    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_AF, 5u, 0u},
+    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_AF, 5u, 0u, 0u},
     /* PB15: pins.spi2.mosi (spi2_mosi) */
-    {EMB_STM32_PORT(B), 15u, EMB_STM32_PIN_AF, 5u, 0u},
+    {EMB_STM32_PORT(B), 15u, EMB_STM32_PIN_AF, 5u, 0u, 0u},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

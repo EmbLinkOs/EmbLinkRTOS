@@ -298,6 +298,15 @@ config EMB_DRV_GPIO
 	  A controller's lines set up as inputs or outputs, driven and read from
 	  any context: chip selects, resets, LEDs.
 
+config EMB_DRV_I2C
+	bool "The I2C class (SPEC-017 §6)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Transactions of write and read segments to a target's address, joined by
+	  repeated starts; and, as a target, the transactions another controller
+	  makes to this one's own address.
+
 config EMB_DRV_SPI
 	bool "The SPI controller class (SPEC-017 §5)"
 	depends on EMB_DEVICE && EMB_DRV_GPIO && EMB_MUTEX_INHERIT

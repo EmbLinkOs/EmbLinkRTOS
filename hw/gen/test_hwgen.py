@@ -275,14 +275,14 @@ class ChipSelects(unittest.TestCase):
     def test_active_low_by_default(self):
         files = self.files()
         self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
-        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u},", files["board_pins.c"])  # starts high
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u, 0u},", files["board_pins.c"])  # starts high
         self.assertIn("set(EMB_BOARD_SPI2_CS_COUNT 1)", files["board.cmake"])
 
     def test_active_high(self):
         self.root.edit(self.board, "cs: [PB12]", "cs: [{ pin: PB12, active: high }]")
         files = self.files()
         self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 0u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
-        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u},", files["board_pins.c"])  # starts low
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},", files["board_pins.c"])  # starts low
 
     def test_needs_the_ports_device(self):
         self.root.edit(self.board, '  - { name: gpiob, doc: "SPI2\'s chip select, PB12" }\n', "")
@@ -591,7 +591,7 @@ class Devices(unittest.TestCase):
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, ports: [A0, A1] }", "{ device: console, internal: true }")
         self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["board.cmake"])
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, internal: true }", "{ device: rcc, internal: true }")
-        self.expect(r"rcc is not a UART or SPI device", needle="device: rcc", path="simulation.loopbacks[0]")
+        self.expect(r"rcc is not a UART, SPI or I2C device", needle="device: rcc", path="simulation.loopbacks[0]")
 
     def test_loopback_names_one_way(self):
         self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console } ]\n")

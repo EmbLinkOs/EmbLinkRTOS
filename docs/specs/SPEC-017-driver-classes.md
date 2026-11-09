@@ -104,17 +104,17 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Checklist | |
 |---|---|
 | Dependencies | its clock, its pins (open drain, with pull-ups on the board) |
-| Requests | a transaction: an address and a list of write and read segments, joined by repeated starts; as a target, a read or write the controller makes to its address |
-| Blocking | `emb_drv_i2c_transfer()`, and `write_read()` for the common register read |
+| Requests | a transaction, on lane 0: a target's address (7 bits, 0x08 to 0x77) and speed, and a list of write and read segments, joined by repeated starts and ended by a stop; `done` counts the bytes moved, acknowledged writes and reads. As a target, on lane 1 (A114): a listen answers the next transaction to its own address, what the controller writes stored up to its buffer and what it reads taken from another, then 0xFF; while no listen waits the address is not acknowledged |
+| Blocking | `emb_drv_i2c_transfer()`, `emb_drv_i2c_write_read()` for the common register read, and `emb_drv_i2c_listen()` |
 | Interrupts | each byte by interrupt; DMA is not used in M4 |
 | DMA | none in M4 |
 | Concurrency | one transaction at a time; a target device acquires the bus for a sequence of transactions |
 | Timeouts | a canceled or timed-out transaction ends with a stop condition; a bus held low is recovered by clocking out nine pulses and a stop |
 | Power | suspend waits for the transaction in progress |
 | Errors | `EMB_ENACK` (address or data not acknowledged), `EMB_EARBLOST`, `EMB_EBUSERR` |
-| Capabilities | `TARGET`, `FAST_MODE` (400 kHz), `FAST_MODE_PLUS` |
+| Capabilities | `TARGET`, `FAST_MODE` (400 kHz), `FAST_MODE_PLUS`, `TARGET_NACK` (A117: a target refuses bytes beyond its listen's buffer; one without acknowledges and drops them) |
 
-**Drivers:** `drivers/st/stm32f4_i2c.c`; `drivers/rpi/dw_i2c.c` (the RP2350's DesignWare controllers). **Evidence:** EmbSIM with its BME280 and DS3231 models in CI; on each board, two of the chip's own controllers wired to each other, one as controller and one as target, at 100 kHz, edges checked on the analyzer.
+**Drivers:** `drivers/st/stm32_i2c.c`, controller and target at once, standard and fast mode; `drivers/snps/dw_i2c.c`, Synopsys DW_apb_i2c (the RP2350's I2C0 and I2C1), up to fast mode plus, a controller or a target at a time: a transaction while a listen waits runs in controller mode, and the address is not acknowledged meanwhile. The lines are open drain, with the chip's own pull-ups where the board has no resistors (the pin table's I2C entries). **Evidence:** EmbSIM's NUCLEO-F446RE with I2C1 wired to I2C2 in CI; on each board, two of the chip's own controllers wired to each other, one as controller and one as target, at 100 kHz and 400 kHz. To come: EmbSIM's BME280 and DS3231 models, and the edges on the analyzer.
 
 ## 7. DMA
 

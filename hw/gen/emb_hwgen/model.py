@@ -387,13 +387,18 @@ class Resolver:
         return devs, [d for m in table.models for d in m.docs]
 
     def _loopbacks(self, board, devs):
-        """simulation.loopbacks: each a UART or SPI device, wired by two ports or looped inside."""
+        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside, or an
+        I2C device wired to a peer by two nets, SCL to SCL and SDA to SDA."""
         classes = {d["name"]: d["class"] for d in devs}
         for i, loop in enumerate(board.data.get("simulation", {}).get("loopbacks", [])):
             at = f"simulation.loopbacks[{i}]"
-            if classes.get(loop["device"]) not in ("uart", "spi"):
-                self.err(board, at, f"{loop['device']} is not a UART or SPI device of the board")
-            elif ("ports" in loop) == ("internal" in loop):
+            cls = classes.get(loop["device"])
+            if cls == "i2c":
+                if classes.get(loop.get("peer")) != "i2c" or "nets" not in loop or "ports" in loop or "internal" in loop:
+                    self.err(board, at, "an I2C loopback names its peer, another I2C device, and two nets")
+            elif cls not in ("uart", "spi"):
+                self.err(board, at, f"{loop['device']} is not a UART, SPI or I2C device of the board")
+            elif ("ports" in loop) == ("internal" in loop) or "peer" in loop or "nets" in loop:
                 self.err(board, at, "a loopback names two ports or internal: true, one of them")
 
     def _chip_selects(self, board, devs, pins):

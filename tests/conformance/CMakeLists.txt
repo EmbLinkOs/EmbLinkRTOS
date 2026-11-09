@@ -67,6 +67,30 @@ if(CONFIG_EMB_DEVICE)
   if(CONFIG_EMB_DRV_GPIO)
     emb_add_test(test_gpio test_gpio.c) # SPEC-017 §5a
   endif()
+  if(CONFIG_EMB_DRV_I2C)
+    emb_add_test(test_i2c test_i2c.c) # SPEC-017 §6
+    # two I2C controllers of the chip joined SCL to SCL and SDA to SDA: on the bench
+    # (EMB_TEST_I2C_LOOP=<controller>,<target>: i2c1,i2c2 on the NUCLEO-F446RE, i2c0,i2c1 on the
+    # Pico 2 W), or the board's EmbSIM wires
+    set(EMB_TEST_I2C_LOOP "" CACHE STRING "Two I2C devices wired line to line, controller first, for test_i2c_loop")
+    set(_emb_i2c_loop "${EMB_TEST_I2C_LOOP}")
+    if(NOT _emb_i2c_loop AND EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_I2C_LOOP)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 0 _emb_i2c_ctrl)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 1 _emb_i2c_tgt)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 2 _emb_i2c_net0)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 3 _emb_i2c_net1)
+      set(_emb_i2c_loop "${_emb_i2c_ctrl},${_emb_i2c_tgt}")
+      set(EMB_EMBSIM_ARGS_test_i2c_loop --net "${_emb_i2c_net0}" --net "${_emb_i2c_net1}" --until 1s)
+    endif()
+    if(_emb_i2c_loop)
+      string(REPLACE "," ";" _emb_i2c_pair "${_emb_i2c_loop}")
+      list(GET _emb_i2c_pair 0 _emb_i2c_ctrl)
+      list(GET _emb_i2c_pair 1 _emb_i2c_tgt)
+      emb_add_test(test_i2c_loop test_i2c_loop.c)
+      target_compile_definitions(test_i2c_loop PRIVATE "EMB_TEST_I2C_CTRL_DEV=(&emb_dev_${_emb_i2c_ctrl})"
+                                                       "EMB_TEST_I2C_TGT_DEV=(&emb_dev_${_emb_i2c_tgt})")
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_SPI)
     emb_add_test(test_spi test_spi.c) # SPEC-017 §5
     # an SPI controller whose MOSI is looped to its MISO: a wire on the bench

@@ -8,11 +8,11 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+ *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     66c2a14712ee0b18584de517ded63fb89f1b959eab377717c7a319ef65fe1715
+ *     c82ce33d6c5217eba1b27fbe8bf05a9a43e12f69edf46a56dbe1e648a4c7a241
  *   soc/st/stm32f4/stm32f446ze.yaml
  *     98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002
  */
@@ -101,6 +101,21 @@
 #define EMB_HW_GPIOH_BASE          0x40021C00u
 #define EMB_HW_GPIOH_CLKEN_BIT     7u
 #define EMB_HW_GPIOH_CLKEN_OFFSET  0x30u
+#define EMB_HW_I2C1_BASE           0x40005400u
+#define EMB_HW_I2C1_CLKEN_BIT      21u
+#define EMB_HW_I2C1_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C1_IRQ_ER         32u
+#define EMB_HW_I2C1_IRQ_EV         31u
+#define EMB_HW_I2C2_BASE           0x40005800u
+#define EMB_HW_I2C2_CLKEN_BIT      22u
+#define EMB_HW_I2C2_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C2_IRQ_ER         34u
+#define EMB_HW_I2C2_IRQ_EV         33u
+#define EMB_HW_I2C3_BASE           0x40005C00u
+#define EMB_HW_I2C3_CLKEN_BIT      23u
+#define EMB_HW_I2C3_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C3_IRQ_ER         73u
+#define EMB_HW_I2C3_IRQ_EV         72u
 #define EMB_HW_IWDG_BASE           0x40003000u
 #define EMB_HW_PWR_BASE            0x40007000u
 #define EMB_HW_PWR_CLKEN_BIT       28u

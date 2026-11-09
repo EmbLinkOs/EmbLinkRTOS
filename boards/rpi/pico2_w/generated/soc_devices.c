@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     c8e8f52bbbcdec66759d400c131db05e49bc5224cc2ffdec76a3952ca3c502ed
+ *     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
  *   drivers/bindings.yaml
- *     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+ *     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
  *   soc/rpi/rp2350/rp2350.yaml
- *     405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259
+ *     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -25,6 +25,7 @@
 
 #include <stddef.h>
 
+#include <emb_dw_i2c.h>
 #include <emb_pl011.h>
 #include <emb_pl022.h>
 #include <emb_rp2350_devices.h>
@@ -136,6 +137,48 @@ const emb_device_t emb_dev_spi1 = {
     .dep_count = 1u,
 };
 
+/* i2c0: snps,designware-i2c, i2c, KERNEL */
+static const emb_dw_i2c_config_t i2c0_config = {
+    .base = 0x40090000u,    /* peripheral.base */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+    .irq = 36u,             /* peripheral.irqs.global */
+};
+static emb_device_state_t i2c0_state;
+static emb_dw_i2c_data_t i2c0_data;
+static const emb_device_t *const i2c0_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_i2c0 = {
+    .name = "i2c0",
+    .api = &emb_dw_i2c_api,
+    .config = &i2c0_config,
+    .state = &i2c0_state,
+    .data = &i2c0_data,
+    .deps = i2c0_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* i2c1: snps,designware-i2c, i2c, KERNEL */
+static const emb_dw_i2c_config_t i2c1_config = {
+    .base = 0x40098000u,    /* peripheral.base */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+    .irq = 37u,             /* peripheral.irqs.global */
+};
+static emb_device_state_t i2c1_state;
+static emb_dw_i2c_data_t i2c1_data;
+static const emb_device_t *const i2c1_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_i2c1 = {
+    .name = "i2c1",
+    .api = &emb_dw_i2c_api,
+    .config = &i2c1_config,
+    .state = &i2c1_state,
+    .data = &i2c1_data,
+    .deps = i2c1_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
@@ -143,9 +186,11 @@ static const emb_device_t *const devices[] = {
     &emb_dev_uart0,    /* 2: EARLY */
     &emb_dev_uart1,    /* 3: EARLY */
     &emb_dev_spi1,     /* 4: KERNEL */
+    &emb_dev_i2c0,     /* 5: KERNEL */
+    &emb_dev_i2c1,     /* 6: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 5u, 4u};
+const emb_device_table_t emb_board_device_table = {devices, 7u, 4u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

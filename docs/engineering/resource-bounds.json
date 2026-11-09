@@ -222,6 +222,16 @@
       "masked": false,
       "profiles": "base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section",
       "evidence": "SPEC-017 \u00a75; test_spi, test_spi_loop"
+    },
+    {
+      "id": "i2c_bytes",
+      "input": "bytes and segments of one I2C transaction or listen",
+      "bound": "the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time",
+      "evidence": "SPEC-017 \u00a76; test_i2c, test_i2c_loop"
     }
   ],
   "apis": {
@@ -566,6 +576,22 @@
     ],
     "emb_drv_spi_bus_init": [
       "active_objects"
+    ],
+    "emb_drv_i2c_submit": [
+      "i2c_bytes",
+      "drivers"
+    ],
+    "emb_drv_i2c_transfer": [
+      "i2c_bytes",
+      "drivers"
+    ],
+    "emb_drv_i2c_write_read": [
+      "i2c_bytes",
+      "drivers"
+    ],
+    "emb_drv_i2c_listen": [
+      "i2c_bytes",
+      "drivers"
     ]
   }
 }

@@ -1147,6 +1147,42 @@
       "name": "emb_drv_spi_end",
       "header": "drv_spi.h",
       "state": "active"
+    },
+    {
+      "id": 195,
+      "name": "emb_drv_i2c_req_transfer",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 196,
+      "name": "emb_drv_i2c_req_listen",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 197,
+      "name": "emb_drv_i2c_submit",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 198,
+      "name": "emb_drv_i2c_transfer",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 199,
+      "name": "emb_drv_i2c_write_read",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 200,
+      "name": "emb_drv_i2c_listen",
+      "header": "drv_i2c.h",
+      "state": "active"
     }
   ]
 }

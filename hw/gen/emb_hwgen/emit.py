@@ -201,7 +201,10 @@ def board_pins_c(r):
         g = _sym(e["gpio"])
         what = e.get("signal", e["mode"])
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u, {e.get('level', 0)}u}},\n"
+        # an I2C line: open drain, pulled up (the bench and the NUCLEO have no resistors)
+        i2c = str(e.get("signal", "")).endswith(("_scl", "_sda"))
+        flags = "EMB_STM32_PIN_I2C" if i2c else "0u"
+        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u, {e.get('level', 0)}u, {flags}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -445,8 +448,12 @@ def board_cmake(r):
         if d.get("cs"):  # its chip selects, EMB_SOC_<DEVICE>_CS<n> in soc_devices.h
             out += f"set(EMB_BOARD_{d['name'].upper()}_CS_COUNT {len(d['cs'])})\n"
     for loop in r["board"].get("simulation", {}).get("loopbacks", []):
-        cls = classes[loop["device"]].upper()  # checked by the resolver: a UART or SPI device
-        if "ports" in loop:
+        cls = classes[loop["device"]].upper()  # checked by the resolver: a UART, SPI or I2C device
+        if "nets" in loop:
+            # two I2C controllers joined line to line, for the class's loop test
+            nets = " ".join(f'"{a},{b}"' for a, b in loop["nets"])
+            out += f"set(EMB_BOARD_EMBSIM_{cls}_LOOP {loop['device']} {loop['peer']} {nets})\n"
+        elif "ports" in loop:
             # a device whose EmbSIM board ports are wired together, for its class's loop test
             out += f"set(EMB_BOARD_EMBSIM_{cls}_LOOP {loop['device']} \"{','.join(loop['ports'])}\")\n"
         else:
@@ -653,8 +660,9 @@ def rp2350_pins_c(r):
         funcsel = e["af"] if e["mode"] == "af" else 5
         # a peripheral's pad reads its line too, and a chip select's, so a read shows its level
         is_input = 1 if e["mode"] == "af" or "level" in e else 0
-        # a UART's receive idles high: pulled up, so a line left open does not read as a break
-        pull = "EMB_RP2350_PULL_UP" if str(what).endswith("_rx") else "EMB_RP2350_PULL_RESET"
+        # a UART's receive and an I2C line idle high: pulled up, so a line left open does not
+        # read as a break, and a bus without resistors still works at 100 kHz
+        pull = "EMB_RP2350_PULL_UP" if str(what).endswith(("_rx", "_scl", "_sda")) else "EMB_RP2350_PULL_RESET"
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
         drive = "EMB_RP2350_OUT_NONE" if e["mode"] == "af" else ("EMB_RP2350_OUT_HIGH" if e.get("level") else "EMB_RP2350_OUT_LOW")
         out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}, {drive}}},\n"

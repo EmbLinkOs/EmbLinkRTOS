@@ -123,3 +123,31 @@ bindings:
       clken_offset: peripheral.clock.enable_offset
       clken_bit: peripheral.clock.bit
       irq: peripheral.irqs.global
+  st,stm32-i2c:
+    class: i2c
+    level: kernel
+    sources: [drivers/st/stm32_i2c.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_i2c_api
+    config: emb_stm32_i2c_config_t
+    data: emb_stm32_i2c_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq_ev: peripheral.irqs.ev
+      irq_er: peripheral.irqs.er
+    doc: the STM32F4's I2C, controller and target, standard and fast mode (SPEC-017 §6)
+  snps,designware-i2c:
+    class: i2c
+    level: kernel
+    sources: [drivers/snps/dw_i2c.c]
+    include: drivers/snps/include
+    header: emb_dw_i2c.h
+    api: emb_dw_i2c_api
+    config: emb_dw_i2c_config_t
+    data: emb_dw_i2c_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global }
+    doc: Synopsys DW_apb_i2c, the RP2350's I2C0 and I2C1, controller or target (SPEC-017 §6)

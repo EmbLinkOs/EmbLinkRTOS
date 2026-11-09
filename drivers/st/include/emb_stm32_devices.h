@@ -24,6 +24,9 @@
 #if CONFIG_EMB_DRV_SPI
 #include <emb/drv_spi.h>
 #endif
+#if CONFIG_EMB_DRV_I2C
+#include <emb/drv_i2c.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,6 +85,31 @@ typedef struct emb_stm32_spi_data {
 } emb_stm32_spi_data_t;
 #endif
 
+/* An I2C controller: its clock gate and its event and error interrupts. */
+typedef struct emb_stm32_i2c_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* its bus clock: CR2.FREQ in MHz, CCR from it */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq_ev;
+    uint32_t irq_er;
+} emb_stm32_i2c_config_t;
+
+#if CONFIG_EMB_DRV_I2C
+/* An I2C controller's RAM. It waits as a target while no transaction runs, and a
+ * transaction's start condition makes it the bus's controller until its stop. */
+typedef struct emb_stm32_i2c_data {
+    emb_drv_i2c_req_t *xfer;   /* the transaction in progress */
+    emb_drv_i2c_req_t *listen; /* the listen waiting or answering */
+    const emb_device_t *dev;   /* for the interrupt handlers */
+    size_t seg;                /* the segment in progress */
+    size_t pos;                /* bytes of it moved */
+    uint32_t moved;            /* bytes of the transaction moved */
+    uint32_t hz;               /* the speed the controller is set up for */
+    bool stopping;             /* the transaction was canceled */
+} emb_stm32_i2c_data_t;
+#endif
+
 #if CONFIG_EMB_DEVICE
 /* READY when the clock switch the board support asked for has completed. */
 extern const emb_device_api_t emb_stm32_rcc_api;
@@ -99,6 +127,11 @@ extern const emb_drv_uart_api_t emb_stm32_usart_api;
 /* The SPI class's operations (SPEC-017 §5): a controller with software chip-select
  * management, one frame in flight, carried by the receive interrupt. */
 extern const emb_device_api_t emb_stm32_spi_api;
+#endif
+#if CONFIG_EMB_DRV_I2C
+/* The I2C class's operations (SPEC-017 §6): standard and fast mode, and target mode, by
+ * interrupt; one byte at a time, the receiver's acknowledge managed as RM0390 §24.3.3 asks. */
+extern const emb_device_api_t emb_stm32_i2c_api;
 #endif
 
 #ifdef __cplusplus

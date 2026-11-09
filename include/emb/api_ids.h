@@ -195,5 +195,11 @@
 #define EMB_API_ID_DRV_SPI_BUS_INIT              0x00C0u
 #define EMB_API_ID_DRV_SPI_BEGIN                 0x00C1u
 #define EMB_API_ID_DRV_SPI_END                   0x00C2u
+#define EMB_API_ID_DRV_I2C_REQ_TRANSFER          0x00C3u
+#define EMB_API_ID_DRV_I2C_REQ_LISTEN            0x00C4u
+#define EMB_API_ID_DRV_I2C_SUBMIT                0x00C5u
+#define EMB_API_ID_DRV_I2C_TRANSFER              0x00C6u
+#define EMB_API_ID_DRV_I2C_WRITE_READ            0x00C7u
+#define EMB_API_ID_DRV_I2C_LISTEN                0x00C8u
 
 #endif /* EMB_API_IDS_H */

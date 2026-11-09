@@ -5,11 +5,11 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     c8e8f52bbbcdec66759d400c131db05e49bc5224cc2ffdec76a3952ca3c502ed
+#     79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5
 #   drivers/bindings.yaml
-#     d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947
+#     756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990
 #   soc/rpi/rp2350/rp2350.yaml
-#     405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259
+#     b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c
 #   soc/rpi/rp2350/rp2350a.yaml
 #     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
 # pico2_w: RP2350A, cortex-m33f at 150 MHz.
@@ -31,16 +31,18 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${EMB_BASE}/drivers/rpi/rp2350_gpio.c"
     "${EMB_BASE}/drivers/arm/pl011.c"
     "${EMB_BASE}/drivers/arm/pl022.c"
+    "${EMB_BASE}/drivers/snps/dw_i2c.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/rpi/include"
     "${EMB_BASE}/drivers/arm/include"
+    "${EMB_BASE}/drivers/snps/include"
 )
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=c8e8f52bbbcdec66759d400c131db05e49bc5224cc2ffdec76a3952ca3c502ed"
-    "drivers/bindings.yaml=d0518105ea6df9b04ad63452d6ada906ab255b3e83ccf2ff966e3cd0746b3947"
-    "soc/rpi/rp2350/rp2350.yaml=405d550d7342fa8fedeb8bc06b242e416d5a54731af6c9b72ab0c7189dcf0259"
+    "boards/rpi/pico2_w/board.yaml=79d86d507684a3621ddd46199e990de793db732e50e21c2da0f104a41b0793e5"
+    "drivers/bindings.yaml=756b2e3849638d0aaa3fe29167b2a0cf919bbcf2318140eb058e456a891a4990"
+    "soc/rpi/rp2350/rp2350.yaml=b564a9a4313b1bfade66579211e39c4b05a5cf80b374a23e3af44ef8c2e4247c"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

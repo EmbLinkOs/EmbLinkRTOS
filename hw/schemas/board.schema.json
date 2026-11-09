@@ -140,7 +140,10 @@
             "properties": {
               "device": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
               "ports": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } },
-              "internal": { "const": true }
+              "internal": { "const": true },
+              "peer": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+              "nets": { "type": "array", "minItems": 2, "maxItems": 2,
+                        "items": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } } }
             }
           }
         }
