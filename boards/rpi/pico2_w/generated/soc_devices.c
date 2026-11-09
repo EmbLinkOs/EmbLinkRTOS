@@ -6,7 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     97b3bb549b7b6550d4cc64d945dd9b41683494b3f3b1aab59a7316759bf8993c
+ *     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
+ *   drivers/bindings.yaml
+ *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
  *   soc/rpi/rp2350/rp2350.yaml
  *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
  *   soc/rpi/rp2350/rp2350a.yaml
@@ -23,8 +25,72 @@
 
 #include <stddef.h>
 
-/* the board declares no devices (its description has no devices:) */
-const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#include <emb_pl011.h>
+#include <emb_rp2350_devices.h>
+
+/* clocks: rpi,rp2350-clocks, clock, EARLY */
+static const emb_rp2350_clocks_config_t clocks_config = {
+    .base = 0x40010000u, /* peripheral.base */
+};
+static emb_device_state_t clocks_state;
+const emb_device_t emb_dev_clocks = {
+    .name = "clocks",
+    .api = &emb_rp2350_clocks_api,
+    .config = &clocks_config,
+    .state = &clocks_state,
+    .data = NULL,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_CLOCK,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* io_bank0: rpi,rp2350-io-bank, gpio, EARLY */
+static const emb_rp2350_io_bank_config_t io_bank0_config = {
+    .base = 0x40028000u, /* peripheral.base */
+};
+static emb_device_state_t io_bank0_state;
+static const emb_device_t *const io_bank0_deps[] = {&emb_dev_clocks};
+const emb_device_t emb_dev_io_bank0 = {
+    .name = "io_bank0",
+    .api = &emb_rp2350_io_bank_api,
+    .config = &io_bank0_config,
+    .state = &io_bank0_state,
+    .data = NULL,
+    .deps = io_bank0_deps,
+    .class_id = EMB_DRV_CLASS_GPIO,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* uart0: arm,pl011, uart, EARLY */
+static const emb_pl011_config_t uart0_config = {
+    .base = 0x40070000u,    /* peripheral.base */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+    .baud = 115200u,        /* device.baud */
+};
+static emb_device_state_t uart0_state;
+static const emb_device_t *const uart0_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_uart0 = {
+    .name = "uart0",
+    .api = &emb_pl011_api,
+    .config = &uart0_config,
+    .state = &uart0_state,
+    .data = NULL,
+    .deps = uart0_deps,
+    .class_id = EMB_DRV_CLASS_UART,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* in initialization order */
+static const emb_device_t *const devices[] = {
+    &emb_dev_clocks,   /* 0: EARLY */
+    &emb_dev_io_bank0, /* 1: EARLY */
+    &emb_dev_uart0,    /* 2: EARLY */
+};
+
+const emb_device_table_t emb_board_device_table = {devices, 3u, 3u};
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

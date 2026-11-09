@@ -164,6 +164,7 @@ devices:
 - **In the tree.**
   - The four MPS2 boards declare their console, `uart0`, bound to `arm,cmsdk-uart` (`drivers/arm/cmsdk_uart.c`).
   - The NUCLEO-F446RE and F446ZE declare the clock tree (`rcc`), the GPIO ports they use and their console USART, bound to thin adapters over the STM32 drivers (`drivers/st/stm32_devices.c`). The GPIO ports and the console follow `rcc`, which gates their clocks. The independent watchdog is not a device yet: initializing it would start it, and it cannot be stopped; it waits for the watchdog class (SPEC-017 §8).
+  - The Pico 2 W declares its clock generators (`clocks`), GPIO bank 0 (`io_bank0`) and its console, `uart0`, bound to the RP2350 drivers (`drivers/rpi/`) and the PL011 driver (`drivers/arm/pl011.c`). The RP2350's blocks have no clock gates in its description, so the board states the order with `deps:`.
 
 ## A numbered GPIO bank: the RP2350
 

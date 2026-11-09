@@ -351,7 +351,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "a9bc0ae57e42753f0a8973f4ec0ca9e193f9c5075396aeca376e64a149eb6170"
+      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

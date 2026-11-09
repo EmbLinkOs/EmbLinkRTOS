@@ -23,6 +23,25 @@
       "CONFIG_EMB_PROFILE": "base",
       "CONFIG_EMB_TICK_NS": 1000000
     },
+    "devices": [
+      {
+        "name": "clocks"
+      },
+      {
+        "deps": [
+          "clocks"
+        ],
+        "name": "io_bank0"
+      },
+      {
+        "baud": 115200,
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "the console, GPIO0 and GPIO1",
+        "name": "uart0"
+      }
+    ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
     "flash_partitions": [
       {
@@ -93,7 +112,47 @@
         }
       ]
     },
-    "devices": [],
+    "devices": [
+      {
+        "class": "clock",
+        "compatible": "rpi,rp2350-clocks",
+        "deps": [],
+        "fields": {
+          "base": 1073807360
+        },
+        "level": "early",
+        "name": "clocks",
+        "peripheral": "clocks"
+      },
+      {
+        "class": "gpio",
+        "compatible": "rpi,rp2350-io-bank",
+        "deps": [
+          "clocks"
+        ],
+        "fields": {
+          "base": 1073905664
+        },
+        "level": "early",
+        "name": "io_bank0",
+        "peripheral": "io_bank0"
+      },
+      {
+        "class": "uart",
+        "compatible": "arm,pl011",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074200576,
+          "baud": 115200,
+          "clock_hz": 150000000
+        },
+        "level": "early",
+        "name": "uart0",
+        "peripheral": "uart0"
+      }
+    ],
     "kconfig": {
       "CONFIG_EMB_CM_CPU_HZ": 150000000,
       "CONFIG_EMB_CM_IRQ_COUNT": 52,
@@ -165,7 +224,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "97b3bb549b7b6550d4cc64d945dd9b41683494b3f3b1aab59a7316759bf8993c"
+      "sha256": "2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
