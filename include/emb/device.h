@@ -64,16 +64,21 @@ typedef struct emb_device_api {
     emb_status_t (*resume)(const struct emb_device *dev);
 } emb_device_api_t;
 
-/* RAM: the device's lifecycle and its request queue. Lock domain: the device's critical
+/* A device's request lanes (AMENDMENTS-M4 A114): each a queue of its own, its head started
+ * whatever the other lane does, so a full-duplex device (a UART) writes while it reads. A
+ * class that needs one lane uses lane 0. */
+#define EMB_DRV_LANES 2u
+
+/* RAM: the device's lifecycle and its request queues. Lock domain: the device's critical
  * section (SPEC-016 §6). */
 typedef struct emb_device_ram {
     uint8_t lifecycle; /* EMB_DEVICE_* */
     uint8_t power;     /* the device's power state (SPEC-018) */
-    uint8_t busy;      /* the head request has been started */
+    uint8_t busy;      /* bit n: lane n's head request has been started */
     uint8_t reserved_;
-    int16_t last_status;          /* what made it FAILED, or EMB_OK */
-    struct emb_drv_request *head; /* the queue, first in first out */
-    struct emb_drv_request *tail;
+    int16_t last_status;                         /* what made it FAILED, or EMB_OK */
+    struct emb_drv_request *head[EMB_DRV_LANES]; /* each lane's queue, first in first out */
+    struct emb_drv_request *tail[EMB_DRV_LANES];
 } emb_device_state_t;
 
 /* A device: emitted by the generator (SPEC-016 §8), const, reached by symbol. */
@@ -127,6 +132,7 @@ typedef struct emb_drv_request {
     uint32_t done;                /* bytes or items completed, also on error and cancel */
     uint8_t target;               /* EMB_DRV_TARGET_* */
     uint8_t phase;                /* the core's: idle, queued, started, stopping, done */
+    uint8_t lane;                 /* the device's lane it queues on: 0, or 1 (A114) */
     emb_notify_bits_t bits;       /* EMB_DRV_TARGET_NOTIFY */
     emb_thread_t thread;          /* EMB_DRV_TARGET_NOTIFY */
     emb_sem_t sem;                /* EMB_DRV_TARGET_SEM */

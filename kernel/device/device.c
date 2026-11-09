@@ -127,7 +127,7 @@ emb_status_t emb_device_suspend(const emb_device_t *dev)
         emb_irq_unlock(key);
         return EMB_ESTATE;
     }
-    if (dev->state->head != NULL) {
+    if (dev->state->head[0] != NULL || dev->state->head[1] != NULL) {
         emb_irq_unlock(key);
         return EMB_EBUSY;
     }
@@ -167,6 +167,7 @@ void emb_drv_request_init(emb_drv_request_t *req)
     req->done = 0u;
     req->target = EMB_DRV_TARGET_POLL;
     req->phase = PHASE_IDLE;
+    req->lane = 0u;
     req->bits = 0u;
     req->thread.raw = 0u;
     req->sem.raw = 0u;
@@ -246,11 +247,16 @@ emb_status_t emb_drv_submit(const emb_device_t *dev, emb_drv_request_t *req)
 {
     emb_irq_key_t key;
     bool start;
+    uint8_t lane;
+    uint8_t bit;
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SUBMIT, dev != NULL && dev->state != NULL && dev->api != NULL,
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
-    EMBK_API_REQUIRE(EMB_API_ID_DRV_SUBMIT, req != NULL, EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
+    EMBK_API_REQUIRE(EMB_API_ID_DRV_SUBMIT, req != NULL && req->lane < EMB_DRV_LANES,
+                     EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SUBMIT, dev->api->start != NULL, EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 1u);
+    lane = req->lane;
+    bit = (uint8_t)(1u << lane);
     key = emb_irq_lock();
     if (dev->state->lifecycle != EMB_DEVICE_READY) {
         uint8_t lc = dev->state->lifecycle;
@@ -265,16 +271,16 @@ emb_status_t emb_drv_submit(const emb_device_t *dev, emb_drv_request_t *req)
     req->status = EMB_EBUSY;
     req->done = 0u;
     req->phase = PHASE_QUEUED;
-    if (dev->state->tail != NULL) {
-        dev->state->tail->next = req;
+    if (dev->state->tail[lane] != NULL) {
+        dev->state->tail[lane]->next = req;
     } else {
-        dev->state->head = req;
+        dev->state->head[lane] = req;
     }
-    dev->state->tail = req;
-    /* whoever moves the device from idle to busy starts the hardware (SPEC-016 §5) */
-    start = (dev->state->busy == 0u);
+    dev->state->tail[lane] = req;
+    /* whoever moves the lane from idle to busy starts the hardware (SPEC-016 §5) */
+    start = ((dev->state->busy & bit) == 0u);
     if (start) {
-        dev->state->busy = 1u;
+        dev->state->busy = (uint8_t)(dev->state->busy | bit);
         req->phase = PHASE_STARTED;
     }
     emb_irq_unlock(key);
@@ -284,11 +290,12 @@ emb_status_t emb_drv_submit(const emb_device_t *dev, emb_drv_request_t *req)
     return EMB_OK;
 }
 
-/* Removes req from the queue under the lock; returns whether it was there. */
+/* Removes req from its lane's queue under the lock; returns whether it was there. */
 static bool queue_remove(emb_device_state_t *s, emb_drv_request_t *req)
 {
+    uint8_t lane = req->lane;
     emb_drv_request_t *prev = NULL;
-    emb_drv_request_t *n = s->head;
+    emb_drv_request_t *n = s->head[lane];
     /* bounded by the device's queued requests */
     while (n != NULL && n != req) {
         prev = n;
@@ -300,10 +307,10 @@ static bool queue_remove(emb_device_state_t *s, emb_drv_request_t *req)
     if (prev != NULL) {
         prev->next = n->next;
     } else {
-        s->head = n->next;
+        s->head[lane] = n->next;
     }
-    if (s->tail == n) {
-        s->tail = prev;
+    if (s->tail[lane] == n) {
+        s->tail[lane] = prev;
     }
     n->next = NULL;
     return true;
@@ -326,11 +333,11 @@ void emb_drv_complete(const emb_device_t *dev, emb_drv_request_t *req, emb_statu
     req->status = status;
     req->done = done;
     req->phase = PHASE_DONE;
-    next = dev->state->head;
+    next = dev->state->head[req->lane];
     if (next != NULL) {
-        next->phase = PHASE_STARTED; /* the device stays busy with it */
+        next->phase = PHASE_STARTED; /* the lane stays busy with it */
     } else {
-        dev->state->busy = 0u;
+        dev->state->busy = (uint8_t)(dev->state->busy & (uint8_t) ~(1u << req->lane));
     }
     emb_irq_unlock(key);
     deliver(req);

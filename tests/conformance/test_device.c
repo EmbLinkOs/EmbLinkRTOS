@@ -88,7 +88,7 @@ FAKE_DEVICE(dev_after, EMB_OK, false, NULL, 0u);
 static void reset(const emb_device_t *dev)
 {
     fake_data_t zero = {0u, 0u, 0u, NULL, {NULL, NULL, NULL, NULL}};
-    emb_device_state_t idle = {EMB_DEVICE_UNINIT, 0u, 0u, 0u, EMB_OK, NULL, NULL};
+    emb_device_state_t idle = {EMB_DEVICE_UNINIT, 0u, 0u, 0u, EMB_OK, {NULL, NULL}, {NULL, NULL}};
     *dev->state = idle;
     *(fake_data_t *)dev->data = zero;
 }
@@ -275,6 +275,37 @@ EMB_TEST(drv_queue_is_first_in_first_out)
     EMB_ASSERT_TRUE(dev_async_data.order[0] == &a && dev_async_data.order[1] == &b);
     emb_test_irq_raise(IRQ_DONE);
     EMB_ASSERT_OK(b.status);
+}
+
+EMB_TEST(drv_lanes_run_independently)
+{
+    const emb_device_t *dev = ready_async();
+    emb_drv_request_t tx1;
+    emb_drv_request_t tx2;
+    emb_drv_request_t rx;
+    EMB_TEST_REQ("DRV-004", "DRV-006");
+    emb_drv_request_init(&tx1);
+    emb_drv_request_init(&tx2);
+    emb_drv_request_init(&rx);
+    rx.lane = 1u; /* a full-duplex device: a read beside the writes (A114) */
+    EMB_ASSERT_OK(emb_drv_submit(dev, &tx1));
+    EMB_ASSERT_OK(emb_drv_submit(dev, &tx2)); /* behind tx1 on lane 0 */
+    EMB_ASSERT_OK(emb_drv_submit(dev, &rx));  /* lane 1 is idle: it starts at once */
+    EMB_ASSERT_EQ(dev_async_data.starts, 2u);
+    EMB_ASSERT_TRUE(dev_async_data.order[1] == &rx);
+    emb_drv_complete(dev, &rx, EMB_OK, 3u); /* the read ends first; lane 0 is untouched */
+    EMB_ASSERT_STATUS(rx.status, EMB_OK);
+    EMB_ASSERT_STATUS(tx2.status, EMB_EBUSY);
+    EMB_ASSERT_EQ(dev_async_data.starts, 2u);
+    EMB_ASSERT_STATUS(emb_device_suspend(dev), EMB_EBUSY); /* lane 0 still has requests */
+    emb_drv_complete(dev, &tx1, EMB_OK, 1u);               /* tx2 starts after tx1 */
+    EMB_ASSERT_EQ(dev_async_data.starts, 3u);
+    EMB_ASSERT_TRUE(dev_async_data.order[2] == &tx2);
+    emb_drv_complete(dev, &tx2, EMB_OK, 1u);
+    EMB_ASSERT_OK(emb_device_suspend(dev)); /* both lanes empty */
+    EMB_ASSERT_OK(emb_device_resume(dev));
+    rx.lane = EMB_DRV_LANES; /* no such lane */
+    EMB_ASSERT_FAULTS((void)emb_drv_submit(dev, &rx));
 }
 
 EMB_TEST(drv_cancel_queued_and_running_requests_complete_once)
