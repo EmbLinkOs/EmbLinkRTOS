@@ -14,6 +14,27 @@ The console's device:
 - macOS: `/dev/cu.usbmodem*` (`ls /dev/cu.usbmodem*` after plugging in);
 - Linux: `/dev/ttyACM0` (your user needs the `dialout` group).
 
+### For M4's drivers, power and updates (to buy)
+
+M4's driver classes, power states and updates need more than the boards (SPEC-017, SPEC-018, SPEC-019). The parts below are cheap; where possible they are parts EmbSIM also models (the BME280, the DS3231 and the 24LC256), so the same driver runs against the model in CI and the real part on the bench. Each evidence report names the exact part used.
+
+| Part | For | Status |
+|---|---|---|
+| Resistors, 4.7 kΩ among them | I2C pull-ups: the chips' own are weak, and the analyzer shows the edges | to buy |
+| Jumper wires | SPI loopback (MOSI to MISO), I2C between two controllers of one chip, the modules below | on the bench (2026-11-09) |
+| A half-size breadboard | the pull-ups and the modules | to buy |
+| A 3.3 V USB-to-serial adapter (CP2102 or CH340) | the Pico 2 W's own console, so the NUCLEO no longer relays it while it is also the board under test or the power-cut injector | to buy |
+| A powered USB hub | plugging a device into the hub the ST-LINK shares made it re-enumerate in the middle of a run (2026-11-08) | to buy |
+| BME280 module (I2C) | a real sensor for the field node and the I2C class; some modules sold as BME280 are BMP280s, without humidity | to buy |
+| DS3231 module | a calendar clock for the Pico 2 W, whose RP2350 has none | to buy |
+| 24LC256 EEPROM (I2C) | a simple I2C target for the class's tests | to buy |
+| W25Q64 module (SPI NOR flash) | the external flash driver on the SPI class | to buy |
+| INA219 module (optional) | current at the milliampere level, running and in light sleep. PWR defers current measurement until an instrument is on the bench; this one does not reach deep sleep's microamperes | optional |
+| A MOSFET load-switch module (optional) | cutting the NUCLEO's power for the update's power-loss runs: a reset by NRST is not a loss of power | optional |
+| Nordic Power Profiler Kit II (later) | deep-sleep current in microamperes | later |
+
+The Pico 2 W needs no part for power cuts: the bench's NUCLEO pulls its 3V3_EN pin low, which turns the Pico's regulator off (SPEC-019).
+
 ## The Arduino Uno R3
 
 The Uno flashes and prints over one USB serial port: its ATmega16U2, `/dev/cu.usbmodem*` on macOS, `/dev/ttyACM0` on Linux. The runner therefore uses the other order:
