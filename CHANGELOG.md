@@ -4,11 +4,6 @@ User-visible changes are recorded here, newest first. A change not yet released 
 
 ## Unreleased
 
-### Added (blinky example, 2026-11-08)
-
-- A drift-free blinky example toggles the board LED every 500 ms and reports
-  each transition on the board console. On the native port, it exits after
-  10 toggles.
 ## [0.2.0] - 2026-11-09
 
 The first release, a preview ([notes](docs/engineering/release-0.2.0.md), [tag](https://github.com/EmbLinkOs/EmbLinkRTOS/releases/tag/v0.2.0)). Everything below was developed before it.

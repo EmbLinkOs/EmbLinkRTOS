@@ -746,8 +746,8 @@ jobs:
           retention-days: 30
 
   application:
-    # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four
-    # boards, run natively and under QEMU until its own end line
+    # applications outside the tree, through find_package(EmbLinkRTOS) (A91): hello_app and
+    # blinky built for four boards, run natively and under QEMU until their own end lines
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -757,23 +757,35 @@ jobs:
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
           packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
-      - name: Copy the example out of the tree
-        run: cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
-      - name: Build it for native, the MPS2 AN386, RV32 virt and the Uno
+      - name: Copy the examples out of the tree
+        run: |
+          cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
+          cp -r examples/blinky "$RUNNER_TEMP/blinky"
+      - name: Build them for native, the MPS2 AN386, RV32 virt and the Uno
         run: |
           for b in native mps2_an386 riscv32_virt arduino_uno; do
-            cmake -S "$RUNNER_TEMP/hello_app" -B "build/hello-$b" -G Ninja \
-                  -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
-            cmake --build "build/hello-$b"
+            for app in hello_app blinky; do
+              cmake -S "$RUNNER_TEMP/$app" -B "build/$app-$b" -G Ninja \
+                    -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
+              cmake --build "build/$app-$b"
+            done
           done
       - name: Run it natively and under QEMU
         run: |
-          build/hello-native/hello | tee hello-native.log
+          build/hello_app-native/hello | tee hello-native.log
           grep -q "hello_app: done" hello-native.log
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until "hello_app: done" --timeout 60 \
-            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello-mps2_an386/hello.elf
+            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello_app-mps2_an386/hello.elf
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "hello_app: done" --timeout 60 \
-            --qemu-args "-M virt -bios none -kernel" build/hello-riscv32_virt/hello.elf
+            --qemu-args "-M virt -bios none -kernel" build/hello_app-riscv32_virt/hello.elf
+      - name: Run blinky natively, where it stops after ten toggles, and under QEMU, where it blinks on
+        run: |
+          build/blinky-native/blinky | tee blinky-native.log
+          test "$(grep -c '^blinky: ' blinky-native.log)" -eq 10
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until "blinky: off" --timeout 60 \
+            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/blinky-mps2_an386/blinky.elf
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "blinky: off" --timeout 60 \
+            --qemu-args "-M virt -bios none -kernel" build/blinky-riscv32_virt/blinky.elf
       - name: Build the reference controller for both NUCLEO-F446 boards (it runs on the board, not here)
         run: |
           cp -r examples/controller "$RUNNER_TEMP/controller"
