@@ -6,6 +6,7 @@ The blinky example toggles the board LED every 500 ms without accumulating
 timing drift. It also prints each transition, so boards with an emulator or a
 serial console show the LED state.
 
+The native port uses virtual time, so the example exits after 10 toggles.
 Configure and build it for the native port:
 
 ```sh

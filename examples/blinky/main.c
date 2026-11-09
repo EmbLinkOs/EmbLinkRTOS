@@ -7,11 +7,17 @@
 #include <emb/emb.h>
 
 #include <emb_board.h>
+#if CONFIG_EMB_ARCH_NATIVE
+#include <emb_native.h>
+#endif
 
 static void blink(void *arg)
 {
     emb_instant_t next = emb_time_now();
     bool led_on = false;
+#if CONFIG_EMB_ARCH_NATIVE
+    unsigned int toggles = 0u;
+#endif
     (void)arg;
     for (;;) {
         next = emb_instant_add(next, EMB_MS(500));
@@ -19,6 +25,12 @@ static void blink(void *arg)
         emb_board_led_toggle();
         led_on = !led_on;
         emb_board_puts(led_on ? "blinky: on\n" : "blinky: off\n");
+#if CONFIG_EMB_ARCH_NATIVE
+        toggles++;
+        if (toggles == 10u) {
+            emb_native_exit(0);
+        }
+#endif
     }
 }
 
