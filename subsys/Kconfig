@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+menu "Subsystems"
+
+config EMB_FRAME
+	bool "Framed byte streams: COBS, a channel and a CRC-16 (SPEC-015 §7)"
+	default y
+	help
+	  OBS-019. emb_frame_encode() and a stream decoder that resynchronizes at
+	  each zero delimiter, for the log, trace, crash, shell and update channels
+	  over one byte stream. Linked only into an image that calls it.
+
+endmenu

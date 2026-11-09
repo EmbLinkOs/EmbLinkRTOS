@@ -152,5 +152,8 @@
 #define EMB_API_ID_CRASH_RECORD_CLEAR            0x0092u
 #define EMB_API_ID_TICKS_AT_LEAST                0x0093u
 #define EMB_API_ID_ISR_STACK_INFO                0x0094u
+#define EMB_API_ID_FRAME_ENCODE                  0x00A5u
+#define EMB_API_ID_FRAME_DECODER_INIT            0x00A6u
+#define EMB_API_ID_FRAME_DECODE_BYTE             0x00A7u
 
 #endif /* EMB_API_IDS_H */

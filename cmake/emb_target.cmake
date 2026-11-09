@@ -23,7 +23,7 @@ endfunction()
 # The image without a run target: emb_add_executable() and emb_add_test() share it.
 function(_emb_add_image name)
   add_executable(${name} ${ARGN})
-  target_link_libraries(${name} PRIVATE emb_board emb_kernel emb_arch emb_api emb_flags)
+  target_link_libraries(${name} PRIVATE emb_subsys emb_board emb_kernel emb_arch emb_api emb_flags)
   if(APPLE)
     # Apple ld64 spells the map option differently from GNU ld
     target_link_options(${name} PRIVATE "-Wl,-map,$<TARGET_FILE:${name}>.map")

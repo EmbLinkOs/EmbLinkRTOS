@@ -888,6 +888,24 @@
       "name": "emb_isr_stack_info",
       "header": "irq.h",
       "state": "active"
+    },
+    {
+      "id": 165,
+      "name": "emb_frame_encode",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 166,
+      "name": "emb_frame_decoder_init",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 167,
+      "name": "emb_frame_decode_byte",
+      "header": "frame.h",
+      "state": "active"
     }
   ]
 }
