@@ -1,0 +1,10 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_first_execution.elf sha256 0644025939886d2a1a39d34bb985111a51674ddfb829eb94df660a04d5e13793
+EVIDENCE v1 suite=test_first_execution config=c16e1c6b0306ac27 profile=base board=nucleo_f446re checked=1
+TEST first_execution_sequence_repeats_reliably
+  ticks seen 401, elapsed 401, timer start +0, late 0
+  -> ok
+  req KRN-SCH-001 KRN-SCH-004 KRN-IRQ-010 KRN-TIM-010 KRN-NOTIF-003
+CASE first_execution_sequence_repeats_reliably outcome=passed asserts=80614 skips=0
+ISR_STACK size=2048 used=160
+1 tests, 0 failed, 0 skipped, 434 ticks
+EMB_TEST_END

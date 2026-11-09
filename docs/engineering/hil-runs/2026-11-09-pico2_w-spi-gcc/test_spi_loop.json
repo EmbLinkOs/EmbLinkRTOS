@@ -1,0 +1,85 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 17,
+      "name": "spi_loop_no_transmit_buffer_sends_ones",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "spi_loop_timeout_stops_after_whole_frames",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_refuses_a_clock_too_slow",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_slow_and_fast_clocks",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "spi_loop_every_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_frames_come_back_intact",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T19:12:44Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "a224274669778551",
+    "profile": "base",
+    "suite": "test_spi_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_spi_loop.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_spi_loop.uf2": "aad9299b039b5e48978ba8672d45f6b8b93f4b2df6e0eb3b78a9849c095c1b4c"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b453a8d0cd30df946edd1c377f42e8ae29d8373",
+    "dirty": false
+  },
+  "image": "test_spi_loop.elf",
+  "image_sha256": "7ad204d17b3d58376af4afcfbf29e06aa93bc5462ab6d1a383d9c55462645ad3",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T19:12:43Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

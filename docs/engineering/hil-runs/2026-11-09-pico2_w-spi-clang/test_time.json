@@ -1,0 +1,97 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "time_sleep_is_exact_in_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "time_sleep_until_does_not_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "time_zero_sleep_and_past_deadline_yield",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "time_timeouts_expire_in_deadline_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "time_conversions_round_up_and_saturate",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_at_least_adds_one_tick",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "time_instant_helpers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 40,
+      "name": "time_now_is_monotonic_across_sleeps",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T19:13:20Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "a224274669778551",
+    "profile": "base",
+    "suite": "test_time"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_time.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_time.uf2": "e6fb6c2581db59ae03c03d1df040ca7aa66bda107ae7d40a3cdf351206200d84"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b453a8d0cd30df946edd1c377f42e8ae29d8373",
+    "dirty": false
+  },
+  "image": "test_time.elf",
+  "image_sha256": "00565b3eb63a453cccda30d59ea33971d94613b1e79e4a33e1d5f14f2660970d",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T19:13:18Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}
