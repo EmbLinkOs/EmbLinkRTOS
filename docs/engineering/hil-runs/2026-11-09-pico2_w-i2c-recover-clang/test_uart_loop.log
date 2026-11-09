@@ -1,0 +1,29 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_uart_loop.elf sha256 e15bc8b8e941d4ea7830f460bca6a16ae3fa94a7ba8480213a553f2fa68e623d
+EVIDENCE v1 suite=test_uart_loop config=9e4854acdc9e5692 profile=base board=pico2_w checked=1
+TEST uart_loop_echo_full_duplex
+  -> ok
+  req DRV-004 DRV-005
+CASE uart_loop_echo_full_duplex outcome=passed asserts=7 skips=0
+TEST uart_loop_ring_keeps_what_arrives
+  -> ok
+  req DRV-005
+CASE uart_loop_ring_keeps_what_arrives outcome=passed asserts=4 skips=0
+TEST uart_loop_idle_line_ends_a_read
+  -> ok
+  req DRV-005
+CASE uart_loop_idle_line_ends_a_read outcome=passed asserts=5 skips=0
+TEST uart_loop_a_kilobyte_intact
+  -> ok
+  req DRV-004 DRV-005
+CASE uart_loop_a_kilobyte_intact outcome=passed asserts=6 skips=0
+TEST uart_loop_break_arrives_as_a_framing_error
+  -> ok
+  req DRV-004 DRV-008
+CASE uart_loop_break_arrives_as_a_framing_error outcome=passed asserts=4 skips=0
+TEST uart_loop_overrun_is_reported
+  -> ok
+  req DRV-005 DRV-008
+CASE uart_loop_overrun_is_reported outcome=passed asserts=4 skips=0
+ISR_STACK size=2048 used=200
+6 tests, 0 failed, 0 skipped, 184 ticks
+EMB_TEST_END
