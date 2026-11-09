@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+ *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml

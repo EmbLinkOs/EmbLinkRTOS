@@ -52,6 +52,7 @@ typedef struct emb_stm32_usart_config {
     uint32_t irq;
     uint8_t *rx; /* the receive ring (rx_buffer) */
     uint32_t rx_size;
+    emb_drv_dma_chan_t dma_tx; /* writes by DMA, where the board gives it one (dma: [tx]) */
 } emb_stm32_usart_config_t;
 
 #if CONFIG_EMB_DRV_UART
@@ -61,6 +62,7 @@ typedef struct emb_stm32_usart_data {
     emb_drv_uart_req_t *tx;  /* the write in progress */
     const emb_device_t *dev; /* for the interrupt handler */
     uint8_t irq_on;          /* the interrupts serve requests: set by the first one */
+    uint8_t dma;             /* the write in progress runs by DMA */
 } emb_stm32_usart_data_t;
 #endif
 

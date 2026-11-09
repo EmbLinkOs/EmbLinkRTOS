@@ -78,7 +78,10 @@
         "deps": [
           "io_bank0"
         ],
-        "doc": "a spare UART; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
+        "dma": [
+          "tx"
+        ],
+        "doc": "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
         "name": "uart1"
       }
     ],
@@ -217,6 +220,9 @@
           "base": 1074200576,
           "baud": 115200,
           "clock_hz": 150000000,
+          "dma_tx": {
+            "dma": null
+          },
           "irq": 33,
           "rx": "uart0_rx",
           "rx_size": 64
@@ -229,12 +235,18 @@
         "class": "uart",
         "compatible": "arm,pl011",
         "deps": [
-          "io_bank0"
+          "io_bank0",
+          "dma"
         ],
         "fields": {
           "base": 1074233344,
           "baud": 115200,
           "clock_hz": 150000000,
+          "dma_tx": {
+            "dma": "dma",
+            "request": 30,
+            "stream": 2
+          },
           "irq": 34,
           "rx": "uart1_rx",
           "rx_size": 64
@@ -491,11 +503,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0"
+      "sha256": "7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+      "sha256": "404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",

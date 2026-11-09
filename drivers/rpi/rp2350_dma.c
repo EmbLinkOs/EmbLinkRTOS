@@ -72,7 +72,7 @@ static void rp2350_dma_isr(void *arg)
         emb_rp2350_dma_channel_t *ch = &d->channels[c];
         uintptr_t r = base + (CH_STEP * c);
         uint32_t ctrl;
-        if (((pending >> c) & 1u) == 0u || (ch->running == 0u)) {
+        if ((((pending >> c) & 1u) == 0u) || (ch->running == 0u)) {
             continue;
         }
         ctrl = REG32(r + CTRL_TRIG);

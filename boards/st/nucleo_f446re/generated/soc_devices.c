@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1
+ *     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
  *   drivers/bindings.yaml
- *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+ *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -140,18 +140,19 @@ const emb_device_t emb_dev_gpioc = {
 /* usart2: st,stm32-usart, uart, EARLY */
 static uint8_t usart2_rx[64];
 static const emb_stm32_usart_config_t usart2_config = {
-    .base = 0x40004400u,         /* peripheral.base */
-    .clock_hz = 45000000u,       /* peripheral.clock_hz */
-    .baud = 115200u,             /* device.baud */
-    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
-    .clken_bit = 17u,            /* peripheral.clock.bit */
-    .irq = 38u,                  /* peripheral.irqs.global */
-    .rx = usart2_rx,             /* its rx buffer */
-    .rx_size = 64u,              /* device.rx_buffer */
+    .base = 0x40004400u,                         /* peripheral.base */
+    .clock_hz = 45000000u,                       /* peripheral.clock_hz */
+    .baud = 115200u,                             /* device.baud */
+    .clken_offset = 0x00000040u,                 /* peripheral.clock.enable_offset */
+    .clken_bit = 17u,                            /* peripheral.clock.bit */
+    .irq = 38u,                                  /* peripheral.irqs.global */
+    .dma_tx = {&emb_dev_dma1, 6u, 4u, {0u, 0u}}, /* dma.tx */
+    .rx = usart2_rx,                             /* its rx buffer */
+    .rx_size = 64u,                              /* device.rx_buffer */
 };
 static emb_device_state_t usart2_state;
 static emb_stm32_usart_data_t usart2_data;
-static const emb_device_t *const usart2_deps[] = {&emb_dev_rcc};
+static const emb_device_t *const usart2_deps[] = {&emb_dev_dma1, &emb_dev_rcc};
 const emb_device_t emb_dev_usart2 = {
     .name = "usart2",
     .api = &emb_stm32_usart_api.dev,
@@ -161,20 +162,21 @@ const emb_device_t emb_dev_usart2 = {
     .deps = usart2_deps,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,
-    .dep_count = 1u,
+    .dep_count = 2u,
 };
 
 /* uart4: st,stm32-usart, uart, EARLY */
 static uint8_t uart4_rx[64];
 static const emb_stm32_usart_config_t uart4_config = {
-    .base = 0x40004C00u,         /* peripheral.base */
-    .clock_hz = 45000000u,       /* peripheral.clock_hz */
-    .baud = 115200u,             /* device.baud */
-    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
-    .clken_bit = 19u,            /* peripheral.clock.bit */
-    .irq = 52u,                  /* peripheral.irqs.global */
-    .rx = uart4_rx,              /* its rx buffer */
-    .rx_size = 64u,              /* device.rx_buffer */
+    .base = 0x40004C00u,                /* peripheral.base */
+    .clock_hz = 45000000u,              /* peripheral.clock_hz */
+    .baud = 115200u,                    /* device.baud */
+    .clken_offset = 0x00000040u,        /* peripheral.clock.enable_offset */
+    .clken_bit = 19u,                   /* peripheral.clock.bit */
+    .irq = 52u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .rx = uart4_rx,                     /* its rx buffer */
+    .rx_size = 64u,                     /* device.rx_buffer */
 };
 static emb_device_state_t uart4_state;
 static emb_stm32_usart_data_t uart4_data;

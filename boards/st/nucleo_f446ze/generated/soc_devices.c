@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+ *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -110,14 +110,15 @@ const emb_device_t emb_dev_gpiod = {
 /* usart3: st,stm32-usart, uart, EARLY */
 static uint8_t usart3_rx[64];
 static const emb_stm32_usart_config_t usart3_config = {
-    .base = 0x40004800u,         /* peripheral.base */
-    .clock_hz = 45000000u,       /* peripheral.clock_hz */
-    .baud = 115200u,             /* device.baud */
-    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
-    .clken_bit = 18u,            /* peripheral.clock.bit */
-    .irq = 39u,                  /* peripheral.irqs.global */
-    .rx = usart3_rx,             /* its rx buffer */
-    .rx_size = 64u,              /* device.rx_buffer */
+    .base = 0x40004800u,                /* peripheral.base */
+    .clock_hz = 45000000u,              /* peripheral.clock_hz */
+    .baud = 115200u,                    /* device.baud */
+    .clken_offset = 0x00000040u,        /* peripheral.clock.enable_offset */
+    .clken_bit = 18u,                   /* peripheral.clock.bit */
+    .irq = 39u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .rx = usart3_rx,                    /* its rx buffer */
+    .rx_size = 64u,                     /* device.rx_buffer */
 };
 static emb_device_state_t usart3_state;
 static emb_stm32_usart_data_t usart3_data;

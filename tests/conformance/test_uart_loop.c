@@ -129,3 +129,59 @@ EMB_TEST(uart_loop_overrun_is_reported)
     EMB_ASSERT_EQ(got, RING);
     EMB_ASSERT_TRUE(memcmp(in, out, RING) == 0);
 }
+
+#ifdef EMB_TEST_UART_LOOP_DMA_TX
+/* The board gives the UART a DMA channel: writes of 16 bytes and more run by DMA, and one
+ * canceled part-way has sent what it counts. */
+static const emb_drv_dma_chan_t loop_dma_tx = EMB_TEST_UART_LOOP_DMA_TX;
+static uint8_t probe;
+
+static void probe_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    (void)arg;
+    (void)st;
+    (void)moved;
+}
+
+EMB_TEST(uart_loop_writes_by_dma)
+{
+    emb_drv_uart_req_t w;
+    emb_status_t st;
+    emb_drv_dma_job_t job = {
+        (uintptr_t)&probe, (uintptr_t)&probe, 1u, EMB_DRV_DMA_TO_PERIPH, 1u, 0u, 0u};
+    size_t got = 0u;
+    EMB_TEST_REQ("DRV-004", "DRV-006");
+    drain();
+    pattern(64u, 0x71u);
+    emb_drv_uart_req_read(&rd, in, 64u, 0u);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &rd));
+    emb_drv_uart_req_write(&w, out, 64u);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &w));
+    st = emb_drv_dma_start(&loop_dma_tx, &job, probe_done, NULL);
+    if (st == EMB_OK) {
+        (void)emb_drv_dma_stop(&loop_dma_tx, NULL); /* free: the probe must not keep it */
+    }
+    EMB_ASSERT_STATUS(st, EMB_EBUSY);
+    /* the transfer has the channel */ /* the write has the channel */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(20)));
+    EMB_ASSERT_STATUS(w.req.status, EMB_OK);
+    EMB_ASSERT_STATUS(rd.req.status, EMB_OK);
+    EMB_ASSERT_TRUE(memcmp(in, out, 64u) == 0); /* every byte, back through the wire */
+
+    drain();
+    pattern(512u, 0x13u); /* some 44 ms at 115200 baud */
+    emb_drv_uart_req_read(&rd, in, 512u, 0u);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &rd));
+    emb_drv_uart_req_write(&w, out, 512u);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &w));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(10)));
+    EMB_ASSERT_OK(emb_drv_cancel(LOOP, &w.req)); /* part-way */
+    EMB_ASSERT_STATUS(w.req.status, EMB_ECANCELED);
+    EMB_ASSERT_TRUE(w.req.done > 0u && w.req.done < 512u);
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(10))); /* what went out arrives */
+    (void)emb_drv_cancel(LOOP, &rd.req);
+    got = (size_t)rd.req.done;
+    EMB_ASSERT_TRUE(got >= w.req.done - 2u && got <= w.req.done); /* less what was in flight */
+    EMB_ASSERT_TRUE(memcmp(in, out, got) == 0);
+}
+#endif

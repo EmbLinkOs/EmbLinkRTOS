@@ -62,21 +62,24 @@ void emb_pl011_flush(uintptr_t base)
 #if CONFIG_EMB_DRV_UART
 #include <emb/irq.h>
 
-#define UART_IMSC 0x38u
-#define UART_MIS  0x40u
-#define UART_ICR  0x44u
-#define FR_RXFE   (1u << 4)
-#define DR_FE     (1u << 8)
-#define DR_PE     (1u << 9)
-#define DR_BE     (1u << 10) /* a break: the line low past a whole frame */
-#define INT_RX    (1u << 4)  /* the receive FIFO at its level */
-#define INT_TX    (1u << 5)  /* the transmit FIFO at or below its level */
-#define INT_RT    (1u << 6)  /* the receive timeout: bytes waiting, the line idle */
-#define INT_ALL   0x7FFu
-#define LCR_BRK   0x01u /* the line held low while set */
-#define BRK_NONE  0u
-#define BRK_WAIT  1u /* the transmitter still sends what came before */
-#define BRK_LOW   2u
+#define UART_IMSC  0x38u
+#define UART_MIS   0x40u
+#define UART_ICR   0x44u
+#define UART_DMACR 0x48u
+#define DMACR_TX   (1u << 1)
+#define DMA_MIN    16u /* bytes: shorter writes stay with the FIFO and its interrupt */
+#define FR_RXFE    (1u << 4)
+#define DR_FE      (1u << 8)
+#define DR_PE      (1u << 9)
+#define DR_BE      (1u << 10) /* a break: the line low past a whole frame */
+#define INT_RX     (1u << 4)  /* the receive FIFO at its level */
+#define INT_TX     (1u << 5)  /* the transmit FIFO at or below its level */
+#define INT_RT     (1u << 6)  /* the receive timeout: bytes waiting, the line idle */
+#define INT_ALL    0x7FFu
+#define LCR_BRK    0x01u /* the line held low while set */
+#define BRK_NONE   0u
+#define BRK_WAIT   1u /* the transmitter still sends what came before */
+#define BRK_LOW    2u
 
 static const emb_pl011_config_t *config(const emb_device_t *dev)
 {
@@ -189,6 +192,7 @@ static emb_status_t uart_init(const emb_device_t *dev)
     } /* else the board's console, already at this rate: left as the board set it */
     emb_drv_uart_rx_init(&d->rx, cfg->rx, cfg->rx_size);
     d->tx = NULL;
+    d->dma = 0u;
     d->dev = dev;
     d->irq_on = 0u;
 #if CONFIG_EMB_TIMER
@@ -223,6 +227,43 @@ static void irq_on(const emb_device_t *dev)
     (void)emb_irq_enable((emb_irq_t)cfg->irq);
 }
 
+/* A write by DMA ended: its last byte is in the FIFO. */
+static void uart_dma_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    emb_pl011_data_t *d = (emb_pl011_data_t *)arg;
+    emb_drv_uart_req_t *w = d->tx;
+    REG32(config(d->dev)->base + UART_DMACR) &= ~DMACR_TX;
+    d->tx = NULL;
+    d->dma = 0u;
+    if (w != NULL) {
+        emb_drv_complete(d->dev, &w->req, st, moved);
+    }
+}
+
+/* The write by DMA, where the board gives the UART a channel and DMA reaches the bytes; false
+ * leaves it to the FIFO and its interrupt. */
+static bool uart_dma_write(const emb_device_t *dev, emb_pl011_data_t *d,
+                           const emb_drv_uart_req_t *r)
+{
+    const emb_pl011_config_t *cfg = config(dev);
+    emb_drv_dma_job_t job;
+    if ((cfg->dma_tx.dma == NULL) || (r->len < DMA_MIN) || (r->len > UINT32_MAX)) {
+        return false;
+    }
+    job.src = (uintptr_t)r->tx;
+    job.dst = cfg->base + UART_DR;
+    job.count = (uint32_t)r->len;
+    job.dir = EMB_DRV_DMA_TO_PERIPH;
+    job.width = 1u;
+    job.flags = 0u;
+    job.reserved_ = 0u;
+    if (emb_drv_dma_start(&cfg->dma_tx, &job, uart_dma_done, d) != EMB_OK) {
+        return false;
+    }
+    REG32(cfg->base + UART_DMACR) |= DMACR_TX; /* the requests, the job ready */
+    return true;
+}
+
 static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
     emb_pl011_data_t *d = data(dev);
@@ -244,6 +285,13 @@ static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
 #endif
     }
     key = emb_irq_lock();
+    d->tx = r;
+    if (uart_dma_write(dev, d, r)) {
+        d->dma = 1u;
+        emb_irq_unlock(key);
+        return EMB_EBUSY; /* the DMA job's end completes it */
+    }
+    d->tx = NULL;
     if (tx_fill(base, r)) {
         /* all of it in the FIFO: done now. The transmit interrupt comes only when the FIFO
          * drains past its level, which a write this short may never cross. */
@@ -265,6 +313,18 @@ static void uart_stop(const emb_device_t *dev, emb_drv_request_t *req)
         return;
     }
     key = emb_irq_lock();
+    if ((d->tx == EMB_DRV_UART_REQ(req)) && (d->dma != 0u)) {
+        uint32_t moved = 0u;
+        bool stopped = emb_drv_dma_stop(&config(dev)->dma_tx, &moved) == EMB_OK;
+        REG32(config(dev)->base + UART_DMACR) &= ~DMACR_TX;
+        d->tx = NULL;
+        d->dma = 0u;
+        emb_irq_unlock(key);
+        if (stopped) { /* otherwise its end came first, and completed it */
+            emb_drv_complete(dev, req, EMB_ECANCELED, moved);
+        }
+        return;
+    }
     if (d->tx == EMB_DRV_UART_REQ(req)) {
         d->tx = NULL; /* what is in the FIFO still goes out; no more is added */
         REG32(config(dev)->base + UART_IMSC) &= ~INT_TX;

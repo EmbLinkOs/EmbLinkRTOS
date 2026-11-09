@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1
+ *     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
  *   drivers/bindings.yaml
- *     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+ *     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -52,6 +52,10 @@ extern const emb_device_t emb_dev_i2c2;
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)
+/* its writes' DMA channel (devices[].dma, A119) */
+/* clang-format off */
+#define EMB_SOC_CONSOLE_DMA_TX {&emb_dev_dma1, 6u, 4u, {0u, 0u}}
+/* clang-format on */
 
 /* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t
  * initializers: an I2C bus's, for its recovery */
@@ -65,6 +69,7 @@ extern const emb_device_t emb_dev_i2c2;
 /* the DMA channels the board gave its devices (devices[].dma, A119), emb_drv_dma_chan_t
  * initializers */
 /* clang-format off */
+#define EMB_SOC_USART2_DMA_TX {&emb_dev_dma1, 6u, 4u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_TX {&emb_dev_dma1, 4u, 0u, {0u, 0u}}
 /* clang-format on */

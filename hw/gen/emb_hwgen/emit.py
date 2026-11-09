@@ -715,6 +715,11 @@ def soc_devices_h(r):
             if console is not None and d["peripheral"] == console and d["class"] == "uart":
                 out += "\n/* the console's UART device (the board's console:) */\n"
                 out += f"#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_{d['name']})\n"
+                if "tx" in d.get("dma", {}):
+                    c = d["dma"]["tx"]
+                    out += ("/* its writes' DMA channel (devices[].dma, A119) */\n/* clang-format off */\n"
+                            f"#define EMB_SOC_CONSOLE_DMA_TX {{&emb_dev_{c['dma']}, {c['stream']}u, {c['request']}u, {{0u, 0u}}}}\n"
+                            "/* clang-format on */\n")
         lines = [(d, f) for d in r["devices"] for f in d["fields"] if str(f["expr"]).startswith("pins.")]
         if lines:
             out += ("\n/* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t\n"

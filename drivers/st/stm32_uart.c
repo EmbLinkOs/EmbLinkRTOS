@@ -17,6 +17,9 @@
 #define USART_DR         0x04u
 #define USART_BRR        0x08u
 #define USART_CR1        0x0Cu
+#define USART_CR3        0x14u
+#define CR3_DMAT         (1u << 7)
+#define DMA_MIN          16u /* bytes: shorter writes stay with the interrupt */
 #define SR_PE            (1u << 0)
 #define SR_FE            (1u << 1)
 #define SR_NF            (1u << 2)
@@ -95,6 +98,7 @@ static emb_status_t usart_init(const emb_device_t *dev)
     REG32(cfg->base + USART_CR1) |= CR1_RE;
     emb_drv_uart_rx_init(&d->rx, cfg->rx, cfg->rx_size);
     d->tx = NULL;
+    d->dma = 0u;
     d->dev = dev;
     d->irq_on = 0u;
     return (emb_irq_connect((emb_irq_t)cfg->irq, stm32_usart_isr, d) == EMB_OK) ? EMB_OK
@@ -116,6 +120,43 @@ static void irq_on(const emb_device_t *dev)
     (void)emb_irq_enable((emb_irq_t)cfg->irq);
 }
 
+/* A write by DMA ended: its last byte is in the data register. */
+static void usart_dma_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    emb_stm32_usart_data_t *d = (emb_stm32_usart_data_t *)arg;
+    emb_drv_uart_req_t *w = d->tx;
+    REG32(config(d->dev)->base + USART_CR3) &= ~CR3_DMAT;
+    d->tx = NULL;
+    d->dma = 0u;
+    if (w != NULL) {
+        emb_drv_complete(d->dev, &w->req, st, moved);
+    }
+}
+
+/* The write by DMA, where the board gives the USART a channel and DMA reaches the bytes; false
+ * leaves it to the interrupt. */
+static bool usart_dma_write(const emb_device_t *dev, emb_stm32_usart_data_t *d,
+                            const emb_drv_uart_req_t *r)
+{
+    const emb_stm32_usart_config_t *cfg = config(dev);
+    emb_drv_dma_job_t job;
+    if ((cfg->dma_tx.dma == NULL) || (r->len < DMA_MIN) || (r->len > UINT32_MAX)) {
+        return false;
+    }
+    job.src = (uintptr_t)r->tx;
+    job.dst = cfg->base + USART_DR;
+    job.count = (uint32_t)r->len;
+    job.dir = EMB_DRV_DMA_TO_PERIPH;
+    job.width = 1u;
+    job.flags = 0u;
+    job.reserved_ = 0u;
+    if (emb_drv_dma_start(&cfg->dma_tx, &job, usart_dma_done, d) != EMB_OK) {
+        return false;
+    }
+    REG32(cfg->base + USART_CR3) |= CR3_DMAT; /* the requests, the job ready */
+    return true;
+}
+
 static emb_status_t usart_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
     emb_stm32_usart_data_t *d = data(dev);
@@ -134,9 +175,12 @@ static emb_status_t usart_start(const emb_device_t *dev, emb_drv_request_t *req)
     }
     key = emb_irq_lock();
     d->tx = r;
-    REG32(config(dev)->base + USART_CR1) |= CR1_TXEIE; /* each empty data register: a byte */
+    d->dma = usart_dma_write(dev, d, r) ? 1u : 0u;
+    if (d->dma == 0u) {
+        REG32(config(dev)->base + USART_CR1) |= CR1_TXEIE; /* each empty data register: a byte */
+    }
     emb_irq_unlock(key);
-    return EMB_EBUSY; /* the interrupt sends the bytes and ends it */
+    return EMB_EBUSY; /* the interrupt, or the DMA job's end, ends it */
 }
 
 static void usart_stop(const emb_device_t *dev, emb_drv_request_t *req)
@@ -148,6 +192,18 @@ static void usart_stop(const emb_device_t *dev, emb_drv_request_t *req)
         return;
     }
     key = emb_irq_lock();
+    if ((d->tx == EMB_DRV_UART_REQ(req)) && (d->dma != 0u)) {
+        uint32_t moved = 0u;
+        bool stopped = emb_drv_dma_stop(&config(dev)->dma_tx, &moved) == EMB_OK;
+        REG32(config(dev)->base + USART_CR3) &= ~CR3_DMAT;
+        d->tx = NULL;
+        d->dma = 0u;
+        emb_irq_unlock(key);
+        if (stopped) { /* otherwise its end came first, and completed it */
+            emb_drv_complete(dev, req, EMB_ECANCELED, moved);
+        }
+        return;
+    }
     if (d->tx == EMB_DRV_UART_REQ(req)) {
         d->tx = NULL; /* the byte in the shift register finishes; no other follows */
         REG32(config(dev)->base + USART_CR1) &= ~CR1_TXEIE;

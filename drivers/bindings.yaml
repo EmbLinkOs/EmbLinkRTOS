@@ -65,6 +65,7 @@ bindings:
       clken_offset: peripheral.clock.enable_offset
       clken_bit: peripheral.clock.bit
       irq: peripheral.irqs.global
+      dma_tx: dma.tx
     buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
   arm,pl011:
@@ -76,7 +77,7 @@ bindings:
     api: emb_pl011_api.dev
     config: emb_pl011_config_t
     data: emb_pl011_data_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud, irq: peripheral.irqs.global }
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud, irq: peripheral.irqs.global, dma_tx: dma.tx }
     buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the RP2350's UARTs; the console, polled, with the UART class's requests to come (SPEC-017 §4)
   rpi,rp2350-clocks:

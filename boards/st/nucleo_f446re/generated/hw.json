@@ -41,7 +41,7 @@
         "name": "gpioa"
       },
       {
-        "doc": "DMA1: SPI2's transfers",
+        "doc": "DMA1: SPI2's transfers, and the console's writes",
         "name": "dma1"
       },
       {
@@ -54,7 +54,10 @@
       },
       {
         "baud": 115200,
-        "doc": "the console, the ST-LINK's virtual COM port",
+        "dma": [
+          "tx"
+        ],
+        "doc": "the console, the ST-LINK's virtual COM port; its writes by DMA1 stream 6",
         "name": "usart2"
       },
       {
@@ -315,6 +318,7 @@
         "class": "uart",
         "compatible": "st,stm32-usart",
         "deps": [
+          "dma1",
           "rcc"
         ],
         "fields": {
@@ -323,6 +327,11 @@
           "clken_bit": 17,
           "clken_offset": 64,
           "clock_hz": 45000000,
+          "dma_tx": {
+            "dma": "dma1",
+            "request": 4,
+            "stream": 6
+          },
           "irq": 38,
           "rx": "usart2_rx",
           "rx_size": 64
@@ -343,6 +352,9 @@
           "clken_bit": 19,
           "clken_offset": 64,
           "clock_hz": 45000000,
+          "dma_tx": {
+            "dma": null
+          },
           "irq": 52,
           "rx": "uart4_rx",
           "rx_size": 64
@@ -633,11 +645,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1"
+      "sha256": "db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+      "sha256": "404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

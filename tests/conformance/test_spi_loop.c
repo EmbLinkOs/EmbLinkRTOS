@@ -188,14 +188,19 @@ EMB_TEST(spi_loop_runs_by_dma)
     static const emb_drv_spi_target_t slow = {200000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
                                               NO_CS};
     emb_drv_spi_req_t req;
+    emb_status_t st;
     emb_drv_dma_job_t job = {
         (uintptr_t)&probe, (uintptr_t)&probe, 1u, EMB_DRV_DMA_TO_PERIPH, 1u, 0u, 0u};
     EMB_TEST_REQ("DRV-004", "DRV-006");
     pattern(sizeof(out), 0x2Bu);
     emb_drv_spi_req_transfer(&req, &slow, out, in, sizeof(out)); /* some 11 ms of frames */
     EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
-    EMB_ASSERT_STATUS(emb_drv_dma_start(&loop_dma_tx, &job, probe_done, NULL),
-                      EMB_EBUSY); /* the SPI's transmit job has it */
+    st = emb_drv_dma_start(&loop_dma_tx, &job, probe_done, NULL);
+    if (st == EMB_OK) {
+        (void)emb_drv_dma_stop(&loop_dma_tx, NULL); /* free: the probe must not keep it */
+    }
+    EMB_ASSERT_STATUS(st, EMB_EBUSY);
+    /* the transfer has the channel */ /* the SPI's transmit job has it */
     EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(50)));
     EMB_ASSERT_STATUS(req.req.status, EMB_OK);
     EMB_ASSERT_EQ(req.req.done, sizeof(out));

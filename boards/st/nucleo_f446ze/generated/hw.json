@@ -228,6 +228,9 @@
           "clken_bit": 18,
           "clken_offset": 64,
           "clock_hz": 45000000,
+          "dma_tx": {
+            "dma": null
+          },
           "irq": 39,
           "rx": "usart3_rx",
           "rx_size": 64
@@ -354,7 +357,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+      "sha256": "404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

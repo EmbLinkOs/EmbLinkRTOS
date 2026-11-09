@@ -5,9 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/st/nucleo_f446re/board.yaml
-#     9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1
+#     db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f
 #   drivers/bindings.yaml
-#     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+#     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
@@ -24,6 +24,7 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446re) # EMB_TEST_EMULATOR=embsim
+set(EMB_BOARD_USART2_DMA tx)
 set(EMB_BOARD_SPI2_DMA rx tx)
 set(EMB_BOARD_SPI2_CS_COUNT 1)
 set(EMB_BOARD_EMBSIM_UART_LOOP uart4 "A0,A1")
@@ -44,8 +45,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/st/nucleo_f446re/board.yaml=9d3ebb6fe9a58bdd2f07e518147718b353e3bc0469cba3aad22d83c4d53490c1"
-    "drivers/bindings.yaml=0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+    "boards/st/nucleo_f446re/board.yaml=db1aa16fc30a6c77b6f8b7278582b0abb644e89c0f59fef8de2b0b6446d7158f"
+    "drivers/bindings.yaml=404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
     "soc/st/stm32f4/stm32f446.yaml=08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
     "soc/st/stm32f4/stm32f446re.yaml=98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd"

@@ -337,8 +337,9 @@ class DmaChannels(unittest.TestCase):
                             for e in self.errors()), self.errors())
 
     def test_a_controller_the_board_lacks(self):
-        self.root.edit(self.board, '  - { name: dma1, doc: "DMA1: SPI2\'s transfers" }\n', "")
+        self.root.edit(self.board, '  - { name: dma1, doc: "DMA1: SPI2\'s transfers, and the console\'s writes" }\n', "")
         self.assertTrue(any("devices.spi2.dma" in e and "does not list in devices" in e for e in self.errors()))
+        self.assertTrue(any("devices.usart2.dma" in e for e in self.errors()))
 
     def test_a_request_the_device_lacks(self):
         self.root.edit(self.board, "dma: [tx, rx],", "dma: [tx, sideways],")

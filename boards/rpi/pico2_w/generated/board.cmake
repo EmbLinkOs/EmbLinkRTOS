@@ -5,9 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0
+#     7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960
 #   drivers/bindings.yaml
-#     0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6
+#     404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771
 #   soc/rpi/rp2350/rp2350.yaml
 #     d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f
 #   soc/rpi/rp2350/rp2350a.yaml
@@ -21,6 +21,7 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/rpi/rp2350")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_UART1_DMA tx)
 set(EMB_BOARD_SPI1_DMA rx tx)
 set(EMB_BOARD_SPI1_CS_COUNT 1)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
@@ -43,8 +44,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=e874860a1504096e2880e4dd1d2d4cafe8aecd29052fce31b277de4b29a69de0"
-    "drivers/bindings.yaml=0eb6e4bd677dc904f165876f32c98911ddf9c38c55f11c0c1864f5089f156df6"
+    "boards/rpi/pico2_w/board.yaml=7cced42fa1253929e20ce6b02720e697c71649064687ca98eeebed51bbe92960"
+    "drivers/bindings.yaml=404556c20611daf0c20d4c9c3d89cc235a014073bbf95a7e4dade44f6c63b771"
     "soc/rpi/rp2350/rp2350.yaml=d2e8a81031ced4db3bc25e355ff967344f4770b6714e7a406cc9d4e9232f627f"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )
