@@ -98,7 +98,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Consequences.** Existing signing tools and bootloaders work immediately; multi-image manifests follow the same conventions; the project's own bootloader is optional, not blocking.
 
-**Status.** Proposed.
+**Status.** Accepted 2026-11-09 by the project owner at the M4.0 review, with ADR-058, which takes upstream MCUboot as the bootloader. Proposed in v0.1.
 
 ## ADR-009 Deferred-format logging with string interning
 
@@ -837,7 +837,7 @@ Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](
 - The STM32F446's layout: MCUboot in sectors 0–2 (48 KiB), configuration in 3, a log in 4, the two slots in 5 and 6, scratch in 7. If MCUboot does not fit in 48 KiB, it takes sectors 0–3 and the log shrinks.
 - Upstream MCUboot moves; the pin is updated deliberately, with the review recorded.
 
-**Status.** Proposed 2026-11-09 for the project owner's review, as the approved M4 plan describes it.
+**Status.** Accepted 2026-11-09 by the project owner at the M4.0 review, as written; proposed the same day, as the approved M4 plan describes it.
 
 ## ADR-059 Tickless on Cortex-M through a SoC timer, behind a port seam
 
@@ -858,4 +858,4 @@ Records: [NUCLEO report](../engineering/hil-nucleo-2026-11-07.md), [Clang runs](
 - The deeper power states reuse the seam: the power manager switches the timebase to the RTC or the always-on timer while the main timer is stopped.
 - A board that wants tickless names its timer; nothing changes for one that does not.
 
-**Status.** Proposed 2026-11-09 for the project owner's review, as the approved M4 plan describes it.
+**Status.** Accepted 2026-11-09 by the project owner at the M4.0 review, as written; proposed the same day, as the approved M4 plan describes it.
