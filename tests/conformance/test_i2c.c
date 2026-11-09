@@ -13,6 +13,7 @@
 #define OWN        0x42u
 
 typedef struct fake_i2c {
+    emb_drv_bus_t bus;         /* the class's, first */
     emb_drv_i2c_req_t *xfer;   /* the transaction in progress */
     emb_drv_i2c_req_t *listen; /* the listen waiting */
     uint8_t regs[16];
@@ -30,6 +31,11 @@ typedef struct fake_i2c {
 static fake_i2c_t fake;
 static emb_device_state_t i2c_state;
 static const emb_device_t i2c_dev;
+
+static emb_status_t fake_init(const emb_device_t *dev)
+{
+    return emb_drv_i2c_bus_init(dev);
+}
 
 static emb_status_t fake_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
@@ -121,10 +127,8 @@ EMB_TEST_ISR(fake_remote_isr)
     emb_drv_complete(&i2c_dev, &l->req, EMB_OK, l->req.done);
 }
 
-static const emb_device_api_t fake_api = {
-    NULL,      fake_start,
-    fake_stop, NULL,
-    NULL,      EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_TARGET_NACK};
+#define FAKE_CAPS (EMB_DRV_I2C_CAP_TARGET | EMB_DRV_I2C_CAP_FAST_MODE | EMB_DRV_I2C_CAP_TARGET_NACK)
+static const emb_device_api_t fake_api = {fake_init, fake_start, fake_stop, NULL, NULL, FAKE_CAPS};
 static const emb_device_t i2c_dev = {
     "i2c", &fake_api, NULL, &i2c_state, &fake, NULL, EMB_DRV_CLASS_I2C, EMB_DEVICE_KERNEL, 0u};
 static const emb_device_api_t plain_api = {NULL, fake_start, NULL, NULL, NULL, 0u};
@@ -136,12 +140,18 @@ static const emb_drv_i2c_target_t eeprom = {EMB_DRV_I2C_STANDARD, DEVICE, {0u, 0
 static const emb_drv_i2c_target_t absent = {EMB_DRV_I2C_STANDARD, 0x51u, {0u, 0u}};
 static const emb_drv_i2c_target_t too_fast = {EMB_DRV_I2C_FAST_PLUS, DEVICE, {0u, 0u}};
 
+static bool bus_live; /* the previous case's device left its bus mutex */
+
 static void ready(void)
 {
     emb_device_state_t idle = {EMB_DEVICE_UNINIT, 0u, 0u, 0u, EMB_OK, {NULL, NULL}, {NULL, NULL}};
+    if (bus_live) { /* each case initializes the device anew: its mutex first goes */
+        EMB_ASSERT_OK(emb_mutex_destroy(fake.bus.lock));
+    }
     i2c_state = idle;
     (void)memset(&fake, 0, sizeof(fake));
     EMB_ASSERT_OK(emb_device_init(&i2c_dev));
+    bus_live = true;
     emb_test_irq_connect(IRQ_DONE, fake_done_isr, NULL);
     emb_test_irq_connect(IRQ_REMOTE, fake_remote_isr, NULL);
 }
@@ -276,4 +286,27 @@ EMB_TEST(i2c_misuse_faults)
         (void)emb_drv_i2c_listen(&i2c_dev, 0x7Cu, NULL, 0u, NULL, 0u, EMB_NO_WAIT, NULL, NULL));
     EMB_ASSERT_FAULTS(
         (void)emb_drv_i2c_listen(&i2c_dev, OWN, NULL, 4u, NULL, 0u, EMB_NO_WAIT, NULL, NULL));
+}
+
+EMB_TEST(i2c_held_bus_keeps_one_target)
+{
+    static const uint8_t put[2] = {0x08u, 0x5Au};
+    const emb_drv_i2c_seg_t write[1] = {{put, NULL, sizeof(put)}};
+    emb_drv_i2c_req_t req;
+    uint8_t reg = 0x08u;
+    uint8_t got = 0u;
+    EMB_TEST_REQ("DRV-004");
+    ready();
+    EMB_ASSERT_OK(emb_drv_i2c_acquire(&i2c_dev, &eeprom, EMB_NO_WAIT));
+    EMB_ASSERT_OK(emb_drv_i2c_transfer(&i2c_dev, &eeprom, write, 1u, EMB_WAIT_FOREVER, NULL));
+    EMB_ASSERT_OK(emb_drv_i2c_write_read(&i2c_dev, &eeprom, &reg, 1u, &got, 1u, EMB_WAIT_FOREVER));
+    EMB_ASSERT_EQ(got, 0x5Au); /* the holder's transactions run */
+    EMB_ASSERT_STATUS(emb_drv_i2c_write_read(&i2c_dev, &absent, &reg, 1u, NULL, 0u, EMB_NO_WAIT),
+                      EMB_EBUSY); /* another target's do not */
+    emb_drv_i2c_req_transfer(&req, &absent, write, 1u);
+    EMB_ASSERT_STATUS(emb_drv_i2c_submit(&i2c_dev, &req), EMB_EBUSY);
+    EMB_ASSERT_OK(emb_drv_i2c_release(&i2c_dev));
+    EMB_ASSERT_STATUS(emb_drv_i2c_release(&i2c_dev), EMB_EPERM); /* nothing held */
+    EMB_ASSERT_STATUS(emb_drv_i2c_write_read(&i2c_dev, &absent, &reg, 1u, NULL, 0u, EMB_NO_WAIT),
+                      EMB_ENACK); /* free again: it goes out, and nobody answers */
 }

@@ -33,6 +33,7 @@ typedef struct emb_dw_i2c_config {
 /* A controller's RAM. A DW_apb_i2c is a controller or a target at a time: a transaction
  * while a listen waits runs in controller mode, and the target mode comes back after it. */
 typedef struct emb_dw_i2c_data {
+    emb_drv_bus_t bus;         /* the class's, first */
     emb_drv_i2c_req_t *xfer;   /* the transaction in progress */
     emb_drv_i2c_req_t *listen; /* the listen waiting or answering */
     const emb_device_t *dev;   /* for the interrupt handler */

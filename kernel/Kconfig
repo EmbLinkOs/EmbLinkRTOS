@@ -300,7 +300,7 @@ config EMB_DRV_GPIO
 
 config EMB_DRV_I2C
 	bool "The I2C class (SPEC-017 §6)"
-	depends on EMB_DEVICE
+	depends on EMB_DEVICE && EMB_MUTEX_INHERIT
 	default y
 	help
 	  Transactions of write and read segments to a target's address, joined by

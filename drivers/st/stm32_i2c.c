@@ -370,6 +370,9 @@ static emb_status_t stm32_i2c_init(const emb_device_t *dev)
     d->listen = NULL;
     d->dev = dev;
     d->hz = 0u;
+    if (emb_drv_i2c_bus_init(dev) != EMB_OK) {
+        return EMB_EINVAL;
+    }
     if (!stm32_i2c_timing(cfg->base, cfg->clock_hz, EMB_DRV_I2C_STANDARD)) {
         return EMB_EINVAL;
     }

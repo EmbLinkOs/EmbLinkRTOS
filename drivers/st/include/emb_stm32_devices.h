@@ -78,7 +78,7 @@ typedef struct emb_stm32_spi_config {
 #if CONFIG_EMB_DRV_SPI
 /* An SPI controller's RAM. */
 typedef struct emb_stm32_spi_data {
-    emb_drv_spi_bus_t bus;   /* the class's, first */
+    emb_drv_bus_t bus;       /* the class's, first */
     emb_drv_spi_req_t *xfer; /* the transfer in progress */
     const emb_device_t *dev; /* for the interrupt handler */
     bool stopping;           /* canceled: ends when the frame in flight is back */
@@ -99,6 +99,7 @@ typedef struct emb_stm32_i2c_config {
 /* An I2C controller's RAM. It waits as a target while no transaction runs, and a
  * transaction's start condition makes it the bus's controller until its stop. */
 typedef struct emb_stm32_i2c_data {
+    emb_drv_bus_t bus;         /* the class's, first */
     emb_drv_i2c_req_t *xfer;   /* the transaction in progress */
     emb_drv_i2c_req_t *listen; /* the listen waiting or answering */
     const emb_device_t *dev;   /* for the interrupt handlers */

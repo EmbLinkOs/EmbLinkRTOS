@@ -303,6 +303,9 @@ static emb_status_t dw_init(const emb_device_t *dev)
     d->xfer = NULL;
     d->listen = NULL;
     d->dev = dev;
+    if (emb_drv_i2c_bus_init(dev) != EMB_OK) {
+        return EMB_EINVAL;
+    }
     REG32(cfg->base + IC_INTR_MASK) = 0u;
     dw_disable(cfg->base);
     if (emb_irq_connect((emb_irq_t)cfg->irq, dw_isr, d) != EMB_OK) {

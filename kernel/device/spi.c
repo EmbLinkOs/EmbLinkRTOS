@@ -5,6 +5,7 @@
  * (SPEC-016 §6). A controller runs one transfer at a time, on lane 0. */
 #include <emb/drv_spi.h>
 
+#include <embk/drv_bus.h>
 #include <embk/kernel.h>
 
 static bool is_spi(const emb_device_t *dev)
@@ -19,9 +20,9 @@ static bool target_ok(const emb_drv_spi_target_t *t)
 }
 
 /* The class's part of the driver's RAM, its first member. MISRA Dev CS-12: rule 11.5. */
-static emb_drv_spi_bus_t *bus_of(const emb_device_t *dev)
+static emb_drv_bus_t *bus_of(const emb_device_t *dev)
 {
-    return (emb_drv_spi_bus_t *)dev->data;
+    return (emb_drv_bus_t *)dev->data;
 }
 
 /* What is left of @t since @start: a finite timeout spent waiting for the bus is not spent
@@ -38,30 +39,22 @@ static emb_timeout_t remaining(emb_timeout_t t, emb_instant_t start)
 
 emb_status_t emb_drv_spi_bus_init(const emb_device_t *dev)
 {
-    emb_drv_spi_bus_t *bus;
-    emb_mutex_attr_t attr;
     if (!is_spi(dev)) {
         return EMB_EINVAL;
     }
-    bus = bus_of(dev);
-    bus->held = NULL;
-    bus->depth = 0u;
-    emb_mutex_attr_default(&attr); /* priority inheritance (SPEC-016 §6) */
-    attr.name = dev->name;
-    attr.flags |= EMB_MUTEX_RECURSIVE; /* the holder's own transfers take it again */
-    return emb_mutex_init(&bus->storage, &attr, &bus->lock);
+    return embk_bus_init(bus_of(dev), dev->name);
 }
 
 void emb_drv_spi_begin(const emb_device_t *dev, const emb_drv_spi_req_t *req)
 {
-    if (bus_of(dev)->held != req->target) {
+    if (embk_bus_holder(bus_of(dev)) != req->target) {
         (void)emb_drv_gpio_assert(&req->target->cs, true);
     } /* a held bus asserted it at acquire */
 }
 
 void emb_drv_spi_end(const emb_device_t *dev, const emb_drv_spi_req_t *req)
 {
-    if (bus_of(dev)->held != req->target) {
+    if (embk_bus_holder(bus_of(dev)) != req->target) {
         (void)emb_drv_gpio_assert(&req->target->cs, false);
     }
 }
@@ -81,14 +74,14 @@ void emb_drv_spi_req_transfer(emb_drv_spi_req_t *req, const emb_drv_spi_target_t
 
 emb_status_t emb_drv_spi_submit(const emb_device_t *dev, emb_drv_spi_req_t *req)
 {
-    const emb_drv_spi_target_t *held;
+    emb_status_t st;
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SPI_SUBMIT, is_spi(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SPI_SUBMIT, (req != NULL) && target_ok(req->target),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);
-    held = bus_of(dev)->held; /* one load: only the holder's thread changes it */
-    if ((held != NULL) && (held != req->target)) {
-        return EMB_EBUSY; /* the bus is held for another target, its chip select asserted */
+    st = embk_bus_admit(bus_of(dev), req->target);
+    if (st != EMB_OK) {
+        return st; /* the bus is held for another target, its chip select asserted */
     }
     return emb_drv_submit(dev, &req->req);
 }
@@ -98,7 +91,6 @@ emb_status_t emb_drv_spi_transfer(const emb_device_t *dev, const emb_drv_spi_tar
                                   size_t *done)
 {
     emb_drv_spi_req_t req;
-    emb_drv_spi_bus_t *bus;
     emb_instant_t start;
     emb_status_t st;
     EMBK_API_REQUIRE_THREAD(EMB_API_ID_DRV_SPI_TRANSFER);
@@ -109,19 +101,14 @@ emb_status_t emb_drv_spi_transfer(const emb_device_t *dev, const emb_drv_spi_tar
     if (done != NULL) {
         *done = 0u;
     }
-    bus = bus_of(dev);
     start = emb_time_now();
-    st = emb_mutex_lock(bus->lock, timeout); /* another thread's hold ends first */
+    st = embk_bus_enter(bus_of(dev), target, timeout); /* another thread's hold ends first */
     if (st != EMB_OK) {
         return st;
     }
-    if ((bus->held != NULL) && (bus->held != target)) {
-        (void)emb_mutex_unlock(bus->lock);
-        return EMB_EBUSY; /* the caller holds it for another target */
-    }
     emb_drv_spi_req_transfer(&req, target, tx, rx, len);
     st = emb_drv_wait(dev, &req.req, remaining(timeout, start));
-    (void)emb_mutex_unlock(bus->lock);
+    embk_bus_exit(bus_of(dev));
     if (done != NULL) {
         *done = (size_t)req.req.done;
     }
@@ -131,51 +118,31 @@ emb_status_t emb_drv_spi_transfer(const emb_device_t *dev, const emb_drv_spi_tar
 emb_status_t emb_drv_spi_acquire(const emb_device_t *dev, const emb_drv_spi_target_t *target,
                                  emb_timeout_t timeout)
 {
-    emb_drv_spi_bus_t *bus;
+    bool first = false;
     emb_status_t st;
     EMBK_API_REQUIRE_THREAD(EMB_API_ID_DRV_SPI_ACQUIRE);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SPI_ACQUIRE, is_spi(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SPI_ACQUIRE, target_ok(target), EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 2u);
-    bus = bus_of(dev);
-    st = emb_mutex_lock(bus->lock, timeout);
-    if (st != EMB_OK) {
-        return st;
+    st = embk_bus_acquire(bus_of(dev), target, timeout, &first);
+    if ((st == EMB_OK) && first) {
+        (void)emb_drv_gpio_assert(&target->cs, true); /* asserted until the last release */
     }
-    if ((bus->held != NULL) && (bus->held != target)) {
-        (void)emb_mutex_unlock(bus->lock);
-        return EMB_EBUSY;
-    }
-    if (bus->depth == 0u) {
-        (void)emb_drv_gpio_assert(&target->cs, true);
-        bus->held = target;
-    }
-    bus->depth++;
-    return EMB_OK; /* the mutex stays locked, once per acquire */
+    return st;
 }
 
 emb_status_t emb_drv_spi_release(const emb_device_t *dev)
 {
-    emb_drv_spi_bus_t *bus;
+    const void *ended = NULL;
+    emb_status_t st;
     EMBK_API_REQUIRE_THREAD(EMB_API_ID_DRV_SPI_RELEASE);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_SPI_RELEASE, is_spi(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
-    bus = bus_of(dev);
-    /* the caller owns the lock only if it can take it again at once: the mutex is recursive
-     * for its owner, and taken by someone else otherwise */
-    if (emb_mutex_lock(bus->lock, EMB_NO_WAIT) != EMB_OK) {
-        return EMB_EPERM;
+    st = embk_bus_release(bus_of(dev), &ended);
+    if (ended != NULL) {
+        /* MISRA Dev CS-12: rule 11.5, the key the class gave the bus, its target */
+        (void)emb_drv_gpio_assert(&((const emb_drv_spi_target_t *)ended)->cs, false);
     }
-    if (bus->depth == 0u) {
-        (void)emb_mutex_unlock(bus->lock);
-        return EMB_EPERM; /* not acquired: the caller only took it here */
-    }
-    bus->depth--;
-    if (bus->depth == 0u) {
-        (void)emb_drv_gpio_assert(&bus->held->cs, false);
-        bus->held = NULL;
-    }
-    (void)emb_mutex_unlock(bus->lock);  /* the check's */
-    return emb_mutex_unlock(bus->lock); /* the acquire's */
+    return st;
 }

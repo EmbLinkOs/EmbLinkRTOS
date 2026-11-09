@@ -1182,6 +1182,24 @@
       "name": "emb_drv_i2c_listen",
       "header": "drv_i2c.h",
       "state": "active"
+    },
+    {
+      "id": 201,
+      "name": "emb_drv_i2c_bus_init",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 202,
+      "name": "emb_drv_i2c_acquire",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 203,
+      "name": "emb_drv_i2c_release",
+      "header": "drv_i2c.h",
+      "state": "active"
     }
   ]
 }

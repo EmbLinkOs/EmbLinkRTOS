@@ -583,15 +583,40 @@
     ],
     "emb_drv_i2c_transfer": [
       "i2c_bytes",
-      "drivers"
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
     ],
     "emb_drv_i2c_write_read": [
       "i2c_bytes",
-      "drivers"
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
     ],
     "emb_drv_i2c_listen": [
       "i2c_bytes",
       "drivers"
+    ],
+    "emb_drv_i2c_acquire": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_i2c_release": [
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_i2c_bus_init": [
+      "active_objects"
     ]
   }
 }

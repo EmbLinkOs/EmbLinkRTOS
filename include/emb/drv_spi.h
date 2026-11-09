@@ -6,8 +6,8 @@
 #define EMB_DRV_SPI_H
 
 #include <emb/device.h>
+#include <emb/drv_bus.h>
 #include <emb/drv_gpio.h>
-#include <emb/mutex.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -45,15 +45,6 @@ typedef struct emb_drv_spi_target {
     emb_drv_gpio_line_t cs; /* its chip select, or none (gpio NULL) */
 } emb_drv_spi_target_t;
 
-/* What the class keeps in each controller's RAM, first in the driver's data: the bus's lock
- * (a recursive mutex with priority inheritance, SPEC-016 §6) and the target holding it. */
-typedef struct emb_drv_spi_bus {
-    emb_mutex_storage_t storage;
-    emb_mutex_t lock;
-    const emb_drv_spi_target_t *held; /* the target emb_drv_spi_acquire() gave the bus to */
-    uint32_t depth;                   /* its acquires not yet released */
-} emb_drv_spi_bus_t;
-
 /* An SPI request: the core's request first. The caller owns it, the target and the buffers
  * until it completes; req.done is the frames transferred. */
 typedef struct emb_drv_spi_req {
@@ -70,7 +61,7 @@ typedef struct emb_drv_spi_req {
 
 /**
  * emb_drv_spi_bus_init() - Set up the class's part of a controller's RAM: for drivers.
- * @dev: A device of the SPI class whose data begins with an emb_drv_spi_bus_t.
+ * @dev: A device of the SPI class whose data begins with an emb_drv_bus_t (<emb/drv_bus.h>).
  *
  * @ctx      thread prekernel
  * @blocks   no

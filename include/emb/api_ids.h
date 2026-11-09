@@ -201,5 +201,8 @@
 #define EMB_API_ID_DRV_I2C_TRANSFER              0x00C6u
 #define EMB_API_ID_DRV_I2C_WRITE_READ            0x00C7u
 #define EMB_API_ID_DRV_I2C_LISTEN                0x00C8u
+#define EMB_API_ID_DRV_I2C_BUS_INIT              0x00C9u
+#define EMB_API_ID_DRV_I2C_ACQUIRE               0x00CAu
+#define EMB_API_ID_DRV_I2C_RELEASE               0x00CBu
 
 #endif /* EMB_API_IDS_H */

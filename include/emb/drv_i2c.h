@@ -7,6 +7,7 @@
 #define EMB_DRV_I2C_H
 
 #include <emb/device.h>
+#include <emb/drv_bus.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -73,6 +74,26 @@ typedef struct emb_drv_i2c_req {
 #define EMB_DRV_I2C_REQ(r) ((emb_drv_i2c_req_t *)(void *)(r))
 
 /**
+ * emb_drv_i2c_bus_init() - Set up the class's part of a controller's RAM: for drivers.
+ * @dev: A device of the I2C class whose data begins with an emb_drv_bus_t (<emb/drv_bus.h>).
+ *
+ * @ctx      thread prekernel
+ * @blocks   no
+ * @time     O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST
+ * @owns     mutex
+ * @config   CONFIG_EMB_DRV_I2C
+ * @req      DRV-004
+ * @since    0.3
+ * @stable   no
+ *
+ * The driver's initialization calls it, at the KERNEL level, before any transaction.
+ *
+ * Return: EMB_OK; EMB_EINVAL (not an I2C controller with RAM); the statuses of
+ * emb_mutex_init().
+ */
+emb_status_t emb_drv_i2c_bus_init(const emb_device_t *dev);
+
+/**
  * emb_drv_i2c_req_transfer() - Prepare a transaction.
  * @req:    The request.
  * @target: The device addressed, at its speed; it must outlive the request.
@@ -135,10 +156,12 @@ void emb_drv_i2c_req_listen(emb_drv_i2c_req_t *req, uint16_t own, uint8_t *rx, s
  * @stable   no
  *
  * One transaction at a time; one listen at a time, beside it. A speed or a target mode the
- * controller lacks completes with EMB_ENOTSUP.
+ * controller lacks completes with EMB_ENOTSUP. While a thread holds the bus for one target, a
+ * transaction to another is refused.
  *
- * Return: EMB_OK; the statuses of emb_drv_submit(); EMB_EINVAL (not an I2C controller, a
- * reserved address, a speed of 0, or a segment with no buffer, both, or no length).
+ * Return: EMB_OK; the statuses of emb_drv_submit(); EMB_EBUSY (the bus is held for another
+ * target); EMB_EINVAL (not an I2C controller, a reserved address, a speed of 0, or a segment
+ * with no buffer, both, or no length).
  */
 emb_status_t emb_drv_i2c_submit(const emb_device_t *dev, emb_drv_i2c_req_t *req);
 
@@ -153,19 +176,21 @@ emb_status_t emb_drv_i2c_submit(const emb_device_t *dev, emb_drv_i2c_req_t *req)
  *
  * @ctx      thread
  * @blocks   timeout
- * @time     O(bytes) of the bus's time; bounded by the timeout and the driver's stop
+ * @time     O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop
  * @owns     none
  * @config   CONFIG_EMB_DRV_I2C
  * @req      DRV-004 DRV-006
  * @since    0.3
  * @stable   no
  *
- * The blocking wrapper of SPEC-016 §5.2. A canceled or timed-out transaction ends with a
- * stop condition after the byte in progress.
+ * The blocking wrapper of SPEC-016 §5.2. It waits for a bus another thread holds, within
+ * @timeout; the caller's own hold, for the same target, lets it through. A canceled or
+ * timed-out transaction ends with a stop condition after the byte in progress.
  *
  * Return: EMB_OK; EMB_ETIMEDOUT; EMB_ENACK (the address or a byte not acknowledged);
  * EMB_EARBLOST (another controller won the bus); EMB_EBUSERR (a misplaced start or stop);
- * EMB_ENOTSUP; the statuses of emb_drv_i2c_submit().
+ * EMB_ENOTSUP; EMB_EBUSY (the caller holds the bus for another target); the statuses of
+ * emb_drv_i2c_submit().
  */
 emb_status_t emb_drv_i2c_transfer(const emb_device_t *dev, const emb_drv_i2c_target_t *target,
                                   const emb_drv_i2c_seg_t *segs, size_t count,
@@ -183,7 +208,7 @@ emb_status_t emb_drv_i2c_transfer(const emb_device_t *dev, const emb_drv_i2c_tar
  *
  * @ctx      thread
  * @blocks   timeout
- * @time     O(bytes) of the bus's time; bounded by the timeout and the driver's stop
+ * @time     O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop
  * @owns     none
  * @config   CONFIG_EMB_DRV_I2C
  * @req      DRV-004
@@ -223,6 +248,49 @@ emb_status_t emb_drv_i2c_write_read(const emb_device_t *dev, const emb_drv_i2c_t
 emb_status_t emb_drv_i2c_listen(const emb_device_t *dev, uint16_t own, void *rx, size_t rx_len,
                                 const void *tx, size_t tx_len, emb_timeout_t timeout,
                                 size_t *received, size_t *sent);
+
+/**
+ * emb_drv_i2c_acquire() - Hold the bus for one target across transactions.
+ * @dev:     A device of the I2C class.
+ * @target:  The target.
+ * @timeout: EMB_NO_WAIT, EMB_WAIT_FOREVER or EMB_TIMEOUT(duration).
+ *
+ * @ctx      thread
+ * @blocks   timeout
+ * @time     O(1) plus the mutex's priority inheritance
+ * @owns     mutex
+ * @config   CONFIG_EMB_DRV_I2C
+ * @req      DRV-004
+ * @since    0.3
+ * @stable   no
+ *
+ * For a target that needs several transactions in a row, nobody else's between: a write then
+ * a poll until it is done. Other threads' transactions wait until it is released; the
+ * holder's run. The holder may acquire again for the same target; each acquire needs its
+ * release. Listens are not affected.
+ *
+ * Return: EMB_OK; EMB_ETIMEDOUT; EMB_EBUSY (the caller holds the bus for another target);
+ * EMB_EINVAL; the statuses of emb_mutex_lock().
+ */
+emb_status_t emb_drv_i2c_acquire(const emb_device_t *dev, const emb_drv_i2c_target_t *target,
+                                 emb_timeout_t timeout);
+
+/**
+ * emb_drv_i2c_release() - Release the bus emb_drv_i2c_acquire() held.
+ * @dev: A device of the I2C class.
+ *
+ * @ctx      thread
+ * @blocks   no
+ * @time     O(1) plus the mutex's priority inheritance
+ * @owns     mutex
+ * @config   CONFIG_EMB_DRV_I2C
+ * @req      DRV-004
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: EMB_OK; EMB_EPERM (the caller does not hold the bus); EMB_EINVAL.
+ */
+emb_status_t emb_drv_i2c_release(const emb_device_t *dev);
 
 #ifdef __cplusplus
 }

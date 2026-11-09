@@ -48,7 +48,7 @@ static bool cs_low(void)
 }
 
 typedef struct fake_spi {
-    emb_drv_spi_bus_t bus; /* the class's, first */
+    emb_drv_bus_t bus; /* the class's, first */
     emb_drv_spi_req_t *xfer;
     unsigned transfers;
     uint8_t stall; /* the "bus" never finishes: for cancel and timeout */
