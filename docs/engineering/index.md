@@ -45,6 +45,7 @@ controller-memory-2026-11-07
 controller-soak-2026-11-08
 controller-release-2026-11-08
 hil-devices-2026-11-09
+hil-uart-2026-11-09
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07
