@@ -316,7 +316,8 @@ static void stm32_i2c_ev_isr(void *arg)
     emb_stm32_i2c_data_t *d = (emb_stm32_i2c_data_t *)arg;
     uintptr_t base = stm32_i2c_config(d->dev)->base;
     uint32_t sr1 = REG32(base + I2C_SR1);
-    if ((d->xfer != NULL) && ((sr1 & SR1_SB) != 0u || (REG32(base + I2C_SR2) & SR2_MSL) != 0u)) {
+    if ((d->xfer != NULL) &&
+        (((sr1 & SR1_SB) != 0u) || ((REG32(base + I2C_SR2) & SR2_MSL) != 0u))) {
         stm32_i2c_controller_event(base, d, sr1);
     } else if (d->listen != NULL) {
         stm32_i2c_target_event(base, d, sr1);
@@ -333,7 +334,7 @@ static void stm32_i2c_er_isr(void *arg)
     uintptr_t base = stm32_i2c_config(d->dev)->base;
     uint32_t sr1 = REG32(base + I2C_SR1);
     REG32(base + I2C_SR1) = ~(sr1 & SR1_ERRS) & 0xFFFFu; /* error flags clear by writing 0 */
-    if (d->xfer != NULL && (sr1 & (SR1_AF | SR1_ARLO | SR1_BERR)) != 0u) {
+    if ((d->xfer != NULL) && ((sr1 & (SR1_AF | SR1_ARLO | SR1_BERR)) != 0u)) {
         if ((sr1 & SR1_AF) != 0u) {
             /* a byte refused: the one in the shift register, and one waiting in DR if any */
             uint32_t unsent = ((REG32(base + I2C_SR1) & SR1_TXE) == 0u) ? 2u : 1u;
