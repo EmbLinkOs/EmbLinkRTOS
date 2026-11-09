@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 """The generated outputs (SPEC-014 §6, A68): hw_config.h, board_pins.c, regions.ld,
-board.conf, board.cmake, hw.json, board.md and build_report.md, and for a board with devices
-soc_devices.c and soc_devices.h (SPEC-016 §8).
+board.conf, board.cmake, hw.json, board.md and build_report.md, soc_devices.c and
+soc_devices.h, the board's device table (SPEC-016 §8).
 
 Every output is sorted, carries no timestamp and names the generator version, the schema
 version and the SHA-256 of each input (HW-013).
@@ -445,8 +445,7 @@ def board_cmake(r):
         out += f"set(EMB_BOARD_FLASH_IMAGE {boot['image']}) # what the SoC's boot ROM loads (A79)\n"
         if "uf2_family" in boot:
             out += f"set(EMB_BOARD_UF2_FAMILY 0x{boot['uf2_family']:08X})\n"
-    if r["devices"]:
-        out += _device_sources(r)
+    out += _device_sources(r)
     out += "# the inputs this directory was generated from, for the configure-time staleness check\n"
     out += "set(EMB_BOARD_HW_INPUTS\n"
     for i in r["inputs"]:
@@ -692,8 +691,9 @@ def soc_devices_c(r):
         if d["header"] not in headers:
             headers.append(d["header"])
     # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
-    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n\n#include <stddef.h>\n\n"
-    out += "".join(f"#include <{h}>\n" for h in sorted(headers))
+    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n\n#include <stddef.h>\n"
+    if headers:
+        out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
     early = 0
     for d in r["devices"]:
         n = d["name"]
@@ -724,13 +724,17 @@ def soc_devices_c(r):
         out += f"    .level = EMB_DEVICE_{d['level'].upper()},\n"
         out += f"    .dep_count = {len(d['deps'])}u,\n"
         out += "};\n"
-    out += "\n/* in initialization order */\nstatic const emb_device_t *const devices[] = {\n"
-    width = max(len(f"&emb_dev_{d['name']},") for d in r["devices"])
-    for i, d in enumerate(r["devices"]):
-        entry = f"&emb_dev_{d['name']},"
-        out += f"    {entry.ljust(width)} /* {i}: {d['level'].upper()} */\n"
-    out += "};\n\n"
-    out += f"const emb_device_table_t emb_board_device_table = {{devices, {len(r['devices'])}u, {early}u}};\n"
+    if r["devices"]:
+        out += "\n/* in initialization order */\nstatic const emb_device_t *const devices[] = {\n"
+        width = max(len(f"&emb_dev_{d['name']},") for d in r["devices"])
+        for i, d in enumerate(r["devices"]):
+            entry = f"&emb_dev_{d['name']},"
+            out += f"    {entry.ljust(width)} /* {i}: {d['level'].upper()} */\n"
+        out += "};\n\n"
+        out += f"const emb_device_table_t emb_board_device_table = {{devices, {len(r['devices'])}u, {early}u}};\n"
+    else:
+        out += "\n/* the board declares no devices (its description has no devices:) */\n"
+        out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
     out += "#else\n/* ISO C: a translation unit declares something */\ntypedef int emb_soc_devices_off_t;\n#endif\n"
     return out
 
@@ -748,6 +752,5 @@ def render(resolved):
     outputs = dict(OUTPUTS)
     outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
     outputs.update(PORT_OUTPUTS.get(resolved["soc"]["arch"]["port"], {}))
-    if resolved["devices"]:
-        outputs.update(DEVICE_OUTPUTS)
+    outputs.update(DEVICE_OUTPUTS)  # every board defines its device table, empty or not
     return {name: fn(resolved) for name, fn in sorted(outputs.items())}

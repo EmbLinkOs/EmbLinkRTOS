@@ -78,10 +78,10 @@ emb_status_t emb_device_init_list(const emb_device_t *const *devs, size_t count)
 
 /* ---- the board's devices (SPEC-016 §4) ------------------------------------------ */
 
-#if EMB_HAS_WEAK
-/* A board without devices; the generated soc_devices.c replaces it. */
-EMB_WEAK const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
-#endif
+/* emb_board_device_table is the board's: the generated soc_devices.c defines it, or the
+ * board support for a board without a description. It has no weak default, because a weak
+ * definition here would satisfy the reference before the linker reached the board's
+ * archive, and the board's devices would silently not be initialized. */
 
 void embk_device_init_level(uint8_t level)
 {

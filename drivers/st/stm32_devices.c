@@ -32,12 +32,12 @@ static emb_status_t gpio_init(const emb_device_t *dev)
 static emb_status_t usart_init(const emb_device_t *dev)
 {
     const emb_stm32_usart_config_t *cfg = (const emb_stm32_usart_config_t *)dev->config;
-    if (cfg->baud == 0u || cfg->clock_hz / cfg->baud < USART_OVERSAMPLE) {
+    if ((cfg->baud == 0u) || ((cfg->clock_hz / cfg->baud) < USART_OVERSAMPLE)) {
         return EMB_EINVAL; /* the divider cannot reach the rate */
     }
     emb_stm32_clock_enable(cfg->clken_offset, cfg->clken_bit);
-    if ((REG32(cfg->base + USART_CR1) & CR1_UE) != 0u &&
-        REG32(cfg->base + USART_BRR) == (cfg->clock_hz + cfg->baud / 2u) / cfg->baud) {
+    if (((REG32(cfg->base + USART_CR1) & CR1_UE) != 0u) &&
+        (REG32(cfg->base + USART_BRR) == ((cfg->clock_hz + (cfg->baud / 2u)) / cfg->baud))) {
         return EMB_OK; /* the board's console, already at this rate: left as the board set it */
     }
     emb_stm32_usart_flush(cfg->base); /* it may be sending: let its character finish */

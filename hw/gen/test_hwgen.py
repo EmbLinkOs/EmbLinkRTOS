@@ -507,12 +507,19 @@ class Devices(unittest.TestCase):
     def test_deterministic(self):
         self.assertEqual(self.files(), self.files())
 
-    def test_board_without_devices_is_unchanged(self):
+    def test_board_without_devices(self):
+        """Every board defines its device table, so a board's devices can never be left out by
+        the linker; without devices it is empty, builds no driver and does not read the
+        bindings."""
         self.root.edit(f"{BOARD}/board.yaml", DEVICES, "")
         files = self.files()
-        self.assertNotIn("soc_devices.c", files)
-        self.assertNotIn("EMB_BOARD_DRIVER_SOURCES", files["board.cmake"])
-        self.assertNotIn("bindings.yaml", files["board.cmake"])
+        self.assertIn("const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};", files["soc_devices.c"])
+        self.assertIn("#define EMB_SOC_DEVICE_COUNT 0u", files["soc_devices.h"])
+        cmake = files["board.cmake"]
+        sources = cmake[cmake.index("set(EMB_BOARD_DRIVER_SOURCES"):]
+        self.assertEqual(sources[:sources.index(")")].count('"'), 2)  # soc_devices.c alone
+        self.assertNotIn("EMB_BOARD_DRIVER_INCLUDE_DIRS", cmake)
+        self.assertNotIn("bindings.yaml", cmake)
 
     def test_unknown_compatible(self):
         """DRV-009: a compatible no driver binds is refused."""

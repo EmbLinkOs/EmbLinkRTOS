@@ -97,8 +97,9 @@ typedef struct emb_device {
 /* The board's devices in initialization order, EARLY first (SPEC-016 §4): the generated
  * soc_devices.c defines it. emb_kernel_init() initializes the EARLY ones before its
  * initialization table runs, and emb_kernel_start() the KERNEL ones before the first thread
- * does; a device the board support has initialized already is left as it is. Where the
- * compiler has weak symbols, a board without devices needs no definition. */
+ * does; a device the board support has initialized already is left as it is. Every board
+ * defines it: emb-hwgen emits it for a described board, empty when the board has no devices,
+ * and a hand-written board support defines {NULL, 0, 0}. */
 typedef struct emb_device_table {
     const emb_device_t *const *devices;
     uint16_t count;

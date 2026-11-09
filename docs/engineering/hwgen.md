@@ -47,7 +47,7 @@ Register base addresses, interrupt numbers, clock gates and pin functions come f
 | `board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
 | `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes; with devices, `EMB_BOARD_DRIVER_SOURCES` and `EMB_BOARD_DRIVER_INCLUDE_DIRS` |
 | `CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
-| `soc_devices.c`, `soc_devices.h` | the kernel, drivers and applications (a board with `devices:` only) | each device's configuration, RAM and `emb_device_t`; `emb_board_device_table` in initialization order; the `extern` declarations `EMB_DEVICE(name)` reaches |
+| `soc_devices.c`, `soc_devices.h` | the kernel, drivers and applications | each device's configuration, RAM and `emb_device_t`; `emb_board_device_table` in initialization order; the `extern` declarations `EMB_DEVICE(name)` reaches |
 | `hw.json` | tools (HW-005) | the flattened descriptions and everything derived, validated by `hw.schema.json` |
 | `board.md`, `build_report.md` | reviewers | board reference; clock results against the limits, image layout, warnings |
 
@@ -142,7 +142,7 @@ The tests cover:
 - `hw.json` against its schema, and the fields the benchmark harness needs (HW-015);
 - the solver at 180, 168, 84 and 8 MHz;
 - unit parsing and inheritance;
-- devices (`Devices`): the initialization order, each configuration field, the outputs, only the drivers in use in `EMB_BOARD_DRIVER_SOURCES`, an unchanged board without devices, and each device rule above.
+- devices (`Devices`): the initialization order, each configuration field, the outputs, only the drivers in use in `EMB_BOARD_DRIVER_SOURCES`, the empty table of a board without devices, and each device rule above.
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
 
@@ -158,7 +158,8 @@ devices:
 
 - **Binding.** Each device's `compatible`, its own or its peripheral's, must be in `drivers/bindings.yaml`, or in the board root's `drivers/bindings.yaml` for a board outside the tree (A84); a compatible bound in both is refused. A binding's `fields` map the configuration structure's members to `peripheral.<key>` (the SoC node: `base`, `irqs.<name>`, `clock.bus`, `clock.bit`, `clock.enable_offset`, and `clock_hz`, the frequency it runs at), `device.<key>` (the board entry; `device.bus` is the bus device's address) or `board.<path>`.
 - **Order.** EARLY devices come first, then KERNEL ones. Within a level, each device follows its `deps`, its `bus` and, for a peripheral with a clock gate, the board's clock-class devices. Ties keep the description's order, so the order is deterministic (DRV-001).
-- **Outputs.** `soc_devices.c` and `soc_devices.h`, a Devices table in `board.md`, `derived.devices` in `hw.json`, and in `board.cmake` the sources of the drivers the devices use, each once (DRV-009). The bindings file is an input, stamped like the others. A board without devices gets none of this, and its outputs do not change.
+- **Outputs.** `soc_devices.c` and `soc_devices.h`, a Devices table in `board.md`, `derived.devices` in `hw.json`, and in `board.cmake` the sources of the drivers the devices use, each once (DRV-009). The bindings file is an input, stamped like the others. A board without devices still gets `soc_devices.c` and `soc_devices.h`, with an empty table, and builds no driver.
+- **Why every board has a table.** The kernel has no weak default for `emb_board_device_table`. A weak default in the kernel's archive would satisfy the reference before the linker reached the board's archive, so an image that did not name the table itself would run without its devices. A board support written by hand, as the native and ESP32 boards are, defines `{NULL, 0, 0}`, and a board that defines none fails to link.
 - **At run time.** `emb_kernel_init()` initializes the EARLY devices before its initialization table runs, and `emb_kernel_start()` the KERNEL ones before the first thread ([device model](../specs/SPEC-016-device-and-driver-model.md)).
 - **In the tree.**
   - The four MPS2 boards declare their console, `uart0`, bound to `arm,cmsdk-uart` (`drivers/arm/cmsdk_uart.c`).

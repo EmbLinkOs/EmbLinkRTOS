@@ -36,7 +36,7 @@ void emb_cmsdk_uart_putc(uintptr_t base, char c)
 static emb_status_t uart_init(const emb_device_t *dev)
 {
     const emb_cmsdk_uart_config_t *cfg = (const emb_cmsdk_uart_config_t *)dev->config;
-    if (cfg->baud == 0u || cfg->clock_hz / cfg->baud < BAUDDIV_MIN) {
+    if ((cfg->baud == 0u) || ((cfg->clock_hz / cfg->baud) < BAUDDIV_MIN)) {
         return EMB_EINVAL; /* the divider cannot reach the rate */
     }
     emb_cmsdk_uart_setup(cfg->base, cfg->clock_hz, cfg->baud);

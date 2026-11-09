@@ -21,6 +21,10 @@ set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"

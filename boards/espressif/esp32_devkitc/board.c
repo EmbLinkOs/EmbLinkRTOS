@@ -31,7 +31,11 @@
  * The register state then matches ESP-IDF's, and the CPU runs at 160 MHz (CCOUNT against the host's
  * clock: 80 million cycles in 0.50 s).
  */
+#include <emb/config.h>
 #include <emb/fault.h>
+#if CONFIG_EMB_DEVICE
+#include <emb/device.h>
+#endif
 
 #include <emb_arch.h>
 
@@ -203,3 +207,8 @@ void emb_board_fault_report(const emb_fault_info_t *info)
     emb_board_exit(2); /* the halt action: the run ends here */
 #endif
 }
+
+#if CONFIG_EMB_DEVICE
+/* No devices yet: the board has no description to generate them from (SPEC-016 §8). */
+const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#endif

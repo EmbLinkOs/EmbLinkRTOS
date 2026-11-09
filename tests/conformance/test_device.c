@@ -348,3 +348,114 @@ EMB_TEST(device_board_devices_ready_in_dependency_order)
         }
     }
 }
+
+/* ---- optional operations and misuse ------------------------------------------------ */
+
+static emb_status_t power_result; /* what the power operations below return */
+
+static emb_status_t fake_power(const emb_device_t *dev)
+{
+    (void)dev;
+    return power_result;
+}
+
+/* A driver with no init and no stop, and power operations; and one with nothing at all. */
+static const emb_device_api_t bare_api = {NULL, fake_start, NULL, fake_power, fake_power};
+static const emb_device_api_t empty_api = {NULL, NULL, NULL, NULL, NULL};
+
+#define API_DEVICE(sym, api_)                               \
+    static const fake_config_t sym##_cfg = {EMB_OK, false}; \
+    static emb_device_state_t sym##_state;                  \
+    static fake_data_t sym##_data;                          \
+    static const emb_device_t sym = {                       \
+        #sym, (api_), &sym##_cfg, &sym##_state, &sym##_data, NULL, 0u, EMB_DEVICE_KERNEL, 0u}
+
+API_DEVICE(dev_bare, &bare_api);
+API_DEVICE(dev_empty, &empty_api);
+
+EMB_TEST(device_optional_operations)
+{
+    emb_drv_request_t a;
+    emb_drv_request_t b;
+    EMB_TEST_REQ("DRV-002", "DRV-006", "PWR-002");
+    reset(&dev_bare);
+    EMB_ASSERT_OK(emb_device_init(&dev_bare)); /* no init operation: READY at once */
+    EMB_ASSERT_TRUE(emb_device_ready(&dev_bare));
+
+    power_result = EMB_EIO; /* the driver refuses to suspend: the device stays READY */
+    EMB_ASSERT_STATUS(emb_device_suspend(&dev_bare), EMB_EIO);
+    EMB_ASSERT_EQ(emb_device_state(&dev_bare), EMB_DEVICE_READY);
+    power_result = EMB_OK;
+    EMB_ASSERT_OK(emb_device_suspend(&dev_bare));
+    power_result = EMB_EIO; /* it cannot come back: FAILED, with the driver's status */
+    EMB_ASSERT_STATUS(emb_device_resume(&dev_bare), EMB_EIO);
+    EMB_ASSERT_EQ(emb_device_state(&dev_bare), EMB_DEVICE_FAILED);
+    EMB_ASSERT_STATUS(emb_device_status(&dev_bare), EMB_EIO);
+    power_result = EMB_OK;
+
+    reset(&dev_bare);
+    EMB_ASSERT_OK(emb_device_init(&dev_bare));
+    emb_drv_request_init(&a);
+    emb_drv_request_init(&b);
+    EMB_ASSERT_OK(emb_drv_submit(&dev_bare, &a));                /* started, never finishes */
+    EMB_ASSERT_STATUS(emb_drv_submit(&dev_bare, &a), EMB_EBUSY); /* not twice */
+    EMB_ASSERT_OK(emb_drv_submit(&dev_bare, &b));
+    EMB_ASSERT_STATUS(emb_drv_submit(&dev_bare, &b), EMB_EBUSY); /* queued: not twice either */
+    EMB_ASSERT_OK(emb_drv_cancel(&dev_bare, &a)); /* no stop operation: the core completes it */
+    EMB_ASSERT_STATUS(a.status, EMB_ECANCELED);
+    EMB_ASSERT_EQ(a.done, 0u);
+    EMB_ASSERT_OK(emb_drv_cancel(&dev_bare, &b)); /* b had started when a ended */
+    EMB_ASSERT_STATUS(b.status, EMB_ECANCELED);
+
+    reset(&dev_bare);
+    emb_drv_request_init(&a);
+    EMB_ASSERT_STATUS(emb_drv_wait(&dev_bare, &a, EMB_NO_WAIT), EMB_ESTATE); /* not READY */
+
+    reset(&dev_empty);
+    EMB_ASSERT_OK(emb_device_init(&dev_empty));
+    EMB_ASSERT_OK(emb_device_suspend(&dev_empty)); /* no power operations: nothing to do */
+    EMB_ASSERT_OK(emb_device_resume(&dev_empty));
+    EMB_ASSERT_TRUE(emb_device_ready(&dev_empty));
+}
+
+EMB_TEST(drv_setters_ignore_a_missing_request)
+{
+    emb_drv_request_t req;
+    emb_sem_t no_sem;
+    EMB_TEST_REQ("DRV-005");
+    no_sem.raw = 0u;
+    emb_drv_request_init(NULL); /* each returns without touching anything */
+    emb_drv_on_notify(NULL, emb_thread_self(), EMB_NOTIFY_BIT(1));
+    emb_drv_on_sem(NULL, no_sem);
+    emb_drv_on_callback(NULL, NULL, NULL);
+    emb_drv_request_init(&req);
+    emb_drv_on_callback(&req, NULL, NULL); /* no function: the target stays polled */
+    EMB_ASSERT_EQ(req.target, EMB_DRV_TARGET_POLL);
+#if CONFIG_EMB_WORKQ
+    emb_drv_on_work(NULL, device_workq, NULL);
+    emb_drv_on_work(&req, device_workq, NULL);
+    EMB_ASSERT_EQ(req.target, EMB_DRV_TARGET_POLL);
+#endif
+    emb_drv_complete(NULL, &req, EMB_OK, 0u); /* a completion without its device or request */
+    emb_drv_complete(&dev_sync, NULL, EMB_OK, 0u);
+    EMB_ASSERT_EQ(req.phase, 0u);
+}
+
+EMB_TEST(device_misuse_faults)
+{
+    emb_drv_request_t req;
+    EMB_TEST_REQ("DRV-002", "DRV-004");
+    emb_drv_request_init(&req);
+    reset(&dev_empty);
+    EMB_ASSERT_OK(emb_device_init(&dev_empty));
+    EMB_ASSERT_FAULTS((void)emb_device_init(NULL));
+    EMB_ASSERT_FAULTS((void)emb_device_init_list(NULL, 1u));
+    EMB_ASSERT_FAULTS((void)emb_device_suspend(NULL));
+    EMB_ASSERT_FAULTS((void)emb_device_resume(NULL));
+    EMB_ASSERT_FAULTS((void)emb_drv_submit(NULL, &req));
+    EMB_ASSERT_FAULTS((void)emb_drv_submit(&dev_sync, NULL));
+    EMB_ASSERT_FAULTS((void)emb_drv_submit(&dev_empty, &req)); /* a driver with no start */
+    EMB_ASSERT_FAULTS((void)emb_drv_cancel(NULL, &req));
+    EMB_ASSERT_FAULTS((void)emb_drv_cancel(&dev_sync, NULL));
+    EMB_ASSERT_FAULTS((void)emb_drv_wait(&dev_sync, NULL, EMB_NO_WAIT));
+}
