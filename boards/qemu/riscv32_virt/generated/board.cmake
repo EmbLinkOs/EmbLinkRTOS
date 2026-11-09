@@ -18,6 +18,10 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/qemu/virt")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M virt -icount shift=3,sleep=off -bios none -kernel)
 set(EMB_BOARD_RESETS_IN qemu) # restart the image with RAM kept (test_crash_reset)
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/riscv/arch.yaml=446538712f59f1c1ec2d363143eafeb6ea30ae717d54882d42a9b36c62812ed4"

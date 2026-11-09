@@ -5,7 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/st/nucleo_f446ze/board.yaml
-#     4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5
+#     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
+#   drivers/bindings.yaml
+#     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
@@ -22,10 +24,19 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN embsim) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_EMBSIM_TARGET emblink/nucleo_f446ze) # EMB_TEST_EMULATOR=embsim
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+    "${EMB_BASE}/drivers/st/stm32_devices.c"
+)
+set(EMB_BOARD_DRIVER_INCLUDE_DIRS
+    "${EMB_BASE}/drivers/st/include"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/st/nucleo_f446ze/board.yaml=4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5"
+    "boards/st/nucleo_f446ze/board.yaml=d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d"
+    "drivers/bindings.yaml=12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
     "soc/st/stm32f4/stm32f446.yaml=31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26"
     "soc/st/stm32f4/stm32f446ze.yaml=98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"

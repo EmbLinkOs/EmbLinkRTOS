@@ -108,6 +108,7 @@
         }
       ]
     },
+    "devices": [],
     "kconfig": {
       "CONFIG_EMB_AVR_F_CPU": 16000000,
       "CONFIG_EMB_AVR_MCU": "\"atmega328p\"",

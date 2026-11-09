@@ -162,6 +162,46 @@
       "masked": true,
       "profiles": "CONFIG_EMB_FAULT_ACTION",
       "evidence": "03 \u00a710; SPEC-011 \u00a714"
+    },
+    {
+      "id": "device_deps",
+      "input": "dependencies of one device",
+      "bound": "at most 255: emb_device_t.dep_count is 8 bits, and the generator emits them from the description",
+      "limit": "configuration, fixed at generation",
+      "enforcement": "configuration",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DEVICE (off on tiny and AVR)",
+      "evidence": "SPEC-016 \u00a74; DRV-001; hw/gen/test_hwgen.py Devices"
+    },
+    {
+      "id": "devices",
+      "input": "devices initialized from one list",
+      "bound": "the count passed; the board's table holds at most 65,535 (a 16-bit count)",
+      "limit": "configuration: the board's devices, fixed at generation",
+      "enforcement": "configuration",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DEVICE",
+      "evidence": "SPEC-016 \u00a74, \u00a78; DRV-003"
+    },
+    {
+      "id": "device_queue",
+      "input": "requests queued on one device",
+      "bound": "not limited by the kernel: the requests callers have submitted and not yet seen complete",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "a singly linked FIFO per device; cancel walks it in the device's critical section",
+      "evidence": "SPEC-016 \u00a75, \u00a76; DRV-006"
+    },
+    {
+      "id": "drivers",
+      "input": "a driver's operations (init, start, stop, suspend, resume) and a request's completion target",
+      "bound": "not bounded by the kernel: each driver's own, stated with its class",
+      "limit": "the driver and the application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "called outside the device's critical section; completion delivery too",
+      "evidence": "SPEC-016 \u00a75; SPEC-017"
     }
   ],
   "apis": {
@@ -418,6 +458,34 @@
     "emb_dwork_cancel_sync": [
       "waiters",
       "timeouts"
+    ],
+    "emb_device_init": [
+      "device_deps",
+      "drivers"
+    ],
+    "emb_device_init_list": [
+      "devices",
+      "device_deps",
+      "drivers"
+    ],
+    "emb_device_resume": [
+      "drivers"
+    ],
+    "emb_device_suspend": [
+      "drivers"
+    ],
+    "emb_drv_cancel": [
+      "device_queue",
+      "drivers"
+    ],
+    "emb_drv_complete": [
+      "drivers"
+    ],
+    "emb_drv_submit": [
+      "drivers"
+    ],
+    "emb_drv_wait": [
+      "drivers"
     ]
   }
 }

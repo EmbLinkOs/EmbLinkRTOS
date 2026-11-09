@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""The generated outputs of the first increment (SPEC-014 §6, A68): hw_config.h,
-board_pins.c, regions.ld, board.conf, board.cmake, hw.json, board.md and build_report.md.
+"""The generated outputs (SPEC-014 §6, A68): hw_config.h, board_pins.c, regions.ld,
+board.conf, board.cmake, hw.json, board.md and build_report.md, soc_devices.c and
+soc_devices.h, the board's device table (SPEC-016 §8).
 
 Every output is sorted, carries no timestamp and names the generator version, the schema
 version and the SHA-256 of each input (HW-013).
@@ -444,11 +445,39 @@ def board_cmake(r):
         out += f"set(EMB_BOARD_FLASH_IMAGE {boot['image']}) # what the SoC's boot ROM loads (A79)\n"
         if "uf2_family" in boot:
             out += f"set(EMB_BOARD_UF2_FAMILY 0x{boot['uf2_family']:08X})\n"
+    out += _device_sources(r)
     out += "# the inputs this directory was generated from, for the configure-time staleness check\n"
     out += "set(EMB_BOARD_HW_INPUTS\n"
     for i in r["inputs"]:
         out += f"    \"{i['path']}={i['sha256']}\"\n"
     out += ")\n"
+    return out
+
+
+def _driver_path(r, d, rel):
+    if d["origin"] == "board":
+        # the board root's own driver (A84): generated/ is <root>/boards/<vendor>/<board>/generated
+        return f"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{rel}"
+    return f"${{EMB_BASE}}/{rel}"
+
+
+def _device_sources(r):
+    """SPEC-016 §8: the board's devices and the drivers they use, and only those."""
+    sources, includes = [], []
+    for d in r["devices"]:
+        for src in d["sources"]:
+            path = _driver_path(r, d, src)
+            if path not in sources:
+                sources.append(path)
+        if d["include"]:
+            path = _driver_path(r, d, d["include"])
+            if path not in includes:
+                includes.append(path)
+    out = "# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)\n"
+    out += "set(EMB_BOARD_DRIVER_SOURCES\n    \"${CMAKE_CURRENT_LIST_DIR}/soc_devices.c\"\n"
+    out += "".join(f"    \"{s}\"\n" for s in sources) + ")\n"
+    if includes:
+        out += "set(EMB_BOARD_DRIVER_INCLUDE_DIRS\n" + "".join(f"    \"{i}\"\n" for i in includes) + ")\n"
     return out
 
 
@@ -476,6 +505,8 @@ def hw_json_data(r):
             "partitions": r["partitions"],
             "pins": r["pins"],
             "test_irqs": r["test_irqs"],
+            "devices": [{k: d[k] for k in ("name", "compatible", "peripheral", "class", "level", "deps")}
+                        | {"fields": {f["field"]: f["value"] for f in d["fields"]}} for d in r["devices"]],
             "timer": r["timer"],
             "kconfig": r["kconfig"],
             "profile": r["profile"],
@@ -530,6 +561,13 @@ def board_md(r):
     for e in r["pins"]:
         m = {"af": f"af{e.get('af')} ({e.get('signal')})", "fixed": f"fixed ({e.get('signal')})"}.get(e["mode"], e["mode"])
         out += f"| {e['pin']} | `{e['owner']}` | {m} |\n"
+    if r["devices"]:
+        out += "\n## Devices\n\nIn initialization order (SPEC-016 §4).\n\n"
+        out += "| Device | Compatible | Class | Level | Depends on |\n|---|---|---|---|---|\n"
+        for d in r["devices"]:
+            what = d["compatible"] + (f" ({d['peripheral']})" if d["peripheral"] and d["peripheral"] != d["name"] else "")
+            deps = ", ".join(d["deps"]) or "-"
+            out += f"| {d['name']} | `{what}` | {d['class']} | {d['level'].upper()} | {deps} |\n"
     out += "\n## Interrupt lines\n\n| Line | Owner |\n|---|---|\n"
     rows = []
     for p in soc["peripherals"]:
@@ -629,6 +667,81 @@ def rp2350_boot_block_c(r):
     return out
 
 
+# --------------------------------------------------------------------------- soc_devices.c, .h
+
+def soc_devices_h(r):
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+    out += "/* The board's devices, each reached by symbol with EMB_DEVICE(name) (SPEC-016 §2). */\n"
+    out += "#ifndef EMB_SOC_DEVICES_H\n#define EMB_SOC_DEVICES_H\n\n#include <emb/config.h>\n\n"
+    out += f"#define EMB_SOC_DEVICE_COUNT {len(r['devices'])}u\n\n"
+    out += "#if CONFIG_EMB_DEVICE\n#include <emb/device.h>\n\n"
+    for d in r["devices"]:
+        out += f"extern const emb_device_t emb_dev_{d['name']};\n"
+    out += "#endif\n\n#endif /* EMB_SOC_DEVICES_H */\n"
+    return out
+
+
+def soc_devices_c(r):
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+    out += ("/* The board's devices (SPEC-016 §8): each one's configuration, RAM and instance, and the\n"
+            " * table the kernel initializes them from: EARLY first, each device after its dependencies. */\n")
+    out += "#include <emb/config.h>\n\n#if CONFIG_EMB_DEVICE\n"
+    headers = []
+    for d in r["devices"]:
+        if d["header"] not in headers:
+            headers.append(d["header"])
+    # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
+    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n\n#include <stddef.h>\n"
+    if headers:
+        out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
+    early = 0
+    for d in r["devices"]:
+        n = d["name"]
+        early += d["level"] == "early"
+        out += f"\n/* {n}: {d['compatible']}, {d['class']}, {d['level'].upper()} */\n"
+        if d["fields"]:
+            out += f"static const {d['config']} {n}_config = {{\n"
+            width = max(len(f".{f['field']} = {f['c']},") for f in d["fields"])
+            for f in d["fields"]:
+                init = f".{f['field']} = {f['c']},"
+                out += f"    {init.ljust(width)} /* {f['expr']} */\n"
+            out += "};\n"
+        else:
+            out += f"static const {d['config']} {n}_config;\n"
+        out += f"static emb_device_state_t {n}_state;\n"
+        if d["data"]:
+            out += f"static {d['data']} {n}_data;\n"
+        if d["deps"]:
+            out += f"static const emb_device_t *const {n}_deps[] = {{" + ", ".join(f"&emb_dev_{x}" for x in d["deps"]) + "};\n"
+        out += f"const emb_device_t emb_dev_{n} = {{\n"
+        out += f"    .name = \"{n}\",\n"
+        out += f"    .api = &{d['api']},\n"
+        out += f"    .config = &{n}_config,\n"
+        out += f"    .state = &{n}_state,\n"
+        out += f"    .data = {'&' + n + '_data' if d['data'] else 'NULL'},\n"
+        out += f"    .deps = {n + '_deps' if d['deps'] else 'NULL'},\n"
+        out += f"    .class_id = EMB_DRV_CLASS_{d['class'].upper()},\n"
+        out += f"    .level = EMB_DEVICE_{d['level'].upper()},\n"
+        out += f"    .dep_count = {len(d['deps'])}u,\n"
+        out += "};\n"
+    if r["devices"]:
+        out += "\n/* in initialization order */\nstatic const emb_device_t *const devices[] = {\n"
+        width = max(len(f"&emb_dev_{d['name']},") for d in r["devices"])
+        for i, d in enumerate(r["devices"]):
+            entry = f"&emb_dev_{d['name']},"
+            out += f"    {entry.ljust(width)} /* {i}: {d['level'].upper()} */\n"
+        out += "};\n\n"
+        out += f"const emb_device_table_t emb_board_device_table = {{devices, {len(r['devices'])}u, {early}u}};\n"
+    else:
+        out += "\n/* the board declares no devices (its description has no devices:) */\n"
+        out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
+    out += "#else\n/* ISO C: a translation unit declares something */\ntypedef int emb_soc_devices_off_t;\n#endif\n"
+    return out
+
+
+DEVICE_OUTPUTS = {"soc_devices.c": soc_devices_c, "soc_devices.h": soc_devices_h}
+
+
 # outputs only some families or ports have: the pin tables, AVR's embld option set
 FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c},
                   "rp2350": {"board_pins.c": rp2350_pins_c, "boot_block.c": rp2350_boot_block_c}}
@@ -639,4 +752,5 @@ def render(resolved):
     outputs = dict(OUTPUTS)
     outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
     outputs.update(PORT_OUTPUTS.get(resolved["soc"]["arch"]["port"], {}))
+    outputs.update(DEVICE_OUTPUTS)  # every board defines its device table, empty or not
     return {name: fn(resolved) for name, fn in sorted(outputs.items())}

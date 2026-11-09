@@ -22,6 +22,10 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **init_table**: entries of the initialization table | the EMB_*_DEFINE objects linked into the image | application, fixed at link time | application | no | prekernel only | KRN-OBJ-009 |
 | **callbacks**: application callbacks the kernel calls (fault hook, trace sink, foreach visitor) | not bounded by the kernel | application | application | yes | the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock | API-017; SPEC-015 |
 | **port_action**: the port's fault action (halt or reset) | does not return | port | structural | yes | CONFIG_EMB_FAULT_ACTION | 03 §10; SPEC-011 §14 |
+| **device_deps**: dependencies of one device | at most 255: emb_device_t.dep_count is 8 bits, and the generator emits them from the description | configuration, fixed at generation | configuration | no | base with CONFIG_EMB_DEVICE (off on tiny and AVR) | SPEC-016 §4; DRV-001; hw/gen/test_hwgen.py Devices |
+| **devices**: devices initialized from one list | the count passed; the board's table holds at most 65,535 (a 16-bit count) | configuration: the board's devices, fixed at generation | configuration | no | base with CONFIG_EMB_DEVICE | SPEC-016 §4, §8; DRV-003 |
+| **device_queue**: requests queued on one device | not limited by the kernel: the requests callers have submitted and not yet seen complete | application | application | yes | a singly linked FIFO per device; cancel walks it in the device's critical section | SPEC-016 §5, §6; DRV-006 |
+| **drivers**: a driver's operations (init, start, stop, suspend, resume) and a request's completion target | not bounded by the kernel: each driver's own, stated with its class | the driver and the application | application | no | called outside the device's critical section; completion delivery too | SPEC-016 §5; SPEC-017 |
 
 ## Public functions
 
@@ -33,6 +37,14 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_cond_signal()` | O(1) selection, plus profile-specific timeout removal and scheduling | timeouts, reschedule |
 | `emb_cond_wait()` | O(waiters + timeouts) enqueue, a full mutex release, then the cost of emb_mutex_lock() | waiters, timeouts, owned, pi_depth, reschedule |
 | `emb_cond_wait_until()` | as emb_cond_wait() | waiters, timeouts, owned, pi_depth, reschedule |
+| `emb_device_init()` | O(dependencies) plus the driver's init | device_deps, drivers |
+| `emb_device_init_list()` | O(count) plus the drivers' init | devices, device_deps, drivers |
+| `emb_device_resume()` | O(1) plus the driver's resume | drivers |
+| `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
+| `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
+| `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_submit()` | O(1) plus the driver's start when the queue was empty | drivers |
+| `emb_drv_wait()` | O(1) plus the request's own time; bounded by the timeout and the driver's stop | drivers |
 | `emb_dwork_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_dwork_reschedule()` | O(armed timers) insertion | armed_timers, timeouts |
 | `emb_dwork_schedule()` | O(armed timers) insertion | armed_timers, timeouts |

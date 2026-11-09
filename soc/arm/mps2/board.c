@@ -10,23 +10,19 @@
 #include <emb/fault.h>
 
 #include <emb_board.h>
+#include <emb_cmsdk_uart.h>
 #include <emb_cortex_m.h>
 #include <hw_config.h>
 
-#define UART_DATA     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x00u))
-#define UART_STATE    (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x04u))
-#define UART_CTRL     (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x08u))
-#define UART_BAUDDIV  (*(volatile uint32_t *)(uintptr_t)(EMB_HW_CONSOLE_BASE + 0x10u))
-#define FPGAIO_LED    (*(volatile uint32_t *)(uintptr_t)(EMB_HW_FPGAIO_BASE + 0x00u))
-#define STATE_TX_FULL 1u
-#define CTRL_TX_EN    1u
+#define FPGAIO_LED (*(volatile uint32_t *)(uintptr_t)(EMB_HW_FPGAIO_BASE + 0x00u))
 
 static unsigned led_state;
 
 void emb_board_init(void)
 {
-    UART_BAUDDIV = EMB_HW_CONSOLE_CLOCK_HZ / EMB_HW_CONSOLE_BAUD;
-    UART_CTRL = CTRL_TX_EN;
+    /* the polled console, before anything else; its device (uart0, SPEC-016) is
+     * initialized with the board's EARLY devices and sets up the same registers */
+    emb_cmsdk_uart_setup(EMB_HW_CONSOLE_BASE, EMB_HW_CONSOLE_CLOCK_HZ, EMB_HW_CONSOLE_BAUD);
     led_state = 0u;
 }
 
@@ -36,18 +32,10 @@ void emb_board_led_toggle(void)
     FPGAIO_LED = led_state; /* LED0 (QEMU models the register) */
 }
 
-static void put_char(char c)
-{
-    /* bounded by the UART draining one character */
-    while ((UART_STATE & STATE_TX_FULL) != 0u) {
-    }
-    UART_DATA = (uint32_t)(unsigned char)c;
-}
-
 void emb_board_puts(const char *s)
 {
     while (*s != '\0') { /* bounded by the string */
-        put_char(*s);
+        emb_cmsdk_uart_putc(EMB_HW_CONSOLE_BASE, *s);
         s++;
     }
 }

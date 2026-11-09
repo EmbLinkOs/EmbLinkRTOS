@@ -19,6 +19,10 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m0 -mfloat-abi=soft)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/nordic/nrf51")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M microbit -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel)
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"

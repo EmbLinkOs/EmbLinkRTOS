@@ -888,6 +888,102 @@
       "name": "emb_isr_stack_info",
       "header": "irq.h",
       "state": "active"
+    },
+    {
+      "id": 149,
+      "name": "emb_device_init",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 150,
+      "name": "emb_device_init_list",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 151,
+      "name": "emb_device_state",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 152,
+      "name": "emb_device_ready",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 153,
+      "name": "emb_device_status",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 154,
+      "name": "emb_device_suspend",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 155,
+      "name": "emb_device_resume",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 156,
+      "name": "emb_drv_request_init",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 157,
+      "name": "emb_drv_on_notify",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 158,
+      "name": "emb_drv_on_sem",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 159,
+      "name": "emb_drv_on_work",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 160,
+      "name": "emb_drv_on_callback",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 161,
+      "name": "emb_drv_submit",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 162,
+      "name": "emb_drv_complete",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 163,
+      "name": "emb_drv_cancel",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 164,
+      "name": "emb_drv_wait",
+      "header": "device.h",
+      "state": "active"
     }
   ]
 }

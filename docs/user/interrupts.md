@@ -45,13 +45,24 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-79 functions, from the headers' `@ctx` tags.
+90 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
 | `emb_check_status()` | `<emb/kernel.h>` | no |
 | `emb_cond_attr_default()` | `<emb/cond.h>` | no |
 | `emb_context()` | `<emb/context.h>` | no |
+| `emb_device_ready()` | `<emb/device.h>` | no |
+| `emb_device_state()` | `<emb/device.h>` | no |
+| `emb_device_status()` | `<emb/device.h>` | no |
+| `emb_drv_cancel()` | `<emb/device.h>` | no |
+| `emb_drv_complete()` | `<emb/device.h>` | no |
+| `emb_drv_on_callback()` | `<emb/device.h>` | no |
+| `emb_drv_on_notify()` | `<emb/device.h>` | no |
+| `emb_drv_on_sem()` | `<emb/device.h>` | no |
+| `emb_drv_on_work()` | `<emb/device.h>` | no |
+| `emb_drv_request_init()` | `<emb/device.h>` | no |
+| `emb_drv_submit()` | `<emb/device.h>` | no |
 | `emb_duration_is_saturated()` | `<emb/time.h>` | no |
 | `emb_duration_to_ns()` | `<emb/time.h>` | no |
 | `emb_dwork_cancel()` | `<emb/work.h>` | no |

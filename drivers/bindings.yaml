@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# Driver bindings (SPEC-016 §8, DRV-009): for each compatible, its class, the sources the image
+# needs for it, the header declaring its configuration and operations, and where each
+# configuration field comes from in the description. emb-hwgen binds every board device
+# through this table and refuses a compatible it does not name.
+#
+# A field reads peripheral.<key> (the SoC node: base, irqs.<name>, clock.bus, clock.bit,
+# clock.enable_offset, and clock_hz, the frequency it is clocked at), device.<key> (the board
+# device's own properties; device.bus is a reference to the bus device) or board.<path>.
+schema_version: 0
+kind: bindings
+bindings:
+  arm,cmsdk-uart:
+    class: uart
+    level: early
+    sources: [drivers/arm/cmsdk_uart.c]
+    include: drivers/arm/include
+    header: emb_cmsdk_uart.h
+    api: emb_cmsdk_uart_api
+    config: emb_cmsdk_uart_config_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
+    doc: the MPS2 boards' console UART; polled, with the UART class's requests to come (SPEC-017 §4)
+  st,stm32f4-rcc:
+    class: clock
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_rcc_api
+    config: emb_stm32_rcc_config_t
+    fields: { base: peripheral.base }
+    doc: the clock tree the board support brings up before the kernel; READY once its switch is done
+  st,stm32-gpio:
+    class: gpio
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_gpio_api
+    config: emb_stm32_gpio_config_t
+    fields: { base: peripheral.base, clken_offset: peripheral.clock.enable_offset, clken_bit: peripheral.clock.bit }
+  st,stm32-usart:
+    class: uart
+    level: early
+    sources: [drivers/st/stm32_devices.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_usart_api
+    config: emb_stm32_usart_config_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      baud: device.baud
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+    doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
+  arm,pl011:
+    class: uart
+    level: early
+    sources: [drivers/arm/pl011.c]
+    include: drivers/arm/include
+    header: emb_pl011.h
+    api: emb_pl011_api
+    config: emb_pl011_config_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
+    doc: the RP2350's UARTs; the console, polled, with the UART class's requests to come (SPEC-017 §4)
+  rpi,rp2350-clocks:
+    class: clock
+    level: early
+    sources: [drivers/rpi/rp2350_devices.c, drivers/rpi/rp2350_gpio.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_clocks_api
+    config: emb_rp2350_clocks_config_t
+    fields: { base: peripheral.base }
+    doc: the clock tree the board support brings up from the crystal before the kernel
+  rpi,rp2350-io-bank:
+    class: gpio
+    level: early
+    sources: [drivers/rpi/rp2350_devices.c, drivers/rpi/rp2350_gpio.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_io_bank_api
+    config: emb_rp2350_io_bank_config_t
+    fields: { base: peripheral.base }

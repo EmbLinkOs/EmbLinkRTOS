@@ -13,6 +13,12 @@
       "CONFIG_EMB_PROFILE": "base",
       "CONFIG_EMB_TICK_NS": 1000000
     },
+    "devices": [
+      {
+        "baud": 115200,
+        "name": "uart0"
+      }
+    ],
     "doc": "QEMU's MPS2 AN505: the console on the CMSDK APB UART0 at 115200 baud, LED0 in the FPGA I/O block, the run's end through Arm semihosting.",
     "kind": "board",
     "name": "mps2_an505",
@@ -57,6 +63,21 @@
       "device": "uart0",
       "irqs": []
     },
+    "devices": [
+      {
+        "class": "uart",
+        "compatible": "arm,cmsdk-uart",
+        "deps": [],
+        "fields": {
+          "base": 1344274432,
+          "baud": 115200,
+          "clock_hz": 20000000
+        },
+        "level": "early",
+        "name": "uart0",
+        "peripheral": "uart0"
+      }
+    ],
     "kconfig": {
       "CONFIG_EMB_CM_CPU_HZ": 20000000,
       "CONFIG_EMB_CM_IRQ_COUNT": 124,
@@ -99,7 +120,11 @@
     },
     {
       "path": "boards/arm/mps2_an505/board.yaml",
-      "sha256": "c526e7622f82e8a4a2f2c2bb9147089443f67f61dd5cd4f66e1a0a6a4362c2c2"
+      "sha256": "4033f69197a0e3dbde7b4905b015f5ba25b70519350c6ca240adec525bcd62a6"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
     },
     {
       "path": "soc/arm/mps2/an505.yaml",

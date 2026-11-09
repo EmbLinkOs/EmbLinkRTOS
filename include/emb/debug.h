@@ -123,6 +123,16 @@ enum emb_debug_index {
     EMB_DEBUG_FRAME_SIZE,        /* bytes the table covers from the saved sp */
     EMB_DEBUG_FRAME_TABLE,       /* address of uint8_t pairs: GDB register number, word */
     EMB_DEBUG_FRAME_TABLE_COUNT, /* pairs */
+    /* the board's devices (SPEC-016 §9); ABSENT without CONFIG_EMB_DEVICE */
+    EMB_DEBUG_DEVICE_TABLE,   /* address of emb_board_device_table (<emb/device.h>) */
+    EMB_DEBUG_DT_DEVICES,     /* offset of its array of device pointers, pointer-sized */
+    EMB_DEBUG_DT_COUNT,       /* offset of its device count, 2 bytes */
+    EMB_DEBUG_DT_EARLY,       /* offset of how many come first at the EARLY level, 2 bytes */
+    EMB_DEBUG_D_NAME,         /* offset of a device's name, pointer-sized */
+    EMB_DEBUG_D_STATE,        /* offset of its state's address, pointer-sized */
+    EMB_DEBUG_D_CLASS,        /* offset of its class, 2 bytes: EMB_DRV_CLASS_* */
+    EMB_DEBUG_DS_LIFECYCLE,   /* offset in the state of the lifecycle, 1 byte: EMB_DEVICE_* */
+    EMB_DEBUG_DS_LAST_STATUS, /* offset in the state of the last status, 2 bytes, signed */
     EMB_DEBUG_COUNT
 };
 

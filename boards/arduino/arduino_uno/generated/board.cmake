@@ -19,6 +19,10 @@ set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M arduino-uno -icount shift=6,sleep=off -bios)
 set(EMB_BOARD_RESETS_IN embsim hil) # restart the image with RAM kept (test_crash_reset)
 set(EMB_BOARD_EMBSIM_TARGET emblink/arduino_uno) # EMB_TEST_EMULATOR=embsim
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/avr/arch.yaml=58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42"

@@ -25,6 +25,28 @@
       "CONFIG_EMB_PROFILE": "base",
       "CONFIG_EMB_TICK_NS": 1000000
     },
+    "devices": [
+      {
+        "name": "rcc"
+      },
+      {
+        "doc": "LD1 to LD3",
+        "name": "gpiob"
+      },
+      {
+        "doc": "B1",
+        "name": "gpioc"
+      },
+      {
+        "doc": "the console's pins",
+        "name": "gpiod"
+      },
+      {
+        "baud": 115200,
+        "doc": "the console, the ST-LINK's virtual COM port",
+        "name": "usart3"
+      }
+    ],
     "doc": "The STM32F446ZE (LQFP144) at 180 MHz from the PLL, its input the ST-LINK/V2-1's 8 MHz MCO in HSE bypass, the board's default clock configuration (UM1974 \u00a76.7.1). The console is USART3 on PD8 and PD9, which the ST-LINK carries as its virtual COM port.",
     "flash_partitions": [
       {
@@ -137,6 +159,81 @@
         }
       ]
     },
+    "devices": [
+      {
+        "class": "clock",
+        "compatible": "st,stm32f4-rcc",
+        "deps": [],
+        "fields": {
+          "base": 1073887232
+        },
+        "level": "early",
+        "name": "rcc",
+        "peripheral": "rcc"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073873920,
+          "clken_bit": 1,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpiob",
+        "peripheral": "gpiob"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073874944,
+          "clken_bit": 2,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpioc",
+        "peripheral": "gpioc"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073875968,
+          "clken_bit": 3,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpiod",
+        "peripheral": "gpiod"
+      },
+      {
+        "class": "uart",
+        "compatible": "st,stm32-usart",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073760256,
+          "baud": 115200,
+          "clken_bit": 18,
+          "clken_offset": 64,
+          "clock_hz": 45000000
+        },
+        "level": "early",
+        "name": "usart3",
+        "peripheral": "usart3"
+      }
+    ],
     "kconfig": {
       "CONFIG_EMB_CM_CPU_HZ": 180000000,
       "CONFIG_EMB_CM_IRQ_COUNT": 97,
@@ -250,7 +347,11 @@
     },
     {
       "path": "boards/st/nucleo_f446ze/board.yaml",
-      "sha256": "4bb615a283bae4637cf3809ebc1512cdd732c9bd7bec109ce5ed120f1e16f6f5"
+      "sha256": "d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

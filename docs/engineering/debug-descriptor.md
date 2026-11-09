@@ -27,8 +27,11 @@ Then come `count` values, each one pointer-sized, by index (`EMB_DEBUG_*`):
 - **The object type names**, by type tag.
 - **Stacks:** the fill byte, the guard size, and the interrupt stack.
 - **The port's switch frame**, described below.
+- **The board's devices** (SPEC-016 §9): the address of `emb_board_device_table`, the offsets of its device array, count and EARLY count, a device's name, state and class, and in the state the lifecycle and the last status. They were appended after the switch frame's values, so the version stays 1.
 
-A value that does not apply to the build is all ones (`EMB_DEBUG_ABSENT`): the thread list on the tiny profile, names when they are compiled out, the mutex fields without mutexes.
+A value that does not apply to the build is all ones (`EMB_DEBUG_ABSENT`): the thread list on the tiny profile, names when they are compiled out, the mutex fields without mutexes, the device values without `CONFIG_EMB_DEVICE`.
+
+The descriptor gives the device table's address rather than its array and count, as SPEC-016 §9 first wrote it: the table is generated per board, outside the kernel, so the kernel's descriptor can name only its address. A reader takes the array and the count from the table.
 
 Indexes are append-only. A later kernel adds values at the end and raises `count`, and never moves or redefines one. A reader treats a value past `count` as absent, so a new reader serves an old kernel, and an old reader still reads a new kernel's first values.
 
@@ -56,6 +59,8 @@ Each port describes what its context switch leaves on a thread's stack, in `arch
 - their stack: what is in use at the switch, and the high-water mark when stacks are filled (`CONFIG_EMB_STACK_STATS`);
 - the mutexes each owns;
 - the registers a switched-out thread's frame holds.
+
+It also lists the board's devices in initialization order, each with its class, level, lifecycle and last status.
 
 ### With GDB
 
@@ -93,6 +98,7 @@ The other commands:
 - `emb bt INDEX FRAMES` caps the backtrace, which is 64 frames by default. On Clang's Cortex-M images, GDB's own unwinding can repeat a thread's root frame forever.
 - `emb info` prints the header.
 - `emb threads --json` gives the list as one JSON line.
+- `emb devices` lists the board's devices, and `emb devices --json` gives them as one JSON line. `gdb_check.py` requires each one to be READY at its checkpoint.
 
 The target must be halted. Any GDB server will do: QEMU's gdbstub, OpenOCD, pyOCD.
 

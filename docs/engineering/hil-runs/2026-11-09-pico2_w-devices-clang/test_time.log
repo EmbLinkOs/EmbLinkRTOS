@@ -1,0 +1,37 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_time.elf sha256 729a9d121da2369c0f481c050ec8f620880a46cc36b616be312ecf6a9d03e65f
+EVIDENCE v1 suite=test_time config=310f7b08ddae875a profile=base board=pico2_w checked=1
+TEST time_sleep_is_exact_in_virtual_time
+  -> ok
+  req KRN-TIM-001 KRN-TIM-010 API-023
+CASE time_sleep_is_exact_in_virtual_time outcome=passed asserts=4 skips=0
+TEST time_sleep_until_does_not_drift
+  -> ok
+  req KRN-TIM-011
+CASE time_sleep_until_does_not_drift outcome=passed asserts=20 skips=0
+TEST time_zero_sleep_and_past_deadline_yield
+  -> ok
+  req KRN-TIM-010 API-024
+CASE time_zero_sleep_and_past_deadline_yield outcome=passed asserts=3 skips=0
+TEST time_timeouts_expire_in_deadline_order
+  -> ok
+  req KRN-TIM-020 KRN-TIM-021
+CASE time_timeouts_expire_in_deadline_order outcome=passed asserts=14 skips=0
+TEST time_conversions_round_up_and_saturate
+  -> ok
+  req API-021 API-022
+CASE time_conversions_round_up_and_saturate outcome=passed asserts=12 skips=0
+TEST time_at_least_adds_one_tick
+  -> ok
+  req KRN-TIM-024
+CASE time_at_least_adds_one_tick outcome=passed asserts=6 skips=0
+TEST time_instant_helpers
+  -> ok
+  req API-021
+CASE time_instant_helpers outcome=passed asserts=6 skips=0
+TEST time_now_is_monotonic_across_sleeps
+  -> ok
+  req KRN-TIM-001
+CASE time_now_is_monotonic_across_sleeps outcome=passed asserts=40 skips=0
+ISR_STACK size=2048 used=116
+8 tests, 0 failed, 0 skipped, 180 ticks
+EMB_TEST_END

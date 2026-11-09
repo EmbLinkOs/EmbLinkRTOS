@@ -1,0 +1,109 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 7,
+      "name": "notify_bits_are_level_sensitive",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "notify_any_and_all_modes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "notify_wake_from_thread_hands_off_bits",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "notify_wake_from_isr",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "notify_wait_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "notify_rejects_kernel_bits_and_terminated_targets",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "notify_semaphore_binding_signals_ready_transition",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "notify_unbind_stops_signals",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "notify_bound_target_cannot_be_destroyed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "notify_bind_refuses_a_terminated_target",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T14:35:04Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "310f7b08ddae875a",
+    "profile": "base",
+    "suite": "test_notify"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 4,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_notify.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_notify.uf2": "28ce20c768b89835040c0f92ad3649f3395e7e1f246fadc029d474f371a05194"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "04ebb04b017bcb32e0256643e3dd56eae5e8bcc1",
+    "dirty": false
+  },
+  "image": "test_notify.elf",
+  "image_sha256": "598eba57cbc52393918d33798b245b00ff93a1468a99410635854e390054ea41",
+  "isr_stack": {
+    "size": 2048,
+    "used": 116
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T14:35:02Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 10
+  }
+}
