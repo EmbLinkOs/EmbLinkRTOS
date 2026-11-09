@@ -56,12 +56,12 @@ Rules:
 | KRN-MEM | Memory | [`KRN-MEM.md`](KRN-MEM.md) | Complete; 03 §9 identifiers restated, cited v0.1 §11 identifiers restated and accepted 2026-10-31, the rest reserved |
 | KRN-TP | Temporal protection | pending | 03 §2.3 |
 | KRN-SMP, MC | Multicore | pending | v0.1 §13, 04 §8 |
-| FLT | Fault management | pending | 03 §10 |
+| FLT | Fault management | [`FLT.md`](FLT.md) | Complete; 03 §10 identifiers restated 2026-11-09 (M4.0) |
 | HW | Hardware description and generator | [`HW.md`](HW.md) | Complete; Accepted 2026-10-07 (work item 13). 04 §1.3 identifiers restated |
-| DRV | Device and driver model | pending | 04 §2, §3 |
-| PWR | Power management | pending | 04 §4 |
-| BOOT | Boot, images, update | pending | 04 §5 |
-| SEC | Security | pending | 04 §6, v0.1 §17 |
+| DRV | Device and driver model | [`DRV.md`](DRV.md) | Complete; 04 §2, §3 identifiers restated, 007 to 010 accepted 2026-11-09 (M4.0) |
+| PWR | Power management | [`PWR.md`](PWR.md) | Complete; 04 §4 identifiers restated, 006 and 007 accepted 2026-11-09 (M4.0) |
+| BOOT | Boot, images, update | [`BOOT.md`](BOOT.md) | Complete; 04 §5 identifiers restated, 006 to 008 accepted 2026-11-09 (M4.0) |
+| SEC | Security | [`SEC.md`](SEC.md) | 04 §6 identifiers restated, 012 to 014 accepted 2026-11-09 (M4.0); 001 to 005 reserved until restated from v0.1 §17 |
 | OBS | Observability | [`OBS.md`](OBS.md) | Complete; Accepted 2026-10-07 (work item 14). 04 §7 identifiers restated |
 | SIM | Simulation and the native port | [`SIM.md`](SIM.md) | Complete; Accepted 2026-10-07 (work item 12). 04 §9 identifiers restated |
 | PORT | Compiler portability (PORT-ABI) and the architecture port contract (PORT) | [`PORT.md`](PORT.md) | Complete; Accepted 2026-10-07 (work item 10). v0.1 §21.5 identifiers restated |
