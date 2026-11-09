@@ -53,27 +53,27 @@ DRV-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §2.
 ### DRV-007  Polled mode before the kernel
 **Statement.** The classes needed before the kernel starts (clock, GPIO, the console, and flash for a bootloader) shall provide a polled mode that uses no kernel service.
 **Rationale.** Boot code and the bootloader (ADR-058) run before, or without, the kernel; they must use the same drivers rather than a second set.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: an image that calls the polled operations before `emb_kernel_init()`; Analysis: the polled paths reference no `emb_` kernel symbol.
 **Trace.** SPEC-016; ADR-058; BOOT-002
 
 ### DRV-008  Status codes per class
 **Statement.** Each driver class shall define its own status codes inside the range API-010 gives driver classes and subsystems (-64 to -127), from a sub-range SPEC-017 assigns it, and shall never reuse another class's.
 **Rationale.** A status names its cause across classes, and the values stay stable forever (API-010).
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Analysis: the class headers' codes lie in their sub-ranges and are unique; `emb_status_name()` names each.
 **Trace.** API-010; SPEC-001 §4; SPEC-017
 
 ### DRV-009  Driver binding at generation
 **Statement.** The driver for each device shall be chosen at generation time from its description's `compatible`, through one binding table; a device with no driver for its `compatible` shall be a generation error, and the image shall contain only the drivers its devices use.
 **Rationale.** No lookup by string at run time, no unused driver in flash, and a missing driver found before the build (HW-003).
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: the generator binds every device of the reference boards and refuses an unknown `compatible`; Analysis: a board's image links only the drivers its devices name.
 **Trace.** SPEC-016; HW-001; HW-003
 
 ### DRV-010  A class is claimed only when complete
 **Statement.** A driver class shall be claimed for a board only when its specification answers every item of 04 §3.2's checklist and an archived run on that board passes its tests.
 **Rationale.** A partial class presented as supported is how drivers become unreliable; the checklist and the board's evidence are the bar (ADR-051).
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Inspection: SPEC-017's section per class answers each checklist item; Analysis: `tools/support/matrix.py` lists a class for a board only with its archived record.
 **Trace.** 04 §3.2; ADR-051; A81

@@ -53,20 +53,20 @@ SEC-006 to 011 originate in `docs/architecture/04-platform-architecture.md` §6.
 ### SEC-012  An absent entropy source is reported, not faked
 **Statement.** A board without a hardware entropy source shall report the entropy class as unsupported (`EMB_ENOTSUP`); no software generator shall stand in for it under the same API.
 **Rationale.** A deterministic generator presented as entropy produces predictable keys; an honest absence lets the application decide (the STM32F446 has no RNG).
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: on the NUCLEO-F446RE, capability discovery reports no entropy device and the class returns `EMB_ENOTSUP`.
 **Trace.** SPEC-017 (entropy class); ADR-057
 
 ### SEC-013  Signing keys stay out of the tree
 **Statement.** No private signing key for images or releases shall be in the repository; a key used by tests shall be named and marked as a test key, and images signed with it shall be refused by a production configuration.
 **Rationale.** A committed key signs anything; a test key must never pass for a real one.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Analysis: a check refuses private-key material outside the marked test-key file; Test: a production bootloader configuration rejects an image signed with the test key.
 **Trace.** ADR-058; BOOT-001
 
 ### SEC-014  OTP is never burned automatically
 **Statement.** One-time-programmable memory (fuses, OTP rows, option bytes that cannot be reverted) shall never be written by CI, by the hardware-in-the-loop runner or by any test.
 **Rationale.** A wrong OTP write destroys a board; anti-rollback in OTP is documented, and provisioning it is a person's deliberate act.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Analysis: no flashing command and no test image writes an OTP or irreversible option-byte address.
 **Trace.** ADR-058; BOOT-002

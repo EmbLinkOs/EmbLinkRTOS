@@ -48,13 +48,13 @@ The project has no instrument for current today. Energy and current are not meas
 ### PWR-006  Wake latency and residency measured per reference board
 **Statement.** Each power state shall have its wake latency and residency measured on each reference board that claims it, with a hardware marker and an external instrument, and archived with the run.
 **Rationale.** A state's exit latency is the input to the policy's choice (PWR-001); a figure from a datasheet is not evidence for this board and configuration.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Demonstration: `tools/hil/power_timing.py` captures at least 10,000 wakes per state on the NUCLEO-F446RE and the Pico 2 W, with the distribution archived.
 **Trace.** SPEC-018; PWR-001; PWR-003
 
 ### PWR-007  Time stays correct across sleep
 **Statement.** Kernel time, deadlines and timers shall stay correct across every power state, within the documented accuracy of that state's timebase.
 **Rationale.** A deep state stops the main timer; the clock must be corrected from the timebase that kept running, and a state whose timebase is too coarse for a pending deadline must not be chosen.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: the time conformance suite passes with power management on, on both boards; Demonstration: deadline error across deep sleep measured against an external reference.
 **Trace.** SPEC-018; ADR-059; KRN-TIM-017

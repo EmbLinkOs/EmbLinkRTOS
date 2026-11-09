@@ -46,20 +46,20 @@ BOOT-001 to 005 originate in `docs/architecture/04-platform-architecture.md` §5
 ### BOOT-006  Confirm or revert from the application
 **Statement.** The application shall be able to confirm the running image, request a test or permanent upgrade, and read each slot's state through the update API; an image not confirmed after a test boot shall be reverted at the next reset.
 **Rationale.** Only the application knows that it works; the bootloader must act on its word, and on its silence.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: an image that confirms stays; one that does not is reverted; both on the native simulator and the reference boards.
 **Trace.** ADR-058; SPEC-019; BOOT-002
 
 ### BOOT-007  Power-loss injection evidence
 **Statement.** Every flash operation of an upgrade and of a revert shall be shown interruptible: after power is lost at any of them, the next boot shall run either the old image or the new one, valid, and never neither.
 **Rationale.** Power-loss safety is MCUboot's design; it must be shown for this port, layout and flash driver.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: CI sweeps the interruption point over every operation in a native flash simulator, torn writes included; Demonstration: deterministic resets after operation N and random external power cuts on both boards, at least 500 injections each, archived.
 **Trace.** ADR-058; SPEC-019; BOOT-002
 
 ### BOOT-008  The application links at its slot
 **Statement.** When a board declares a bootloader, the application shall be linked at its slot's start plus the image header, and its reset path shall set the vector table to its own; without a bootloader the layout shall be unchanged.
 **Rationale.** MCUboot jumps to the image in its slot; the image must run from there, with its own vectors.
-**Status.** Proposed 2026-11-09
+**Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: the generator's layouts with and without a bootloader; Demonstration: the application boots through MCUboot on both boards.
 **Trace.** ADR-058; SPEC-014; SPEC-019
