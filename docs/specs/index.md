@@ -21,4 +21,5 @@ SPEC-012-atmega328p-port
 SPEC-013-native-port
 SPEC-014-hardware-description-schema
 SPEC-015-observability-formats
+SPEC-016-device-and-driver-model
 ```
