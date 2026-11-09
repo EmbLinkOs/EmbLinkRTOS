@@ -72,6 +72,10 @@ void emb_pl011_flush(uintptr_t base)
 #define INT_TX    (1u << 5)  /* the transmit FIFO at or below its level */
 #define INT_RT    (1u << 6)  /* the receive timeout: bytes waiting, the line idle */
 #define INT_ALL   0x7FFu
+#define LCR_BRK   0x01u /* the line held low while set */
+#define BRK_NONE  0u
+#define BRK_WAIT  1u /* the transmitter still sends what came before */
+#define BRK_LOW   2u
 
 static const emb_pl011_config_t *config(const emb_device_t *dev)
 {
@@ -126,6 +130,44 @@ static void pl011_isr(void *arg)
     }
 }
 
+#if CONFIG_EMB_TIMER
+/* A break lasts two character times, ten bits each, and at least 1 ms: the timer's grain. */
+static emb_duration_t break_time(const emb_pl011_config_t *cfg)
+{
+    uint32_t ms = (20000u + cfg->baud - 1u) / cfg->baud;
+    return EMB_MS((ms == 0u) ? 1u : ms);
+}
+
+/* The break's timer, in its expiry interrupt: the line is free, so hold it low; or the time
+ * is up, so release it and end the request. */
+static void break_tick(emb_timer_t timer, void *arg)
+{
+    emb_pl011_data_t *d = (emb_pl011_data_t *)arg;
+    const emb_pl011_config_t *cfg = config(d->dev);
+    emb_drv_uart_req_t *r;
+    (void)timer;
+    if (d->brk_phase == BRK_WAIT) {
+        if ((REG32(cfg->base + UART_FR) & FR_BUSY) != 0u) {
+            (void)emb_timer_start(d->brk_timer, EMB_MS(1)); /* earlier bytes still leaving */
+            return;
+        }
+        REG32(cfg->base + UART_LCR_H) |= LCR_BRK;
+        d->brk_phase = BRK_LOW;
+        (void)emb_timer_start(d->brk_timer, break_time(cfg));
+        return;
+    }
+    if (d->brk_phase == BRK_LOW) {
+        REG32(cfg->base + UART_LCR_H) &= ~LCR_BRK;
+        r = d->brk_req;
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+        if (r != NULL) {
+            emb_drv_complete(d->dev, &r->req, EMB_OK, 0u);
+        }
+    }
+}
+#endif
+
 static emb_status_t uart_init(const emb_device_t *dev)
 {
     const emb_pl011_config_t *cfg = config(dev);
@@ -148,6 +190,21 @@ static emb_status_t uart_init(const emb_device_t *dev)
     d->tx = NULL;
     d->dev = dev;
     d->irq_on = 0u;
+#if CONFIG_EMB_TIMER
+    {
+        emb_timer_attr_t attr;
+        emb_timer_attr_default(&attr);
+        attr.name = dev->name;
+        attr.fn = break_tick;
+        attr.arg = d;
+        attr.flags = EMB_TIMER_ISR_CONTEXT;
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+        if (emb_timer_init(&d->brk_storage, &attr, &d->brk_timer) != EMB_OK) {
+            return EMB_ENOMEM;
+        }
+    }
+#endif
     return (emb_irq_connect((emb_irq_t)cfg->irq, pl011_isr, d) == EMB_OK) ? EMB_OK : EMB_EINVAL;
 }
 
@@ -176,9 +233,14 @@ static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
         return emb_drv_uart_rx_start(dev, &d->rx, r);
     }
     if (r->op == EMB_DRV_UART_OP_BREAK) {
-        /* the PL011 has no timed break: BRK holds the line low until it is cleared, which
-         * needs a wait start() cannot make from an interrupt. Not claimed (SPEC-016 §11). */
-        return EMB_ENOTSUP;
+#if CONFIG_EMB_TIMER
+        /* the timer waits for the line to be free, holds it low, and ends the request */
+        d->brk_req = r;
+        d->brk_phase = BRK_WAIT;
+        return (emb_timer_start(d->brk_timer, EMB_MS(1)) == EMB_OK) ? EMB_EBUSY : EMB_EIO;
+#else
+        return EMB_ENOTSUP; /* no timer to time it (SPEC-016 §11) */
+#endif
     }
     key = emb_irq_lock();
     if (tx_fill(base, r)) {
@@ -206,6 +268,14 @@ static void uart_stop(const emb_device_t *dev, emb_drv_request_t *req)
         d->tx = NULL; /* what is in the FIFO still goes out; no more is added */
         REG32(config(dev)->base + UART_IMSC) &= ~INT_TX;
     }
+#if CONFIG_EMB_TIMER
+    if (d->brk_req == EMB_DRV_UART_REQ(req)) {
+        (void)emb_timer_stop(d->brk_timer, NULL);
+        REG32(config(dev)->base + UART_LCR_H) &= ~LCR_BRK; /* the line released */
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+    }
+#endif
     emb_irq_unlock(key);
     emb_drv_complete(dev, req, EMB_ECANCELED, req->done);
 }
@@ -231,7 +301,12 @@ static size_t uart_poll_read(const emb_device_t *dev, uint8_t *buf, size_t len)
 }
 
 const emb_drv_uart_api_t emb_pl011_api = {
+#if CONFIG_EMB_TIMER
+    {uart_init, uart_start, uart_stop, NULL, NULL,
+     EMB_DRV_UART_CAP_IDLE_DETECT | EMB_DRV_UART_CAP_BREAK},
+#else
     {uart_init, uart_start, uart_stop, NULL, NULL, EMB_DRV_UART_CAP_IDLE_DETECT},
+#endif
     uart_poll_write,
     uart_poll_read,
 };

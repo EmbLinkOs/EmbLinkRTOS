@@ -35,14 +35,14 @@ EMB_TEST(uart_console_read_times_out)
 EMB_TEST(uart_console_break_or_not_supported)
 {
     emb_drv_uart_req_t brk;
+    emb_status_t want = ((emb_device_caps(EMB_SOC_CONSOLE_DEVICE) & EMB_DRV_UART_CAP_BREAK) != 0u)
+                            ? EMB_OK
+                            : EMB_ENOTSUP; /* SPEC-016 §11: a capability lacked, never emulated */
     EMB_TEST_REQ("DRV-004");
     emb_drv_uart_req_break(&brk);
-    EMB_ASSERT_OK(emb_drv_uart_submit(EMB_SOC_CONSOLE_DEVICE, &brk));
-    /* SPEC-016 §11: a capability the device lacks is EMB_ENOTSUP, never emulated */
-    EMB_ASSERT_STATUS(brk.req.status,
-                      (emb_device_caps(EMB_SOC_CONSOLE_DEVICE) & EMB_DRV_UART_CAP_BREAK) != 0u
-                          ? EMB_OK
-                          : EMB_ENOTSUP);
+    /* a break may end inside start() or later, by the driver's timer: wait for it either way */
+    EMB_ASSERT_STATUS(emb_drv_wait(EMB_SOC_CONSOLE_DEVICE, &brk.req, EMB_TIMEOUT(EMB_MS(200))),
+                      want);
 }
 
 EMB_TEST(uart_console_polled_write)
