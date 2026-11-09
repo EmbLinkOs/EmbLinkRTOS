@@ -1,0 +1,103 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "i2c_recover_waits_for_a_held_bus",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "i2c_recover_clocks_a_stuck_bus_free",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "i2c_held_bus_keeps_one_target",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "i2c_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "i2c_controller_and_target_at_once",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "i2c_target_answers_its_address",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "i2c_errors_and_timeout",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_segments_count_bytes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "i2c_write_then_read_a_register",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:50:48Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "fe4080b44964a268",
+    "profile": "base",
+    "suite": "test_i2c"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 12,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_i2c.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_i2c.uf2": "243fcc77f795073dd854b56d813febb72e69409f0251d5e829ff2ae07d8026cf"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "b76b15f3cf4023ee539b82df2078813c0a887634",
+    "dirty": false
+  },
+  "image": "test_i2c.elf",
+  "image_sha256": "618dcccf3ddbf36a93ec060027a909ac35ecc99e821fc3eecbeb479f2491e359",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T23:50:46Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 9
+  }
+}

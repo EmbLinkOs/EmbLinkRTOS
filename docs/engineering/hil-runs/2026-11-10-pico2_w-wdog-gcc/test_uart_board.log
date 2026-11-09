@@ -1,0 +1,23 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_uart_board.elf sha256 db9de22df3c86e99decfd50f27768978f1ce811649874ca3027a304a8c32fa29
+EVIDENCE v1 suite=test_uart_board config=fe4080b44964a268 profile=base board=pico2_w checked=1
+TEST uart_console_polled_write
+uart: a polled write
+  -> ok
+  req DRV-007
+CASE uart_console_polled_write outcome=passed asserts=1 skips=0
+TEST uart_console_break_or_not_supported
+  -> ok
+  req DRV-004
+CASE uart_console_break_or_not_supported outcome=passed asserts=1 skips=0
+TEST uart_console_read_times_out
+  -> ok
+  req DRV-006
+CASE uart_console_read_times_out outcome=passed asserts=2 skips=0
+TEST uart_console_writes_by_request
+uart: a write by request, sent by the driver's interrupts
+  -> ok
+  req DRV-004 DRV-005
+CASE uart_console_writes_by_request outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=228
+4 tests, 0 failed, 0 skipped, 77 ticks
+EMB_TEST_END

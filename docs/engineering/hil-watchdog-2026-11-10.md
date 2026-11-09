@@ -32,4 +32,21 @@ The watchdog class of SPEC-017 §8 (A120). On each board, the board's watchdog i
 - **The boot ROM's reboots.** The RP2350's boot ROM reboots through the watchdog too: picotool's reboot does, and so does the reboot into BOOTSEL that ends every test image. After either, REASON's timer bit alone would have read as the watchdog's own reset. The driver now counts it only when SCRATCH4 holds the mark its `start` left, as pico-sdk's `watchdog_enable_caused_reboot()` does, and clears the mark once read.
 - **One reader of the reset flags.** The STM32's RCC_CSR flags are cleared when read, and the crash record and the watchdog both want them. `emb_stm32f4_reset_flags_take()` now reads and clears them once, and returns the same value to every later caller.
 
-To come: FLT-004's software watchdog service over this class, with a hung thread resetting each board.
+## The software watchdog, FLT-004's demonstration (`b76b15f`)
+
+The software watchdog of A121 over the board's watchdog. Every suite ran again on both boards, `cm4-nucleo-hil` and `cm33-pico2w-hil`, from a clean tree, with the same wires.
+
+| Board | Compiler | Passed | Cases recorded |
+|---|---|---|---|
+| NUCLEO-F446RE | Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1) | 41 of 41 | 254 |
+| NUCLEO-F446RE | Homebrew Clang 23.1.5 with LLD 23.1.5 | 41 of 41 | 254 |
+| Pico 2 W | Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1) | 42 of 42 | 256 |
+| Pico 2 W | Homebrew Clang 23.1.5 with LLD 23.1.5 | 42 of 42 | 256 |
+
+- **A hung thread resets the board** (`test_wdog_board`, `EMB_ASSERT_RESETS`):
+  - the service starts the board's watchdog with 400 ms and looks at its parties every 100 ms;
+  - the test's thread watches a party with a 200 ms window and checks it in every 20 ms. A second thread, above it, watches another with the same window, checks it in ten times, then suspends itself for good, as a deadlocked thread would;
+  - until then, the board is not reset;
+  - then the service finds the hung thread's party past its window, while the other is on time. It writes the crash record and stops feeding, and the board's watchdog resets the part;
+  - after the reset, the crash record holds class `EMB_FAULT_WATCHDOG`, the hung party's id (7), a thread that is not the test's, and `reset_reason` 3. `emb_drv_wdt_caused_reset()` says the watchdog caused the reset.
+- **The service over a fake watchdog** (`test_wdog`), on the board as on the host: fed while both parties check in, never again once one misses, the record naming the one that missed; its refusals and misuse, the latter by reset.
