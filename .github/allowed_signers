@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+# The keys that sign EmbLinkRTOS's release tags and checksum files (docs/engineering/releases.md).
+# git verify-tag reads it through gpg.ssh.allowedSignersFile; ssh-keygen -Y verify takes it with -f.
+motsoujunior17@gmail.com namespaces="git,file" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDjWSRH2LRqTuM0D1tFg7gdQ73UlqGnz2xSGyE2KE3Kq
