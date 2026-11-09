@@ -22,6 +22,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **init_table**: entries of the initialization table | the EMB_*_DEFINE objects linked into the image | application, fixed at link time | application | no | prekernel only | KRN-OBJ-009 |
 | **callbacks**: application callbacks the kernel calls (fault hook, trace sink, foreach visitor) | not bounded by the kernel | application | application | yes | the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock | API-017; SPEC-015 |
 | **port_action**: the port's fault action (halt or reset) | does not return | port | structural | yes | CONFIG_EMB_FAULT_ACTION | 03 §10; SPEC-011 §14 |
+| **frame_bytes**: bytes of one frame: the payload encoded, or the frame decoded | the caller's: the payload it passes to emb_frame_encode(), and for a decoded frame the decoder's buffer, past which the frame is dropped | application: the buffers the caller gives | admission | no | every profile; the CRC is bitwise, eight steps a byte | SPEC-015 §7; OBS-019; test_frame |
 
 ## Public functions
 
@@ -44,6 +45,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_event_wait_until()` | O(1) check; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_fault()` | O(1) preparation plus trace/hook and the non-returning port action | callbacks, port_action |
 | `emb_fault_hook()` | the application's | callbacks |
+| `emb_frame_decode_byte()` | O(len) at a delimiter, for the CRC; O(1) otherwise | frame_bytes |
+| `emb_frame_encode()` | O(len) | frame_bytes |
 | `emb_isr_stack_info()` | O(stack) scan | stack |
 | `emb_kernel_init()` | O(init table) | init_table |
 | `emb_msgq_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |

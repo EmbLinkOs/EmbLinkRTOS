@@ -162,6 +162,16 @@
       "masked": true,
       "profiles": "CONFIG_EMB_FAULT_ACTION",
       "evidence": "03 \u00a710; SPEC-011 \u00a714"
+    },
+    {
+      "id": "frame_bytes",
+      "input": "bytes of one frame: the payload encoded, or the frame decoded",
+      "bound": "the caller's: the payload it passes to emb_frame_encode(), and for a decoded frame the decoder's buffer, past which the frame is dropped",
+      "limit": "application: the buffers the caller gives",
+      "enforcement": "admission",
+      "masked": false,
+      "profiles": "every profile; the CRC is bitwise, eight steps a byte",
+      "evidence": "SPEC-015 \u00a77; OBS-019; test_frame"
     }
   ],
   "apis": {
@@ -418,6 +428,12 @@
     "emb_dwork_cancel_sync": [
       "waiters",
       "timeouts"
+    ],
+    "emb_frame_encode": [
+      "frame_bytes"
+    ],
+    "emb_frame_decode_byte": [
+      "frame_bytes"
     ]
   }
 }
