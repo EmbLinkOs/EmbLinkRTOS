@@ -5,7 +5,7 @@ resolved model, or every problem found is reported as 'file:line: node.path: mes
 import re
 from pathlib import Path
 
-from . import HwError, clock, load, schema
+from . import HwError, clock, devices, load, schema
 
 PIN = re.compile(r"^P([A-K])(1[0-5]|[0-9])(?:\.af(1[0-5]|[0-9]))?$")
 # a SoC with one numbered bank (gpio.lines, A79): GPIO<n>, with function select <k> as .f<k>
@@ -13,7 +13,7 @@ PIN_BANK = re.compile(r"^GPIO([1-5][0-9]|6[0-3]|[0-9])(?:\.f([12][0-9]|3[01]|[0-
 
 # Sections whose items are named and must be unique (SPEC-014 §7: duplicate name).
 SOC_NAMED = ("memory.regions", "peripherals", "clocks.sources", "clocks.plls", "clocks.buses", "clocks.voltage_scales")
-BOARD_NAMED = ("leds", "buttons", "flash_partitions")
+BOARD_NAMED = ("leds", "buttons", "flash_partitions", "devices")
 
 
 def _get(data, dotted):
@@ -113,6 +113,7 @@ class Resolver:
         partitions = self._partitions(board, soc)
         linker = self._linker(board, soc)
         kconfig, profile = self._kconfig(board, soc, clk)
+        devs, binding_docs = self._devices(board, soc, clk)
         if self.errors:
             raise HwError(self.errors)
         self._curation(board, soc)
@@ -120,7 +121,7 @@ class Resolver:
         if console is not None and clk is not None:
             gate = console["clock"]
             console["clock_hz"] = clk["bus_hz"][gate["bus"]] if gate else clk["hclk_hz"]
-        docs = soc.docs + board.docs + ([manifest] if manifest else [])
+        docs = soc.docs + board.docs + ([manifest] if manifest else []) + binding_docs
         return {
             "board": {k: v for k, v in board.data.items()},
             "soc": {k: v for k, v in soc.data.items() if k not in ("extends", "abstract")},
@@ -128,6 +129,7 @@ class Resolver:
             "pins": pins,
             "console": console,
             "test_irqs": test_irqs,
+            "devices": devs,
             "partitions": partitions,
             "linker": linker,
             "kconfig": kconfig,
@@ -353,6 +355,20 @@ class Resolver:
             return None
         return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p.get("clock"),
                 "irqs": p.get("irqs", [])}
+
+    def _devices(self, board, soc, clk):
+        """The board's devices bound and ordered (SPEC-016 §8), and the bindings files read:
+        drivers/bindings.yaml in the tree and in the board root (A84)."""
+        if not board.data.get("devices"):
+            return [], []
+        files = [(self.root / "drivers" / "bindings.yaml", "tree")]
+        broot = self.board_root()
+        if broot is not None:
+            files.append((broot / "drivers" / "bindings.yaml", "board"))
+        files = [(p, o) for p, o in files if p.is_file()]
+        table = devices.Bindings(files, lambda m, p, msg: self.errors.append(f"{m.at(p)}: {msg}"))
+        devs = devices.resolve(board, soc, clk, table, lambda p, m: self.err(board, p, m))
+        return devs, [d for m in table.models for d in m.docs]
 
     def _test_irqs(self, board, soc):
         irqs = board.data.get("test_irqs")

@@ -28,7 +28,7 @@
     "soc": { "type": "object", "required": ["name", "vendor", "family", "arch", "cpu"] },
     "derived": {
       "type": "object",
-      "required": ["clock", "console", "linker", "partitions", "pins", "test_irqs", "timer", "kconfig", "profile"],
+      "required": ["clock", "console", "devices", "linker", "partitions", "pins", "test_irqs", "timer", "kconfig", "profile"],
       "additionalProperties": false,
       "properties": {
         "clock": {
@@ -41,6 +41,23 @@
             "source_hz": { "type": "integer" },
             "bus_hz": { "type": "object", "additionalProperties": { "type": "integer" } },
             "pll": { "oneOf": [ { "type": "null" }, { "type": "object", "required": ["name", "m", "n", "p", "vco_hz"] } ] }
+          }
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "compatible", "peripheral", "class", "level", "deps", "fields"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "compatible": { "type": "string" },
+              "peripheral": { "oneOf": [ { "type": "null" }, { "type": "string" } ] },
+              "class": { "type": "string" },
+              "level": { "enum": ["early", "kernel"] },
+              "deps": { "type": "array", "items": { "type": "string" } },
+              "fields": { "type": "object" }
+            }
           }
         },
         "console": {

@@ -27,7 +27,8 @@ Never edit `generated/` by hand (HW-003). Change the YAML and regenerate.
 | `soc/st/stm32f4/stm32f446re.yaml`, `stm32f446ze.yaml` | part | package and bonded pins |
 | `soc/microchip/atmega/atmega328p.yaml` | part | program, data and EEPROM spaces, the 26 vectors, ports, Timer1, USART0, page-sized flash |
 | `boards/st/nucleo_f446re/board.yaml`, `boards/st/nucleo_f446ze/board.yaml`, `boards/arduino/arduino_uno/board.yaml` | board | oscillators, CPU frequency, pins, console, LEDs, button, flash partitions, test interrupt lines, probe hints, defaults |
-| `hw/schemas/*.schema.json` | JSON Schema 2020-12 | the SoC and board grammar, and the shape of `hw.json` |
+| `drivers/bindings.yaml` | driver bindings (SPEC-016 §8) | for each `compatible`: its driver class, initialization level, sources, header, operations, configuration type and where each configuration field comes from |
+| `hw/schemas/*.schema.json` | JSON Schema 2020-12 | the SoC, board and bindings grammar, and the shape of `hw.json` |
 
 A part file `extends` its die, which extends the family. Mappings merge key by key, and lists of named nodes merge by name. The flattened part is what the schema checks.
 
@@ -44,8 +45,9 @@ Register base addresses, interrupt numbers, clock gates and pin functions come f
 | `regions.ld` | linker | FLASH (text on AVR) from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2; the SRAM on AVR), the kernel's table brackets |
 | `embld.opts` | embld (AVR only, HW-006) | `-Ttext`, `-Tdata` and `--rom-limit` for the same map as `regions.ld` |
 | `board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
-| `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes |
+| `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes; with devices, `EMB_BOARD_DRIVER_SOURCES` and `EMB_BOARD_DRIVER_INCLUDE_DIRS` |
 | `CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
+| `soc_devices.c`, `soc_devices.h` | the kernel, drivers and applications (a board with `devices:` only) | each device's configuration, RAM and `emb_device_t`; `emb_board_device_table` in initialization order; the `extern` declarations `EMB_DEVICE(name)` reaches |
 | `hw.json` | tools (HW-005) | the flattened descriptions and everything derived, validated by `hw.schema.json` |
 | `board.md`, `build_report.md` | reviewers | board reference; clock results against the limits, image layout, warnings |
 
@@ -123,6 +125,7 @@ Each rule has a negative test in `hw/gen/test_hwgen.py` that asserts the file, t
 | Port manifest: no such port or variant, cycle counter the port lacks | `arch.variant: port cortex_m has no variant 'armv6m'` |
 | Errata naming a revision not in `cpu.revisions` | `errata.2.1.8: revision(s) Z not in cpu.revisions` |
 | A board default that overrides a hardware fact; a profile other than tiny or base | `defaults.CONFIG_EMB_CM_CPU_HZ: comes from the hardware description` |
+| A device: a `compatible` no binding names, an unknown peripheral or dependency, a peripheral used twice, a dependency cycle, an EARLY device on a KERNEL one, a configuration field the device lacks | `devices.sensor: no driver binds acme,other (drivers/bindings.yaml)` |
 
 ## Verification
 
@@ -138,9 +141,26 @@ The tests cover:
 - the values the hand-written NUCLEO-F446RE files carry;
 - `hw.json` against its schema, and the fields the benchmark harness needs (HW-015);
 - the solver at 180, 168, 84 and 8 MHz;
-- unit parsing and inheritance.
+- unit parsing and inheritance;
+- devices (`Devices`): the initialization order, each configuration field, the outputs, only the drivers in use in `EMB_BOARD_DRIVER_SOURCES`, an unchanged board without devices, and each device rule above.
 
 The `Facts` cases cover the HW-001 check. With `jsonschema` installed, as in CI's lint job, the tests also check that the in-tree validator agrees with it (A67).
+
+## Devices (SPEC-016)
+
+A board's `devices:` lists what the kernel initializes for it. An entry names a SoC peripheral (`- { name: uart0 }`, or `peripheral:` when the device's name differs), or a part outside the SoC by its `compatible`, with `bus:` for the device it hangs on. `deps:` adds dependencies, `level:` overrides the binding's level, and any other key is a property the binding's fields may read:
+
+```yaml
+devices:
+  - { name: uart0, baud: 115200 }
+  - { name: sensor, compatible: "bosch,bme280", bus: i2c1, address: 0x76 }
+```
+
+- **Binding.** Each device's `compatible`, its own or its peripheral's, must be in `drivers/bindings.yaml`, or in the board root's `drivers/bindings.yaml` for a board outside the tree (A84); a compatible bound in both is refused. A binding's `fields` map the configuration structure's members to `peripheral.<key>` (the SoC node: `base`, `irqs.<name>`, `clock.bus`, `clock.bit`, `clock.enable_offset`, and `clock_hz`, the frequency it runs at), `device.<key>` (the board entry; `device.bus` is the bus device's address) or `board.<path>`.
+- **Order.** EARLY devices come first, then KERNEL ones. Within a level, each device follows its `deps`, its `bus` and, for a peripheral with a clock gate, the board's clock-class devices. Ties keep the description's order, so the order is deterministic (DRV-001).
+- **Outputs.** `soc_devices.c` and `soc_devices.h`, a Devices table in `board.md`, `derived.devices` in `hw.json`, and in `board.cmake` the sources of the drivers the devices use, each once (DRV-009). The bindings file is an input, stamped like the others. A board without devices gets none of this, and its outputs do not change.
+- **At run time.** `emb_kernel_init()` initializes the EARLY devices before its initialization table runs, and `emb_kernel_start()` the KERNEL ones before the first thread ([device model](../specs/SPEC-016-device-and-driver-model.md)).
+- **In the tree.** The four MPS2 boards declare their console, `uart0`, bound to `arm,cmsdk-uart` (`drivers/arm/cmsdk_uart.c`).
 
 ## A numbered GPIO bank: the RP2350
 
@@ -232,6 +252,6 @@ python3 -I hw/gen/emb-hwgen.py check --board-root ~/my-project    # in the proje
 ## Limits of this increment
 
 - **Not compared register by register.** The NUCLEO-F446RE build from `generated/` writes the same register values as the hand-written `board.c` it replaced, checked in review and by the EmbSIM suites. EmbSIM's image mode has no register dump, so the two were not compared register by register. Pins are now configured one at a time.
-- **Not generated:** the system description, `soc_devices.c`, the DeviceTree and pin importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)).
+- **Not generated:** the system description, the DeviceTree and pin importers, trace metadata and `migrate` ([A68](../specs/AMENDMENTS-M3.md)). `soc_devices.c` is generated since M4.1, for the boards that declare devices.
 - **Other boards:** the ESP32-C3 has no description yet; it waits for #46, which rewrites its board.
 - **No hardware check.** The STM32F446ZE package file is `curated: false`, because no physical board has checked it.

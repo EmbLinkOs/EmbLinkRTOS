@@ -62,6 +62,23 @@
         "baud": { "type": "integer", "minimum": 300, "maximum": 12000000 }
       }
     },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "peripheral": { "$ref": "#/$defs/ident" },
+          "compatible": { "type": "string", "pattern": "^[a-z0-9-]+,[a-z0-9-]+$" },
+          "bus": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "deps": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" } },
+          "level": { "enum": ["early", "kernel"] },
+          "doc": { "type": "string" }
+        },
+        "additionalProperties": { "oneOf": [ { "type": "integer" }, { "type": "string" }, { "type": "boolean" } ] }
+      }
+    },
     "leds": { "type": "array", "items": { "$ref": "#/$defs/gpio_line" } },
     "buttons": { "type": "array", "items": { "$ref": "#/$defs/gpio_line" } },
     "flash_partitions": {

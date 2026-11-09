@@ -9,6 +9,7 @@
 #include <emb/irq.h>
 #include <emb/storage.h>
 
+#include <embk/device.h>
 #include <embk/kernel.h>
 
 /* A request's phase: whose it is (emb_drv_request_t.phase). */
@@ -73,6 +74,27 @@ emb_status_t emb_device_init_list(const emb_device_t *const *devs, size_t count)
         }
     }
     return failed ? EMB_EIO : EMB_OK;
+}
+
+/* ---- the board's devices (SPEC-016 §4) ------------------------------------------ */
+
+#if EMB_HAS_WEAK
+/* A board without devices; the generated soc_devices.c replaces it. */
+EMB_WEAK const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#endif
+
+void embk_device_init_level(uint8_t level)
+{
+    const emb_device_table_t *t = &emb_board_device_table;
+    size_t i = (level == EMB_DEVICE_EARLY) ? 0u : (size_t)t->early;
+    size_t stop = (level == EMB_DEVICE_EARLY) ? (size_t)t->early : (size_t)t->count;
+    /* bounded by the board's table */
+    for (; i < stop; i++) {
+        if (t->devices[i]->state->lifecycle == EMB_DEVICE_UNINIT) {
+            /* a failure is the device's FAILED state and status; the rest go on (DRV-003) */
+            (void)emb_device_init(t->devices[i]);
+        }
+    }
 }
 
 /* The accessors do not validate, as emb_irq_is_enabled() does not: a device is a generated

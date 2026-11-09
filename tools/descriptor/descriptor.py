@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""Read an image's debug descriptor and list its threads (SPEC-015 §5, OBS-008, A107).
+"""Read an image's debug descriptor and list its threads and devices (SPEC-015 §5, OBS-008,
+A107; SPEC-016 §9).
 
     descriptor.py IMAGE.elf [--dump ADDRESS:FILE ...] [--json]
 
@@ -38,6 +39,8 @@ INDEXES = (
     "TYPE_BASE", "TYPE_NAMES", "TYPE_COUNT",
     "STACK_FILL", "STACK_GUARD", "ISR_STACK", "ISR_STACK_SIZE",
     "FRAME_KIND", "FRAME_FLAGS", "FRAME_SIZE", "FRAME_TABLE", "FRAME_TABLE_COUNT",
+    "DEVICE_TABLE", "DT_DEVICES", "DT_COUNT", "DT_EARLY", "D_NAME", "D_STATE", "D_CLASS",
+    "DS_LIFECYCLE", "DS_LAST_STATUS",
 )
 FLAGS = {0x0001: "checked", 0x0002: "sched_table", 0x0004: "thread_list", 0x0008: "obj_names",
          0x0010: "obj_list", 0x0020: "stack_stats", 0x0040: "stack_check", 0x0080: "index_packed",
@@ -48,6 +51,8 @@ FRAME_F_PSPLIM, FRAME_F_FPU = 0x1, 0x2
 REG_EXC_RETURN = 0xFE
 STATES = ("inactive", "ready", "running", "blocked", "terminated")  # emb_thread_state()
 REASONS = ("none", "start", "suspend", "sleep", "object", "join", "notify")  # EMB_WAIT_REASON_*
+LIFECYCLES = ("uninit", "initializing", "ready", "suspended", "failed")  # EMB_DEVICE_* (<emb/device.h>)
+CLASSES = ("none", "uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio")
 
 REG_NAMES = {
     "cortex_m": {**{i: f"r{i}" for i in range(13)}, 13: "sp", 14: "lr", 15: "pc", 25: "xpsr"},
@@ -332,6 +337,30 @@ class Descriptor:
     def threads(self):
         return [self.thread(t) for t in self.thread_addresses()]
 
+    # devices (SPEC-016 §9)
+    def devices(self):
+        """The board's devices in initialization order, each with its lifecycle and the status
+        that made it FAILED; empty for a kernel without devices or one older than them."""
+        table = self.v["DEVICE_TABLE"]
+        if table is ABSENT:
+            return []
+        array = self.ptr(table + self.v["DT_DEVICES"])
+        count = self.u(table + self.v["DT_COUNT"], 2)
+        early = self.u(table + self.v["DT_EARLY"], 2)
+        out = []
+        for i in range(count):
+            dev = self.ptr(array + i * self.psize)
+            state = self.ptr(dev + self.v["D_STATE"])
+            life = self.u(state + self.v["DS_LIFECYCLE"], 1)
+            status = self.u(state + self.v["DS_LAST_STATUS"], 2)
+            cls = self.u(dev + self.v["D_CLASS"], 2)
+            out.append({"address": dev, "name": self.string(self.ptr(dev + self.v["D_NAME"])),
+                        "class": CLASSES[cls] if cls < len(CLASSES) else str(cls),
+                        "level": "early" if i < early else "kernel",
+                        "lifecycle": LIFECYCLES[life] if life < len(LIFECYCLES) else str(life),
+                        "last_status": status - 0x10000 if status & 0x8000 else status})
+        return out
+
 
 def locate(elf, mem=None):
     """The descriptor's address: by its symbol, else by scanning the image for the magic."""
@@ -363,6 +392,14 @@ def table(threads):
     return "\n".join("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip() for r in rows)
 
 
+def device_table(devices):
+    rows = [("device", "class", "level", "state", "last status")]
+    for x in devices:
+        rows.append((x["name"] or f"<{x['address']:#x}>", x["class"], x["level"], x["lifecycle"], str(x["last_status"])))
+    widths = [max(len(r[i]) for r in rows) for i in range(len(rows[0]))]
+    return "\n".join("  ".join(c.ljust(w) for c, w in zip(r, widths)).rstrip() for r in rows)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("elf")
@@ -377,7 +414,7 @@ def main(argv=None):
             addr, _, path = d.partition(":")
             dumps.append((int(addr, 0), Path(path).read_bytes()))
         d = Descriptor(Memory(elf, dumps), locate(elf))
-        out = {"descriptor": d.header(), "threads": d.threads()}
+        out = {"descriptor": d.header(), "threads": d.threads(), "devices": d.devices()}
     except (DescriptorError, OSError, ValueError) as e:
         print(f"descriptor: {e}", file=sys.stderr)
         return 1
@@ -388,6 +425,9 @@ def main(argv=None):
         print(f"EmbLink {h['kernel']} on {h['port']} ({h['variant']}), descriptor v{h['version']} at "
               f"{h['address']:#x}, {', '.join(h['flags'])}")
         print(table(out["threads"]))
+        if out["devices"]:
+            print()
+            print(device_table(out["devices"]))
     return 0
 
 

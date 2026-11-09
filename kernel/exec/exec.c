@@ -17,6 +17,9 @@
 #endif
 
 #include <embk/crash.h>
+#if CONFIG_EMB_DEVICE
+#include <embk/device.h>
+#endif
 #include <embk/kernel.h>
 #include <embk/sched.h>
 #include <embk/thread.h>
@@ -148,6 +151,9 @@ void emb_kernel_init(void)
     embk_time_init();
     embk_thread_init_subsystem();
     embk_cpu.kernel_state = EMBK_KERNEL_INIT;
+#if CONFIG_EMB_DEVICE
+    embk_device_init_level(EMB_DEVICE_EARLY); /* polled, before any kernel object (SPEC-016 §4) */
+#endif
     run_init_table();
 }
 
@@ -159,6 +165,9 @@ void emb_kernel_start(void)
     if (embk_cpu.kernel_state != EMBK_KERNEL_INIT) {
         embk_fault_raise_api(EMB_API_ID_KERNEL_START, EMB_FAULT_API_LIFECYCLE, 1u, 0u, EMBK_WHERE);
     }
+#if CONFIG_EMB_DEVICE
+    embk_device_init_level(EMB_DEVICE_KERNEL); /* the kernel's objects exist (SPEC-016 §4) */
+#endif
     key = embk_lock_sched();
     embk_time_start();
     first = embk_sched_peek(); /* it stays in the ready structure while it runs (ADR-055) */

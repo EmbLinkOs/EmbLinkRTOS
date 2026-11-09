@@ -56,6 +56,7 @@
       "device": "uart0",
       "irqs": []
     },
+    "devices": [],
     "kconfig": {
       "CONFIG_EMB_RV_CLINT_BASE": "0x02000000",
       "CONFIG_EMB_RV_IRQ_COUNT": 8,

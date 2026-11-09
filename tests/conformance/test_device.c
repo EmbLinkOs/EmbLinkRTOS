@@ -322,3 +322,29 @@ EMB_TEST(drv_wait_returns_the_result_or_times_out)
     EMB_ASSERT_EQ(dev_async_data.stops, 1u);
     EMB_ASSERT_OK(emb_device_suspend(&dev_async)); /* nothing left queued */
 }
+
+/* ---- the board's devices (SPEC-016 §4) ------------------------------------------- */
+
+EMB_TEST(device_board_devices_ready_in_dependency_order)
+{
+    const emb_device_table_t *t = &emb_board_device_table;
+    uint16_t i;
+    EMB_TEST_REQ("DRV-001", "DRV-002");
+    EMB_ASSERT_TRUE(t->early <= t->count);
+    /* bounded by the board's table */
+    for (i = 0u; i < t->count; i++) {
+        const emb_device_t *dev = t->devices[i];
+        uint8_t d;
+        /* the kernel initialized it: EARLY in emb_kernel_init(), KERNEL in emb_kernel_start() */
+        EMB_ASSERT_EQ(emb_device_state(dev), EMB_DEVICE_READY);
+        EMB_ASSERT_EQ(dev->level, (i < t->early) ? EMB_DEVICE_EARLY : EMB_DEVICE_KERNEL);
+        /* bounded by its dependency count: each came before it in the table */
+        for (d = 0u; d < dev->dep_count; d++) {
+            uint16_t j = 0u;
+            while (j < i && t->devices[j] != dev->deps[d]) { /* bounded by i */
+                j++;
+            }
+            EMB_ASSERT_TRUE(j < i);
+        }
+    }
+}

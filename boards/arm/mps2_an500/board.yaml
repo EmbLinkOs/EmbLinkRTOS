@@ -15,6 +15,9 @@ clocks:
   cpu_hz: 25MHz
   source: sysclk
 console: { device: uart0, baud: 115200 }
+# the board's devices (SPEC-016): the console UART, initialized with the EARLY devices
+devices:
+  - { name: uart0, baud: 115200 }
 test_irqs: [30, 31]
 simulation:
   qemu: [-M, mps2-an500, -icount, "shift=5,sleep=off", -semihosting-config, "enable=on,target=native", -kernel] # ~31 MIPS, deterministic time

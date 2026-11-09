@@ -137,6 +137,7 @@
         }
       ]
     },
+    "devices": [],
     "kconfig": {
       "CONFIG_EMB_CM_CPU_HZ": 180000000,
       "CONFIG_EMB_CM_IRQ_COUNT": 97,

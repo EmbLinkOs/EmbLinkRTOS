@@ -6,7 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/arm/mps2_an385/board.yaml
- *     2c68060779f31099ee5fe2c633382433ae41e09f41a69444c471a840dd5b77e3
+ *     2a7130675188dddd09ddb7f030ddffe38f38f2780e7cdaed98dc5b378214a1d9
+ *   drivers/bindings.yaml
+ *     1151976eb0d9a3a97ce89c3c20eb242e38bc36566526a267f25e28ca14a4ed85
  *   soc/arm/mps2/an385.yaml
  *     95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec
  *   soc/arm/mps2/mps2.yaml

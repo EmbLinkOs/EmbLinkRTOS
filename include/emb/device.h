@@ -32,6 +32,19 @@ extern "C" {
 #define EMB_DEVICE_EARLY  0u /* polled, before the kernel */
 #define EMB_DEVICE_KERNEL 1u /* after the kernel's objects exist */
 
+/* Driver classes (SPEC-017), in emb_device_t.class_id; 0 is a device of no class. */
+#define EMB_DRV_CLASS_NONE     0u
+#define EMB_DRV_CLASS_UART     1u
+#define EMB_DRV_CLASS_SPI      2u
+#define EMB_DRV_CLASS_I2C      3u
+#define EMB_DRV_CLASS_DMA      4u
+#define EMB_DRV_CLASS_WATCHDOG 5u
+#define EMB_DRV_CLASS_FLASH    6u
+#define EMB_DRV_CLASS_RTC      7u
+#define EMB_DRV_CLASS_ENTROPY  8u
+#define EMB_DRV_CLASS_CLOCK    9u
+#define EMB_DRV_CLASS_GPIO     10u
+
 struct emb_device;
 struct emb_drv_request;
 
@@ -75,6 +88,24 @@ typedef struct emb_device {
     uint8_t level;                        /* EMB_DEVICE_EARLY or EMB_DEVICE_KERNEL */
     uint8_t dep_count;
 } emb_device_t;
+
+/* The board's device by its description's name: the generated emb_dev_<name>
+ * (soc_devices.h). A device the board does not have is a link error, not a run-time one.
+ * MISRA Dev CS-12: rule 20.10, the one token paste that names a generated device. */
+#define EMB_DEVICE(name) (&emb_dev_##name)
+
+/* The board's devices in initialization order, EARLY first (SPEC-016 §4): the generated
+ * soc_devices.c defines it. emb_kernel_init() initializes the EARLY ones before its
+ * initialization table runs, and emb_kernel_start() the KERNEL ones before the first thread
+ * does; a device the board support has initialized already is left as it is. Where the
+ * compiler has weak symbols, a board without devices needs no definition. */
+typedef struct emb_device_table {
+    const emb_device_t *const *devices;
+    uint16_t count;
+    uint16_t early; /* the first `early` devices are EMB_DEVICE_EARLY */
+} emb_device_table_t;
+
+extern const emb_device_table_t emb_board_device_table;
 
 /* ---- requests and completion (SPEC-016 §5) ---------------------------------------- */
 

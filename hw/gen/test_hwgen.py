@@ -405,6 +405,162 @@ class Outputs(unittest.TestCase):
         self.assertIn("openocd", data["board"]["debug_probe"])
 
 
+BINDINGS = """\
+schema_version: 0
+kind: bindings
+bindings:
+  st,stm32f4-rcc: { class: clock, level: early, sources: [drivers/st/rcc_dev.c], header: rcc.h,
+                    api: rcc_api, config: rcc_config_t, fields: { base: peripheral.base } }
+  st,stm32-gpio: { class: gpio, level: early, sources: [drivers/st/gpio_dev.c], header: gpio.h, api: gpio_api,
+                   config: gpio_config_t,
+                   fields: { base: peripheral.base, gate: peripheral.clock.bit, enable: peripheral.clock.enable_offset } }
+  st,stm32-usart: { class: uart, level: early, sources: [drivers/st/usart_dev.c, drivers/st/common.c],
+                    include: drivers/st/include, header: usart.h, api: usart_api.dev, config: usart_config_t,
+                    data: usart_data_t,
+                    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global,
+                              baud: device.baud } }
+  st,stm32f4-iwdg: { class: watchdog, level: kernel, sources: [drivers/st/iwdg_dev.c, drivers/st/common.c],
+                     header: iwdg.h, api: iwdg_api, config: iwdg_config_t, fields: { base: peripheral.base } }
+  st,stm32-tim: { class: clock, level: kernel, sources: [drivers/st/unused_tim.c], header: tim.h, api: tim_api,
+                  config: tim_config_t }
+  acme,part: { class: gpio, level: kernel, sources: [drivers/acme/part.c], header: part.h, api: part_api,
+               config: part_config_t, fields: { bus: device.bus, address: device.address } }
+"""
+
+# the board's devices, out of dependency order on purpose: the generator sorts them
+DEVICES = """devices:
+  - { name: wdt, peripheral: iwdg }
+  - { name: sensor, compatible: "acme,part", bus: console, address: 0x76 }
+  - { name: console, peripheral: usart2, baud: 115200 }
+  - { name: gpioa }
+  - { name: rcc }
+"""
+
+
+class Devices(unittest.TestCase):
+    """SPEC-016 §4 and §8 (DRV-001, DRV-009): devices bound through drivers/bindings.yaml, in
+    initialization order, with only their drivers in the image."""
+
+    def setUp(self):
+        self.root = Root()
+        (self.root.dir / "drivers").mkdir()
+        (self.root.dir / "drivers" / "bindings.yaml").write_text(BINDINGS, encoding="utf-8")
+        self.root.edit(f"{BOARD}/board.yaml", "leds:", DEVICES + "leds:")
+
+    def tearDown(self):
+        self.root.close()
+
+    def expect(self, message, file=f"{BOARD}/board.yaml", needle=None, path=None):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        want = ""
+        if needle is not None:
+            want = f"{file}:{self.root.line_of(file, needle)}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def files(self):
+        return generate.generate(self.root.dir / BOARD, self.root.dir)[0]
+
+    def test_initialization_order(self):
+        """DRV-001: the clock tree first, then what it gates; EARLY before KERNEL; a part after
+        its bus; ties in the description's order."""
+        devs = self.root.resolve()["devices"]
+        self.assertEqual([d["name"] for d in devs], ["rcc", "console", "gpioa", "wdt", "sensor"])
+        by = {d["name"]: d for d in devs}
+        self.assertEqual(by["console"]["deps"], ["rcc"])
+        self.assertEqual(by["sensor"]["deps"], ["console"])
+        self.assertEqual(by["wdt"]["deps"], [])  # the IWDG has no clock gate
+        self.assertEqual([d["level"] for d in devs], ["early"] * 3 + ["kernel"] * 2)
+
+    def test_fields_come_from_the_description(self):
+        by = {d["name"]: {f["field"]: f["c"] for f in d["fields"]} for d in self.root.resolve()["devices"]}
+        self.assertEqual(by["console"], {"base": "0x40004400u", "clock_hz": "45000000u", "irq": "38u", "baud": "115200u"})
+        self.assertEqual(by["gpioa"], {"base": "0x40020000u", "gate": "0u", "enable": "0x00000030u"})
+        self.assertEqual(by["sensor"], {"bus": "&emb_dev_console", "address": "0x00000076u"})
+
+    def test_outputs(self):
+        files = self.files()
+        c, h, cmake = files["soc_devices.c"], files["soc_devices.h"], files["board.cmake"]
+        self.assertIn("const emb_device_table_t emb_board_device_table = {devices, 5u, 3u};", c)
+        self.assertIn("static const emb_device_t *const sensor_deps[] = {&emb_dev_console};", c)
+        self.assertIn("    .api = &usart_api.dev,\n", c)
+        self.assertIn("static usart_data_t console_data;", c)
+        self.assertIn("    .class_id = EMB_DRV_CLASS_WATCHDOG,\n", c)
+        table = c[c.index("static const emb_device_t *const devices[]"):]
+        self.assertLess(table.index("&emb_dev_rcc,"), table.index("&emb_dev_console,"))
+        self.assertIn("extern const emb_device_t emb_dev_sensor;", h)
+        self.assertIn("#define EMB_SOC_DEVICE_COUNT 5u", h)
+        # DRV-009: the image builds only the drivers its devices use, each once
+        self.assertEqual(cmake.count("drivers/st/common.c"), 1)
+        self.assertNotIn("unused_tim.c", cmake)
+        self.assertIn('"${EMB_BASE}/drivers/st/include"', cmake)
+        self.assertIn("drivers/bindings.yaml", c)  # an input, stamped
+        data = json.loads(files["hw.json"])
+        self.assertEqual([d["name"] for d in data["derived"]["devices"]], ["rcc", "console", "gpioa", "wdt", "sensor"])
+        self.assertEqual(schema.validate(data, schema.load_schema("hw")), [])
+        self.assertIn("| sensor | `acme,part` | gpio | KERNEL | console |", files["board.md"])
+
+    def test_deterministic(self):
+        self.assertEqual(self.files(), self.files())
+
+    def test_board_without_devices_is_unchanged(self):
+        self.root.edit(f"{BOARD}/board.yaml", DEVICES, "")
+        files = self.files()
+        self.assertNotIn("soc_devices.c", files)
+        self.assertNotIn("EMB_BOARD_DRIVER_SOURCES", files["board.cmake"])
+        self.assertNotIn("bindings.yaml", files["board.cmake"])
+
+    def test_unknown_compatible(self):
+        """DRV-009: a compatible no driver binds is refused."""
+        self.root.edit(f"{BOARD}/board.yaml", '"acme,part"', '"acme,other"')
+        self.expect(r"no driver binds acme,other", needle="name: sensor", path="devices.sensor")
+
+    def test_peripheral_without_binding(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: adc1 }")
+        self.expect(r"no driver binds st,stm32f4-adc", needle="name: adc1", path="devices.adc1")
+
+    def test_cycle(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: gpioa }", "{ name: gpioa, deps: [console] }")
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: usart2, baud: 115200 }",
+                       "peripheral: usart2, baud: 115200, deps: [gpioa] }")
+        self.expect(r"dependency cycle: console -> gpioa -> console", needle="name: console", path="devices.console")
+
+    def test_early_on_kernel(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: gpioa }", "{ name: gpioa, deps: [wdt] }")
+        self.expect(r"an EARLY device cannot depend on the KERNEL device wdt", needle="name: gpioa", path="devices.gpioa")
+
+    def test_unresolved_dependency(self):
+        self.root.edit(f"{BOARD}/board.yaml", "bus: console", "bus: i2c9")
+        self.expect(r"no device 'i2c9'", needle="name: sensor", path="devices.sensor")
+
+    def test_unresolved_peripheral(self):
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: iwdg", "peripheral: wwdg")
+        self.expect(r"the SoC has no peripheral 'wwdg'", needle="name: wdt", path="devices.wdt")
+
+    def test_peripheral_used_twice(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: usart2 }")
+        self.expect(r"usart2 is already the device console", needle="name: usart2 }", path="devices.usart2")
+
+    def test_peripheral_and_compatible(self):
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: iwdg", 'peripheral: iwdg, compatible: "acme,part"')
+        self.expect(r"a SoC peripheral or a part", needle="name: wdt", path="devices.wdt")
+
+    def test_missing_field(self):
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: usart2, baud: 115200", "peripheral: usart2")
+        self.expect(r"field baud reads device.baud, which this device does not have", needle="name: console",
+                    path="devices.console")
+
+    def test_duplicate_device(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: rcc }")
+        self.expect(r"duplicate")
+
+    def test_binding_schema(self):
+        self.root.edit("drivers/bindings.yaml", "class: watchdog", "class: watchdogs")
+        self.expect(r"must be one of", file="drivers/bindings.yaml", needle="class: watchdogs",
+                    path="bindings.st,stm32f4-iwdg.class")
+
+
 class OutOfTree(unittest.TestCase):
     """A76: a project's own board, kept outside the tree under an EMB_BOARD_ROOT, uses the tree's
     SoC descriptions; its outputs name its own files from its directory ('@board/'), never the
@@ -779,7 +935,7 @@ class Loader(unittest.TestCase):
 
 class Schemas(unittest.TestCase):
     def test_subset_only(self):
-        for kind in ("soc", "board", "hw"):
+        for kind in ("soc", "board", "hw", "bindings"):
             schema.load_schema(kind)  # raises on a keyword outside the supported subset
 
     def test_bool_is_not_integer(self):
@@ -810,6 +966,17 @@ class Schemas(unittest.TestCase):
         cases.append(("board", bad))
         bad = json.loads(json.dumps(board))
         bad["extra"] = 1
+        cases.append(("board", bad))
+        # SPEC-016 §8: the bindings, a board with devices and its hw.json, and two refusals
+        cases.append(("bindings", load.load(ROOT / "drivers" / "bindings.yaml", ROOT).data))
+        mps2 = load.load(ROOT / "boards/arm/mps2_an386/board.yaml", ROOT).data
+        cases.append(("board", mps2))
+        cases.append(("hw", json.loads(generate.generate(ROOT / "boards/arm/mps2_an386", ROOT)[0]["hw.json"])))
+        bad = json.loads(json.dumps(mps2))
+        bad["devices"][0]["name"] = "Uart-0"
+        cases.append(("board", bad))
+        bad = json.loads(json.dumps(mps2))
+        bad["devices"][0]["props"] = [1]
         cases.append(("board", bad))
         for kind, doc in cases:
             s = schema.load_schema(kind)

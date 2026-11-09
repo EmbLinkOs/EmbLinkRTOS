@@ -5,7 +5,9 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/arm/mps2_an505/board.yaml
-#     c526e7622f82e8a4a2f2c2bb9147089443f67f61dd5cd4f66e1a0a6a4362c2c2
+#     4033f69197a0e3dbde7b4905b015f5ba25b70519350c6ca240adec525bcd62a6
+#   drivers/bindings.yaml
+#     1151976eb0d9a3a97ce89c3c20eb242e38bc36566526a267f25e28ca14a4ed85
 #   soc/arm/mps2/an505.yaml
 #     62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1
 #   soc/arm/mps2/mps2.yaml
@@ -20,10 +22,19 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/arm/mps2")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M mps2-an505 -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel)
 set(EMB_BOARD_RESETS_IN qemu) # restart the image with RAM kept (test_crash_reset)
+# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
+set(EMB_BOARD_DRIVER_SOURCES
+    "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
+    "${EMB_BASE}/drivers/arm/cmsdk_uart.c"
+)
+set(EMB_BOARD_DRIVER_INCLUDE_DIRS
+    "${EMB_BASE}/drivers/arm/include"
+)
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/arm/mps2_an505/board.yaml=c526e7622f82e8a4a2f2c2bb9147089443f67f61dd5cd4f66e1a0a6a4362c2c2"
+    "boards/arm/mps2_an505/board.yaml=4033f69197a0e3dbde7b4905b015f5ba25b70519350c6ca240adec525bcd62a6"
+    "drivers/bindings.yaml=1151976eb0d9a3a97ce89c3c20eb242e38bc36566526a267f25e28ca14a4ed85"
     "soc/arm/mps2/an505.yaml=62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1"
     "soc/arm/mps2/mps2.yaml=b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"
 )
