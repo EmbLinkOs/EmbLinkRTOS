@@ -320,11 +320,16 @@ void emb_drv_uart_rx_error(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_s
  * @since    0.3
  * @stable   no
  *
- * Takes the ring's bytes first, and completes the read at once when they fill it or when
- * bytes were lost before it (EMB_EOVERRUN); otherwise the read waits for the bytes the
- * driver gives emb_drv_uart_rx_byte().
+ * Takes the ring's bytes first. The read ends here when they fill it, when it asked for
+ * EMB_DRV_UART_IDLE and got a byte, or when bytes were lost before it; otherwise it waits
+ * for the bytes the driver gives emb_drv_uart_rx_byte(). The driver's start() returns what
+ * this returns.
+ *
+ * Return: EMB_EBUSY (the read waits); EMB_OK (it ended here); EMB_EOVERRUN (bytes were lost
+ * before it); EMB_EINVAL for a NULL @rx or @req.
  */
-void emb_drv_uart_rx_start(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_drv_uart_req_t *req);
+emb_status_t emb_drv_uart_rx_start(const emb_device_t *dev, emb_drv_uart_rx_t *rx,
+                                   emb_drv_uart_req_t *req);
 
 /**
  * emb_drv_uart_rx_stop() - Stop a read: from the driver's stop() for lane 1.

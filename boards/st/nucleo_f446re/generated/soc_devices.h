@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446re/board.yaml
  *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -31,6 +31,15 @@ extern const emb_device_t emb_dev_rcc;
 extern const emb_device_t emb_dev_gpioa;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
+
+/* which devices the board has, for code that uses one only where it exists */
+#define EMB_SOC_HAS_RCC    1
+#define EMB_SOC_HAS_GPIOA  1
+#define EMB_SOC_HAS_GPIOC  1
+#define EMB_SOC_HAS_USART2 1
+
+/* the console's UART device (the board's console:) */
+#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */

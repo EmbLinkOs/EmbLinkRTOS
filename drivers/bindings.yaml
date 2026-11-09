@@ -17,10 +17,17 @@ bindings:
     sources: [drivers/arm/cmsdk_uart.c]
     include: drivers/arm/include
     header: emb_cmsdk_uart.h
-    api: emb_cmsdk_uart_api
+    api: emb_cmsdk_uart_api.dev
     config: emb_cmsdk_uart_config_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
-    doc: the MPS2 boards' console UART; polled, with the UART class's requests to come (SPEC-017 §4)
+    data: emb_cmsdk_uart_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      baud: device.baud
+      irq_rx: peripheral.irqs.rx
+      irq_tx: peripheral.irqs.tx
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
+    doc: the MPS2 boards' UARTs (SPEC-017 §4), the console among them
   st,stm32f4-rcc:
     class: clock
     level: early
@@ -43,17 +50,20 @@ bindings:
   st,stm32-usart:
     class: uart
     level: early
-    sources: [drivers/st/stm32_devices.c]
+    sources: [drivers/st/stm32_uart.c]
     include: drivers/st/include
     header: emb_stm32_devices.h
-    api: emb_stm32_usart_api
+    api: emb_stm32_usart_api.dev
     config: emb_stm32_usart_config_t
+    data: emb_stm32_usart_data_t
     fields:
       base: peripheral.base
       clock_hz: peripheral.clock_hz
       baud: device.baud
       clken_offset: peripheral.clock.enable_offset
       clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
   arm,pl011:
     class: uart
@@ -61,9 +71,11 @@ bindings:
     sources: [drivers/arm/pl011.c]
     include: drivers/arm/include
     header: emb_pl011.h
-    api: emb_pl011_api
+    api: emb_pl011_api.dev
     config: emb_pl011_config_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
+    data: emb_pl011_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud, irq: peripheral.irqs.global }
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the RP2350's UARTs; the console, polled, with the UART class's requests to come (SPEC-017 §4)
   rpi,rp2350-clocks:
     class: clock

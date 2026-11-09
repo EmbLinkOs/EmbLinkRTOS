@@ -8,7 +8,7 @@
  *   boards/rpi/pico2_w/board.yaml
  *     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/rpi/rp2350/rp2350.yaml
  *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
  *   soc/rpi/rp2350/rp2350a.yaml
@@ -64,19 +64,24 @@ const emb_device_t emb_dev_io_bank0 = {
 };
 
 /* uart0: arm,pl011, uart, EARLY */
+static uint8_t uart0_rx[64];
 static const emb_pl011_config_t uart0_config = {
     .base = 0x40070000u,    /* peripheral.base */
     .clock_hz = 150000000u, /* peripheral.clock_hz */
     .baud = 115200u,        /* device.baud */
+    .irq = 33u,             /* peripheral.irqs.global */
+    .rx = uart0_rx,         /* its rx buffer */
+    .rx_size = 64u,         /* device.rx_buffer */
 };
 static emb_device_state_t uart0_state;
+static emb_pl011_data_t uart0_data;
 static const emb_device_t *const uart0_deps[] = {&emb_dev_io_bank0};
 const emb_device_t emb_dev_uart0 = {
     .name = "uart0",
-    .api = &emb_pl011_api,
+    .api = &emb_pl011_api.dev,
     .config = &uart0_config,
     .state = &uart0_state,
-    .data = NULL,
+    .data = &uart0_data,
     .deps = uart0_deps,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,

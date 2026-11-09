@@ -248,6 +248,74 @@ static void deliver(emb_drv_request_t *req)
     }
 }
 
+/* Removes req from its lane's queue under the lock; returns whether it was there. */
+static bool queue_remove(emb_device_state_t *s, emb_drv_request_t *req)
+{
+    uint8_t lane = req->lane;
+    emb_drv_request_t *prev = NULL;
+    emb_drv_request_t *n = s->head[lane];
+    /* bounded by the device's queued requests */
+    while (n != NULL && n != req) {
+        prev = n;
+        n = n->next;
+    }
+    if (n == NULL) {
+        return false;
+    }
+    if (prev != NULL) {
+        prev->next = n->next;
+    } else {
+        s->head[lane] = n->next;
+    }
+    if (s->tail[lane] == n) {
+        s->tail[lane] = prev;
+    }
+    n->next = NULL;
+    return true;
+}
+
+/* Ends a started request: removes it, marks its lane's next request started, delivers it.
+ * Returns that next request, for the caller to start, or NULL. Complete-once: a request no
+ * longer started or stopping is left alone. */
+static emb_drv_request_t *finish(const emb_device_t *dev, emb_drv_request_t *req,
+                                 emb_status_t status, uint32_t done)
+{
+    emb_irq_key_t key;
+    emb_drv_request_t *next = NULL;
+    key = emb_irq_lock();
+    if (req->phase != PHASE_STARTED && req->phase != PHASE_STOPPING) {
+        emb_irq_unlock(key); /* completes once: a second completion does nothing */
+        return NULL;
+    }
+    (void)queue_remove(dev->state, req);
+    req->status = status;
+    req->done = done;
+    req->phase = PHASE_DONE;
+    next = dev->state->head[req->lane];
+    if (next != NULL) {
+        next->phase = PHASE_STARTED; /* the lane stays busy with it */
+    } else {
+        dev->state->busy = (uint8_t)(dev->state->busy & (uint8_t) ~(1u << req->lane));
+    }
+    emb_irq_unlock(key);
+    deliver(req);
+    return next;
+}
+
+/* Starts a lane's requests one after another for as long as each finishes inside start():
+ * a loop, not recursion, so the stack stays bounded however long the queue (A115). */
+static void run_lane(const emb_device_t *dev, emb_drv_request_t *req)
+{
+    /* bounded by the lane's queued requests */
+    while (req != NULL) {
+        emb_status_t st = dev->api->start(dev, req);
+        if (st == EMB_EBUSY) {
+            return; /* it runs on: the driver completes it */
+        }
+        req = finish(dev, req, st, req->done);
+    }
+}
+
 emb_status_t emb_drv_submit(const emb_device_t *dev, emb_drv_request_t *req)
 {
     emb_irq_key_t key;
@@ -290,65 +358,18 @@ emb_status_t emb_drv_submit(const emb_device_t *dev, emb_drv_request_t *req)
     }
     emb_irq_unlock(key);
     if (start) {
-        dev->api->start(dev, req);
+        run_lane(dev, req);
     }
     return EMB_OK;
-}
-
-/* Removes req from its lane's queue under the lock; returns whether it was there. */
-static bool queue_remove(emb_device_state_t *s, emb_drv_request_t *req)
-{
-    uint8_t lane = req->lane;
-    emb_drv_request_t *prev = NULL;
-    emb_drv_request_t *n = s->head[lane];
-    /* bounded by the device's queued requests */
-    while (n != NULL && n != req) {
-        prev = n;
-        n = n->next;
-    }
-    if (n == NULL) {
-        return false;
-    }
-    if (prev != NULL) {
-        prev->next = n->next;
-    } else {
-        s->head[lane] = n->next;
-    }
-    if (s->tail[lane] == n) {
-        s->tail[lane] = prev;
-    }
-    n->next = NULL;
-    return true;
 }
 
 void emb_drv_complete(const emb_device_t *dev, emb_drv_request_t *req, emb_status_t status,
                       uint32_t done)
 {
-    emb_irq_key_t key;
-    emb_drv_request_t *next = NULL;
     if (dev == NULL || dev->state == NULL || dev->api == NULL || req == NULL) {
         return;
     }
-    key = emb_irq_lock();
-    if (req->phase != PHASE_STARTED && req->phase != PHASE_STOPPING) {
-        emb_irq_unlock(key); /* completes once: a second completion does nothing */
-        return;
-    }
-    (void)queue_remove(dev->state, req);
-    req->status = status;
-    req->done = done;
-    req->phase = PHASE_DONE;
-    next = dev->state->head[req->lane];
-    if (next != NULL) {
-        next->phase = PHASE_STARTED; /* the lane stays busy with it */
-    } else {
-        dev->state->busy = (uint8_t)(dev->state->busy & (uint8_t) ~(1u << req->lane));
-    }
-    emb_irq_unlock(key);
-    deliver(req);
-    if (next != NULL) {
-        dev->api->start(dev, next);
-    }
+    run_lane(dev, finish(dev, req, status, done));
 }
 
 emb_status_t emb_drv_cancel(const emb_device_t *dev, emb_drv_request_t *req)

@@ -29,14 +29,14 @@ static emb_status_t fake_init(const emb_device_t *dev)
     return EMB_OK;
 }
 
-static void fake_start(const emb_device_t *dev, emb_drv_request_t *req)
+static emb_status_t fake_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
     if (req->lane == EMB_DRV_UART_LANE_RX) {
-        emb_drv_uart_rx_start(dev, &fake.rx, EMB_DRV_UART_REQ(req));
-        return;
+        return emb_drv_uart_rx_start(dev, &fake.rx, EMB_DRV_UART_REQ(req));
     }
     fake.tx = EMB_DRV_UART_REQ(req);
     emb_test_irq_raise(IRQ_TX);
+    return EMB_EBUSY; /* the "transmitter" ends it */
 }
 
 static void fake_stop(const emb_device_t *dev, emb_drv_request_t *req)

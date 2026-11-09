@@ -31,7 +31,7 @@ static emb_status_t fake_init(const emb_device_t *dev)
     return cfg->init_status;
 }
 
-static void fake_start(const emb_device_t *dev, emb_drv_request_t *req)
+static emb_status_t fake_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
     fake_data_t *d = (fake_data_t *)dev->data;
     if (d->starts < 4u) {
@@ -41,8 +41,10 @@ static void fake_start(const emb_device_t *dev, emb_drv_request_t *req)
     d->running = req;
     if (((const fake_config_t *)dev->config)->sync) {
         d->running = NULL;
-        emb_drv_complete(dev, req, EMB_OK, FULL);
+        req->done = FULL; /* finished inside start(): its status is the return (A115) */
+        return EMB_OK;
     }
+    return EMB_EBUSY;
 }
 
 static void fake_stop(const emb_device_t *dev, emb_drv_request_t *req)

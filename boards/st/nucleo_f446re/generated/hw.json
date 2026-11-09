@@ -204,7 +204,10 @@
           "baud": 115200,
           "clken_bit": 17,
           "clken_offset": 64,
-          "clock_hz": 45000000
+          "clock_hz": 45000000,
+          "irq": 38,
+          "rx": "usart2_rx",
+          "rx_size": 64
         },
         "level": "early",
         "name": "usart2",
@@ -312,7 +315,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
+      "sha256": "337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

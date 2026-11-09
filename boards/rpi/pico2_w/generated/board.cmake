@@ -7,7 +7,7 @@
 #   boards/rpi/pico2_w/board.yaml
 #     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
 #   drivers/bindings.yaml
-#     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+#     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
 #   soc/rpi/rp2350/rp2350.yaml
 #     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
 #   soc/rpi/rp2350/rp2350a.yaml
@@ -38,7 +38,7 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
     "boards/rpi/pico2_w/board.yaml=2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96"
-    "drivers/bindings.yaml=12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
+    "drivers/bindings.yaml=337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11"
     "soc/rpi/rp2350/rp2350.yaml=39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

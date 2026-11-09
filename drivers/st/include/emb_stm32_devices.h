@@ -16,6 +16,9 @@
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 #endif
+#if CONFIG_EMB_DRV_UART
+#include <emb/drv_uart.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,24 +36,40 @@ typedef struct emb_stm32_gpio_config {
     uint32_t clken_bit;
 } emb_stm32_gpio_config_t;
 
-/* A USART: its clock gate and rate. */
+/* A USART: its clock gate, rate, interrupt and receive ring. */
 typedef struct emb_stm32_usart_config {
     uintptr_t base;
     uint32_t clock_hz; /* its bus clock */
     uint32_t baud;
     uint32_t clken_offset;
     uint32_t clken_bit;
+    uint32_t irq;
+    uint8_t *rx; /* the receive ring (rx_buffer) */
+    uint32_t rx_size;
 } emb_stm32_usart_config_t;
+
+#if CONFIG_EMB_DRV_UART
+/* A USART device's RAM. */
+typedef struct emb_stm32_usart_data {
+    emb_drv_uart_rx_t rx;
+    emb_drv_uart_req_t *tx;  /* the write in progress */
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint8_t irq_on;          /* the interrupts serve requests: set by the first one */
+} emb_stm32_usart_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE
 /* READY when the clock switch the board support asked for has completed. */
 extern const emb_device_api_t emb_stm32_rcc_api;
 /* Enables the port's clock. */
 extern const emb_device_api_t emb_stm32_gpio_api;
-/* Checks the divider and enables the USART's clock. A USART already running at the rate, as
- * the board's console is, is left as it is; another is set up for transmission at the rate
- * once the character on its line has finished. */
-extern const emb_device_api_t emb_stm32_usart_api;
+#endif
+#if CONFIG_EMB_DRV_UART
+/* The UART class's operations (SPEC-017 §4). Initialization checks the divider, enables the
+ * clock and the receiver, leaves a USART already running at the rate as it is (the board's
+ * console), and connects the interrupt; the first request turns it on, so an application
+ * that connects its own handler to the line keeps it. */
+extern const emb_drv_uart_api_t emb_stm32_usart_api;
 #endif
 
 #ifdef __cplusplus

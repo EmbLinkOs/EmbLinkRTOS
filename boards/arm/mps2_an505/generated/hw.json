@@ -61,7 +61,16 @@
       "clock": null,
       "clock_hz": 20000000,
       "device": "uart0",
-      "irqs": []
+      "irqs": [
+        {
+          "name": "rx",
+          "number": 32
+        },
+        {
+          "name": "tx",
+          "number": 33
+        }
+      ]
     },
     "devices": [
       {
@@ -71,7 +80,11 @@
         "fields": {
           "base": 1344274432,
           "baud": 115200,
-          "clock_hz": 20000000
+          "clock_hz": 20000000,
+          "irq_rx": 32,
+          "irq_tx": 33,
+          "rx": "uart0_rx",
+          "rx_size": 64
         },
         "level": "early",
         "name": "uart0",
@@ -124,15 +137,15 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
+      "sha256": "337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11"
     },
     {
       "path": "soc/arm/mps2/an505.yaml",
-      "sha256": "62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1"
+      "sha256": "4ca5bdde96c85fcda9be25ac09ebbd0b42f37b08943d78d0e81629e566d3ca44"
     },
     {
       "path": "soc/arm/mps2/mps2.yaml",
-      "sha256": "b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"
+      "sha256": "44b9daa6b78741215980bd1bd15ae68b64f31aa99c63a4c05cfc3def203c4a43"
     }
   ],
   "schema_version": 0,
@@ -207,6 +220,16 @@
       {
         "base": 1344274432,
         "compatible": "arm,cmsdk-uart",
+        "irqs": [
+          {
+            "name": "rx",
+            "number": 32
+          },
+          {
+            "name": "tx",
+            "number": 33
+          }
+        ],
         "name": "uart0",
         "size": 4096
       },

@@ -8,11 +8,11 @@
  *   boards/arm/mps2_an386/board.yaml
  *     fb8cb5a83608718313cb0609c408db174e591cc020486c73b78e8220b5ac476b
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/arm/mps2/an386.yaml
  *     2c8116f38add95936ae614674500e350c6fbc406a7fe82cbd245f7198df39f04
  *   soc/arm/mps2/mps2.yaml
- *     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+ *     44b9daa6b78741215980bd1bd15ae68b64f31aa99c63a4c05cfc3def203c4a43
  */
 /* The board's devices, each reached by symbol with EMB_DEVICE(name) (SPEC-016 §2). */
 #ifndef EMB_SOC_DEVICES_H
@@ -26,6 +26,12 @@
 #include <emb/device.h>
 
 extern const emb_device_t emb_dev_uart0;
+
+/* which devices the board has, for code that uses one only where it exists */
+#define EMB_SOC_HAS_UART0 1
+
+/* the console's UART device (the board's console:) */
+#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_uart0)
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */

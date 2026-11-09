@@ -8,23 +8,23 @@
  *   boards/rpi/pico2_w/board.yaml
  *     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/rpi/rp2350/rp2350.yaml
  *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
 /* The pins board initialization configures: GPIO line, function select (SIO, 5, for an
- * output) and whether the pad's input is enabled (on for a peripheral's pins). Inputs
- * left at their reset state need no entry. */
+ * output), whether the pad's input is enabled (on for a peripheral's pins) and its pull
+ * (up for a line that idles high). Inputs left at their reset state need no entry. */
 #include <emb_rp2350_pins.h>
 #include <hw_config.h>
 
 const emb_rp2350_pin_t emb_board_pins[] = {
     /* GPIO0: pins.uart0.tx (uart0_tx) */
-    {0u, 2u, 1u},
+    {0u, 2u, 1u, EMB_RP2350_PULL_RESET},
     /* GPIO1: pins.uart0.rx (uart0_rx) */
-    {1u, 2u, 1u},
+    {1u, 2u, 1u, EMB_RP2350_PULL_UP},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

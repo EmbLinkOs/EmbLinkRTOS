@@ -630,8 +630,8 @@ def rp2350_pins_c(r):
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
     out += ("/* The pins board initialization configures: GPIO line, function select (SIO, 5, for an\n"
-            " * output) and whether the pad's input is enabled (on for a peripheral's pins). Inputs\n"
-            " * left at their reset state need no entry. */\n")
+            " * output), whether the pad's input is enabled (on for a peripheral's pins) and its pull\n"
+            " * (up for a line that idles high). Inputs left at their reset state need no entry. */\n")
     out += "#include <emb_rp2350_pins.h>\n#include <hw_config.h>\n\n"
     out += "const emb_rp2350_pin_t emb_board_pins[] = {\n"
     entries = [e for e in r["pins"] if e["mode"] in ("af", "output")]
@@ -639,8 +639,10 @@ def rp2350_pins_c(r):
         what = e.get("signal", e["mode"])
         funcsel = e["af"] if e["mode"] == "af" else 5
         is_input = 1 if e["mode"] == "af" else 0  # a peripheral's pad reads its line too
+        # a UART's receive idles high: pulled up, so a line left open does not read as a break
+        pull = "EMB_RP2350_PULL_UP" if str(what).endswith("_rx") else "EMB_RP2350_PULL_RESET"
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u}},\n"
+        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -677,6 +679,17 @@ def soc_devices_h(r):
     out += "#if CONFIG_EMB_DEVICE\n#include <emb/device.h>\n\n"
     for d in r["devices"]:
         out += f"extern const emb_device_t emb_dev_{d['name']};\n"
+    if r["devices"]:
+        out += "\n/* which devices the board has, for code that uses one only where it exists */\n"
+        width = max(len(f"EMB_SOC_HAS_{d['name'].upper()}") for d in r["devices"])
+        for d in r["devices"]:
+            macro = f"EMB_SOC_HAS_{d['name'].upper()}"
+            out += f"#define {macro.ljust(width)} 1\n"
+        console = (r.get("console") or {}).get("device")
+        for d in r["devices"]:
+            if console is not None and d["peripheral"] == console and d["class"] == "uart":
+                out += "\n/* the console's UART device (the board's console:) */\n"
+                out += f"#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_{d['name']})\n"
     out += "#endif\n\n#endif /* EMB_SOC_DEVICES_H */\n"
     return out
 
@@ -699,6 +712,8 @@ def soc_devices_c(r):
         n = d["name"]
         early += d["level"] == "early"
         out += f"\n/* {n}: {d['compatible']}, {d['class']}, {d['level'].upper()} */\n"
+        for buf in d["buffers"]:
+            out += f"static uint8_t {n}_{buf['name']}[{buf['size']}];\n"
         if d["fields"]:
             out += f"static const {d['config']} {n}_config = {{\n"
             width = max(len(f".{f['field']} = {f['c']},") for f in d["fields"])

@@ -471,8 +471,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
     env:
-      # EmbSIM main as of 2026-11-04: emblink/nucleo_f446re and emblink/nucleo_f446ze
-      EMBSIM_REF: 2529ab80801e7f9ed0d898d49b9d4534efeaa8d3
+      # EmbSIM main as of 2026-11-09 (e4616fa): its F446 models the USART's interrupts, which the
+      # UART class uses (SPEC-017 §4); emblink/nucleo_f446re and emblink/nucleo_f446ze
+      EMBSIM_REF: e4616fa0b97ee9c5444213cec0056b2781a42d5e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

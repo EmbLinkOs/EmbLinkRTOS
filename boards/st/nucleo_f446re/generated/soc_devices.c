@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446re/board.yaml
  *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -87,21 +87,26 @@ const emb_device_t emb_dev_gpioc = {
 };
 
 /* usart2: st,stm32-usart, uart, EARLY */
+static uint8_t usart2_rx[64];
 static const emb_stm32_usart_config_t usart2_config = {
     .base = 0x40004400u,         /* peripheral.base */
     .clock_hz = 45000000u,       /* peripheral.clock_hz */
     .baud = 115200u,             /* device.baud */
     .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
     .clken_bit = 17u,            /* peripheral.clock.bit */
+    .irq = 38u,                  /* peripheral.irqs.global */
+    .rx = usart2_rx,             /* its rx buffer */
+    .rx_size = 64u,              /* device.rx_buffer */
 };
 static emb_device_state_t usart2_state;
+static emb_stm32_usart_data_t usart2_data;
 static const emb_device_t *const usart2_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_usart2 = {
     .name = "usart2",
-    .api = &emb_stm32_usart_api,
+    .api = &emb_stm32_usart_api.dev,
     .config = &usart2_config,
     .state = &usart2_state,
-    .data = NULL,
+    .data = &usart2_data,
     .deps = usart2_deps,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,

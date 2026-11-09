@@ -43,6 +43,13 @@ if(CONFIG_EMB_DEVICE)
   emb_add_test(test_device test_device.c) # devices and driver requests (SPEC-016)
   if(CONFIG_EMB_DRV_UART)
     emb_add_test(test_uart test_uart.c) # SPEC-017 §4
+    # the class on the board's own console, where its description makes the console a device
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_console REGEX "EMB_SOC_CONSOLE_DEVICE")
+      if(_emb_console)
+        emb_add_test(test_uart_board test_uart_board.c)
+      endif()
+    endif()
   endif()
 endif()
 emb_add_test(test_first_execution test_first_execution.c)

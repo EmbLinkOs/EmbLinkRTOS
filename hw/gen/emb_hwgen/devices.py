@@ -180,6 +180,18 @@ def resolve(board, soc, clk, bindings, err):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
             fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})
+        buffers = []
+        for bname, spec in b.get("buffers", {}).items():
+            size = _lookup(ctx, spec["size"])
+            if size is None:
+                size = spec.get("default")
+            if not isinstance(size, int) or isinstance(size, bool) or not 1 <= size <= 65535:
+                err(f"devices.{n}", f"the {d['compatible']} binding's buffer {bname} needs a size of 1 to 65535 "
+                                    f"bytes from {spec['size']}" + ("" if "default" in spec else ", which has no default"))
+                continue
+            buffers.append({"name": bname, "size": size})
+            fields.append({"field": bname, "expr": f"its {bname} buffer", "value": f"{n}_{bname}", "c": f"{n}_{bname}"})
+            fields.append({"field": f"{bname}_size", "expr": spec["size"], "value": size, "c": f"{size}u"})
         out.append({
             "name": n,
             "compatible": d["compatible"],
@@ -196,6 +208,7 @@ def resolve(board, soc, clk, bindings, err):
             "sources": b["sources"],
             "origin": d["origin"],
             "fields": fields,
+            "buffers": buffers,
             "props": {k: v for k, v in e.items() if k not in DEVICE_KEYS},
         })
     return out

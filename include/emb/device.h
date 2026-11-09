@@ -53,9 +53,12 @@ struct emb_drv_request;
 typedef struct emb_device_api {
     /* Bring the hardware up; EMB_OK makes the device READY, anything else FAILED. */
     emb_status_t (*init)(const struct emb_device *dev);
-    /* Begin the request now at the head of the device's queue. The driver later calls
-     * emb_drv_complete() for it, from an interrupt or a thread. */
-    void (*start)(const struct emb_device *dev, struct emb_drv_request *req);
+    /* Begin the request now at the head of its lane's queue. Returns EMB_EBUSY when the
+     * request runs on, and the driver later calls emb_drv_complete() for it, from an
+     * interrupt or a thread; or the request's final status, with req->done set, when it
+     * finished here. start() never calls emb_drv_complete() for the request it was given,
+     * so completion never recurses into it (A115). */
+    emb_status_t (*start)(const struct emb_device *dev, struct emb_drv_request *req);
     /* Stop the head request in progress, then complete it (emb_drv_complete) with what it
      * transferred. May be NULL for a device whose requests complete inside start(). */
     void (*stop)(const struct emb_device *dev, struct emb_drv_request *req);

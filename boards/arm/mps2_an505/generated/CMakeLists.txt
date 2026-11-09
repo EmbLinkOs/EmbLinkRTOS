@@ -7,11 +7,11 @@
 #   boards/arm/mps2_an505/board.yaml
 #     4033f69197a0e3dbde7b4905b015f5ba25b70519350c6ca240adec525bcd62a6
 #   drivers/bindings.yaml
-#     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+#     337928105884212ca3ae542707111ee1272c82ea724feaf5bb790e8737bc2a11
 #   soc/arm/mps2/an505.yaml
-#     62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1
+#     4ca5bdde96c85fcda9be25ac09ebbd0b42f37b08943d78d0e81629e566d3ca44
 #   soc/arm/mps2/mps2.yaml
-#     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+#     44b9daa6b78741215980bd1bd15ae68b64f31aa99c63a4c05cfc3def203c4a43
 # The board has no C of its own: its SoC family's board support builds emb_board from
 # board_pins.c and hw_config.h here, and links regions.ld.
 add_subdirectory("${EMB_SOC_DIR}" soc)

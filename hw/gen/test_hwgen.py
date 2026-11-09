@@ -269,8 +269,8 @@ class Bank(unittest.TestCase):
 
     def test_pin_table(self):
         files, _ = generate.generate(ROOT / PICO, ROOT)
-        self.assertIn("{0u, 2u, 1u},", files["board_pins.c"])  # GPIO0, function 2 (UART0 TX), input enabled
-        self.assertIn("{1u, 2u, 1u},", files["board_pins.c"])
+        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET},", files["board_pins.c"])  # GPIO0, UART0 TX
+        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP},", files["board_pins.c"])  # RX idles high
         self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
         self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
         self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])
@@ -506,6 +506,27 @@ class Devices(unittest.TestCase):
 
     def test_deterministic(self):
         self.assertEqual(self.files(), self.files())
+
+    def test_buffers(self):
+        """A binding's buffers: sized by a device property or the binding's default, emitted as
+        RAM beside the configuration, which names them and their sizes."""
+        self.root.edit("drivers/bindings.yaml", "data: usart_data_t,",
+                       "data: usart_data_t, buffers: { rx: { size: device.rx_buffer, default: 64 } },")
+        c = self.files()["soc_devices.c"]
+        self.assertIn("static uint8_t console_rx[64];", c)
+        self.assertIn("    .rx = console_rx,", c)
+        self.assertIn("    .rx_size = 64u,", c)
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: usart2, baud: 115200 }",
+                       "peripheral: usart2, baud: 115200, rx_buffer: 256 }")
+        self.assertIn("static uint8_t console_rx[256];", self.files()["soc_devices.c"])
+        self.root.edit(f"{BOARD}/board.yaml", "rx_buffer: 256", "rx_buffer: 70000")
+        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console")
+
+    def test_presence_and_console_macros(self):
+        h = self.files()["soc_devices.h"]
+        self.assertIn("#define EMB_SOC_HAS_SENSOR  1", h)
+        self.assertIn("#define EMB_SOC_HAS_CONSOLE 1", h)
+        self.assertIn("#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_console)", h)  # the device on usart2
 
     def test_board_without_devices(self):
         """Every board defines its device table, so a board's devices can never be left out by

@@ -211,13 +211,14 @@ void emb_drv_uart_rx_error(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_s
     }
 }
 
-void emb_drv_uart_rx_start(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_drv_uart_req_t *req)
+emb_status_t emb_drv_uart_rx_start(const emb_device_t *dev, emb_drv_uart_rx_t *rx,
+                                   emb_drv_uart_req_t *req)
 {
-    emb_status_t st = EMB_OK;
-    bool now = false;
+    emb_status_t st = EMB_EBUSY;
     emb_irq_key_t key;
+    (void)dev; /* the core ends a read this returns a status for (A115) */
     if (rx == NULL || req == NULL) {
-        return;
+        return EMB_EINVAL;
     }
     key = emb_irq_lock();
     /* bounded by the read's length and the ring's bytes */
@@ -230,17 +231,14 @@ void emb_drv_uart_rx_start(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_d
     if (rx->overrun != 0u) {
         rx->overrun = 0u; /* the loss is this read's to report */
         st = EMB_EOVERRUN;
-        now = true;
     } else if ((size_t)req->req.done >= req->len ||
                ((req->flags & EMB_DRV_UART_IDLE) != 0u && req->req.done != 0u)) {
-        now = true; /* filled, or idle reads take what was waiting */
+        st = EMB_OK; /* filled, or idle reads take what was waiting */
     } else {
         rx->active = req;
     }
     emb_irq_unlock(key);
-    if (now) {
-        finish(dev, req, st);
-    }
+    return st;
 }
 
 void emb_drv_uart_rx_stop(const emb_device_t *dev, emb_drv_uart_rx_t *rx, emb_drv_uart_req_t *req)
