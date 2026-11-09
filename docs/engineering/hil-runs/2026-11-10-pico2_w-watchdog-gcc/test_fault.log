@@ -1,0 +1,14 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_fault.elf sha256 c96e67542b4ebea715e31a57897688142792689decced82283d1f36f7cd5760c
+EVIDENCE v1 suite=test_fault config=31514269d16f5bb3 profile=base board=pico2_w checked=1
+TEST fault_status_policy_is_preserved
+  fault checks that reset the board: 2
+  -> ok
+  req API-015
+CASE fault_status_policy_is_preserved outcome=passed asserts=2 skips=0
+TEST fault_successful_check_preserves_status
+  -> ok
+  req API-015 API-017
+CASE fault_successful_check_preserves_status outcome=passed asserts=3 skips=0
+ISR_STACK size=2048 used=208
+2 tests, 0 failed, 0 skipped, 24 ticks
+EMB_TEST_END

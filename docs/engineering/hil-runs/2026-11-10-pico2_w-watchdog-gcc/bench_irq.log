@@ -1,0 +1,5 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image bench_irq.elf sha256 ec22e4c8b3bc79114e97789e9a73ab25cce4e8e0f4ffae10c9072b2ae8d52f55
+bench irq pend to handler: min 141 max 2585 avg x100 14393 cycle-units over 1000 runs
+BENCH v1 name=irq_pend_to_handler min=141 max=2585 avg_x100=14393 ops=1000 unit_hz=150000000 checked=1
+meta: board pico2_w, compiler gcc, profile base, checked 1, cycle unit hz 150000000
+BENCH_END
