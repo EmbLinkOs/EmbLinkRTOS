@@ -440,6 +440,9 @@ def board_cmake(r):
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
+    for loop in r["board"].get("simulation", {}).get("loopbacks", []):
+        # a UART device whose EmbSIM board ports are wired together, for test_uart_loop
+        out += f"set(EMB_BOARD_EMBSIM_UART_LOOP {loop['device']} \"{','.join(loop['ports'])}\")\n"
     boot = soc.get("boot")
     if boot:
         out += f"set(EMB_BOARD_FLASH_IMAGE {boot['image']}) # what the SoC's boot ROM loads (A79)\n"

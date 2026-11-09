@@ -95,7 +95,8 @@ function(emb_add_test name)
           set(_clock --core-hz ${EMB_BOARD_EMBSIM_CORE_HZ})
         endif()
         add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/embsim/run_embsim.py"
-                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" ${_clock} "${_image}")
+                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" ${_clock}
+                 ${EMB_EMBSIM_ARGS_${name}} "${_image}")
         set_tests_properties(${name} PROPERTIES TIMEOUT 400)
       endif()
     elseif(EMB_QEMU)

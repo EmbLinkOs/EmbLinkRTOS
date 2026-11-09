@@ -53,6 +53,12 @@ if(CONFIG_EMB_DEVICE)
     # a UART whose transmit pin is wired to its receive pin, on a bench that has the wire:
     # EMB_TEST_UART_LOOP=<device> (uart4 on the NUCLEO-F446RE, uart1 on the Pico 2 W)
     set(EMB_TEST_UART_LOOP "" CACHE STRING "A UART device wired TX to RX, for test_uart_loop")
+    # on EmbSIM, the board's description wires its ports as the bench would
+    if(EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_UART_LOOP AND NOT EMB_TEST_UART_LOOP)
+      list(GET EMB_BOARD_EMBSIM_UART_LOOP 0 EMB_TEST_UART_LOOP)
+      list(GET EMB_BOARD_EMBSIM_UART_LOOP 1 _emb_loop_ports)
+      set(EMB_EMBSIM_ARGS_test_uart_loop --net "${_emb_loop_ports}" --until 1s)
+    endif()
     if(EMB_TEST_UART_LOOP)
       emb_add_test(test_uart_loop test_uart_loop.c)
       target_compile_definitions(test_uart_loop PRIVATE "EMB_TEST_UART_LOOP_DEV=(&emb_dev_${EMB_TEST_UART_LOOP})")

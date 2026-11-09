@@ -40,5 +40,9 @@ flash_partitions:
 # the conformance framework's software interrupts: lines with no peripheral behind them
 test_irqs: [61, 62]
 debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446retx }
-simulation: { embsim: emblink/nucleo_f446re, resets_in: [embsim, hil] }
+simulation:
+  embsim: emblink/nucleo_f446re
+  resets_in: [embsim, hil]
+  # EmbSIM's board wires A0 to A1 as the bench does, for test_uart_loop
+  loopbacks: [ { device: uart4, ports: [A0, A1] } ]
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

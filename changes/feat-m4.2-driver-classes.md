@@ -21,3 +21,4 @@
 
 - The RP2350's UART receive pins are pulled up. Its pads come out of reset pulled down, so a receive line left open read as a continuous break, and every read failed with a framing error.
 - `test_uart_loop` checks a UART receiving on real hardware, its transmit pin wired to its receive pin: a full-duplex echo, the ring keeping bytes no read waits for, the idle line ending a read, a kilobyte intact and an overrun reported. It builds where the bench has the wire (`EMB_TEST_UART_LOOP=<device>`); the NUCLEO-F446RE gains `uart4` (A0 to A1) and the Pico 2 W `uart1` (GPIO4 to GPIO5) for it.
+- EmbSIM runs the loopback test with the wire too: a board's `simulation.loopbacks` names the UART and the ports to join, and `tools/embsim/run_embsim.py --net` runs the image inside a project with that wire, so CI receives through the STM32 USART driver on every pull request.
