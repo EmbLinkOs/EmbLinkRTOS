@@ -2,7 +2,7 @@
 
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; M4.2 implements it, class by class.
 
-**Status:** Proposed 2026-11-09 for the project owner's review (M4.0).
+**Status:** Accepted 2026-11-09 by the project owner at the M4.0 review, as written, with the defaults of §13.
 **Requirements:** `docs/requirements/DRV.md` (DRV-004 to 010), FLT-004, SEC-012.
 **Builds on:** SPEC-016 (devices, requests, completion, binding), 04 §3.2 (the contract checklist) and §3.3 (the class catalog), SPEC-001 §2 and §4 (names, status codes), ADR-057 (the STM32F4 and the RP2350), ADR-058 (flash for MCUboot), A109 (DMA and caches).
 
