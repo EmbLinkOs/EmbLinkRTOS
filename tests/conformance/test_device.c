@@ -3,6 +3,7 @@
 /* Devices and driver requests (SPEC-016; DRV-001 to 006). A fake driver whose requests end
  * from a software interrupt, as a peripheral's would. */
 #include <emb_test.h>
+#include <string.h>
 
 #define IRQ_DONE 2u  /* software interrupt slot: the fake hardware's "transfer complete" */
 #define PARTIAL  7u  /* what a stopped request reports as transferred */
@@ -489,4 +490,37 @@ EMB_TEST(device_misuse_faults)
     EMB_ASSERT_FAULTS((void)emb_drv_cancel(NULL, &req));
     EMB_ASSERT_FAULTS((void)emb_drv_cancel(&dev_sync, NULL));
     EMB_ASSERT_FAULTS((void)emb_drv_wait(&dev_sync, NULL, EMB_NO_WAIT));
+}
+
+/* ---- the classes' status codes (SPEC-017 §3) ---------------------------------------- */
+
+EMB_TEST(drv_status_codes_are_named_in_their_ranges)
+{
+    static const struct {
+        emb_status_t code;
+        const char *name;
+    } codes[] = {
+        {EMB_EFRAMING, "EMB_EFRAMING"},     {EMB_EPARITY, "EMB_EPARITY"},
+        {EMB_EOVERRUN, "EMB_EOVERRUN"},     {EMB_ECRC, "EMB_ECRC"},
+        {EMB_EMODEFAULT, "EMB_EMODEFAULT"}, {EMB_ENACK, "EMB_ENACK"},
+        {EMB_EARBLOST, "EMB_EARBLOST"},     {EMB_EBUSERR, "EMB_EBUSERR"},
+        {EMB_EXFER, "EMB_EXFER"},           {EMB_EWINDOW, "EMB_EWINDOW"},
+        {EMB_EWRPROT, "EMB_EWRPROT"},       {EMB_EVERIFY, "EMB_EVERIFY"},
+        {EMB_ENOTSET, "EMB_ENOTSET"},       {EMB_EOSCFAIL, "EMB_EOSCFAIL"},
+        {EMB_EHEALTH, "EMB_EHEALTH"},
+    };
+    unsigned i;
+    EMB_TEST_REQ("DRV-008");
+    for (i = 0u; i < sizeof(codes) / sizeof(codes[0]); i++) { /* bounded by the table */
+        /* in the driver range, each class's four codes apart from the others' */
+        EMB_ASSERT_TRUE(codes[i].code <= -64 && codes[i].code >= -95);
+        EMB_ASSERT_TRUE(i == 0u || codes[i].code < codes[i - 1u].code);
+#if CONFIG_EMB_STATUS_NAMES
+        EMB_ASSERT_TRUE(strcmp(emb_status_name(codes[i].code), codes[i].name) == 0);
+#endif
+    }
+#if CONFIG_EMB_STATUS_NAMES
+    EMB_ASSERT_TRUE(strcmp(emb_status_name(-67), "EMB_E?") == 0); /* the UART's spare code */
+    EMB_ASSERT_TRUE(strcmp(emb_status_name(-96), "EMB_E?") == 0); /* past M4's classes */
+#endif
 }
