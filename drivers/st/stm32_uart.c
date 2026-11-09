@@ -24,6 +24,7 @@
 #define SR_IDLE          (1u << 4)
 #define SR_RXNE          (1u << 5)
 #define SR_TXE           (1u << 7)
+#define CR1_SBK          (1u << 0)
 #define CR1_RE           (1u << 2)
 #define CR1_IDLEIE       (1u << 4)
 #define CR1_RXNEIE       (1u << 5)
@@ -124,6 +125,10 @@ static emb_status_t usart_start(const emb_device_t *dev, emb_drv_request_t *req)
     if (req->lane == EMB_DRV_UART_LANE_RX) {
         return emb_drv_uart_rx_start(dev, &d->rx, r);
     }
+    if (r->op == EMB_DRV_UART_OP_BREAK) {
+        REG32(config(dev)->base + USART_CR1) |= CR1_SBK; /* one break frame after the data */
+        return EMB_OK;
+    }
     if (r->len == 0u) {
         return EMB_OK; /* nothing to send */
     }
@@ -172,7 +177,8 @@ static size_t usart_poll_read(const emb_device_t *dev, uint8_t *buf, size_t len)
 }
 
 const emb_drv_uart_api_t emb_stm32_usart_api = {
-    {usart_init, usart_start, usart_stop, NULL, NULL, EMB_DRV_UART_CAP_IDLE_DETECT},
+    {usart_init, usart_start, usart_stop, NULL, NULL,
+     EMB_DRV_UART_CAP_IDLE_DETECT | EMB_DRV_UART_CAP_BREAK},
     usart_poll_write,
     usart_poll_read,
 };

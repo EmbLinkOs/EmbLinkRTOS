@@ -22,18 +22,22 @@ static void pattern(size_t n, uint8_t seed)
     }
 }
 
-/* Takes what the ring kept, so each case starts on a quiet line. */
+/* A case's read. A case that fails returns early, so the next case's drain() ends it. */
+static emb_drv_uart_req_t rd;
+
+/* Ends the last case's read if it was left waiting, and takes what the ring kept, so each
+ * case starts on a quiet line. */
 static void drain(void)
 {
     size_t got = 1u;
-    while (got != 0u) { /* bounded: the ring is finite and the line quiet */
+    (void)emb_drv_cancel(LOOP, &rd.req); /* EMB_ESTATE when it had ended */
+    while (got != 0u) {                  /* bounded: the ring is finite and the line quiet */
         (void)emb_drv_uart_read(LOOP, in, sizeof(in), EMB_DRV_UART_IDLE, EMB_NO_WAIT, &got);
     }
 }
 
 EMB_TEST(uart_loop_echo_full_duplex)
 {
-    emb_drv_uart_req_t rd;
     size_t done = 0u;
     EMB_TEST_REQ("DRV-004", "DRV-005");
     EMB_ASSERT_TRUE(emb_device_ready(LOOP));
@@ -64,7 +68,6 @@ EMB_TEST(uart_loop_ring_keeps_what_arrives)
 
 EMB_TEST(uart_loop_idle_line_ends_a_read)
 {
-    emb_drv_uart_req_t rd;
     EMB_TEST_REQ("DRV-005");
     drain();
     pattern(5u, 0x22u);
@@ -79,7 +82,6 @@ EMB_TEST(uart_loop_idle_line_ends_a_read)
 
 EMB_TEST(uart_loop_a_kilobyte_intact)
 {
-    emb_drv_uart_req_t rd;
     size_t sent = 0u;
     EMB_TEST_REQ("DRV-004", "DRV-005");
     drain();
@@ -93,6 +95,25 @@ EMB_TEST(uart_loop_a_kilobyte_intact)
     EMB_ASSERT_STATUS(rd.req.status, EMB_OK);
     EMB_ASSERT_EQ(rd.req.done, sizeof(in));
     EMB_ASSERT_TRUE(memcmp(in, out, sizeof(in)) == 0);
+}
+
+EMB_TEST(uart_loop_break_arrives_as_a_framing_error)
+{
+    emb_drv_uart_req_t brk;
+    EMB_TEST_REQ("DRV-004", "DRV-008");
+    if ((emb_device_caps(LOOP) & EMB_DRV_UART_CAP_BREAK) == 0u) {
+        emb_test_skip(EMB_TEST_STR("no break on this UART"));
+        return;
+    }
+    drain();
+    emb_drv_uart_req_read(&rd, in, 8u, 0u);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &rd));
+    emb_drv_uart_req_break(&brk);
+    EMB_ASSERT_OK(emb_drv_uart_submit(LOOP, &brk));
+    emb_thread_sleep(EMB_MS(5));
+    /* a whole frame low with no stop bit: the receiver's framing error ends the read */
+    EMB_ASSERT_STATUS(brk.req.status, EMB_OK);
+    EMB_ASSERT_STATUS(rd.req.status, EMB_EFRAMING);
 }
 
 EMB_TEST(uart_loop_overrun_is_reported)

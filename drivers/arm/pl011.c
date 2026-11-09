@@ -67,9 +67,10 @@ void emb_pl011_flush(uintptr_t base)
 #define FR_RXFE   (1u << 4)
 #define DR_FE     (1u << 8)
 #define DR_PE     (1u << 9)
-#define INT_RX    (1u << 4) /* the receive FIFO at its level */
-#define INT_TX    (1u << 5) /* the transmit FIFO at or below its level */
-#define INT_RT    (1u << 6) /* the receive timeout: bytes waiting, the line idle */
+#define DR_BE     (1u << 10) /* a break: the line low past a whole frame */
+#define INT_RX    (1u << 4)  /* the receive FIFO at its level */
+#define INT_TX    (1u << 5)  /* the transmit FIFO at or below its level */
+#define INT_RT    (1u << 6)  /* the receive timeout: bytes waiting, the line idle */
 #define INT_ALL   0x7FFu
 
 static const emb_pl011_config_t *config(const emb_device_t *dev)
@@ -101,7 +102,7 @@ static void pl011_isr(void *arg)
     if ((mis & (INT_RX | INT_RT)) != 0u) {
         while ((REG32(base + UART_FR) & FR_RXFE) == 0u) { /* bounded by the FIFO's 32 */
             uint32_t dr = REG32(base + UART_DR);
-            if ((dr & DR_FE) != 0u) {
+            if ((dr & (DR_FE | DR_BE)) != 0u) {
                 emb_drv_uart_rx_error(d->dev, &d->rx, EMB_EFRAMING);
             } else if ((dr & DR_PE) != 0u) {
                 emb_drv_uart_rx_error(d->dev, &d->rx, EMB_EPARITY);
@@ -173,6 +174,11 @@ static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
     irq_on(dev);
     if (req->lane == EMB_DRV_UART_LANE_RX) {
         return emb_drv_uart_rx_start(dev, &d->rx, r);
+    }
+    if (r->op == EMB_DRV_UART_OP_BREAK) {
+        /* the PL011 has no timed break: BRK holds the line low until it is cleared, which
+         * needs a wait start() cannot make from an interrupt. Not claimed (SPEC-016 §11). */
+        return EMB_ENOTSUP;
     }
     key = emb_irq_lock();
     if (tx_fill(base, r)) {

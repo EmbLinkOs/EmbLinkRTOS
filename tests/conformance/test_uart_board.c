@@ -32,6 +32,19 @@ EMB_TEST(uart_console_read_times_out)
     EMB_ASSERT_EQ(got, 0u);
 }
 
+EMB_TEST(uart_console_break_or_not_supported)
+{
+    emb_drv_uart_req_t brk;
+    EMB_TEST_REQ("DRV-004");
+    emb_drv_uart_req_break(&brk);
+    EMB_ASSERT_OK(emb_drv_uart_submit(EMB_SOC_CONSOLE_DEVICE, &brk));
+    /* SPEC-016 §11: a capability the device lacks is EMB_ENOTSUP, never emulated */
+    EMB_ASSERT_STATUS(brk.req.status,
+                      (emb_device_caps(EMB_SOC_CONSOLE_DEVICE) & EMB_DRV_UART_CAP_BREAK) != 0u
+                          ? EMB_OK
+                          : EMB_ENOTSUP);
+}
+
 EMB_TEST(uart_console_polled_write)
 {
     static const char polled[] = "uart: a polled write\n";

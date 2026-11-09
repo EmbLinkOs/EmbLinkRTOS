@@ -124,6 +124,9 @@ static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
     if (req->lane == EMB_DRV_UART_LANE_RX) {
         return emb_drv_uart_rx_start(dev, &d->rx, r);
     }
+    if (r->op == EMB_DRV_UART_OP_BREAK) {
+        return EMB_ENOTSUP; /* the CMSDK UART has no break */
+    }
     if (r->len == 0u) {
         return EMB_OK; /* nothing to send */
     }

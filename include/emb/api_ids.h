@@ -182,5 +182,6 @@
 #define EMB_API_ID_DRV_UART_RX_ERROR             0x00B3u
 #define EMB_API_ID_DRV_UART_RX_START             0x00B4u
 #define EMB_API_ID_DRV_UART_RX_STOP              0x00B5u
+#define EMB_API_ID_DRV_UART_REQ_BREAK            0x00B6u
 
 #endif /* EMB_API_IDS_H */

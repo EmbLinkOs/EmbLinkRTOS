@@ -18,6 +18,7 @@ extern "C" {
 /* A request's operation, and the lane it runs on (A114): writes on 0, reads on 1. */
 #define EMB_DRV_UART_OP_WRITE 0u
 #define EMB_DRV_UART_OP_READ  1u
+#define EMB_DRV_UART_OP_BREAK 2u /* a break on the line, on the write lane */
 #define EMB_DRV_UART_LANE_TX  0u
 #define EMB_DRV_UART_LANE_RX  1u
 
@@ -28,6 +29,7 @@ extern "C" {
 #define EMB_DRV_UART_CAP_DMA          0x01u
 #define EMB_DRV_UART_CAP_IDLE_DETECT  0x02u
 #define EMB_DRV_UART_CAP_FLOW_CONTROL 0x04u
+#define EMB_DRV_UART_CAP_BREAK        0x08u
 
 /* A UART request: the core's request first, so a driver's start() can reach the rest with
  * EMB_DRV_UART_REQ(). The caller owns it, and the buffer, until it completes; its
@@ -107,6 +109,25 @@ void emb_drv_uart_req_write(emb_drv_uart_req_t *req, const void *buf, size_t len
  * The request is reset with its completion target polled. A NULL @req is ignored.
  */
 void emb_drv_uart_req_read(emb_drv_uart_req_t *req, void *buf, size_t len, uint8_t flags);
+
+/**
+ * emb_drv_uart_req_break() - Prepare a break request: the line held low.
+ * @req: The request.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_DRV_UART
+ * @req      DRV-004 DRV-005
+ * @since    0.3
+ * @stable   no
+ *
+ * The break runs on the write lane, after the writes before it, and lasts at least one
+ * character time. A driver without EMB_DRV_UART_CAP_BREAK completes it with EMB_ENOTSUP. A
+ * NULL @req is ignored.
+ */
+void emb_drv_uart_req_break(emb_drv_uart_req_t *req);
 
 /**
  * emb_drv_uart_submit() - Queue a UART request.

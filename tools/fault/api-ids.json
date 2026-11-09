@@ -1069,6 +1069,12 @@
       "name": "emb_drv_uart_rx_stop",
       "header": "drv_uart.h",
       "state": "active"
+    },
+    {
+      "id": 182,
+      "name": "emb_drv_uart_req_break",
+      "header": "drv_uart.h",
+      "state": "active"
     }
   ]
 }

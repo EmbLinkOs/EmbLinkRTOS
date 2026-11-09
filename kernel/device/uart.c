@@ -42,6 +42,14 @@ void emb_drv_uart_req_write(emb_drv_uart_req_t *req, const void *buf, size_t len
     req->tx = (const uint8_t *)buf;
 }
 
+void emb_drv_uart_req_break(emb_drv_uart_req_t *req)
+{
+    if (req == NULL) {
+        return;
+    }
+    prepare(req, EMB_DRV_UART_OP_BREAK, 0u);
+}
+
 void emb_drv_uart_req_read(emb_drv_uart_req_t *req, void *buf, size_t len, uint8_t flags)
 {
     if (req == NULL) {
@@ -57,7 +65,7 @@ emb_status_t emb_drv_uart_submit(const emb_device_t *dev, emb_drv_uart_req_t *re
     EMBK_API_REQUIRE(EMB_API_ID_DRV_UART_SUBMIT, is_uart(dev), EMB_FAULT_API_ARGUMENT, EMB_EINVAL,
                      1u);
     EMBK_API_REQUIRE(EMB_API_ID_DRV_UART_SUBMIT,
-                     req != NULL && req->op <= EMB_DRV_UART_OP_READ &&
+                     req != NULL && req->op <= EMB_DRV_UART_OP_BREAK &&
                          (req->len == 0u ||
                           (req->op == EMB_DRV_UART_OP_WRITE ? req->tx != NULL : req->rx != NULL)),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 2u);

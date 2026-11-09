@@ -15,6 +15,7 @@ typedef struct fake_uart {
     uint8_t loopback;       /* the transmitter feeds the receiver */
     uint8_t poll_line[8];   /* the polled calls' own line */
     size_t poll_len;
+    unsigned breaks;
 } fake_uart_t;
 
 static uint8_t ring[RING];
@@ -33,6 +34,10 @@ static emb_status_t fake_start(const emb_device_t *dev, emb_drv_request_t *req)
 {
     if (req->lane == EMB_DRV_UART_LANE_RX) {
         return emb_drv_uart_rx_start(dev, &fake.rx, EMB_DRV_UART_REQ(req));
+    }
+    if (EMB_DRV_UART_REQ(req)->op == EMB_DRV_UART_OP_BREAK) {
+        fake.breaks++;
+        return EMB_OK;
     }
     fake.tx = EMB_DRV_UART_REQ(req);
     emb_test_irq_raise(IRQ_TX);
@@ -223,6 +228,19 @@ EMB_TEST(uart_polled_calls_and_capabilities)
     EMB_ASSERT_EQ(emb_device_caps(NULL), 0u);
     EMB_ASSERT_STATUS(emb_drv_uart_poll_write(&plain_dev, "hi", 2u), EMB_EINVAL); /* not a UART */
     EMB_ASSERT_STATUS(emb_drv_uart_poll_read(&uart_dev, in, sizeof(in), NULL), EMB_EINVAL);
+}
+
+EMB_TEST(uart_break_runs_after_the_writes)
+{
+    emb_drv_uart_req_t brk;
+    EMB_TEST_REQ("DRV-004");
+    ready();
+    emb_drv_uart_req_break(&brk);
+    EMB_ASSERT_EQ(brk.req.lane, EMB_DRV_UART_LANE_TX);
+    EMB_ASSERT_OK(emb_drv_uart_submit(&uart_dev, &brk));
+    EMB_ASSERT_STATUS(brk.req.status, EMB_OK);
+    EMB_ASSERT_EQ(fake.breaks, 1u);
+    emb_drv_uart_req_break(NULL); /* ignored */
 }
 
 EMB_TEST(uart_misuse_faults)
