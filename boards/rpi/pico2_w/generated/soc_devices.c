@@ -87,10 +87,12 @@ const emb_device_t emb_dev_watchdog = {
 };
 
 /* flash: rpi,rp2350-qmi, flash, EARLY */
+/* clang-format off */
 static const emb_rp2350_flash_config_t flash_config = {
     .base = 0x400D0000u,                                                                   /* peripheral.base */
     .geometry = {0x10000000u, 0x00400000u, NULL, 4096u, 1024u, 256u, 0xFFu, {0u, 0u, 0u}}, /* flash.geometry */
 };
+/* clang-format on */
 static emb_device_state_t flash_state;
 static emb_rp2350_flash_data_t flash_data;
 const emb_device_t emb_dev_flash = {
@@ -264,8 +266,10 @@ const emb_device_table_t emb_board_device_table = {devices, 10u, 7u};
 #if CONFIG_EMB_DRV_FLASH
 /* the board's flash partitions (flash_partitions:), each on its flash device, from the
  * device's start (SPEC-017 §9) */
+/* clang-format off */
 const emb_flash_area_t emb_flash_area_app = {"app", &emb_dev_flash, 0x00000000u, 0x003F0000u};
 const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x003F0000u, 0x00010000u};
+/* clang-format on */
 #endif
 
 #if CONFIG_EMB_DRV_DMA

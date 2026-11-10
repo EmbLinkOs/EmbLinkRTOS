@@ -87,11 +87,13 @@ const emb_device_t emb_dev_iwdg = {
 };
 
 /* flash: st,stm32f4-flash, flash, EARLY */
+/* clang-format off */
 static const uint32_t flash_sectors[8] = {0x4000u, 0x4000u, 0x4000u, 0x4000u, 0x10000u, 0x20000u, 0x20000u, 0x20000u};
 static const emb_stm32_flash_config_t flash_config = {
     .base = 0x40023C00u,                                                                    /* peripheral.base */
     .geometry = {0x08000000u, 0x00080000u, flash_sectors, 0u, 8u, 1u, 0xFFu, {0u, 0u, 0u}}, /* flash.geometry */
 };
+/* clang-format on */
 static emb_device_state_t flash_state;
 static emb_stm32_flash_data_t flash_data;
 const emb_device_t emb_dev_flash = {
@@ -330,8 +332,10 @@ const emb_device_table_t emb_board_device_table = {devices, 12u, 9u};
 #if CONFIG_EMB_DRV_FLASH
 /* the board's flash partitions (flash_partitions:), each on its flash device, from the
  * device's start (SPEC-017 §9) */
+/* clang-format off */
 const emb_flash_area_t emb_flash_area_app = {"app", &emb_dev_flash, 0x00000000u, 0x00060000u};
 const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x00060000u, 0x00020000u};
+/* clang-format on */
 #endif
 
 #if CONFIG_EMB_DRV_DMA

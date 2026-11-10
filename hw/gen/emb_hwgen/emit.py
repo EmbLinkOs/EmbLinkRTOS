@@ -799,6 +799,9 @@ def soc_devices_c(r):
         out += f"\n/* {n}: {d['compatible']}, {d['class']}, {d['level'].upper()} */\n"
         for buf in d["buffers"]:
             out += f"static uint8_t {n}_{buf['name']}[{buf['size']}];\n"
+        geometry = any(isinstance(f["value"], dict) and "flash_geometry" in f["value"] for f in d["fields"])
+        if geometry:
+            out += "/* clang-format off */\n"  # the geometry's initializer, one line beside its source
         for f in d["fields"]:
             g = f["value"].get("flash_geometry") if isinstance(f["value"], dict) else None
             if g is not None and g["sectors"]:
@@ -811,6 +814,8 @@ def soc_devices_c(r):
                 init = f".{f['field']} = {f['c']},"
                 out += f"    {init.ljust(width)} /* {f['expr']} */\n"
             out += "};\n"
+            if geometry:
+                out += "/* clang-format on */\n"
         else:
             out += f"static const {d['config']} {n}_config;\n"
         out += f"static emb_device_state_t {n}_state;\n"
@@ -844,10 +849,11 @@ def soc_devices_c(r):
     if areas:
         out += ("\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:), each on its flash device, from the\n"
                 " * device's start (SPEC-017 §9) */\n")
+        out += "/* clang-format off */\n"
         for p, dev, off in areas:
             out += (f"const emb_flash_area_t emb_flash_area_{p['name']} = "
                     f"{{\"{p['name']}\", &emb_dev_{dev}, 0x{off:08X}u, 0x{p['size']:08X}u}};\n")
-        out += "#endif\n"
+        out += "/* clang-format on */\n#endif\n"
     regions = [g for g in r["soc"]["memory"]["regions"] if "dma" in g.get("attrs", [])]
     out += ("\n#if CONFIG_EMB_DRV_DMA\n/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA\n"
             " * class takes buffers (SPEC-017 §7) */\n")

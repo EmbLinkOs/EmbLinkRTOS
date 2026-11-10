@@ -40,7 +40,7 @@ typedef struct embk_time_state {
 } embk_time_state_t;
 
 static embk_time_state_t ts;
-#if !CONFIG_EMB_TICKLESS
+#if CONFIG_EMB_TIME_CATCH_UP
 static emb_tick_t missed; /* lock domain: the timeout lock; ticks the next tick adds */
 #endif
 
@@ -481,9 +481,13 @@ void embk_time_timer_isr(void)
     }
 #else
     clock_write_begin();
+#if CONFIG_EMB_TIME_CATCH_UP
     ts.ticks += 1u + missed; /* and those that passed with interrupts held off (A122) */
-    clock_write_end();
     missed = 0u;
+#else
+    ts.ticks++;
+#endif
+    clock_write_end();
     EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
 #endif
     expire(ts.ticks, &key);
@@ -496,12 +500,12 @@ void embk_time_timer_isr(void)
 
 void embk_time_ticks_missed(emb_tick_t n)
 {
-#if CONFIG_EMB_TICKLESS
-    (void)n; /* the clock reads the hardware counter: nothing was missed */
-#else
+#if CONFIG_EMB_TIME_CATCH_UP
     emb_irq_key_t key = embk_lock_timeout();
     missed += n;
     embk_unlock_timeout(key);
+#else
+    (void)n; /* tickless: the clock reads the hardware counter; or no flash to stall it */
 #endif
 }
 

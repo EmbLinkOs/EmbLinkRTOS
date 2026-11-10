@@ -315,6 +315,15 @@ config EMB_DRV_FLASH
 	  the description, each operation run to its end in the caller; and
 	  the board's flash partitions, <emb/flash_area.h>.
 
+config EMB_TIME_CATCH_UP
+	bool
+	default y if EMB_DRV_FLASH && !EMB_TICKLESS
+	help
+	  The periodic tick adds the ticks that passed while interrupts were
+	  held off, or the core stalled, for longer than a tick: a flash
+	  operation (A122). The port counts them; without this the hook does
+	  nothing, and costs no RAM.
+
 config EMB_WDOG
 	bool "The software watchdog (FLT-004)"
 	depends on EMB_DRV_WDT && EMB_TIMER
