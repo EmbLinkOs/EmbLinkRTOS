@@ -61,13 +61,12 @@ static void wdog_record(const emb_wdog_party_t *p)
 static void wdog_feeder(emb_timer_t timer, void *arg)
 {
     static uint8_t missed; /* lock domain: the critical section */
-    const emb_wdog_party_t *late;
     emb_irq_key_t key;
     (void)timer;
     (void)arg;
     key = embk_irq_lock();
     if (missed == 0u) {
-        late = wdog_late(embk_time_ticks_locked());
+        const emb_wdog_party_t *late = wdog_late(embk_time_ticks_locked());
         if (late == NULL) {
             (void)emb_drv_wdt_feed(hw);
         } else {

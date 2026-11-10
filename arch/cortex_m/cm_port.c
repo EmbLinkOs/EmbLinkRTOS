@@ -407,18 +407,15 @@ uint32_t emb_arch_cycles_hz(void)
 #define DWT_NOCYCCNT   ((uint32_t)1u << 25) /* the counter is not implemented */
 #define ICSR_PENDSTSET ((uint32_t)1u << 26)
 
-/* Starts DWT CYCCNT where there is one; whether it counts. */
+#if (__ARM_ARCH >= 7) || defined(__ARM_ARCH_8M_MAIN__)
+/* Starts DWT CYCCNT where the core has it; whether it counts. */
 static bool cycle_counter(void)
 {
-#if (__ARM_ARCH >= 7) || defined(__ARM_ARCH_8M_MAIN__)
     REG32(DEMCR) |= DEMCR_TRCENA;
     if ((REG32(DWT_CTRL) & DWT_NOCYCCNT) == 0u) {
         REG32(DWT_CTRL) |= DWT_CYCCNTENA;
     }
     return (REG32(DWT_CTRL) & DWT_CYCCNTENA) != 0u;
-#else
-    return false; /* ARMv6-M: no cycle counter */
-#endif
 }
 
 uint32_t emb_cm_cycle_count(void)
@@ -448,6 +445,26 @@ void emb_cm_stall_end(const emb_cm_stall_t *s)
     }
     embk_time_ticks_missed((emb_tick_t)passed);
 }
+#else
+/* ARMv6-M: no cycle counter, so nothing to count by and nothing added. */
+uint32_t emb_cm_cycle_count(void)
+{
+    return 0u;
+}
+
+void emb_cm_stall_begin(emb_cm_stall_t *s)
+{
+    s->counting = 0u;
+    s->cycles = 0u;
+    s->into = 0u;
+    s->pending = 0u;
+}
+
+void emb_cm_stall_end(const emb_cm_stall_t *s)
+{
+    (void)s;
+}
+#endif
 
 /* ---- startup and kernel start (SPEC-011 §4) ------------------------------------------- */
 
