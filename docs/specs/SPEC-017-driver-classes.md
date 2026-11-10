@@ -178,19 +178,20 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 
 | Checklist | |
 |---|---|
-| Dependencies | its oscillator (the F446RE's LSE crystal at 32.768 kHz); the backup domain |
-| Requests | `get` and `set` time, `alarm` at a time, `wakeup` after an interval (the power policy's wake source, SPEC-018) |
-| Blocking | `get` and `set` are immediate; an alarm completes later |
-| Interrupts | alarm and wake-up, through EXTI on the STM32 |
+| Dependencies | its oscillator (the F446RE's LSE crystal at 32.768 kHz; the RP2350's crystal, as the AON timer's 1 kHz tick); the backup domain |
+| Requests | `emb_drv_rtc_get()` and `emb_drv_rtc_set()`, the time as nanoseconds since the Unix epoch (UTC), the wall clock's unit; `emb_drv_rtc_alarm_set()` at a time, and `emb_drv_rtc_alarm_cancel()`; `emb_drv_rtc_backup_read()` and `_write()` (A123). The wake-up timer, an interval for the power policy's wake source, comes with SPEC-018 in M4.4 |
+| Blocking | `get`, the alarm and the backup registers are immediate; the first `set` after power-up waits, sleeping, up to 3 s for the oscillator to start |
+| Interrupts | the alarm: its callback in the alarm interrupt (through EXTI line 17 on the STM32, POWMAN's timer interrupt on the RP2350) |
 | DMA | none |
-| Concurrency | one alarm per device in M4 |
-| Timeouts | a canceled alarm is disarmed |
-| Power | it keeps running in every state, OFF included where the backup domain is powered |
-| Errors | `EMB_ENOTSET` (the time was lost with power, and not set since), `EMB_EOSCFAIL` (the oscillator failed to start) |
-| Capabilities | `CALENDAR`, `SUBSECONDS`, `BACKUP_REGISTERS` |
-| Wall clock | at boot, a set RTC seeds `emb_wallclock_set()` (KRN-TIM-031); kernel time and deadlines never depend on it (KRN-TIM-002) |
+| Concurrency | one alarm per device: arming one already armed is refused with `EMB_EBUSY`; it fires once, and its callback may arm it again |
+| Timeouts | a canceled alarm is disarmed, and no callback runs after the cancel returns; a `set` disarms the alarm, counted in the old time |
+| Resolution | an alarm fires at the RTC's resolution and never before its time: 1/256 s on the STM32F4, 1 ms on the RP2350. With a calendar, it reaches 28 days ahead, as it compares the day of the month |
+| Power | it keeps running across every reset, and in every power state where its domain is powered; the NUCLEO-F446RE has no battery on VBAT and the Pico 2 W none on the AON domain, so both lose the time with power |
+| Errors | `EMB_ENOTSET` (the time was lost with power, and not set since), `EMB_EOSCFAIL` (the oscillator did not start), `EMB_EINVAL` (a time it cannot hold: before 2000 or from 2100 with a calendar; an alarm not after now, or beyond its reach) |
+| Capabilities | `CALENDAR`, `SUBSECONDS`, `BACKUP` |
+| Wall clock | `<emb/wallclock.h>` (SPEC-003 §10, A123): when a driver starts, a set RTC seeds `emb_wallclock_set()` (KRN-TIM-031), through `emb_drv_rtc_started()`. Kernel time and deadlines never depend on it (KRN-TIM-002). Setting the RTC does not set the wall clock, nor the reverse |
 
-**Drivers:** `drivers/st/stm32f4_rtc.c` (calendar, wake-up timer, alarms, 20 backup registers); `drivers/rpi/rp2350_aon.c` (the always-on timer: a counter, no calendar, so `CALENDAR` is absent and the time is kept as seconds since an epoch the application sets). **Evidence:** EmbSIM's RTC in CI; on both boards, the clock's drift over the soak, against the host's.
+**Drivers:** `drivers/st/stm32_rtc.c`: the calendar on the LSE, prescaled to 1/256 s. Its initialization starts the LSE without waiting for it, and the first `set` waits. A `set` keeps the second's fraction with the shift register, and the alarm (alarm A) is counted from the registers, comparing every subsecond bit, so it fires on time while a shift runs. It has twenty backup registers. `drivers/rpi/rp2350_aon.c`: the always-on timer in POWMAN, a 64-bit millisecond count on a 1 kHz tick from the crystal, holding milliseconds since the epoch. It has no calendar and no backup registers. While it is not running, its time is not set. Every POWMAN write carries the block's password. **Evidence:** the class's fake on the host. On EmbSIM's NUCLEO-F446RE in CI and on both boards: the time set and read back; the RTC and the kernel's clock, two crystals, compared over two seconds; an alarm 300 ms ahead on time, and one canceled; the backup registers; and the time kept across a reset, which then seeds the wall clock. The drift over the soak, against the host's clock, comes with M4.6's field node.
 
 ## 11. Entropy
 

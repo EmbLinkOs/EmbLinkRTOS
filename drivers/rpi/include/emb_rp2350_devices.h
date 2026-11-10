@@ -17,6 +17,7 @@
 #include <emb/device.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
 #endif
 #if CONFIG_EMB_DRV_DMA
@@ -38,6 +39,20 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+#if CONFIG_EMB_DEVICE
+/* The always-on timer in POWMAN (datasheet §6.5): its registers and its alarm's interrupt. */
+typedef struct emb_rp2350_aon_config {
+    uintptr_t base;
+    uint32_t irq;
+} emb_rp2350_aon_config_t;
+
+/* Its RAM: the class's, first, and the device for the alarm's interrupt. */
+typedef struct emb_rp2350_aon_data {
+    emb_drv_rtc_data_t rtc;
+    const emb_device_t *dev;
+} emb_rp2350_aon_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE
 /* The board's QSPI flash, through the QMI and the boot ROM's flash routines (datasheet §5.5.8,
@@ -101,6 +116,11 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
 #endif
 
+#if CONFIG_EMB_DRV_RTC
+/* The RTC class's operations (SPEC-017 §10): the always-on timer as milliseconds since the
+ * epoch, on a 1 kHz tick from the crystal; no calendar, no backup registers. */
+extern const emb_drv_rtc_api_t emb_rp2350_aon_api;
+#endif
 #if CONFIG_EMB_DRV_FLASH
 /* The flash class's operations (SPEC-017 §9): the boot ROM's erase and program, run from RAM
  * with interrupts off while XIP is off, the clock catching up after (A122). */

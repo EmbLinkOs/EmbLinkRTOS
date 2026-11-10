@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388
+ *     a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d
  *   drivers/bindings.yaml
- *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
+ *     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
  *   soc/rpi/rp2350/rp2350.yaml
- *     debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533
+ *     d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -82,6 +82,25 @@ const emb_device_t emb_dev_watchdog = {
     .data = &watchdog_data,
     .deps = NULL,
     .class_id = EMB_DRV_CLASS_WATCHDOG,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* rtc: rpi,rp2350-powman, rtc, EARLY */
+static const emb_rp2350_aon_config_t rtc_config = {
+    .base = 0x40100000u, /* peripheral.base */
+    .irq = 45u,          /* peripheral.irqs.timer */
+};
+static emb_device_state_t rtc_state;
+static emb_rp2350_aon_data_t rtc_data;
+const emb_device_t emb_dev_rtc = {
+    .name = "rtc",
+    .api = &emb_rp2350_aon_api.dev,
+    .config = &rtc_config,
+    .state = &rtc_state,
+    .data = &rtc_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_RTC,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 0u,
 };
@@ -252,16 +271,17 @@ static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
     &emb_dev_io_bank0, /* 1: EARLY */
     &emb_dev_watchdog, /* 2: EARLY */
-    &emb_dev_flash,    /* 3: EARLY */
-    &emb_dev_dma,      /* 4: EARLY */
-    &emb_dev_uart0,    /* 5: EARLY */
-    &emb_dev_uart1,    /* 6: EARLY */
-    &emb_dev_spi1,     /* 7: KERNEL */
-    &emb_dev_i2c0,     /* 8: KERNEL */
-    &emb_dev_i2c1,     /* 9: KERNEL */
+    &emb_dev_rtc,      /* 3: EARLY */
+    &emb_dev_flash,    /* 4: EARLY */
+    &emb_dev_dma,      /* 5: EARLY */
+    &emb_dev_uart0,    /* 6: EARLY */
+    &emb_dev_uart1,    /* 7: EARLY */
+    &emb_dev_spi1,     /* 8: KERNEL */
+    &emb_dev_i2c0,     /* 9: KERNEL */
+    &emb_dev_i2c1,     /* 10: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 10u, 7u};
+const emb_device_table_t emb_board_device_table = {devices, 11u, 8u};
 
 #if CONFIG_EMB_DRV_FLASH
 /* the board's flash partitions (flash_partitions:), each on its flash device, from the

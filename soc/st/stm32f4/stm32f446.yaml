@@ -54,6 +54,12 @@ peripherals:
   - { name: gpioh, compatible: "st,stm32-gpio", base: 0x40021C00, size: 0x400, port: H, clock: { bus: ahb1, bit: 7 } }
   # the independent watchdog (RM0390 §19), clocked by the 32 kHz LSI, no clock gate
   - { name: iwdg, compatible: "st,stm32f4-iwdg", base: 0x40003000, size: 0x400 }
+  # the RTC (RM0390 §26) in the backup domain, its clock the board's LSE; alarm A through EXTI
+  # line 17 to RTC_Alarm (position 41)
+  - { name: rtc, compatible: "st,stm32f4-rtc", base: 0x40002800, size: 0x400,
+      irqs: [ { name: alarm, number: 41 } ] }
+  # the external interrupt controller (RM0390 §10.3); the RTC's alarm is its line 17
+  - { name: exti, compatible: "st,stm32f4-exti", base: 0x40013C00, size: 0x400 }
   - { name: pwr, compatible: "st,stm32f4-pwr", base: 0x40007000, size: 0x400, clock: { bus: apb1, bit: 28 },
       irqs: [ { name: pvd, number: 1 } ] }
   - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,

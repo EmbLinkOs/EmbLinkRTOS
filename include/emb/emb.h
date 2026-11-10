@@ -21,11 +21,15 @@
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_i2c.h>
+#include <emb/drv_rtc.h>
 #include <emb/drv_spi.h>
 #include <emb/drv_wdt.h>
 #endif
 #if CONFIG_EMB_DRV_FLASH
 #include <emb/flash_area.h>
+#endif
+#if CONFIG_EMB_WALLCLOCK
+#include <emb/wallclock.h>
 #endif
 #if CONFIG_EMB_WDOG
 #include <emb/wdog.h>

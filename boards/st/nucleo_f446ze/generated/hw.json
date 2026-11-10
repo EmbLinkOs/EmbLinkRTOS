@@ -357,7 +357,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d"
+      "sha256": "9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -365,7 +365,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
+      "sha256": "9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f"
     },
     {
       "path": "soc/st/stm32f4/stm32f446ze.yaml",
@@ -854,6 +854,24 @@
         "base": 1073754112,
         "compatible": "st,stm32f4-iwdg",
         "name": "iwdg",
+        "size": 1024
+      },
+      {
+        "base": 1073752064,
+        "compatible": "st,stm32f4-rtc",
+        "irqs": [
+          {
+            "name": "alarm",
+            "number": 41
+          }
+        ],
+        "name": "rtc",
+        "size": 1024
+      },
+      {
+        "base": 1073822720,
+        "compatible": "st,stm32f4-exti",
+        "name": "exti",
         "size": 1024
       },
       {

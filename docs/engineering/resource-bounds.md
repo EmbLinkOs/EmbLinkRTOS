@@ -33,6 +33,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **wdog_parties**: the parties the software watchdog watches | the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one | application | application | yes | base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section | FLT-004, A121; test_wdog, test_wdog_board |
 | **flash_bytes**: bytes of one flash read or program, and their read-back | the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces | application | application | yes | base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 | **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
+| **rtc_oscillator**: the first RTC set after power-up: the wait for its oscillator | 3 s, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet); the RP2350's tick is the crystal's, already running; later sets do not wait | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
 
 ## Public functions
 
@@ -68,6 +69,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_i2c_submit()` | O(segments) plus the driver's start when its lane was idle | i2c_bytes, drivers |
 | `emb_drv_i2c_transfer()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
 | `emb_drv_i2c_write_read()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
+| `emb_drv_rtc_alarm_fired()` | O(1) plus the callback | callbacks |
+| `emb_drv_rtc_set()` | O(1); the first set after power-up waits for the oscillator, up to 3 s | rtc_oscillator, drivers |
 | `emb_drv_spi_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
 | `emb_drv_spi_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_spi_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |

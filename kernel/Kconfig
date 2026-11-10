@@ -306,6 +306,25 @@ config EMB_DRV_WDT
 	  A hardware watchdog started once with its timeout, fed from any context,
 	  never stopped; and whether it caused the last reset.
 
+config EMB_WALLCLOCK
+	bool "The wall clock (SPEC-003 §10, KRN-TIM-031)"
+	depends on !EMB_TICK_32BIT
+	default y if !EMB_PROFILE_TINY
+	help
+	  Calendar time, nanoseconds since the Unix epoch: the monotonic clock
+	  plus an offset that setting or adjusting it changes, and a board's
+	  RTC seeds at boot. No timeout or deadline depends on it. It needs
+	  64-bit ticks, which do not wrap.
+
+config EMB_DRV_RTC
+	bool "The RTC class (SPEC-017 §10)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A real-time clock kept across resets: its time get and set, one
+	  alarm, and backup registers where the part has them. With the wall
+	  clock, a set RTC seeds it when the device starts.
+
 config EMB_DRV_FLASH
 	bool "The flash class and partitions (SPEC-017 §9)"
 	depends on EMB_DEVICE

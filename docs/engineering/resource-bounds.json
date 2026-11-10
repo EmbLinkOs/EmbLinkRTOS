@@ -272,6 +272,16 @@
       "masked": true,
       "profiles": "base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122)",
       "evidence": "SPEC-017 \u00a79, A122; test_flash, test_flash_board"
+    },
+    {
+      "id": "rtc_oscillator",
+      "input": "the first RTC set after power-up: the wait for its oscillator",
+      "bound": "3 s, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet); the RP2350's tick is the crystal's, already running; later sets do not wait",
+      "limit": "the driver's wait",
+      "enforcement": "structural",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks",
+      "evidence": "SPEC-017 \u00a710, A123; test_rtc_board"
     }
   ],
   "apis": {
@@ -680,6 +690,13 @@
     ],
     "emb_drv_flash_lock_init": [
       "active_objects"
+    ],
+    "emb_drv_rtc_alarm_fired": [
+      "callbacks"
+    ],
+    "emb_drv_rtc_set": [
+      "rtc_oscillator",
+      "drivers"
     ],
     "emb_drv_flash_sector": [
       "flash_sectors"

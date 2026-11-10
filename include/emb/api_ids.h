@@ -226,5 +226,16 @@
 #define EMB_API_ID_FLASH_AREA_PROGRAM            0x00DFu
 #define EMB_API_ID_FLASH_AREA_ERASE              0x00E0u
 #define EMB_API_ID_DRV_FLASH_LOCK_INIT           0x00E1u
+#define EMB_API_ID_WALLCLOCK_GET                 0x00E2u
+#define EMB_API_ID_WALLCLOCK_SET                 0x00E3u
+#define EMB_API_ID_WALLCLOCK_ADJUST              0x00E4u
+#define EMB_API_ID_DRV_RTC_GET                   0x00E5u
+#define EMB_API_ID_DRV_RTC_SET                   0x00E6u
+#define EMB_API_ID_DRV_RTC_ALARM_SET             0x00E7u
+#define EMB_API_ID_DRV_RTC_ALARM_CANCEL          0x00E8u
+#define EMB_API_ID_DRV_RTC_BACKUP_READ           0x00E9u
+#define EMB_API_ID_DRV_RTC_BACKUP_WRITE          0x00EAu
+#define EMB_API_ID_DRV_RTC_STARTED               0x00EBu
+#define EMB_API_ID_DRV_RTC_ALARM_FIRED           0x00ECu
 
 #endif /* EMB_API_IDS_H */

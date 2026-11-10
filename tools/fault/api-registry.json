@@ -1332,6 +1332,72 @@
       "name": "emb_drv_flash_lock_init",
       "header": "drv_flash.h",
       "state": "active"
+    },
+    {
+      "id": 226,
+      "name": "emb_wallclock_get",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 227,
+      "name": "emb_wallclock_set",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 228,
+      "name": "emb_wallclock_adjust",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 229,
+      "name": "emb_drv_rtc_get",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 230,
+      "name": "emb_drv_rtc_set",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 231,
+      "name": "emb_drv_rtc_alarm_set",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 232,
+      "name": "emb_drv_rtc_alarm_cancel",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 233,
+      "name": "emb_drv_rtc_backup_read",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 234,
+      "name": "emb_drv_rtc_backup_write",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 235,
+      "name": "emb_drv_rtc_started",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 236,
+      "name": "emb_drv_rtc_alarm_fired",
+      "header": "drv_rtc.h",
+      "state": "active"
     }
   ]
 }

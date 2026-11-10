@@ -34,6 +34,7 @@ devices:
   - { name: rcc }
   - { name: gpioa, doc: "the console's pins and LD2" }
   - { name: iwdg, doc: "the independent watchdog" }
+  - { name: rtc, doc: "the RTC on the LSE crystal (X2); no battery on VBAT, so lost with power" }
   - { name: flash, peripheral: flash_if, doc: "the 512 KiB flash: its storage partition is the tests' (sector 7)" }
   - { name: dma1, doc: "DMA1: SPI2's transfers, and the console's writes" }
   - { name: gpiob, doc: "SPI2's chip select, PB12" }

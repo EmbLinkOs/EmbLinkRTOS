@@ -13,6 +13,9 @@ emb_add_test(test_thread_join test_thread_join.c)
 emb_add_test(test_thread_identity test_thread_identity.c)
 target_link_libraries(test_thread_identity PRIVATE emb_kernel_private)
 emb_add_test(test_time test_time.c)
+if(CONFIG_EMB_WALLCLOCK)
+  emb_add_test(test_wallclock test_wallclock.c) # KRN-TIM-031
+endif()
 if(CONFIG_EMB_NOTIFY)
   emb_add_test(test_notify test_notify.c)
 endif()
@@ -73,6 +76,16 @@ if(CONFIG_EMB_DEVICE)
   endif()
   if(CONFIG_EMB_DRV_DMA)
     emb_add_test(test_dma test_dma.c) # SPEC-017 §7
+  endif()
+  if(CONFIG_EMB_DRV_RTC)
+    emb_add_test(test_rtc test_rtc.c) # SPEC-017 §10
+    # the board's own RTC: its time, its alarm, across a reset
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_rtc REGEX "EMB_SOC_RTC_DEVICE")
+      if(_emb_rtc)
+        emb_add_test(test_rtc_board test_rtc_board.c)
+      endif()
+    endif()
   endif()
   if(CONFIG_EMB_DRV_FLASH)
     emb_add_test(test_flash test_flash.c flash_sim.c) # SPEC-017 §9, a NOR flash in RAM

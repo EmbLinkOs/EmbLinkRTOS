@@ -79,6 +79,10 @@ peripherals:
   - { name: psm, compatible: "rpi,rp2350-psm", base: 0x40018000, size: 0x4000 }
   # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
   - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
+  # the power manager (datasheet §6.4), whose always-on timer (§6.5) is the board's clock kept
+  # across resets; POWMAN_IRQ_TIMER is 45
+  - { name: powman, compatible: "rpi,rp2350-powman", base: 0x40100000, size: 0x4000,
+      irqs: [ { name: timer, number: 45 } ] }
   # boot RAM (datasheet §5.4.1): the boot ROM leaves its XIP setup function in the first 256 bytes
   - { name: bootram, compatible: "rpi,rp2350-bootram", base: 0x400E0000, size: 0x400 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }

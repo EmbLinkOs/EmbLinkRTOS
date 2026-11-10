@@ -5,11 +5,11 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388
+#     a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d
 #   drivers/bindings.yaml
-#     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
+#     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
 #   soc/rpi/rp2350/rp2350.yaml
-#     debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533
+#     d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15
 #   soc/rpi/rp2350/rp2350a.yaml
 #     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
 # pico2_w: RP2350A, cortex-m33f at 150 MHz.
@@ -32,6 +32,7 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${EMB_BASE}/drivers/rpi/rp2350_devices.c"
     "${EMB_BASE}/drivers/rpi/rp2350_gpio.c"
     "${EMB_BASE}/drivers/rpi/rp2350_watchdog.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_aon.c"
     "${EMB_BASE}/drivers/rpi/rp2350_flash.c"
     "${EMB_BASE}/drivers/rpi/rp2350_dma.c"
     "${EMB_BASE}/drivers/arm/pl011.c"
@@ -46,8 +47,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388"
-    "drivers/bindings.yaml=5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d"
-    "soc/rpi/rp2350/rp2350.yaml=debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533"
+    "boards/rpi/pico2_w/board.yaml=a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d"
+    "drivers/bindings.yaml=9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d"
+    "soc/rpi/rp2350/rp2350.yaml=d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

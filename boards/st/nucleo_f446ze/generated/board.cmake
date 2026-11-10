@@ -7,11 +7,11 @@
 #   boards/st/nucleo_f446ze/board.yaml
 #     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
 #   drivers/bindings.yaml
-#     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
+#     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
 #   soc/st/stm32f4/stm32f4.yaml
 #     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
 #   soc/st/stm32f4/stm32f446.yaml
-#     08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b
+#     9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f
 #   soc/st/stm32f4/stm32f446ze.yaml
 #     98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002
 # nucleo_f446ze: STM32F446ZE, cortex-m4f at 180 MHz.
@@ -37,8 +37,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
     "boards/st/nucleo_f446ze/board.yaml=d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d"
-    "drivers/bindings.yaml=5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d"
+    "drivers/bindings.yaml=9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d"
     "soc/st/stm32f4/stm32f4.yaml=5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
-    "soc/st/stm32f4/stm32f446.yaml=08df0abae58ce5ffd9cf8b6f1711469e15b74f53d1b783bc607f1061435f9b7b"
+    "soc/st/stm32f4/stm32f446.yaml=9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f"
     "soc/st/stm32f4/stm32f446ze.yaml=98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"
 )

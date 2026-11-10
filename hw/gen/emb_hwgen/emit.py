@@ -730,6 +730,10 @@ def soc_devices_h(r):
         if wdt is not None:
             out += "\n/* the board's watchdog device: the first of its class */\n"
             out += f"#define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_{wdt['name']})\n"
+        rtc = next((d for d in r["devices"] if d["class"] == "rtc"), None)
+        if rtc is not None:
+            out += "\n/* the board's RTC device: the first of its class */\n"
+            out += f"#define EMB_SOC_RTC_DEVICE (&emb_dev_{rtc['name']})\n"
         console = (r.get("console") or {}).get("device")
         for d in r["devices"]:
             if console is not None and d["peripheral"] == console and d["class"] == "uart":

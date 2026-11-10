@@ -14,6 +14,7 @@
 #include <emb/drv_dma.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
 
 #include <stdbool.h>
@@ -102,6 +103,18 @@ typedef struct emb_stm32_iwdg_data {
     bool started;
     bool caused;
 } emb_stm32_iwdg_data_t;
+
+/* The RTC (RM0390 §26): its registers and its alarm's interrupt (EXTI line 17). */
+typedef struct emb_stm32_rtc_config {
+    uintptr_t base;
+    uint32_t irq;
+} emb_stm32_rtc_config_t;
+
+/* Its RAM: the class's, first, and the device for the alarm's interrupt. */
+typedef struct emb_stm32_rtc_data {
+    emb_drv_rtc_data_t rtc;
+    const emb_device_t *dev;
+} emb_stm32_rtc_data_t;
 
 /* The flash interface (RM0390 §3): its registers, and the flash's geometry from the
  * description. */
@@ -196,6 +209,11 @@ extern const emb_device_api_t emb_stm32_spi_api;
 /* The watchdog class's operations (SPEC-017 §8): the IWDG, whose start chooses the prescaler
  * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
 extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
+#endif
+#if CONFIG_EMB_DRV_RTC
+/* The RTC class's operations (SPEC-017 §10): the calendar in the backup domain on the LSE,
+ * alarm A, the 20 backup registers. */
+extern const emb_drv_rtc_api_t emb_stm32_rtc_api;
 #endif
 #if CONFIG_EMB_DRV_FLASH
 /* The flash class's operations (SPEC-017 §9): a sector erased, or bytes programmed, with
