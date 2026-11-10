@@ -20,6 +20,9 @@ from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E40
 BOARD = "boards/st/nucleo_f446re"
 UNO = "boards/arduino/arduino_uno"
 PICO = "boards/rpi/pico2_w"
+# the NUCLEO-F446RE's partitions, as its description lists them: the tests replace them whole
+NUCLEO_PARTITIONS = ("- { name: app, base: 0x08000000, size: 384K }        # sectors 0 to 6\n"
+                     "  - { name: storage, base: 0x08060000, size: 128K }    # sector 7")
 
 
 class Root:
@@ -141,25 +144,25 @@ class Negative(unittest.TestCase):
         self.expect(die, self.root.line_of(die, "name: sram2"), "memory.regions.sram2", "overlaps sram1")
 
     def test_partition_off_sector_boundary(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 20K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "erase-sector")
 
     def test_app_partition_must_start_where_the_core_boots(self):
         """A82: a Cortex-M core takes its vector table from the boot region's start; an image
         elsewhere (MCUboot's slot 0) would need a bootloader."""
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: boot, base: 0x08000000, size: 128K, reserved: true }\n  - { name: app, base: 0x08020000, size: 384K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app, base: 0x08020000"), "flash_partitions.app",
                     "the core boots from 0x08000000")
 
     def test_partition_outside_flash(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 1M }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "outside flash")
 
     def test_overlapping_partitions(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 128K }\n  - { name: data, base: 0x08010000, size: 64K }")
         # 0x08010000 + 64K is sector 4 exactly: inside app (0 to 4 is 128K)
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: data"), "flash_partitions.data", "overlaps app")
@@ -294,15 +297,15 @@ class ChipSelects(unittest.TestCase):
 
     def test_a_device_on_the_bus_names_its_own(self):
         """SPEC-014 §4's example: a target device on an SPI controller names its chip select."""
-        self.root.edit(self.board, "  - { name: uart4,", "  - { name: flash, compatible: \"acme,flash\", bus: spi2, cs: PB1 }\n  - { name: uart4,")
+        self.root.edit(self.board, "  - { name: uart4,", "  - { name: nor, compatible: \"acme,flash\", bus: spi2, cs: PB1 }\n  - { name: uart4,")
         (self.root.dir / "drivers" / "bindings.yaml").write_text(
             (self.root.dir / "drivers" / "bindings.yaml").read_text() +
             "  acme,flash: { class: flash, level: kernel, sources: [drivers/acme/flash.c], header: flash.h, api: flash_api, config: flash_config_t }\n",
             encoding="utf-8")
         files = self.files()
-        self.assertIn("#define EMB_SOC_FLASH_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["soc_devices.h"])
+        self.assertIn("#define EMB_SOC_NOR_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["soc_devices.h"])
         self.root.edit(self.board, "bus: spi2, cs: PB1 }", "bus: spi2, cs: [PB1, PB2] }")
-        self.expect("name: flash", "devices.flash.cs", "a device on an SPI bus has one chip select")
+        self.expect("name: nor", "devices.nor.cs", "a device on an SPI bus has one chip select")
 
     def test_a_pin_has_one_owner(self):
         self.root.edit(self.board, "cs: [PB12]", "cs: [PB13]")  # SPI2's clock
@@ -349,6 +352,51 @@ class DmaChannels(unittest.TestCase):
         self.root.edit("soc/st/stm32f4/stm32f446.yaml", "dma_requests: { tx: dma1.s4c0, rx: dma1.s3c0 }",
                        "dma_requests: { tx: dma1.s9c0, rx: dma1.s3c0 }")
         self.assertTrue(any("peripherals.spi2.dma_requests.tx" in e and "8 streams" in e for e in self.errors()))
+
+
+class FlashGeometry(unittest.TestCase):
+    """A flash device's geometry (A122): the SoC's sectors, listed or of one size up to the
+    board's chip size, in its configuration; the partitions on it, EMB_FLASH_AREA_<NAME>; and the
+    RAM code section the RP2350's flash routines run from."""
+
+    def setUp(self):
+        self.root = Root(boards=(BOARD, PICO))
+        self.addCleanup(self.root.close)
+
+    def errors(self, board):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(board)
+        return cm.exception.errors
+
+    def test_listed_sectors_and_partitions(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        c, h = files["soc_devices.c"], files["soc_devices.h"]
+        self.assertIn("static const uint32_t flash_sectors[8] = {0x4000u, 0x4000u, 0x4000u, 0x4000u, "
+                      "0x10000u, 0x20000u, 0x20000u, 0x20000u};", c)
+        self.assertIn(".geometry = {0x08000000u, 0x00080000u, flash_sectors, 0u, 8u, 1u, 0xFFu, {0u, 0u, 0u}},", c)
+        self.assertIn('const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x00060000u, '
+                      "0x00020000u};", c)
+        self.assertIn("#define EMB_FLASH_AREA_STORAGE (&emb_flash_area_storage)", h)
+        self.assertIn("#include <emb/flash_area.h>", h)
+        self.assertIn("*(.ramfunc .ramfunc.*)", files["regions.ld"])
+
+    def test_uniform_sectors_up_to_the_chip(self):
+        files, _ = generate.generate(self.root.dir / PICO, self.root.dir)
+        c = files["soc_devices.c"]
+        self.assertIn(".geometry = {0x10000000u, 0x00400000u, NULL, 4096u, 1024u, 256u, 0xFFu, {0u, 0u, 0u}},", c)
+        self.assertIn('{"storage", &emb_dev_flash, 0x003F0000u, 0x00010000u};', c)
+
+    def test_listed_sectors_cover_the_region(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: flash, peripheral: flash_if,", "{ name: flash, peripheral: flash_if, size: 256K,")
+        self.assertTrue(any("devices.flash.size" in e and "whole region" in e for e in self.errors(BOARD)))
+
+    def test_a_size_of_whole_sectors(self):
+        self.root.edit(f"{PICO}/board.yaml", "peripheral: qmi, size: 4M,", "peripheral: qmi, size: 4097K,")
+        self.assertTrue(any("devices.flash.size" in e and "4096-byte sectors" in e for e in self.errors(PICO)))
+
+    def test_a_size_beyond_the_window(self):
+        self.root.edit(f"{PICO}/board.yaml", "peripheral: qmi, size: 4M,", "peripheral: qmi, size: 32M,")
+        self.assertTrue(any("devices.flash.size" in e and "within its region xip" in e for e in self.errors(PICO)))
 
 
 class PinLines(unittest.TestCase):

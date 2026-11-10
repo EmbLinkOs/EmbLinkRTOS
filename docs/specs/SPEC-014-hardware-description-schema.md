@@ -121,6 +121,8 @@ Pins are `P<port><pin>.af<n>` for alternate functions or `P<port><pin>` for GPIO
 
 A device's `dma` lists the request lines to give channels, `dma: [tx, rx]` (A119): the generator gives each a channel of one of the board's DMA devices that no other device has (on a fixed controller, the first free stream its table lists; on a dreq one, the lowest free channel), refuses a board that runs out, writes the channel into the device's configuration (a binding's `dma.<request>`) and names it `EMB_SOC_<DEVICE>_DMA_<REQUEST>`. A request with no channel is none, so a driver runs it without DMA. The regions marked `dma` become `emb_board_dma_regions`, where the DMA class takes buffers.
 
+A flash device (A122) takes its geometry from the SoC's `flash:`, its region and its sectors, listed or all of `page_size`, and its `write_granularity`. Where the board's chip is smaller than the region it is mapped in, as the RP2350's 16 MiB XIP window holds the Pico 2 W's 4 MiB, the device gives the chip's size, `{ name: flash, peripheral: qmi, size: 4M }`, a whole number of sectors; a flash whose sectors are listed is its whole region. The generator writes the geometry into the device's configuration (a binding's `flash.geometry`). Each of `flash_partitions` on a flash device becomes an `emb_flash_area_t` in `soc_devices.c`, its offset from the device's start, named `EMB_FLASH_AREA_<NAME>` in `soc_devices.h`.
+
 A device's `cs` is a chip select (A116): a GPIO pin, active low unless written `{pin: PE3, active: high}`. A device on an SPI bus names its own, as `accel` does, and the generator names it `EMB_SOC_ACCEL_CS`; an SPI controller may list spare ones for the application, `EMB_SOC_SPI1_CS0` and on. Each must be a line of one of the board's GPIO devices, and the pin table sets it up as an output, deasserted, at boot.
 
 ## 5. System schema
@@ -152,10 +154,10 @@ The system file is where the generator learns every statically declared thread a
 | Output | Content | Consumer | Spec |
 |---|---|---|---|
 | `hw_config.h` | constants: core count, region bases and sizes, IRQ numbers and encoded priorities for generic levels, vector names, clock frequencies, pin encodings | everything | SPEC-002 §8 |
-| `soc_devices.c` | `const` device instance table with config structs, init order from `deps` and `clock`/`bus` references (DRV-001), vector bindings, DMA bindings | drivers, kernel init | 04 §2 |
+| `soc_devices.c` | `const` device instance table with config structs, init order from `deps` and `clock`/`bus` references (DRV-001), vector bindings, DMA bindings, flash geometries and the flash partitions (A122) | drivers, kernel init | 04 §2 |
 | `soc_clocks.c` | the clock tree configuration sequence that reaches the requested frequencies, with the computed PLL factors and bus dividers, checked against `max_hz` | SoC startup | 04 §1.3 |
 | `board_pins.c` | pin configuration table | board init | |
-| `regions.ld`, `embld.opts` | linker script and `embld` option set from one region model, per-partition sections, retained and `NOLOAD` sections, kstore placement | linker | HW-006, SPEC-010 §3 |
+| `regions.ld`, `embld.opts` | linker script and `embld` option set from one region model, per-partition sections, retained and `NOLOAD` sections, code that runs from RAM (`.ramfunc`, A122), kstore placement | linker | HW-006, SPEC-010 §3 |
 | `partitions.c` | partition table, region sets in the port's encoding, descriptors with kstore addresses, device grants | kernel | SPEC-010 |
 | `caps_init.c` | initial capability tables | kernel | SPEC-009 §4.1 |
 | `ceilings.h` | static ceiling values per declared mutex | kernel, application | SPEC-005 §3.4 |

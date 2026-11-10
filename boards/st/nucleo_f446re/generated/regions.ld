@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926
+ *     793ecb1e09fcf0aacc4ae9b0a159625b32a894a44babe80b1638502a065f560e
  *   drivers/bindings.yaml
- *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
+ *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -22,7 +22,7 @@ ENTRY(embn_cm_reset)
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 512K
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 384K
   RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
 }
 
@@ -59,6 +59,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;

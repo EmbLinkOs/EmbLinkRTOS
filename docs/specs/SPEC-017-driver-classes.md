@@ -157,21 +157,22 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 
 | Checklist | |
 |---|---|
-| Dependencies | its controller's clock |
-| Requests | `read`, `program` (a multiple of the write unit, at an aligned address), `erase` (whole sectors), within a partition the description names (SPEC-014 §4) |
-| Blocking | `emb_drv_flash_read()`, `program()`, `erase()` |
-| Polled | `emb_drv_flash_poll_*()`: MCUboot's flash map (ADR-058) and early boot |
-| Interrupts | the end of an erase or a program by interrupt on the STM32; the RP2350's boot ROM routines run polled, from RAM |
+| Dependencies | none beyond the flash interface: its registers (the STM32's FLASH, the RP2350's QMI and boot ROM) |
+| Requests | `emb_drv_flash_read()`, `emb_drv_flash_program()` (a multiple of the write unit, at an aligned offset, into erased bytes), `emb_drv_flash_erase()` (whole sectors), by offset from the flash's start; and the same within a partition, `<emb/flash_area.h>` (A122) |
+| Blocking | every call runs its operation to the end in the caller (A122): the STM32F446's CPU stalls on its flash meanwhile, and the RP2350 holds interrupts off, so a request queue would let nothing else run. The call waits up to its timeout for another thread's operation |
+| Polled | `emb_drv_flash_poll_read()`, `_program()` and `_erase()`, without the lock, for early boot and MCUboot's flash map (DRV-007, ADR-058): the device is EARLY |
+| Interrupts | none: each erase or program runs with interrupts held off, on the STM32F446 while the CPU stalls anyway, on the RP2350 because no vector can be fetched while XIP is off |
 | DMA | none |
-| Concurrency | one operation at a time per device. On the STM32F446, which has one flash bank, the CPU stalls on any fetch or read from flash until the operation ends, so code that must keep running (a time-critical interrupt handler) is placed in RAM; on the RP2350, execution from flash (XIP) is off during the operation, so the driver and whatever runs meanwhile must be in RAM, with interrupts held off or their handlers in RAM |
-| Timeouts | an erase or program in progress cannot be stopped; cancel waits for it, then removes the queued rest |
+| Concurrency | one operation at a time per device, under the class's lock, first in the driver's RAM. The RP2350's routine runs from RAM (`.ramfunc`), with PRIMASK set and the bytes to program copied to a RAM page first |
+| Timekeeping | the periodic tick misses its interrupts while flash is busy. The Cortex-M port times each operation by DWT CYCCNT (`emb_cm_stall_begin()`, `_end()`), and the kernel adds the ticks that passed, beyond the one SysTick's pending interrupt delivers, at that interrupt (`embk_time_ticks_missed()`, A122). An erase goes a sector at a time so the clock catches up between sectors; a timer due meanwhile fires late, by up to a sector's erase |
+| Timeouts | an operation in progress cannot be stopped; the timeout bounds the wait for the lock |
 | Power | suspend waits for the operation in progress |
-| Errors | `EMB_EWRPROT`, `EMB_EVERIFY` (the read-back differs), `EMB_EINVAL` (unaligned or outside the partition) |
-| Capabilities | the geometry: sector sizes and offsets, write unit, erased value, all from the description |
+| Errors | `EMB_EWRPROT` (the sector is write-protected), `EMB_EVERIFY` (a program read back differs: its bytes were not erased), `EMB_EIO` (the interface reported an error), `EMB_EINVAL` (unaligned, not whole sectors, or outside the flash or the partition) |
+| Capabilities | the geometry, `emb_drv_flash_geometry()`: where it is mapped, its size, its sectors (listed, or all of one size), the write unit and the erased value, generated from the SoC's `flash:` and the board's chip size (a flash device's `size:`) |
 
-**Partitions:** `include/emb/flash_area.h`, generated from the description's `flash_partitions`, gives each partition's device, offset and size; MCUboot's flash map is built on it.
+**Partitions:** `include/emb/flash_area.h`: each of the board's `flash_partitions` is generated into `soc_devices.c` as an `emb_flash_area_t` on the flash device that holds it, with its offset from the device's start and its size, and named `EMB_FLASH_AREA_<NAME>`. Its calls take offsets from the partition's start and refuse anything outside it. MCUboot's flash map is built on them (M4.5). The NUCLEO-F446RE's are `app` (sectors 0 to 6) and `storage` (sector 7, 128 KiB); the Pico 2 W's `app` (4 MiB less 64 KiB) and `storage` (its last sixteen 4 KiB sectors).
 
-**Drivers:** `drivers/st/stm32f4_flash.c` (sector map from the description: 4 × 16 KiB, 64 KiB, 3 × 128 KiB on the F446RE); `drivers/rpi/rp2350_flash.c` (4 KiB sectors, 256-byte pages, through the boot ROM). **Evidence:** a native flash simulator in CI, with power loss at any operation and torn writes (BOOT-007); EmbSIM; on both boards, a write, erase and read stress, and the measured erase time.
+**Drivers:** `drivers/st/stm32_flash.c`: a sector erased, or bytes programmed a word at a time where aligned, at 32-bit parallelism (2.7 to 3.6 V), then the flash caches reset. `drivers/rpi/rp2350_flash.c`: the boot ROM's `connect_internal_flash`, `flash_exit_xip`, `flash_range_erase` or `flash_range_program`, `flash_flush_cache`, then the XIP setup function the boot ROM left in boot RAM, copied to RAM at initialization, as pico-sdk does; the QMI's timing put back after. **Evidence:** a NOR flash in RAM (`tests/conformance/flash_sim.c`) on every target, with power lost at any operation and the operation torn (BOOT-007's injection, which M4.5 extends); EmbSIM's NUCLEO-F446RE, whose flash stalls as the part's does; on both boards, the storage partition erased, programmed and read back three times, and an erase timed by the cycle counter against the kernel's clock.
 
 ## 10. RTC and wall clock
 

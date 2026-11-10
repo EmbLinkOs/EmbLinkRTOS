@@ -254,6 +254,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {{
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;
@@ -696,12 +699,25 @@ def rp2350_boot_block_c(r):
 
 # --------------------------------------------------------------------------- soc_devices.c, .h
 
+def _flash_areas(r):
+    """The partitions on a flash device of the board: (partition, device, offset in it)."""
+    out = []
+    for p in r["partitions"]:
+        for d in r["devices"]:
+            g = next((f["value"]["flash_geometry"] for f in d["fields"]
+                      if isinstance(f["value"], dict) and "flash_geometry" in f["value"]), None)
+            if g is not None and g["base"] <= p["base"] and p["base"] + p["size"] <= g["base"] + g["size"]:
+                out.append((p, d["name"], p["base"] - g["base"]))
+                break
+    return out
+
+
 def soc_devices_h(r):
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
     out += "/* The board's devices, each reached by symbol with EMB_DEVICE(name) (SPEC-016 §2). */\n"
     out += "#ifndef EMB_SOC_DEVICES_H\n#define EMB_SOC_DEVICES_H\n\n#include <emb/config.h>\n\n"
     out += f"#define EMB_SOC_DEVICE_COUNT {len(r['devices'])}u\n\n"
-    out += "#if CONFIG_EMB_DEVICE\n#include <emb/device.h>\n\n"
+    out += "#if CONFIG_EMB_DEVICE\n#include <emb/device.h>\n" + ("#include <emb/flash_area.h>\n" if _flash_areas(r) else "") + "\n"
     for d in r["devices"]:
         out += f"extern const emb_device_t emb_dev_{d['name']};\n"
     if r["devices"]:
@@ -748,6 +764,16 @@ def soc_devices_h(r):
                 out += (f"#define EMB_SOC_{d['name'].upper()}_CS{suffix} "
                         f"{{&emb_dev_{c['gpio']}, {c['line']}u, {1 if c['active_low'] else 0}u, {{0u, 0u}}}} /* {c['pin']} */\n")
             out += "/* clang-format on */\n"
+        areas = _flash_areas(r)
+        if areas:
+            out += "\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:, <emb/flash_area.h>) */\n"
+            for p, _dev, _off in areas:
+                out += f"extern const emb_flash_area_t emb_flash_area_{p['name']};\n"
+            width = max(len(f"EMB_FLASH_AREA_{p['name'].upper()}") for p, _d, _o in areas)
+            for p, _dev, _off in areas:
+                macro = f"EMB_FLASH_AREA_{p['name'].upper()}"
+                out += f"#define {macro.ljust(width)} (&emb_flash_area_{p['name']})\n"
+            out += "#endif\n"
     out += "#endif\n\n#endif /* EMB_SOC_DEVICES_H */\n"
     return out
 
@@ -762,7 +788,8 @@ def soc_devices_c(r):
         if d["header"] not in headers:
             headers.append(d["header"])
     # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
-    out += "#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n\n#include <stddef.h>\n"
+    out += ("#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n"
+            + ("#include <emb/flash_area.h>\n" if _flash_areas(r) else "") + "\n#include <stddef.h>\n")
     if headers:
         out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
     early = 0
@@ -772,6 +799,11 @@ def soc_devices_c(r):
         out += f"\n/* {n}: {d['compatible']}, {d['class']}, {d['level'].upper()} */\n"
         for buf in d["buffers"]:
             out += f"static uint8_t {n}_{buf['name']}[{buf['size']}];\n"
+        for f in d["fields"]:
+            g = f["value"].get("flash_geometry") if isinstance(f["value"], dict) else None
+            if g is not None and g["sectors"]:
+                out += (f"static const uint32_t {n}_sectors[{len(g['sectors'])}] = {{"
+                        + ", ".join(f"0x{x:X}u" for x in g["sectors"]) + "};\n")
         if d["fields"]:
             out += f"static const {d['config']} {n}_config = {{\n"
             width = max(len(f".{f['field']} = {f['c']},") for f in d["fields"])
@@ -808,6 +840,14 @@ def soc_devices_c(r):
     else:
         out += "\n/* the board declares no devices (its description has no devices:) */\n"
         out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
+    areas = _flash_areas(r)
+    if areas:
+        out += ("\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:), each on its flash device, from the\n"
+                " * device's start (SPEC-017 §9) */\n")
+        for p, dev, off in areas:
+            out += (f"const emb_flash_area_t emb_flash_area_{p['name']} = "
+                    f"{{\"{p['name']}\", &emb_dev_{dev}, 0x{off:08X}u, 0x{p['size']:08X}u}};\n")
+        out += "#endif\n"
     regions = [g for g in r["soc"]["memory"]["regions"] if "dma" in g.get("attrs", [])]
     out += ("\n#if CONFIG_EMB_DRV_DMA\n/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA\n"
             " * class takes buffers (SPEC-017 §7) */\n")

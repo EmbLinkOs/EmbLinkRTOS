@@ -1261,6 +1261,78 @@
       "name": "emb_wdog_checkin",
       "header": "wdog.h",
       "state": "active"
+    },
+    {
+      "id": 214,
+      "name": "emb_drv_flash_geometry",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 215,
+      "name": "emb_drv_flash_sector",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 216,
+      "name": "emb_drv_flash_read",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 217,
+      "name": "emb_drv_flash_program",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 218,
+      "name": "emb_drv_flash_erase",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 219,
+      "name": "emb_drv_flash_poll_read",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 220,
+      "name": "emb_drv_flash_poll_program",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 221,
+      "name": "emb_drv_flash_poll_erase",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 222,
+      "name": "emb_flash_area_read",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 223,
+      "name": "emb_flash_area_program",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 224,
+      "name": "emb_flash_area_erase",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 225,
+      "name": "emb_drv_flash_lock_init",
+      "header": "drv_flash.h",
+      "state": "active"
     }
   ]
 }

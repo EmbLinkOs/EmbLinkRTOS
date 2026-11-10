@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-118 functions, from the headers' `@ctx` tags.
+120 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -60,6 +60,8 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_drv_complete()` | `<emb/device.h>` | no |
 | `emb_drv_dma_start()` | `<emb/drv_dma.h>` | no |
 | `emb_drv_dma_stop()` | `<emb/drv_dma.h>` | no |
+| `emb_drv_flash_geometry()` | `<emb/drv_flash.h>` | no |
+| `emb_drv_flash_sector()` | `<emb/drv_flash.h>` | no |
 | `emb_drv_gpio_assert()` | `<emb/drv_gpio.h>` | no |
 | `emb_drv_gpio_configure()` | `<emb/drv_gpio.h>` | no |
 | `emb_drv_gpio_read()` | `<emb/drv_gpio.h>` | no |

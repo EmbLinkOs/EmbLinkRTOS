@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e
+ *     cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388
  *   drivers/bindings.yaml
- *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
+ *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
  *   soc/rpi/rp2350/rp2350.yaml
- *     49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8
+ *     debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -23,6 +23,7 @@
 
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/flash_area.h>
 
 #include <stddef.h>
 
@@ -81,6 +82,25 @@ const emb_device_t emb_dev_watchdog = {
     .data = &watchdog_data,
     .deps = NULL,
     .class_id = EMB_DRV_CLASS_WATCHDOG,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* flash: rpi,rp2350-qmi, flash, EARLY */
+static const emb_rp2350_flash_config_t flash_config = {
+    .base = 0x400D0000u,                                                                   /* peripheral.base */
+    .geometry = {0x10000000u, 0x00400000u, NULL, 4096u, 1024u, 256u, 0xFFu, {0u, 0u, 0u}}, /* flash.geometry */
+};
+static emb_device_state_t flash_state;
+static emb_rp2350_flash_data_t flash_data;
+const emb_device_t emb_dev_flash = {
+    .name = "flash",
+    .api = &emb_rp2350_flash_api.dev,
+    .config = &flash_config,
+    .state = &flash_state,
+    .data = &flash_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_FLASH,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 0u,
 };
@@ -230,15 +250,23 @@ static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
     &emb_dev_io_bank0, /* 1: EARLY */
     &emb_dev_watchdog, /* 2: EARLY */
-    &emb_dev_dma,      /* 3: EARLY */
-    &emb_dev_uart0,    /* 4: EARLY */
-    &emb_dev_uart1,    /* 5: EARLY */
-    &emb_dev_spi1,     /* 6: KERNEL */
-    &emb_dev_i2c0,     /* 7: KERNEL */
-    &emb_dev_i2c1,     /* 8: KERNEL */
+    &emb_dev_flash,    /* 3: EARLY */
+    &emb_dev_dma,      /* 4: EARLY */
+    &emb_dev_uart0,    /* 5: EARLY */
+    &emb_dev_uart1,    /* 6: EARLY */
+    &emb_dev_spi1,     /* 7: KERNEL */
+    &emb_dev_i2c0,     /* 8: KERNEL */
+    &emb_dev_i2c1,     /* 9: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 9u, 6u};
+const emb_device_table_t emb_board_device_table = {devices, 10u, 7u};
+
+#if CONFIG_EMB_DRV_FLASH
+/* the board's flash partitions (flash_partitions:), each on its flash device, from the
+ * device's start (SPEC-017 §9) */
+const emb_flash_area_t emb_flash_area_app = {"app", &emb_dev_flash, 0x00000000u, 0x003F0000u};
+const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x003F0000u, 0x00010000u};
+#endif
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

@@ -6,9 +6,9 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     1221852991c15a6f8fb516cf9a779a177a740562442b3199493d49342fe7f926
+ *     793ecb1e09fcf0aacc4ae9b0a159625b32a894a44babe80b1638502a065f560e
  *   drivers/bindings.yaml
- *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
+ *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -22,14 +22,16 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 11u
+#define EMB_SOC_DEVICE_COUNT 12u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/flash_area.h>
 
 extern const emb_device_t emb_dev_rcc;
 extern const emb_device_t emb_dev_gpioa;
 extern const emb_device_t emb_dev_iwdg;
+extern const emb_device_t emb_dev_flash;
 extern const emb_device_t emb_dev_dma1;
 extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
@@ -43,6 +45,7 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_HAS_RCC    1
 #define EMB_SOC_HAS_GPIOA  1
 #define EMB_SOC_HAS_IWDG   1
+#define EMB_SOC_HAS_FLASH  1
 #define EMB_SOC_HAS_DMA1   1
 #define EMB_SOC_HAS_GPIOB  1
 #define EMB_SOC_HAS_GPIOC  1
@@ -84,6 +87,14 @@ extern const emb_device_t emb_dev_i2c2;
 /* clang-format off */
 #define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */
 /* clang-format on */
+
+#if CONFIG_EMB_DRV_FLASH
+/* the board's flash partitions (flash_partitions:, <emb/flash_area.h>) */
+extern const emb_flash_area_t emb_flash_area_app;
+extern const emb_flash_area_t emb_flash_area_storage;
+#define EMB_FLASH_AREA_APP     (&emb_flash_area_app)
+#define EMB_FLASH_AREA_STORAGE (&emb_flash_area_storage)
+#endif
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */

@@ -31,6 +31,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **i2c_bytes**: bytes and segments of one I2C transaction or listen | the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size | application | application | no | base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time | SPEC-017 §6; test_i2c, test_i2c_loop |
 | **dma_regions**: the board's DMA regions a job's memory is checked against, and a channel's stop | the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count | the board's description | configuration | yes | base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section | SPEC-017 §7; test_dma, test_spi_loop |
 | **wdog_parties**: the parties the software watchdog watches | the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one | application | application | yes | base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section | FLT-004, A121; test_wdog, test_wdog_board |
+| **flash_bytes**: bytes of one flash read or program, and their read-back | the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces | application | application | yes | base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
+| **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 
 ## Public functions
 
@@ -50,6 +52,14 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
 | `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
 | `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
+| `emb_drv_flash_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_flash_poll_erase()` | O(flash_sectors) of the flash's own time | flash_sectors, drivers |
+| `emb_drv_flash_poll_program()` | O(flash_bytes) of the flash's own time | flash_bytes, drivers |
+| `emb_drv_flash_poll_read()` | O(flash_bytes) | flash_bytes, drivers |
+| `emb_drv_flash_program()` | O(flash_bytes) of the flash's own time, plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_read()` | O(flash_bytes) plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_sector()` | O(flash_sectors) | flash_sectors |
 | `emb_drv_i2c_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
 | `emb_drv_i2c_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_i2c_listen()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
@@ -86,6 +96,9 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_event_wait_until()` | O(1) check; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_fault()` | O(1) preparation plus trace/hook and the non-returning port action | callbacks, port_action |
 | `emb_fault_hook()` | the application's | callbacks |
+| `emb_flash_area_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_flash_area_program()` | O(flash_bytes) of the flash's own time, plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_flash_area_read()` | O(flash_bytes) plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_isr_stack_info()` | O(stack) scan | stack |
 | `emb_kernel_init()` | O(init table) | init_table |
 | `emb_msgq_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |

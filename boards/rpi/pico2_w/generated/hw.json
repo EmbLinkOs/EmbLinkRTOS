@@ -38,6 +38,12 @@
         "name": "watchdog"
       },
       {
+        "doc": "the 4 MiB QSPI flash: its storage partition is the tests' (the last 64 KiB)",
+        "name": "flash",
+        "peripheral": "qmi",
+        "size": 4194304
+      },
+      {
         "doc": "the DMA controller: SPI1's transfers",
         "name": "dma"
       },
@@ -94,7 +100,12 @@
       {
         "base": 268435456,
         "name": "app",
-        "size": 4194304
+        "size": 4128768
+      },
+      {
+        "base": 272564224,
+        "name": "storage",
+        "size": 65536
       }
     ],
     "kind": "board",
@@ -212,6 +223,29 @@
         "level": "early",
         "name": "watchdog",
         "peripheral": "watchdog"
+      },
+      {
+        "class": "flash",
+        "compatible": "rpi,rp2350-qmi",
+        "deps": [],
+        "fields": {
+          "base": 1074593792,
+          "geometry": {
+            "flash_geometry": {
+              "base": 268435456,
+              "count": 1024,
+              "erased": 255,
+              "name": "flash",
+              "sector_size": 4096,
+              "sectors": null,
+              "size": 4194304,
+              "write_unit": 256
+            }
+          }
+        },
+        "level": "early",
+        "name": "flash",
+        "peripheral": "qmi"
       },
       {
         "class": "dma",
@@ -355,7 +389,7 @@
     },
     "linker": {
       "flash": {
-        "length": 4194304,
+        "length": 4128768,
         "origin": 268435456
       },
       "ram": {
@@ -371,8 +405,22 @@
       {
         "base": 268435456,
         "name": "app",
+        "pages": [
+          0,
+          1007
+        ],
         "reserved": false,
-        "size": 4194304
+        "size": 4128768
+      },
+      {
+        "base": 272564224,
+        "name": "storage",
+        "pages": [
+          1008,
+          1023
+        ],
+        "reserved": false,
+        "size": 65536
       }
     ],
     "pins": [
@@ -518,15 +566,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e"
+      "sha256": "cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333"
+      "sha256": "5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8"
+      "sha256": "debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -709,6 +757,13 @@
       "swd": true
     },
     "family": "rp2350",
+    "flash": {
+      "geometry": {
+        "page_size": 4096,
+        "write_granularity": 256
+      },
+      "region": "xip"
+    },
     "gpio": {
       "controller": "io_bank0",
       "lines": 30
@@ -967,6 +1022,12 @@
         "compatible": "rpi,rp2350-qmi",
         "name": "qmi",
         "size": 16384
+      },
+      {
+        "base": 1074659328,
+        "compatible": "rpi,rp2350-bootram",
+        "name": "bootram",
+        "size": 1024
       },
       {
         "base": 3489660928,

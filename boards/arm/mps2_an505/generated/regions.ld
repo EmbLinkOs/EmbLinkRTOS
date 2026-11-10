@@ -8,7 +8,7 @@
  *   boards/arm/mps2_an505/board.yaml
  *     1d04e64a46283914696443579692bd1845e26091e2170d8c5e6b65b983661312
  *   drivers/bindings.yaml
- *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
+ *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
  *   soc/arm/mps2/an505.yaml
  *     b534d981fc013b05354669a9a39d1344d0b327c4e713f9bb04803a7a19994834
  *   soc/arm/mps2/mps2.yaml
@@ -57,6 +57,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;

@@ -74,6 +74,16 @@ if(CONFIG_EMB_DEVICE)
   if(CONFIG_EMB_DRV_DMA)
     emb_add_test(test_dma test_dma.c) # SPEC-017 §7
   endif()
+  if(CONFIG_EMB_DRV_FLASH)
+    emb_add_test(test_flash test_flash.c flash_sim.c) # SPEC-017 §9, a NOR flash in RAM
+    # the board's own flash, where it has a storage partition: erased, programmed and read back
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_storage REGEX "EMB_FLASH_AREA_STORAGE")
+      if(_emb_storage)
+        emb_add_test(test_flash_board test_flash_board.c)
+      endif()
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_WDT)
     emb_add_test(test_wdt test_wdt.c) # SPEC-017 §8
     if(CONFIG_EMB_WDOG)

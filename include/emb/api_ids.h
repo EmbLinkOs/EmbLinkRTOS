@@ -214,5 +214,17 @@
 #define EMB_API_ID_WDOG_WATCH                    0x00D3u
 #define EMB_API_ID_WDOG_UNWATCH                  0x00D4u
 #define EMB_API_ID_WDOG_CHECKIN                  0x00D5u
+#define EMB_API_ID_DRV_FLASH_GEOMETRY            0x00D6u
+#define EMB_API_ID_DRV_FLASH_SECTOR              0x00D7u
+#define EMB_API_ID_DRV_FLASH_READ                0x00D8u
+#define EMB_API_ID_DRV_FLASH_PROGRAM             0x00D9u
+#define EMB_API_ID_DRV_FLASH_ERASE               0x00DAu
+#define EMB_API_ID_DRV_FLASH_POLL_READ           0x00DBu
+#define EMB_API_ID_DRV_FLASH_POLL_PROGRAM        0x00DCu
+#define EMB_API_ID_DRV_FLASH_POLL_ERASE          0x00DDu
+#define EMB_API_ID_FLASH_AREA_READ               0x00DEu
+#define EMB_API_ID_FLASH_AREA_PROGRAM            0x00DFu
+#define EMB_API_ID_FLASH_AREA_ERASE              0x00E0u
+#define EMB_API_ID_DRV_FLASH_LOCK_INIT           0x00E1u
 
 #endif /* EMB_API_IDS_H */

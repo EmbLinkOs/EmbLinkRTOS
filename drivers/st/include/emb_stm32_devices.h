@@ -12,6 +12,7 @@
 #include <emb/config.h>
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_wdt.h>
 
@@ -102,6 +103,18 @@ typedef struct emb_stm32_iwdg_data {
     bool caused;
 } emb_stm32_iwdg_data_t;
 
+/* The flash interface (RM0390 §3): its registers, and the flash's geometry from the
+ * description. */
+typedef struct emb_stm32_flash_config {
+    uintptr_t base;
+    emb_drv_flash_geometry_t geometry;
+} emb_stm32_flash_config_t;
+
+/* Its RAM: the class's lock, first. */
+typedef struct emb_stm32_flash_data {
+    emb_drv_bus_t lock;
+} emb_stm32_flash_data_t;
+
 /* A DMA controller (RM0390 §9): its clock gate, each stream's interrupt, and whether it copies
  * memory to memory (DMA2 alone). */
 typedef struct emb_stm32_dma_config {
@@ -183,6 +196,11 @@ extern const emb_device_api_t emb_stm32_spi_api;
 /* The watchdog class's operations (SPEC-017 §8): the IWDG, whose start chooses the prescaler
  * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
 extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
+#endif
+#if CONFIG_EMB_DRV_FLASH
+/* The flash class's operations (SPEC-017 §9): a sector erased, or bytes programmed, with
+ * interrupts held off while the CPU stalls on its flash, the clock catching up after (A122). */
+extern const emb_drv_flash_api_t emb_stm32_flash_api;
 #endif
 #if CONFIG_EMB_DRV_DMA
 /* The DMA class's operations (SPEC-017 §7): a job per stream, direct mode for a peripheral,

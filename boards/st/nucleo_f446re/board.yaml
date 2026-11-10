@@ -34,6 +34,7 @@ devices:
   - { name: rcc }
   - { name: gpioa, doc: "the console's pins and LD2" }
   - { name: iwdg, doc: "the independent watchdog" }
+  - { name: flash, peripheral: flash_if, doc: "the 512 KiB flash: its storage partition is the tests' (sector 7)" }
   - { name: dma1, doc: "DMA1: SPI2's transfers, and the console's writes" }
   - { name: gpiob, doc: "SPI2's chip select, PB12" }
   - { name: gpioc, doc: B1 }
@@ -45,7 +46,8 @@ devices:
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:
-  - { name: app, base: 0x08000000, size: 512K }
+  - { name: app, base: 0x08000000, size: 384K }        # sectors 0 to 6
+  - { name: storage, base: 0x08060000, size: 128K }    # sector 7
 # the conformance framework's software interrupts: lines with no peripheral behind them
 test_irqs: [61, 62]
 debug_probe: { openocd: board/st_nucleo_f4.cfg, pyocd_target: stm32f446retx }

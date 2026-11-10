@@ -84,6 +84,11 @@ def c_value(v, expr=""):
         if v["dma"] is None:
             return "{NULL, 0u, 0u, {0u, 0u}}"
         return f"{{&emb_dev_{v['dma']}, {v['stream']}u, {v['request']}u, {{0u, 0u}}}}"
+    if isinstance(v, dict) and "flash_geometry" in v:  # an emb_drv_flash_geometry_t initializer
+        g = v["flash_geometry"]
+        sectors = f"{g['name']}_sectors" if g["sectors"] else "NULL"
+        return (f"{{0x{g['base']:08X}u, 0x{g['size']:08X}u, {sectors}, {g['sector_size']}u, {g['count']}u, "
+                f"{g['write_unit']}u, 0x{g['erased']:02X}u, {{0u, 0u, 0u}}}}")
     if isinstance(v, dict) and "line" in v:  # a GPIO line: an emb_drv_gpio_line_t initializer
         return f"{{&emb_dev_{v['gpio']}, {v['line']}u, 0u, {{0u, 0u}}}}"
     if isinstance(v, bool):
@@ -93,6 +98,40 @@ def c_value(v, expr=""):
     if isinstance(v, str):
         return '"' + v.replace("\\", "\\\\").replace('"', '\\"') + '"'
     raise TypeError(v)
+
+
+def _flash_geometry(name, entry, soc, err):
+    """What a flash device's `flash.geometry` field reads: the SoC's flash region and geometry
+    (SPEC-014 §3), the size the board's chip has where it is smaller than the window (`size:`
+    on the device), its sectors listed or all of the page size."""
+    fl = soc.get("flash")
+    if fl is None:
+        err(f"devices.{name}", "a flash device needs the SoC's flash: description (region and geometry)")
+        return None
+    region = next((r for r in soc["memory"]["regions"] if r["name"] == fl["region"]), None)
+    if region is None:
+        return None  # the SoC's own check reports it
+    g = fl["geometry"]
+    size = entry.get("size", region["size"])
+    if not isinstance(size, int) or isinstance(size, bool) or not 0 < size <= region["size"]:
+        err(f"devices.{name}.size", f"the flash's size must be within its region {region['name']} ({region['size']} bytes)")
+        return None
+    if "sectors" in g:
+        if size != region["size"]:
+            err(f"devices.{name}.size", "a flash whose sectors are listed is its whole region")
+            return None
+        sectors, sector_size, count = list(g["sectors"]), 0, len(g["sectors"])
+    else:
+        if size % g["page_size"]:
+            err(f"devices.{name}.size", f"{size} bytes is not a whole number of {g['page_size']}-byte sectors")
+            return None
+        sectors, sector_size, count = None, g["page_size"], size // g["page_size"]
+    if count > 65535:
+        err(f"devices.{name}", f"{count} sectors: the geometry counts at most 65535")
+        return None
+    return {"flash_geometry": {"name": name, "base": region["base"], "size": size, "sectors": sectors,
+                               "sector_size": sector_size, "count": count,
+                               "write_unit": g.get("write_granularity", 1), "erased": 0xFF}}
 
 
 def _pin_lines(pins, periph, gpio_devs):
@@ -252,6 +291,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         if d["peripheral"] is not None:
             ctx["pins"] = _pin_lines(pins, d["peripheral"]["name"], gpio_devs)
         ctx["dma"] = d["dma"]
+        if b["class"] == "flash":
+            ctx["flash"] = {"geometry": _flash_geometry(n, e, soc.data, err)}
         if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
         if "bus" in e:
@@ -265,7 +306,7 @@ def resolve(board, soc, clk, bindings, err, pins=None):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}: the board gives "
                                     f"{n} no such pin, or its port has no GPIO device in devices:")
                 continue
-            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and not ({"device", "line", "dma"} & set(v))):
+            if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and not ({"device", "line", "dma", "flash_geometry"} & set(v))):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
             fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})

@@ -36,6 +36,7 @@ devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
   - { name: watchdog, doc: "the watchdog" }
+  - { name: flash, peripheral: qmi, size: 4M, doc: "the 4 MiB QSPI flash: its storage partition is the tests' (the last 64 KiB)" }
   - { name: dma, doc: "the DMA controller: SPI1's transfers" }
   - { name: uart0, baud: 115200, deps: [io_bank0], doc: "the console, GPIO0 and GPIO1" }
   - { name: spi1, deps: [io_bank0], cs: [GPIO13], dma: [tx, rx], doc: "SPI1 on GPIO10 to GPIO12, its chip select GPIO13 (pin 17); the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)" }
@@ -44,7 +45,8 @@ devices:
   - { name: uart1, baud: 115200, deps: [io_bank0], dma: [tx], doc: "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:
-  - { name: app, base: 0x10000000, size: 4M }
+  - { name: app, base: 0x10000000, size: 4032K }       # the first 4 MiB less 64 KiB
+  - { name: storage, base: 0x103F0000, size: 64K }     # sixteen 4 KiB sectors
 # SPAREIRQ_IRQ_0 and 1: lines no peripheral raises
 test_irqs: [46, 47]
 # picotool loads UF2 images of this family in BOOTSEL; the console is another port (UART0)

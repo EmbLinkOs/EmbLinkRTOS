@@ -306,6 +306,15 @@ config EMB_DRV_WDT
 	  A hardware watchdog started once with its timeout, fed from any context,
 	  never stopped; and whether it caused the last reset.
 
+config EMB_DRV_FLASH
+	bool "The flash class and partitions (SPEC-017 §9)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A NOR flash read, programmed and erased by offset, its geometry from
+	  the description, each operation run to its end in the caller; and
+	  the board's flash partitions, <emb/flash_area.h>.
+
 config EMB_WDOG
 	bool "The software watchdog (FLT-004)"
 	depends on EMB_DRV_WDT && EMB_TIMER

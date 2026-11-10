@@ -79,6 +79,8 @@ peripherals:
   - { name: psm, compatible: "rpi,rp2350-psm", base: 0x40018000, size: 0x4000 }
   # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
   - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
+  # boot RAM (datasheet §5.4.1): the boot ROM leaves its XIP setup function in the first 256 bytes
+  - { name: bootram, compatible: "rpi,rp2350-bootram", base: 0x400E0000, size: 0x400 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
 # The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX);
 # SPI1's, f1, on the lines of its first bank the Pico 2 W brings out; I2C0's and I2C1's, f3, on
@@ -117,5 +119,10 @@ alternate_functions:
 # The boot ROM boots a flash image with a valid IMAGE_DEF block in its first 4 KiB (datasheet
 # §5.9); image_type 0x1021 says EXE, SECURITY_S, CPU_ARM, CHIP_RP2350 (pico-sdk's picobin.h).
 # The UF2 family ID is the ROM's for Arm Secure images.
+# The QSPI flash behind the XIP window (datasheet §12.14; the boot ROM's routines, §5.5.8):
+# erased by 4 KiB sectors, programmed by 256-byte pages. The board gives the chip's size.
+flash:
+  region: xip
+  geometry: { page_size: 4K, write_granularity: 256 }
 boot: { image: uf2, uf2_family: 0xE48BFF59, image_type: 0x1021 }
 debug: { swd: true }

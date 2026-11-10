@@ -252,6 +252,26 @@
       "masked": true,
       "profiles": "base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section",
       "evidence": "FLT-004, A121; test_wdog, test_wdog_board"
+    },
+    {
+      "id": "flash_bytes",
+      "input": "bytes of one flash read or program, and their read-back",
+      "bound": "the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122)",
+      "evidence": "SPEC-017 \u00a79, A122; test_flash, test_flash_board"
+    },
+    {
+      "id": "flash_sectors",
+      "input": "the sectors of one erase, and the geometry's sectors a lookup walks",
+      "bound": "the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's",
+      "limit": "the board's description",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122)",
+      "evidence": "SPEC-017 \u00a79, A122; test_flash, test_flash_board"
     }
   ],
   "apis": {
@@ -657,6 +677,72 @@
     ],
     "emb_wdog_unwatch": [
       "wdog_parties"
+    ],
+    "emb_drv_flash_lock_init": [
+      "active_objects"
+    ],
+    "emb_drv_flash_sector": [
+      "flash_sectors"
+    ],
+    "emb_drv_flash_read": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_program": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_erase": [
+      "flash_sectors",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_poll_read": [
+      "flash_bytes",
+      "drivers"
+    ],
+    "emb_drv_flash_poll_program": [
+      "flash_bytes",
+      "drivers"
+    ],
+    "emb_drv_flash_poll_erase": [
+      "flash_sectors",
+      "drivers"
+    ],
+    "emb_flash_area_read": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_flash_area_program": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_flash_area_erase": [
+      "flash_sectors",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
     ]
   }
 }

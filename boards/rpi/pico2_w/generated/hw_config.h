@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     aab886c4bec867d981252dd8bcc45be1851e1a22247fb89cdcbb28ea0a627a8e
+ *     cb63aeed5f8314da6ca37878c3aeeee8eb186dcc870b115b9a9d93acd38a7388
  *   drivers/bindings.yaml
- *     6ff2d945d41da52c76b20c3e82b14d9475ad48bc6391bb76cdd9a63ce0341333
+ *     5d281794a43edbc7b672fd261a769db38e8196a9b4f70147a6df93488cc3912d
  *   soc/rpi/rp2350/rp2350.yaml
- *     49b9f7e8e97ddb70205f3ced498f74f62cfb7c59d00fb722463e6fc3a3a77fa8
+ *     debae993d9e122e300a80614bcc3acfa64055a307a571b7cc315484ff4c8e533
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -49,6 +49,7 @@
 #define EMB_HW_IRQ_PRIORITY_BITS 4u
 
 /* peripherals: register blocks, interrupt lines, clock gates */
+#define EMB_HW_BOOTRAM_BASE       0x400E0000u
 #define EMB_HW_CLOCKS_BASE        0x40010000u
 #define EMB_HW_CLOCKS_IRQ         30u
 #define EMB_HW_DMA_BASE           0x50000000u

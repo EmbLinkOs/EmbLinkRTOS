@@ -15,6 +15,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_wdt.h>
 #endif
@@ -37,6 +38,20 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+#if CONFIG_EMB_DEVICE
+/* The board's QSPI flash, through the QMI and the boot ROM's flash routines (datasheet §5.5.8,
+ * §12.14): the QMI's registers, and the geometry. */
+typedef struct emb_rp2350_flash_config {
+    uintptr_t base;
+    emb_drv_flash_geometry_t geometry;
+} emb_rp2350_flash_config_t;
+
+/* Its RAM: the class's lock, first. */
+typedef struct emb_rp2350_flash_data {
+    emb_drv_bus_t lock;
+} emb_rp2350_flash_data_t;
+#endif
 
 /* The watchdog (datasheet §12.9): its registers. */
 typedef struct emb_rp2350_watchdog_config {
@@ -84,6 +99,12 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 /* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
  * reaching all but the oscillators, and the reset's cause from its REASON register. */
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
+#endif
+
+#if CONFIG_EMB_DRV_FLASH
+/* The flash class's operations (SPEC-017 §9): the boot ROM's erase and program, run from RAM
+ * with interrupts off while XIP is off, the clock catching up after (A122). */
+extern const emb_drv_flash_api_t emb_rp2350_flash_api;
 #endif
 
 #if CONFIG_EMB_DEVICE

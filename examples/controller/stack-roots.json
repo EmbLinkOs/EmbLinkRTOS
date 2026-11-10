@@ -1,5 +1,5 @@
 {
-  "comment": "tools/footprint/stack_bound.py's roots for the reference controller: its threads, the interrupt levels lowest first, and the targets of each indirect call. embk_isr_dispatch calls the handlers main() connects; emb_kernel_init the linker table's initializers; raise_info the fault hook, which the controller never sets; timer_work and embk_timer_expired a software timer's callback, and the controller has none; emb_device_init the board's devices' init operations (the NUCLEO-F446RE's rcc, GPIO ports, USARTs, SPI2, I2C1 and I2C2, DMA1 and DMA2, and its IWDG, which reads the reset's cause and nothing more until started, SPEC-016); the dispatcher also the USART, SPI and I2C drivers' handlers, USART2's of which the controller replaces with its own but another application keeps; run_lane a lane's next request's start, the USART's, the SPI's or the I2C's; the GPIO class's operations its ports' (the SPI's chip select drives one); the DMA class's its controllers', and a stream's end SPI2's or USART2's (their transfers by DMA1); a name ending in ? is linked only where the board has that device (the NUCLEO-F446ZE has no SPI or I2C); deliver a request's callback, and the controller sets none.",
+  "comment": "tools/footprint/stack_bound.py's roots for the reference controller: its threads, the interrupt levels lowest first, and the targets of each indirect call. embk_isr_dispatch calls the handlers main() connects; emb_kernel_init the linker table's initializers; raise_info the fault hook, which the controller never sets; timer_work and embk_timer_expired a software timer's callback, and the controller has none; emb_device_init the board's devices' init operations (the NUCLEO-F446RE's rcc, GPIO ports, USARTs, SPI2, I2C1 and I2C2, DMA1 and DMA2, its IWDG, which reads the reset's cause and nothing more until started, and its flash, whose init sets up the class's lock, SPEC-016); the dispatcher also the USART, SPI and I2C drivers' handlers, USART2's of which the controller replaces with its own but another application keeps; run_lane a lane's next request's start, the USART's, the SPI's or the I2C's; the GPIO class's operations its ports' (the SPI's chip select drives one); the DMA class's its controllers', and a stream's end SPI2's or USART2's (their transfers by DMA1); a name ending in ? is linked only where the board has that device (the NUCLEO-F446ZE has no SPI or I2C); deliver a request's callback, and the controller sets none.",
   "threads": {
     "control": {"entry": "control", "size": 1024},
     "command": {"entry": "command", "size": 1024},
@@ -22,7 +22,7 @@
     "raise_info": [],
     "timer_work": [],
     "embk_timer_expired": [],
-    "emb_device_init": ["rcc_init", "gpio_init", "usart_init", "stm32_spi_init?", "stm32_i2c_init?", "stm32_dma_init?", "stm32_iwdg_init?"],
+    "emb_device_init": ["rcc_init", "gpio_init", "usart_init", "stm32_spi_init?", "stm32_i2c_init?", "stm32_dma_init?", "stm32_iwdg_init?", "stm32_flash_init?"],
     "run_lane": ["usart_start", "stm32_spi_start?", "stm32_i2c_start?"],
     "emb_drv_gpio_write": ["stm32_gpio_write?"],
     "emb_drv_dma_start": ["stm32_dma_start?"],
