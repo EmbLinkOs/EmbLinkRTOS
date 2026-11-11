@@ -1,14 +1,14 @@
-# EmbStudio: product and architecture specification
+# EmbLink Studio: product and architecture specification
 
-**Version 0.2, 2026-11-11.** The handoff specification for EmbStudio's developer: what the owner has decided, what to build and in what order, and what is still open. v0.2 closes gaps found in a review of v0.1 and settles every open question (§11). The EmbLinkRTOS side (the generator, the schemas, the CLI it needs) is the owner's and is described here only where EmbStudio meets it.
+**Version 0.2, 2026-11-11.** The handoff specification for EmbLink Studio's developer: what the owner has decided, what to build and in what order, and what is still open. v0.2 closes gaps found in a review of v0.1, settles every open question (§11), and renames the IDE from EmbStudio (§2, §10). The EmbLinkRTOS side (the generator, the schemas, the CLI it needs) is the owner's and is described here only where EmbLink Studio meets it.
 
 - **Owner:** teo1747 (EmbLinkRTOS). Product decisions are the owner's.
-- **EmbStudio developer:** builds the desktop application and EmbStudio Core, in [EmbLinkOs/EmbStudio](https://github.com/EmbLinkOs/EmbStudio) (private until the trademark check, §10).
+- **EmbLink Studio developer:** builds the desktop application and EmbLink Studio Core, in [EmbLinkOs/EmbLinkStudio](https://github.com/EmbLinkOs/EmbLinkStudio) (private until the trademark check, §10).
 - **Changes to this document:** proposed by pull request, agreed with the owner. Decisions are added to §2 with their date.
 
-## 1. What EmbStudio is
+## 1. What EmbLink Studio is
 
-EmbStudio is **the IDE made for EmbLinkRTOS**: a native Qt desktop application for creating, configuring, building, flashing, debugging and analysing EmbLinkRTOS firmware. It is a long-term product, grown step by step like the RTOS. It is not a VS Code look-alike or a general-purpose editor: it understands the RTOS.
+EmbLink Studio is **the IDE made for EmbLinkRTOS**: a native Qt desktop application for creating, configuring, building, flashing, debugging and analysing EmbLinkRTOS firmware. It is a long-term product, grown step by step like the RTOS. It is not a VS Code look-alike or a general-purpose editor: it understands the RTOS.
 
 - Its boards and chips, as data.
 - Its threads, objects, priorities and stacks.
@@ -44,13 +44,13 @@ Seventeen decisions are taken, all dated 2026-11-11: seven from v0.1, and the te
 
 | Date | Decision | Reason |
 | --- | --- | --- |
-| 2026-11-11 | The name is **EmbStudio** | The owner's choice. A trademark check comes first, since SEGGER Embedded Studio is close (§10) |
+| 2026-11-11 | The name is **EmbLink Studio** | Renamed from EmbStudio on 2026-11-11: Wilcom sells embroidery software as "EmbStudio", the same word in software. The distinctive part is now the project's own name (§10) |
 | 2026-11-11 | A **native desktop application in Qt 6**, with no VS Code base | Full control of the interface; a product of its own; the developer knows Qt well |
 | 2026-11-11 | **Step by step:** configuration first, then build, flash and debug, then the editor grows | A useful product early, with the editor (the costliest part) grown over time |
-| 2026-11-11 | **The hardware model stays in EmbLinkRTOS:** the SoC and board descriptions, their schemas, the validation rules and the generator (`emb-hwgen`) | One hardware model, versioned and tested with the kernel it generates for. EmbStudio shows and edits it, and never re-implements its rules |
-| 2026-11-11 | **EmbStudio Core is a Python engine behind a CLI and a JSON-RPC server**; the Qt application is its face | The RTOS's tools are Python already. Everything stays scriptable and testable without a GUI |
+| 2026-11-11 | **The hardware model stays in EmbLinkRTOS:** the SoC and board descriptions, their schemas, the validation rules and the generator (`emb-hwgen`) | One hardware model, versioned and tested with the kernel it generates for. EmbLink Studio shows and edits it, and never re-implements its rules |
+| 2026-11-11 | **EmbLink Studio Core is a Python engine behind a CLI and a JSON-RPC server**; the Qt application is its face | The RTOS's tools are Python already. Everything stays scriptable and testable without a GUI |
 | 2026-11-11 | **Open core under Apache-2.0**, with a **contributor licence agreement**; paid "Pro" features possible later | The same licence as the RTOS; the agreement keeps commercial options open (§10) |
-| 2026-11-11 | **No VS Code extension** for now | EmbStudio is the RTOS's own IDE |
+| 2026-11-11 | **No VS Code extension** for now | EmbLink Studio is the RTOS's own IDE |
 | 2026-11-11 | Docking: **Qt Advanced Docking System**, linked dynamically | §11 q1 |
 | 2026-11-11 | **Qt Widgets** for the frame, docks, tables, forms and the editor; **Qt Quick** for the drawn views | §11 q2 |
 | 2026-11-11 | **Installers:** signed MSI (WiX), notarized universal DMG, AppImage; a signed release feed for updates | §11 q3 |
@@ -59,19 +59,19 @@ Seventeen decisions are taken, all dated 2026-11-11: seven from v0.1, and the te
 | 2026-11-11 | **The Pro tier is decided after S7**; nothing Pro-only until then | §11 q6 |
 | 2026-11-11 | **A trademark search** (classes 9 and 42) before any public announcement; the repository stays private until then | §11 q7 |
 | 2026-11-11 | **Platforms:** Windows 10 22H2 and 11, macOS 13 or later (universal), Ubuntu 22.04 and 24.04 | §11 q8 |
-| 2026-11-11 | **The repository is `EmbLinkOs/EmbStudio`** on GitHub | §11 q9 |
+| 2026-11-11 | **The repository is `EmbLinkOs/EmbLinkStudio`** on GitHub | §11 q9 |
 | 2026-11-11 | **Semantic versioning**, with the supported RTOS range stated in each release | §11 q10 |
 
-## 3. The ecosystem around EmbStudio
+## 3. The ecosystem around EmbLink Studio
 
-EmbStudio is one new repository. It drives three groups of code it does not own, and none of them knows about EmbStudio.
+EmbLink Studio is one new repository. It drives three groups of code it does not own, and none of them knows about EmbLink Studio.
 
 ```text
-+--------------------------- EmbStudio repository (EmbStudio developer) ---------------------------+
-|  Desktop application                 JSON-RPC, stdio            EmbStudio Core                  |
-|  Qt 6, C++17                   <-------------------------->     Python 3.11, embstudio-core     |
-|  views, editor, docking                    DAP                  projects, build, flash, debug   |
-|  DAP client; only shows and edits  <---------------------->     every action is also a CLI      |
++------------------------ EmbLink Studio repository (EmbLink Studio developer) ---------------------+
+|  Desktop application                 JSON-RPC, stdio            EmbLink Studio Core             |
+|  Qt 6, C++17                   <-------------------------->     Python 3.11,                    |
+|  views, editor, docking                    DAP                  emblink-studio-core             |
+|  DAP client; only shows and edits  <---------------------->     projects, build, flash, debug   |
 +---------------------------------------------------------------------------+--------------------+
                                                                             | runs and reads
              +------------------------------------+-------------------------+---------+
@@ -87,12 +87,12 @@ The core runs the generator from the project's pinned RTOS revision, never a bun
 
 | Repository | Owns | Who |
 | --- | --- | --- |
-| **EmbStudio** (new) | The Qt application; EmbStudio Core; the protocol schemas; the schemas of the project manifest, the lock file and the module manifest; EmbStudio's tests and installers | EmbStudio developer |
+| **EmbLink Studio** (new) | The Qt application; EmbLink Studio Core; the protocol schemas; the schemas of the project manifest, the lock file and the module manifest; EmbLink Studio's tests and installers | EmbLink Studio developer |
 | **EmbLinkRTOS** | The kernel, the on-chip drivers, the hardware description schemas (SPEC-014), the generator, the `emb` CLI, crashdec, the HIL runner and the support matrix | Owner |
 | **EmbLinkRTOS-parts** (new, later) | External part drivers and bindings, application blocks, project templates | Owner, then contributors |
 | **EmbCC** | The compiler | Owner |
 
-The R-004 design record in EmbLinkRTOS explains the module contract and the configurator in more depth (§14). This specification takes precedence where they differ on EmbStudio. In particular, R-004's phase E4, a VS Code extension, is replaced by EmbStudio.
+The R-004 design record in EmbLinkRTOS explains the module contract and the configurator in more depth (§14). This specification takes precedence where they differ on EmbLink Studio. In particular, R-004's phase E4, a VS Code extension, is replaced by EmbLink Studio.
 
 ## 4. Architecture
 
@@ -101,16 +101,16 @@ Three layers. The rule that matters most: **all knowledge lives in the core or t
 | Layer | Language | Responsibility | Must not |
 | --- | --- | --- | --- |
 | **Desktop application** | C++17 or later, Qt 6 (§9) | Windows, docking, views, the editor, the debugger interface, settings, installers | Validate hardware, compute clocks, generate code, or parse the descriptions itself |
-| **EmbStudio Core** | Python 3.11 or later | Projects, modules and the lock file, toolchains, build, flash, monitor, debug sessions, simulation; the editing model of the configuration; calls into the RTOS's tools | Re-implement the RTOS's rules: it runs `emb-hwgen` and reads its outputs |
-| **The RTOS's tools** | Python, C | Descriptions and schemas, validation, generation, `hw.json`, reports, crash decoding, test runs | Know anything about EmbStudio |
+| **EmbLink Studio Core** | Python 3.11 or later | Projects, modules and the lock file, toolchains, build, flash, monitor, debug sessions, simulation; the editing model of the configuration; calls into the RTOS's tools | Re-implement the RTOS's rules: it runs `emb-hwgen` and reads its outputs |
+| **The RTOS's tools** | Python, C | Descriptions and schemas, validation, generation, `hw.json`, reports, crash decoding, test runs | Know anything about EmbLink Studio |
 
-**The core's executable is `embstudio-core`**, and its server is `embstudio-core serve`. v0.1 called the server `emb serve`, but the `emb` CLI belongs to EmbLinkRTOS (§3, M4.3), so two repositories would have shipped the same command. Every RPC method also has a CLI form, such as `embstudio-core project validate`. The core calls the RTOS's `emb` and `emb-hwgen`, and never the other way round.
+**The core's executable is `emblink-studio-core`**, and its server is `emblink-studio-core serve`. v0.1 called the server `emb serve`, but the `emb` CLI belongs to EmbLinkRTOS (§3, M4.3), so two repositories would have shipped the same command. Every RPC method also has a CLI form, such as `emblink-studio-core project validate`. The core calls the RTOS's `emb` and `emb-hwgen`, and never the other way round.
 
-**The core runs the project's own RTOS tools.** A project pins an RTOS revision (§6), so the core runs the `emb-hwgen` from that pinned checkout, as a subprocess with JSON output. It never uses a copy bundled with EmbStudio. Then a project built in the IDE and on the command line uses the same generator, and one EmbStudio release can serve projects on different RTOS versions. The core states which range of the `hw.json` and diagnostics formats it supports, and refuses a project outside that range with a clear message.
+**The core runs the project's own RTOS tools.** A project pins an RTOS revision (§6), so the core runs the `emb-hwgen` from that pinned checkout, as a subprocess with JSON output. It never uses a copy bundled with EmbLink Studio. Then a project built in the IDE and on the command line uses the same generator, and one EmbLink Studio release can serve projects on different RTOS versions. The core states which range of the `hw.json` and diagnostics formats it supports, and refuses a project outside that range with a clear message.
 
 **Process model.**
 
-- The desktop starts `embstudio-core serve` as a child process. They talk JSON-RPC 2.0 over standard input and output, framed with `Content-Length` headers as in the Language Server Protocol. Standard error carries the core's own log, never protocol traffic.
+- The desktop starts `emblink-studio-core serve` as a child process. They talk JSON-RPC 2.0 over standard input and output, framed with `Content-Length` headers as in the Language Server Protocol. Standard error carries the core's own log, never protocol traffic.
 - One core process serves one open workspace. It can work on several requests at once: a build runs while the views keep asking for data.
 - If the core exits unexpectedly, the desktop shows that, keeps the views read-only, and offers a restart, which reopens the project. Nothing is lost, since all state is on disk (§6).
 - **Debugging** uses the Debug Adapter Protocol (DAP). `debug.start` launches GDB's own DAP interpreter (`gdb -i=dap`, GDB 14 or later, built with Python) against the probe's GDB server (OpenOCD, pyOCD or J-Link). The core sits between them as a thin DAP proxy, and adds RTOS-aware requests (threads, stacks, devices) by reading the kernel's debug descriptor through `readMemory`. The debugger interface is written once, whatever the probe.
@@ -123,7 +123,7 @@ Three layers. The rule that matters most: **all knowledge lives in the core or t
 
 ## 5. The core's interface (JSON-RPC)
 
-The interface is versioned and described by schemas in the EmbStudio repository: one JSON Schema per method's parameters and result, under `protocol/`. Both sides are tested against them. The method list below is the first version to agree, not the final one.
+The interface is versioned and described by schemas in the EmbLink Studio repository: one JSON Schema per method's parameters and result, under `protocol/`. Both sides are tested against them. The method list below is the first version to agree, not the final one.
 
 **Lifecycle.**
 
@@ -172,7 +172,7 @@ The interface is versioned and described by schemas in the EmbStudio repository:
 
 ## 6. The project
 
-A project is a directory under version control, and **everything EmbStudio shows comes from its files.** The only state kept outside them is window layout, preferences and undo history, in `.embstudio/`, which is not committed.
+A project is a directory under version control, and **everything EmbLink Studio shows comes from its files.** The only state kept outside them is window layout, preferences and undo history, in `.emblink-studio/`, which is not committed.
 
 ```text
 my-project/
@@ -185,7 +185,7 @@ my-project/
   CMakeLists.txt        builds against the RTOS's CMake package
   CMakePresets.json     the build configurations (debug, release), shared by the IDE and the CLI
   build/                build trees, one per configuration (ignored by git)
-  .embstudio/           EmbStudio's own preferences (ignored by git)
+  .emblink-studio/      EmbLink Studio's own preferences (ignored by git)
 ```
 
 ```yaml
@@ -203,16 +203,16 @@ system: system.yaml
 
 **Rules:**
 
-- The board and SoC descriptions follow the RTOS's schemas (SPEC-014, in `hw/schemas/`). EmbStudio writes them through the core and never invents a field.
-- If the configuration views need a board split into smaller files (pins, clocks, devices), the RTOS adds an `include:` to its schema. EmbStudio asks for it, and does not add a format of its own.
+- The board and SoC descriptions follow the RTOS's schemas (SPEC-014, in `hw/schemas/`). EmbLink Studio writes them through the core and never invents a field.
+- If the configuration views need a board split into smaller files (pins, clocks, devices), the RTOS adds an `include:` to its schema. EmbLink Studio asks for it, and does not add a format of its own.
 - Generated files are only regenerated, never edited. User code calls the names the generator writes.
-- A project created by EmbStudio builds from the command line with the same result. Build configurations live in `CMakePresets.json`, so `cmake --preset debug` gives the IDE's debug build.
+- A project created by EmbLink Studio builds from the command line with the same result. Build configurations live in `CMakePresets.json`, so `cmake --preset debug` gives the IDE's debug build.
 
 **Editing YAML that people also write by hand:**
 
 - **Round-trip.** The core edits YAML with a round-trip parser (ruamel.yaml), so comments, key order, quoting and blank lines survive an edit. An edit changes only the lines it must, and a change made in the IDE reads in `git diff` as if a person had made it. Golden tests check this (§9).
 - **Edits from outside.** The core watches the project's files and sends `files_changed` when one changes. Each `config.apply` carries the content hash of the file it was previewed against. If the file changed in between, the core refuses with `conflict`, and the desktop re-reads it and shows the new state. An edit made in another editor is never overwritten silently.
-- **Undo.** Each `config.apply` is one step in an undo history kept by the core, per workspace and per session, and stored in `.embstudio/`. An undo is itself previewed and applied, with the same conflict check. Git remains the history that matters.
+- **Undo.** Each `config.apply` is one step in an undo history kept by the core, per workspace and per session, and stored in `.emblink-studio/`. An undo is itself previewed and applied, with the same conflict check. Git remains the history that matters.
 
 ## 7. What it looks like: the views
 
@@ -238,7 +238,7 @@ The design is the developer's, within three principles:
 | **Debugger** | Breakpoints, stepping, registers, memory, **RTOS threads and their states, stack high-water marks, devices and their lifecycle** | DAP; the RTOS's debug descriptor (A107) |
 | **Crash report** | A decoded crash record: fault, thread, location, registers | `crash.decode` |
 | **Evidence** | This board's hardware runs, passed or failed; the support matrix | `evidence.*` |
-| **Settings** | Toolchains, probes, the core's log, preferences | `toolchain.*`, `.embstudio/` |
+| **Settings** | Toolchains, probes, the core's log, preferences | `toolchain.*`, `.emblink-studio/` |
 | **Trace and timing** (later) | Thread timeline, interrupt latency, power residency | The RTOS's trace (M4.3), timing tools |
 
 **The editor** grows in three steps:
@@ -253,8 +253,8 @@ Ten stages, each ending in something usable and demonstrated. S0 has started. Ac
 
 | Stage | Delivers | Accepted when | Needs from the RTOS | Status |
 | --- | --- | --- | --- | --- |
-| **S0 Setup** | The EmbStudio repository, its licence files and contributor agreement, CI on Windows, Linux and macOS, a Qt application that starts and talks to a stub core | CI builds and tests on all three systems; `initialize` and `shutdown` succeed; the notices list is generated | Nothing | In progress |
-| **S1 Core foundation** | `embstudio-core serve`, `project.open` and `validate`, `board.*` from `hw.json`, `generate.run` | Opening the RTOS's `nucleo_f446re` and `pico2_w` boards shows their model; validation reports the generator's errors with their locations | JSON diagnostics from `emb-hwgen`; a versioned `hw.json` | Not started |
+| **S0 Setup** | The EmbLink Studio repository, its licence files and contributor agreement, CI on Windows, Linux and macOS, a Qt application that starts and talks to a stub core | CI builds and tests on all three systems; `initialize` and `shutdown` succeed; the notices list is generated | Nothing | In progress |
+| **S1 Core foundation** | `emblink-studio-core serve`, `project.open` and `validate`, `board.*` from `hw.json`, `generate.run` | Opening the RTOS's `nucleo_f446re` and `pico2_w` boards shows their model; validation reports the generator's errors with their locations | JSON diagnostics from `emb-hwgen`; a versioned `hw.json` | Not started |
 | **S2 Read-only views** | Board, pin map, clock tree, devices, memory, RTOS, problems | For both boards, a golden test finds every value in the views equal to `hw.json` and to the generator's `board.md` and `build_report.md` | Existing outputs | Not started |
 | **S3 Editing** | `config.preview`, `apply`, `undo`; pins, devices and threads editable; live diagnostics | A pin conflict is refused with the generator's message; an edit's `git diff` touches only the lines it must; generation stays clean | `system.yaml` (E3) for threads | Not started |
 | **S4 Build, flash, console** | Toolchain discovery, CMake build, flash by OpenOCD and picotool, serial console | A project is created, built, flashed and seen running on the NUCLEO-F446RE and the Pico 2 W; in CI, on EmbSIM's `nucleo_f446re` | The CMake package (A91) | Not started |
@@ -266,7 +266,7 @@ Ten stages, each ending in something usable and demonstrated. S0 has started. Ac
 
 **What the RTOS side provides, and when:**
 
-| EmbStudio needs | Status in EmbLinkRTOS | First needed |
+| EmbLink Studio needs | Status in EmbLinkRTOS | First needed |
 | --- | --- | --- |
 | Machine-readable diagnostics from the generator (JSON) | To add, early | S1 |
 | A version field in `hw.json` and a published schema for it | To add, early | S1 |
@@ -297,7 +297,7 @@ Until the module contract and `system.yaml` exist, S1 to S3 work on what exists:
 
 **Security.** Opening a project can run code: CMake scripts, module hooks, the project's pinned generator.
 
-- **Trust.** A project opened for the first time is untrusted. The views read its files, but nothing in it runs (generate, build, flash, debug answer `untrusted`) until the person trusts it once with `project.trust`. Trust is remembered per path in the user's own settings, never in `.embstudio/`, so a project cannot ship its own trust.
+- **Trust.** A project opened for the first time is untrusted. The views read its files, but nothing in it runs (generate, build, flash, debug answer `untrusted`) until the person trusts it once with `project.trust`. Trust is remembered per path in the user's own settings, never in `.emblink-studio/`, so a project cannot ship its own trust.
 - **Downloads.** Toolchains, and the bundled Python if §11 chooses one, are checked against SHA-256 sums pinned in the core's release. A mismatch is refused, never warned.
 - **Modules** are fetched at the exact commits in the lock file, and a hash mismatch stops the build.
 - **No listening sockets.** The core talks over standard input and output only. A DAP endpoint listens on the loopback address, with a one-time token.
@@ -306,10 +306,10 @@ Until the module contract and `system.yaml` exist, S1 to S3 work on what exists:
 
 - **Licence:** Apache-2.0 for everything in the open core: the application, the core and the schemas. The repository carries `LICENSE` and a `NOTICE` file, as Apache-2.0 expects.
 - **A commercial "Pro" tier** may come later. Which features it holds is the owner's decision. Candidates are advanced trace and timing analysis, power profiling, certification-report generation, and team features. The open core must stay complete for everyday work.
-- **Ownership.** Every contributor, the EmbStudio developer included, signs the **contributor licence agreement** before their first contribution is merged. It lets the project offer the code under other terms later, the Pro tier included. A lawyer checks it before anyone signs; the Apache Software Foundation's individual agreement is a common model. A CLA bot on pull requests records who has signed.
+- **Ownership.** Every contributor, the EmbLink Studio developer included, signs the **contributor licence agreement** before their first contribution is merged. It lets the project offer the code under other terms later, the Pro tier included. A lawyer checks it before anyone signs; the Apache Software Foundation's individual agreement is a common model. A CLA bot on pull requests records who has signed.
 - **The CLA and the DCO do different jobs.** The CLA grants the project rights to the code, once per contributor. The DCO sign-off on each commit says the author may submit it. Both stay.
-- **Owner and developer.** They agree in writing on credit and on any future revenue from EmbStudio **before the developer's first merge in S0**, since most of the early code is the developer's.
-- **The name.** "EmbStudio", "EmbLink" and "EmbLinkRTOS" are the project's names. A trademark policy says forks may use the code but not the names. Before the repository is announced in public, a trademark search checks "EmbStudio" against SEGGER Embedded Studio and others in the classes for software (class 9) and software services (class 42).
+- **Owner and developer.** They agree in writing on credit and on any future revenue from EmbLink Studio **before the developer's first merge in S0**, since most of the early code is the developer's.
+- **The name.** "EmbLink Studio", "EmbLink" and "EmbLinkRTOS" are the project's names. A trademark policy says forks may use the code but not the names. Before the repository is announced in public, a trademark search checks "EmbLink Studio" against SEGGER Embedded Studio and others in the classes for software (class 9) and software services (class 42). A web search on 2026-11-11 found Wilcom selling embroidery software as "EmbStudio", the same word in class 9, so the IDE was renamed EmbLink Studio before anything was announced. A search of the registers is still to do.
 
 ## 11. Questions settled on 2026-11-11
 
@@ -323,18 +323,18 @@ All ten questions are settled: the owner accepted each recommended answer on 202
 | 4 | How the core is packaged | **A bundled, relocatable CPython** (python-build-standalone builds) with the core in a private environment, not PyInstaller | The core runs the project's pinned `emb-hwgen` (§4), and that needs a real interpreter. A frozen PyInstaller program has none. A system Python varies by machine and breaks reproducibility. Each RTOS revision's tool dependencies go in an environment keyed by the lock file's hash | Decided |
 | 5 | Which comes first after S2: debugging (S5) or modules (S6) | **S5, debugging** | What it needs from the RTOS exists today (A107, crashdec). S6 waits for the module contract (E1) | Decided |
 | 6 | The Pro tier: which features, and when | Decide after S7. Until then, write nothing Pro-only, and keep trace, power and reporting as separable modules | By S7 it is clear what everyday work needs, and so what must stay open | Decided |
-| 7 | The trademark check on "EmbStudio" | A search in classes 9 and 42 before the repository is announced, by a trademark attorney if the budget allows | A rename after release costs far more than one before | Decided |
+| 7 | The trademark check on "EmbLink Studio" | A search in classes 9 and 42 before the repository is announced, by a trademark attorney if the budget allows | A rename after release costs far more than one before | Decided |
 | 8 | Supported platforms | Windows 10 22H2 and 11 (x64); macOS 13 or later (Apple silicon and Intel, one universal build); Ubuntu 22.04 and 24.04 (x64). Arm64 Windows and Linux later | Within Qt 6.8's supported platforms, and what CI's hosted runners provide | Decided |
-| 9 | Where the repository lives | `EmbLinkOs/EmbStudio` on GitHub, beside the RTOS | One organisation and one CI system; issues can link across repositories | Decided |
-| 10 | Versioning and RTOS compatibility | EmbStudio uses semantic versioning. Each release states the RTOS revisions it supports (§4), and the evidence view shows that range | Users must be able to tell whether a project will open before they open it | Decided |
+| 9 | Where the repository lives | `EmbLinkOs/EmbLinkStudio` on GitHub, beside the RTOS | One organisation and one CI system; issues can link across repositories | Decided |
+| 10 | Versioning and RTOS compatibility | EmbLink Studio uses semantic versioning. Each release states the RTOS revisions it supports (§4), and the evidence view shows that range | Users must be able to tell whether a project will open before they open it | Decided |
 
 ## 12. Changes from v0.1
 
-The review of v0.1 found 14 gaps. Four could have caused rework or a wrong build: the `emb` name clash, which generator runs, YAML round-tripping, and project trust. The rest were missing detail.
+The review of v0.1 found 15 gaps, the name among them. Four could have caused rework or a wrong build: the `emb` name clash, which generator runs, YAML round-tripping, and project trust. The rest were missing detail.
 
 | Gap in v0.1 | Effect if left | Fix in v0.2 | Where |
 | --- | --- | --- | --- |
-| The core's server was `emb serve`, but the `emb` CLI belongs to EmbLinkRTOS | Two repositories shipping one command | The core is `embstudio-core`, with `serve` | §4 |
+| The core's server was `emb serve`, but the `emb` CLI belongs to EmbLinkRTOS | Two repositories shipping one command | The core is `emblink-studio-core`, with `serve` | §4 |
 | Which `emb-hwgen` the core runs was not said | A bundled generator would differ from the project's pinned RTOS, and IDE builds would differ from CLI builds | The core runs the project's pinned RTOS tools, within a stated range | §4, §11 q4 |
 | No rule for YAML comments and formatting on edit | IDE edits would rewrite whole files, with noisy diffs and lost comments | Round-trip editing (ruamel.yaml) and golden diff tests | §6, §9 |
 | Opening a project could run its code with no consent | A cloned project runs CMake or module code on open | Project trust and the `untrusted` error | §9 |
@@ -348,6 +348,7 @@ The review of v0.1 found 14 gaps. Four could have caused rework or a wrong build
 | Hardware checks in S4 and S5 can't run in CI | Acceptance claims with no evidence | EmbSIM in CI, and board runs recorded as evidence | §8 |
 | Qt 6.8 LTS patches may be commercial only for LGPL users | Unpatched Qt in releases | A check, and a fallback to the newest 6.x minor | §9 |
 | References (A76, A91, A107, M4.3, E1, E3) were unexplained | A new developer can't follow them | Added to §13 | §13 |
+| The name EmbStudio is already used by Wilcom's embroidery software | A trademark dispute, or a rename after release | Renamed EmbLink Studio, before any announcement | §2, §10 |
 
 Smaller changes: S2's acceptance is now an automated golden test, each stage lists what it needs from the RTOS, the Problems and Settings views were added, and Python dependencies are in the notices list.
 
@@ -375,7 +376,7 @@ Smaller changes: S2's acceptance is now an automated golden test, each stage lis
 | A107 | The debug descriptor, version 1 (SPEC-015 §5), and `emb_gdb.py`, which lists threads and walks their stacks |
 | M4.*n* | A milestone of the RTOS roadmap's phase M4 (`docs/architecture/07-roadmap.md`) |
 | M4.3 | The milestone that brings the `emb` CLI and the trace ring (CTF) |
-| E1 to E5 | The ecosystem phases of R-004. E1: the module contract, project manifest and lock file. E3: the configurator engine, generating `system.yaml`'s threads and objects with `emb_system_init()`. E2, E4 and E5 cover parts, the VS Code extension (now replaced by EmbStudio) and RTOS-aware debugging |
+| E1 to E5 | The ecosystem phases of R-004. E1: the module contract, project manifest and lock file. E3: the configurator engine, generating `system.yaml`'s threads and objects with `emb_system_init()`. E2, E4 and E5 cover parts, the VS Code extension (now replaced by EmbLink Studio) and RTOS-aware debugging |
 
 ## 14. Where to read further, in EmbLinkRTOS
 
@@ -385,5 +386,5 @@ Smaller changes: S2's acceptance is now an automated golden test, each stage lis
 - `docs/specs/AMENDMENTS-M3.md`: A76, A91 and A107 in full.
 - `hw/gen/`, `hw/schemas/`: the generator and its schemas.
 - `boards/st/nucleo_f446re/`, `boards/rpi/pico2_w/`: two real boards and their `generated/` outputs.
-- `tools/crashdec/`, `tools/descriptor/` (with `emb_gdb.py`, the base for the debugger's RTOS views), `tools/hil/`, `tools/support/`: the tools EmbStudio drives.
-- `docs/research/R-004-ecosystem-addons-configurator-integrations.md`: modules, parts and the configurator. It is on the `docs/ecosystem-design` branch for now. This specification takes precedence where they differ on EmbStudio.
+- `tools/crashdec/`, `tools/descriptor/` (with `emb_gdb.py`, the base for the debugger's RTOS views), `tools/hil/`, `tools/support/`: the tools EmbLink Studio drives.
+- `docs/research/R-004-ecosystem-addons-configurator-integrations.md`: modules, parts and the configurator. It is on the `docs/ecosystem-design` branch for now. This specification takes precedence where they differ on EmbLink Studio.
