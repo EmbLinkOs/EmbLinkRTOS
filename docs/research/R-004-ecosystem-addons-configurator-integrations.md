@@ -9,6 +9,13 @@
 
 This record proposes how many repositories there should be and what each holds, how they link, what the configurator is, and which integrations come first.
 
+**Decided since, 2026-11-11** (the owner, on EmbStudio Architecture Proposal v0.1):
+- The IDE is **EmbStudio**, a native desktop application in **Qt 6**, made for EmbLinkRTOS and grown step by step. There is **no VS Code extension** for now, and §2's third repository becomes EmbStudio's.
+- The **hardware model stays in EmbLinkRTOS** (§2, §4): EmbStudio Core calls the generator and never re-implements its rules.
+- EmbStudio Core is a **Python engine behind a CLI and a JSON-RPC server** (`emb serve`).
+- The licence is an **open core under Apache-2.0** with a contributor licence agreement (§8, §10 question 9).
+- A friend of the owner builds EmbStudio, from its specification: [EmbStudio specification](../embstudio/embstudio-specification.md).
+
 ## 1. What already exists to build on
 
 | Piece | Where | What it gives |

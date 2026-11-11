@@ -25,6 +25,7 @@ specs/index
 requirements/index
 ports/index
 research/index
+embstudio/index
 engineering/index
 CODING-STANDARD
 ```
