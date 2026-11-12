@@ -15,8 +15,44 @@ The generator needs Python 3 and PyYAML, the configuration tool's one dependency
 
 - Exit status 2 means a description error. Every error is printed as `file:line: node.path: message`, and all errors found are reported, sorted.
 - `check` exits 1 when a committed output differs from what the descriptions give, and prints the diff.
+- Exit status 3 means the generator itself failed: a bug to report, not a description error.
 
 Never edit `generated/` by hand (HW-003). Change the YAML and regenerate.
+
+### Output for tools: `--format json`
+
+`validate`, `generate` and `check` take `--format json`. The command then prints a single JSON document on standard output and nothing else, for an IDE such as EmbLink Studio or a script. `hw/schemas/diagnostics.schema.json` defines the document. The exit status is the same as for text output.
+
+```sh
+python3 -I hw/gen/emb-hwgen.py validate --board boards/st/nucleo_f446re --format json
+```
+
+With `baud: fast` in the NUCLEO-F446RE's description, it prints:
+
+```json
+{
+  "tool": "emb-hwgen", "version": "0.1.0", "format": 1, "command": "validate",
+  "status": "errors", "exit_code": 2, "files": [],
+  "diagnostics": [
+    {"severity": "error", "rule": "HW-002", "file": "boards/st/nucleo_f446re/board.yaml", "line": 26,
+     "path": "console.baud", "message": "expected integer, found string 'fast'",
+     "text": "boards/st/nucleo_f446re/board.yaml:26: console.baud: expected integer, found string 'fast'"}
+  ]
+}
+```
+
+- **`status`** is one of four values:
+  - `ok` (exit 0): warnings are still possible;
+  - `errors` (exit 2): the descriptions are wrong;
+  - `stale` (exit 1): `check` found outdated outputs, or hardware facts outside a description;
+  - `internal-error` (exit 3): the document carries `error`, the exception's type and message, and the traceback goes to standard error.
+- **Each finding** gives its file, line, node path and message as separate fields. The file is relative to the repository root, or absolute for a board kept outside it. It also keeps the line the text output prints, in `text`.
+- **`rule`** says which requirement the finding concerns:
+  - HW-002: a description error or warning;
+  - HW-001: a hardware fact outside a description;
+  - HW-003: a generated file out of date. These findings carry `diff`, a unified diff from the committed file to the generator's output.
+- **`files`** lists what `generate` wrote. **`boards`** counts what `check` checked.
+- **`format`** is the document's own version. A new field keeps it; a changed or removed field bumps it.
 
 ## Files
 

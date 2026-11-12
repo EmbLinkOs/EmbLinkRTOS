@@ -15,11 +15,19 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
-from emb_hwgen import HwError, facts, generate, load, model, schema  # noqa: E402
+from emb_hwgen import HwError, diagnostics, facts, generate, load, model, schema  # noqa: E402
 
 BOARD = "boards/st/nucleo_f446re"
 UNO = "boards/arduino/arduino_uno"
 PICO = "boards/rpi/pico2_w"
+
+
+def assert_every_error_parses(test, errors):
+    """--format json takes every error apart into file, line, node path and message (Diagnostics):
+    each must come back as its own text."""
+    for e in errors:
+        f = diagnostics.finding(e, "error", "HW-002")
+        test.assertEqual(f"{f['file']}:{f['line']}: {f['path']}: {f['message']}", e)
 
 
 class Root:
@@ -71,6 +79,7 @@ class Negative(unittest.TestCase):
         want = f"{file}:{line}: {path}: "
         hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
         self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+        assert_every_error_parses(self, cm.exception.errors)
 
     def board_line(self, needle):
         return self.root.line_of(f"{BOARD}/board.yaml", needle)
@@ -266,6 +275,7 @@ class Bank(unittest.TestCase):
         want = f"{file}:{self.root.line_of(file, needle)}: {path}: "
         hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
         self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+        assert_every_error_parses(self, cm.exception.errors)
 
     def test_pin_table(self):
         files, _ = generate.generate(ROOT / PICO, ROOT)
@@ -461,6 +471,7 @@ class Devices(unittest.TestCase):
             want = f"{file}:{self.root.line_of(file, needle)}: {path}: "
         hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
         self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+        assert_every_error_parses(self, cm.exception.errors)
 
     def files(self):
         return generate.generate(self.root.dir / BOARD, self.root.dir)[0]
@@ -663,6 +674,99 @@ class OutOfTree(unittest.TestCase):
         self.assertIn("has no boards/ directory", r.stderr)
 
 
+class Diagnostics(unittest.TestCase):
+    """--format json: one document, valid against hw/schemas/diagnostics.schema.json, for each
+    outcome, and nothing else on standard output."""
+
+    def setUp(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("emb_hwgen_cli", HERE / "emb-hwgen.py")
+        self.cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.cli)
+        self.schema = schema.load_schema("diagnostics")
+
+    def run_json(self, *argv):
+        import contextlib
+        import io
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = self.cli.main(list(argv) + ["--format", "json"])
+        doc = json.loads(out.getvalue())
+        self.assertEqual(schema.validate(doc, self.schema), [], doc)
+        self.assertEqual(doc["exit_code"], code)
+        return doc
+
+    def board(self, edit=None):
+        d = Path(tempfile.mkdtemp(prefix="hwgen-diag-"))
+        self.addCleanup(shutil.rmtree, d)
+        board = d / "boards" / "acme" / "acme_m4"
+        board.mkdir(parents=True)
+        text = (ROOT / "boards/arm/mps2_an386/board.yaml").read_text(encoding="utf-8")
+        text = text.replace("name: mps2_an386", "name: acme_m4")
+        if edit:
+            self.assertIn(edit[0], text)
+            text = text.replace(*edit)
+        (board / "board.yaml").write_text(text, encoding="utf-8")
+        return d, board
+
+    def test_validate_ok_with_its_warnings(self):
+        doc = self.run_json("validate", "--board", str(ROOT / BOARD))
+        self.assertEqual((doc["status"], doc["command"], doc["tool"]), ("ok", "validate", "emb-hwgen"))
+        warn = [f for f in doc["diagnostics"] if f["path"] == "cpu.mpu"]
+        self.assertTrue(warn and warn[0]["severity"] == "warning" and warn[0]["line"] >= 1, doc)
+
+    def test_description_error_located(self):
+        d, board = self.board(("baud: 115200", "baud: fast"))
+        doc = self.run_json("validate", "--board", str(board))
+        self.assertEqual((doc["status"], doc["exit_code"]), ("errors", 2))
+        f = next(f for f in doc["diagnostics"] if f["path"] == "console.baud")
+        self.assertEqual((f["severity"], f["rule"]), ("error", "HW-002"))
+        self.assertTrue(f["file"].endswith("board.yaml"))
+        lines = (board / "board.yaml").read_text(encoding="utf-8").splitlines()
+        self.assertIn("baud: fast", lines[f["line"] - 1])
+        self.assertRegex(f["message"], "expected integer")
+
+    def test_generate_lists_its_files(self):
+        d, board = self.board()
+        doc = self.run_json("generate", "--board", str(board))
+        self.assertEqual(doc["status"], "ok")
+        self.assertIn("hw_config.h", {Path(f).name for f in doc["files"]})
+        self.assertTrue(all((ROOT / f).is_file() for f in doc["files"]))
+
+    def test_check_stale_with_its_diff(self):
+        d, board = self.board()
+        self.run_json("generate", "--board", str(board))
+        self.assertEqual(self.run_json("check", "--board-root", str(d))["status"], "ok")
+        text = (board / "board.yaml").read_text(encoding="utf-8")
+        (board / "board.yaml").write_text(text.replace("baud: 115200", "baud: 57600"), encoding="utf-8")
+        doc = self.run_json("check", "--board-root", str(d))
+        self.assertEqual((doc["status"], doc["exit_code"], doc["boards"]), ("stale", 1, 1))
+        stale = [f for f in doc["diagnostics"] if f["rule"] == "HW-003"]
+        self.assertTrue(any(f["diff"] and "57600" in f["diff"] for f in stale), doc)
+
+    def test_check_without_boards(self):
+        d, board = self.board()
+        doc = self.run_json("check", "--board-root", str(board))
+        self.assertEqual((doc["status"], doc["exit_code"]), ("errors", 2))
+        self.assertIn("has no boards/ directory", doc["diagnostics"][0]["message"])
+
+    def test_internal_error_is_still_a_document(self):
+        from unittest import mock
+        with mock.patch.object(self.cli.generate, "generate", side_effect=RuntimeError("boom")):
+            doc = self.run_json("validate", "--board", str(ROOT / BOARD))
+        self.assertEqual((doc["status"], doc["exit_code"]), ("internal-error", 3))
+        self.assertEqual(doc["error"], {"type": "RuntimeError", "message": "boom"})
+
+    def test_findings_of_each_shape(self):
+        f = diagnostics.finding(r"C:\p\b.yaml:4: devices[2].cs: no such pin", "error", "HW-002")
+        self.assertEqual((f["file"], f["line"], f["path"]), (r"C:\p\b.yaml", 4, "devices[2].cs"))
+        f = diagnostics.finding("soc/x/board.c:7: address-like constant 0x40004000u; describe it", "error",
+                                "HW-001", with_path=False)
+        self.assertEqual((f["line"], f["path"], f["message"][:12]), (7, None, "address-like"))
+        f = diagnostics.finding("no shape at all", "error", None)
+        self.assertEqual((f["file"], f["message"]), (None, "no shape at all"))
+
+
 class Avr(unittest.TestCase):
     """The ATmega328P and the Arduino Uno: separate address spaces, vectors, fixed-function pins,
     page-sized erase units, and HW-006's second linker output."""
@@ -730,6 +834,7 @@ class Avr(unittest.TestCase):
         want = f"{file}:{line}: {path}: "
         hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
         self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+        assert_every_error_parses(self, cm.exception.errors)
 
     def test_fixed_pin_with_another_signal(self):
         b = f"{UNO}/board.yaml"
@@ -945,7 +1050,7 @@ class Loader(unittest.TestCase):
 
 class Schemas(unittest.TestCase):
     def test_subset_only(self):
-        for kind in ("soc", "board", "hw", "bindings"):
+        for kind in ("soc", "board", "hw", "bindings", "diagnostics"):
             schema.load_schema(kind)  # raises on a keyword outside the supported subset
 
     def test_bool_is_not_integer(self):
