@@ -51,7 +51,7 @@ boards/<vendor>/<board>.yaml
 | `hw_config.h` constants: core count, region bases, IRQ numbers | everything |
 | `Kconfig.board` defaults | configuration |
 | `board.md` reference page | documentation |
-| `hw.json` normalized model | EmbStudio, EmbDebug, HIL tooling |
+| `hw.json` normalized model | EmbLink Studio, EmbDebug, HIL tooling |
 
 **HW-001** Every peripheral instance, interrupt binding, clock setting, pin assignment, memory region, and flash partition shall originate in the hardware description.
 **HW-002** The hardware model shall be validated against a published schema before generation; validation errors shall name the file and node.

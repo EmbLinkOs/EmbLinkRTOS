@@ -156,7 +156,7 @@ The system file is where the generator learns every statically declared thread a
 | `init_order.c` | ordered init table entries for system-declared objects (`EMB_INIT_AFTER`) | kernel start | SPEC-009 §5.2 |
 | `Kconfig.board`, `Kconfig.system` | defaults and forced values | configuration | |
 | `board.md` | reference page: pins, devices, partitions, memory map, interrupts | documentation | |
-| `hw.json` | the normalized, flattened, resolved model with provenance and hashes | EmbStudio, EmbDebug, HIL runner, the benchmark harness metadata | HW-005 |
+| `hw.json` | the normalized, flattened, resolved model with provenance and hashes | EmbLink Studio, EmbDebug, HIL runner, the benchmark harness metadata | HW-005 |
 | `build_report.md` | region budget per partition, kstore sizes, MPU constraint results, clock results, warnings (uncurated nodes) | reviewer | SPEC-010 §4.3 |
 | `trace_metadata/` | CTF metadata for the configured trace event set | tracing tools | SPEC-015 |
 

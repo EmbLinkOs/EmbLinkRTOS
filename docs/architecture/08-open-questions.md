@@ -57,7 +57,7 @@ This is the highest-impact platform decision. Own schema costs generator work up
 
 ## D. Engineering process
 
-**Q14. Configuration.** Kconfig semantics (recommended, ADR-005) or a project-specific typed configuration language designed for EmbStudio?
+**Q14. Configuration.** Kconfig semantics (recommended, ADR-005) or a project-specific typed configuration language designed for EmbLink Studio?
 *Note:* a typed schema can be layered on Kconfig output later; starting with a custom language delays M1.
 
 **Q15. Reference model language.** Python (fast to write, readable to non-C reviewers) or C on the host (closer to kernel, reusable in differential tests without a bridge)?
