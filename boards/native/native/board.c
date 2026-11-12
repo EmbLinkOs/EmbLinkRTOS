@@ -43,11 +43,7 @@ void emb_board_put_u32(uint32_t v)
 /* The board's one device, by hand, as it has no description to generate it from (SPEC-016
  * §8): its entropy source, the host's own randomness through getentropy(), real entropy from
  * the operating system and not a generator (SEC-012), 32 bytes a block. */
-typedef struct native_entropy_data {
-    emb_drv_bus_t lock; /* the class's, first */
-} native_entropy_data_t;
-
-static native_entropy_data_t native_entropy_data;
+static emb_drv_bus_t native_entropy_lock; /* its data: the class's lock, and nothing more */
 static emb_device_state_t native_entropy_state;
 
 static emb_status_t native_entropy_init(const emb_device_t *dev)
@@ -74,7 +70,7 @@ static const emb_device_t native_entropy_dev = {"entropy",
                                                 &native_entropy_api.dev,
                                                 NULL,
                                                 &native_entropy_state,
-                                                &native_entropy_data,
+                                                &native_entropy_lock,
                                                 NULL,
                                                 EMB_DRV_CLASS_ENTROPY,
                                                 EMB_DEVICE_KERNEL,
