@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Turn a linked ELF into an ESP32-C3 or ESP32 flash image the boot ROM loads (the RISC-V
 port's ESP32-C3 boards, docs/ports/riscv.md; the ESP32's bring-up, docs/ports/xtensa.md).
 

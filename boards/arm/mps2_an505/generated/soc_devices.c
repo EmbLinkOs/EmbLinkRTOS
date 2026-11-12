@@ -14,15 +14,15 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/arm/mps2_an505 (HW-003).
  * Inputs (SHA-256):
  *   arch/cortex_m/arch.yaml
- *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
+ *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/arm/mps2_an505/board.yaml
- *     4033f69197a0e3dbde7b4905b015f5ba25b70519350c6ca240adec525bcd62a6
+ *     d965ba7ec28f53c6f5ed0499684e4c6be812ff001b0b2bceec15b6dd12631a0c
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
  *   soc/arm/mps2/an505.yaml
- *     62b55a6a3a1b785d90effecd09e28dbec7840901a5ab0c5d76b817ef40ceddf1
+ *     ac349c5c09a3da2c3d8109b87a636d1844aa43117eb59132d11e8c454c194909
  *   soc/arm/mps2/mps2.yaml
- *     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+ *     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
  */
 #include <emb/config.h>
 

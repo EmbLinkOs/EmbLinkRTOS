@@ -14,15 +14,15 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/arm/mps2_an500 (HW-003).
  * Inputs (SHA-256):
  *   arch/cortex_m/arch.yaml
- *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
+ *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/arm/mps2_an500/board.yaml
- *     9573cd90294fa53167fa238ad364e88a97be7ca4b82624e0cf7c5a9baba55f40
+ *     707538f277aa5c5f2faf1f9c1f308b30839f2e2b483334d5d4c1b1eb917d15b4
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
  *   soc/arm/mps2/an500.yaml
- *     f6beb3730b7c7a9094f517c0b02739b2a6c1ef96a36b65ec4f30f626737f4a49
+ *     6cf725200210826569b7fc32c2bbfe0a9759b6308986859af340ed1543f053f6
  *   soc/arm/mps2/mps2.yaml
- *     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+ *     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
  */
 ENTRY(embn_cm_reset)
 

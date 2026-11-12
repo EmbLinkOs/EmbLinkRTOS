@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """esp_image.py: the application image format the ESP32-C3's ROM checks (ESP-IDF's
 esp_app_format.h): the header's fields, each segment, the checksum at the end of a 16-byte
 block and the SHA-256 after it."""

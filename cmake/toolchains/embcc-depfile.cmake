@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Header dependencies for EmbCC builds: EmbCC writes GCC-format dependency files (-MD -MT -MF),
 # but CMake has no compiler module for it and asks for none. Without these lines Ninja never
 # learns which headers an object includes, and a changed header, the generated <emb/config.h>

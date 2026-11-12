@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
 # Cortex-M with arm-none-eabi-gcc and RISC-V with riscv64-unknown-elf-gcc run under QEMU,
 # AVR with avr-gcc run under QEMU and on EmbSIM's Arduino Uno, the Cortex-M4F suite on EmbSIM's

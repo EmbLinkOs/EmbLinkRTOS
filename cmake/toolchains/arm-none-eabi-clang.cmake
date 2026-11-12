@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Cortex-M with Clang and LLD (ADR-053): Clang compiles for --target=arm-none-eabi against the C
 # library of the Arm GNU toolchain (newlib's headers), and links with LLD against that toolchain's
 # multilib newlib-nano and libgcc for the board's CPU flags (cmake/emb_flags.cmake finds the

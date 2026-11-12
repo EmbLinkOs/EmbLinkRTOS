@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The MPS2 FPGA images as QEMU models them (machines mps2-an385, mps2-an386): code in ZBT SSRAM1,
 # data in ZBT SSRAM2/3, the CMSDK APB UART0 and the FPGA I/O block, a fixed 25 MHz clock. An
 # emulation reference (SIM-002), not a hardware target. A part file names the core.

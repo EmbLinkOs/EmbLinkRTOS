@@ -57,7 +57,17 @@ Every C, assembly and linker-script source starts with this header (CODING-STAND
 
 `@author` is whoever created the file and `@date` the day it was created; neither changes later. `@see` names the file's companion header or source, where it has one. You can write the first three comments and a plain description comment, and let `python3 tools/dev/file_headers.py --write my_driver.c` turn it into the rest, with your name and today's date. CI runs `tools/dev/file_headers.py --check`.
 
-Hardware descriptions, scripts, and other files start with the SPDX and copyright lines in their comment syntax.
+Files commented with `#` (Python, CMake, Kconfig, YAML descriptions, shell scripts) start with the same lines in `#` comments, without the Doxygen block; a Python module's docstring says what it is:
+
+```python
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 <your name or organization>
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+```
+
+`tools/dev/file_headers.py --write` adds the notice to such a file too.
 
 ## Process
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The DeviceTree board importer (SPEC-014 §8, HW-004, HW-012, A82): a board description draft
 from a Zephyr board's .dts, preprocessed by the C preprocessor and flattened by dtc.
 

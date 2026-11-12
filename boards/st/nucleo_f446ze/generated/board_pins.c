@@ -14,17 +14,17 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/st/nucleo_f446ze (HW-003).
  * Inputs (SHA-256):
  *   arch/cortex_m/arch.yaml
- *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
+ *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446ze/board.yaml
- *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
+ *     1525ea206692663af174039e30776d6a9a9b30275c9e5c9bdabf14ac0b70aa19
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
  *   soc/st/stm32f4/stm32f4.yaml
- *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
+ *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     1a7a08ee049164842f51e62877ec373ed21a1b90403b0833565d0a6c7f37b748
  *   soc/st/stm32f4/stm32f446ze.yaml
- *     98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002
+ *     dabae95e9e4bc984c1a33275966665e0252068e929fe3b430d06589da6bdb6c9
  */
 #include <emb_stm32_pins.h>
 #include <hw_config.h>

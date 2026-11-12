@@ -15,11 +15,11 @@
  * description and run hw/gen/emb-hwgen.py generate --board boards/arduino/arduino_uno (HW-003).
  * Inputs (SHA-256):
  *   arch/avr/arch.yaml
- *     58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42
+ *     3e99f7e6706f4fec43025ae826e21925a192f520ef19b4ebcf7c5c343f8360de
  *   boards/arduino/arduino_uno/board.yaml
- *     45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6
+ *     c6ac27b20a275593ffb2e2867f0577837ef677bdc316187330f846865b023940
  *   soc/microchip/atmega/atmega328p.yaml
- *     f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18
+ *     ae1cb906f4e5453fcf672aa658d080ffdba5e4471320add0c54d856c48d081f3
  */
 /* Script for -n: mix text and data on same page */
 /* Copyright (C) 2014-2015 Free Software Foundation, Inc.

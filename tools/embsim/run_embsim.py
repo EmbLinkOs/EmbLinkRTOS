@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Run a test image on an EmbSIM board and read its console (SIM-002).
 
 The board names its EmbSIM target in board.cmake (EMB_BOARD_EMBSIM_TARGET, a board of

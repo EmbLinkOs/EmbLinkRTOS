@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Editor setup: clangd reads the compilation database of the native checked build,
 # which carries the include paths and the generated <emb/config.h> and <emb/storage.h>.
 # Create it once with `cmake --preset native-gcc`; headers borrow a nearby source's flags.

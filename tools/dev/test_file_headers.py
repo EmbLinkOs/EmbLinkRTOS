@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """tools/dev/file_headers.py: each shape of description becomes the same header, nothing of it is
-lost, a converted file is left alone, and the check finds what is missing."""
+lost, a converted file is left alone, the check finds what is missing; and # files take the notice."""
 import pathlib
 import sys
 import unittest
@@ -110,6 +114,34 @@ class Check(unittest.TestCase):
         sys.path.insert(0, str(fh.ROOT / "hw/gen"))
         from emb_hwgen import emit
         self.assertEqual(emit.NOTICE, "\n".join(fh.NOTICE) + "\n")
+
+
+class Hash(unittest.TestCase):
+    HEAD = [fh.HASH_SPDX, "# Copyright 2026 Someone Else"]
+
+    def test_notice_then_a_blank_line(self):
+        out = fh.hash_convert(self.HEAD + ['"""The module."""', ""])
+        self.assertEqual(out, self.HEAD + fh.HASH_NOTICE + ["", '"""The module."""', ""])
+        self.assertEqual(fh.hash_problems("a.py", out), [])
+
+    def test_after_a_shebang(self):
+        out = fh.hash_convert(["#!/bin/sh"] + self.HEAD + ["set -eu"])
+        self.assertEqual(out[:6], ["#!/bin/sh"] + self.HEAD + fh.HASH_NOTICE)
+
+    def test_a_bare_comment_line_already_separates(self):
+        out = fh.hash_convert(self.HEAD + ["#", "# What it does."])
+        self.assertEqual(out, self.HEAD + fh.HASH_NOTICE + ["#", "# What it does."])
+
+    def test_converted_once(self):
+        out = fh.hash_convert(self.HEAD + ["x: 1"])
+        self.assertTrue(fh.hash_converted(out))
+        self.assertTrue(fh.hash_problems("a.yaml", self.HEAD + ["x: 1"]))
+
+    def test_the_generator_writes_the_same_notice(self):
+        sys.path.insert(0, str(fh.ROOT / "hw/gen"))
+        from emb_hwgen import emit
+        self.assertEqual(emit.HASH_NOTICE, "\n".join(fh.HASH_NOTICE) + "\n")
+        self.assertEqual(fh.hash_generated_problems("g/board.conf", [fh.HASH_SPDX] + fh.HASH_NOTICE + ["#"]), [])
 
 
 if __name__ == "__main__":

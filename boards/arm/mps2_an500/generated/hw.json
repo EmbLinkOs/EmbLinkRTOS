@@ -116,23 +116,23 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     },
     {
       "path": "boards/arm/mps2_an500/board.yaml",
-      "sha256": "9573cd90294fa53167fa238ad364e88a97be7ca4b82624e0cf7c5a9baba55f40"
+      "sha256": "707538f277aa5c5f2faf1f9c1f308b30839f2e2b483334d5d4c1b1eb917d15b4"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
+      "sha256": "c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480"
     },
     {
       "path": "soc/arm/mps2/an500.yaml",
-      "sha256": "f6beb3730b7c7a9094f517c0b02739b2a6c1ef96a36b65ec4f30f626737f4a49"
+      "sha256": "6cf725200210826569b7fc32c2bbfe0a9759b6308986859af340ed1543f053f6"
     },
     {
       "path": "soc/arm/mps2/mps2.yaml",
-      "sha256": "b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"
+      "sha256": "e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9"
     }
   ],
   "schema_version": 0,
@@ -226,6 +226,6 @@
     "vendor": "arm"
   },
   "warnings": [
-    "soc/arm/mps2/an500.yaml:19: cpu.mpu: the cortex_m port does not use the MPU yet"
+    "soc/arm/mps2/an500.yaml:23: cpu.mpu: the cortex_m port does not use the MPU yet"
   ]
 }

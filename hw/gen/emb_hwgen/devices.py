@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The board's devices (SPEC-016 §4 and §8; DRV-001, DRV-009): each bound to its driver
 through drivers/bindings.yaml, each configuration field taken from the description, and all
 of them in initialization order.

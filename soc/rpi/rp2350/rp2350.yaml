@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The RP2350 die (SPEC-014 §3) as its Arm cores run it: two Cortex-M33 with FPU, started by the
 # boot ROM in the Secure state. Drafted by hw/import/svd.py from pico-sdk 2.1.1's RP2350.svd
 # (BSD-3-Clause), then curated against pico-sdk's register headers and the RP2350 datasheet:

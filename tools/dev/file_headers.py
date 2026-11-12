@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""The file header of every C, assembly and linker-script source (CODING-STANDARD CS-11.1).
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
+"""The file header of every source (CODING-STANDARD CS-11.1).
 
 A source starts with its SPDX and copyright lines, then a comment saying it is part of
 EmbLinkRTOS and under which licence, then a Doxygen block naming the file:
@@ -22,6 +26,9 @@ EmbLinkRTOS and under which licence, then a Doxygen block naming the file:
 leaves converted ones alone; the author and date come from the file's first commit, followed
 across renames, or for a file not yet committed from git's user.name and today. `--check`
 fails on any file without the header, or whose @file is not its own name; CI runs it.
+
+A file commented with # (Python, CMake, Kconfig, YAML, shell) takes the notice alone after its
+SPDX and copyright lines, in # comments, then a blank line.
 
 Not touched: third-party code, archived evidence (its sources are records of a run), and files
 under another licence. Generated files are the generator's to write: `--check` only checks that
@@ -44,6 +51,11 @@ NOTICE = [
     " */",
 ]
 SUFFIXES = (".c", ".h", ".S", ".ld")
+# Files commented with #: Python, CMake, Kconfig, YAML, shell and the tools' own configuration.
+# They take the notice alone, after the copyright lines; a Doxygen block is not their idiom, and
+# a Python module's docstring already says what it is.
+HASH_SPDX = "# SPDX-License-Identifier: Apache-2.0"
+HASH_NOTICE = ["#"] + ["# " + line[3:] for line in NOTICE[1:3]]
 WIDTH = 100
 TAG = " * @{:<7} "  # " * @brief   ": the values line up after the longest tag
 HANG = " " * len(TAG.format(""))
@@ -52,21 +64,33 @@ BRIEF_MAX = 100  # a first sentence longer than this is cut at its colon, if it 
 
 
 def sources():
-    out = subprocess.run(["git", "ls-files", "-co", "--exclude-standard", "--", *(f"*{s}" for s in SUFFIXES)],
-                         cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
-    for rel in sorted(set(out)):
-        if rel.startswith("third_party/") or "/evidence/" in rel:
+    """(path, file, lines, kind): kind "c" or "hash", with "-gen" for the generator's own files."""
+    out = subprocess.run(["git", "ls-files", "-co", "--exclude-standard", "-z"],
+                         cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\0")
+    for rel in sorted(set(filter(None, out))):
+        if rel.startswith("third_party/") or "/evidence/" in rel or "/hil-runs/" in rel:
             continue
         path = ROOT / rel
-        if not path.is_file():
+        if not path.is_file() or path.is_symlink():
             continue
-        lines = path.read_text(encoding="utf-8").split("\n")
-        if len(lines) < 2 or lines[0] != SPDX:
-            continue  # another licence: not ours to rewrite
-        if "/generated/" in rel:
-            yield rel, path, lines, True  # the generator writes it (hw/gen/emb_hwgen/emit.py)
-        elif lines[1].startswith("/* Copyright "):
-            yield rel, path, lines, False
+        try:
+            lines = path.read_text(encoding="utf-8").split("\n")
+        except (UnicodeDecodeError, ValueError):
+            continue  # not text
+        gen = "/generated/" in rel  # the generator writes it (hw/gen/emb_hwgen/emit.py)
+        if rel.endswith(SUFFIXES) and len(lines) > 1 and lines[0] == SPDX:
+            if gen:
+                yield rel, path, lines, "c-gen"
+            elif lines[1].startswith("/* Copyright "):
+                yield rel, path, lines, "c"
+            continue
+        top = 1 if lines and lines[0].startswith("#!") else 0
+        if len(lines) > top + 1 and lines[top] == HASH_SPDX:
+            if gen:
+                yield rel, path, lines, "hash-gen"
+            elif lines[top + 1].startswith("# Copyright "):
+                yield rel, path, lines, "hash"
+            # else another kind of file (a signers list): not a source
 
 
 def converted(lines):
@@ -231,6 +255,38 @@ def convert(rel, lines, names):
     return head + lines[after:]
 
 
+def hash_end(lines):
+    """The line after a #-commented file's SPDX and copyright lines."""
+    at = (1 if lines[0].startswith("#!") else 0) + 1
+    while at < len(lines) and lines[at].startswith("# Copyright "):
+        at += 1
+    return at
+
+
+def hash_converted(lines):
+    at = hash_end(lines)
+    return lines[at:at + len(HASH_NOTICE)] == HASH_NOTICE
+
+
+def hash_convert(lines):
+    """The notice after the copyright lines, and a blank line before whatever came next."""
+    at = hash_end(lines)
+    gap = [""] if at < len(lines) and lines[at].strip() not in ("", "#") else []  # a bare # separates already
+    return lines[:at] + HASH_NOTICE + gap + lines[at:]
+
+
+def hash_problems(rel, lines):
+    if hash_converted(lines):
+        return []
+    return ["no EmbLinkRTOS notice after the copyright lines (tools/dev/file_headers.py --write)"]
+
+
+def hash_generated_problems(rel, lines):
+    if lines[1:1 + len(HASH_NOTICE)] == HASH_NOTICE:
+        return []
+    return ["the generator did not write the notice (run hw/gen/emb-hwgen.py generate)"]
+
+
 def generated_problems(rel, lines):
     """A generated file: the notice and its @file and @brief, with no author or date."""
     if lines[1:1 + len(NOTICE)] != NOTICE or lines[1 + len(NOTICE):3 + len(NOTICE)] != ["", "/**"]:
@@ -272,16 +328,23 @@ def main():
     ap.add_argument("files", nargs="*", help="only these (repository paths); default all")
     args = ap.parse_args()
     every = list(sources())
-    names = [rel for rel, _, _, generated in every if not generated]
+    names = [rel for rel, _, _, kind in every if kind == "c"]
     chosen = [s for s in every if not args.files or s[0] in set(args.files)]
+    checks = {"c": problems, "c-gen": generated_problems, "hash": hash_problems,
+              "hash-gen": hash_generated_problems}
     failed = changed = 0
-    for rel, path, lines, generated in chosen:
-        if generated and not args.check:
-            continue  # the generator's to write
+    for rel, path, lines, kind in chosen:
         if args.check:
-            for p in (generated_problems if generated else problems)(rel, lines):
+            for p in checks[kind](rel, lines):
                 print(f"{rel}: {p}")
                 failed += 1
+            continue
+        if kind.endswith("-gen"):
+            continue  # the generator's to write
+        if kind == "hash":
+            if not hash_converted(lines):
+                path.write_text("\n".join(hash_convert(lines)), encoding="utf-8")
+                changed += 1
             continue
         if converted(lines):
             continue
