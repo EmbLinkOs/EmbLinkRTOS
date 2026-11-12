@@ -1,0 +1,6 @@
+{
+  "clangd.arguments": [
+    "--query-driver=**/arm-none-eabi-gcc*,**/avr-gcc*,**/riscv64-unknown-elf-gcc*,**/xtensa-esp32-elf-gcc*,**/embcc*",
+    "--header-insertion=never"
+  ]
+}

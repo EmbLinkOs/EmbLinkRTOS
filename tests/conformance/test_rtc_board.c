@@ -89,8 +89,9 @@ EMB_TEST(rtc_board_alarm_on_time)
     EMB_ASSERT_OK(emb_drv_rtc_get(RTC, &now));
     EMB_ASSERT_STATUS(emb_drv_rtc_alarm_set(RTC, now - S, on_alarm, NULL), EMB_EINVAL); /* past */
     if ((emb_device_caps(RTC) & EMB_DRV_RTC_CAP_CALENDAR) != 0u) {
-        EMB_ASSERT_STATUS(emb_drv_rtc_alarm_set(RTC, now + (30 * 86400 * S), on_alarm, NULL),
-                          EMB_EINVAL); /* past the month the alarm compares */
+        EMB_ASSERT_STATUS(
+            emb_drv_rtc_alarm_set(RTC, now + (INT64_C(30) * 86400 * S), on_alarm, NULL),
+            EMB_EINVAL); /* past the month the alarm compares */
     }
 }
 
