@@ -41,10 +41,15 @@ EMB_TEST(rtc_board_set_read_and_keep_time)
     int64_t m1;
     EMB_TEST_REQ("DRV-001");
     EMB_ASSERT_TRUE(emb_device_ready(RTC));
+    m0 = mono_ns();
     EMB_ASSERT_OK(emb_drv_rtc_set(RTC, T0));
     EMB_ASSERT_OK(emb_drv_rtc_get(RTC, &r0));
-    m0 = mono_ns();
-    EMB_ASSERT_TRUE((r0 >= T0 - SLACK) && (r0 <= T0 + SLACK));
+    m1 = mono_ns();
+    /* the RTC holds T0 from the call on: the read is T0 plus what set and get took */
+    emb_test_logf(EMB_TEST_STR("  set and get took %ld ms; the RTC read %ld ms past the time set"),
+                  (long)((m1 - m0) / MS), (long)((r0 - T0) / MS));
+    EMB_ASSERT_TRUE((r0 >= T0 - SLACK) && (r0 <= T0 + (m1 - m0) + SLACK));
+    m0 = m1;
     EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(2000u)));
     EMB_ASSERT_OK(emb_drv_rtc_get(RTC, &r1));
     m1 = mono_ns();

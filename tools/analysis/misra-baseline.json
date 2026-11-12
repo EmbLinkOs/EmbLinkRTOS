@@ -307,7 +307,7 @@
  "drivers/st/stm32_rtc.c": {
   "misra-c2012-10.4": 5,
   "misra-c2012-10.8": 5,
-  "misra-c2012-11.4": 54,
+  "misra-c2012-11.4": 57,
   "misra-c2012-11.5": 3
  },
  "drivers/st/stm32_spi.c": {

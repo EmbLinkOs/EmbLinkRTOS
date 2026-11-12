@@ -275,8 +275,8 @@
     },
     {
       "id": "rtc_oscillator",
-      "input": "the first RTC set after power-up: the wait for its oscillator",
-      "bound": "3 s, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet); the RP2350's tick is the crystal's, already running; later sets do not wait",
+      "input": "an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second",
+      "bound": "3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms",
       "limit": "the driver's wait",
       "enforcement": "structural",
       "masked": false,

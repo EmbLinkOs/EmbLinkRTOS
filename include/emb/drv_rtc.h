@@ -72,7 +72,8 @@ emb_status_t emb_drv_rtc_get(const emb_device_t *dev, int64_t *ns);
  *
  * @ctx      thread
  * @blocks   yes
- * @time     O(1); the first set after power-up waits for the oscillator, up to 3 s
+ * @time     O(1); the first set after power-up waits for the oscillator, up to 3 s, and a set
+ *           with a fraction of a second waits for the hardware to take it, up to 100 ms
  * @owns     none
  * @config   CONFIG_EMB_DRV_RTC
  * @req      DRV-001

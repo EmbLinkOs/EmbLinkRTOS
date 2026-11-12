@@ -61,8 +61,9 @@
 #define EXTI_ALARM   ((uint32_t)1u << 17) /* the RTC alarm's line */
 #define BACKUP_COUNT 20u
 
-#define POLL      100000u /* bounded: a few RTCCLK cycles at 32.768 kHz */
-#define LSE_WAITS 300u    /* 10 ms each: the LSE's 2 s start-up, with margin */
+#define POLL        100000u /* bounded: a few RTCCLK cycles at 32.768 kHz */
+#define LSE_WAITS   300u    /* 10 ms each: the LSE's 2 s start-up, with margin */
+#define SHIFT_WAITS 100u    /* 1 ms each: a shift's completion, measured at some 23 ms */
 
 #define NS_PER_S  1000000000
 #define S_PER_DAY 86400
@@ -246,6 +247,20 @@ static emb_status_t stm32_rtc_clock(void)
     return EMB_OK;
 }
 
+/* The shift done: it completes in tens of milliseconds on the part, so it is waited for by the
+ * time it takes, sleeping, not by a count of polls. */
+static emb_status_t stm32_rtc_shifted(uintptr_t base)
+{
+    uint32_t i;
+    for (i = 0u; i < SHIFT_WAITS; i++) { /* bounded: 100 ms */
+        if ((REG32(base + RTC_ISR) & ISR_SHPF) == 0u) {
+            return EMB_OK;
+        }
+        (void)emb_thread_sleep(EMB_MS(1u));
+    }
+    return EMB_EIO;
+}
+
 static emb_status_t stm32_rtc_set(const emb_device_t *dev, int64_t ns)
 {
     uintptr_t base = stm32_rtc_config(dev)->base;
@@ -291,11 +306,13 @@ static emb_status_t stm32_rtc_set(const emb_device_t *dev, int64_t ns)
     REG32(base + RTC_ISR) &= ~ISR_INIT;
     if ((shift != 0u) && stm32_rtc_poll(base + RTC_ISR, ISR_SHPF, false)) {
         REG32(base + RTC_SHIFTR) = shift; /* SUBFS: back by shift / 256 s */
-        (void)stm32_rtc_poll(base + RTC_ISR, ISR_SHPF, false);
+        st = stm32_rtc_shifted(base);
     }
+    /* the shadow registers copied again, as RM0390 §26.3.8 asks after a shift */
+    REG32(base + RTC_ISR) = (~(ISR_RSF | ISR_INIT)) | (REG32(base + RTC_ISR) & ISR_INIT);
     REG32(base + RTC_WPR) = WPR_LOCK;
     (void)stm32_rtc_poll(base + RTC_ISR, ISR_RSF, true);
-    return EMB_OK;
+    return st;
 }
 
 /* The calendar's second and subsecond count now, as the registers hold them. */
