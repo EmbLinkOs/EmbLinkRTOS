@@ -38,7 +38,7 @@ HW-001 to 006 originate in `docs/architecture/04-platform-architecture.md` §1.3
 
 ### HW-005  Normalized JSON export
 **Statement.** The normalized model shall be exported in a stable JSON form for tooling.
-**Rationale.** EmbStudio, EmbDebug, the HIL runner, and the harness consume one artifact and never parse YAML.
+**Rationale.** EmbLink Studio, EmbDebug, the HIL runner, and the harness consume one artifact and never parse YAML.
 **Status.** Accepted 2026-10-07; implemented: `hw.json` with `hw/schemas/hw.schema.json` (A68).
 **Verification.** Schema for `hw.json`; consumer tests. Test: `Outputs.test_hw_json_matches_its_schema`; no consumer reads it yet.
 **Trace.** SPEC-014 §6, §9

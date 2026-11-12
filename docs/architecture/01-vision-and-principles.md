@@ -63,7 +63,7 @@ EmbLinkRTOS is not:
 - a teaching scheduler or an Arduino helper library;
 - a POSIX operating system (a POSIX subset may exist as a compatibility layer);
 - a general-purpose OS with virtual memory, paging, or dynamic loading as core features (an MMU may be used for protection, not for demand paging);
-- tied to EmbCC, EmbStudio, or any single vendor's silicon;
+- tied to EmbCC, EmbLink Studio, or any single vendor's silicon;
 - a network stack, filesystem, or USB stack vendor (these are integrated middleware with defined contracts);
 - certified to any safety or security standard until a defined product scope, process, and assessment say so.
 
