@@ -52,12 +52,46 @@ peripherals:
   - { name: pads_bank0, compatible: "rpi,rp2350-pads", base: 0x40038000, size: 0x4000 }
   - { name: xosc, compatible: "rpi,rp2350-xosc", base: 0x40048000, size: 0x4000 }
   - { name: pll_sys, compatible: "rpi,rp2350-pll", base: 0x40050000, size: 0x4000 }
-  - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }] }
-  - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }] }
+  - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }],
+      dma_requests: { tx: dma.dreq28, rx: dma.dreq29 } }
+  - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }],
+      dma_requests: { tx: dma.dreq30, rx: dma.dreq31 } }
+  # the SPI controllers are PL022s (datasheet §12.3), clocked by clk_peri
+  - { name: spi0, compatible: "arm,pl022", base: 0x40080000, size: 0x4000, irqs: [{ name: global, number: 31 }],
+      dma_requests: { tx: dma.dreq24, rx: dma.dreq25 } }
+  - { name: spi1, compatible: "arm,pl022", base: 0x40088000, size: 0x4000, irqs: [{ name: global, number: 32 }],
+      dma_requests: { tx: dma.dreq26, rx: dma.dreq27 } }
+  # the I2C controllers are Synopsys DesignWare DW_apb_i2c (datasheet §12.2), clocked by clk_sys
+  - { name: i2c0, compatible: "snps,designware-i2c", base: 0x40090000, size: 0x4000, irqs: [{ name: global, number: 36 }],
+      dma_requests: { tx: dma.dreq44, rx: dma.dreq45 } }
+  - { name: i2c1, compatible: "snps,designware-i2c", base: 0x40098000, size: 0x4000, irqs: [{ name: global, number: 37 }],
+      dma_requests: { tx: dma.dreq46, rx: dma.dreq47 } }
+  # the DMA controller (datasheet §12.6): 16 channels, any paced by a peripheral's DREQ (pico-sdk
+  # 2.1.1, hardware/regs/dreq.h), its interrupts in four groups; it copies memory too
+  - { name: dma, compatible: "rpi,rp2350-dma", base: 0x50000000, size: 0x1000,
+      irqs: [ { name: irq0, number: 10 }, { name: irq1, number: 11 }, { name: irq2, number: 12 }, { name: irq3, number: 13 } ],
+      dma: { kind: dreq, channels: 16, max_count: 268435455, memory: true } }
+  # the watchdog (datasheet §12.9), counting the TICKS block's microsecond tick; the power-on
+  # state machine (§7.4), whose WDSEL picks what a watchdog reset reaches (pico-sdk 2.1.1's
+  # addressmap.h)
+  - { name: watchdog, compatible: "rpi,rp2350-watchdog", base: 0x400D8000, size: 0x4000 }
+  - { name: ticks, compatible: "rpi,rp2350-ticks", base: 0x40108000, size: 0x4000 }
+  - { name: psm, compatible: "rpi,rp2350-psm", base: 0x40018000, size: 0x4000 }
   # the QSPI memory interface: XIP from the board's flash (window M0) and PSRAM (M1)
   - { name: qmi, compatible: "rpi,rp2350-qmi", base: 0x400D0000, size: 0x4000 }
+  # the power manager (datasheet §6.4), whose always-on timer (§6.5) is the board's clock kept
+  # across resets; POWMAN_IRQ_TIMER is 45
+  - { name: powman, compatible: "rpi,rp2350-powman", base: 0x40100000, size: 0x4000,
+      irqs: [ { name: timer, number: 45 } ] }
+  # the true random number generator (datasheet §12.12), TRNG_IRQ 39
+  - { name: trng, compatible: "rpi,rp2350-trng", base: 0x400F0000, size: 0x1000,
+      irqs: [ { name: irq, number: 39 } ] }
+  # boot RAM (datasheet §5.4.1): the boot ROM leaves its XIP setup function in the first 256 bytes
+  - { name: bootram, compatible: "rpi,rp2350-bootram", base: 0x400E0000, size: 0x400 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
-# The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX)
+# The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX);
+# SPI1's, f1, on the lines of its first bank the Pico 2 W brings out; I2C0's and I2C1's, f3, on
+# GPIO6 to GPIO9
 alternate_functions:
   GPIO0: { f2: uart0_tx }
   GPIO1: { f2: uart0_rx }
@@ -65,13 +99,13 @@ alternate_functions:
   GPIO3: { f11: uart0_rx }
   GPIO4: { f2: uart1_tx }
   GPIO5: { f2: uart1_rx }
-  GPIO6: { f11: uart1_tx }
-  GPIO7: { f11: uart1_rx }
-  GPIO8: { f2: uart1_tx }
-  GPIO9: { f2: uart1_rx }
-  GPIO10: { f11: uart1_tx }
-  GPIO11: { f11: uart1_rx }
-  GPIO12: { f2: uart0_tx }
+  GPIO6: { f3: i2c1_sda, f11: uart1_tx }
+  GPIO7: { f3: i2c1_scl, f11: uart1_rx }
+  GPIO8: { f2: uart1_tx, f3: i2c0_sda }
+  GPIO9: { f2: uart1_rx, f3: i2c0_scl }
+  GPIO10: { f1: spi1_sck, f11: uart1_tx }
+  GPIO11: { f1: spi1_mosi, f11: uart1_rx }
+  GPIO12: { f1: spi1_miso, f2: uart0_tx }
   GPIO13: { f2: uart0_rx }
   GPIO14: { f11: uart0_tx }
   GPIO15: { f11: uart0_rx }
@@ -92,5 +126,10 @@ alternate_functions:
 # The boot ROM boots a flash image with a valid IMAGE_DEF block in its first 4 KiB (datasheet
 # §5.9); image_type 0x1021 says EXE, SECURITY_S, CPU_ARM, CHIP_RP2350 (pico-sdk's picobin.h).
 # The UF2 family ID is the ROM's for Arm Secure images.
+# The QSPI flash behind the XIP window (datasheet §12.14; the boot ROM's routines, §5.5.8):
+# erased by 4 KiB sectors, programmed by 256-byte pages. The board gives the chip's size.
+flash:
+  region: xip
+  geometry: { page_size: 4K, write_granularity: 256 }
 boot: { image: uf2, uf2_family: 0xE48BFF59, image_type: 0x1021 }
 debug: { swd: true }

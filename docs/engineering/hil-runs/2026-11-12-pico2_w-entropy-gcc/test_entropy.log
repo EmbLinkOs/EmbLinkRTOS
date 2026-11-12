@@ -1,0 +1,34 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_entropy.elf sha256 75eacbb66dad16c91afd3d565a6febd77160fc3b4b09c345bed9cd26585f58a1
+EVIDENCE v1 suite=test_entropy config=1aafec98e5605967 profile=base board=pico2_w checked=1
+TEST entropy_misuse_faults
+  fault checks that reset the board: 4
+  -> ok
+  req DRV-001
+CASE entropy_misuse_faults outcome=passed asserts=5 skips=0
+TEST entropy_board_source_or_its_absence
+  -> ok
+  req SEC-012
+CASE entropy_board_source_or_its_absence outcome=passed asserts=4 skips=0
+TEST entropy_timeout_keeps_what_was_read
+  -> ok
+  req DRV-001
+CASE entropy_timeout_keeps_what_was_read outcome=passed asserts=4 skips=0
+TEST entropy_health_failure_delivers_none_of_its_block
+  -> ok
+  req DRV-001
+CASE entropy_health_failure_delivers_none_of_its_block outcome=passed asserts=7 skips=0
+TEST entropy_read_raw_assembles_blocks
+  -> ok
+  req DRV-001
+CASE entropy_read_raw_assembles_blocks outcome=passed asserts=54 skips=0
+TEST entropy_read_conditions_twice_the_bytes
+  -> ok
+  req DRV-001
+CASE entropy_read_conditions_twice_the_bytes outcome=passed asserts=5 skips=0
+TEST entropy_conditioning_is_sha256
+  -> ok
+  req DRV-001
+CASE entropy_conditioning_is_sha256 outcome=passed asserts=3 skips=0
+ISR_STACK size=2048 used=216
+7 tests, 0 failed, 0 skipped, 92 ticks
+EMB_TEST_END

@@ -1,0 +1,22 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_rtc_board.elf sha256 fd43e44e7d78569b9a7cd0e8f8d02f37d2ff897830135b779e717fb7b02db811
+EVIDENCE v1 suite=test_rtc_board config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST rtc_board_keeps_its_time_across_a_reset
+  after the reset the RTC read 4 ms past the time set  fault checks that reset the board: 1
+  -> ok
+  req DRV-001 KRN-TIM-031
+CASE rtc_board_keeps_its_time_across_a_reset outcome=passed asserts=5 skips=0
+TEST rtc_board_backup_registers
+  -> ok
+  req DRV-001
+CASE rtc_board_backup_registers outcome=passed asserts=1 skips=0
+TEST rtc_board_alarm_on_time
+  an alarm 300 ms ahead fired after 300 ms  -> ok
+  req DRV-001
+CASE rtc_board_alarm_on_time outcome=passed asserts=42 skips=0
+TEST rtc_board_set_read_and_keep_time
+  set and get took 0 ms; the RTC read 0 ms past the time set  over 2006 ms of the kernel's clock the RTC moved 2005 ms  -> ok
+  req DRV-001
+CASE rtc_board_set_read_and_keep_time outcome=passed asserts=8 skips=0
+ISR_STACK size=2048 used=208
+4 tests, 0 failed, 0 skipped, 2762 ticks
+EMB_TEST_END

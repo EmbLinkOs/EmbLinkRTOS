@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 3,
+      "name": "smoke_libc_errno_from_a_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "smoke_sleep_advances_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "smoke_thread_runs_and_exits",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T18:00:23Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "514b6c0f79d504ce",
+    "profile": "base",
+    "suite": "test_smoke"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_smoke.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_smoke.uf2": "e7a6f22d351cf007cc89a0eece3db256d99fa2e759d2d32fd772935ab5698d32"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "a3166a3989ce1682ccdc9b9f0059fc77eb369e3c",
+    "dirty": false
+  },
+  "image": "test_smoke.elf",
+  "image_sha256": "2fbbd54a08cffe91b74b196da2639a78ca9f6af5bf120df1285900c6972f18d7",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T18:00:22Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

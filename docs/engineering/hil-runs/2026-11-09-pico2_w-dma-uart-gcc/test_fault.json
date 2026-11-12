@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 2,
+      "name": "fault_status_policy_is_preserved",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "fault_successful_check_preserves_status",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:41:09Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_fault"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 2,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_fault.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_fault.uf2": "a4dc053886b5d38dcb1281431a8ef3eae727d6bedbc1a2ff8914232a9804a1b4"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "211c4d98e15600f78d500595cad767c34a328b07",
+    "dirty": false
+  },
+  "image": "test_fault.elf",
+  "image_sha256": "d52ea2205ce025c1183a3d2ee8e5902765a4ac4a8448b8eb79e30f3f31ffec8c",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:41:07Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

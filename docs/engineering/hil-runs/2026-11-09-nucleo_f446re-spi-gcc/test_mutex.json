@@ -1,0 +1,137 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "mutex_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "mutex_waiter_priority_change_reorders_and_propagates",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "mutex_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "mutex_destroy_rules",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_owner_death_policy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "mutex_ceiling_violation_when_owned",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_ceiling_violation_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "mutex_ceiling_raises_the_owner",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "mutex_deadlock_is_detected_on_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 28,
+      "name": "mutex_inheritance_propagates_along_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "mutex_timeout_removes_the_contribution",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "mutex_contended_lock_inherits_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "mutex_recursive_counts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "mutex_lock_unlock_and_ownership",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T19:07:09Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "c16e1c6b0306ac27",
+    "profile": "base",
+    "suite": "test_mutex"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 11,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_mutex.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_mutex.elf": "78512853e8f15d8dcb31189905a7e58c9737b8f01ca54b9c313130f4866c5e1b"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b453a8d0cd30df946edd1c377f42e8ae29d8373",
+    "dirty": false
+  },
+  "image": "test_mutex.elf",
+  "image_sha256": "78512853e8f15d8dcb31189905a7e58c9737b8f01ca54b9c313130f4866c5e1b",
+  "isr_stack": {
+    "size": 2048,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T19:07:07Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 15
+  }
+}

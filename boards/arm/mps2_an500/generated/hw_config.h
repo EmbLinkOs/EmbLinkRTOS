@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/arm/mps2_an500/board.yaml
- *     9573cd90294fa53167fa238ad364e88a97be7ca4b82624e0cf7c5a9baba55f40
+ *     98a35eca9c0a1058bf138ecb96d26c2e3a416d67f5195fd649046dcb258ab71b
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/arm/mps2/an500.yaml
  *     f6beb3730b7c7a9094f517c0b02739b2a6c1ef96a36b65ec4f30f626737f4a49
  *   soc/arm/mps2/mps2.yaml
- *     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+ *     5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7
  */
 /* Hardware configuration of mps2_an500 (SPEC-014 §6, SPEC-002 §8). */
 #ifndef HW_CONFIG_H
@@ -37,8 +37,12 @@
 #define EMB_HW_IRQ_PRIORITY_BITS 3u
 
 /* peripherals: register blocks, interrupt lines, clock gates */
-#define EMB_HW_FPGAIO_BASE 0x40028000u
-#define EMB_HW_UART0_BASE  0x40004000u
+#define EMB_HW_FPGAIO_BASE  0x40028000u
+#define EMB_HW_SPI0_BASE    0x40025000u
+#define EMB_HW_SPI0_IRQ     22u
+#define EMB_HW_UART0_BASE   0x40004000u
+#define EMB_HW_UART0_IRQ_RX 0u
+#define EMB_HW_UART0_IRQ_TX 1u
 
 /* console: uart0 */
 #define EMB_HW_CONSOLE_BASE     EMB_HW_UART0_BASE

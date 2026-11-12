@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
+ *     38e4d2e65780c0790c92cf2b169be7f0df3e53a384dea3b991fdc8a07bee236b
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -22,7 +22,7 @@ ENTRY(embn_cm_reset)
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 512K
+  FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 384K
   RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
 }
 
@@ -59,6 +59,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;

@@ -5,11 +5,11 @@
 #   arch/cortex_m/arch.yaml
 #     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
 #   boards/rpi/pico2_w/board.yaml
-#     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
+#     2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef
 #   drivers/bindings.yaml
-#     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+#     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
 #   soc/rpi/rp2350/rp2350.yaml
-#     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
+#     c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d
 #   soc/rpi/rp2350/rp2350a.yaml
 #     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
 # pico2_w: RP2350A, cortex-m33f at 150 MHz.
@@ -21,6 +21,9 @@ set(EMB_BOARD_C_FLAGS -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/rpi/rp2350")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_UART1_DMA tx)
+set(EMB_BOARD_SPI1_DMA rx tx)
+set(EMB_BOARD_SPI1_CS_COUNT 1)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
 # the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
@@ -28,17 +31,25 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/rpi/rp2350_devices.c"
     "${EMB_BASE}/drivers/rpi/rp2350_gpio.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_watchdog.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_aon.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_flash.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_dma.c"
     "${EMB_BASE}/drivers/arm/pl011.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_trng.c"
+    "${EMB_BASE}/drivers/arm/pl022.c"
+    "${EMB_BASE}/drivers/snps/dw_i2c.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/rpi/include"
     "${EMB_BASE}/drivers/arm/include"
+    "${EMB_BASE}/drivers/snps/include"
 )
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
-    "boards/rpi/pico2_w/board.yaml=2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96"
-    "drivers/bindings.yaml=12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
-    "soc/rpi/rp2350/rp2350.yaml=39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf"
+    "boards/rpi/pico2_w/board.yaml=2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef"
+    "drivers/bindings.yaml=3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
+    "soc/rpi/rp2350/rp2350.yaml=c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d"
     "soc/rpi/rp2350/rp2350a.yaml=5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
 )

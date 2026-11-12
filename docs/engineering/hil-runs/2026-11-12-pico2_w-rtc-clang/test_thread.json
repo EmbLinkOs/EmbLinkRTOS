@@ -1,0 +1,115 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "thread_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "thread_start_twice_is_estate_and_destroy_rules",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 18,
+      "name": "thread_suspend_resume_are_idempotent_overlays",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "thread_wake_while_suspended_is_applied_at_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "thread_cancel_wakes_a_sleeping_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "thread_cancel_pending_delivered_at_next_point",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_cancel_point_and_counts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "thread_priority_change_requeues_waiter",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "thread_state_reports_lifecycle",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "thread_define_registers_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "thread_stack_info_reports_size",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T20:50:56Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "d2766df657716aad",
+    "profile": "base",
+    "suite": "test_thread"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 8,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_thread.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_thread.uf2": "438937c938dcb84e8af642957fab5db74cc7d65569bad5220f48b4d3d7b621b7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_thread.elf",
+  "image_sha256": "4e6f53cb806dea1de5d0869ba1e853a7bcd0a24b8172568439998fb9b1f332e6",
+  "isr_stack": {
+    "size": 2048,
+    "used": 180
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T20:50:54Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 11
+  }
+}

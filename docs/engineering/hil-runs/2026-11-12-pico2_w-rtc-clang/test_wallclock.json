@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "wallclock_set_and_get",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "wallclock_adjust_moves_no_deadline",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T20:51:04Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "d2766df657716aad",
+    "profile": "base",
+    "suite": "test_wallclock"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_wallclock.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_wallclock.uf2": "cfe7f38c1c64855709e00faf3eddfc809d7870332558d4a9583171265233932e"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_wallclock.elf",
+  "image_sha256": "553ca80e995beaef86b56b736dae5e3ef698587c8b4d31e9bb46b9c4d6e49b8a",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T20:51:02Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

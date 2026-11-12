@@ -1,0 +1,95 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 4,
+      "name": "spi_loop_frames_come_back_intact",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "spi_loop_every_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_slow_and_fast_clocks",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "spi_loop_refuses_a_clock_too_slow",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "spi_loop_timeout_stops_after_whole_frames",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "spi_loop_no_transmit_buffer_sends_ones",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 21,
+      "name": "spi_loop_chip_select_at_the_pin",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "spi_loop_runs_by_dma",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:19:38Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "2e3cca609b4e6c58",
+    "profile": "base",
+    "suite": "test_spi_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_spi_loop.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_spi_loop.elf": "78ddc2224c3a211e96be6173e401390d27b85d49386e38a2d18cc615550fee7d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "e56651ee81860282e7a1a0ef624275834e305e47",
+    "dirty": false
+  },
+  "image": "test_spi_loop.elf",
+  "image_sha256": "78ddc2224c3a211e96be6173e401390d27b85d49386e38a2d18cc615550fee7d",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T22:19:36Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}

@@ -48,10 +48,10 @@ __attribute__((section(".vectors"), used)) static const vector_t vectors[16] = {
 };
 
 static const emb_stm32_pin_t pins[] = {
-    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u},  /* USART2_TX to the ST-LINK */
-    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u},  /* USART2_RX from the ST-LINK */
-    {EMB_STM32_PORT(A), 10u, EMB_STM32_PIN_AF, 7u}, /* USART1_RX from the other board */
-    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u, 0u, 0u},  /* USART2_TX to the ST-LINK */
+    {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u, 0u},  /* USART2_RX from the ST-LINK */
+    {EMB_STM32_PORT(A), 10u, EMB_STM32_PIN_AF, 7u, 0u, 0u}, /* USART1_RX from the other board */
+    {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
 };
 
 void embn_cm_reset(void)

@@ -1,0 +1,79 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 15,
+      "name": "thread_identity_survives_priority_and_termination",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1200,
+      "name": "thread_identity_repeated_construction_does_not_alias_live_object",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "thread_identity_survives_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "thread_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "idle_context_is_not_an_application_thread",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:28:22Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "31514269d16f5bb3",
+    "profile": "base",
+    "suite": "test_thread_identity"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_thread_identity.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_thread_identity.uf2": "8ff95ccd466b3e91ef1fc6a42fcda64da0de0dc2daeba737a65c81c1d6b05ce1"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b3f1872e4d4031bbd2a637567d17d7eee5b1c8b",
+    "dirty": false
+  },
+  "image": "test_thread_identity.elf",
+  "image_sha256": "165ee00f791be302747dec771e61b102d8944c4dff0a8c5bb68b58c5ede2d6d9",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T23:28:21Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

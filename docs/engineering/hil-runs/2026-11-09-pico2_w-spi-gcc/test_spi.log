@@ -1,0 +1,24 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_spi.elf sha256 4a5b0f109b5fb8ac6ef2b7dc66b266ee9202fbcfa4e9efadf4cc6ffc7bda5777
+EVIDENCE v1 suite=test_spi config=a224274669778551 profile=base board=pico2_w cheãMQspi_méÕ±ÑÍ  fault checks that reset the board: 5
+  -> ok
+  req DRV-004
+CASE spi_misuse_faults outcome=passed asserts=6 skips=0
+TEST spi_unsupported_and_stopped
+  -> ok
+  req DRV-006
+CASE spi_unsupported_and_stopped outcome=passed asserts=5 skips=0
+TEST spi_transfers_run_in_order
+  -> ok
+  req DRV-004
+CASE spi_transfers_run_in_order outcome=passed asserts=8 skips=0
+TEST spi_without_buffers
+  -> ok
+  req DRV-005
+CASE spi_without_buffers outcome=passed asserts=5 skips=0
+TEST spi_transfer_loops_back
+  -> ok
+  req DRV-004 DRV-005
+CASE spi_transfer_loops_back outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=208
+5 tests, 0 failed, 0 skipped, 57 ticks
+EMB_TEST_END

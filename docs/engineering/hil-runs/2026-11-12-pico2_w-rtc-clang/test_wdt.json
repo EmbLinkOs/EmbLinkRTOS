@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 13,
+      "name": "wdt_start_feed_and_cause",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "wdt_not_ready_and_misuse",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T20:51:47Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "d2766df657716aad",
+    "profile": "base",
+    "suite": "test_wdt"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_wdt.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_wdt.uf2": "38f64472c5705ebfe8214978d118780c380f22af2f54553151144083f843a8d3"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_wdt.elf",
+  "image_sha256": "37dc2bf7380d3c578e68d8fadb39e0c77a829fd747b813dd2d0ca288116a1f78",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T20:51:45Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "i2c_loop_write_to_the_target",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 32,
+      "name": "i2c_loop_register_reads_of_every_length",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_nobody_answers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_target_drops_beyond_its_buffer",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "i2c_loop_fast_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "i2c_loop_listen_times_out",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T21:13:01Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "58171f48454d7671",
+    "profile": "base",
+    "suite": "test_i2c_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_i2c_loop.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_i2c_loop.elf": "13a2840a3a0dd08f03468914e7a96f643397c34f0f21b9f9a1f176aca9b7c7b9"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fe789d75149173a2023e11d9a4ab6258327acea1",
+    "dirty": false
+  },
+  "image": "test_i2c_loop.elf",
+  "image_sha256": "13a2840a3a0dd08f03468914e7a96f643397c34f0f21b9f9a1f176aca9b7c7b9",
+  "isr_stack": {
+    "size": 2048,
+    "used": 164
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T21:12:59Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 6
+  }
+}

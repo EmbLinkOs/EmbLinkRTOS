@@ -1,0 +1,77 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 11,
+      "name": "gpio_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "gpio_driver_refusals",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "gpio_named_line_follows_its_sense",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "gpio_input_reads_its_pull",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "gpio_output_drives_and_reads_back",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:47:52Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "d8134c20c0bc281b",
+    "profile": "base",
+    "suite": "test_gpio"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 10,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_gpio.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_gpio.elf": "013538e2a35c434c7e5326589822f2c5c72a7dafd8876bc5d1554fb389b7c3eb"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "b76b15f3cf4023ee539b82df2078813c0a887634",
+    "dirty": false
+  },
+  "image": "test_gpio.elf",
+  "image_sha256": "013538e2a35c434c7e5326589822f2c5c72a7dafd8876bc5d1554fb389b7c3eb",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T23:47:50Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

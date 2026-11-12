@@ -1,0 +1,143 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 9,
+      "name": "workq_runs_items_in_fifo_order_on_its_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "workq_resubmit_while_running_runs_again",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "workq_item_belongs_to_one_queue_at_a_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "workq_cancel_reports_pending_running_and_idle",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "workq_flush_waits_for_items_queued_before_it",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "workq_submit_from_isr_runs_at_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "workq_thread_is_a_kernel_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "workq_destroy_refuses_a_busy_queue",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "workq_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "workq_system_queue_runs_items",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "dwork_runs_after_its_delay_and_schedule_is_idempotent",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "dwork_reschedule_replaces_the_delay",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "dwork_rescheduled_during_its_expiry_keeps_the_new_delay",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 19,
+      "name": "dwork_cancel_reports_pending_for_a_delay_and_a_queued_item",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "dwork_cancel_sync_waits_for_a_running_handler",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "workq_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T21:06:20Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "a15060c03d47d9b0",
+    "profile": "base",
+    "suite": "test_workq"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 6,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_workq.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_workq.elf": "1000bab5f8a6e1651c3107e3632e09ef888bf499d326689ff969e9911b12972d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_workq.elf",
+  "image_sha256": "1000bab5f8a6e1651c3107e3632e09ef888bf499d326689ff969e9911b12972d",
+  "isr_stack": {
+    "size": 2048,
+    "used": 228
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-12T21:06:18Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 16
+  }
+}

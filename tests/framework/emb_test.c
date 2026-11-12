@@ -335,6 +335,8 @@ void emb_test_threads_reset(void)
 #define RESUME_PENDING        0xA0u
 #define RESULT_KERNEL_FAULT   1u
 #define RESULT_HARDWARE_FAULT 2u
+#define RESULT_RESET          3u /* a reset check's: the board reset, as it expected */
+#define RESULT_EARLY          0u /* a reset check's, armed: a reset now came too soon */
 #define NO_CASE               0xFFFFu
 
 /* What a boot leaves for the next one in the platform's retained memory: 16 bytes, which
@@ -460,7 +462,9 @@ static void hook_install(bool on)
 }
 #endif
 
-bool emb_test_fault_begin(unsigned line, const char *what_flash)
+/* A fault check's or a reset check's start (@reset): true when its statement must run now,
+ * false when an earlier boot settled it. */
+static bool check_begin(unsigned line, const char *what_flash, bool reset)
 {
     case_check++;
     if (case_index == resume_case) {
@@ -474,6 +478,18 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
             case_settled = resume.settled;
             if (resume.case_failed != 0u) {
                 current_failed = 1u; /* printed on the boot that failed */
+            }
+            if (reset) {
+                if ((resume.state & 0x0Fu) == RESULT_RESET) {
+                    case_settled++;
+                } else if ((resume.state & 0x0Fu) == RESULT_EARLY) {
+                    emb_test_fail(line,
+                                  EMB_TEST_STR("the board reset before the check expected it"));
+                } else {
+                    emb_test_fail(line, EMB_TEST_STR("a fault, not the reset the check expected"));
+                }
+                (void)what_flash;
+                return false;
             }
 #if CONFIG_EMB_CHECKED
             if ((resume.state & 0x0Fu) != RESULT_KERNEL_FAULT) {
@@ -503,6 +519,12 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
     resume.state = 0u;
     resume.settled = case_settled;
     resume.case_failed = (uint8_t)current_failed;
+    if (reset) {
+        /* stored now: a reset by the hardware leaves no moment to store it after. Until the
+         * statement says a reset is due (emb_test_reset_expected()), one is too early. */
+        resume.state = (uint8_t)(RESUME_PENDING | RESULT_EARLY);
+        resume_store();
+    }
     hook_install(true);
 #if CONFIG_EMB_CHECKED
     armed_line = line;
@@ -513,6 +535,42 @@ bool emb_test_fault_begin(unsigned line, const char *what_flash)
 #endif
     armed = 1u;
     return true;
+}
+
+bool emb_test_fault_begin(unsigned line, const char *what_flash)
+{
+    return check_begin(line, what_flash, false);
+}
+
+bool emb_test_reset_begin(unsigned line, const char *what_flash)
+{
+    return check_begin(line, what_flash, true);
+}
+
+void emb_test_reset_expected(void)
+{
+    if ((armed != 0u) && ((resume.state & 0xF0u) == RESUME_PENDING)) {
+        resume.state = (uint8_t)(RESUME_PENDING | RESULT_RESET);
+        resume_store();
+    }
+}
+
+/* A reset check's statement returned: the board did not reset. */
+void emb_test_reset_none(void)
+{
+    size_t cap = 0u;
+    uint8_t *mem = emb_test_platform_retained(&cap);
+    size_t i;
+    armed = 0u;
+    hook_install(false);
+    for (i = 0u; i < sizeof(resume) && i < cap; i++) { /* bounded by the record */
+        mem[i] = 0u; /* nothing pending: a later reset is not this check's */
+    }
+#if CONFIG_EMB_CHECKED
+    emb_test_fail(armed_line, EMB_TEST_STR("the board did not reset"));
+#else
+    emb_test_fail(0u, EMB_TEST_STR("the board did not reset"));
+#endif
 }
 
 void emb_test_fault_none(void)
@@ -527,6 +585,14 @@ void emb_test_fault_none(void)
     /* a release build returns the misuse's status */
 }
 #endif /* EMB_TEST_FAULT_BY_RESET */
+
+#if !EMB_TEST_FAULT_BY_RESET
+/* No board that resumes after a reset: reset checks are skipped, and their statements, which
+ * may call this, compiled but never run. */
+void emb_test_reset_expected(void)
+{
+}
+#endif
 
 /* ---- runner ---------------------------------------------------------------------- */
 

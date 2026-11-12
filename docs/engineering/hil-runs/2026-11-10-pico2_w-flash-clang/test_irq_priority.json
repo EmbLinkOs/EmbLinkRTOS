@@ -1,0 +1,109 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 2,
+      "name": "irq_priority_accepts_advertised_endpoints",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_rejects_out_of_range_level",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "irq_priority_rejects_unknown_number",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_port_rejects_invalid_inputs",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 37,
+      "name": "irq_priority_encodings_and_invalid_write_guard",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 18,
+      "name": "irq_priority_higher_generic_level_wins_pending_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "irq_priority_higher_generic_level_preempts_lower",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 25,
+      "name": "irq_priority_nested_interrupt_reschedules_work_in_a_timer_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "irq_priority_equal_levels_do_not_preempt",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "irq_priority_highest_kernel_level_is_masked",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-10T00:50:00Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "c1f79b836c910433",
+    "profile": "base",
+    "suite": "test_irq_priority"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_irq_priority.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_irq_priority.uf2": "c5dddec168b0d378c03d0181cd164f0420abff8e7bd51b9a7a37f430e2561420"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "750d3ab06f6a34a93a56b8675e7d664cce087d42",
+    "dirty": false
+  },
+  "image": "test_irq_priority.elf",
+  "image_sha256": "e42ff5650e2090e490f8b3b06943aa36aca73c5f781387d99b1ce057858fbfee",
+  "isr_stack": {
+    "size": 2048,
+    "used": 276
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-10T00:49:58Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 10
+  }
+}

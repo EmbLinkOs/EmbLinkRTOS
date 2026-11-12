@@ -1,0 +1,67 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 38,
+      "name": "crash_record_round_trip",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "crash_record_corruption_is_ignored",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "crash_record_get_refuses_null",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T18:02:06Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "514b6c0f79d504ce",
+    "profile": "base",
+    "suite": "test_crash"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_crash.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_crash.uf2": "10933354141b91005a52adc4b01d8dc5ec8e5cd5a477277c46b1876f9235d580"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "a3166a3989ce1682ccdc9b9f0059fc77eb369e3c",
+    "dirty": false
+  },
+  "image": "test_crash.elf",
+  "image_sha256": "b29b53738389101b5b73f84b8d2aa879427353d61ea78d69bc70e475616550c9",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T18:02:04Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

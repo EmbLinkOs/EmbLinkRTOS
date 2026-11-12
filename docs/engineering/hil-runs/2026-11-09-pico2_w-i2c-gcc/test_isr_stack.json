@@ -1,0 +1,73 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 1,
+      "name": "isr_stack_limit_stops_an_overflowing_interrupt",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "thread_guard_is_checked_at_the_outermost_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "isr_stack_guard_is_checked_at_the_outermost_exit",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "isr_stack_info_reports_size_and_use",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T21:13:33Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "9e4854acdc9e5692",
+    "profile": "base",
+    "suite": "test_isr_stack"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_isr_stack.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_isr_stack.uf2": "128e8c6ab932861c1733d205b07f2474819149f9e26399eb0475f953853d7823"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fe789d75149173a2023e11d9a4ab6258327acea1",
+    "dirty": false
+  },
+  "image": "test_isr_stack.elf",
+  "image_sha256": "442cbed6d63dfd2b0ba2b442196df01e2a1bd671f082acca072b99bbb645d541",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T21:13:31Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 4
+  }
+}

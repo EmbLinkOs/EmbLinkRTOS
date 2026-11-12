@@ -1,0 +1,89 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 22,
+      "name": "timer_isr_context_one_shot_and_periodic_without_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 22,
+      "name": "timer_restart_remaining_and_stop_states",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "timer_callback_runs_on_its_work_queue",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_stop_sync_waits_for_a_running_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_expiries_during_a_long_callback_are_overruns",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "timer_init_needs_a_queue_or_isr_context",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "timer_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T19:08:17Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "c16e1c6b0306ac27",
+    "profile": "base",
+    "suite": "test_timer"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_timer.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_timer.elf": "6e66479a781d1db8f70ae338d1f1f9506d4f72672158772e235d3cabe882e99a"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b453a8d0cd30df946edd1c377f42e8ae29d8373",
+    "dirty": false
+  },
+  "image": "test_timer.elf",
+  "image_sha256": "6e66479a781d1db8f70ae338d1f1f9506d4f72672158772e235d3cabe882e99a",
+  "isr_stack": {
+    "size": 2048,
+    "used": 120
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T19:08:15Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

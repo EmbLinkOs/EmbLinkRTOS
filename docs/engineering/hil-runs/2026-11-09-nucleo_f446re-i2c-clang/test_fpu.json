@@ -1,0 +1,59 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "fpu_callee_saved_registers_survive_a_switch",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "fpu_state_survives_preemption",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T21:13:16Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "58171f48454d7671",
+    "profile": "base",
+    "suite": "test_fpu"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_fpu.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_fpu.elf": "8f27173b2d11a2c2d7b8626804016e8e01e6593077db6b12793322de995a9778"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "fe789d75149173a2023e11d9a4ab6258327acea1",
+    "dirty": false
+  },
+  "image": "test_fpu.elf",
+  "image_sha256": "8f27173b2d11a2c2d7b8626804016e8e01e6593077db6b12793322de995a9778",
+  "isr_stack": {
+    "size": 2048,
+    "used": 164
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T21:13:14Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

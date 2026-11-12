@@ -58,6 +58,13 @@ class Collect(unittest.TestCase):
                          ("skipped", ["fault check needs fork"], ["API-015"]))
         self.assertEqual(targets[0]["identity"]["config"], "abc123")
 
+    def test_a_reset_note_on_the_test_line(self):
+        """A89: the note of a case replayed after resets can land on its TEST line."""
+        log = LOG.replace("TEST sem_counts\n", "TEST sem_counts  fault checks that reset the board: 2\n")
+        sem = collect.parse_log(log)[0]["cases"]
+        self.assertEqual((sem[0]["name"], sem[0]["outcome"], sem[0]["reqs"]),
+                         ("sem_counts", "passed", ["KRN-SYNC-020", "KRN-SYNC-021"]))
+
     def test_case_without_end_is_incomplete(self):
         crash = collect.parse_log(LOG)[1]["cases"]
         self.assertEqual([(c["name"], c["outcome"]) for c in crash], [("crash_case", "incomplete")])

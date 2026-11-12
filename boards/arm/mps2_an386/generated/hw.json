@@ -17,6 +17,10 @@
       {
         "baud": 115200,
         "name": "uart0"
+      },
+      {
+        "doc": "a PL022 QEMU models; its tests use its internal loopback",
+        "name": "spi0"
       }
     ],
     "doc": "QEMU's MPS2 AN386: the console on the CMSDK APB UART0 at 115200 baud, LED0 in the FPGA I/O block, the run's end through Arm semihosting.",
@@ -24,6 +28,12 @@
     "name": "mps2_an386",
     "schema_version": 0,
     "simulation": {
+      "loopbacks": [
+        {
+          "device": "spi0",
+          "internal": true
+        }
+      ],
       "qemu": [
         "-M",
         "mps2-an386",
@@ -61,7 +71,16 @@
       "clock": null,
       "clock_hz": 25000000,
       "device": "uart0",
-      "irqs": []
+      "irqs": [
+        {
+          "name": "rx",
+          "number": 0
+        },
+        {
+          "name": "tx",
+          "number": 1
+        }
+      ]
     },
     "devices": [
       {
@@ -71,11 +90,34 @@
         "fields": {
           "base": 1073758208,
           "baud": 115200,
-          "clock_hz": 25000000
+          "clock_hz": 25000000,
+          "irq_rx": 0,
+          "irq_tx": 1,
+          "rx": "uart0_rx",
+          "rx_size": 64
         },
         "level": "early",
         "name": "uart0",
         "peripheral": "uart0"
+      },
+      {
+        "class": "spi",
+        "compatible": "arm,pl022",
+        "deps": [],
+        "fields": {
+          "base": 1073893376,
+          "clock_hz": 25000000,
+          "dma_rx": {
+            "dma": null
+          },
+          "dma_tx": {
+            "dma": null
+          },
+          "irq": 22
+        },
+        "level": "kernel",
+        "name": "spi0",
+        "peripheral": "spi0"
       }
     ],
     "kconfig": {
@@ -120,11 +162,11 @@
     },
     {
       "path": "boards/arm/mps2_an386/board.yaml",
-      "sha256": "fb8cb5a83608718313cb0609c408db174e591cc020486c73b78e8220b5ac476b"
+      "sha256": "599b562b974600a1b5f0e7a9ed24fe8d464823766b40e5b54c4f3a7a09b608eb"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80"
+      "sha256": "3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
     },
     {
       "path": "soc/arm/mps2/an386.yaml",
@@ -132,7 +174,7 @@
     },
     {
       "path": "soc/arm/mps2/mps2.yaml",
-      "sha256": "b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c"
+      "sha256": "5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7"
     }
   ],
   "schema_version": 0,
@@ -206,7 +248,29 @@
       {
         "base": 1073758208,
         "compatible": "arm,cmsdk-uart",
+        "irqs": [
+          {
+            "name": "rx",
+            "number": 0
+          },
+          {
+            "name": "tx",
+            "number": 1
+          }
+        ],
         "name": "uart0",
+        "size": 4096
+      },
+      {
+        "base": 1073893376,
+        "compatible": "arm,pl022",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 22
+          }
+        ],
+        "name": "spi0",
         "size": 4096
       },
       {

@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/arm/mps2_an386/board.yaml
- *     fb8cb5a83608718313cb0609c408db174e591cc020486c73b78e8220b5ac476b
+ *     599b562b974600a1b5f0e7a9ed24fe8d464823766b40e5b54c4f3a7a09b608eb
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/arm/mps2/an386.yaml
  *     2c8116f38add95936ae614674500e350c6fbc406a7fe82cbd245f7198df39f04
  *   soc/arm/mps2/mps2.yaml
- *     b97b2bafa3956376fb065f627cfcbc59c7f45c4e1c4029664158071c08d13d3c
+ *     5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7
  */
 /* The board's devices (SPEC-016 §8): each one's configuration, RAM and instance, and the
  * table the kernel initializes them from: EARLY first, each device after its dependencies. */
@@ -22,36 +22,80 @@
 #include "soc_devices.h"
 
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stddef.h>
 
 #include <emb_cmsdk_uart.h>
+#include <emb_pl022.h>
 
 /* uart0: arm,cmsdk-uart, uart, EARLY */
+static uint8_t uart0_rx[64];
 static const emb_cmsdk_uart_config_t uart0_config = {
     .base = 0x40004000u,   /* peripheral.base */
     .clock_hz = 25000000u, /* peripheral.clock_hz */
     .baud = 115200u,       /* device.baud */
+    .irq_rx = 0u,          /* peripheral.irqs.rx */
+    .irq_tx = 1u,          /* peripheral.irqs.tx */
+    .rx = uart0_rx,        /* its rx buffer */
+    .rx_size = 64u,        /* device.rx_buffer */
 };
 static emb_device_state_t uart0_state;
+static emb_cmsdk_uart_data_t uart0_data;
 const emb_device_t emb_dev_uart0 = {
     .name = "uart0",
-    .api = &emb_cmsdk_uart_api,
+    .api = &emb_cmsdk_uart_api.dev,
     .config = &uart0_config,
     .state = &uart0_state,
-    .data = NULL,
+    .data = &uart0_data,
     .deps = NULL,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 0u,
 };
 
+/* spi0: arm,pl022, spi, KERNEL */
+static const emb_pl022_config_t spi0_config = {
+    .base = 0x40025000u,                /* peripheral.base */
+    .clock_hz = 25000000u,              /* peripheral.clock_hz */
+    .irq = 22u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .dma_rx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.rx */
+};
+static emb_device_state_t spi0_state;
+static emb_pl022_data_t spi0_data;
+const emb_device_t emb_dev_spi0 = {
+    .name = "spi0",
+    .api = &emb_pl022_api,
+    .config = &spi0_config,
+    .state = &spi0_state,
+    .data = &spi0_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_SPI,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 0u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_uart0, /* 0: EARLY */
+    &emb_dev_spi0,  /* 1: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 1u, 1u};
+const emb_device_table_t emb_board_device_table = {devices, 2u, 1u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA
+ * class takes buffers (SPEC-017 §7) */
+const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}}; /* none */
+const unsigned emb_board_dma_region_count = 0u;
+#endif
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

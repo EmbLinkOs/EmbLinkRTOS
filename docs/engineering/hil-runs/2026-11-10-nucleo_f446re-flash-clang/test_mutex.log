@@ -1,0 +1,73 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_mutex.elf sha256 671dab7944ffc9cb6aff7f9f1a68589f20d418da150992f9690bcf72c1d88ba7
+EVIDENCE v1 suite=test_mutex config=c5d19d2de829d384 profile=base board=nucleo_f446re checked=1
+TEST mutex_lock_unlock_and_ownership
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-SYNC-001 KRN-SYNC-008
+CASE mutex_lock_unlock_and_ownership outcome=passed asserts=8 skips=0
+TEST mutex_recursive_counts
+  -> ok
+  req KRN-SYNC-004
+CASE mutex_recursive_counts outcome=passed asserts=8 skips=0
+TEST mutex_contended_lock_inherits_and_hands_off
+  -> ok
+  req KRN-SYNC-003 KRN-SYNC-009 KRN-SYNC-010 KRN-WAIT-012
+CASE mutex_contended_lock_inherits_and_hands_off outcome=passed asserts=16 skips=0
+TEST mutex_timeout_removes_the_contribution
+  -> ok
+  req KRN-SYNC-014 KRN-WAIT-013
+CASE mutex_timeout_removes_the_contribution outcome=passed asserts=14 skips=0
+TEST mutex_inheritance_propagates_along_the_chain
+  -> ok
+  req KRN-SYNC-009 KRN-SYNC-010 KRN-SYNC-016
+CASE mutex_inheritance_propagates_along_the_chain outcome=passed asserts=28 skips=0
+TEST mutex_deadlock_is_detected_on_the_chain
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-SYNC-015
+CASE mutex_deadlock_is_detected_on_the_chain outcome=passed asserts=5 skips=0
+TEST mutex_ceiling_raises_the_owner
+  -> ok
+  req KRN-SYNC-005 KRN-SYNC-006
+CASE mutex_ceiling_raises_the_owner outcome=passed asserts=7 skips=0
+TEST mutex_ceiling_violation_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-SYNC-006
+CASE mutex_ceiling_violation_is_misuse outcome=passed asserts=3 skips=0
+TEST mutex_ceiling_violation_when_owned
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-SYNC-006
+CASE mutex_ceiling_violation_when_owned outcome=passed asserts=5 skips=0
+TEST mutex_owner_death_policy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-SYNC-011
+CASE mutex_owner_death_policy outcome=passed asserts=3 skips=0
+TEST mutex_destroy_rules
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001
+CASE mutex_destroy_rules outcome=passed asserts=15 skips=0
+TEST mutex_storage_reuse_requires_destroy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE mutex_storage_reuse_requires_destroy outcome=passed asserts=12 skips=0
+TEST mutex_waiter_priority_change_reorders_and_propagates
+  -> ok
+  req KRN-WAIT-003 KRN-SYNC-018
+CASE mutex_waiter_priority_change_reorders_and_propagates outcome=passed asserts=20 skips=0
+TEST mutex_init_validates_arguments
+  fault checks that reset the board: 3
+  -> ok
+  req API-015
+CASE mutex_init_validates_arguments outcome=passed asserts=3 skips=0
+TEST mutex_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE mutex_define_constructs_in_init_table outcome=passed asserts=4 skips=0
+ISR_STACK size=2048 used=176
+15 tests, 0 failed, 0 skipped, 26 ticks
+EMB_TEST_END

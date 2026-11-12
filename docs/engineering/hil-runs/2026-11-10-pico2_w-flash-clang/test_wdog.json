@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 13,
+      "name": "wdog_refusals",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 122,
+      "name": "wdog_feeds_until_a_party_misses",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-10T00:50:49Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "c1f79b836c910433",
+    "profile": "base",
+    "suite": "test_wdog"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 4,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_wdog.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_wdog.uf2": "8be1e6f051b111065b42d3afbfa85b4de2565a1f6541696a97c2ac799e14e378"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "750d3ab06f6a34a93a56b8675e7d664cce087d42",
+    "dirty": false
+  },
+  "image": "test_wdog.elf",
+  "image_sha256": "5967686d3f96b8011ad672294018e9f2c0dbc6e64fb19fae0745212fe59f872f",
+  "isr_stack": {
+    "size": 2048,
+    "used": 280
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-10T00:50:47Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

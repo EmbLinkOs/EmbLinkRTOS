@@ -6,13 +6,13 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/st/nucleo_f446re/board.yaml
- *     f01d54843be7b84c02985b388c6ba0b6e6baae66cbc7bcb231fb4134901b5b3d
+ *     38e4d2e65780c0790c92cf2b169be7f0df3e53a384dea3b991fdc8a07bee236b
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f
  *   soc/st/stm32f4/stm32f446re.yaml
  *     98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd
  */
@@ -24,6 +24,9 @@
 #include "soc_devices.h"
 
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
+#include <emb/flash_area.h>
 
 #include <stddef.h>
 
@@ -56,11 +59,120 @@ static emb_device_state_t gpioa_state;
 static const emb_device_t *const gpioa_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioa = {
     .name = "gpioa",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioa_config,
     .state = &gpioa_state,
     .data = NULL,
     .deps = gpioa_deps,
+    .class_id = EMB_DRV_CLASS_GPIO,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* iwdg: st,stm32f4-iwdg, watchdog, EARLY */
+static const emb_stm32_iwdg_config_t iwdg_config = {
+    .base = 0x40003000u, /* peripheral.base */
+};
+static emb_device_state_t iwdg_state;
+static emb_stm32_iwdg_data_t iwdg_data;
+const emb_device_t emb_dev_iwdg = {
+    .name = "iwdg",
+    .api = &emb_stm32_iwdg_api.dev,
+    .config = &iwdg_config,
+    .state = &iwdg_state,
+    .data = &iwdg_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_WATCHDOG,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* rtc: st,stm32f4-rtc, rtc, EARLY */
+static const emb_stm32_rtc_config_t rtc_config = {
+    .base = 0x40002800u, /* peripheral.base */
+    .irq = 41u,          /* peripheral.irqs.alarm */
+};
+static emb_device_state_t rtc_state;
+static emb_stm32_rtc_data_t rtc_data;
+const emb_device_t emb_dev_rtc = {
+    .name = "rtc",
+    .api = &emb_stm32_rtc_api.dev,
+    .config = &rtc_config,
+    .state = &rtc_state,
+    .data = &rtc_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_RTC,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* flash: st,stm32f4-flash, flash, EARLY */
+/* clang-format off */
+static const uint32_t flash_sectors[8] = {0x4000u, 0x4000u, 0x4000u, 0x4000u, 0x10000u, 0x20000u, 0x20000u, 0x20000u};
+static const emb_stm32_flash_config_t flash_config = {
+    .base = 0x40023C00u,                                                                    /* peripheral.base */
+    .geometry = {0x08000000u, 0x00080000u, flash_sectors, 0u, 8u, 1u, 0xFFu, {0u, 0u, 0u}}, /* flash.geometry */
+};
+/* clang-format on */
+static emb_device_state_t flash_state;
+static emb_stm32_flash_data_t flash_data;
+const emb_device_t emb_dev_flash = {
+    .name = "flash",
+    .api = &emb_stm32_flash_api.dev,
+    .config = &flash_config,
+    .state = &flash_state,
+    .data = &flash_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_FLASH,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 0u,
+};
+
+/* dma1: st,stm32-dma, dma, EARLY */
+static const emb_stm32_dma_config_t dma1_config = {
+    .base = 0x40026000u,         /* peripheral.base */
+    .clken_offset = 0x00000030u, /* peripheral.clock.enable_offset */
+    .clken_bit = 21u,            /* peripheral.clock.bit */
+    .irq0 = 11u,                 /* peripheral.irqs.s0 */
+    .irq1 = 12u,                 /* peripheral.irqs.s1 */
+    .irq2 = 13u,                 /* peripheral.irqs.s2 */
+    .irq3 = 14u,                 /* peripheral.irqs.s3 */
+    .irq4 = 15u,                 /* peripheral.irqs.s4 */
+    .irq5 = 16u,                 /* peripheral.irqs.s5 */
+    .irq6 = 17u,                 /* peripheral.irqs.s6 */
+    .irq7 = 47u,                 /* peripheral.irqs.s7 */
+    .memory = false,             /* peripheral.dma.memory */
+};
+static emb_device_state_t dma1_state;
+static emb_stm32_dma_data_t dma1_data;
+static const emb_device_t *const dma1_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_dma1 = {
+    .name = "dma1",
+    .api = &emb_stm32_dma_api.dev,
+    .config = &dma1_config,
+    .state = &dma1_state,
+    .data = &dma1_data,
+    .deps = dma1_deps,
+    .class_id = EMB_DRV_CLASS_DMA,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* gpiob: st,stm32-gpio, gpio, EARLY */
+static const emb_stm32_gpio_config_t gpiob_config = {
+    .base = 0x40020400u,         /* peripheral.base */
+    .clken_offset = 0x00000030u, /* peripheral.clock.enable_offset */
+    .clken_bit = 1u,             /* peripheral.clock.bit */
+};
+static emb_device_state_t gpiob_state;
+static const emb_device_t *const gpiob_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_gpiob = {
+    .name = "gpiob",
+    .api = &emb_stm32_gpio_api.dev,
+    .config = &gpiob_config,
+    .state = &gpiob_state,
+    .data = NULL,
+    .deps = gpiob_deps,
     .class_id = EMB_DRV_CLASS_GPIO,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
@@ -76,7 +188,7 @@ static emb_device_state_t gpioc_state;
 static const emb_device_t *const gpioc_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioc = {
     .name = "gpioc",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioc_config,
     .state = &gpioc_state,
     .data = NULL,
@@ -87,24 +199,135 @@ const emb_device_t emb_dev_gpioc = {
 };
 
 /* usart2: st,stm32-usart, uart, EARLY */
+static uint8_t usart2_rx[64];
 static const emb_stm32_usart_config_t usart2_config = {
-    .base = 0x40004400u,         /* peripheral.base */
-    .clock_hz = 45000000u,       /* peripheral.clock_hz */
-    .baud = 115200u,             /* device.baud */
-    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
-    .clken_bit = 17u,            /* peripheral.clock.bit */
+    .base = 0x40004400u,                         /* peripheral.base */
+    .clock_hz = 45000000u,                       /* peripheral.clock_hz */
+    .baud = 115200u,                             /* device.baud */
+    .clken_offset = 0x00000040u,                 /* peripheral.clock.enable_offset */
+    .clken_bit = 17u,                            /* peripheral.clock.bit */
+    .irq = 38u,                                  /* peripheral.irqs.global */
+    .dma_tx = {&emb_dev_dma1, 6u, 4u, {0u, 0u}}, /* dma.tx */
+    .rx = usart2_rx,                             /* its rx buffer */
+    .rx_size = 64u,                              /* device.rx_buffer */
 };
 static emb_device_state_t usart2_state;
-static const emb_device_t *const usart2_deps[] = {&emb_dev_rcc};
+static emb_stm32_usart_data_t usart2_data;
+static const emb_device_t *const usart2_deps[] = {&emb_dev_dma1, &emb_dev_rcc};
 const emb_device_t emb_dev_usart2 = {
     .name = "usart2",
-    .api = &emb_stm32_usart_api,
+    .api = &emb_stm32_usart_api.dev,
     .config = &usart2_config,
     .state = &usart2_state,
-    .data = NULL,
+    .data = &usart2_data,
     .deps = usart2_deps,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,
+    .dep_count = 2u,
+};
+
+/* uart4: st,stm32-usart, uart, EARLY */
+static uint8_t uart4_rx[64];
+static const emb_stm32_usart_config_t uart4_config = {
+    .base = 0x40004C00u,                /* peripheral.base */
+    .clock_hz = 45000000u,              /* peripheral.clock_hz */
+    .baud = 115200u,                    /* device.baud */
+    .clken_offset = 0x00000040u,        /* peripheral.clock.enable_offset */
+    .clken_bit = 19u,                   /* peripheral.clock.bit */
+    .irq = 52u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .rx = uart4_rx,                     /* its rx buffer */
+    .rx_size = 64u,                     /* device.rx_buffer */
+};
+static emb_device_state_t uart4_state;
+static emb_stm32_usart_data_t uart4_data;
+static const emb_device_t *const uart4_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_uart4 = {
+    .name = "uart4",
+    .api = &emb_stm32_usart_api.dev,
+    .config = &uart4_config,
+    .state = &uart4_state,
+    .data = &uart4_data,
+    .deps = uart4_deps,
+    .class_id = EMB_DRV_CLASS_UART,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* spi2: st,stm32-spi, spi, KERNEL */
+static const emb_stm32_spi_config_t spi2_config = {
+    .base = 0x40003800u,                         /* peripheral.base */
+    .clock_hz = 45000000u,                       /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u,                 /* peripheral.clock.enable_offset */
+    .clken_bit = 14u,                            /* peripheral.clock.bit */
+    .irq = 36u,                                  /* peripheral.irqs.global */
+    .dma_tx = {&emb_dev_dma1, 4u, 0u, {0u, 0u}}, /* dma.tx */
+    .dma_rx = {&emb_dev_dma1, 3u, 0u, {0u, 0u}}, /* dma.rx */
+};
+static emb_device_state_t spi2_state;
+static emb_stm32_spi_data_t spi2_data;
+static const emb_device_t *const spi2_deps[] = {&emb_dev_dma1, &emb_dev_rcc};
+const emb_device_t emb_dev_spi2 = {
+    .name = "spi2",
+    .api = &emb_stm32_spi_api,
+    .config = &spi2_config,
+    .state = &spi2_state,
+    .data = &spi2_data,
+    .deps = spi2_deps,
+    .class_id = EMB_DRV_CLASS_SPI,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 2u,
+};
+
+/* i2c1: st,stm32-i2c, i2c, KERNEL */
+static const emb_stm32_i2c_config_t i2c1_config = {
+    .base = 0x40005400u,                       /* peripheral.base */
+    .clock_hz = 45000000u,                     /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u,               /* peripheral.clock.enable_offset */
+    .clken_bit = 21u,                          /* peripheral.clock.bit */
+    .irq_ev = 31u,                             /* peripheral.irqs.ev */
+    .irq_er = 32u,                             /* peripheral.irqs.er */
+    .scl = {&emb_dev_gpiob, 8u, 0u, {0u, 0u}}, /* pins.scl */
+    .sda = {&emb_dev_gpiob, 9u, 0u, {0u, 0u}}, /* pins.sda */
+};
+static emb_device_state_t i2c1_state;
+static emb_stm32_i2c_data_t i2c1_data;
+static const emb_device_t *const i2c1_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_i2c1 = {
+    .name = "i2c1",
+    .api = &emb_stm32_i2c_api.dev,
+    .config = &i2c1_config,
+    .state = &i2c1_state,
+    .data = &i2c1_data,
+    .deps = i2c1_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* i2c2: st,stm32-i2c, i2c, KERNEL */
+static const emb_stm32_i2c_config_t i2c2_config = {
+    .base = 0x40005800u,                        /* peripheral.base */
+    .clock_hz = 45000000u,                      /* peripheral.clock_hz */
+    .clken_offset = 0x00000040u,                /* peripheral.clock.enable_offset */
+    .clken_bit = 22u,                           /* peripheral.clock.bit */
+    .irq_ev = 33u,                              /* peripheral.irqs.ev */
+    .irq_er = 34u,                              /* peripheral.irqs.er */
+    .scl = {&emb_dev_gpiob, 10u, 0u, {0u, 0u}}, /* pins.scl */
+    .sda = {&emb_dev_gpiob, 3u, 0u, {0u, 0u}},  /* pins.sda */
+};
+static emb_device_state_t i2c2_state;
+static emb_stm32_i2c_data_t i2c2_data;
+static const emb_device_t *const i2c2_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_i2c2 = {
+    .name = "i2c2",
+    .api = &emb_stm32_i2c_api.dev,
+    .config = &i2c2_config,
+    .state = &i2c2_state,
+    .data = &i2c2_data,
+    .deps = i2c2_deps,
+    .class_id = EMB_DRV_CLASS_I2C,
+    .level = EMB_DEVICE_KERNEL,
     .dep_count = 1u,
 };
 
@@ -112,11 +335,44 @@ const emb_device_t emb_dev_usart2 = {
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
     &emb_dev_gpioa,  /* 1: EARLY */
-    &emb_dev_gpioc,  /* 2: EARLY */
-    &emb_dev_usart2, /* 3: EARLY */
+    &emb_dev_iwdg,   /* 2: EARLY */
+    &emb_dev_rtc,    /* 3: EARLY */
+    &emb_dev_flash,  /* 4: EARLY */
+    &emb_dev_dma1,   /* 5: EARLY */
+    &emb_dev_gpiob,  /* 6: EARLY */
+    &emb_dev_gpioc,  /* 7: EARLY */
+    &emb_dev_usart2, /* 8: EARLY */
+    &emb_dev_uart4,  /* 9: EARLY */
+    &emb_dev_spi2,   /* 10: KERNEL */
+    &emb_dev_i2c1,   /* 11: KERNEL */
+    &emb_dev_i2c2,   /* 12: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 4u, 4u};
+const emb_device_table_t emb_board_device_table = {devices, 13u, 10u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
+
+#if CONFIG_EMB_DRV_FLASH
+/* the board's flash partitions (flash_partitions:), each on its flash device, from the
+ * device's start (SPEC-017 §9) */
+/* clang-format off */
+const emb_flash_area_t emb_flash_area_app = {"app", &emb_dev_flash, 0x00000000u, 0x00060000u};
+const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x00060000u, 0x00020000u};
+/* clang-format on */
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA
+ * class takes buffers (SPEC-017 §7) */
+const emb_drv_dma_region_t emb_board_dma_regions[] = {
+    {0x20000000u, 0x0001C000u}, /* sram1 */
+    {0x2001C000u, 0x00004000u}, /* sram2 */
+};
+const unsigned emb_board_dma_region_count = 2u;
+#endif
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

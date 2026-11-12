@@ -35,6 +35,8 @@
 #include <emb/fault.h>
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 #endif
 
 #include <emb_arch.h>
@@ -211,4 +213,15 @@ void emb_board_fault_report(const emb_fault_info_t *info)
 #if CONFIG_EMB_DEVICE
 /* No devices yet: the board has no description to generate them from (SPEC-016 §8). */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* No DMA controller is described for this board: the DMA class refuses every buffer. */
+const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}};
+const unsigned emb_board_dma_region_count = 0u;
+#endif
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* No entropy device yet: the RNG has no driver, and nothing stands in for it (SEC-012). */
+const emb_device_t *const emb_board_entropy = NULL;
 #endif

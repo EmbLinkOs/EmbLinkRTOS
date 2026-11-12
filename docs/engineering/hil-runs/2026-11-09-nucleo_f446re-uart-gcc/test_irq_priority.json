@@ -1,0 +1,107 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 17,
+      "name": "irq_priority_highest_kernel_level_is_masked",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "irq_priority_equal_levels_do_not_preempt",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 25,
+      "name": "irq_priority_nested_interrupt_reschedules_work_in_a_timer_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "irq_priority_higher_generic_level_preempts_lower",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 18,
+      "name": "irq_priority_higher_generic_level_wins_pending_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 37,
+      "name": "irq_priority_encodings_and_invalid_write_guard",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_port_rejects_invalid_inputs",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "irq_priority_rejects_unknown_number",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_rejects_out_of_range_level",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "irq_priority_accepts_advertised_endpoints",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T18:02:29Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "3847e8d7b9df9c61",
+    "profile": "base",
+    "suite": "test_irq_priority"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_irq_priority.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_irq_priority.elf": "87c86e54878491e84ba77b088772504d05a7ddf816f66fe90fe3e1bb3bbe29dc"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "a3166a3989ce1682ccdc9b9f0059fc77eb369e3c",
+    "dirty": false
+  },
+  "image": "test_irq_priority.elf",
+  "image_sha256": "87c86e54878491e84ba77b088772504d05a7ddf816f66fe90fe3e1bb3bbe29dc",
+  "isr_stack": {
+    "size": 2048,
+    "used": 160
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T18:02:27Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 10
+  }
+}

@@ -7,7 +7,9 @@
 #
 # A field reads peripheral.<key> (the SoC node: base, irqs.<name>, clock.bus, clock.bit,
 # clock.enable_offset, and clock_hz, the frequency it is clocked at), device.<key> (the board
-# device's own properties; device.bus is a reference to the bus device) or board.<path>.
+# device's own properties; device.bus is a reference to the bus device), board.<path> or
+# soc.<path> (the SoC description's own facts: soc.gpio.lines), or pins.<signal> (the GPIO line
+# carrying the device's pin: an I2C bus's SCL and SDA, which its recovery drives by hand).
 schema_version: 0
 kind: bindings
 bindings:
@@ -17,10 +19,17 @@ bindings:
     sources: [drivers/arm/cmsdk_uart.c]
     include: drivers/arm/include
     header: emb_cmsdk_uart.h
-    api: emb_cmsdk_uart_api
+    api: emb_cmsdk_uart_api.dev
     config: emb_cmsdk_uart_config_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
-    doc: the MPS2 boards' console UART; polled, with the UART class's requests to come (SPEC-017 §4)
+    data: emb_cmsdk_uart_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      baud: device.baud
+      irq_rx: peripheral.irqs.rx
+      irq_tx: peripheral.irqs.tx
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
+    doc: the MPS2 boards' UARTs (SPEC-017 §4), the console among them
   st,stm32f4-rcc:
     class: clock
     level: early
@@ -37,23 +46,27 @@ bindings:
     sources: [drivers/st/stm32_devices.c]
     include: drivers/st/include
     header: emb_stm32_devices.h
-    api: emb_stm32_gpio_api
+    api: emb_stm32_gpio_api.dev
     config: emb_stm32_gpio_config_t
     fields: { base: peripheral.base, clken_offset: peripheral.clock.enable_offset, clken_bit: peripheral.clock.bit }
   st,stm32-usart:
     class: uart
     level: early
-    sources: [drivers/st/stm32_devices.c]
+    sources: [drivers/st/stm32_uart.c]
     include: drivers/st/include
     header: emb_stm32_devices.h
-    api: emb_stm32_usart_api
+    api: emb_stm32_usart_api.dev
     config: emb_stm32_usart_config_t
+    data: emb_stm32_usart_data_t
     fields:
       base: peripheral.base
       clock_hz: peripheral.clock_hz
       baud: device.baud
       clken_offset: peripheral.clock.enable_offset
       clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      dma_tx: dma.tx
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
   arm,pl011:
     class: uart
@@ -61,9 +74,11 @@ bindings:
     sources: [drivers/arm/pl011.c]
     include: drivers/arm/include
     header: emb_pl011.h
-    api: emb_pl011_api
+    api: emb_pl011_api.dev
     config: emb_pl011_config_t
-    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud }
+    data: emb_pl011_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, baud: device.baud, irq: peripheral.irqs.global, dma_tx: dma.tx }
+    buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the RP2350's UARTs; the console, polled, with the UART class's requests to come (SPEC-017 §4)
   rpi,rp2350-clocks:
     class: clock
@@ -81,6 +96,175 @@ bindings:
     sources: [drivers/rpi/rp2350_devices.c, drivers/rpi/rp2350_gpio.c]
     include: drivers/rpi/include
     header: emb_rp2350_devices.h
-    api: emb_rp2350_io_bank_api
+    api: emb_rp2350_io_bank_api.dev
     config: emb_rp2350_io_bank_config_t
+    fields: { base: peripheral.base, lines: soc.gpio.lines }
+  arm,pl022:
+    class: spi
+    level: kernel
+    sources: [drivers/arm/pl022.c]
+    include: drivers/arm/include
+    header: emb_pl022.h
+    api: emb_pl022_api
+    config: emb_pl022_config_t
+    data: emb_pl022_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global, dma_tx: dma.tx, dma_rx: dma.rx }
+    doc: the RP2350's SPI controllers, and QEMU's MPS2 models (SPEC-017 §5)
+  st,stm32-spi:
+    class: spi
+    level: kernel
+    sources: [drivers/st/stm32_spi.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_spi_api
+    config: emb_stm32_spi_config_t
+    data: emb_stm32_spi_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      dma_tx: dma.tx
+      dma_rx: dma.rx
+  st,stm32-i2c:
+    class: i2c
+    level: kernel
+    sources: [drivers/st/stm32_i2c.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_i2c_api.dev
+    config: emb_stm32_i2c_config_t
+    data: emb_stm32_i2c_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq_ev: peripheral.irqs.ev
+      irq_er: peripheral.irqs.er
+      scl: pins.scl
+      sda: pins.sda
+    doc: the STM32F4's I2C, controller and target, standard and fast mode (SPEC-017 §6)
+  snps,designware-i2c:
+    class: i2c
+    level: kernel
+    sources: [drivers/snps/dw_i2c.c]
+    include: drivers/snps/include
+    header: emb_dw_i2c.h
+    api: emb_dw_i2c_api.dev
+    config: emb_dw_i2c_config_t
+    data: emb_dw_i2c_data_t
+    fields: { base: peripheral.base, clock_hz: peripheral.clock_hz, irq: peripheral.irqs.global, scl: pins.scl, sda: pins.sda }
+    doc: Synopsys DW_apb_i2c, the RP2350's I2C0 and I2C1, controller or target (SPEC-017 §6)
+  st,stm32-dma:
+    class: dma
+    level: early
+    sources: [drivers/st/stm32_dma.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_dma_api.dev
+    config: emb_stm32_dma_config_t
+    data: emb_stm32_dma_data_t
+    fields:
+      base: peripheral.base
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq0: peripheral.irqs.s0
+      irq1: peripheral.irqs.s1
+      irq2: peripheral.irqs.s2
+      irq3: peripheral.irqs.s3
+      irq4: peripheral.irqs.s4
+      irq5: peripheral.irqs.s5
+      irq6: peripheral.irqs.s6
+      irq7: peripheral.irqs.s7
+      memory: peripheral.dma.memory
+    doc: the STM32F4's DMA1 and DMA2, a job per stream (SPEC-017 §7); EARLY, so any device may use it
+  rpi,rp2350-dma:
+    class: dma
+    level: early
+    sources: [drivers/rpi/rp2350_dma.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_dma_api.dev
+    config: emb_rp2350_dma_config_t
+    data: emb_rp2350_dma_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.irq0 }
+    doc: the RP2350's DMA, a job per channel paced by a DREQ (SPEC-017 §7); EARLY, so any device may use it
+  st,stm32f4-iwdg:
+    class: watchdog
+    level: early
+    sources: [drivers/st/stm32_iwdg.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_iwdg_api.dev
+    config: emb_stm32_iwdg_config_t
+    data: emb_stm32_iwdg_data_t
     fields: { base: peripheral.base }
+    doc: the STM32F4's independent watchdog (SPEC-017 §8); EARLY, so the reset's cause is read at boot
+  rpi,rp2350-watchdog:
+    class: watchdog
+    level: early
+    sources: [drivers/rpi/rp2350_watchdog.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_watchdog_api.dev
+    config: emb_rp2350_watchdog_config_t
+    data: emb_rp2350_watchdog_data_t
+    fields: { base: peripheral.base }
+    doc: the RP2350's watchdog (SPEC-017 §8); EARLY, so the reset's cause is read at boot
+  st,stm32f4-rtc:
+    class: rtc
+    level: early
+    sources: [drivers/st/stm32_rtc.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_rtc_api.dev
+    config: emb_stm32_rtc_config_t
+    data: emb_stm32_rtc_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.alarm }
+    doc: the STM32F4's RTC on the LSE (SPEC-017 §10); EARLY, so the wall clock is seeded before main
+  st,stm32f4-flash:
+    class: flash
+    level: early
+    sources: [drivers/st/stm32_flash.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_flash_api.dev
+    config: emb_stm32_flash_config_t
+    data: emb_stm32_flash_data_t
+    fields: { base: peripheral.base, geometry: flash.geometry }
+    doc: the STM32F4's flash interface (SPEC-017 §9); EARLY, for the polled calls before the kernel
+  rpi,rp2350-powman:
+    class: rtc
+    level: early
+    sources: [drivers/rpi/rp2350_aon.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_aon_api.dev
+    config: emb_rp2350_aon_config_t
+    data: emb_rp2350_aon_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.timer }
+    doc: the RP2350's always-on timer as an RTC (SPEC-017 §10); EARLY, so the wall clock is seeded before main
+  rpi,rp2350-trng:
+    class: entropy
+    level: kernel
+    sources: [drivers/rpi/rp2350_trng.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_trng_api.dev
+    config: emb_rp2350_trng_config_t
+    data: emb_rp2350_trng_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.irq, sample_count: device.sample_count }
+    doc: the RP2350's TRNG (SPEC-017 §11), every health test on; KERNEL, as its read waits on a semaphore
+  rpi,rp2350-qmi:
+    class: flash
+    level: early
+    sources: [drivers/rpi/rp2350_flash.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_flash_api.dev
+    config: emb_rp2350_flash_config_t
+    data: emb_rp2350_flash_data_t
+    fields: { base: peripheral.base, geometry: flash.geometry }
+    doc: the RP2350's QSPI flash through the QMI and the boot ROM's routines (SPEC-017 §9); EARLY, for the polled calls

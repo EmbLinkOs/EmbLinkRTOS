@@ -1,0 +1,79 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 3,
+      "name": "rtc_seeds_the_wall_clock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "rtc_backup_and_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "rtc_alarm_canceled_and_set_disarms",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "rtc_alarm_once_and_again",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "rtc_get_set_and_not_set",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T22:50:39Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "1aafec98e5605967",
+    "profile": "base",
+    "suite": "test_rtc"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_rtc.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_rtc.uf2": "5f0518ec386031c13b5848ff5a3d95d24f83c41e9b11fc7152391cd78a151d1d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2a7e2eda58d2f4216ff84cacf5263e82fe645397",
+    "dirty": false
+  },
+  "image": "test_rtc.elf",
+  "image_sha256": "e39d8738046152cb8a0c81bb7cb29c2efc718925a6549ccdeb662c19e0f960f8",
+  "isr_stack": {
+    "size": 2048,
+    "used": 216
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T22:50:37Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 5
+  }
+}

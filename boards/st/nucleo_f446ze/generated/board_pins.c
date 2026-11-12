@@ -8,11 +8,11 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f
  *   soc/st/stm32f4/stm32f446ze.yaml
  *     98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002
  */
@@ -23,15 +23,15 @@
 
 const emb_stm32_pin_t emb_board_pins[] = {
     /* PB0: leds.green (output) */
-    {EMB_STM32_PORT(B), 0u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(B), 0u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
     /* PB7: leds.blue (output) */
-    {EMB_STM32_PORT(B), 7u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(B), 7u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
     /* PB14: leds.red (output) */
-    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_OUTPUT, 0u},
+    {EMB_STM32_PORT(B), 14u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
     /* PD8: pins.usart3.tx (usart3_tx) */
-    {EMB_STM32_PORT(D), 8u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(D), 8u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
     /* PD9: pins.usart3.rx (usart3_rx) */
-    {EMB_STM32_PORT(D), 9u, EMB_STM32_PIN_AF, 7u},
+    {EMB_STM32_PORT(D), 9u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

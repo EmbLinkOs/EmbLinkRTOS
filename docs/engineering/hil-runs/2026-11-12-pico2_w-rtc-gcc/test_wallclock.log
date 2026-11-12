@@ -1,0 +1,14 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_wallclock.elf sha256 01b6e76405ce696f29113f559e83200a09f77e167a602bcdfdc0de57e8d8f4b4
+EVIDENCE v1 suite=test_wallclock config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST wallclock_adjust_moves_no_deadline
+  -> ok
+  req KRN-TIM-031
+CASE wallclock_adjust_moves_no_deadline outcome=passed asserts=9 skips=0
+TEST wallclock_set_and_get
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-TIM-031
+CASE wallclock_set_and_get outcome=passed asserts=8 skips=0
+ISR_STACK size=2048 used=208
+2 tests, 0 failed, 0 skipped, 60 ticks
+EMB_TEST_END

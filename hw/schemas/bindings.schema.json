@@ -36,7 +36,19 @@
         "data": { "$ref": "#/$defs/c_ident" },
         "fields": {
           "type": "object",
-          "additionalProperties": { "type": "string", "pattern": "^(peripheral|device|board)(\\.[A-Za-z0-9_]+)+$" }
+          "additionalProperties": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" }
+        },
+        "buffers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["size"],
+            "additionalProperties": false,
+            "properties": {
+              "size": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" },
+              "default": { "type": "integer", "minimum": 1, "maximum": 65535 }
+            }
+          }
         },
         "doc": { "type": "string" }
       }

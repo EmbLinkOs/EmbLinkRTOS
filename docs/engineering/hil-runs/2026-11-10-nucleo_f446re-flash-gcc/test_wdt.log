@@ -1,0 +1,14 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_wdt.elf sha256 7d8461dba94e3966183ad6308df6ea58759a5f917a52edd080f197fa3a986b99
+EVIDENCE v1 suite=test_wdt config=c5d19d2de829d384 profile=base board=nucleo_f446re checked=1
+TEST wdt_not_ready_and_misuse
+  fault checks that reset the board: 3
+  -> ok
+  req FLT-004
+CASE wdt_not_ready_and_misuse outcome=passed asserts=7 skips=0
+TEST wdt_start_feed_and_cause
+  -> ok
+  req FLT-004
+CASE wdt_start_feed_and_cause outcome=passed asserts=13 skips=0
+ISR_STACK size=2048 used=208
+2 tests, 0 failed, 0 skipped, 23 ticks
+EMB_TEST_END

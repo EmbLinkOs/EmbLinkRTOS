@@ -1,0 +1,91 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 22,
+      "name": "timer_isr_context_one_shot_and_periodic_without_drift",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 22,
+      "name": "timer_restart_remaining_and_stop_states",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "timer_callback_runs_on_its_work_queue",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_stop_sync_waits_for_a_running_callback",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "timer_expiries_during_a_long_callback_are_overruns",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "timer_init_needs_a_queue_or_isr_context",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "timer_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:51:47Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "fe4080b44964a268",
+    "profile": "base",
+    "suite": "test_timer"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_timer.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_timer.uf2": "51ddab60bf26eda08bbb14f723df8bb4d26458a100f73b3b3db3212ceb9fe924"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "b76b15f3cf4023ee539b82df2078813c0a887634",
+    "dirty": false
+  },
+  "image": "test_timer.elf",
+  "image_sha256": "e9f4221ed21c84b173c38a7ecf7445580e86727fade734c5ae30e6d6f92a1980",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T23:51:45Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

@@ -8,11 +8,11 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
- *     31579a53453d8842f004494b2d8035a697db3d2e52be6055ed5008d523b44e26
+ *     9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f
  *   soc/st/stm32f4/stm32f446ze.yaml
  *     98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002
  */
@@ -32,6 +32,16 @@ extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_gpiod;
 extern const emb_device_t emb_dev_usart3;
+
+/* which devices the board has, for code that uses one only where it exists */
+#define EMB_SOC_HAS_RCC    1
+#define EMB_SOC_HAS_GPIOB  1
+#define EMB_SOC_HAS_GPIOC  1
+#define EMB_SOC_HAS_GPIOD  1
+#define EMB_SOC_HAS_USART3 1
+
+/* the console's UART device (the board's console:) */
+#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart3)
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */

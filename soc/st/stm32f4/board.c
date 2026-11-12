@@ -71,6 +71,12 @@ void emb_board_exit(int code)
     emb_cm_halt();
 }
 
+/* Before any reset (emb_arch_system_reset): the console's last byte leaves first. */
+void emb_board_reset_prepare(void)
+{
+    emb_stm32_usart_flush(EMB_HW_CONSOLE_BASE);
+}
+
 void emb_board_fault_report(const emb_fault_info_t *info)
 {
     emb_board_puts("\nemb: kernel fault class ");

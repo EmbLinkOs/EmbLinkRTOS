@@ -1,0 +1,121 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 25,
+      "name": "msgq_fifo_order_counts_and_peek",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 9,
+      "name": "msgq_send_front_is_received_first_and_never_waits",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "msgq_waiting_receivers_get_items_directly_in_priority_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "msgq_receive_refills_the_freed_slot_from_a_waiting_sender",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "msgq_waits_time_out_and_cancel_without_storing",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "msgq_isr_send_and_receive_never_wait",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "msgq_destroy_aborts_receivers_and_senders",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "msgq_destroy_with_waiters_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "msgq_init_validates_the_ring",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "msgq_binding_fires_on_empty_to_nonempty_only",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "msgq_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "msgq_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T20:25:32Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "5b99d51dd1b8f662",
+    "profile": "base",
+    "suite": "test_msgq"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 8,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_msgq.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_msgq.uf2": "0012f8abb05fcb7744f8b8bcc141bfe1943ecd55c39e8cb617a6ea21782071fc"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "0f776b50cb1a5e478b43ea8685e482a61e53bd42",
+    "dirty": false
+  },
+  "image": "test_msgq.elf",
+  "image_sha256": "ac54d7e316ee71ea5016baba7a47a40f805c60bbb2bd905d4c95b9485a2f8d78",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T20:25:30Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 12
+  }
+}

@@ -30,7 +30,8 @@ sys.path.insert(0, str(ROOT / "tools" / "fault"))
 import decode as api_decode  # noqa: E402  (the API ID decoder, tools/fault/decode.py)
 
 MAGIC = b"EMBC"
-RESET = {1: "reboot", 2: "halt"}
+# EMB_CRASH_RESET_*: what the kernel did after writing the record
+RESET = {1: "reboot", 2: "halt", 3: "the hardware watchdog's reset, no longer fed"}
 THREAD_NONE = 0xFFFF
 
 # version: (length, field layout after the 8-byte header, excluding the CRC)

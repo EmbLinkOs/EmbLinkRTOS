@@ -6,25 +6,46 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     2a69a5f2c8620451c4ed56de2f50a83d6bb7ad3f27e3f7c3eec4067de8e83c96
+ *     2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef
  *   drivers/bindings.yaml
- *     12dcbb5d083444b18cc54c536de15147c5f6ce1ea94526f1f099283b61725d80
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/rpi/rp2350/rp2350.yaml
- *     39b6f030ad63c2ba658e9f209b771284076e83363b3c4d4defce37e1cda37acf
+ *     c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
 /* The pins board initialization configures: GPIO line, function select (SIO, 5, for an
- * output) and whether the pad's input is enabled (on for a peripheral's pins). Inputs
- * left at their reset state need no entry. */
+ * output), whether the pad's input is enabled (on for a peripheral's pins), its pull (up
+ * for a line that idles high), and an output's level at boot. Inputs left at their reset
+ * state need no entry. */
 #include <emb_rp2350_pins.h>
 #include <hw_config.h>
 
 const emb_rp2350_pin_t emb_board_pins[] = {
     /* GPIO0: pins.uart0.tx (uart0_tx) */
-    {0u, 2u, 1u},
+    {0u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
     /* GPIO1: pins.uart0.rx (uart0_rx) */
-    {1u, 2u, 1u},
+    {1u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO4: pins.uart1.tx (uart1_tx) */
+    {4u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO5: pins.uart1.rx (uart1_rx) */
+    {5u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO6: pins.i2c1.sda (i2c1_sda) */
+    {6u, 3u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO7: pins.i2c1.scl (i2c1_scl) */
+    {7u, 3u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO8: pins.i2c0.sda (i2c0_sda) */
+    {8u, 3u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO9: pins.i2c0.scl (i2c0_scl) */
+    {9u, 3u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},
+    /* GPIO10: pins.spi1.sck (spi1_sck) */
+    {10u, 1u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO11: pins.spi1.mosi (spi1_mosi) */
+    {11u, 1u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO12: pins.spi1.miso (spi1_miso) */
+    {12u, 1u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO13: devices.spi1.cs[0] (spi1_cs0) */
+    {13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

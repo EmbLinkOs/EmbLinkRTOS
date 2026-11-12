@@ -1,0 +1,7 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image bench_compare.elf sha256 ecd318612f51782d73d937709c3eb2bb9c62ad91d1f9fcacce49acd2963a9b1a
+bench_compare: EmbLinkRTOS 0.2.0
+BENCH v1 name=notify_handover units=20344529 ops=20000 per_op_x100=101722 unit_hz=180000000 os=emblink
+BENCH v1 name=sem_handover units=19171482 ops=20000 per_op_x100=95857 unit_hz=180000000 os=emblink
+BENCH v1 name=sem_give_take units=2094831 ops=10000 per_op_x100=20948 unit_hz=180000000 os=emblink
+BENCH v1 name=isr_wake units=10388308 ops=5000 per_op_x100=207766 unit_hz=180000000 os=emblink
+BENCH_END

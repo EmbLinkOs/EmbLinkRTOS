@@ -1,0 +1,40 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_irq.elf sha256 c5000b9b41a604bf60831519a3376db508dc5f34cd48f1797eb0e26c2411fb45
+EVIDENCE v1 suite=test_irq config=31514269d16f5bb3 profile=base board=pico2_w checked=1
+TEST irq_lock_is_nestable_and_lifo
+  -> ok
+  req KRN-IRQ-001 KRN-IRQ-002
+CASE irq_lock_is_nestable_and_lifo outcome=passed asserts=5 skips=0
+TEST irq_isr_wake_switches_at_outermost_exit
+  -> ok
+  req KRN-IRQ-010 KRN-IRQ-012 KRN-IRQ-013 KRN-SCH-021
+CASE irq_isr_wake_switches_at_outermost_exit outcome=passed asserts=7 skips=0
+TEST irq_delivery_is_deferred_while_masked
+  -> ok
+  req KRN-IRQ-001 KRN-IRQ-033
+CASE irq_delivery_is_deferred_while_masked outcome=passed asserts=4 skips=0
+TEST irq_scheduler_lock_defers_the_switch_not_the_handler
+  -> ok
+  req KRN-SCH-016 KRN-SCH-018 KRN-SCH-019
+CASE irq_scheduler_lock_defers_the_switch_not_the_handler outcome=passed asserts=4 skips=0
+TEST irq_disabled_source_stays_pending
+  -> ok
+  req KRN-IRQ-020
+CASE irq_disabled_source_stays_pending outcome=passed asserts=5 skips=0
+TEST irq_blocking_call_from_isr_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req API-013 KRN-IRQ-014
+CASE irq_blocking_call_from_isr_is_misuse outcome=passed asserts=1 skips=0
+TEST irq_connect_validates_arguments
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-IRQ-021
+CASE irq_connect_validates_arguments outcome=passed asserts=2 skips=0
+TEST irq_unlock_without_lock_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-IRQ-002
+CASE irq_unlock_without_lock_is_misuse outcome=passed asserts=1 skips=0
+ISR_STACK size=2048 used=176
+8 tests, 0 failed, 0 skipped, 11 ticks
+EMB_TEST_END

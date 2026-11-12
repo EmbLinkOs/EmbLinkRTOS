@@ -10,11 +10,23 @@
 #define EMB_STM32_DEVICES_H
 
 #include <emb/config.h>
-
-#include <stdint.h>
-
-#if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_flash.h>
+#include <emb/drv_gpio.h>
+#include <emb/drv_rtc.h>
+#include <emb/drv_wdt.h>
+
+#include <stdbool.h>
+#include <stdint.h>
+#if CONFIG_EMB_DRV_UART
+#include <emb/drv_uart.h>
+#endif
+#if CONFIG_EMB_DRV_SPI
+#include <emb/drv_spi.h>
+#endif
+#if CONFIG_EMB_DRV_I2C
+#include <emb/drv_i2c.h>
 #endif
 
 #ifdef __cplusplus
@@ -26,31 +38,197 @@ typedef struct emb_stm32_rcc_config {
     uintptr_t base;
 } emb_stm32_rcc_config_t;
 
-/* A GPIO port: its clock gate. */
+/* A GPIO port: its clock gate. Its 16 lines are the GPIO class's (SPEC-017 §5a). */
 typedef struct emb_stm32_gpio_config {
     uintptr_t base;
     uint32_t clken_offset; /* the bus's clock-enable register in the RCC */
     uint32_t clken_bit;
 } emb_stm32_gpio_config_t;
 
-/* A USART: its clock gate and rate. */
+/* A USART: its clock gate, rate, interrupt and receive ring. */
 typedef struct emb_stm32_usart_config {
     uintptr_t base;
     uint32_t clock_hz; /* its bus clock */
     uint32_t baud;
     uint32_t clken_offset;
     uint32_t clken_bit;
+    uint32_t irq;
+    uint8_t *rx; /* the receive ring (rx_buffer) */
+    uint32_t rx_size;
+    emb_drv_dma_chan_t dma_tx; /* writes by DMA, where the board gives it one (dma: [tx]) */
 } emb_stm32_usart_config_t;
+
+#if CONFIG_EMB_DRV_UART
+/* A USART device's RAM. */
+typedef struct emb_stm32_usart_data {
+    emb_drv_uart_rx_t rx;
+    emb_drv_uart_req_t *tx;  /* the write in progress */
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint8_t irq_on;          /* the interrupts serve requests: set by the first one */
+    uint8_t dma;             /* the write in progress runs by DMA */
+} emb_stm32_usart_data_t;
+#endif
+
+/* An SPI controller: its clock gate and interrupt. */
+typedef struct emb_stm32_spi_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* its bus clock */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq;
+    emb_drv_dma_chan_t dma_tx; /* where the board gives it DMA (dma: [tx, rx]); NULL's otherwise */
+    emb_drv_dma_chan_t dma_rx;
+} emb_stm32_spi_config_t;
+
+#if CONFIG_EMB_DRV_SPI
+/* An SPI controller's RAM. */
+typedef struct emb_stm32_spi_data {
+    emb_drv_bus_t bus;       /* the class's, first */
+    emb_drv_spi_req_t *xfer; /* the transfer in progress */
+    const emb_device_t *dev; /* for the interrupt handler */
+    bool stopping;           /* canceled: ends when the frame in flight is back */
+    bool dma;                /* the transfer runs by DMA: the board gave the device channels */
+    uint8_t fill;            /* the ones a transfer with no transmit buffer sends, DMA's source */
+    uint8_t sink;            /* where a transfer with no receive buffer's frames go */
+} emb_stm32_spi_data_t;
+#endif
+
+/* The independent watchdog (RM0390 §19), clocked by the LSI: no clock gate. */
+typedef struct emb_stm32_iwdg_config {
+    uintptr_t base;
+} emb_stm32_iwdg_config_t;
+
+/* Its RAM: whether it was started, and whether it caused this boot's reset. */
+typedef struct emb_stm32_iwdg_data {
+    bool started;
+    bool caused;
+} emb_stm32_iwdg_data_t;
+
+/* The RTC (RM0390 §26): its registers and its alarm's interrupt (EXTI line 17). */
+typedef struct emb_stm32_rtc_config {
+    uintptr_t base;
+    uint32_t irq;
+} emb_stm32_rtc_config_t;
+
+/* Its RAM: the class's, first, and the device for the alarm's interrupt. */
+typedef struct emb_stm32_rtc_data {
+    emb_drv_rtc_data_t rtc;
+    const emb_device_t *dev;
+} emb_stm32_rtc_data_t;
+
+/* The flash interface (RM0390 §3): its registers, and the flash's geometry from the
+ * description. */
+typedef struct emb_stm32_flash_config {
+    uintptr_t base;
+    emb_drv_flash_geometry_t geometry;
+} emb_stm32_flash_config_t;
+
+/* Its RAM: the class's lock, first. */
+typedef struct emb_stm32_flash_data {
+    emb_drv_bus_t lock;
+} emb_stm32_flash_data_t;
+
+/* A DMA controller (RM0390 §9): its clock gate, each stream's interrupt, and whether it copies
+ * memory to memory (DMA2 alone). */
+typedef struct emb_stm32_dma_config {
+    uintptr_t base;
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7;
+    bool memory;
+} emb_stm32_dma_config_t;
+
+#if CONFIG_EMB_DRV_DMA
+#define EMB_STM32_DMA_STREAMS 8u
+struct emb_stm32_dma_data;
+/* A stream's job: its end's callback, and the count it started with. */
+typedef struct emb_stm32_dma_stream {
+    struct emb_stm32_dma_data *dma;
+    emb_drv_dma_done_t done;
+    void *arg;
+    uint32_t count;
+    uint8_t index;
+    uint8_t running;
+} emb_stm32_dma_stream_t;
+
+/* A DMA controller's RAM. */
+typedef struct emb_stm32_dma_data {
+    const emb_device_t *dev;
+    emb_stm32_dma_stream_t streams[EMB_STM32_DMA_STREAMS];
+} emb_stm32_dma_data_t;
+#endif
+
+/* An I2C controller: its lines first (the class's recovery drives them), its clock gate and
+ * its event and error interrupts. */
+typedef struct emb_stm32_i2c_config {
+    emb_drv_gpio_line_t scl;
+    emb_drv_gpio_line_t sda;
+    uintptr_t base;
+    uint32_t clock_hz; /* its bus clock: CR2.FREQ in MHz, CCR from it */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq_ev;
+    uint32_t irq_er;
+} emb_stm32_i2c_config_t;
+
+#if CONFIG_EMB_DRV_I2C
+/* An I2C controller's RAM. It waits as a target while no transaction runs, and a
+ * transaction's start condition makes it the bus's controller until its stop. */
+typedef struct emb_stm32_i2c_data {
+    emb_drv_bus_t bus;         /* the class's, first */
+    emb_drv_i2c_req_t *xfer;   /* the transaction in progress */
+    emb_drv_i2c_req_t *listen; /* the listen waiting or answering */
+    const emb_device_t *dev;   /* for the interrupt handlers */
+    size_t seg;                /* the segment in progress */
+    size_t pos;                /* bytes of it moved */
+    uint32_t moved;            /* bytes of the transaction moved */
+    uint32_t hz;               /* the speed the controller is set up for */
+    bool stopping;             /* the transaction was canceled */
+} emb_stm32_i2c_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE
 /* READY when the clock switch the board support asked for has completed. */
 extern const emb_device_api_t emb_stm32_rcc_api;
 /* Enables the port's clock. */
-extern const emb_device_api_t emb_stm32_gpio_api;
-/* Checks the divider and enables the USART's clock. A USART already running at the rate, as
- * the board's console is, is left as it is; another is set up for transmission at the rate
- * once the character on its line has finished. */
-extern const emb_device_api_t emb_stm32_usart_api;
+extern const emb_drv_gpio_api_t emb_stm32_gpio_api;
+#endif
+#if CONFIG_EMB_DRV_UART
+/* The UART class's operations (SPEC-017 §4). Initialization checks the divider, enables the
+ * clock and the receiver, leaves a USART already running at the rate as it is (the board's
+ * console), and connects the interrupt; the first request turns it on, so an application
+ * that connects its own handler to the line keeps it. */
+extern const emb_drv_uart_api_t emb_stm32_usart_api;
+#endif
+#if CONFIG_EMB_DRV_SPI
+/* The SPI class's operations (SPEC-017 §5): a controller with software chip-select
+ * management, one frame in flight, carried by the receive interrupt. */
+extern const emb_device_api_t emb_stm32_spi_api;
+#endif
+#if CONFIG_EMB_DRV_WDT
+/* The watchdog class's operations (SPEC-017 §8): the IWDG, whose start chooses the prescaler
+ * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
+extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
+#endif
+#if CONFIG_EMB_DRV_RTC
+/* The RTC class's operations (SPEC-017 §10): the calendar in the backup domain on the LSE,
+ * alarm A, the 20 backup registers. */
+extern const emb_drv_rtc_api_t emb_stm32_rtc_api;
+#endif
+#if CONFIG_EMB_DRV_FLASH
+/* The flash class's operations (SPEC-017 §9): a sector erased, or bytes programmed, with
+ * interrupts held off while the CPU stalls on its flash, the clock catching up after (A122). */
+extern const emb_drv_flash_api_t emb_stm32_flash_api;
+#endif
+#if CONFIG_EMB_DRV_DMA
+/* The DMA class's operations (SPEC-017 §7): a job per stream, direct mode for a peripheral,
+ * the FIFO for memory to memory, its end by the stream's interrupt. */
+extern const emb_drv_dma_api_t emb_stm32_dma_api;
+#endif
+#if CONFIG_EMB_DRV_I2C
+/* The I2C class's operations (SPEC-017 §6): standard and fast mode, and target mode, by
+ * interrupt; one byte at a time, the receiver's acknowledge managed as RM0390 §24.3.3 asks. */
+extern const emb_drv_i2c_api_t emb_stm32_i2c_api;
 #endif
 
 #ifdef __cplusplus

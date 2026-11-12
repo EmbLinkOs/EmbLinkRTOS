@@ -1,0 +1,89 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 88,
+      "name": "i2c_loop_recovers_a_stuck_target",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "i2c_loop_listen_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "i2c_loop_fast_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_target_drops_beyond_its_buffer",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_nobody_answers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 32,
+      "name": "i2c_loop_register_reads_of_every_length",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "i2c_loop_write_to_the_target",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:25:00Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "a753436b81822c32",
+    "profile": "base",
+    "suite": "test_i2c_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_i2c_loop.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_i2c_loop.elf": "4fce7fed745b1914e44726e3b554456322cdb27a8a994a98e2197d81387768e8"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b3f1872e4d4031bbd2a637567d17d7eee5b1c8b",
+    "dirty": false
+  },
+  "image": "test_i2c_loop.elf",
+  "image_sha256": "4fce7fed745b1914e44726e3b554456322cdb27a8a994a98e2197d81387768e8",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T23:24:58Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}
