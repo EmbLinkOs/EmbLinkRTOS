@@ -115,7 +115,7 @@ EMB_TEST(entropy_board_a_mebibyte_passes_the_sanity_checks)
             }
             prev_byte = b;
             for (k = 0u; k < 8u; k++) { /* bounded: a byte's bits */
-                unsigned bit = (b >> k) & 1u;
+                unsigned bit = ((unsigned)b >> k) & 1u;
                 ones += bit;
                 if (((done + i) != 0u) || (k != 0u)) {
                     transitions += (bit != prev_bit) ? 1u : 0u;
@@ -197,7 +197,7 @@ EMB_TEST(entropy_board_the_raw_source_has_the_entropy_conditioning_needs)
             unsigned k;
             counts[chunk[i]]++;
             for (k = 0u; k < 8u; k++) { /* bounded: a byte's bits */
-                unsigned bit = (chunk[i] >> k) & 1u;
+                unsigned bit = ((unsigned)chunk[i] >> k) & 1u;
                 if (((done + i) != 0u) || (k != 0u)) {
                     transitions += (bit != prev_bit) ? 1u : 0u;
                 }

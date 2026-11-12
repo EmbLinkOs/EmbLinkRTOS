@@ -70,18 +70,18 @@ static emb_status_t native_entropy_block(const emb_device_t *dev, uint8_t *buf,
 static const emb_drv_entropy_api_t native_entropy_api = {
     {native_entropy_init, NULL, NULL, NULL, NULL, 0u}, native_entropy_block, 32u, {0u, 0u, 0u}};
 
-const emb_device_t emb_dev_entropy = {"entropy",
-                                      &native_entropy_api.dev,
-                                      NULL,
-                                      &native_entropy_state,
-                                      &native_entropy_data,
-                                      NULL,
-                                      EMB_DRV_CLASS_ENTROPY,
-                                      EMB_DEVICE_KERNEL,
-                                      0u};
-static const emb_device_t *const native_devices[] = {&emb_dev_entropy};
+static const emb_device_t native_entropy_dev = {"entropy",
+                                                &native_entropy_api.dev,
+                                                NULL,
+                                                &native_entropy_state,
+                                                &native_entropy_data,
+                                                NULL,
+                                                EMB_DRV_CLASS_ENTROPY,
+                                                EMB_DEVICE_KERNEL,
+                                                0u};
+static const emb_device_t *const native_devices[] = {&native_entropy_dev};
 const emb_device_table_t emb_board_device_table = {native_devices, 1u, 0u};
-const emb_device_t *const emb_board_entropy = &emb_dev_entropy;
+const emb_device_t *const emb_board_entropy = &native_entropy_dev;
 #elif CONFIG_EMB_DEVICE
 /* No devices: the board has no description to generate them from (SPEC-016 §8). */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};

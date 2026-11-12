@@ -37,11 +37,11 @@
   "misra-c2012-13.3": 5,
   "misra-c2012-15.7": 1,
   "misra-c2012-18.4": 3,
-  "misra-c2012-2.5": 13,
+  "misra-c2012-2.5": 15,
   "misra-c2012-8.11": 2,
   "misra-c2012-8.4": 4,
   "misra-c2012-8.6": 2,
-  "misra-c2012-8.7": 18,
+  "misra-c2012-8.7": 21,
   "misra-c2012-8.9": 1,
   "misra-config": 1
  },
@@ -377,7 +377,7 @@
   "misra-config": 5
  },
  "generated/include/emb/config.h": {
-  "misra-c2012-2.5": 74
+  "misra-c2012-2.5": 77
  },
  "generated/include/emb/storage.h": {
   "misra-c2012-19.2": 20,
@@ -385,7 +385,7 @@
   "misra-c2012-5.6": 16
  },
  "include/emb/api_ids.h": {
-  "misra-c2012-2.5": 166
+  "misra-c2012-2.5": 181
  },
  "include/emb/compiler.h": {
   "misra-c2012-17.8": 3,
@@ -424,7 +424,7 @@
   "misra-c2012-2.5": 7
  },
  "include/emb/device.h": {
-  "misra-c2012-2.5": 5,
+  "misra-c2012-2.5": 3,
   "misra-c2012-20.10": 1
  },
  "include/emb/drv_bus.h": {
@@ -444,7 +444,7 @@
   "misra-c2012-2.5": 8
  },
  "include/emb/drv_rtc.h": {
-  "misra-c2012-2.5": 2
+  "misra-c2012-2.5": 3
  },
  "include/emb/drv_spi.h": {
   "misra-c2012-2.5": 10
@@ -589,7 +589,7 @@
  "kernel/device/rtc.c": {
   "misra-c2012-10.4": 4,
   "misra-c2012-11.5": 2,
-  "misra-c2012-8.7": 6
+  "misra-c2012-8.7": 8
  },
  "kernel/device/spi.c": {
   "misra-c2012-10.4": 3,
