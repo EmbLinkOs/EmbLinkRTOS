@@ -3,7 +3,7 @@
 # Locates the board, runs the configuration tool at configure time, and loads the
 # resolved CONFIG_EMB_* values into CMake variables (05 §2.1).
 
-find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter)
+find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 
 # -- board ---------------------------------------------------------------------
 # A hand-written board has boards/<vendor>/<board>/board.cmake; a board described in YAML has

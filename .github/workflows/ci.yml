@@ -419,6 +419,44 @@ jobs:
           pip install hypothesis pytest
           cd tools/model && python3 -m pytest -q
 
+  python-floor:
+    # the host tools on the oldest Python the README promises, 3.10: every unittest suite in
+    # the tree, found by its test_*.py files so a new one joins without an edit here, the
+    # reference model, the generator's committed outputs, and a native build, whose configure
+    # runs the configuration and generator tools. The lint job runs them on the runner's 3.12.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30 # a hung step fails the job in minutes, not GitHub's six hours
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.10'
+      - name: Install tools
+        timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build
+      - name: The tools' Python packages
+        run: python -m pip install jsonschema pyyaml hypothesis pytest
+      - name: Every host tool's tests
+        run: |
+          python --version
+          git ls-files '*/test_*.py' ':!tools/model/**' | xargs -n1 dirname | sort -u |
+            while read -r d; do
+              echo "::group::$d"
+              python -I -m unittest discover -s "$d" -p 'test_*.py' -v || exit 1
+              echo "::endgroup::"
+            done
+      - name: Reference model
+        run: cd tools/model && python -m pytest -q
+      - name: The generator's committed outputs
+        run: python -I hw/gen/emb-hwgen.py check
+      - name: A native build, configured with this Python
+        run: |
+          cmake --preset native-gcc -DPython3_EXECUTABLE="$(command -v python)"
+          cmake --build --preset native-gcc
+          ctest --preset native-gcc --output-on-failure --no-tests=error
+
   avr-embsim:
     # the conformance suite on EmbSIM's Arduino Uno (SIM-002): EmbSIM built from source,
     # each test image run in virtual time until its EMB_TEST_END (tools/embsim/run_embsim.py)
@@ -972,7 +1010,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, evidence, static-analysis, reproducibility]
+    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, python-floor, evidence, static-analysis, reproducibility]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

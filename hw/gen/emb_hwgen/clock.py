@@ -24,7 +24,8 @@ def _in(v, rng):
 
 
 def _mhz(hz):
-    return f"{Fraction(hz) / 10**6:g} MHz" if Fraction(hz).denominator == 1 else f"{float(hz) / 1e6:.3f} MHz"
+    # float() first: a Fraction takes a format spec only from Python 3.12, and 3.10 is the floor
+    return f"{float(Fraction(hz) / 10**6):g} MHz" if Fraction(hz).denominator == 1 else f"{float(hz) / 1e6:.3f} MHz"
 
 
 def solve(soc, board, fail):
