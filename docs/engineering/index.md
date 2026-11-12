@@ -51,6 +51,7 @@ hil-i2c-2026-11-09
 hil-dma-2026-11-09
 hil-watchdog-2026-11-10
 hil-flash-2026-11-10
+hil-rtc-2026-11-12
 bench-esp32-freertos-2026-11-06
 bench-uno-freertos-2026-11-05
 bench-pico2w-freertos-2026-11-07

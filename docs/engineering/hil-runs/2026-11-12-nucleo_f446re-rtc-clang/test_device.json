@@ -1,0 +1,143 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 10,
+      "name": "device_init_reaches_ready_or_failed",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "device_on_a_failed_dependency_fails_without_its_driver",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "device_list_initializes_past_a_failure",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "device_suspend_and_resume",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "drv_submit_refused_unless_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "drv_request_completes_from_the_interrupt",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 13,
+      "name": "drv_completion_targets",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "drv_queue_is_first_in_first_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "drv_lanes_run_independently",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "drv_cancel_queued_and_running_requests_complete_once",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "drv_wait_returns_the_result_or_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 38,
+      "name": "device_board_devices_ready_in_dependency_order",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 23,
+      "name": "device_optional_operations",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "drv_setters_ignore_a_missing_request",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "device_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 47,
+      "name": "drv_status_codes_are_named_in_their_ranges",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T21:06:25Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "a15060c03d47d9b0",
+    "profile": "base",
+    "suite": "test_device"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 11,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_device.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_device.elf": "2f4168524457a1a17c4424ba7cd382670cd9b3f16f92418089c86136d353c89f"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_device.elf",
+  "image_sha256": "2f4168524457a1a17c4424ba7cd382670cd9b3f16f92418089c86136d353c89f",
+  "isr_stack": {
+    "size": 2048,
+    "used": 228
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-12T21:06:23Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 16
+  }
+}

@@ -1,0 +1,14 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_wdog.elf sha256 665bbe62e5e564db80028014be467c81a7a4b58fc2716c0eb0441961f5499398
+EVIDENCE v1 suite=test_wdog config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST wdog_refusals
+  fault checks that reset the board: 4
+  -> ok
+  req FLT-004
+CASE wdog_refusals outcome=passed asserts=13 skips=0
+TEST wdog_feeds_until_a_party_misses
+  -> ok
+  req FLT-004
+CASE wdog_feeds_until_a_party_misses outcome=passed asserts=122 skips=0
+ISR_STACK size=2048 used=280
+2 tests, 0 failed, 0 skipped, 467 ticks
+EMB_TEST_END
