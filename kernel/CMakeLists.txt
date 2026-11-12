@@ -66,7 +66,7 @@ if(CONFIG_EMB_DEVICE)
     list(APPEND EMB_KERNEL_SOURCES device/flash.c)
   endif()
   if(CONFIG_EMB_DRV_ENTROPY)
-    list(APPEND EMB_KERNEL_SOURCES device/entropy.c)
+    list(APPEND EMB_KERNEL_SOURCES device/entropy.c device/sha256.c) # conditioned by SHA-256
   endif()
   if(CONFIG_EMB_DRV_RTC)
     list(APPEND EMB_KERNEL_SOURCES device/rtc.c)

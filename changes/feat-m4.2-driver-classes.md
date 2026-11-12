@@ -96,4 +96,6 @@
 
 - A124, proposed: `<emb/drv_entropy.h>`, behind `CONFIG_EMB_DRV_ENTROPY` (SPEC-017 §11). Bytes from a hardware source of randomness, a block at a time under one timeout. A block that fails the source's health test ends the read with `EMB_EHEALTH`, none of its bytes delivered. A board without a source says so: `emb_drv_entropy_board()` returns `EMB_ENOTSUP`, and nothing stands in for it (SEC-012).
 - The RP2350's TRNG (`drivers/rpi/rp2350_trng.c`), every health test on, sampling every 200 clocks, measured on the board; the native board's source is the host's `getentropy()`.
-- `tools/entropy/check.py`: the host's checks of the sample a board prints, against the board's SHA-256 of it.
+- The class conditions every source's output, as NIST SP 800-90B asks of a raw noise source: every 32 bytes read are the SHA-256 of 64 raw, health-tested bytes (a SHA-256 inside the kernel). `emb_drv_entropy_read_raw()` reads the raw blocks, for measuring a source. The RP2350's raw blocks passed the TRNG's health tests but failed a byte chi-square and a runs test.
+- `tools/entropy/check.py`: the host's checks of the conditioned sample a board prints, against the board's SHA-256 of it, and the raw source's min-entropy estimate.
+- `emb_add_test()`: a suite that needs longer than the hardware runner's two minutes sets `EMB_HIL_TIMEOUT_<name>`.

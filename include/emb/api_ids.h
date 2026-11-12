@@ -240,5 +240,6 @@
 #define EMB_API_ID_DRV_ENTROPY_BOARD             0x00EDu
 #define EMB_API_ID_DRV_ENTROPY_LOCK_INIT         0x00EEu
 #define EMB_API_ID_DRV_ENTROPY_READ              0x00EFu
+#define EMB_API_ID_DRV_ENTROPY_READ_RAW          0x00F0u
 
 #endif /* EMB_API_IDS_H */

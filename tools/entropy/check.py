@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""The host's sanity checks of an entropy sample a board printed (test_entropy_board, A124):
-the ENTROPY lines of a run's log, checked against the SHA-256 the board gave them, then the
-monobit test, the byte frequencies by chi-square, the runs test (NIST SP 800-22 sections 2.1
-and 2.3), the serial correlation of the bytes, and how far zlib compresses them. These are
-checks of the driver and of gross faults in a source, not a certification of the source."""
+"""The host's sanity checks of the entropy a board printed (test_entropy_board, A124): the
+ENTROPY lines of a run's log, the conditioned sample checked against the SHA-256 the board gave
+it, then the monobit test, the byte frequencies by chi-square, the runs test (NIST SP 800-22
+sections 2.1 and 2.3), the serial correlation of the bytes, and how far zlib compresses them;
+and the raw source's min-entropy, NIST SP 800-90B's most-common-value estimate from the counts
+the board printed. These are checks of the driver and of gross faults in a source, not a
+certification of the source."""
 import argparse
 import hashlib
 import math
@@ -15,6 +17,8 @@ import zlib
 
 LINE = re.compile(r"^ENTROPY ([0-9a-f]{64})\s*$")
 SUM = re.compile(r"^ENTROPY sample (\d+) bytes sha256 ([0-9a-f]{64})\s*$")
+RAW = re.compile(r"^ENTROPY raw (\d+) bytes, most common value (\d+) times")
+MIN_ENTROPY = 4.0           # bits a byte: what conditioning 2:1 needs
 Z_LIMIT = 5.0             # standard deviations: one false alarm in some 1.7 million per test
 CHI_LIMITS = (150.0, 400.0)  # 255 degrees of freedom: mean 255, deviation 22.6
 COMPRESSED_MIN = 0.99     # zlib's output, as a share of the input
@@ -43,6 +47,19 @@ def sample_from(log_text):
     if hashlib.sha256(data).hexdigest() != want[1]:
         raise SampleError("the sample's SHA-256 differs from the board's: a line was lost or changed")
     return data
+
+
+def raw_min_entropy(log_text):
+    """The raw source's min-entropy in bits a byte, NIST SP 800-90B 6.3.1's most-common-value
+    estimate from the counts the board printed; None where the log has no raw line."""
+    for line in log_text.splitlines():
+        m = RAW.match(line.strip())
+        if m:
+            n, most = int(m.group(1)), int(m.group(2))
+            p = most / n
+            p_u = min(1.0, p + 2.576 * math.sqrt(p * (1 - p) / (n - 1)))
+            return -math.log2(p_u)
+    return None
 
 
 def checks(data):
@@ -84,7 +101,8 @@ def main(argv=None):
     for path in a.log:
         try:
             with open(path, encoding="utf-8", errors="replace") as f:
-                data = sample_from(f.read())
+                text = f.read()
+            data = sample_from(text)
         except (OSError, SampleError) as e:
             print(f"{path}: {e}")
             failed = True
@@ -92,6 +110,12 @@ def main(argv=None):
         print(f"{path}: {len(data)} bytes, their SHA-256 the board's")
         for name, value, ok in checks(data):
             print(f"  {'pass' if ok else 'FAIL'}  {name}: {value}")
+            failed = failed or not ok
+        h = raw_min_entropy(text)
+        if h is not None:
+            ok = h >= MIN_ENTROPY
+            print(f"  {'pass' if ok else 'FAIL'}  the raw source's min-entropy (most common value): "
+                  f"{h:.2f} bits a byte, at least {MIN_ENTROPY:.0f}")
             failed = failed or not ok
     return 1 if failed else 0
 

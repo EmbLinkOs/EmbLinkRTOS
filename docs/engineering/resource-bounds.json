@@ -719,6 +719,14 @@
       "pi_depth",
       "timeouts"
     ],
+    "emb_drv_entropy_read_raw": [
+      "entropy_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
     "emb_drv_flash_sector": [
       "flash_sectors"
     ],

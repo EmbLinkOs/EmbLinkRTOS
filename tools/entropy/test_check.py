@@ -33,6 +33,19 @@ class Sample(unittest.TestCase):
             check.sample_from("TEST other\nCASE other outcome=passed\n")
 
 
+class RawSource(unittest.TestCase):
+    def test_the_estimate_from_the_counts(self):
+        h = check.raw_min_entropy("ENTROPY raw 262144 bytes, most common value 1105 times, chi-square x100 1\n")
+        self.assertAlmostEqual(h, 7.75, places=1)  # p = 0.0042, its bound 0.0045
+
+    def test_a_skewed_source_is_low(self):
+        h = check.raw_min_entropy("ENTROPY raw 262144 bytes, most common value 65536 times, chi-square x100 1\n")
+        self.assertLess(h, check.MIN_ENTROPY)  # one value in four
+
+    def test_no_raw_line(self):
+        self.assertIsNone(check.raw_min_entropy("TEST other\n"))
+
+
 class Checks(unittest.TestCase):
     def test_random_bytes_pass(self):
         data = random.Random(3).randbytes(65536)

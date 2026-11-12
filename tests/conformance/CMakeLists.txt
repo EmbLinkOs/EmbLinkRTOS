@@ -79,6 +79,7 @@ if(CONFIG_EMB_DEVICE)
   endif()
   if(CONFIG_EMB_DRV_ENTROPY)
     emb_add_test(test_entropy test_entropy.c) # SPEC-017 §11, SEC-012
+    target_link_libraries(test_entropy PRIVATE emb_kernel_private) # its SHA-256, to check
     # the board's own source, where it has one (and the native board's host source): 1 MiB
     # tested on the board; a physical board also prints a 64 KiB sample for the host's checks
     set(_emb_entropy OFF)
@@ -91,7 +92,9 @@ if(CONFIG_EMB_DEVICE)
       endif()
     endif()
     if(_emb_entropy)
+      set(EMB_HIL_TIMEOUT_test_entropy_board 300) # 2 MiB raw for the conditioned MiB: some 2 min
       emb_add_test(test_entropy_board test_entropy_board.c)
+      target_link_libraries(test_entropy_board PRIVATE emb_kernel_private) # its SHA-256
       if(EMB_TEST_EMULATOR STREQUAL "hil")
         target_compile_definitions(test_entropy_board PRIVATE EMB_ENTROPY_DUMP=1)
       endif()

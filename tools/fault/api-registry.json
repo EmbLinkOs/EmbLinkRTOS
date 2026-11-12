@@ -1416,6 +1416,12 @@
       "name": "emb_drv_entropy_read",
       "header": "drv_entropy.h",
       "state": "active"
+    },
+    {
+      "id": 240,
+      "name": "emb_drv_entropy_read_raw",
+      "header": "drv_entropy.h",
+      "state": "active"
     }
   ]
 }

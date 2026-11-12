@@ -569,9 +569,9 @@
   "misra-c2012-8.7": 2
  },
  "kernel/device/entropy.c": {
-  "misra-c2012-10.4": 2,
-  "misra-c2012-11.5": 3,
-  "misra-c2012-8.7": 3
+  "misra-c2012-10.4": 6,
+  "misra-c2012-11.5": 4,
+  "misra-c2012-8.7": 4
  },
  "kernel/device/flash.c": {
   "misra-c2012-10.4": 4,

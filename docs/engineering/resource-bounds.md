@@ -55,7 +55,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
 | `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
 | `emb_drv_entropy_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
-| `emb_drv_entropy_read()` | O(entropy_bytes) of the source's own time, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_entropy_read()` | O(entropy_bytes) of the source's own time, twice over, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_entropy_read_raw()` | O(entropy_bytes) of the source's own time, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_drv_flash_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_drv_flash_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_flash_poll_erase()` | O(flash_sectors) of the flash's own time | flash_sectors, drivers |
