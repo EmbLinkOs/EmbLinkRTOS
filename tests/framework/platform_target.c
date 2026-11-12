@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Test platform for the 32-bit embedded ports (Cortex-M, RISC-V): console output through
- * the board, a small formatter instead of the C library's, no fork, the run's end through
- * the board (an emulator exit), and a real software interrupt: the board names a line no
- * device drives (EMB_HW_TEST_IRQ) and the test pends it through the interrupt controller.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    platform_target.c
+ * @brief   Test platform for the 32-bit embedded ports (Cortex-M, RISC-V).
+ *
+ * @details
+ * Console output through the board, a small formatter instead of the C library's, no fork, the
+ * run's end through the board (an emulator exit), and a real software interrupt: the board names a
+ * line no device drives (EMB_HW_TEST_IRQ) and the test pends it through the interrupt controller.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <stdarg.h>
 

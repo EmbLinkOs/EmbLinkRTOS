@@ -1,8 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Object-format layer for Mach-O (Apple ld64), selected by <emb/compiler.h> for the
- * native port on macOS. Two differences from ELF matter to the kernel:
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    macho.h
+ * @brief   Object-format layer for Mach-O (Apple ld64), selected by <emb/compiler.h> for the native
+ *          port on macOS.
+ *
+ * @details
+ * Two differences from ELF matter to the kernel:
  *
  * - A section name is "<segment>,<section>", the section part at most 16 characters.
  *   Registration tables are read-only data with pointers, so they go to __DATA_CONST,
@@ -11,6 +20,9 @@
  *   bounds of any section as section$start$<segment>$<section> and
  *   section$end$<segment>$<section>, creating an empty section when none exists.
  *   C cannot spell those names, so the declarations bind them with an asm label.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #ifndef EMB_COMPILER_MACHO_H
 #define EMB_COMPILER_MACHO_H

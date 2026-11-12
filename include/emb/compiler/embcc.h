@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Compiler portability layer for EmbCC (SPEC-001 §10; constraints from document 09).
- * EmbCC accepts the GCC attribute set listed in 09 §4 and the builtins named there.
- * Current EmbCC supports typedef alignment and constructor priorities; the RTOS
- * keeps object/member alignment and generated initialization tables as policy.
- * The predefined macro __EMBCC__ was observed in the 2026-10-14 capability probes.
- * Full RTOS qualification remains separate from the compiler capability probes.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    embcc.h
+ * @brief   Compiler portability layer for EmbCC (SPEC-001 §10; constraints from document 09).
+ *
+ * @details
+ * EmbCC accepts the GCC attribute set listed in 09 §4 and the builtins named there. Current EmbCC
+ * supports typedef alignment and constructor priorities; the RTOS keeps object/member alignment and
+ * generated initialization tables as policy. The predefined macro __EMBCC__ was observed in the
+ * 2026-10-14 capability probes. Full RTOS qualification remains separate from the compiler
+ * capability probes.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_COMPILER_EMBCC_H
 #define EMB_COMPILER_EMBCC_H

@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Software timer conformance (SPEC-003 §7; KRN-TIM-012 to 016, 028). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_timer.c
+ * @brief   Software timer conformance (SPEC-003 §7; KRN-TIM-012 to 016, 028).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #include <emb_test.h>
 
 #if CONFIG_EMB_ARCH_NATIVE && CONFIG_EMB_TICKLESS

@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * AVR port header (SPEC-012; contract SPEC-011 §3, §6): critical sections on SREG.I,
- * the EMB_ISR vector macros, and the port's type and size constants. Vector numbers
- * come from the board's hw_config.h (EMB_VECTOR_<name>).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch.h
+ * @brief   AVR port header (SPEC-012; contract SPEC-011 §3, §6).
+ *
+ * @details
+ * Critical sections on SREG.I, the EMB_ISR vector macros, and the port's type and size constants.
+ * Vector numbers come from the board's hw_config.h (EMB_VECTOR_<name>).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_AVR_EMB_ARCH_H
 #define EMB_AVR_EMB_ARCH_H

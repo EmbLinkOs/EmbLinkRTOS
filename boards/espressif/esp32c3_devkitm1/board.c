@@ -1,14 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * esp32c3_devkitm1 (ESP32-C3-DevKitM-1 V1.0): the ESP32-C3-MINI-1 as its boot ROM leaves
- * it after loading this image from flash offset 0 (CPU_CLK XTAL_CLK / 2, UART0 at 115200
- * on GPIO21/20); console on UART0, which the board's CP2102N carries to its USB port.
- * Register addresses and bits from the ESP32-C3 Technical Reference Manual v1.4,
- * chapters 6 (clocks) and 26 (UART). The board's only LED is the SK6812 on GPIO8, an
- * addressable one: emb_board_led_toggle() keeps its state only, as QEMU virt's does. A
- * hardware target: the run ends in a WFI loop with interrupts masked (an emulator ends the
- * run at the console's EMB_TEST_END).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   esp32c3_devkitm1 (ESP32-C3-DevKitM-1 V1.0).
+ *
+ * @details
+ * The ESP32-C3-MINI-1 as its boot ROM leaves it after loading this image from flash offset 0
+ * (CPU_CLK XTAL_CLK / 2, UART0 at 115200 on GPIO21/20); console on UART0, which the board's CP2102N
+ * carries to its USB port. Register addresses and bits from the ESP32-C3 Technical Reference Manual
+ * v1.4, chapters 6 (clocks) and 26 (UART). The board's only LED is the SK6812 on GPIO8, an
+ * addressable one: emb_board_led_toggle() keeps its state only, as QEMU virt's does. A hardware
+ * target: the run ends in a WFI loop with interrupts masked (an emulator ends the run at the
+ * console's EMB_TEST_END).
  *
  * emb_board_init() moves the CPU to 160 MHz as ESP-IDF v5.4's bootloader does
  * (esp_hw_support/port/esp32c3/rtc_clk.c and hal/esp32c3/clk_tree_ll.h, with the module's
@@ -21,6 +29,9 @@
  * (RTC_CNTL_STORE5) and tells the ROM the CPU's frequency (ets_update_cpu_frequency). UART0
  * runs from APB_CLK, which was 20 MHz and is now 80 MHz: its divider is set again for
  * 115200 baud. SYSTIMER, the tick's source, runs from the crystal and does not change.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-22 (created)
  */
 #include <emb/config.h>
 #include <emb/fault.h>

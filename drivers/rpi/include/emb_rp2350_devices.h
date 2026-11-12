@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The RP2350 drivers as devices (SPEC-016): the operations and generated configurations the
- * bindings name (drivers/bindings.yaml). Thin adapters: the functions of
- * emb_rp2350_drivers.h stay the low layer the board support uses before the kernel.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_rp2350_devices.h
+ * @brief   The RP2350 drivers as devices (SPEC-016).
+ *
+ * @details
+ * The operations and generated configurations the bindings name (drivers/bindings.yaml). Thin
+ * adapters: the functions of emb_rp2350_drivers.h stay the low layer the board support uses before
+ * the kernel.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #ifndef EMB_RP2350_DEVICES_H
 #define EMB_RP2350_DEVICES_H

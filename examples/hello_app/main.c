@@ -1,13 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * An application outside the RTOS tree (docs/user/application.md): a producer thread sends
- * readings to a consumer through a message queue every 10 ms, and a timer counts the
- * seconds. It prints each step and ends after five readings. Build it for any board:
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    main.c
+ * @brief   An application outside the RTOS tree (docs/user/application.md).
+ *
+ * @details
+ * A producer thread sends readings to a consumer through a message queue every 10 ms, and a timer
+ * counts the seconds. It prints each step and ends after five readings. Build it for any board:
  *
  *   cmake -S examples/hello_app -B build/hello -DEMB_BOARD=mps2_an386
  *   cmake --build build/hello
  *   cmake --build build/hello --target run_hello   # under the board's QEMU machine
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb/emb.h>
 

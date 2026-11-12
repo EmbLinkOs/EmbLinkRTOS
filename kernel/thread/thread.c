@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Thread lifecycle (SPEC-008), sleep and yield (SPEC-003 §6), priority changes
- * (SPEC-005 §10). Execution lives strictly inside the object's lifetime
- * (KRN-THR-006); storage reuse is a defined point, never an idle-task side effect.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    thread.c
+ * @brief   Thread lifecycle (SPEC-008), sleep and yield (SPEC-003 §6), priority changes (SPEC-005
+ *          §10).
+ *
+ * @details
+ * Execution lives strictly inside the object's lifetime (KRN-THR-006); storage reuse is a defined
+ * point, never an idle-task side effect.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/storage.h>
 #include <emb/thread.h>

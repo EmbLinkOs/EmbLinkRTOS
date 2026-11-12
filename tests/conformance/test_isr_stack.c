@@ -1,10 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The interrupt stack (SPEC-002 §7.2, PORT-016, A90): its size and high-water mark, the
- * fill check of its lowest bytes at the outermost interrupt exit, the same check of the
- * interrupted thread's guard, and on Armv8-M Mainline MSPLIM stopping an interrupt that
- * overflows. The checks fault, so they run where fault checks run (fork, or a board's reset).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_isr_stack.c
+ * @brief   The interrupt stack (SPEC-002 §7.2, PORT-016, A90).
+ *
+ * @details
+ * Its size and high-water mark, the fill check of its lowest bytes at the outermost interrupt exit,
+ * the same check of the interrupted thread's guard, and on Armv8-M Mainline MSPLIM stopping an
+ * interrupt that overflows. The checks fault, so they run where fault checks run (fork, or a
+ * board's reset).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb/arch.h> /* emb_arch_isr_stack: where the guard bytes are */
 

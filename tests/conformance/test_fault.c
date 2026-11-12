@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Numeric public-entry identity and complete misuse records (SPEC-001 §5.3). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_fault.c
+ * @brief   Numeric public-entry identity and complete misuse records (SPEC-001 §5.3).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-21 (created)
+ */
 #include <emb/api_ids.h>
 
 #include <emb_test.h>

@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Condition variables (SPEC-005 §6). A wait enqueues the caller and releases its mutex in
- * one section, so no signal sent after the release can be missed; there is no stored
- * signal and no spurious wakeup. Every completion relocks the mutex before returning, with
- * cancellation deferred so that the caller always owns it again (A41).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    cond.c
+ * @brief   Condition variables (SPEC-005 §6).
+ *
+ * @details
+ * A wait enqueues the caller and releases its mutex in one section, so no signal sent after the
+ * release can be missed; there is no stored signal and no spurious wakeup. Every completion relocks
+ * the mutex before returning, with cancellation deferred so that the caller always owns it again
+ * (A41).
+ *
+ * @see     include/emb/cond.h
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/cond.h>
 #include <emb/storage.h>

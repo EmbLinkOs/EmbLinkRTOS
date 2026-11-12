@@ -404,6 +404,10 @@ jobs:
             --conf boards/arduino/arduino_uno/generated/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: IRQ configuration and encoding regressions
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
+      - name: File headers (CS-11.1)
+        run: |
+          python3 -I -m unittest discover -s tools/dev -p 'test_*.py' -v
+          python3 -I tools/dev/file_headers.py --check
       - name: Crash record decoder
         run: python3 -I -m unittest discover -s tools/crashdec -p 'test_*.py' -v
       - name: Hardware-in-the-loop runner (a pseudo-terminal for the board)

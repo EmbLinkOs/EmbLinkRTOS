@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Arm CMSDK APB UART (Arm DDI 0479C §4.6), as the MPS2 boards and QEMU's models have it: a
- * polled transmit for the board's console, and the device the generator binds to
- * "arm,cmsdk-uart" (SPEC-016 §8). The UART class's requests come with SPEC-017 §4.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_cmsdk_uart.h
+ * @brief   Arm CMSDK APB UART (Arm DDI 0479C §4.6), as the MPS2 boards and QEMU's models have it.
+ *
+ * @details
+ * A polled transmit for the board's console, and the device the generator binds to "arm,cmsdk-uart"
+ * (SPEC-016 §8). The UART class's requests come with SPEC-017 §4.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #ifndef EMB_CMSDK_UART_H
 #define EMB_CMSDK_UART_H

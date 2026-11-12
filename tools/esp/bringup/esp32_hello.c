@@ -1,17 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-
 /*
- * The classic ESP32's bring-up probe (docs/ports/xtensa.md): no kernel and no
- * ESP-IDF. The boot ROM loads it from flash offset 0x1000 and calls
- * call_start_cpu0 on its own stack, with UART0 at 115200 baud. It stops the
- * three watchdogs the ROM leaves guarding a flash boot, then prints a
- * numbered line on UART0 about twice a second, forever. It proves the
- * toolchain (EmbCC's xtensa-none-elf, windowed ABI), the image
- * (tools/esp/esp_image.py --chip esp32), the flasher (embflash --esp) and the
- * register addresses before the core port is written.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    esp32_hello.c
+ * @brief   The classic ESP32's bring-up probe (docs/ports/xtensa.md): no kernel and no ESP-IDF.
+ *
+ * @details
+ * The boot ROM loads it from flash offset 0x1000 and calls call_start_cpu0 on its own stack, with
+ * UART0 at 115200 baud. It stops the three watchdogs the ROM leaves guarding a flash boot, then
+ * prints a numbered line on UART0 about twice a second, forever. It proves the toolchain (EmbCC's
+ * xtensa-none-elf, windowed ABI), the image (tools/esp/esp_image.py --chip esp32), the flasher
+ * (embflash --esp) and the register addresses before the core port is written.
  *
  * Addresses: ESP-IDF v5.4, components/soc/esp32/register/soc/.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 typedef unsigned int u32;
 

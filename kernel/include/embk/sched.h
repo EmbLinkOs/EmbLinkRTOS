@@ -1,12 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Scheduler internals (03 §2, SPEC-002 §5, §6, ADR-036). Two ready structures behind
- * one interface: per-priority FIFO lists under a bitmap (base), or the table of one
- * thread per priority with a one-word ready set (tiny). The running thread is never
- * in the ready structure; the idle context never enters it.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sched.h
+ * @brief   Scheduler internals (03 §2, SPEC-002 §5, §6, ADR-036).
+ *
+ * @details
+ * Two ready structures behind one interface: per-priority FIFO lists under a bitmap (base), or the
+ * table of one thread per priority with a one-word ready set (tiny). The running thread is never in
+ * the ready structure; the idle context never enters it.
  *
  * Every function expects the scheduler lock domain held (@lock sched) unless noted.
+ *
+ * @see     kernel/sched/sched.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMBK_SCHED_H
 #define EMBK_SCHED_H

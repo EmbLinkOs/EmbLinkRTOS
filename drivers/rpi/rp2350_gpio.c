@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* RP2350 resets (datasheet §7.5) and pins: IO_BANK0's function select and PADS_BANK0's pads. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_gpio.c
+ * @brief   RP2350 resets (datasheet §7.5) and pins: IO_BANK0's function select and PADS_BANK0's
+ *          pads.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #include <emb_rp2350_drivers.h>
 #include <hw_config.h>
 

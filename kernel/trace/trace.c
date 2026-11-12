@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Trace sink (SPEC-015, M1 subset). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    trace.c
+ * @brief   Trace sink (SPEC-015, M1 subset).
+ *
+ * @see     include/emb/trace.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb/trace.h>
 
 #include <embk/kernel.h>

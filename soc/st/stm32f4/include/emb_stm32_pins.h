@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The pin table emb-hwgen writes into a board's generated/board_pins.c (SPEC-014 §6). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_stm32_pins.h
+ * @brief   The pin table emb-hwgen writes into a board's generated/board_pins.c (SPEC-014 §6).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
+ */
 #ifndef EMB_STM32_PINS_H
 #define EMB_STM32_PINS_H
 

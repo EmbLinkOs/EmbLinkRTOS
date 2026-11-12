@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Notification bindings of ready-state objects (SPEC-006 §3, ADR-027, ADR-046). An object
- * names one (thread, bit) pair; the thread counts the bindings that name it, and cannot be
- * destroyed while any does, so a binding never outlives its target. Lock: the object's,
- * which is the one critical section on a uniprocessor.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    binding.h
+ * @brief   Notification bindings of ready-state objects (SPEC-006 §3, ADR-027, ADR-046).
+ *
+ * @details
+ * An object names one (thread, bit) pair; the thread counts the bindings that name it, and cannot
+ * be destroyed while any does, so a binding never outlives its target. Lock: the object's, which is
+ * the one critical section on a uniprocessor.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #ifndef EMBK_BINDING_H
 #define EMBK_BINDING_H

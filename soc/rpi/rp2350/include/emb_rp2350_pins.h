@@ -1,8 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The RP2350 pin table a board's generated board_pins.c defines (A79): each GPIO line the
- * board uses, its IO_BANK0 function select, and whether its pad's input is enabled.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_rp2350_pins.h
+ * @brief   The RP2350 pin table a board's generated board_pins.c defines (A79).
+ *
+ * @details
+ * Each GPIO line the board uses, its IO_BANK0 function select, and whether its pad's input is
+ * enabled.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #ifndef EMB_RP2350_PINS_H
 #define EMB_RP2350_PINS_H

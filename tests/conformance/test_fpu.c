@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Floating-point context across switches (PORT-FPU, docs/ports/cortex_m.md): built where
- * the port reports lazy FPU stacking. The callee-saved registers s16-s31 move in PendSV
- * for a thread with an active FP context; the caller-saved s0-s15 and FPSCR are stacked
- * by the hardware (lazily) on interrupt entry. Both must come back intact.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_fpu.c
+ * @brief   Floating-point context across switches (PORT-FPU, docs/ports/cortex_m.md).
+ *
+ * @details
+ * Built where the port reports lazy FPU stacking. The callee-saved registers s16-s31 move in PendSV
+ * for a thread with an active FP context; the caller-saved s0-s15 and FPSCR are stacked by the
+ * hardware (lazily) on interrupt entry. Both must come back intact.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb_cortex_m.h> /* the register probes (port services) */
 #include <emb_test.h>

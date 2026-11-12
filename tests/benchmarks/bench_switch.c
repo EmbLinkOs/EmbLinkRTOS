@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Context-switch cost (R-003 T5 and T6, SPEC-012 §13): the average cost of a
- * notification hand-over between two threads (set, wake, switch, wait, return) and of a
- * yield pair, in cycle-counter units, over many iterations. Prints the raw figures with
- * the metadata of 05 §4.4 on the console; a number is evidence only from hardware
- * (SIM-003), never from an emulator or the native port.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bench_switch.c
+ * @brief   Context-switch cost (R-003 T5 and T6, SPEC-012 §13).
+ *
+ * @details
+ * The average cost of a notification hand-over between two threads (set, wake, switch, wait,
+ * return) and of a yield pair, in cycle-counter units, over many iterations. Prints the raw figures
+ * with the metadata of 05 §4.4 on the console; a number is evidence only from hardware (SIM-003),
+ * never from an emulator or the native port.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h> /* the cycle counter is a port-contract function */
 #include <emb/emb.h>

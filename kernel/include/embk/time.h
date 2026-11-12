@@ -1,6 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Clock, timeout list, and timer hooks (SPEC-003). Lock: the timeout domain. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    time.h
+ * @brief   Clock, timeout list, and timer hooks (SPEC-003).
+ *
+ * @details
+ * Lock: the timeout domain.
+ *
+ * @see     kernel/time/time.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMBK_TIME_H
 #define EMBK_TIME_H
 

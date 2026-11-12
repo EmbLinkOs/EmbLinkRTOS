@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * STM32F4 clock-tree bring-up (RM0390 Rev 6 §5.1.4, §6.3). The sequence is fixed; the values
- * (oscillator, PLL factors, regulator scale, over-drive, wait states, dividers) come from the
- * generated hw_config.h, where emb-hwgen's solver checked them against the SoC's limits.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32f4_rcc.c
+ * @brief   STM32F4 clock-tree bring-up (RM0390 Rev 6 §5.1.4, §6.3).
+ *
+ * @details
+ * The sequence is fixed; the values (oscillator, PLL factors, regulator scale, over-drive, wait
+ * states, dividers) come from the generated hw_config.h, where emb-hwgen's solver checked them
+ * against the SoC's limits.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb_stm32_drivers.h>
 #include <hw_config.h>

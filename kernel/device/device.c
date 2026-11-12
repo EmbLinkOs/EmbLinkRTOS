@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Devices and driver requests (SPEC-016). The device's lock domain is a critical section
- * (§6): it covers the lifecycle, the queue and each queued request's phase, and is held only
- * for those, never across a driver's work or a completion target's delivery.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    device.c
+ * @brief   Devices and driver requests (SPEC-016).
+ *
+ * @details
+ * The device's lock domain is a critical section (§6): it covers the lifecycle, the queue and each
+ * queued request's phase, and is held only for those, never across a driver's work or a completion
+ * target's delivery.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #include <emb/device.h>
 #include <emb/irq.h>

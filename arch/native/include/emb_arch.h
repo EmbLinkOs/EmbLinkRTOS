@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Native port header (SPEC-013; contract SPEC-011 §3, §6): the critical-section
- * primitives, the handler declaration macros, and the port's type and size constants.
- * Included by <emb/irq.h> and <emb/arch.h>.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch.h
+ * @brief   Native port header (SPEC-013; contract SPEC-011 §3, §6).
+ *
+ * @details
+ * The critical-section primitives, the handler declaration macros, and the port's type and size
+ * constants. Included by <emb/irq.h> and <emb/arch.h>.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_NATIVE_EMB_ARCH_H
 #define EMB_NATIVE_EMB_ARCH_H

@@ -1,13 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Time types, constructors, and conversions (SPEC-001 §7; SPEC-003 §3, §5.2, §6).
- * Three structs over one scalar: an instant on the kernel clock, a duration, and a
- * timeout. Constructors are macros because EmbCC does not inline functions that
- * return a struct (09 §7); conversions round up and saturate (SPEC-001 §7.3).
- * Compile-time detection of a constant that overflows the tick type is not provided
- * by these macros (it needs a compiler-specific construct); saturation applies to
- * constants as to runtime values, and emb_duration_is_saturated() reports it.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    time.h
+ * @brief   Time types, constructors, and conversions (SPEC-001 §7; SPEC-003 §3, §5.2, §6).
+ *
+ * @details
+ * Three structs over one scalar: an instant on the kernel clock, a duration, and a timeout.
+ * Constructors are macros because EmbCC does not inline functions that return a struct (09 §7);
+ * conversions round up and saturate (SPEC-001 §7.3). Compile-time detection of a constant that
+ * overflows the tick type is not provided by these macros (it needs a compiler-specific construct);
+ * saturation applies to constants as to runtime values, and emb_duration_is_saturated() reports it.
+ *
+ * @see     kernel/time/time.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_TIME_H
 #define EMB_TIME_H

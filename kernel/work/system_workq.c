@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The system work queue (SPEC-006 §4.3). Its own object file: an image links the queue,
- * its thread and its stack only when it references emb_workq_system(), whose init-table
- * entry then constructs it in emb_kernel_init() (ADR-048).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    system_workq.c
+ * @brief   The system work queue (SPEC-006 §4.3).
+ *
+ * @details
+ * Its own object file: an image links the queue, its thread and its stack only when it references
+ * emb_workq_system(), whose init-table entry then constructs it in emb_kernel_init() (ADR-048).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/kernel.h>
 #include <emb/sched.h>

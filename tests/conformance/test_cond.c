@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Condition variable conformance (SPEC-005 §6; KRN-SYNC-030, KRN-WAIT-013). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_cond.c
+ * @brief   Condition variable conformance (SPEC-005 §6; KRN-SYNC-030, KRN-WAIT-013).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #include <emb_test.h>
 
 static emb_cond_storage_t cond_storage;

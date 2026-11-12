@@ -1,10 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for QEMU's RISC-V virt machine, described in YAML: console on the ns16550a
- * UART, run end through QEMU's
- * sifive_test device (status 0 passes, (code << 16) | 0x3333 fails with code). A
- * reference board for emulation (SIM-002).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for QEMU's RISC-V virt machine, described in YAML.
+ *
+ * @details
+ * Console on the ns16550a UART, run end through QEMU's sifive_test device (status 0 passes, (code
+ * << 16) | 0x3333 fails with code). A reference board for emulation (SIM-002).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb_board.h>
 

@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Software timers (SPEC-003 §7): one-shot and drift-free periodic callbacks. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    timer.h
+ * @brief   Software timers (SPEC-003 §7): one-shot and drift-free periodic callbacks.
+ *
+ * @see     kernel/time/timer.c
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMB_TIMER_H
 #define EMB_TIMER_H
 

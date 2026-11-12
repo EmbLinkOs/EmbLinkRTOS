@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Thread lifecycle conformance (SPEC-008; KRN-THR-001 to 022). Join and detach are in
- * test_thread_join.c: one image would not fit the Uno's 32,256-byte partition. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_thread.c
+ * @brief   Thread lifecycle conformance (SPEC-008; KRN-THR-001 to 022).
+ *
+ * @details
+ * Join and detach are in test_thread_join.c: one image would not fit the Uno's 32,256-byte
+ * partition.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb_test.h>
 
 static emb_sem_storage_t sem_storage;

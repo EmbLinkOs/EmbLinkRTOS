@@ -108,7 +108,7 @@ SPEC-001 §2 and §3 fix the public and port namespaces. In addition:
 
 ## 11. Comments, documentation, and annotations
 
-- **CS-11.1** Every file starts with the SPDX and copyright lines of `CONTRIBUTING.md`, then a one-paragraph comment stating what the file implements and which specification sections it follows.
+- **CS-11.1** Every file starts with the SPDX and copyright lines of `CONTRIBUTING.md`. A C, assembly or linker-script source follows them with the EmbLinkRTOS notice and a Doxygen block: `@file` (its own name), `@brief` (what the file implements and which specification sections it follows, in one sentence), `@details` (the rest of its description, when it has more), `@see` (its companion header or source, when it has one), `@author` (who created it) and `@date` (`YYYY-MM-DD (created)`). Generated files carry the notice, `@file` and `@brief`, with the generator's stamp as `@details` and no author or date. `tools/dev/file_headers.py --check` enforces the layout in CI; `--write` converts a file written with a plain description comment.
 - **CS-11.2** Every public function carries the kernel-doc comment with the mandatory tags of SPEC-001 §9. Every `embk_` function carries at least `@ctx`, `@lock` (the lock domain it expects held, or `none`), and `@time`.
 - **CS-11.3** Every shared field and every file-scope object states its lock domain in its declaration comment (§2.6).
 - **CS-11.4** Comments explain why, not what; a comment that restates the code is removed in review. Commented-out code is not committed. `TODO` and `FIXME` are not committed; a known gap is a `FUTURE(ADR-nnn)` marker or an open question in 08.

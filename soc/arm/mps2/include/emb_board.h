@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board interface of the MPS2 boards described in YAML (QEMU models): console on UART0,
- * run end by semihosting. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_board.h
+ * @brief   The board interface of the MPS2 boards described in YAML (QEMU models).
+ *
+ * @details
+ * Console on UART0, run end by semihosting.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 

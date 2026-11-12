@@ -32,14 +32,32 @@ Signed-off-by: Your Name <your.email@example.com>
 
 Add it with `git commit -s`. The Repository policy check requires a matching author trailer on every non-merge commit in the change. GitHub-generated merge commits are excluded; authored conflict-resolution changes belong in a separate signed-off commit. DCO certification is distinct from cryptographic signing.
 
-Every source file starts with an SPDX header:
+Every C, assembly and linker-script source starts with this header (CODING-STANDARD CS-11.1):
 
 ```c
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 <your name or organization> */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    my_driver.c
+ * @brief   What the file is, in one sentence, with the specification sections it follows.
+ *
+ * @details
+ * The rest of what it implements and why, as long as it needs.
+ *
+ * @see     my_driver.h
+ * @author  Your Name
+ * @date    2026-11-13 (created)
+ */
 ```
 
-Hardware descriptions, scripts, and other files use the same two lines in their comment syntax.
+`@author` is whoever created the file and `@date` the day it was created; neither changes later. `@see` names the file's companion header or source, where it has one. You can write the first three comments and a plain description comment, and let `python3 tools/dev/file_headers.py --write my_driver.c` turn it into the rest, with your name and today's date. CI runs `tools/dev/file_headers.py --check`.
+
+Hardware descriptions, scripts, and other files start with the SPDX and copyright lines in their comment syntax.
 
 ## Process
 

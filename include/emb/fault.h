@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel faults (SPEC-001 §5.3, SPEC-002 §9, 03 §10). A fault records the class and
- * location, calls the registered hook, and then takes CONFIG_EMB_FAULT_ACTION.
- * Misuse classes are raised in checked builds where a release build returns a status.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    fault.h
+ * @brief   Kernel faults (SPEC-001 §5.3, SPEC-002 §9, 03 §10).
+ *
+ * @details
+ * A fault records the class and location, calls the registered hook, and then takes
+ * CONFIG_EMB_FAULT_ACTION. Misuse classes are raised in checked builds where a release build
+ * returns a status.
+ *
+ * @see     kernel/fault/fault.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_FAULT_H
 #define EMB_FAULT_H

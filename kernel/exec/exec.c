@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel execution core: per-CPU state (SPEC-002 §2), initialization and start
- * (SPEC-008 §4, SPEC-011 §4), context queries (SPEC-001 §5.1), the checked-build
- * critical-section wrappers (SPEC-002 §4.1, §12), the scheduler lock (SPEC-002 §5),
- * the interrupt entry and exit hooks (SPEC-002 §6.2), and the initialization table
- * (SPEC-001 §6.4).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    exec.c
+ * @brief   Kernel execution core.
+ *
+ * @details
+ * per-CPU state (SPEC-002 §2), initialization and start (SPEC-008 §4, SPEC-011 §4), context queries
+ * (SPEC-001 §5.1), the checked-build critical-section wrappers (SPEC-002 §4.1, §12), the scheduler
+ * lock (SPEC-002 §5), the interrupt entry and exit hooks (SPEC-002 §6.2), and the initialization
+ * table (SPEC-001 §6.4).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h>
 #include <emb/irq.h>

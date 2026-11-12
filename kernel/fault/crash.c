@@ -1,9 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The crash record (SPEC-015 §4, OBS-016, A71 to A73). The record is a little-endian byte
- * string, never a C struct, so its layout is the same for every compiler; a CRC-32 (IEEE,
- * reflected, bitwise: no table in flash) over everything before it closes it.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    crash.c
+ * @brief   The crash record (SPEC-015 §4, OBS-016, A71 to A73).
+ *
+ * @details
+ * The record is a little-endian byte string, never a C struct, so its layout is the same for every
+ * compiler; a CRC-32 (IEEE, reflected, bitwise: no table in flash) over everything before it closes
+ * it.
  *
  *   version 1:  magic "EMBC" | version u16 | length u16 | build_id[20] | fw_version[8]
  *               | uptime_ticks u64 | reset_reason u32 | fault_class u8 | argument u8
@@ -19,6 +28,9 @@
  * The registers are the port's (emb_arch_crash_regs, A74): a hardware fault's status
  * registers, then general registers. The flight recorder is not captured yet (count 0); the
  * fields the kernel does not know (stack base and size, generation, cpu, partition) are 0.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/arch.h>
 #include <emb/crash.h>

@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Arm PrimeCell UART PL011 (Arm DDI 0183G): polled transmit, and the device of SPEC-016. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    pl011.c
+ * @brief   Arm PrimeCell UART PL011 (Arm DDI 0183G): polled transmit, and the device of SPEC-016.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #include <emb_pl011.h>
 
 #define REG32(a)   (*(volatile uint32_t *)(uintptr_t)(a))

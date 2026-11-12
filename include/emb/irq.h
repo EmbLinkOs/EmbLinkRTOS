@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Critical sections and interrupt management (SPEC-002 §4, §8). The critical-section
- * primitives are key based: emb_irq_unlock() restores exactly the state
- * emb_irq_lock() returned, so nesting costs nothing and unlocks are LIFO. In a
- * checked build they are real functions that track the nesting depth; in a release
- * build they are the port's always-inline primitives with a "memory" clobber.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    irq.h
+ * @brief   Critical sections and interrupt management (SPEC-002 §4, §8).
+ *
+ * @details
+ * The critical-section primitives are key based: emb_irq_unlock() restores exactly the state
+ * emb_irq_lock() returned, so nesting costs nothing and unlocks are LIFO. In a checked build they
+ * are real functions that track the nesting depth; in a release build they are the port's
+ * always-inline primitives with a "memory" clobber.
+ *
+ * @see     kernel/irq/irq.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_IRQ_H
 #define EMB_IRQ_H

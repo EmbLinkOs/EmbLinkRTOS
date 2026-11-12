@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Minimal STM32F4 drivers: clock-tree bring-up, clock gates, pins and a polled USART. Register
- * offsets and bit layouts are driver knowledge (RM0390 Rev 6); every base address, gate, pin and
- * frequency comes from the board's generated hw_config.h (SPEC-014, HW-001, A69).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_stm32_drivers.h
+ * @brief   Minimal STM32F4 drivers: clock-tree bring-up, clock gates, pins and a polled USART.
+ *
+ * @details
+ * Register offsets and bit layouts are driver knowledge (RM0390 Rev 6); every base address, gate,
+ * pin and frequency comes from the board's generated hw_config.h (SPEC-014, HW-001, A69).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #ifndef EMB_STM32_DRIVERS_H
 #define EMB_STM32_DRIVERS_H
