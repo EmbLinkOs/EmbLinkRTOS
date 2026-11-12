@@ -1,0 +1,21 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_debug_descriptor.elf sha256 a42d1ccf2bed252cf9174ef092d4846542fa33b78bbfb753c7a143424cf61e5d
+EVIDENCE v1 suite=test_debug_descriptor config=4648a817b7d5fc56 profile=base board=nucleo_f446re checked=1
+TEST debug_descriptor_reads_thread_states
+  -> ok
+  req OBS-008 PORT-012
+CASE debug_descriptor_reads_thread_states outcome=passed asserts=82 skips=0
+TEST debug_descriptor_isr_stack
+  -> ok
+  req PORT-012
+CASE debug_descriptor_isr_stack outcome=passed asserts=2 skips=0
+TEST debug_descriptor_finds_the_running_thread
+  -> ok
+  req OBS-008
+CASE debug_descriptor_finds_the_running_thread outcome=passed asserts=7 skips=0
+TEST debug_descriptor_header
+  -> ok
+  req OBS-008 PORT-012
+CASE debug_descriptor_header outcome=passed asserts=12 skips=0
+ISR_STACK size=2048 used=264
+4 tests, 0 failed, 0 skipped, 63 ticks
+EMB_TEST_END

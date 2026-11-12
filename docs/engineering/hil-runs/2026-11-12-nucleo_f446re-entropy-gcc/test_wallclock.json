@@ -1,0 +1,59 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 9,
+      "name": "wallclock_adjust_moves_no_deadline",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "wallclock_set_and_get",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T22:03:10Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "4648a817b7d5fc56",
+    "profile": "base",
+    "suite": "test_wallclock"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_wallclock.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_wallclock.elf": "8dd5e2137df17feb9f3652e354cb1b5f6344faafe869291b79a9488271e801e8"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2a7e2eda58d2f4216ff84cacf5263e82fe645397",
+    "dirty": false
+  },
+  "image": "test_wallclock.elf",
+  "image_sha256": "8dd5e2137df17feb9f3652e354cb1b5f6344faafe869291b79a9488271e801e8",
+  "isr_stack": {
+    "size": 2048,
+    "used": 264
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-12T22:03:08Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

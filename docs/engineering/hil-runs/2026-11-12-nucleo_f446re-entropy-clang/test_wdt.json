@@ -1,0 +1,59 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 13,
+      "name": "wdt_start_feed_and_cause",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "wdt_not_ready_and_misuse",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T22:05:53Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "4648a817b7d5fc56",
+    "profile": "base",
+    "suite": "test_wdt"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 3,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_wdt.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_wdt.elf": "e779d0d726684b3ef377040b5f057869643dd4146528847bbe2bfab2a6e6195e"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2a7e2eda58d2f4216ff84cacf5263e82fe645397",
+    "dirty": false
+  },
+  "image": "test_wdt.elf",
+  "image_sha256": "e779d0d726684b3ef377040b5f057869643dd4146528847bbe2bfab2a6e6195e",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-12T22:05:52Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 10,
+      "name": "dma_job_starts_and_ends",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "dma_stop_gives_what_moved",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "dma_refusals",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "dma_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T22:44:36Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "1aafec98e5605967",
+    "profile": "base",
+    "suite": "test_dma"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 8,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_dma.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_dma.uf2": "6e25169b47e125397af2f80d4c8f6c3ecc2f61df4852b527a34d43f561aaf024"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2a7e2eda58d2f4216ff84cacf5263e82fe645397",
+    "dirty": false
+  },
+  "image": "test_dma.elf",
+  "image_sha256": "51d92c44e2311ee4695cc71e30654badba54ce8d4f1c0963df66835acddf2dc7",
+  "isr_stack": {
+    "size": 2048,
+    "used": 188
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T22:44:34Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 4
+  }
+}
