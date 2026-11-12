@@ -62,7 +62,7 @@ typedef struct emb_drv_flash_api {
 emb_status_t emb_drv_flash_lock_init(const emb_device_t *dev);
 
 /**
- * emb_drv_flash_geometry() - A flash's geometry.
+ * emb_drv_flash_geometry_get() - A flash's geometry.
  * @dev: A device of the flash class.
  * @out: Receives the geometry, which lives as long as the device.
  *
@@ -77,7 +77,8 @@ emb_status_t emb_drv_flash_lock_init(const emb_device_t *dev);
  *
  * Return: EMB_OK.
  */
-emb_status_t emb_drv_flash_geometry(const emb_device_t *dev, const emb_drv_flash_geometry_t **out);
+emb_status_t emb_drv_flash_geometry_get(const emb_device_t *dev,
+                                        const emb_drv_flash_geometry_t **out);
 
 /**
  * emb_drv_flash_sector() - The erase sector an offset falls in.

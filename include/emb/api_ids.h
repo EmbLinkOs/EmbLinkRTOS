@@ -214,7 +214,7 @@
 #define EMB_API_ID_WDOG_WATCH                    0x00D3u
 #define EMB_API_ID_WDOG_UNWATCH                  0x00D4u
 #define EMB_API_ID_WDOG_CHECKIN                  0x00D5u
-#define EMB_API_ID_DRV_FLASH_GEOMETRY            0x00D6u
+#define EMB_API_ID_DRV_FLASH_GEOMETRY_GET        0x00D6u
 #define EMB_API_ID_DRV_FLASH_SECTOR              0x00D7u
 #define EMB_API_ID_DRV_FLASH_READ                0x00D8u
 #define EMB_API_ID_DRV_FLASH_PROGRAM             0x00D9u

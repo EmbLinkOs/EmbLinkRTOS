@@ -59,7 +59,7 @@ EMB_TEST(flash_geometry_and_sectors)
     uint32_t size = 0u;
     EMB_TEST_REQ("DRV-001");
     ready();
-    EMB_ASSERT_OK(emb_drv_flash_geometry(&flash, &g));
+    EMB_ASSERT_OK(emb_drv_flash_geometry_get(&flash, &g));
     EMB_ASSERT_EQ(g->size, SIZE);
     EMB_ASSERT_OK(emb_drv_flash_sector(&flash, 0u, &start, &size));
     EMB_ASSERT_TRUE((start == 0u) && (size == 512u));

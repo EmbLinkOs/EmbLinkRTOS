@@ -168,7 +168,7 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Timeouts | an operation in progress cannot be stopped; the timeout bounds the wait for the lock |
 | Power | suspend waits for the operation in progress |
 | Errors | `EMB_EWRPROT` (the sector is write-protected), `EMB_EVERIFY` (a program read back differs: its bytes were not erased), `EMB_EIO` (the interface reported an error), `EMB_EINVAL` (unaligned, not whole sectors, or outside the flash or the partition) |
-| Capabilities | the geometry, `emb_drv_flash_geometry()`: where it is mapped, its size, its sectors (listed, or all of one size), the write unit and the erased value, generated from the SoC's `flash:` and the board's chip size (a flash device's `size:`) |
+| Capabilities | the geometry, `emb_drv_flash_geometry_get()`: where it is mapped, its size, its sectors (listed, or all of one size), the write unit and the erased value, generated from the SoC's `flash:` and the board's chip size (a flash device's `size:`) |
 
 **Partitions:** `include/emb/flash_area.h`: each of the board's `flash_partitions` is generated into `soc_devices.c` as an `emb_flash_area_t` on the flash device that holds it, with its offset from the device's start and its size, and named `EMB_FLASH_AREA_<NAME>`. Its calls take offsets from the partition's start and refuse anything outside it. MCUboot's flash map is built on them (M4.5). The NUCLEO-F446RE's are `app` (sectors 0 to 6) and `storage` (sector 7, 128 KiB); the Pico 2 W's `app` (4 MiB less 64 KiB) and `storage` (its last sixteen 4 KiB sectors).
 

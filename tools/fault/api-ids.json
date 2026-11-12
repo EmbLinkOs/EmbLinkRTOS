@@ -1264,7 +1264,7 @@
     },
     {
       "id": 214,
-      "name": "emb_drv_flash_geometry",
+      "name": "emb_drv_flash_geometry_get",
       "header": "drv_flash.h",
       "state": "active"
     },

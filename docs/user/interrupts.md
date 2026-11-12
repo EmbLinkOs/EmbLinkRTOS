@@ -61,7 +61,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_drv_dma_start()` | `<emb/drv_dma.h>` | no |
 | `emb_drv_dma_stop()` | `<emb/drv_dma.h>` | no |
 | `emb_drv_entropy_board()` | `<emb/drv_entropy.h>` | no |
-| `emb_drv_flash_geometry()` | `<emb/drv_flash.h>` | no |
+| `emb_drv_flash_geometry_get()` | `<emb/drv_flash.h>` | no |
 | `emb_drv_flash_sector()` | `<emb/drv_flash.h>` | no |
 | `emb_drv_gpio_assert()` | `<emb/drv_gpio.h>` | no |
 | `emb_drv_gpio_configure()` | `<emb/drv_gpio.h>` | no |

@@ -48,9 +48,10 @@ emb_status_t emb_drv_flash_lock_init(const emb_device_t *dev)
     return embk_bus_init(flash_lock(dev), dev->name);
 }
 
-emb_status_t emb_drv_flash_geometry(const emb_device_t *dev, const emb_drv_flash_geometry_t **out)
+emb_status_t emb_drv_flash_geometry_get(const emb_device_t *dev,
+                                        const emb_drv_flash_geometry_t **out)
 {
-    EMBK_API_REQUIRE(EMB_API_ID_DRV_FLASH_GEOMETRY, is_flash(dev) && (out != NULL),
+    EMBK_API_REQUIRE(EMB_API_ID_DRV_FLASH_GEOMETRY_GET, is_flash(dev) && (out != NULL),
                      EMB_FAULT_API_ARGUMENT, EMB_EINVAL, 1u);
     *out = flash_api(dev)->geometry(dev);
     return EMB_OK;
