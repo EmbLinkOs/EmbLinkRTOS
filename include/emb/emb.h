@@ -18,6 +18,7 @@
 #endif
 #if CONFIG_EMB_DRV_SPI
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_i2c.h>

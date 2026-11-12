@@ -197,19 +197,31 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 
 | Checklist | |
 |---|---|
-| Dependencies | its clock |
-| Requests | `read` a number of bytes |
-| Blocking | `emb_drv_entropy_read()` |
-| Interrupts | data ready, on the RP2350's TRNG |
+| Dependencies | its clock; the RP2350's TRNG is taken out of reset by its driver |
+| Requests | `emb_drv_entropy_read()` a number of bytes; `emb_drv_entropy_board()` the board's source (A124) |
+| Blocking | `emb_drv_entropy_read()`, one timeout for the whole read, the wait for another thread's read included |
+| Interrupts | a block's end, or a health test's failure, on the RP2350's TRNG: it wakes the read through a semaphore |
 | DMA | none |
-| Concurrency | one read at a time |
-| Timeouts | a canceled read returns the bytes it had |
-| Power | suspend stops the source; a read after resume waits for the source's start-up |
-| Errors | `EMB_EHEALTH`: the source's health test failed, and no byte from that block is returned |
+| Concurrency | one read at a time per device, under the class's lock, first in the driver's RAM |
+| Timeouts | a read that times out keeps the bytes it had, the count in `got` |
+| Power | suspend stops the source; resume resets and restarts it, so the next block is a new one |
+| Errors | `EMB_EHEALTH`: a block failed the source's health test; no byte of that block is delivered, and the read ends with the bytes before it. The class clears what it held of a block before it returns |
 | Capabilities | `HEALTH_TEST` |
-| Absent | a board without a source has no entropy device; capability discovery says so and the class returns `EMB_ENOTSUP`. Nothing stands in for it (SEC-012). The STM32F446 has none |
+| Absent | a board without a source has no entropy device: `emb_board_entropy` is NULL and `emb_drv_entropy_board()` returns `EMB_ENOTSUP`. Nothing stands in for it (SEC-012). The STM32F446 has none; the ESP32 boards' RNGs have no driver yet |
+| Use | the bytes are raw entropy for seeding a cryptographic generator, not a generator |
 
-**Drivers:** `drivers/rpi/rp2350_trng.c`. **Evidence:** a native fake in CI; on the Pico 2 W, 1 MiB archived with the host's statistical sanity checks, which are a check of the driver, not a certification of the source.
+**Drivers:**
+- `drivers/rpi/rp2350_trng.c`: the RP2350's TRNG, 192-bit blocks with every health test on: the von Neumann corrector, the continuous test and the autocorrelation test. pico-sdk's `pico_rand` bypasses them; this driver does not.
+  - A failed block is discarded. After the von Neumann or the continuous test the source restarts; after the autocorrelation test, which only a reset of the block clears, the TRNG is reset and set up again.
+  - It samples every 200 clocks of clk_sys. Measured on the board: 100 still passed, 50 and below failed nearly every block, as the ring oscillator was sampled too fast to be independent.
+- The native board's source is the host's `getentropy()`, real randomness from the operating system and not a generator.
+
+**Evidence:**
+- the class's fake on the host;
+- the native board's host source, in CI;
+- on the Pico 2 W, 1 MiB tested on the board itself: the byte frequencies by chi-square, the balance of ones, the bit transitions, the longest repetition of a byte, and the health failures counted. A 64 KiB sample is printed with its SHA-256, archived, and checked on the host (`tools/entropy/check.py`: monobit, chi-square, runs, serial correlation, compression).
+
+These are sanity checks of the driver and of gross faults in the source, not a certification of the source.
 
 ## 12. Optional parts
 

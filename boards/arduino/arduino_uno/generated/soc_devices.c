@@ -19,11 +19,17 @@
 
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stddef.h>
 
 /* the board declares no devices (its description has no devices:) */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

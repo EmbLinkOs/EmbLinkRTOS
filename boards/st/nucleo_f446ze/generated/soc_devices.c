@@ -8,7 +8,7 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d
  *   drivers/bindings.yaml
- *     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/st/stm32f4/stm32f4.yaml
  *     5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219
  *   soc/st/stm32f4/stm32f446.yaml
@@ -25,6 +25,7 @@
 
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stddef.h>
 
@@ -145,6 +146,11 @@ static const emb_device_t *const devices[] = {
 };
 
 const emb_device_table_t emb_board_device_table = {devices, 5u, 5u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

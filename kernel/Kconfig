@@ -325,6 +325,15 @@ config EMB_DRV_RTC
 	  alarm, and backup registers where the part has them. With the wall
 	  clock, a set RTC seeds it when the device starts.
 
+config EMB_DRV_ENTROPY
+	bool "The entropy class (SPEC-017 §11)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Bytes from a hardware source of randomness, each block through the
+	  source's health tests. A board without a source has no entropy
+	  device and says so (EMB_ENOTSUP): nothing stands in for one.
+
 config EMB_DRV_FLASH
 	bool "The flash class and partitions (SPEC-017 §9)"
 	depends on EMB_DEVICE

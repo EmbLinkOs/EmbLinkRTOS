@@ -34,6 +34,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **flash_bytes**: bytes of one flash read or program, and their read-back | the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces | application | application | yes | base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 | **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 | **rtc_oscillator**: an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second | 3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
+| **entropy_bytes**: bytes of one entropy read | the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read | application | application | no | base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore | SPEC-017 §11, A124; test_entropy, test_entropy_board |
 
 ## Public functions
 
@@ -53,6 +54,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
 | `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
 | `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
+| `emb_drv_entropy_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_entropy_read()` | O(entropy_bytes) of the source's own time, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_drv_flash_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_drv_flash_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_drv_flash_poll_erase()` | O(flash_sectors) of the flash's own time | flash_sectors, drivers |

@@ -1399,6 +1399,24 @@
       "name": "emb_drv_rtc_alarm_fired",
       "header": "drv_rtc.h",
       "state": "active"
+    },
+    {
+      "id": 237,
+      "name": "emb_drv_entropy_board",
+      "header": "drv_entropy.h",
+      "state": "active"
+    },
+    {
+      "id": 238,
+      "name": "emb_drv_entropy_lock_init",
+      "header": "drv_entropy.h",
+      "state": "active"
+    },
+    {
+      "id": 239,
+      "name": "emb_drv_entropy_read",
+      "header": "drv_entropy.h",
+      "state": "active"
     }
   ]
 }

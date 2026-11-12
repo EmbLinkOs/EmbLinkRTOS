@@ -36,6 +36,7 @@ devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
   - { name: watchdog, doc: "the watchdog" }
+  - { name: trng, sample_count: 200, doc: "the true random number generator: 200 clocks of clk_sys between samples, measured on the board: 100 still passed its health tests, 50 failed nearly every block" }
   - { name: rtc, peripheral: powman, doc: "the always-on timer, ticked from the crystal: the clock kept across resets" }
   - { name: flash, peripheral: qmi, size: 4M, doc: "the 4 MiB QSPI flash: its storage partition is the tests' (the last 64 KiB)" }
   - { name: dma, doc: "the DMA controller: SPI1's transfers" }

@@ -734,6 +734,10 @@ def soc_devices_h(r):
         if rtc is not None:
             out += "\n/* the board's RTC device: the first of its class */\n"
             out += f"#define EMB_SOC_RTC_DEVICE (&emb_dev_{rtc['name']})\n"
+        ent = next((d for d in r["devices"] if d["class"] == "entropy"), None)
+        if ent is not None:
+            out += "\n/* the board's entropy source: the first of its class (SPEC-017 §11) */\n"
+            out += f"#define EMB_SOC_ENTROPY_DEVICE (&emb_dev_{ent['name']})\n"
         console = (r.get("console") or {}).get("device")
         for d in r["devices"]:
             if console is not None and d["peripheral"] == console and d["class"] == "uart":
@@ -792,7 +796,7 @@ def soc_devices_c(r):
         if d["header"] not in headers:
             headers.append(d["header"])
     # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
-    out += ("#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n"
+    out += ("#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n#include <emb/drv_entropy.h>\n"
             + ("#include <emb/flash_area.h>\n" if _flash_areas(r) else "") + "\n#include <stddef.h>\n")
     if headers:
         out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
@@ -849,6 +853,12 @@ def soc_devices_c(r):
     else:
         out += "\n/* the board declares no devices (its description has no devices:) */\n"
         out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
+    ent = next((d for d in r["devices"] if d["class"] == "entropy"), None)
+    out += ("\n#if CONFIG_EMB_DRV_ENTROPY\n/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, "
+            "SEC-012) */\n")
+    out += (f"const emb_device_t *const emb_board_entropy = &emb_dev_{ent['name']};\n" if ent is not None
+            else "const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */\n")
+    out += "#endif\n"
     areas = _flash_areas(r)
     if areas:
         out += ("\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:), each on its flash device, from the\n"

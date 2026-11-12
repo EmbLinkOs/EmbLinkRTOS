@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d
+ *     2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef
  *   drivers/bindings.yaml
- *     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/rpi/rp2350/rp2350.yaml
- *     d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15
+ *     c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -23,6 +23,7 @@
 
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 #include <emb/flash_area.h>
 
 #include <stddef.h>
@@ -197,6 +198,26 @@ const emb_device_t emb_dev_uart1 = {
     .dep_count = 2u,
 };
 
+/* trng: rpi,rp2350-trng, entropy, KERNEL */
+static const emb_rp2350_trng_config_t trng_config = {
+    .base = 0x400F0000u,  /* peripheral.base */
+    .irq = 39u,           /* peripheral.irqs.irq */
+    .sample_count = 200u, /* device.sample_count */
+};
+static emb_device_state_t trng_state;
+static emb_rp2350_trng_data_t trng_data;
+const emb_device_t emb_dev_trng = {
+    .name = "trng",
+    .api = &emb_rp2350_trng_api.dev,
+    .config = &trng_config,
+    .state = &trng_state,
+    .data = &trng_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_ENTROPY,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 0u,
+};
+
 /* spi1: arm,pl022, spi, KERNEL */
 static const emb_pl022_config_t spi1_config = {
     .base = 0x40088000u,                         /* peripheral.base */
@@ -276,12 +297,18 @@ static const emb_device_t *const devices[] = {
     &emb_dev_dma,      /* 5: EARLY */
     &emb_dev_uart0,    /* 6: EARLY */
     &emb_dev_uart1,    /* 7: EARLY */
-    &emb_dev_spi1,     /* 8: KERNEL */
-    &emb_dev_i2c0,     /* 9: KERNEL */
-    &emb_dev_i2c1,     /* 10: KERNEL */
+    &emb_dev_trng,     /* 8: KERNEL */
+    &emb_dev_spi1,     /* 9: KERNEL */
+    &emb_dev_i2c0,     /* 10: KERNEL */
+    &emb_dev_i2c1,     /* 11: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 11u, 8u};
+const emb_device_table_t emb_board_device_table = {devices, 12u, 8u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = &emb_dev_trng;
+#endif
 
 #if CONFIG_EMB_DRV_FLASH
 /* the board's flash partitions (flash_partitions:), each on its flash device, from the

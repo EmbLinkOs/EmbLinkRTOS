@@ -28,6 +28,7 @@ extern "C" {
 #define EMB_RP2350_RESET_I2C1       (1u << 5)
 #define EMB_RP2350_RESET_UART0      (1u << 26)
 #define EMB_RP2350_RESET_UART1      (1u << 27)
+#define EMB_RP2350_RESET_TRNG       ((uint32_t)1u << 25)
 
 /* clk_ref from the crystal, clk_sys from clk_ref and then, where the board asks for more,
  * from PLL_SYS at EMB_HW_CPU_HZ, the flash interface slowed first; clk_peri follows clk_sys.

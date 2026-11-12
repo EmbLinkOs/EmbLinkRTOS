@@ -246,6 +246,17 @@ bindings:
     data: emb_rp2350_aon_data_t
     fields: { base: peripheral.base, irq: peripheral.irqs.timer }
     doc: the RP2350's always-on timer as an RTC (SPEC-017 §10); EARLY, so the wall clock is seeded before main
+  rpi,rp2350-trng:
+    class: entropy
+    level: kernel
+    sources: [drivers/rpi/rp2350_trng.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_trng_api.dev
+    config: emb_rp2350_trng_config_t
+    data: emb_rp2350_trng_data_t
+    fields: { base: peripheral.base, irq: peripheral.irqs.irq, sample_count: device.sample_count }
+    doc: the RP2350's TRNG (SPEC-017 §11), every health test on; KERNEL, as its read waits on a semaphore
   rpi,rp2350-qmi:
     class: flash
     level: early

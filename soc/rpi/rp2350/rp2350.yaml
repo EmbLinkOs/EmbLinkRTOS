@@ -83,6 +83,9 @@ peripherals:
   # across resets; POWMAN_IRQ_TIMER is 45
   - { name: powman, compatible: "rpi,rp2350-powman", base: 0x40100000, size: 0x4000,
       irqs: [ { name: timer, number: 45 } ] }
+  # the true random number generator (datasheet §12.12), TRNG_IRQ 39
+  - { name: trng, compatible: "rpi,rp2350-trng", base: 0x400F0000, size: 0x1000,
+      irqs: [ { name: irq, number: 39 } ] }
   # boot RAM (datasheet §5.4.1): the boot ROM leaves its XIP setup function in the first 256 bytes
   - { name: bootram, compatible: "rpi,rp2350-bootram", base: 0x400E0000, size: 0x400 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }

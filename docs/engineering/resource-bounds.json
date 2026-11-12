@@ -282,6 +282,16 @@
       "masked": false,
       "profiles": "base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks",
       "evidence": "SPEC-017 \u00a710, A123; test_rtc_board"
+    },
+    {
+      "id": "entropy_bytes",
+      "input": "bytes of one entropy read",
+      "bound": "the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore",
+      "evidence": "SPEC-017 \u00a711, A124; test_entropy, test_entropy_board"
     }
   ],
   "apis": {
@@ -697,6 +707,17 @@
     "emb_drv_rtc_set": [
       "rtc_oscillator",
       "drivers"
+    ],
+    "emb_drv_entropy_lock_init": [
+      "active_objects"
+    ],
+    "emb_drv_entropy_read": [
+      "entropy_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
     ],
     "emb_drv_flash_sector": [
       "flash_sectors"

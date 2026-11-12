@@ -15,10 +15,12 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
+#include <emb/sem.h>
 #endif
 #if CONFIG_EMB_DRV_DMA
 #include <emb/drv_dma.h>
@@ -39,6 +41,24 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ENTROPY
+/* The TRNG (datasheet §12.12): its registers, its interrupt, and the clocks between samples. */
+typedef struct emb_rp2350_trng_config {
+    uintptr_t base;
+    uint32_t irq;
+    uint32_t sample_count;
+} emb_rp2350_trng_config_t;
+
+/* Its RAM: the class's lock, first; the semaphore its interrupt gives; health failures seen. */
+typedef struct emb_rp2350_trng_data {
+    emb_drv_bus_t lock;
+    emb_sem_storage_t ready_storage;
+    emb_sem_t ready;
+    const emb_device_t *dev;
+    uint32_t failures;
+} emb_rp2350_trng_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE
 /* The always-on timer in POWMAN (datasheet §6.5): its registers and its alarm's interrupt. */
@@ -116,6 +136,11 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
 #endif
 
+#if CONFIG_EMB_DRV_ENTROPY
+/* The entropy class's operations (SPEC-017 §11): 192-bit blocks from the TRNG, each through its
+ * health tests, a failed one discarded. */
+extern const emb_drv_entropy_api_t emb_rp2350_trng_api;
+#endif
 #if CONFIG_EMB_DRV_RTC
 /* The RTC class's operations (SPEC-017 §10): the always-on timer as milliseconds since the
  * epoch, on a 1 kHz tick from the crystal; no calendar, no backup registers. */

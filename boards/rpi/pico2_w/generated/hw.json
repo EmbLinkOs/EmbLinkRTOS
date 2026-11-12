@@ -38,6 +38,11 @@
         "name": "watchdog"
       },
       {
+        "doc": "the true random number generator: 200 clocks of clk_sys between samples, measured on the board: 100 still passed its health tests, 50 failed nearly every block",
+        "name": "trng",
+        "sample_count": 200
+      },
+      {
         "doc": "the always-on timer, ticked from the crystal: the clock kept across resets",
         "name": "rtc",
         "peripheral": "powman"
@@ -322,6 +327,19 @@
         "peripheral": "uart1"
       },
       {
+        "class": "entropy",
+        "compatible": "rpi,rp2350-trng",
+        "deps": [],
+        "fields": {
+          "base": 1074724864,
+          "irq": 39,
+          "sample_count": 200
+        },
+        "level": "kernel",
+        "name": "trng",
+        "peripheral": "trng"
+      },
+      {
         "class": "spi",
         "compatible": "arm,pl022",
         "deps": [
@@ -583,15 +601,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d"
+      "sha256": "2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d"
+      "sha256": "3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15"
+      "sha256": "c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -1051,6 +1069,18 @@
         ],
         "name": "powman",
         "size": 16384
+      },
+      {
+        "base": 1074724864,
+        "compatible": "rpi,rp2350-trng",
+        "irqs": [
+          {
+            "name": "irq",
+            "number": 39
+          }
+        ],
+        "name": "trng",
+        "size": 4096
       },
       {
         "base": 1074659328,

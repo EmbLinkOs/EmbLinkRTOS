@@ -237,5 +237,8 @@
 #define EMB_API_ID_DRV_RTC_BACKUP_WRITE          0x00EAu
 #define EMB_API_ID_DRV_RTC_STARTED               0x00EBu
 #define EMB_API_ID_DRV_RTC_ALARM_FIRED           0x00ECu
+#define EMB_API_ID_DRV_ENTROPY_BOARD             0x00EDu
+#define EMB_API_ID_DRV_ENTROPY_LOCK_INIT         0x00EEu
+#define EMB_API_ID_DRV_ENTROPY_READ              0x00EFu
 
 #endif /* EMB_API_IDS_H */

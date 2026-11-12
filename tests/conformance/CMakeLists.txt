@@ -77,6 +77,26 @@ if(CONFIG_EMB_DEVICE)
   if(CONFIG_EMB_DRV_DMA)
     emb_add_test(test_dma test_dma.c) # SPEC-017 §7
   endif()
+  if(CONFIG_EMB_DRV_ENTROPY)
+    emb_add_test(test_entropy test_entropy.c) # SPEC-017 §11, SEC-012
+    # the board's own source, where it has one (and the native board's host source): 1 MiB
+    # tested on the board; a physical board also prints a 64 KiB sample for the host's checks
+    set(_emb_entropy OFF)
+    if(CONFIG_EMB_ARCH STREQUAL "native")
+      set(_emb_entropy ON)
+    elseif(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_ent REGEX "EMB_SOC_ENTROPY_DEVICE")
+      if(_emb_ent)
+        set(_emb_entropy ON)
+      endif()
+    endif()
+    if(_emb_entropy)
+      emb_add_test(test_entropy_board test_entropy_board.c)
+      if(EMB_TEST_EMULATOR STREQUAL "hil")
+        target_compile_definitions(test_entropy_board PRIVATE EMB_ENTROPY_DUMP=1)
+      endif()
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_RTC)
     emb_add_test(test_rtc test_rtc.c) # SPEC-017 §10
     # the board's own RTC: its time, its alarm, across a reset

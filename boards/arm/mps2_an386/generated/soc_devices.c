@@ -8,7 +8,7 @@
  *   boards/arm/mps2_an386/board.yaml
  *     599b562b974600a1b5f0e7a9ed24fe8d464823766b40e5b54c4f3a7a09b608eb
  *   drivers/bindings.yaml
- *     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/arm/mps2/an386.yaml
  *     2c8116f38add95936ae614674500e350c6fbc406a7fe82cbd245f7198df39f04
  *   soc/arm/mps2/mps2.yaml
@@ -23,6 +23,7 @@
 
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stddef.h>
 
@@ -83,6 +84,11 @@ static const emb_device_t *const devices[] = {
 };
 
 const emb_device_table_t emb_board_device_table = {devices, 2u, 1u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
 
 #if CONFIG_EMB_DRV_DMA
 /* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA

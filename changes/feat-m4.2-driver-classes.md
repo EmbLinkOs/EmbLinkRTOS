@@ -91,3 +91,9 @@
 - A123, proposed: `<emb/drv_rtc.h>`, behind `CONFIG_EMB_DRV_RTC` (SPEC-017 §10). A clock kept across resets, its time in nanoseconds since the Unix epoch. It has one alarm, its callback in the alarm interrupt, never early, and canceled with nothing after; and backup registers where the part has them. The wake-up timer comes with M4.4's power policy.
 - `<emb/wallclock.h>`, behind `CONFIG_EMB_WALLCLOCK` (SPEC-003 §10, KRN-TIM-031): the monotonic clock plus an offset, set, read and stepped without moving any deadline, and seeded at boot from a set RTC.
 - The class's drivers: the STM32F4's RTC on the LSE (`drivers/st/stm32_rtc.c`), its subseconds 1/256 s, a set's fraction kept by the shift register, alarm A through EXTI line 17, twenty backup registers; and the RP2350's always-on timer in POWMAN (`drivers/rpi/rp2350_aon.c`), milliseconds on a 1 kHz tick from the crystal. The boards' devices are `rtc`, named `EMB_SOC_RTC_DEVICE`.
+
+### Added (the entropy class, 2026-11-12)
+
+- A124, proposed: `<emb/drv_entropy.h>`, behind `CONFIG_EMB_DRV_ENTROPY` (SPEC-017 §11). Bytes from a hardware source of randomness, a block at a time under one timeout. A block that fails the source's health test ends the read with `EMB_EHEALTH`, none of its bytes delivered. A board without a source says so: `emb_drv_entropy_board()` returns `EMB_ENOTSUP`, and nothing stands in for it (SEC-012).
+- The RP2350's TRNG (`drivers/rpi/rp2350_trng.c`), every health test on, sampling every 200 clocks, measured on the board; the native board's source is the host's `getentropy()`.
+- `tools/entropy/check.py`: the host's checks of the sample a board prints, against the board's SHA-256 of it.

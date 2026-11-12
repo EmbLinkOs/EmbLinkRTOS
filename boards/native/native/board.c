@@ -5,6 +5,7 @@
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 #include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stdint.h>
 #endif
@@ -13,6 +14,7 @@
 
 #include <emb_board.h>
 #include <emb_native.h> /* the C library is host code (A93) */
+#include <sys/random.h> /* getentropy() */
 
 void emb_board_init(void)
 {
@@ -37,8 +39,51 @@ void emb_board_put_u32(uint32_t v)
     emb_native_host_end();
 }
 
-#if CONFIG_EMB_DEVICE
-/* No devices yet: the board has no description to generate them from (SPEC-016 §8). */
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ENTROPY
+/* The board's one device, by hand, as it has no description to generate it from (SPEC-016
+ * §8): its entropy source, the host's own randomness through getentropy(), real entropy from
+ * the operating system and not a generator (SEC-012), 32 bytes a block. */
+typedef struct native_entropy_data {
+    emb_drv_bus_t lock; /* the class's, first */
+} native_entropy_data_t;
+
+static native_entropy_data_t native_entropy_data;
+static emb_device_state_t native_entropy_state;
+
+static emb_status_t native_entropy_init(const emb_device_t *dev)
+{
+    return emb_drv_entropy_lock_init(dev);
+}
+
+static emb_status_t native_entropy_block(const emb_device_t *dev, uint8_t *buf,
+                                         emb_timeout_t timeout)
+{
+    int rc;
+    (void)dev;
+    (void)timeout; /* the host answers at once */
+    emb_native_host_begin();
+    rc = getentropy(buf, 32u);
+    emb_native_host_end();
+    return (rc == 0) ? EMB_OK : EMB_EIO;
+}
+
+static const emb_drv_entropy_api_t native_entropy_api = {
+    {native_entropy_init, NULL, NULL, NULL, NULL, 0u}, native_entropy_block, 32u, {0u, 0u, 0u}};
+
+const emb_device_t emb_dev_entropy = {"entropy",
+                                      &native_entropy_api.dev,
+                                      NULL,
+                                      &native_entropy_state,
+                                      &native_entropy_data,
+                                      NULL,
+                                      EMB_DRV_CLASS_ENTROPY,
+                                      EMB_DEVICE_KERNEL,
+                                      0u};
+static const emb_device_t *const native_devices[] = {&emb_dev_entropy};
+const emb_device_table_t emb_board_device_table = {native_devices, 1u, 0u};
+const emb_device_t *const emb_board_entropy = &emb_dev_entropy;
+#elif CONFIG_EMB_DEVICE
+/* No devices: the board has no description to generate them from (SPEC-016 §8). */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
 #endif
 

@@ -6,11 +6,11 @@
  *   arch/cortex_m/arch.yaml
  *     9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b
  *   boards/rpi/pico2_w/board.yaml
- *     a74982372325061f4d8e338ed0d3fcb17d4188631e0b656cda0fb4143c169b2d
+ *     2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef
  *   drivers/bindings.yaml
- *     9188ab055ce4fa5fd4f404fa52a59115616fd99838e0f12406ef679edb7fc82d
+ *     3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe
  *   soc/rpi/rp2350/rp2350.yaml
- *     d474a76d31757f4c41c23635d79c92d9bc521efff89a212cb074f97682b60b15
+ *     c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d
  *   soc/rpi/rp2350/rp2350a.yaml
  *     5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab
  */
@@ -76,6 +76,8 @@
 #define EMB_HW_SPI1_BASE          0x40088000u
 #define EMB_HW_SPI1_IRQ           32u
 #define EMB_HW_TICKS_BASE         0x40108000u
+#define EMB_HW_TRNG_BASE          0x400F0000u
+#define EMB_HW_TRNG_IRQ_IRQ       39u
 #define EMB_HW_UART0_BASE         0x40070000u
 #define EMB_HW_UART0_IRQ          33u
 #define EMB_HW_UART1_BASE         0x40078000u

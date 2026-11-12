@@ -179,13 +179,13 @@
   "misra-c2012-8.4": 1
  },
  "boards/rpi/pico2_w/generated/hw_config.h": {
-  "misra-c2012-2.5": 40
+  "misra-c2012-2.5": 42
  },
  "boards/rpi/pico2_w/generated/soc_devices.c": {
   "misra-c2012-8.7": 7
  },
  "boards/rpi/pico2_w/generated/soc_devices.h": {
-  "misra-c2012-2.5": 25
+  "misra-c2012-2.5": 27
  },
  "boards/st/nucleo_f446re/generated/hw_config.h": {
   "misra-c2012-2.5": 134
@@ -223,6 +223,9 @@
  "drivers/microchip/include/emb_avr_drivers.h": {
   "misra-c2012-11.4": 9
  },
+ "drivers/rpi/include/emb_rp2350_devices.h": {
+  "misra-c2012-19.2": 1
+ },
  "drivers/rpi/rp2350_aon.c": {
   "misra-c2012-10.4": 2,
   "misra-c2012-10.8": 3,
@@ -259,6 +262,11 @@
   "misra-c2012-12.1": 3,
   "misra-c2012-12.2": 1,
   "misra-c2012-7.3": 1
+ },
+ "drivers/rpi/rp2350_trng.c": {
+  "misra-c2012-10.4": 5,
+  "misra-c2012-11.4": 20,
+  "misra-c2012-11.5": 3
  },
  "drivers/rpi/rp2350_watchdog.c": {
   "misra-c2012-11.4": 12,
@@ -426,6 +434,9 @@
   "misra-c2012-2.5": 1,
   "misra-c2012-8.11": 1
  },
+ "include/emb/drv_entropy.h": {
+  "misra-c2012-2.5": 1
+ },
  "include/emb/drv_gpio.h": {
   "misra-c2012-2.5": 3
  },
@@ -556,6 +567,11 @@
  "kernel/device/dma.c": {
   "misra-c2012-11.5": 1,
   "misra-c2012-8.7": 2
+ },
+ "kernel/device/entropy.c": {
+  "misra-c2012-10.4": 2,
+  "misra-c2012-11.5": 3,
+  "misra-c2012-8.7": 3
  },
  "kernel/device/flash.c": {
   "misra-c2012-10.4": 4,
