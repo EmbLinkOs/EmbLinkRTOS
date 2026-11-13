@@ -25,6 +25,7 @@ find_program(EMB_RISCV_GCC riscv64-unknown-elf-gcc REQUIRED)
 find_program(CMAKE_OBJCOPY riscv64-unknown-elf-objcopy REQUIRED)
 find_program(CMAKE_SIZE riscv64-unknown-elf-size REQUIRED)
 find_program(CMAKE_NM riscv64-unknown-elf-nm REQUIRED)
+find_program(CMAKE_OBJDUMP riscv64-unknown-elf-objdump REQUIRED)
 include("${CMAKE_CURRENT_LIST_DIR}/gnu-libc-headers.cmake")
 emb_gnu_libc_include("${EMB_RISCV_GCC}" _emb_rv_inc --specs=picolibc.specs) # picolibc's headers
 # -ftls-model=local-exec: what picolibc.specs gives GCC, for errno's thread-local block (A88)
