@@ -1,4 +1,4 @@
-# Tasks on the NUCLEO-F446RE (2026-11-13)
+# Tasks on the NUCLEO-F446RE and the Pico 2 W (2026-11-13)
 
 The first run of tasks ([SPEC-020](../specs/SPEC-020-tasks.md)) on a board, generated from a system description ([A126](../specs/AMENDMENTS-M4.md)). The application is `examples/tasks`, with two tasks:
 - **a door,** event-driven, with states closed, open and jammed. Its open state has a 2-second timeout and entry and exit handlers.
@@ -12,12 +12,14 @@ The tasks' behaviour is written in the generated task files, as an application's
 
 **Commit:** `dab3513`, from a clean tree (branch `feat/configurator`, PR #146).
 
-| Compiler | Image (text / data / bss) | Record |
+| Board and compiler | Image (text / data / bss) | Record |
 |---|---|---|
-| Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1) | 25,432 / 80 / 6,528 | `hil-runs/2026-11-13-nucleo_f446re-tasks-gcc/` |
-| Homebrew Clang 23.1.5 with LLD 23.1.5 | 27,856 / 80 / 6,528 | `hil-runs/2026-11-13-nucleo_f446re-tasks-clang/` |
+| NUCLEO-F446RE: Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1) | 25,432 / 80 / 6,528 | `hil-runs/2026-11-13-nucleo_f446re-tasks-gcc/` |
+| NUCLEO-F446RE: Homebrew Clang 23.1.5 with LLD 23.1.5 | 27,856 / 80 / 6,528 | `hil-runs/2026-11-13-nucleo_f446re-tasks-clang/` |
+| Pico 2 W: Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1), at `b3ae713` | 24,964 / 0 / 7,216 | `hil-runs/2026-11-13-pico2_w-tasks-gcc/` |
+| Pico 2 W: Homebrew Clang 23.1.5 with LLD 23.1.5, at `b3ae713` | 27,712 / 0 / 7,216 | `hil-runs/2026-11-13-pico2_w-tasks-clang/` |
 
-Each image was flashed by OpenOCD and reset, and its console was read for 21 seconds. Both printed the same sequence, five times:
+The NUCLEO's images were flashed by OpenOCD and reset. The Pico's were loaded by picotool, their console read through the NUCLEO running the UART relay (the [Pico bench](hil-pico2w-2026-11-07.md)). Each console was read for 21 seconds, and all four printed the same sequence, five times, the Pico's starting 0.73 s later after picotool's load:
 
 ```text
 [  3.38] door: open
@@ -32,4 +34,4 @@ Each image was flashed by OpenOCD and reset, and its console was read for 21 sec
 ## Found on the way
 
 - **The tasks were not linked.** The first image printed nothing: the build compiled the system's `system.c` but not its `tasks.c`, so the board idled with no task thread. The build now compiles `tasks.c` (`dab3513`). Once it was compiled, `-Wmissing-field-initializers` caught the task object's initializer leaving out the task's data; it is now designated.
-- **The Pico 2 W** builds the same application. It was not in BOOTSEL for this session, so its run is still to come.
+- **A silent first run on the Pico.** The first GCC load printed nothing. A HIL smoke test then printed all its results through the same relay, so the console path was sound. A diagnostic copy of the application (outside the tree, a thread printing both tasks' counters each second and returning the board to BOOTSEL) then showed both tasks running as on the NUCLEO. The unmodified image, loaded again, printed the sequence above. The first run's silence was the bench, most likely the relay just reflashed, not the code.
