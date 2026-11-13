@@ -409,7 +409,7 @@ jobs:
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/native/arch.yaml \
             --conf boards/native/native/board.conf --conf configs/base.conf --print > /dev/null
           python3 -I tools/kconfig/embconfig.py --kconfig Kconfig --manifest arch/avr/arch.yaml \
-            --conf boards/arduino/arduino_uno/generated/board.conf --conf configs/tiny.conf --print > /dev/null
+            --conf boards/arduino/arduino_uno/generated/config/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: IRQ configuration and encoding regressions
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
       - name: File headers (CS-11.1)
@@ -425,7 +425,7 @@ jobs:
           pip install jsonschema
           python3 -I -m unittest discover -s hw/gen -p 'test_*.py' -v
           python3 -I -m unittest discover -s hw/import -p 'test_*.py' -v
-          python3 -I hw/gen/emb-hwgen.py check
+          python3 -I hw/gen/emb-hwgen.py check --strict
       - name: Reference model
         run: |
           pip install hypothesis pytest
@@ -462,7 +462,7 @@ jobs:
       - name: Reference model
         run: cd tools/model && python -m pytest -q
       - name: The generator's committed outputs
-        run: python -I hw/gen/emb-hwgen.py check
+        run: python -I hw/gen/emb-hwgen.py check --strict
       - name: A native build, configured with this Python
         run: |
           cmake --preset native-gcc -DPython3_EXECUTABLE="$(command -v python)"
@@ -849,7 +849,8 @@ jobs:
         run: |
           for b in nucleo_f446re nucleo_f446ze; do
             python3 -I tools/footprint/stack_bound.py --elf "build/controller-$b/controller.elf" \
-                    --build "build/controller-$b" --roots examples/controller/stack-roots.json
+                    --build "build/controller-$b" --roots examples/controller/stack-roots.json \
+                    --system "examples/controller/generated/$b/docs/system.json"
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
@@ -859,7 +860,8 @@ jobs:
                 -DEMB_BOARD=nucleo_f446re -DEMB_SET=EMB_CHECKED=n -DEMB_LTO=ON
           cmake --build build/controller-lto
           python3 -I tools/footprint/stack_bound.py --elf build/controller-lto/controller.elf \
-                  --build build/controller-lto --roots examples/controller/stack-roots.json
+                  --build build/controller-lto --roots examples/controller/stack-roots.json \
+                  --system examples/controller/generated/nucleo_f446re/docs/system.json
       - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
         run: |
           python3 -m venv "$RUNNER_TEMP/spdx"
@@ -943,7 +945,8 @@ jobs:
       - name: The Clang controller's stack bound
         run: |
           python3 -I tools/footprint/stack_bound.py --elf build/controller-tidy/controller.elf \
-                  --build build/controller-tidy --roots examples/controller/stack-roots.json
+                  --build build/controller-tidy --roots examples/controller/stack-roots.json \
+                  --system examples/controller/generated/nucleo_f446re/docs/system.json
       - name: The Clang controller's memory report, from LLD's map
         run: |
           python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \

@@ -1,0 +1,736 @@
+{
+  "format": "emb-controller-session v1",
+  "board": "nucleo_f446re",
+  "port": "/dev/cu.usbmodem31103",
+  "image": "controller.elf",
+  "image_sha256": "218cebc975b5c1f44b79d5bfd8f7ddfad3b83f4532db6462029652a566eb7fb0",
+  "flashed": true,
+  "git": {
+    "commit": "40f86a592f1e7a3089f177a8b14ff426c88a1853",
+    "dirty": false
+  },
+  "started": "2026-11-13T02:19:22+0100",
+  "ended": "2026-11-13T02:20:55+0100",
+  "soak_seconds": 60,
+  "outcome": "pass",
+  "passed": 9,
+  "total": 9,
+  "phases": [
+    {
+      "name": "boot",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "reset": [
+          "pin"
+        ],
+        "crash": "none",
+        "previous_record": false
+      }
+    },
+    {
+      "name": "normal",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "tlm": [
+          {
+            "t": 1,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26300,
+            "heater": 1,
+            "samples": 101,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 8,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          },
+          {
+            "t": 2,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26100,
+            "heater": 1,
+            "samples": 201,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          },
+          {
+            "t": 3,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26300,
+            "heater": 1,
+            "samples": 301,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          },
+          {
+            "t": 4,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26300,
+            "heater": 1,
+            "samples": 401,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          },
+          {
+            "t": 5,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26000,
+            "heater": 1,
+            "samples": 501,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          },
+          {
+            "t": 6,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26300,
+            "heater": 1,
+            "samples": 601,
+            "missed": 0,
+            "deadline_miss": 0,
+            "shed": 0,
+            "degraded": 0,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "0/0",
+            "rx_drops": 0
+          }
+        ],
+        "rate_hz": 100.0
+      }
+    },
+    {
+      "name": "stacks",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "stacks": {
+          "control": {
+            "used": 236,
+            "size": 1024
+          },
+          "command": {
+            "used": 284,
+            "size": 1024
+          },
+          "telemetry": {
+            "used": 340,
+            "size": 1024
+          },
+          "isr": {
+            "used": 384,
+            "size": 2048
+          }
+        }
+      }
+    },
+    {
+      "name": "overload",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "tlm": [
+          {
+            "t": 7,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 26700,
+            "heater": 1,
+            "samples": 670,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 33,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 15021,
+            "proc_max_us": 30022,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          },
+          {
+            "t": 8,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27400,
+            "heater": 1,
+            "samples": 720,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 83,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          },
+          {
+            "t": 9,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27400,
+            "heater": 1,
+            "samples": 770,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 133,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          },
+          {
+            "t": 10,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27600,
+            "heater": 1,
+            "samples": 820,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 183,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          },
+          {
+            "t": 11,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27900,
+            "heater": 1,
+            "samples": 870,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 233,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          },
+          {
+            "t": 12,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27900,
+            "heater": 1,
+            "samples": 920,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 283,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 150,
+            "rx": "16/16",
+            "rx_drops": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "recovery",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "tlm": [
+          {
+            "t": 13,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27700,
+            "heater": 1,
+            "samples": 970,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 331,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 15009,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          },
+          {
+            "t": 14,
+            "mode": "degraded",
+            "rate": 100,
+            "temp_mc": 27000,
+            "heater": 1,
+            "samples": 1020,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 381,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 8,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          },
+          {
+            "t": 15,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 27000,
+            "heater": 1,
+            "samples": 1106,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 8,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          },
+          {
+            "t": 16,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26700,
+            "heater": 1,
+            "samples": 1206,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          },
+          {
+            "t": 17,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26600,
+            "heater": 1,
+            "samples": 1306,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          },
+          {
+            "t": 18,
+            "mode": "normal",
+            "rate": 100,
+            "temp_mc": 26500,
+            "heater": 1,
+            "samples": 1406,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 11,
+            "load": 0,
+            "rx": "23/23",
+            "rx_drops": 0
+          }
+        ],
+        "seconds_to_normal": 3
+      }
+    },
+    {
+      "name": "fast",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "tlm": [
+          {
+            "t": 19,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27300,
+            "heater": 1,
+            "samples": 2305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          },
+          {
+            "t": 20,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27500,
+            "heater": 1,
+            "samples": 3305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          },
+          {
+            "t": 21,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27700,
+            "heater": 1,
+            "samples": 4305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          },
+          {
+            "t": 22,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27800,
+            "heater": 1,
+            "samples": 5305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          },
+          {
+            "t": 23,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27800,
+            "heater": 1,
+            "samples": 6305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          },
+          {
+            "t": 24,
+            "mode": "normal",
+            "rate": 1000,
+            "temp_mc": 27900,
+            "heater": 1,
+            "samples": 7305,
+            "missed": 0,
+            "deadline_miss": 6,
+            "shed": 395,
+            "degraded": 1,
+            "queue_drops": 0,
+            "adc_overruns": 0,
+            "lat_max_us": 9,
+            "proc_max_us": 509,
+            "load": 50,
+            "rx": "41/41",
+            "rx_drops": 0
+          }
+        ],
+        "rate_hz": 1000.0
+      }
+    },
+    {
+      "name": "soak",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "seconds": 60,
+        "lat_max_us": 9,
+        "proc_max_us": 3009,
+        "first": {
+          "t": 27,
+          "mode": "normal",
+          "rate": 100,
+          "temp_mc": 27600,
+          "heater": 1,
+          "samples": 7715,
+          "missed": 0,
+          "deadline_miss": 6,
+          "shed": 395,
+          "degraded": 1,
+          "queue_drops": 0,
+          "adc_overruns": 0,
+          "lat_max_us": 9,
+          "proc_max_us": 3009,
+          "load": 30,
+          "rx": "58/58",
+          "rx_drops": 0
+        },
+        "last": {
+          "t": 86,
+          "mode": "normal",
+          "rate": 100,
+          "temp_mc": 27600,
+          "heater": 1,
+          "samples": 13615,
+          "missed": 0,
+          "deadline_miss": 6,
+          "shed": 395,
+          "degraded": 1,
+          "queue_drops": 0,
+          "adc_overruns": 0,
+          "lat_max_us": 9,
+          "proc_max_us": 3009,
+          "load": 30,
+          "rx": "58/58",
+          "rx_drops": 0
+        }
+      }
+    },
+    {
+      "name": "fault",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "reset": [
+          "software",
+          "pin"
+        ],
+        "crash": "record",
+        "decoded": {
+          "address": 65536,
+          "api_id": 0,
+          "api_name": null,
+          "argument": 0,
+          "build_id": "fb4375d9a668f9ea1568ff694f8102cd81ed50f6",
+          "build_match": true,
+          "code": 6,
+          "cpu_id": 0,
+          "fault_class": 10,
+          "fault_class_name": "hardware",
+          "flight_event_count": 0,
+          "fw_version": "0.2.0",
+          "gpr_count": 8,
+          "length": 140,
+          "lr_or_ra": 134219557,
+          "named_regs": [
+            {
+              "name": "cfsr",
+              "note": "UNDEFINSTR",
+              "value": 65536
+            },
+            {
+              "name": "hfsr",
+              "note": "",
+              "value": 0
+            },
+            {
+              "name": "mmfar",
+              "note": "",
+              "value": 3758157108
+            },
+            {
+              "name": "bfar",
+              "note": "",
+              "value": 3758157112
+            },
+            {
+              "name": "r0",
+              "note": "",
+              "value": 1073759232
+            },
+            {
+              "name": "r1",
+              "note": "",
+              "value": 0
+            },
+            {
+              "name": "r2",
+              "note": "",
+              "value": 2684354560
+            },
+            {
+              "name": "r3",
+              "note": "",
+              "value": 98048
+            },
+            {
+              "name": "r12",
+              "note": "",
+              "value": 22
+            },
+            {
+              "name": "lr",
+              "note": "",
+              "value": 134219557
+            },
+            {
+              "name": "pc",
+              "note": "",
+              "value": 134219556
+            },
+            {
+              "name": "xpsr",
+              "note": "",
+              "value": 2701131776
+            }
+          ],
+          "partition_id": 0,
+          "pc": 134219556,
+          "pc_bytes": 134219556,
+          "regs": [
+            65536,
+            0,
+            3758157108,
+            3758157112,
+            1073759232,
+            0,
+            2684354560,
+            98048,
+            22,
+            134219557,
+            134219556,
+            2701131776
+          ],
+          "reset_reason": 1,
+          "reset_reason_name": "reboot",
+          "sp": 536875408,
+          "stack_base": 0,
+          "stack_size": 0,
+          "status_reg_count": 4,
+          "symbol": {
+            "function": "execute",
+            "location": "././examples/controller/main.c:366"
+          },
+          "thread_generation": 0,
+          "thread_index": 1,
+          "uptime_ticks": 86346,
+          "version": 1
+        }
+      }
+    },
+    {
+      "name": "hang",
+      "outcome": "pass",
+      "problems": [],
+      "facts": {
+        "reset": [
+          "watchdog",
+          "pin"
+        ],
+        "crash": "none",
+        "seconds_to_reset": 1.5
+      }
+    }
+  ],
+  "log": "controller.log"
+}

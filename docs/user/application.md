@@ -67,6 +67,67 @@ cmake --build build/my_app
 
 Everything `emb_add_executable()` makes sits next to the image: on a board, `app.elf`, `app.hex`, `app.elf.map` and a size report, and, where the board boots one, `app.bin` (the ESP32 and ESP32-C3) or `app.uf2` (Pico 2 W).
 
+## Threads, tasks and objects from a system description
+
+Instead of writing `EMB_THREAD_DEFINE` and the other definition macros in C, describe the application in a `system.yaml`. It holds threads, tasks (threads written as state machines), kernel objects, device settings, SPI and I2C targets and the watchdog. The generator turns it into C and checks it before anything compiles (SPEC-014 §5, SPEC-020). `examples/tasks/system.yaml` is a complete one:
+
+```yaml
+schema_version: 0
+kind: system
+name: my_app
+boards: [st/nucleo_f446re, rpi/pico2_w]
+tasks:
+  - name: door
+    model: event                 # waits on its own queue
+    priority: 5
+    stack: 1K
+    events: [open, close]
+    states: [closed, open]
+    initial: closed
+    exit: [open]
+    timeout: { open: 2s }        # no event for 2 s: the handler gets EMB_EV_TIMEOUT
+  - name: blink
+    model: periodic
+    period: 500ms
+    priority: 2
+    stack: 512
+    states: [dark, lit]
+    initial: dark
+```
+
+```sh
+python3 -I $HOME/EmbLinkRTOS/hw/gen/emb-hwgen.py generate --system system.yaml
+```
+
+This writes:
+
+```text
+my_app/
+  system.yaml
+  CMakeLists.txt              yours: generated once, editable
+  src/main.c                  yours
+  src/tasks/door.c, blink.c   yours: one handler per state, each returning the next state
+  generated/
+    .base/                    what the generator last wrote, for merging (commit it, do not edit)
+    nucleo_f446re/            per board: config/ include/ src/ linker/ build/ docs/
+```
+
+- **Your code:** write each task's behaviour in its handlers, for example `emb_state_t door_on_open(door_t *self, const emb_task_event_t *ev)`. Post events with `emb_task_post(DOOR_TASK, DOOR_EV_OPEN, value)`, from a thread or an interrupt.
+- **Every generated file is editable.** When you change `system.yaml` and generate again:
+  - a file whose generated text did not change is left as it is;
+  - a file you did not edit is rewritten;
+  - a file you edited is merged with the change, as git merges.
+
+  Only where you and the generator changed the same lines does `generate` report a conflict (`<<<<<<< yours` ... `>>>>>>> generated now`), and `check` fails until you resolve it.
+- **Checked at generation**, each refusal naming its line:
+  - priorities;
+  - tasks' states, events and timeouts;
+  - object types the configuration leaves out;
+  - device options and baud rates;
+  - SPI clocks, I2C addresses and the watchdog timeout.
+- **After the link**, with a `stack-roots.json`, a stack below its worst case fails the build.
+- **C definitions** still work beside the file. An application with hand-written sources sets `scaffold: false`, and the generator then writes only `generated/`.
+
 ## What the build checks
 
 The configuration step runs the same checks as the RTOS's own build: the board's generated files must be current (HW-003), the configuration must be valid for the port, and the storage sizes come from the compiled layout probe. The same warnings apply to your sources (`-Wall -Wextra -Werror` and the rest, CODING-STANDARD CS-13). Pass `-DEMB_WERROR=OFF` to keep warnings from failing your build.

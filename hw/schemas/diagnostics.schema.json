@@ -13,7 +13,7 @@
     "command": { "enum": ["generate", "check", "validate"] },
     "status": {
       "enum": ["ok", "errors", "stale", "internal-error"],
-      "description": "ok (exit 0, warnings possible); errors (exit 2: the descriptions are wrong, or check found no boards/); stale (exit 1: check found generated files that differ, or hardware facts outside a description); internal-error (exit 3: the generator itself failed, see error)"
+      "description": "ok (exit 0, warnings possible); errors (exit 2: the descriptions are wrong, or check found no boards/); stale (exit 1: check found generated files that differ, or hardware facts outside a description; generate left a merge conflict in an edited file, A126); internal-error (exit 3: the generator itself failed, see error)"
     },
     "exit_code": { "enum": [0, 1, 2, 3] },
     "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
@@ -23,6 +23,7 @@
       "description": "generate: the files written, relative to the repository root"
     },
     "boards": { "type": "integer", "minimum": 0, "description": "check: the boards checked" },
+    "systems": { "type": "integer", "minimum": 0, "description": "check: the system descriptions checked (A125)" },
     "error": {
       "type": "object",
       "required": ["type", "message"],

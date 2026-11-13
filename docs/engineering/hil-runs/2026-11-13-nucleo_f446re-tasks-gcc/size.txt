@@ -1,0 +1,2 @@
+   text	   data	    bss	    dec	    hex	filename
+  25432	     80	   6528	  32040	   7d28	tasks_demo.elf

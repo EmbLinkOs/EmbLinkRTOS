@@ -44,6 +44,8 @@ controller-timing-2026-11-07
 controller-memory-2026-11-07
 controller-soak-2026-11-08
 controller-release-2026-11-08
+configurator-controller-2026-11-13
+tasks-nucleo-2026-11-13
 hil-devices-2026-11-09
 hil-uart-2026-11-09
 hil-spi-2026-11-09

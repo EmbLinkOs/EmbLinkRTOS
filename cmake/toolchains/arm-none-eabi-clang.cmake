@@ -26,6 +26,7 @@ emb_gnu_libc_include("${EMB_ARM_GCC}" _emb_arm_inc) # newlib's headers
 find_program(CMAKE_OBJCOPY arm-none-eabi-objcopy REQUIRED)
 find_program(CMAKE_SIZE arm-none-eabi-size REQUIRED)
 find_program(CMAKE_NM arm-none-eabi-nm REQUIRED)
+find_program(CMAKE_OBJDUMP arm-none-eabi-objdump REQUIRED) # the host's objdump may not read Arm images
 # -fshort-enums: the Arm GNU toolchain's bare-metal ABI, which its newlib and libgcc are built with
 set(EMB_TOOLCHAIN_C_FLAGS --target=arm-none-eabi -mthumb -fshort-enums -Os -g -nostdlibinc
                           -isystem "${_emb_arm_inc}")

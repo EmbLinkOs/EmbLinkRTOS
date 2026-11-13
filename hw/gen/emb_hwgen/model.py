@@ -18,6 +18,8 @@ PIN_BANK = re.compile(r"^GPIO([1-5][0-9]|6[0-3]|[0-9])(?:\.f([12][0-9]|3[01]|[0-
 # Sections whose items are named and must be unique (SPEC-014 §7: duplicate name).
 SOC_NAMED = ("memory.regions", "peripherals", "clocks.sources", "clocks.plls", "clocks.buses", "clocks.voltage_scales")
 BOARD_NAMED = ("leds", "buttons", "flash_partitions", "devices")
+# What a board's device entry fixes and a system description cannot set (A125).
+DEVICE_WIRING = ("name", "peripheral", "compatible", "bus", "deps", "level", "dma", "cs", "address", "doc")
 
 
 def _get(data, dotted):
@@ -105,7 +107,8 @@ class Resolver:
             return None
         return found[0]
 
-    def resolve(self, board_dir):
+    def resolve(self, board_dir, system=None):
+        """The board resolved, with a system description's device settings over its own (A125)."""
         self.board_dir = Path(board_dir)
         board_path = Path(board_dir) / "board.yaml"
         board = load.flatten(board_path, self.root)
@@ -113,6 +116,10 @@ class Resolver:
         self._duplicates(board, BOARD_NAMED)
         if self.errors:
             raise HwError(self.errors)
+        if system is not None:
+            self._apply_system(board, system)
+            if self.errors:
+                raise HwError(self.errors)
         if board.data["name"] != Path(board_dir).name:
             self.err(board, "name", f"{board.data['name']!r} differs from its directory {Path(board_dir).name!r}")
 
@@ -142,6 +149,8 @@ class Resolver:
         linker = self._linker(board, soc)
         kconfig, profile = self._kconfig(board, soc, clk)
         devs, binding_docs = self._devices(board, soc, clk, pins)
+        if system is not None:
+            self._system_options(system, devs)
         self._loopbacks(board, devs)
         self._chip_selects(board, devs, pins)
         if self.errors:
@@ -169,6 +178,42 @@ class Resolver:
             "soc_in_board_root": self.soc_in_board_root,
             "warnings": sorted(self.warnings),
         }
+
+    # -------------------------------------------------------------- a system's device settings (A125)
+
+    def _apply_system(self, board, system):
+        """Each setting replaces the board's value, and keeps its own line: an error about it
+        names the system description. The console follows its device's baud."""
+        entries = {d["name"]: d for d in board.data.get("devices", [])}
+        console = board.data.get("console", {})
+        for dev, opts in sorted(system.data.get("devices", {}).items()):
+            entry = entries.get(dev)
+            if entry is None:
+                self.err(system, f"devices.{dev}", f"the board {board.data['name']} has no device {dev!r}")
+                continue
+            for opt, value in sorted(opts.items()):
+                at = f"devices.{dev}.{opt}"
+                if opt in DEVICE_WIRING:
+                    self.err(system, at, f"{opt} is the board's wiring, not a setting: change it in the board description")
+                    continue
+                entry[opt] = value
+                board.lines[at] = system.lines.get(at, system.lines.get(f"devices.{dev}"))
+                if console.get("device") == dev and opt == "baud":
+                    console["baud"] = value
+                    board.lines["console.baud"] = board.lines[at]
+
+    def _system_options(self, system, devs):
+        """A setting is an option the device's binding reads; anything else would be ignored."""
+        by_name = {d["name"]: d for d in devs}
+        for dev, opts in sorted(system.data.get("devices", {}).items()):
+            d = by_name.get(dev)
+            if d is None:
+                continue
+            for opt in sorted(opts):
+                if opt not in d["options"] and opt not in DEVICE_WIRING:
+                    have = ", ".join(d["options"]) or "none"
+                    self.err(system, f"devices.{dev}.{opt}",
+                             f"the {d['compatible']} binding takes no option {opt!r} (its options: {have})")
 
     # -------------------------------------------------------------- schema and names
 
@@ -606,5 +651,5 @@ class Resolver:
                 self.warnings.append(f"{soc.at('peripherals.' + p['name'])}: uncurated node")
 
 
-def resolve(board_dir, root):
-    return Resolver(root).resolve(board_dir)
+def resolve(board_dir, root, system=None):
+    return Resolver(root).resolve(board_dir, system)

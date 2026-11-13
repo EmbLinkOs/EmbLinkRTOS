@@ -26,6 +26,7 @@ find_program(EMB_AVR_GCC avr-gcc REQUIRED)
 find_program(CMAKE_OBJCOPY avr-objcopy REQUIRED)
 find_program(CMAKE_SIZE avr-size REQUIRED)
 find_program(CMAKE_NM avr-nm REQUIRED)
+find_program(CMAKE_OBJDUMP avr-objdump REQUIRED)
 include("${CMAKE_CURRENT_LIST_DIR}/gnu-libc-headers.cmake")
 emb_gnu_libc_include("${EMB_AVR_GCC}" _emb_avr_inc -mmcu=${EMB_AVR_MCU}) # avr-libc's headers
 set(EMB_TOOLCHAIN_C_FLAGS --target=avr -mmcu=${EMB_AVR_MCU} -Os -g -fno-short-enums -nostdlibinc
