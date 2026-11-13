@@ -67,44 +67,66 @@ cmake --build build/my_app
 
 Everything `emb_add_executable()` makes sits next to the image: on a board, `app.elf`, `app.hex`, `app.elf.map` and a size report, and, where the board boots one, `app.bin` (the ESP32 and ESP32-C3) or `app.uf2` (Pico 2 W).
 
-## Threads and objects from a system description
+## Threads, tasks and objects from a system description
 
-Instead of `EMB_THREAD_DEFINE` and the other definition macros in C, an application can describe its threads, kernel objects, device settings, SPI and I2C targets and watchdog in a `system.yaml` beside its sources. The generator turns that file into C and checks it before anything compiles (SPEC-014 §5). `examples/controller/system.yaml` is a complete one:
+Instead of writing `EMB_THREAD_DEFINE` and the other definition macros in C, describe the application in a `system.yaml`. It holds threads, tasks (threads written as state machines), kernel objects, device settings, SPI and I2C targets and the watchdog. The generator turns it into C and checks it before anything compiles (SPEC-014 §5, SPEC-020). `examples/tasks/system.yaml` is a complete one:
 
 ```yaml
 schema_version: 0
 kind: system
 name: my_app
-board: mps2_an386                    # or boards: [...] for several
-conf: [my_app.conf]                  # your Kconfig fragments stay as they are
-includes: [my_app.h]                 # the types and functions the file names
-threads:
-  - { name: blink_thread, entry: blink, priority: 2, stack: 512 }
-objects:
-  - { name: events, type: msgq, item: event_t, capacity: 8 }
-  - { name: bus_lock, type: mutex, protocol: ceiling, users: [blink_thread] }
+boards: [st/nucleo_f446re, rpi/pico2_w]
+tasks:
+  - name: door
+    model: event                 # waits on its own queue
+    priority: 5
+    stack: 1K
+    events: [open, close]
+    states: [closed, open]
+    initial: closed
+    exit: [open]
+    timeout: { open: 2s }        # no event for 2 s: the handler gets EMB_EV_TIMEOUT
+  - name: blink
+    model: periodic
+    period: 500ms
+    priority: 2
+    stack: 512
+    states: [dark, lit]
+    initial: dark
 ```
 
 ```sh
 python3 -I $HOME/EmbLinkRTOS/hw/gen/emb-hwgen.py generate --system system.yaml
 ```
 
-This writes `generated/<board>/`. Commit it with `system.yaml`: `emb-hwgen check` and the build both refuse outputs older than their description. Your sources `#include "system.h"`, which declares the handles (`blink_thread`, `events`, `bus_lock`) and the entry functions you define. In CMake, set `EMB_SYSTEM` to the file and, on Cortex-M, `EMB_STACK_ROOTS` to your `stack-roots.json`:
+This writes:
 
-```cmake
-set(EMB_SYSTEM "${CMAKE_CURRENT_LIST_DIR}/system.yaml" CACHE FILEPATH "")
-set(EMB_STACK_ROOTS "${CMAKE_CURRENT_LIST_DIR}/stack-roots.json" CACHE FILEPATH "")
+```text
+my_app/
+  system.yaml
+  CMakeLists.txt              yours: generated once, editable
+  src/main.c                  yours
+  src/tasks/door.c, blink.c   yours: one handler per state, each returning the next state
+  generated/
+    .base/                    what the generator last wrote, for merging (commit it, do not edit)
+    nucleo_f446re/            per board: config/ include/ src/ linker/ build/ docs/
 ```
 
-- **At generation**, the generator refuses, naming the line:
-  - a priority outside the configuration;
-  - an object type the configuration leaves out;
-  - a ceiling user that is not a thread;
-  - a device option its driver does not take, or a baud rate the clock cannot make;
-  - an SPI clock the controller cannot reach, or an I2C address used twice;
-  - a watchdog timeout out of range.
-- **After the link**, a thread's stack below the worst case `tools/footprint/stack_bound.py` computes fails the build.
-- **Mixing:** definitions in C still work beside the file.
+- **Your code:** write each task's behaviour in its handlers, for example `emb_state_t door_on_open(door_t *self, const emb_task_event_t *ev)`. Post events with `emb_task_post(DOOR_TASK, DOOR_EV_OPEN, value)`, from a thread or an interrupt.
+- **Every generated file is editable.** When you change `system.yaml` and generate again:
+  - a file whose generated text did not change is left as it is;
+  - a file you did not edit is rewritten;
+  - a file you edited is merged with the change, as git merges.
+
+  Only where you and the generator changed the same lines does `generate` report a conflict (`<<<<<<< yours` ... `>>>>>>> generated now`), and `check` fails until you resolve it.
+- **Checked at generation**, each refusal naming its line:
+  - priorities;
+  - tasks' states, events and timeouts;
+  - object types the configuration leaves out;
+  - device options and baud rates;
+  - SPI clocks, I2C addresses and the watchdog timeout.
+- **After the link**, with a `stack-roots.json`, a stack below its worst case fails the build.
+- **C definitions** still work beside the file. An application with hand-written sources sets `scaffold: false`, and the generator then writes only `generated/`.
 
 ## What the build checks
 

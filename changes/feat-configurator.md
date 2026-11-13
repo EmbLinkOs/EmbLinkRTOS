@@ -13,3 +13,10 @@
 ### Fixed (the stack bound of Clang images, 2026-11-13)
 
 - `tools/footprint/stack_bound.py` reads `llvm-objdump`'s disassembly as well as GNU objdump's. With `llvm-objdump`, which CMake picks under the Clang toolchain, it had seen no calls and reported each thread's own frame as its bound. It now also refuses a disassembly in which no function calls another.
+
+### Added (tasks, editable generated files and their layout, 2026-11-13)
+
+- Tasks (SPEC-020, `<emb/task.h>`, `CONFIG_EMB_TASK`) are threads written as state machines, event-driven or periodic, declared in `system.yaml`. The generator writes their states, queues, dispatch and threads, and the application writes one handler per state. `emb_task_post()` works from threads and interrupts, a state may have a timeout, entry and exit handlers run in order, a full queue is a counted drop, and a periodic task keeps a drift-free schedule.
+- Every generated file is editable (A126). Regeneration leaves a file untouched where its generated text did not change, rewrites one that was not edited, and three-way merges one that was, against a committed baseline in `generated/.base/`. `check` refuses an unresolved conflict, and `check --strict` keeps the tree's boards exactly as generated.
+- Generated directories are laid out by kind, `config/`, `include/`, `src/`, `linker/`, `build/` and `docs/`, for boards and applications. An application also gets its own editable `CMakeLists.txt`, `src/main.c` and task files.
+- `examples/tasks` runs a door and a blinker on the NUCLEO-F446RE ([report](docs/engineering/tasks-nucleo-2026-11-13.md)).
