@@ -11,7 +11,7 @@
 #   boards/arm/mps2_an500/board.yaml
 #     85401cc9579f569dbf39fdd796bd90d9a1e9502eef07276ba3a322c0ed3c0561
 #   drivers/bindings.yaml
-#     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+#     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
 #   soc/arm/mps2/an500.yaml
 #     6cf725200210826569b7fc32c2bbfe0a9759b6308986859af340ed1543f053f6
 #   soc/arm/mps2/mps2.yaml
@@ -25,6 +25,8 @@ get_filename_component(EMB_BOARD_GENERATED_DIR "${CMAKE_CURRENT_LIST_DIR}/.." AB
 set(EMB_BOARD_CONF "${EMB_BOARD_GENERATED_DIR}/config/board.conf")
 set(EMB_BOARD_HW_JSON "${EMB_BOARD_GENERATED_DIR}/docs/hw.json")
 set(EMB_BOARD_BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}")  # build/CMakeLists.txt
+set(EMB_BOARD_SRC_DIR "${EMB_BOARD_GENERATED_DIR}/src")  # its pin table and boot block
+set(EMB_BOARD_LINKER_DIR "${EMB_BOARD_GENERATED_DIR}/linker")
 # the SoC family's board support and drivers build this board (build/CMakeLists.txt)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/arm/mps2")
 set(EMB_BOARD_INCLUDE_DIRS "${EMB_BOARD_GENERATED_DIR}/include" "${EMB_SOC_DIR}/include")
@@ -44,7 +46,7 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     "boards/arm/mps2_an500/board.yaml=85401cc9579f569dbf39fdd796bd90d9a1e9502eef07276ba3a322c0ed3c0561"
-    "drivers/bindings.yaml=d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+    "drivers/bindings.yaml=c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     "soc/arm/mps2/an500.yaml=6cf725200210826569b7fc32c2bbfe0a9759b6308986859af340ed1543f053f6"
     "soc/arm/mps2/mps2.yaml=7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71"
 )

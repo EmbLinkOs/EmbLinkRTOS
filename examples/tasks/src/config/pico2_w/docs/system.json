@@ -1,0 +1,116 @@
+{
+  "board": "pico2_w",
+  "boards": [
+    "nucleo_f446re",
+    "pico2_w"
+  ],
+  "conf": [],
+  "config": {
+    "CONFIG_EMB_ARCH_STACK_MIN": 256,
+    "CONFIG_EMB_PRIORITY_COUNT": 32,
+    "CONFIG_EMB_PROFILE": "base",
+    "CONFIG_EMB_TASK": true
+  },
+  "devices": {},
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "i2c_targets": [],
+  "includes": [],
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
+    },
+    {
+      "path": "boards/rpi/pico2_w/board.yaml",
+      "sha256": "345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
+    },
+    {
+      "path": "examples/tasks/system.yaml",
+      "sha256": "202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da"
+    },
+    {
+      "path": "soc/rpi/rp2350/rp2350.yaml",
+      "sha256": "80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5"
+    },
+    {
+      "path": "soc/rpi/rp2350/rp2350a.yaml",
+      "sha256": "22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c"
+    }
+  ],
+  "interrupts": [
+    {
+      "doc": "",
+      "handler": "WAKE_InterruptHandler",
+      "irq": 46,
+      "level": 1,
+      "name": "wake",
+      "source": null
+    }
+  ],
+  "name": "tasks_demo",
+  "objects": [],
+  "profile": "base",
+  "scaffold": true,
+  "schema_version": 0,
+  "spi_targets": [],
+  "tasks": [
+    {
+      "doc": "",
+      "entry": [
+        "open"
+      ],
+      "event": null,
+      "events": [
+        "open",
+        "close",
+        "jam"
+      ],
+      "exit": [
+        "open"
+      ],
+      "initial": "closed",
+      "model": "event",
+      "name": "door",
+      "period_ms": 0,
+      "priority": 5,
+      "queue": 8,
+      "stack": 1024,
+      "states": [
+        "closed",
+        "open",
+        "jammed"
+      ],
+      "timeouts": {
+        "open": 2000
+      }
+    },
+    {
+      "doc": "",
+      "entry": [],
+      "event": null,
+      "events": [],
+      "exit": [],
+      "initial": "dark",
+      "model": "periodic",
+      "name": "blink",
+      "period_ms": 500,
+      "priority": 2,
+      "queue": 8,
+      "stack": 512,
+      "states": [
+        "dark",
+        "lit"
+      ],
+      "timeouts": {}
+    }
+  ],
+  "threads": [],
+  "watchdog": null
+}

@@ -352,24 +352,27 @@ const char *emb_status_name(emb_status_t status)
     if (status <= 0 && status >= -17) {
         return names[-status];
     }
+    /* four codes a class, a row each */
+    /* clang-format off */
     static const char *const drivers[] = {
-        /* -64 to -95, SPEC-017 §3; NULL where no class has a code yet */
-        "EMB_EFRAMING", "EMB_EPARITY",  "EMB_EOVERRUN",
-        NULL,           "EMB_ECRC",     "EMB_EMODEFAULT",
-        NULL,           NULL,           "EMB_ENACK",
-        "EMB_EARBLOST", "EMB_EBUSERR",  NULL,
-        "EMB_EXFER",    NULL,           NULL,
-        NULL,           "EMB_EWINDOW",  NULL,
-        NULL,           NULL,           "EMB_EWRPROT",
-        "EMB_EVERIFY",  NULL,           NULL,
-        "EMB_ENOTSET",  "EMB_EOSCFAIL", NULL,
-        NULL,           "EMB_EHEALTH",  NULL,
-        NULL,           NULL,
+        /* -64 to -107, SPEC-017 §3; NULL where no class has a code yet */
+        "EMB_EFRAMING",  "EMB_EPARITY",    "EMB_EOVERRUN", NULL, /* UART */
+        "EMB_ECRC",      "EMB_EMODEFAULT", NULL,           NULL, /* SPI */
+        "EMB_ENACK",     "EMB_EARBLOST",   "EMB_EBUSERR",  NULL, /* I2C */
+        "EMB_EXFER",     NULL,             NULL,           NULL, /* DMA */
+        "EMB_EWINDOW",   NULL,             NULL,           NULL, /* watchdog */
+        "EMB_EWRPROT",   "EMB_EVERIFY",    NULL,           NULL, /* flash */
+        "EMB_ENOTSET",   "EMB_EOSCFAIL",   NULL,           NULL, /* RTC */
+        "EMB_EHEALTH",   NULL,             NULL,           NULL, /* entropy */
+        "EMB_EPAST",     NULL,             NULL,           NULL, /* counter */
+        "EMB_ENOSIGNAL", NULL,             NULL,           NULL, /* PWM */
+        NULL,            NULL,             NULL,           NULL, /* ADC */
     };
+    /* clang-format on */
     if (status == EMB_EDEADLK) {
         return "EMB_EDEADLK";
     }
-    if (status <= -64 && status >= -95 && drivers[-status - 64] != NULL) {
+    if (status <= -64 && status >= -107 && drivers[-status - 64] != NULL) {
         return drivers[-status - 64];
     }
     return "EMB_E?";

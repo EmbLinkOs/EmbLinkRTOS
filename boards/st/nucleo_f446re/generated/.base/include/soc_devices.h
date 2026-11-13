@@ -15,13 +15,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
+ *     551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/st/stm32f4/stm32f4.yaml
- *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
+ *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
+ *     f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -30,7 +30,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 13u
+#define EMB_SOC_DEVICE_COUNT 19u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -42,6 +42,7 @@ extern const emb_device_t emb_dev_iwdg;
 extern const emb_device_t emb_dev_rtc;
 extern const emb_device_t emb_dev_flash;
 extern const emb_device_t emb_dev_dma1;
+extern const emb_device_t emb_dev_dma2;
 extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
@@ -49,6 +50,11 @@ extern const emb_device_t emb_dev_uart4;
 extern const emb_device_t emb_dev_spi2;
 extern const emb_device_t emb_dev_i2c1;
 extern const emb_device_t emb_dev_i2c2;
+extern const emb_device_t emb_dev_tim5;
+extern const emb_device_t emb_dev_tim9;
+extern const emb_device_t emb_dev_tim3;
+extern const emb_device_t emb_dev_tim4;
+extern const emb_device_t emb_dev_adc1;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
@@ -57,6 +63,7 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_HAS_RTC    1
 #define EMB_SOC_HAS_FLASH  1
 #define EMB_SOC_HAS_DMA1   1
+#define EMB_SOC_HAS_DMA2   1
 #define EMB_SOC_HAS_GPIOB  1
 #define EMB_SOC_HAS_GPIOC  1
 #define EMB_SOC_HAS_USART2 1
@@ -64,12 +71,22 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_HAS_SPI2   1
 #define EMB_SOC_HAS_I2C1   1
 #define EMB_SOC_HAS_I2C2   1
+#define EMB_SOC_HAS_TIM5   1
+#define EMB_SOC_HAS_TIM9   1
+#define EMB_SOC_HAS_TIM3   1
+#define EMB_SOC_HAS_TIM4   1
+#define EMB_SOC_HAS_ADC1   1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_iwdg)
 
 /* the board's RTC device: the first of its class */
 #define EMB_SOC_RTC_DEVICE (&emb_dev_rtc)
+
+/* the board's counters: the first of their class, and all of them (SPEC-017 §11a) */
+#define EMB_SOC_COUNTER_DEVICE  (&emb_dev_tim5)
+#define EMB_SOC_COUNTER_DEVICES &emb_dev_tim5, &emb_dev_tim9
+#define EMB_SOC_COUNTER_COUNT   2u
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)
@@ -93,6 +110,7 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_USART2_DMA_TX {&emb_dev_dma1, 6u, 4u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_TX {&emb_dev_dma1, 4u, 0u, {0u, 0u}}
+#define EMB_SOC_ADC1_DMA_RX {&emb_dev_dma2, 0u, 0u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

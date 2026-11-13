@@ -31,6 +31,9 @@ pins:
   spi2: { sck: PB13.af5, miso: PB14.af5, mosi: PB15.af5 } # CN10-30, -28 and -26
   i2c1: { scl: PB8.af4, sda: PB9.af4 }   # D15 and D14
   i2c2: { scl: PB10.af4, sda: PB3.af4 }  # D6 and D3
+  tim3: { ch1: PA6.af2 }                 # D12: PWM out
+  tim4: { ch1: PB6.af2 }                 # D10: PWM capture
+  adc1: { in4: PA4, in8: PB0 }           # A2 and A3
 console: { device: usart2, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
 # GPIO ports in use and the console
@@ -41,6 +44,7 @@ devices:
   - { name: rtc, doc: "the RTC on the LSE crystal (X2); no battery on VBAT, so lost with power" }
   - { name: flash, peripheral: flash_if, doc: "the 512 KiB flash: its storage partition is the tests' (sector 7)" }
   - { name: dma1, doc: "DMA1: SPI2's transfers, and the console's writes" }
+  - { name: dma2, doc: "DMA2: ADC1's samples" }
   - { name: gpiob, doc: "SPI2's chip select, PB12" }
   - { name: gpioc, doc: B1 }
   - { name: usart2, baud: 115200, dma: [tx], doc: "the console, the ST-LINK's virtual COM port; its writes by DMA1 stream 6" }
@@ -48,6 +52,11 @@ devices:
   - { name: i2c1, doc: "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2" }
   - { name: i2c2, doc: "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
+  - { name: tim5, class: counter, doc: "TIM5, 32 bits at 1 MHz: the counter class's (A129); TIM2 stays the controller's ADC trigger" }
+  - { name: tim9, class: counter, doc: "TIM9, 16 bits at 1 MHz: it wraps every 65.5 ms, so its tests widen the count on the board" }
+  - { name: tim3, class: pwm, doc: "TIM3, PWM out on channel 1, D12 (PA6); the HIL suite wires it to D10" }
+  - { name: tim4, class: pwm, doc: "TIM4, PWM capture on channel 1, D10 (PB6)" }
+  - { name: adc1, trigger: tim2, common: adc_common, cal: factory_cal, dma: [rx], doc: "ADC1, paced by TIM2 (the controller's trigger, which it drives by hand), A2 (PA4, input 4) and A3 (PB0, input 8); the HIL suite wires A2 to 3V3 and A3 to GND" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:
@@ -64,4 +73,6 @@ simulation:
     - { device: uart4, ports: [A0, A1] }
     - { device: spi2, ports: [CN10_26, CN10_28] } # PB15 (MOSI) to PB14 (MISO)
     - { device: i2c1, peer: i2c2, nets: [[D15, D6], [D14, D3]] } # SCL to SCL, SDA to SDA
+    - { device: tim3, peer: tim4, channels: [0, 0], ports: [D12, D10] } # PA6 (TIM3 CH1) to PB6 (TIM4 CH1)
+    - { device: adc1, channels: [4, 8], nets: [[A2, 3V3], [A3, GND]] } # PA4 high, PB0 low
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

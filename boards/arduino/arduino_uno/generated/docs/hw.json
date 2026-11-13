@@ -80,8 +80,10 @@
     "clock": {
       "ahb_div": 1,
       "bus_hz": {},
+      "bus_timer_hz": {},
       "bypass": false,
       "cpu_hz": 16000000,
+      "fixed_plls": {},
       "hclk_hz": 16000000,
       "pll": null,
       "source": "xtal",

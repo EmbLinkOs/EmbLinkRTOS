@@ -16,3 +16,7 @@ part: RP2350A
 package: qfn60
 curated: true
 gpio: { lines: 30, controller: io_bank0 }
+# the ADC's inputs on this package: GPIO26 to GPIO29, then the temperature sensor (datasheet
+# §12.4.1; the RP2350B's are GPIO40 to GPIO47 and 8)
+peripherals:
+  - { name: adc, adc: { inputs: 4, temperature: 4 } }

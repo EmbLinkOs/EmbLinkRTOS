@@ -112,8 +112,21 @@ class Check(unittest.TestCase):
 
     def test_the_generator_writes_the_same_notice(self):
         sys.path.insert(0, str(fh.ROOT / "hw/gen"))
-        from emb_hwgen import emit
+        from emb_hwgen import emit, emit_system
         self.assertEqual(emit.NOTICE, "\n".join(fh.NOTICE) + "\n")
+        self.assertEqual(emit_system.NOTICE, emit.NOTICE)  # A130's Harmony files carry it too
+
+    def test_harmony_file(self):
+        """A130: an application's file in Harmony's form, its banner naming the file."""
+        good = [fh.SPDX] + fh.NOTICE + ["", fh.HARMONY_BANNER, "  Main Source File", "", "  File Name:",
+                                        "    main.c", "", "  Summary:", "    The entry point.",
+                                        " " + "*" * 79 + "/", "", "int main(void);"]
+        self.assertTrue(fh.harmony(good))
+        self.assertEqual(fh.harmony_problems("examples/x/src/main.c", good), [])
+        self.assertEqual(fh.harmony_problems("examples/x/src/other.c", good),
+                         ["Harmony's banner does not name other.c under File Name:"])
+        self.assertEqual(fh.harmony_problems("examples/x/src/main.c", good[:9]), ["Harmony's banner does not close"])
+        self.assertFalse(fh.harmony([fh.SPDX] + fh.NOTICE + ["", "/**"]))
 
 
 class Hash(unittest.TestCase):

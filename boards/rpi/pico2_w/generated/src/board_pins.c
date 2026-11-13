@@ -18,13 +18,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
+ *     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/rpi/rp2350/rp2350.yaml
- *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+ *     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
  *   soc/rpi/rp2350/rp2350a.yaml
- *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+ *     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
  */
 #include <emb_rp2350_pins.h>
 #include <hw_config.h>
@@ -54,6 +54,14 @@ const emb_rp2350_pin_t emb_board_pins[] = {
     {12u, 1u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
     /* GPIO13: devices.spi1.cs[0] (spi1_cs0) */
     {13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},
+    /* GPIO14: pins.pwm7.a (pwm7_a) */
+    {14u, 4u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO17: pins.pwm0.b (pwm0_b) */
+    {17u, 4u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},
+    /* GPIO26: pins.adc.in0 (adc_in0) */
+    {26u, 31u, 0u, EMB_RP2350_PULL_NONE, EMB_RP2350_OUT_NONE},
+    /* GPIO27: pins.adc.in1 (adc_in1) */
+    {27u, 31u, 0u, EMB_RP2350_PULL_NONE, EMB_RP2350_OUT_NONE},
 };
 
 const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));

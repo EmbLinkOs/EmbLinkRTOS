@@ -898,7 +898,7 @@ jobs:
           for b in nucleo_f446re nucleo_f446ze; do
             python3 -I tools/footprint/stack_bound.py --elf "build/controller-$b/controller.elf" \
                     --build "build/controller-$b" --roots examples/controller/stack-roots.json \
-                    --system "examples/controller/generated/$b/docs/system.json"
+                    --system "examples/controller/src/config/$b/docs/system.json"
             python3 -I tools/footprint/memory_report.py "build/controller-$b/controller.elf.map" \
                     --elf "build/controller-$b/controller.elf"
           done
@@ -909,7 +909,7 @@ jobs:
           cmake --build build/controller-lto
           python3 -I tools/footprint/stack_bound.py --elf build/controller-lto/controller.elf \
                   --build build/controller-lto --roots examples/controller/stack-roots.json \
-                  --system examples/controller/generated/nucleo_f446re/docs/system.json
+                  --system examples/controller/src/config/nucleo_f446re/docs/system.json
       - name: The controller's SBOM (REL-001, BLD-003), checked by the SPDX tools
         run: |
           python3 -m venv "$RUNNER_TEMP/spdx"
@@ -994,7 +994,7 @@ jobs:
         run: |
           python3 -I tools/footprint/stack_bound.py --elf build/controller-tidy/controller.elf \
                   --build build/controller-tidy --roots examples/controller/stack-roots.json \
-                  --system examples/controller/generated/nucleo_f446re/docs/system.json
+                  --system examples/controller/src/config/nucleo_f446re/docs/system.json
       - name: The Clang controller's memory report, from LLD's map
         run: |
           python3 -I tools/footprint/memory_report.py build/controller-tidy/controller.elf.map \

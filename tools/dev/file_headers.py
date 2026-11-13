@@ -32,7 +32,9 @@ SPDX and copyright lines, in # comments, then a blank line.
 
 Not touched: third-party code, archived evidence (its sources are records of a run), and files
 under another licence. Generated files are the generator's to write: `--check` only checks that
-they carry the same notice and an @file block, without an author or a date.
+they carry the same notice and an @file block, without an author or a date. An application's
+files in MPLAB Harmony's form (A130) carry the notice and then Harmony's banner, which names the
+file under "File Name:".
 """
 import argparse
 import datetime
@@ -77,9 +79,13 @@ def sources():
             lines = path.read_text(encoding="utf-8").split("\n")
         except (UnicodeDecodeError, ValueError):
             continue  # not text
-        gen = "/generated/" in rel  # the generator writes it (hw/gen/emb_hwgen/emit.py)
+        # the generator writes it (hw/gen/emb_hwgen/emit.py): a board's generated/, an
+        # application's configuration folder (A130)
+        gen = "/generated/" in rel or "/src/config/" in rel
         if rel.endswith(SUFFIXES) and len(lines) > 1 and lines[0] == SPDX:
-            if gen:
+            if harmony(lines):
+                yield rel, path, lines, "harmony"
+            elif gen:
                 yield rel, path, lines, "c-gen"
             elif lines[1].startswith("/* Copyright "):
                 yield rel, path, lines, "c"
@@ -281,6 +287,32 @@ def hash_problems(rel, lines):
     return ["no EmbLinkRTOS notice after the copyright lines (tools/dev/file_headers.py --write)"]
 
 
+HARMONY_BANNER = "/" + "*" * 79
+
+
+def harmony(lines):
+    """An application's file in MPLAB Harmony's form (A130): the notice, then Harmony's banner."""
+    at = 1 + len(NOTICE)
+    return lines[1:at] == NOTICE and lines[at:at + 2] == ["", HARMONY_BANNER]
+
+
+def harmony_problems(rel, lines):
+    """Harmony's banner names the file under "File Name:", and closes."""
+    at = 2 + len(NOTICE)
+    banner = []
+    for line in lines[at + 1:at + 200]:
+        if line.endswith("*/"):
+            break
+        banner.append(line)
+    else:
+        return ["Harmony's banner does not close"]
+    name = pathlib.PurePosixPath(rel).name
+    if "  File Name:" not in banner or banner.index("  File Name:") + 1 >= len(banner) \
+            or banner[banner.index("  File Name:") + 1].strip() != name:
+        return [f"Harmony's banner does not name {name} under File Name:"]
+    return []
+
+
 def hash_generated_problems(rel, lines):
     if lines[1:1 + len(HASH_NOTICE)] == HASH_NOTICE:
         return []
@@ -331,7 +363,7 @@ def main():
     names = [rel for rel, _, _, kind in every if kind == "c"]
     chosen = [s for s in every if not args.files or s[0] in set(args.files)]
     checks = {"c": problems, "c-gen": generated_problems, "hash": hash_problems,
-              "hash-gen": hash_generated_problems}
+              "hash-gen": hash_generated_problems, "harmony": harmony_problems}
     failed = changed = 0
     for rel, path, lines, kind in chosen:
         if args.check:
@@ -339,8 +371,8 @@ def main():
                 print(f"{rel}: {p}")
                 failed += 1
             continue
-        if kind.endswith("-gen"):
-            continue  # the generator's to write
+        if kind.endswith("-gen") or kind == "harmony":
+            continue  # the generator's to write, or Harmony's form (A130)
         if kind == "hash":
             if not hash_converted(lines):
                 path.write_text("\n".join(hash_convert(lines)), encoding="utf-8")

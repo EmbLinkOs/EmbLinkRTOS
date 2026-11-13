@@ -15,20 +15,20 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
+ *     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/rpi/rp2350/rp2350.yaml
- *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+ *     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
  *   soc/rpi/rp2350/rp2350a.yaml
- *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+ *     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
  */
 #ifndef EMB_SOC_DEVICES_H
 #define EMB_SOC_DEVICES_H
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 12u
+#define EMB_SOC_DEVICE_COUNT 16u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -46,6 +46,10 @@ extern const emb_device_t emb_dev_trng;
 extern const emb_device_t emb_dev_spi1;
 extern const emb_device_t emb_dev_i2c0;
 extern const emb_device_t emb_dev_i2c1;
+extern const emb_device_t emb_dev_timer1;
+extern const emb_device_t emb_dev_pwm7;
+extern const emb_device_t emb_dev_pwm0;
+extern const emb_device_t emb_dev_adc;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_CLOCKS   1
@@ -60,12 +64,21 @@ extern const emb_device_t emb_dev_i2c1;
 #define EMB_SOC_HAS_SPI1     1
 #define EMB_SOC_HAS_I2C0     1
 #define EMB_SOC_HAS_I2C1     1
+#define EMB_SOC_HAS_TIMER1   1
+#define EMB_SOC_HAS_PWM7     1
+#define EMB_SOC_HAS_PWM0     1
+#define EMB_SOC_HAS_ADC      1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_watchdog)
 
 /* the board's RTC device: the first of its class */
 #define EMB_SOC_RTC_DEVICE (&emb_dev_rtc)
+
+/* the board's counters: the first of their class, and all of them (SPEC-017 §11a) */
+#define EMB_SOC_COUNTER_DEVICE  (&emb_dev_timer1)
+#define EMB_SOC_COUNTER_DEVICES &emb_dev_timer1
+#define EMB_SOC_COUNTER_COUNT   1u
 
 /* the board's entropy source: the first of its class (SPEC-017 §11) */
 #define EMB_SOC_ENTROPY_DEVICE (&emb_dev_trng)
@@ -88,6 +101,7 @@ extern const emb_device_t emb_dev_i2c1;
 #define EMB_SOC_UART1_DMA_TX {&emb_dev_dma, 2u, 30u, {0u, 0u}}
 #define EMB_SOC_SPI1_DMA_RX {&emb_dev_dma, 1u, 27u, {0u, 0u}}
 #define EMB_SOC_SPI1_DMA_TX {&emb_dev_dma, 0u, 26u, {0u, 0u}}
+#define EMB_SOC_ADC_DMA_RX {&emb_dev_dma, 3u, 48u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

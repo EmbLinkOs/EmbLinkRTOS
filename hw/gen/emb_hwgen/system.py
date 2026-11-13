@@ -114,7 +114,8 @@ class System:
         spi = self._spi_targets(r, devices)
         i2c = self._i2c_targets(devices)
         wdog = self._watchdog(devices)
-        self._names(threads, objects, spi, i2c, tasks)
+        irqs = self._interrupts(r, cfg)
+        self._names(threads, objects, spi, i2c, tasks, irqs)
         if self.errors:
             raise HwError(self.errors)
         r["system"] = {
@@ -128,11 +129,13 @@ class System:
             "threads": threads,
             "tasks": tasks,
             "scaffold": s.get("scaffold", True),
+            "in_tree": load.inside(system_path, self.root),  # its files carry the tree's notice (A130)
             "objects": objects,
             "devices": self._settings(r),
             "spi_targets": spi,
             "i2c_targets": i2c,
             "watchdog": wdog,
+            "interrupts": irqs,
             "config": {k: cfg[k] for k in sorted(cfg) if k in _CONFIG_SHOWN},
         }
         stamps = [system_path] + [self.dir / c for c in s.get("conf", [])]
@@ -317,20 +320,71 @@ class System:
                 for key in ("queue", "events", "timeout", "event"):
                     if key in t:
                         self.err(f"{at}.{key}", f"a periodic task takes no {key}: it runs by its period, not by events")
+                for key in ("entry", "exit"):  # Harmony's _Tasks(): its switch moves between states (A130)
+                    if key in t:
+                        self.err(f"{at}.{key}", f"a periodic task takes no {key} list: its {t['name'].upper()}_Tasks() "
+                                                "switch makes its own moves")
             elif "period" in t:
                 self.err(f"{at}.period", "an event task takes no period: model: periodic for one")
             out.append({"name": t["name"], "model": model, "priority": t["priority"], "stack": t["stack"],
                         "queue": t.get("queue", 8), "events": events, "states": states, "initial": t["initial"],
                         "entry": t.get("entry", []), "exit": t.get("exit", []), "timeouts": timeouts,
                         "period_ms": duration_ms(t["period"]) if "period" in t else 0,
-                        "data": t.get("data"), "event": t.get("event"), "doc": t.get("doc", "")})
+                        "event": t.get("event"), "doc": t.get("doc", "")})
         return out
 
-    def _names(self, threads, objects, spi, i2c, tasks=()):
+    def _interrupts(self, r, cfg):
+        """The application's own interrupt handlers (A130): each on a line the SoC has and no device's
+        driver connects, at a level the port implements."""
+        ints = r["soc"]["interrupts"]
+        by_name = {(p["name"], i["name"]): i["number"] for p in r["soc"]["peripherals"] for i in p.get("irqs", [])}
+        # the lines the board's devices connect: their fields' peripheral.irqs.<name>, and their taken peripherals'
+        taken = {f["value"]: d["name"] for d in r["devices"] for f in d["fields"]
+                 if ".irqs." in str(f["expr"]) and isinstance(f["value"], int)}
+        out, used = [], {}
+        for i, e in enumerate(self.model.data.get("interrupts", [])):
+            at = f"interrupts.{e['name']}"
+            irq = e["irq"]
+            if isinstance(irq, dict):  # by board: a system on several SoCs
+                board = r["board"]["name"]
+                if board not in irq:
+                    self.err(f"{at}.irq", f"no line for {board}: give one by its name ({board}: <line>)")
+                    continue
+                irq = irq[board]
+            if isinstance(irq, str):
+                periph, _, line = irq.partition(".")
+                number = by_name.get((periph, line))
+                if number is None:
+                    self.err(f"{at}.irq", f"unresolved reference: the SoC has no interrupt {irq!r} (<peripheral>.<interrupt>)")
+                    continue
+            else:
+                number = irq
+                if number >= ints["count"]:
+                    self.err(f"{at}.irq", f"line {number} is beyond the SoC's {ints['count']} interrupt lines")
+                    continue
+            if number in taken:
+                self.err(f"{at}.irq", f"line {number} is the device {taken[number]}'s: its driver connects it")
+                continue
+            if number in used:
+                self.err(f"{at}.irq", f"line {number} is already the interrupt {used[number]}'s")
+                continue
+            used[number] = e["name"]
+            level_max = cfg.get("CONFIG_EMB_IRQ_LEVEL_MAX")
+            if "level" in e and isinstance(level_max, int) and e["level"] > level_max:
+                self.err(f"{at}.level", f"level {e['level']} is beyond the port's levels, 0 to {level_max} "
+                                        "(EMB_IRQ_LEVEL_MAX)")
+            if cfg.get("CONFIG_EMB_IRQ_DYNAMIC") is not True:
+                self.err(at, "an application's interrupt needs CONFIG_EMB_IRQ_DYNAMIC (emb_irq_connect()), which the "
+                             "configuration leaves out")
+            out.append({"name": e["name"], "irq": number, "source": irq if isinstance(irq, str) else None,
+                        "handler": e["handler"], "level": e.get("level"), "doc": e.get("doc", "")})
+        return out
+
+    def _names(self, threads, objects, spi, i2c, tasks=(), irqs=()):
         """Every name becomes a C symbol: one of each in the file."""
         seen = {}
         for section, items in (("threads", threads), ("objects", objects), ("spi_targets", spi), ("i2c_targets", i2c),
-                               ("tasks", tasks)):
+                               ("tasks", tasks), ("interrupts", irqs)):
             for item in items:
                 if item["name"] in seen:
                     self.err(f"{section}.{item['name']}", f"{item['name']!r} is already the name of {seen[item['name']]}")

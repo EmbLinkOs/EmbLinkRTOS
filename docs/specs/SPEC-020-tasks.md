@@ -33,7 +33,6 @@ tasks:
     entry: [measuring]            # states with an entry handler
     exit: [measuring]             # states with an exit handler
     timeout: { measuring: 100ms } # a state left with no event for this long gets EMB_EV_TIMEOUT
-    data: sensor_data_t           # the task's own data, a C type; optional
     event: null                   # a C type replacing emb_task_event_t for this task; optional
   - name: blink
     model: periodic
@@ -44,7 +43,7 @@ tasks:
     initial: off
 ```
 
-Every name is a C identifier, unique among the system's threads, objects, tasks and targets. A task's states, events, entry and exit lists name its own states and events, each once. `initial` is one of its states. `queue` and `events` belong to the event model, `period` to the periodic one. Its priority and stack are checked as a thread's are (A125).
+Every name is a C identifier, unique among the system's threads, objects, tasks, targets and interrupts. A task's states, events, entry and exit lists name its own states and events, each once. `initial` is one of its states. `queue`, `events`, `timeout`, `entry` and `exit` belong to the event model, `period` to the periodic one. Its priority and stack are checked as a thread's are (A125). A task's data is its `<TASK>_DATA` in its own header ([A130](AMENDMENTS-M4.md)); the first version's `data:` is gone.
 
 ## 3. Events
 
@@ -56,22 +55,52 @@ typedef struct emb_task_event {
 ```
 
 - The ids below `EMB_EV_USER` (16) are the runtime's: `EMB_EV_ENTRY`, `EMB_EV_EXIT` and `EMB_EV_TIMEOUT`.
-- A task's own events are numbered from `EMB_EV_USER` in the order the system lists them, as `<TASK>_EV_<EVENT>` (`SENSOR_EV_TICK`).
+- A task's own events are numbered from `EMB_EV_USER` in the order the system lists them, as `<TASK>_EVENT_<EVENT>` (`SENSOR_EVENT_TICK`, A130).
 - An event is copied into the task's queue, and nothing points into the poster's memory.
 - A task that declares `event:` has events of that type instead. Its first member must be a `uint32_t id`, which the generator checks with a static assertion.
 
 ## 4. States and handlers
 
-The generator writes, for each task, `<TASK>_<STATE>` constants (`SENSOR_IDLE`), the task's type `<task>_t` (its runtime part, then its `data`), and declarations of the handlers the application defines:
+*Amended by [A130](AMENDMENTS-M4.md): the names and the files are MPLAB Harmony's.*
+
+Each task's header, `src/<task>.h`, written from the system description and then the application's, holds its states and events as enumerations, in the order the system lists them, and its data:
 
 ```c
-emb_state_t sensor_on_idle(sensor_t *self, const emb_task_event_t *ev); /* event model: per event */
-emb_state_t blink_on_on(blink_t *self);                             /* periodic model: per period */
-void sensor_enter_measuring(sensor_t *self);                        /* listed in entry: */
-void sensor_exit_measuring(sensor_t *self);                         /* listed in exit: */
+typedef enum {
+    SENSOR_STATE_INIT = 0,       /* the runtime's numbers: tasks.c checks them */
+    SENSOR_STATE_IDLE,
+    SENSOR_STATE_MEASURING,
+    SENSOR_STATE_ERROR,
+} SENSOR_STATES;
+
+typedef enum {
+    SENSOR_EVENT_TICK = EMB_EV_USER,
+    SENSOR_EVENT_SAMPLE,
+    SENSOR_EVENT_FAULT,
+} SENSOR_EVENTS;
+
+typedef struct {
+    SENSOR_STATES state;         /* the task's current state */
+    /* the application's own data */
+} SENSOR_DATA;
+
+extern SENSOR_DATA sensorData;
 ```
 
-A handler returns the next state: its own state to stay, another to move. Moving runs the old state's exit handler, if it has one, then the new state's entry handler, if it has one, then re-arms the new state's timeout. The task starts by running its initial state's entry handler. A handler runs to completion: one event or one period at a time, no event lost while it runs, since posted events wait in the queue.
+Both models have `<TASK>_Initialize()`, which `SYS_Initialize()` calls before the kernel starts the task's thread, and the handle `<TASK>_TASK`. Then:
+
+- **event model**, a handler per state, and an action for each state its `entry` and `exit` lists name:
+
+  ```c
+  SENSOR_STATES SENSOR_OnIdle(const emb_task_event_t *event);
+  void SENSOR_EnterMeasuring(void);
+  void SENSOR_ExitMeasuring(void);
+  ```
+
+  A handler returns the next state: its own state to stay, another to move. Moving runs the old state's exit action, if it has one, then the new state's entry action, if it has one, then re-arms the new state's timeout. The task starts by running its initial state's entry action. `sensorData.state` is the state whose handler or action runs.
+- **periodic model**, Harmony's: `void BLINK_Tasks(void)`, a `switch` on `blinkData.state` that the application writes, which moves the task by setting `blinkData.state`. A periodic task has no entry, exit or timeout lists.
+
+A handler runs to completion: one event or one period at a time, no event lost while it runs, since posted events wait in the queue (KRN-TSK-001). States are declared in `system.yaml`: a handler returning a state the task does not have faults in a checked build.
 
 A handler the application has not written is a link error naming it. The declarations are generated.
 
@@ -92,17 +121,18 @@ emb_status_t emb_task_stats_get(const emb_task_t *task, emb_task_stats_t *out); 
 
 - **Stopping a task:** cancel its thread (`emb_thread_cancel()`, SPEC-008 §7). The wait ends with `EMB_ECANCELED`, the current state's exit handler runs, and `emb_task_run()` returns, so the thread ends.
 - **A full queue:** `emb_task_post()` from an ISR or with no wait returns `EMB_EAGAIN` and counts a drop. Events are never silently lost.
-- **Handles:** each task is reached by its generated handle, `&sensor.task` or the macro `SENSOR_TASK`.
+- **Handles:** each task is reached by its generated handle, `&sensor_task` or the macro `SENSOR_TASK`.
 - **Calling contracts:** the API's tags follow SPEC-001 §9.
 
 ## 6. What is generated, and where
 
-Under A126's layout:
-- `generated/<board>/include/tasks.h`: the event and state constants, the task types, the handlers' declarations and the handles.
-- `generated/<board>/src/tasks.c`: the queues, the dispatch tables, the threads (`EMB_THREAD_DEFINE`) and their entries.
-- `src/tasks/<task>.c` and `src/tasks/<task>.h`: a skeleton with every handler written, returning its own state.
+Under [A130](AMENDMENTS-M4.md)'s layout:
+- `src/config/<board>/tasks.c`: each task's queue, dispatch, description and thread (`EMB_THREAD_DEFINE`), the static assertions that its enumerations are the runtime's numbers, and `SYS_Tasks()`.
+- `src/config/<board>/configuration.h`: each task's priority, stack, period, queue and timeouts, `<TASK>_PRIORITY` and so on.
+- `src/config/<board>/definitions.h`: the tasks' handles, `<TASK>_TASK`, and their headers.
+- `src/<task>.c` and `src/<task>.h`: Harmony's application template, with every handler, or `<TASK>_Tasks()`'s `switch`, written to stay in its state.
 
-All three are editable, and regeneration merges (A126). Adding a state in `system.yaml` adds its constant and declaration, and merges a new handler into the task's file.
+All are editable, and regeneration merges (A126). Adding a state in `system.yaml` adds it to the enumeration, and merges a new handler, or a new `case`, into the task's file.
 
 ## 7. Configuration
 

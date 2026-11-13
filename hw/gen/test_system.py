@@ -135,9 +135,12 @@ class SeveralBoards(Base):
         for name, files in per_board.items():
             if name == "_app":
                 continue
-            self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, 3u, 512u, 0u);", files["src/system.c"])
-            self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", files["src/system.c"])
+            c = files["initialization.c"]
+            self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, BLINK_THREAD_PRIORITY, BLINK_THREAD_STACK_SIZE, 0u);", c)
+            self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", c)
+            self.assertIn("#define BLINK_THREAD_STACK_SIZE 512u", files["configuration.h"])
             self.assertIn(f'"board": "{name}"', files["docs/system.json"])
+            self.assertIn(f'#define BOARD_NAME    "{name}"', files["definitions.h"])
 
     def test_an_error_names_its_board(self):
         self.text = MINIMAL.replace("    max: 10", "    max: 10") + "devices:\n  usart2: { baud: 57600 }\n"
@@ -156,25 +159,46 @@ class SeveralBoards(Base):
 
 
 class Outputs(Base):
-    def test_system_c_and_h(self):
+    """A130: the configuration folder in MPLAB Harmony's form."""
+
+    def test_definitions_configuration_and_initialization(self):
         self.text = self.text.replace("conf: [app.conf]", "conf: [app.conf]\nincludes: [app.h]")
         path = self.dir / "system.yaml"
         path.write_text(self.text, encoding="utf-8")
-        files = generate.generate_system(path, ROOT)[0]["nucleo_f446re"]
-        c, h = files["src/system.c"], files["include/system.h"]
-        self.assertIn("EMB_THREAD_DEFINE(telemetry_thread, telemetry, NULL, 2u, 1024u, EMB_THREAD_NO_AUTOSTART);", c)
+        per_board = generate.generate_system(path, ROOT)[0]
+        files = per_board["nucleo_f446re"]
+        self.assertEqual(sorted(n for n in files if "/" not in n),
+                         ["configuration.h", "definitions.h", "initialization.c", "tasks.c"])
+        self.assertTrue({"peripheral/hw_config.h", "peripheral/soc_devices.c", "peripheral/board_pins.c",
+                         "build/board.conf", "build/board.cmake", "linker/regions.ld"} <= set(files))
+        c, h, cfg = files["initialization.c"], files["definitions.h"], files["configuration.h"]
+        self.assertIn("EMB_THREAD_DEFINE(telemetry_thread, telemetry, NULL, TELEMETRY_THREAD_PRIORITY,", c)
+        self.assertIn("#define TELEMETRY_THREAD_STACK_SIZE 1024u", cfg)
+        self.assertIn("void SYS_Initialize(void *data)\n{\n    (void)data;\n", c)
+        self.assertIn("emb_board_init();", c)
+        self.assertIn("emb_kernel_start();", files["tasks.c"])
+        self.assertIn("void SYS_Initialize(void *data);", h)
+        self.assertIn("void SYS_Tasks(void);", h)
+        self.assertIn('#define DEVICE_NAME   "STM32F446RE"', h)
+        self.assertIn("#define CPU_CLOCK_FREQUENCY 180000000u", h)
+        self.assertIn("  File Name:\n    definitions.h\n", h)  # Harmony's banner
+        self.assertIn("// Section: System Functions", h)
+        self.assertNotIn("SPDX", h)  # an application outside the tree is its author's
+        self.assertIn("#define DRV_USART2_BAUD", cfg)
+        self.assertIn("build/board.conf", files["build/board.cmake"])
+        self.assertIn('set(EMB_BOARD_SRC_DIR "${EMB_BOARD_GENERATED_DIR}/peripheral")', files["build/board.cmake"])
         self.assertIn("EMB_MSGQ_DEFINE(samples, sizeof(sample_t), 8u, 0u);", c)
         self.assertIn("EMB_MUTEX_DEFINE(bus_lock, EMB_MUTEX_CEILING, 6u, 0u);", c)
-        self.assertIn("const emb_drv_spi_target_t flash_chip = {8000000u, EMB_DRV_SPI_MODE_3, 8u, 0u, 0u, EMB_SOC_SPI2_CS0};", c)
-        self.assertIn("const emb_drv_i2c_target_t env = {EMB_DRV_I2C_FAST, 0x76u, {0u, 0u}};", c)
+        self.assertIn("const emb_drv_spi_target_t flash_chip = {\n    .hz = 8000000u,\n    .mode = EMB_DRV_SPI_MODE_3,\n    .bits = 8u,\n    .cs = EMB_SOC_SPI2_CS0,\n};", c)
+        self.assertIn("const emb_drv_i2c_target_t env = {\n    .hz = EMB_DRV_I2C_FAST,\n    .address = 0x76u,\n};", c)
         self.assertIn("void control(void *arg);", h)
         self.assertIn("extern emb_mutex_t bus_lock;", h)
         self.assertIn('#include "app.h"', h)
-        self.assertIn("#define EMB_SYSTEM_WATCHDOG_TIMEOUT_MS 500u", h)
+        self.assertIn("#define SYS_WATCHDOG_TIMEOUT_MS 500u", cfg)
         self.assertIn("generate --system <path to>/", c)  # no path of this machine (HW-013)
         self.assertIn("| usart2 | baud | 57600 | 115200 |", files["docs/system.md"])
         # the board's outputs carry the system's settings
-        self.assertIn("57600", files["include/hw_config.h"])
+        self.assertIn("57600", files["peripheral/hw_config.h"])
 
 
 class Regenerate(Base):
@@ -198,9 +222,10 @@ class Regenerate(Base):
         path = self.dir / "system.yaml"
         path.write_text(self.text, encoding="utf-8")
         self.assertEqual(self.cli("generate", "--system", str(path))[0], 0)
-        c = self.dir / "generated/nucleo_f446re/src/system.c"
-        self.assertTrue((self.dir / "generated/.base/nucleo_f446re/src/system.c").is_file())
-        c.write_text(c.read_text(encoding="utf-8").replace('#include "system.h"\n', '#include "system.h"\n/* my note */\n'),
+        c = self.dir / "src/config/nucleo_f446re/initialization.c"
+        self.assertTrue((self.dir / "src/config/.base/nucleo_f446re/initialization.c").is_file())
+        c.write_text(c.read_text(encoding="utf-8").replace('#include "definitions.h"\n',
+                                                           '#include "definitions.h"\n/* my note */\n'),
                      encoding="utf-8")
         # the description changes: one more object
         path.write_text(self.text + "  - { name: done, type: sem, initial: 0, max: 1 }\n", encoding="utf-8")
@@ -216,8 +241,8 @@ class Regenerate(Base):
         path = self.dir / "system.yaml"
         path.write_text(self.text, encoding="utf-8")
         self.cli("generate", "--system", str(path))
-        c = self.dir / "generated/nucleo_f446re/src/system.c"
-        c.write_text(c.read_text(encoding="utf-8").replace("3u, 512u", "3u, 600u"), encoding="utf-8")
+        c = self.dir / "src/config/nucleo_f446re/configuration.h"
+        c.write_text(c.read_text(encoding="utf-8").replace("STACK_SIZE 512u", "STACK_SIZE 600u"), encoding="utf-8")
         path.write_text(self.text.replace("stack: 512", "stack: 768"), encoding="utf-8")
         code, out = self.cli("generate", "--system", str(path))
         self.assertEqual(code, 1)
@@ -241,7 +266,6 @@ tasks:
     entry: [open]
     exit: [open]
     timeout: { open: 2s }
-    data: door_data_t
   - name: blink
     model: periodic
     period: 500ms
@@ -266,30 +290,54 @@ class Tasks(Base):
         return generate.generate_system(path, ROOT)[0]
 
     def test_tables_and_threads(self):
-        files = self.generate()
-        h, c = files["nucleo_f446re"]["include/tasks.h"], files["nucleo_f446re"]["src/tasks.c"]
-        self.assertIn("#define DOOR_OPEN ((emb_state_t)1u)", h)
-        self.assertIn("#define DOOR_EV_CLOSE (EMB_EV_USER + 1u)", h)
-        self.assertIn("door_data_t data;", h)
-        self.assertIn("emb_state_t door_on_open(door_t *self, const emb_task_event_t *ev);", h)
-        self.assertIn("emb_state_t blink_on_lit(blink_t *self);", h)
-        self.assertIn("void door_exit_open(door_t *self);", h)
-        self.assertIn('#include "tasks/door.h"', h)
-        self.assertIn("static const uint32_t door_timeouts[2] = {0u, 2000u};", c)
-        self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink_main, NULL, 2u, 512u, 0u);", c)
-        self.assertIn("next = door_on_open(&door, &door_event);", c)
-        self.assertIn('#include "tasks.h"', files["nucleo_f446re"]["include/system.h"])
+        """A130: each task's table in tasks.c, its settings in configuration.h, its handle in
+        definitions.h, its _Initialize() in SYS_Initialize()."""
+        files = self.generate()["nucleo_f446re"]
+        c, h, cfg = files["tasks.c"], files["definitions.h"], files["configuration.h"]
+        self.assertIn('_Static_assert(DOOR_STATE_OPEN == 1, "door.h: DOOR_STATES are system.yaml\'s states, in order");', c)
+        self.assertIn("_Static_assert(DOOR_EVENT_CLOSE == EMB_EV_USER + 1u,", c)
+        self.assertIn("static const uint32_t door_timeouts[2] = {0u, DOOR_OPEN_TIMEOUT_MS};", c)
+        self.assertIn("next = (emb_state_t)DOOR_OnOpen(&door_event);", c)
+        self.assertIn("DOOR_EnterOpen();", c)
+        self.assertIn("    case DOOR_STATE_OPEN:\n        doorData.state = DOOR_STATE_OPEN;\n        DOOR_EnterOpen();\n", c)
+        self.assertIn("    if (state == DOOR_STATE_OPEN) {\n        DOOR_ExitOpen();\n    }\n", c)  # a lone case
+        self.assertIn("    BLINK_Tasks();\n    return (emb_state_t)blinkData.state;", c)  # Harmony's periodic task
+        self.assertIn("    .period_ms = BLINK_PERIOD_MS,\n", c)
+        self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink_main, NULL, BLINK_PRIORITY, BLINK_STACK_SIZE, 0u);", c)
+        self.assertIn("#define DOOR_OPEN_TIMEOUT_MS 2000u", cfg)
+        self.assertIn("#define BLINK_PERIOD_MS  500u", cfg)
+        self.assertIn('#include "door.h"', h)
+        self.assertIn("#define DOOR_TASK  (&door_task)", h)
+        self.assertIn("    DOOR_Initialize();\n    BLINK_Initialize();\n", files["initialization.c"])
 
     def test_the_application_files(self):
+        """A130: main.c, and each task's file and header in Harmony's application template."""
         app = self.generate()["_app"]
-        self.assertEqual(sorted(app), ["CMakeLists.txt", "src/main.c", "src/tasks/blink.c", "src/tasks/door.c",
-                                       "src/tasks/door.h"])
-        self.assertIn("emb_add_executable(tasks_demo src/main.c src/tasks/door.c src/tasks/blink.c)", app["CMakeLists.txt"])
+        self.assertEqual(sorted(app), ["CMakeLists.txt", "src/blink.c", "src/blink.h", "src/door.c", "src/door.h",
+                                       "src/main.c"])
+        self.assertIn("emb_add_executable(tasks_demo src/main.c src/door.c src/blink.c)", app["CMakeLists.txt"])
         self.assertIn('set(EMB_SYSTEM "${CMAKE_CURRENT_LIST_DIR}/system.yaml"', app["CMakeLists.txt"])
         self.assertIn("$ENV{EMBLINKRTOS}/cmake", app["CMakeLists.txt"])  # outside the tree: no machine path
-        self.assertIn("emb_kernel_start();", app["src/main.c"])
-        self.assertIn("return DOOR_OPEN;", app["src/tasks/door.c"])
-        self.assertIn("door_data_t;", app["src/tasks/door.h"])
+        self.assertIn("    SYS_Initialize(NULL);\n", app["src/main.c"])
+        self.assertIn("        SYS_Tasks();\n", app["src/main.c"])
+        self.assertTrue(app["src/main.c"].startswith("/" + "*" * 79 + "\n  Main Source File\n"))
+        door_h, door_c, blink_c = app["src/door.h"], app["src/door.c"], app["src/blink.c"]
+        self.assertIn("    DOOR_STATE_CLOSED = 0,\n    DOOR_STATE_OPEN,\n} DOOR_STATES;", door_h)
+        self.assertIn("    DOOR_EVENT_OPEN = EMB_EV_USER,\n    DOOR_EVENT_CLOSE,\n} DOOR_EVENTS;", door_h)
+        self.assertIn("} DOOR_DATA;\n\nextern DOOR_DATA doorData;", door_h)
+        self.assertIn("DOOR_STATES DOOR_OnOpen(const emb_task_event_t *event);", door_h)
+        self.assertIn("void DOOR_ExitOpen(void);", door_h)
+        self.assertIn("  Precondition:", door_h)  # Harmony's function blocks
+        self.assertIn("DOOR_DATA doorData;", door_c)
+        self.assertIn("    return DOOR_STATE_OPEN;\n}", door_c)
+        self.assertIn("// Section: Application Local Functions", door_c)
+        self.assertIn("    switch (blinkData.state) {\n    /* The task's initial state. */\n    case BLINK_STATE_DARK: {",
+                      blink_c)
+        self.assertIn("void BLINK_Tasks(void);", app["src/blink.h"])
+
+    def test_periodic_takes_no_entry(self):
+        self.expect_task(("    initial: dark", "    initial: dark\n    entry: [lit]"), "entry: [lit]",
+                         "tasks.blink.entry", r"a periodic task takes no entry list: its BLINK_Tasks\(\) switch")
 
     def test_no_scaffold(self):
         self.text = TASKS.replace("board: st/nucleo_f446re", "board: st/nucleo_f446re\nscaffold: false")
@@ -321,6 +369,74 @@ class Tasks(Base):
     def test_yaml_booleans_are_explained(self):
         self.expect_task(("states: [dark, lit]\n    initial: dark", "states: [off, on]\n    initial: off"),
                          "states: [off, on]", "tasks.blink.states[0]", "quote the name")
+
+
+class Interrupts(Base):
+    """A130: the application's own interrupt handlers, each on a line the SoC has and no device's
+    driver connects, connected by SYS_INT_Initialize()."""
+
+    def setUp(self):
+        super().setUp()
+        self.text = MINIMAL + ("interrupts:\n  - { name: wake, irq: { nucleo_f446re: 61, nucleo_f446ze: 62 }, "
+                               "handler: WAKE_InterruptHandler, level: 1 }\n")
+
+    def generate(self):
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        return generate.generate_system(path, ROOT)[0]
+
+    def test_a_line_by_board_connected(self):
+        out = self.generate()
+        re_, ze = out["nucleo_f446re"], out["nucleo_f446ze"]
+        self.assertIn("#define WAKE_IRQ       61u", re_["configuration.h"])
+        self.assertIn("#define WAKE_IRQ       62u", ze["configuration.h"])
+        self.assertIn("#define WAKE_IRQ_LEVEL 1u", re_["configuration.h"])
+        self.assertIn("void WAKE_InterruptHandler(void *arg);", re_["interrupts.h"])
+        c = re_["interrupts.c"]
+        self.assertIn("    (void)emb_irq_connect(WAKE_IRQ, WAKE_InterruptHandler, NULL);\n"
+                      "    (void)emb_irq_set_level(WAKE_IRQ, WAKE_IRQ_LEVEL);\n    (void)emb_irq_enable(WAKE_IRQ);\n", c)
+        self.assertRegex(c, r" \*   38  usart2, its driver \(peripheral\.irqs\.global\)")  # the devices' lines too
+        self.assertRegex(c, r" \*   61  wake, the application's WAKE_InterruptHandler\(\)")
+        self.assertIn("    SYS_INT_Initialize();\n", re_["initialization.c"])
+        self.assertIn('#include "interrupts.h"', re_["definitions.h"])
+        app = out["_app"]
+        self.assertIn("void WAKE_InterruptHandler(void *arg)\n{", app["src/interrupt_handlers.c"])
+        self.assertIn("src/interrupt_handlers.c)", app["CMakeLists.txt"])
+        self.assertIn("| `wake` | 61 | `WAKE_InterruptHandler` | 1 |", re_["docs/system.md"])
+
+    def test_a_peripherals_line(self):
+        """<peripheral>.<interrupt>: here a line no board device takes, the RTC's on the F446ZE."""
+        self.edit("irq: { nucleo_f446re: 61, nucleo_f446ze: 62 }", "irq: { nucleo_f446re: 61, nucleo_f446ze: rtc.alarm }")
+        self.assertIn("#define WAKE_IRQ       41u", self.generate()["nucleo_f446ze"]["configuration.h"])
+
+    def expect_irq(self, new, board, message):
+        self.edit("{ nucleo_f446re: 61, nucleo_f446ze: 62 }", new)
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        with self.assertRaises(HwError) as cm:
+            system.resolve(path, ROOT, board)
+        self.assertTrue(any(re.search(message, e) for e in cm.exception.errors), cm.exception.errors)
+
+    def test_a_line_a_device_connects(self):
+        self.expect_irq("38", "st/nucleo_f446re", r"interrupts\.wake\.irq: line 38 is the device usart2's: its driver connects it")
+
+    def test_a_line_beyond_the_soc(self):
+        self.expect_irq("97", "st/nucleo_f446re", r"line 97 is beyond the SoC's 97 interrupt lines")
+
+    def test_no_such_interrupt(self):
+        self.expect_irq("rtc.wakeup", "st/nucleo_f446re", r"the SoC has no interrupt 'rtc\.wakeup'")
+
+    def test_no_line_for_a_board(self):
+        self.expect_irq("{ nucleo_f446re: 61 }", "st/nucleo_f446ze", r"no line for nucleo_f446ze: give one by its name")
+
+    def test_a_level_beyond_the_ports(self):
+        self.edit("level: 1", "level: 200")
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        with self.assertRaises(HwError) as cm:
+            system.resolve(path, ROOT, "st/nucleo_f446re")
+        self.assertTrue(any("interrupts.wake.level: level 200 is beyond the port's levels" in e
+                            for e in cm.exception.errors), cm.exception.errors)
 
 
 class Negative(Base):

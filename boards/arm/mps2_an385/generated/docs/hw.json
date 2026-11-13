@@ -58,8 +58,10 @@
     "clock": {
       "ahb_div": 1,
       "bus_hz": {},
+      "bus_timer_hz": {},
       "bypass": false,
       "cpu_hz": 25000000,
+      "fixed_plls": {},
       "hclk_hz": 25000000,
       "pll": null,
       "source": "sysclk",
@@ -166,7 +168,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "soc/arm/mps2/an385.yaml",

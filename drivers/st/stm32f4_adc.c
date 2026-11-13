@@ -34,7 +34,7 @@
 #define CR1_EOCIE      (1u << 5)
 #define CR1_OVRIE      (1u << 26)
 #define CR2_ADON       (1u << 0)
-#define CR2_EXTSEL_T2  (6u << 24) /* TIM2 TRGO (RM0390 Table 69) */
+#define CR2_EXTSEL_T2  (6u << 24) /* TIM2 TRGO (RM0390 §13.13.3, ADC_CR2's EXTSEL) */
 #define CR2_EXTEN_RISE (1u << 28)
 #define CCR_ADCPRE_4   (1u << 16) /* PCLK2 / 4: 22.5 MHz from 90 MHz, under the 36 MHz limit */
 #define CCR_TSVREFE    (1u << 23) /* the temperature sensor and VREFINT on */

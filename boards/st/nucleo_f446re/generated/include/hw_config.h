@@ -15,13 +15,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
+ *     551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/st/stm32f4/stm32f4.yaml
- *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
+ *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
+ *     f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -164,6 +164,22 @@
 #define EMB_HW_TIM2_CLKEN_BIT      0u
 #define EMB_HW_TIM2_CLKEN_OFFSET   0x40u
 #define EMB_HW_TIM2_IRQ            28u
+#define EMB_HW_TIM3_BASE           0x40000400u
+#define EMB_HW_TIM3_CLKEN_BIT      1u
+#define EMB_HW_TIM3_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM3_IRQ            29u
+#define EMB_HW_TIM4_BASE           0x40000800u
+#define EMB_HW_TIM4_CLKEN_BIT      2u
+#define EMB_HW_TIM4_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM4_IRQ            30u
+#define EMB_HW_TIM5_BASE           0x40000C00u
+#define EMB_HW_TIM5_CLKEN_BIT      3u
+#define EMB_HW_TIM5_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM5_IRQ            50u
+#define EMB_HW_TIM9_BASE           0x40014000u
+#define EMB_HW_TIM9_CLKEN_BIT      16u
+#define EMB_HW_TIM9_CLKEN_OFFSET   0x44u
+#define EMB_HW_TIM9_IRQ            24u
 #define EMB_HW_UART4_BASE          0x40004C00u
 #define EMB_HW_UART4_CLKEN_BIT     19u
 #define EMB_HW_UART4_CLKEN_OFFSET  0x40u

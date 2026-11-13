@@ -1,0 +1,2056 @@
+{
+  "board": {
+    "buttons": [
+      {
+        "active": "low",
+        "doc": "B1",
+        "gpio": "PC13",
+        "name": "user"
+      }
+    ],
+    "clocks": {
+      "cpu_hz": 180000000,
+      "pll": {
+        "m": 8,
+        "n": 360,
+        "p": 2,
+        "q": 7,
+        "r": 2
+      },
+      "source": "hse"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "usart2"
+    },
+    "curated": true,
+    "debug_probe": {
+      "openocd": "board/st_nucleo_f4.cfg",
+      "pyocd_target": "stm32f446retx"
+    },
+    "defaults": {
+      "CONFIG_EMB_PROFILE": "base",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "devices": [
+      {
+        "name": "rcc"
+      },
+      {
+        "doc": "the console's pins and LD2",
+        "name": "gpioa"
+      },
+      {
+        "doc": "the independent watchdog",
+        "name": "iwdg"
+      },
+      {
+        "doc": "the RTC on the LSE crystal (X2); no battery on VBAT, so lost with power",
+        "name": "rtc"
+      },
+      {
+        "doc": "the 512 KiB flash: its storage partition is the tests' (sector 7)",
+        "name": "flash",
+        "peripheral": "flash_if"
+      },
+      {
+        "doc": "DMA1: SPI2's transfers, and the console's writes",
+        "name": "dma1"
+      },
+      {
+        "doc": "DMA2: ADC1's samples",
+        "name": "dma2"
+      },
+      {
+        "doc": "SPI2's chip select, PB12",
+        "name": "gpiob"
+      },
+      {
+        "doc": "B1",
+        "name": "gpioc"
+      },
+      {
+        "baud": 115200,
+        "dma": [
+          "tx"
+        ],
+        "doc": "the console, the ST-LINK's virtual COM port; its writes by DMA1 stream 6",
+        "name": "usart2"
+      },
+      {
+        "cs": [
+          "PB12"
+        ],
+        "dma": [
+          "tx",
+          "rx"
+        ],
+        "doc": "SPI2 on PB13 to PB15, its chip select PB12 (CN10-16); the HIL suite's loopback wires PB15 (MOSI) to PB14 (MISO)",
+        "name": "spi2"
+      },
+      {
+        "doc": "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2",
+        "name": "i2c1"
+      },
+      {
+        "doc": "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1",
+        "name": "i2c2"
+      },
+      {
+        "baud": 115200,
+        "doc": "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)",
+        "name": "uart4"
+      },
+      {
+        "class": "counter",
+        "doc": "TIM5, 32 bits at 1 MHz: the counter class's (A129); TIM2 stays the controller's ADC trigger",
+        "name": "tim5"
+      },
+      {
+        "class": "counter",
+        "doc": "TIM9, 16 bits at 1 MHz: it wraps every 65.5 ms, so its tests widen the count on the board",
+        "name": "tim9"
+      },
+      {
+        "class": "pwm",
+        "doc": "TIM3, PWM out on channel 1, D12 (PA6); the HIL suite wires it to D10",
+        "name": "tim3"
+      },
+      {
+        "class": "pwm",
+        "doc": "TIM4, PWM capture on channel 1, D10 (PB6)",
+        "name": "tim4"
+      },
+      {
+        "cal": "factory_cal",
+        "common": "adc_common",
+        "dma": [
+          "rx"
+        ],
+        "doc": "ADC1, paced by TIM2 (the controller's trigger, which it drives by hand), A2 (PA4, input 4) and A3 (PB0, input 8); the HIL suite wires A2 to 3V3 and A3 to GND",
+        "name": "adc1",
+        "trigger": "tim2"
+      }
+    ],
+    "doc": "The STM32F446RE at 180 MHz from the PLL, its input the ST-LINK's 8 MHz MCO on PH0 in HSE bypass (solder bridges SB16 and SB50 as shipped). The console is USART2, which the ST-LINK carries as its virtual COM port.",
+    "flash_partitions": [
+      {
+        "base": 134217728,
+        "name": "app",
+        "size": 393216
+      },
+      {
+        "base": 134610944,
+        "name": "storage",
+        "size": 131072
+      }
+    ],
+    "kind": "board",
+    "leds": [
+      {
+        "active": "high",
+        "doc": "LD2",
+        "gpio": "PA5",
+        "name": "user"
+      }
+    ],
+    "name": "nucleo_f446re",
+    "oscillators": {
+      "hse": {
+        "hz": 8000000,
+        "source": "external_clock"
+      },
+      "lse": {
+        "hz": 32768,
+        "source": "external_crystal"
+      }
+    },
+    "pins": {
+      "adc1": {
+        "in4": "PA4",
+        "in8": "PB0"
+      },
+      "i2c1": {
+        "scl": "PB8.af4",
+        "sda": "PB9.af4"
+      },
+      "i2c2": {
+        "scl": "PB10.af4",
+        "sda": "PB3.af4"
+      },
+      "spi2": {
+        "miso": "PB14.af5",
+        "mosi": "PB15.af5",
+        "sck": "PB13.af5"
+      },
+      "tim3": {
+        "ch1": "PA6.af2"
+      },
+      "tim4": {
+        "ch1": "PB6.af2"
+      },
+      "uart4": {
+        "rx": "PA1.af8",
+        "tx": "PA0.af8"
+      },
+      "usart2": {
+        "rx": "PA3.af7",
+        "tx": "PA2.af7"
+      }
+    },
+    "revision": "MB1136 C-03",
+    "schema_version": 0,
+    "simulation": {
+      "embsim": "emblink/nucleo_f446re",
+      "loopbacks": [
+        {
+          "device": "uart4",
+          "ports": [
+            "A0",
+            "A1"
+          ]
+        },
+        {
+          "device": "spi2",
+          "ports": [
+            "CN10_26",
+            "CN10_28"
+          ]
+        },
+        {
+          "device": "i2c1",
+          "nets": [
+            [
+              "D15",
+              "D6"
+            ],
+            [
+              "D14",
+              "D3"
+            ]
+          ],
+          "peer": "i2c2"
+        },
+        {
+          "channels": [
+            0,
+            0
+          ],
+          "device": "tim3",
+          "peer": "tim4",
+          "ports": [
+            "D12",
+            "D10"
+          ]
+        },
+        {
+          "channels": [
+            4,
+            8
+          ],
+          "device": "adc1",
+          "nets": [
+            [
+              "A2",
+              "3V3"
+            ],
+            [
+              "A3",
+              "GND"
+            ]
+          ]
+        }
+      ],
+      "resets_in": [
+        "embsim",
+        "hil"
+      ]
+    },
+    "soc": "st/stm32f4/stm32f446re.yaml",
+    "test_irqs": [
+      61,
+      62
+    ],
+    "vendor": "st"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {
+        "ahb1": 180000000,
+        "apb1": 45000000,
+        "apb2": 90000000
+      },
+      "bus_timer_hz": {
+        "ahb1": 180000000,
+        "apb1": 90000000,
+        "apb2": 180000000
+      },
+      "bypass": true,
+      "cpu_hz": 180000000,
+      "fixed_plls": {},
+      "flash_wait_states": 5,
+      "hclk_hz": 180000000,
+      "pclk1_div": 4,
+      "pclk1_hz": 45000000,
+      "pclk2_div": 2,
+      "pclk2_hz": 90000000,
+      "pll": {
+        "m": 8,
+        "n": 360,
+        "name": "pll",
+        "p": 2,
+        "q": 7,
+        "q_hz": 51428571,
+        "r": 2,
+        "vco_hz": 360000000,
+        "vco_in_hz": 1000000
+      },
+      "source": "hse",
+      "source_hz": 8000000,
+      "voltage_scale": {
+        "name": "scale1",
+        "overdrive": true,
+        "vos": 3
+      }
+    },
+    "console": {
+      "base": 1073759232,
+      "baud": 115200,
+      "clock": {
+        "bit": 17,
+        "bus": "apb1"
+      },
+      "clock_hz": 45000000,
+      "device": "usart2",
+      "irqs": [
+        {
+          "name": "global",
+          "number": 38
+        }
+      ]
+    },
+    "devices": [
+      {
+        "class": "clock",
+        "compatible": "st,stm32f4-rcc",
+        "deps": [],
+        "fields": {
+          "base": 1073887232
+        },
+        "level": "early",
+        "name": "rcc",
+        "peripheral": "rcc"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073872896,
+          "clken_bit": 0,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpioa",
+        "peripheral": "gpioa"
+      },
+      {
+        "class": "watchdog",
+        "compatible": "st,stm32f4-iwdg",
+        "deps": [],
+        "fields": {
+          "base": 1073754112
+        },
+        "level": "early",
+        "name": "iwdg",
+        "peripheral": "iwdg"
+      },
+      {
+        "class": "rtc",
+        "compatible": "st,stm32f4-rtc",
+        "deps": [],
+        "fields": {
+          "base": 1073752064,
+          "irq": 41
+        },
+        "level": "early",
+        "name": "rtc",
+        "peripheral": "rtc"
+      },
+      {
+        "class": "flash",
+        "compatible": "st,stm32f4-flash",
+        "deps": [],
+        "fields": {
+          "base": 1073888256,
+          "geometry": {
+            "flash_geometry": {
+              "base": 134217728,
+              "count": 8,
+              "erased": 255,
+              "name": "flash",
+              "sector_size": 0,
+              "sectors": [
+                16384,
+                16384,
+                16384,
+                16384,
+                65536,
+                131072,
+                131072,
+                131072
+              ],
+              "size": 524288,
+              "write_unit": 1
+            }
+          }
+        },
+        "level": "early",
+        "name": "flash",
+        "peripheral": "flash_if"
+      },
+      {
+        "class": "dma",
+        "compatible": "st,stm32-dma",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073897472,
+          "clken_bit": 21,
+          "clken_offset": 48,
+          "irq0": 11,
+          "irq1": 12,
+          "irq2": 13,
+          "irq3": 14,
+          "irq4": 15,
+          "irq5": 16,
+          "irq6": 17,
+          "irq7": 47,
+          "memory": false
+        },
+        "level": "early",
+        "name": "dma1",
+        "peripheral": "dma1"
+      },
+      {
+        "class": "dma",
+        "compatible": "st,stm32-dma",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073898496,
+          "clken_bit": 22,
+          "clken_offset": 48,
+          "irq0": 56,
+          "irq1": 57,
+          "irq2": 58,
+          "irq3": 59,
+          "irq4": 60,
+          "irq5": 68,
+          "irq6": 69,
+          "irq7": 70,
+          "memory": true
+        },
+        "level": "early",
+        "name": "dma2",
+        "peripheral": "dma2"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073873920,
+          "clken_bit": 1,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpiob",
+        "peripheral": "gpiob"
+      },
+      {
+        "class": "gpio",
+        "compatible": "st,stm32-gpio",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073874944,
+          "clken_bit": 2,
+          "clken_offset": 48
+        },
+        "level": "early",
+        "name": "gpioc",
+        "peripheral": "gpioc"
+      },
+      {
+        "class": "uart",
+        "compatible": "st,stm32-usart",
+        "deps": [
+          "dma1",
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073759232,
+          "baud": 115200,
+          "clken_bit": 17,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "dma_tx": {
+            "dma": "dma1",
+            "request": 4,
+            "stream": 6
+          },
+          "irq": 38,
+          "rx": "usart2_rx",
+          "rx_size": 64
+        },
+        "level": "early",
+        "name": "usart2",
+        "peripheral": "usart2"
+      },
+      {
+        "class": "uart",
+        "compatible": "st,stm32-usart",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073761280,
+          "baud": 115200,
+          "clken_bit": 19,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "dma_tx": {
+            "dma": null
+          },
+          "irq": 52,
+          "rx": "uart4_rx",
+          "rx_size": 64
+        },
+        "level": "early",
+        "name": "uart4",
+        "peripheral": "uart4"
+      },
+      {
+        "class": "spi",
+        "compatible": "st,stm32-spi",
+        "deps": [
+          "dma1",
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073756160,
+          "clken_bit": 14,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "dma_rx": {
+            "dma": "dma1",
+            "request": 0,
+            "stream": 3
+          },
+          "dma_tx": {
+            "dma": "dma1",
+            "request": 0,
+            "stream": 4
+          },
+          "irq": 36
+        },
+        "level": "kernel",
+        "name": "spi2",
+        "peripheral": "spi2"
+      },
+      {
+        "class": "i2c",
+        "compatible": "st,stm32-i2c",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073763328,
+          "clken_bit": 21,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "irq_er": 32,
+          "irq_ev": 31,
+          "scl": {
+            "gpio": "gpiob",
+            "line": 8,
+            "pin": "PB8"
+          },
+          "sda": {
+            "gpio": "gpiob",
+            "line": 9,
+            "pin": "PB9"
+          }
+        },
+        "level": "kernel",
+        "name": "i2c1",
+        "peripheral": "i2c1"
+      },
+      {
+        "class": "i2c",
+        "compatible": "st,stm32-i2c",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073764352,
+          "clken_bit": 22,
+          "clken_offset": 64,
+          "clock_hz": 45000000,
+          "irq_er": 34,
+          "irq_ev": 33,
+          "scl": {
+            "gpio": "gpiob",
+            "line": 10,
+            "pin": "PB10"
+          },
+          "sda": {
+            "gpio": "gpiob",
+            "line": 3,
+            "pin": "PB3"
+          }
+        },
+        "level": "kernel",
+        "name": "i2c2",
+        "peripheral": "i2c2"
+      },
+      {
+        "class": "counter",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073744896,
+          "bits": 32,
+          "channels": 4,
+          "clken_bit": 3,
+          "clken_offset": 64,
+          "clock_hz": 90000000,
+          "irq": 50,
+          "rate_hz": 1000000
+        },
+        "level": "kernel",
+        "name": "tim5",
+        "peripheral": "tim5"
+      },
+      {
+        "class": "counter",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073823744,
+          "bits": 16,
+          "channels": 2,
+          "clken_bit": 16,
+          "clken_offset": 68,
+          "clock_hz": 180000000,
+          "irq": 24,
+          "rate_hz": 1000000
+        },
+        "level": "kernel",
+        "name": "tim9",
+        "peripheral": "tim9"
+      },
+      {
+        "class": "pwm",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073742848,
+          "bits": 16,
+          "channels": 4,
+          "clken_bit": 1,
+          "clken_offset": 64,
+          "clock_hz": 90000000,
+          "irq": 29
+        },
+        "level": "kernel",
+        "name": "tim3",
+        "peripheral": "tim3"
+      },
+      {
+        "class": "pwm",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073743872,
+          "bits": 16,
+          "channels": 4,
+          "clken_bit": 2,
+          "clken_offset": 64,
+          "clock_hz": 90000000,
+          "irq": 30
+        },
+        "level": "kernel",
+        "name": "tim4",
+        "peripheral": "tim4"
+      },
+      {
+        "class": "adc",
+        "compatible": "st,stm32f4-adc",
+        "deps": [
+          "dma2",
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073815552,
+          "bits": 12,
+          "calibration": 536836650,
+          "clken_bit": 8,
+          "clken_offset": 68,
+          "clock_hz": 90000000,
+          "common": 1073816320,
+          "dma_rx": {
+            "dma": "dma2",
+            "request": 0,
+            "stream": 0
+          },
+          "inputs": 16,
+          "irq": 18,
+          "temperature": 18,
+          "trigger": 1073741824,
+          "trigger_clken_bit": 0,
+          "trigger_clken_offset": 64,
+          "trigger_hz": 90000000,
+          "trigger_select": 6,
+          "vref_mv": 3300,
+          "vrefint": 17
+        },
+        "level": "kernel",
+        "name": "adc1",
+        "peripheral": "adc1"
+      }
+    ],
+    "kconfig": {
+      "CONFIG_EMB_CM_CPU_HZ": 180000000,
+      "CONFIG_EMB_CM_IRQ_COUNT": 97,
+      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": 4,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 393216,
+        "origin": 134217728
+      },
+      "ram": {
+        "length": 131072,
+        "origin": 536870912,
+        "regions": [
+          "sram1",
+          "sram2"
+        ]
+      }
+    },
+    "partitions": [
+      {
+        "base": 134217728,
+        "name": "app",
+        "reserved": false,
+        "sectors": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "size": 393216
+      },
+      {
+        "base": 134610944,
+        "name": "storage",
+        "reserved": false,
+        "sectors": [
+          7
+        ],
+        "size": 131072
+      }
+    ],
+    "pins": [
+      {
+        "af": 8,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 0,
+        "owner": "pins.uart4.tx",
+        "pin": "PA0",
+        "port": "A",
+        "signal": "uart4_tx"
+      },
+      {
+        "af": 8,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 1,
+        "owner": "pins.uart4.rx",
+        "pin": "PA1",
+        "port": "A",
+        "signal": "uart4_rx"
+      },
+      {
+        "af": 7,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 2,
+        "owner": "pins.usart2.tx",
+        "pin": "PA2",
+        "port": "A",
+        "signal": "usart2_tx"
+      },
+      {
+        "af": 7,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 3,
+        "owner": "pins.usart2.rx",
+        "pin": "PA3",
+        "port": "A",
+        "signal": "usart2_rx"
+      },
+      {
+        "gpio": "gpioa",
+        "mode": "analog",
+        "number": 4,
+        "owner": "pins.adc1.in4",
+        "pin": "PA4",
+        "port": "A",
+        "signal": "adc1_in4"
+      },
+      {
+        "gpio": "gpioa",
+        "mode": "output",
+        "number": 5,
+        "owner": "leds.user",
+        "pin": "PA5",
+        "port": "A"
+      },
+      {
+        "af": 2,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.tim3.ch1",
+        "pin": "PA6",
+        "port": "A",
+        "signal": "tim3_ch1"
+      },
+      {
+        "gpio": "gpiob",
+        "mode": "analog",
+        "number": 0,
+        "owner": "pins.adc1.in8",
+        "pin": "PB0",
+        "port": "B",
+        "signal": "adc1_in8"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 3,
+        "owner": "pins.i2c2.sda",
+        "pin": "PB3",
+        "port": "B",
+        "signal": "i2c2_sda"
+      },
+      {
+        "af": 2,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.tim4.ch1",
+        "pin": "PB6",
+        "port": "B",
+        "signal": "tim4_ch1"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 8,
+        "owner": "pins.i2c1.scl",
+        "pin": "PB8",
+        "port": "B",
+        "signal": "i2c1_scl"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 9,
+        "owner": "pins.i2c1.sda",
+        "pin": "PB9",
+        "port": "B",
+        "signal": "i2c1_sda"
+      },
+      {
+        "af": 4,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 10,
+        "owner": "pins.i2c2.scl",
+        "pin": "PB10",
+        "port": "B",
+        "signal": "i2c2_scl"
+      },
+      {
+        "gpio": "gpiob",
+        "level": 1,
+        "mode": "output",
+        "number": 12,
+        "owner": "devices.spi2.cs[0]",
+        "pin": "PB12",
+        "port": "B",
+        "signal": "spi2_cs0"
+      },
+      {
+        "af": 5,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 13,
+        "owner": "pins.spi2.sck",
+        "pin": "PB13",
+        "port": "B",
+        "signal": "spi2_sck"
+      },
+      {
+        "af": 5,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 14,
+        "owner": "pins.spi2.miso",
+        "pin": "PB14",
+        "port": "B",
+        "signal": "spi2_miso"
+      },
+      {
+        "af": 5,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 15,
+        "owner": "pins.spi2.mosi",
+        "pin": "PB15",
+        "port": "B",
+        "signal": "spi2_mosi"
+      },
+      {
+        "gpio": "gpioc",
+        "mode": "input",
+        "number": 13,
+        "owner": "buttons.user",
+        "pin": "PC13",
+        "port": "C"
+      }
+    ],
+    "profile": "base",
+    "test_irqs": {
+      "high": 62,
+      "low": 61
+    },
+    "timer": {
+      "hz": 180000000,
+      "source": "systick"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
+    },
+    {
+      "path": "boards/st/nucleo_f446re/board.yaml",
+      "sha256": "551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
+    },
+    {
+      "path": "examples/controller/controller.conf",
+      "sha256": "f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1"
+    },
+    {
+      "path": "examples/controller/system.yaml",
+      "sha256": "2a91f71f1de638aa1ffaa18f0f76fc3ccde44d2560aef98a9a48120775773af3"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f4.yaml",
+      "sha256": "796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446.yaml",
+      "sha256": "f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446re.yaml",
+      "sha256": "b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "alternate_functions": {
+      "PA0": {
+        "af1": "tim2_ch1",
+        "af2": "tim5_ch1",
+        "af8": "uart4_tx",
+        "analog": "adc1_in0"
+      },
+      "PA1": {
+        "af1": "tim2_ch2",
+        "af2": "tim5_ch2",
+        "af8": "uart4_rx",
+        "analog": "adc1_in1"
+      },
+      "PA10": {
+        "af7": "usart1_rx"
+      },
+      "PA15": {
+        "af1": "tim2_ch1"
+      },
+      "PA2": {
+        "af1": "tim2_ch3",
+        "af2": "tim5_ch3",
+        "af7": "usart2_tx",
+        "analog": "adc1_in2"
+      },
+      "PA3": {
+        "af1": "tim2_ch4",
+        "af2": "tim5_ch4",
+        "af7": "usart2_rx",
+        "analog": "adc1_in3"
+      },
+      "PA4": {
+        "analog": "adc1_in4"
+      },
+      "PA5": {
+        "af1": "tim2_ch1",
+        "analog": "adc1_in5"
+      },
+      "PA6": {
+        "af2": "tim3_ch1",
+        "analog": "adc1_in6"
+      },
+      "PA7": {
+        "af2": "tim3_ch2",
+        "analog": "adc1_in7"
+      },
+      "PA8": {
+        "af4": "i2c3_scl"
+      },
+      "PA9": {
+        "af7": "usart1_tx"
+      },
+      "PB0": {
+        "af2": "tim3_ch3",
+        "analog": "adc1_in8"
+      },
+      "PB1": {
+        "af2": "tim3_ch4",
+        "analog": "adc1_in9"
+      },
+      "PB10": {
+        "af1": "tim2_ch3",
+        "af4": "i2c2_scl",
+        "af7": "usart3_tx"
+      },
+      "PB13": {
+        "af5": "spi2_sck"
+      },
+      "PB14": {
+        "af5": "spi2_miso"
+      },
+      "PB15": {
+        "af5": "spi2_mosi"
+      },
+      "PB2": {
+        "af1": "tim2_ch4"
+      },
+      "PB3": {
+        "af1": "tim2_ch2",
+        "af4": "i2c2_sda"
+      },
+      "PB4": {
+        "af2": "tim3_ch1",
+        "af4": "i2c3_sda"
+      },
+      "PB5": {
+        "af2": "tim3_ch2"
+      },
+      "PB6": {
+        "af2": "tim4_ch1",
+        "af4": "i2c1_scl",
+        "af7": "usart1_tx"
+      },
+      "PB7": {
+        "af2": "tim4_ch2",
+        "af4": "i2c1_sda",
+        "af7": "usart1_rx"
+      },
+      "PB8": {
+        "af1": "tim2_ch1",
+        "af2": "tim4_ch3",
+        "af4": "i2c1_scl"
+      },
+      "PB9": {
+        "af1": "tim2_ch2",
+        "af2": "tim4_ch4",
+        "af4": "i2c1_sda"
+      },
+      "PC0": {
+        "analog": "adc1_in10"
+      },
+      "PC1": {
+        "analog": "adc1_in11"
+      },
+      "PC10": {
+        "af7": "usart3_tx",
+        "af8": "uart4_tx"
+      },
+      "PC11": {
+        "af7": "usart3_rx",
+        "af8": "uart4_rx"
+      },
+      "PC12": {
+        "af4": "i2c2_sda",
+        "af8": "uart5_tx"
+      },
+      "PC2": {
+        "analog": "adc1_in12"
+      },
+      "PC3": {
+        "analog": "adc1_in13"
+      },
+      "PC4": {
+        "analog": "adc1_in14"
+      },
+      "PC5": {
+        "af7": "usart3_rx",
+        "analog": "adc1_in15"
+      },
+      "PC6": {
+        "af2": "tim3_ch1",
+        "af8": "usart6_tx"
+      },
+      "PC7": {
+        "af2": "tim3_ch2",
+        "af8": "usart6_rx"
+      },
+      "PC8": {
+        "af2": "tim3_ch3"
+      },
+      "PC9": {
+        "af2": "tim3_ch4",
+        "af4": "i2c3_sda"
+      },
+      "PD2": {
+        "af8": "uart5_rx"
+      },
+      "PD5": {
+        "af7": "usart2_tx"
+      },
+      "PD6": {
+        "af7": "usart2_rx"
+      },
+      "PD8": {
+        "af7": "usart3_tx"
+      },
+      "PD9": {
+        "af7": "usart3_rx"
+      }
+    },
+    "arch": {
+      "port": "cortex_m",
+      "variant": "armv7em"
+    },
+    "clocks": {
+      "buses": [
+        {
+          "enable_offset": 48,
+          "from": "hclk",
+          "max_hz": 180000000,
+          "name": "ahb1"
+        },
+        {
+          "enable_offset": 64,
+          "from": "pclk1",
+          "max_hz": 45000000,
+          "name": "apb1"
+        },
+        {
+          "enable_offset": 68,
+          "from": "pclk2",
+          "max_hz": 90000000,
+          "name": "apb2"
+        }
+      ],
+      "flash_latency": {
+        "hz_per_wait_state": 30000000,
+        "max_wait_states": 15
+      },
+      "plls": [
+        {
+          "inputs": [
+            "hsi",
+            "hse"
+          ],
+          "m": [
+            2,
+            63
+          ],
+          "n": [
+            50,
+            432
+          ],
+          "name": "pll",
+          "p": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "q": [
+            2,
+            15
+          ],
+          "r": [
+            2,
+            7
+          ],
+          "vco_in_hz": [
+            1000000,
+            2000000
+          ],
+          "vco_out_hz": [
+            100000000,
+            432000000
+          ]
+        }
+      ],
+      "prescalers": {
+        "ahb": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          64,
+          128,
+          256,
+          512
+        ],
+        "apb": [
+          1,
+          2,
+          4,
+          8,
+          16
+        ]
+      },
+      "sources": [
+        {
+          "doc": "internal RC, the clock out of reset",
+          "hz": 16000000,
+          "name": "hsi"
+        },
+        {
+          "bypass_max_hz": 50000000,
+          "hz": "board",
+          "max_hz": 26000000,
+          "min_hz": 4000000,
+          "name": "hse"
+        },
+        {
+          "hz": 32000,
+          "name": "lsi"
+        },
+        {
+          "hz": "board",
+          "name": "lse"
+        }
+      ],
+      "timers_double_when_divided": true,
+      "voltage_scales": [
+        {
+          "max_hz": 120000000,
+          "name": "scale3",
+          "vos": 1
+        },
+        {
+          "max_hz": 144000000,
+          "name": "scale2",
+          "overdrive_max_hz": 168000000,
+          "vos": 2
+        },
+        {
+          "max_hz": 168000000,
+          "name": "scale1",
+          "overdrive_max_hz": 180000000,
+          "vos": 3
+        }
+      ]
+    },
+    "cpu": {
+      "cache": "none",
+      "cflags": [
+        "-mcpu=cortex-m4",
+        "-mfpu=fpv4-sp-d16",
+        "-mfloat-abi=hard"
+      ],
+      "core": "cortex-m4f",
+      "cycle_counter": "dwt",
+      "fpu": "fpv4-sp-d16",
+      "mpu": {
+        "model": "armv7m",
+        "regions": 8
+      },
+      "trustzone": false
+    },
+    "curated": true,
+    "debug": {
+      "dwt": true,
+      "itm": true,
+      "jtag": true,
+      "swd": true
+    },
+    "family": "stm32f4",
+    "flash": {
+      "geometry": {
+        "sectors": [
+          16384,
+          16384,
+          16384,
+          16384,
+          65536,
+          131072,
+          131072,
+          131072
+        ],
+        "write_granularity": 1
+      },
+      "region": "flash"
+    },
+    "gpio": {
+      "ports": {
+        "A": 65535,
+        "B": 63487,
+        "C": 65535,
+        "D": 4,
+        "H": 3
+      }
+    },
+    "interrupts": {
+      "controller": "nvic",
+      "count": 97,
+      "priority_bits": 4,
+      "reserved": [
+        61,
+        62,
+        79,
+        80,
+        81,
+        82,
+        83,
+        85,
+        86,
+        88,
+        89,
+        90
+      ],
+      "systick": true
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 134217728,
+          "name": "flash",
+          "size": 524288
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "dma"
+          ],
+          "base": 536870912,
+          "name": "sram1",
+          "size": 114688
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x",
+            "dma"
+          ],
+          "base": 536985600,
+          "name": "sram2",
+          "size": 16384
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "retained"
+          ],
+          "base": 1073889280,
+          "name": "bkpsram",
+          "size": 4096
+        }
+      ]
+    },
+    "name": "stm32f446re",
+    "package": "lqfp64",
+    "part": "STM32F446RE",
+    "peripherals": [
+      {
+        "adc": {
+          "bits": 12,
+          "inputs": 16,
+          "temperature": 18,
+          "vrefint": 17
+        },
+        "base": 1073815552,
+        "clock": {
+          "bit": 8,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32f4-adc",
+        "dma_requests": {
+          "rx": [
+            "dma2.s0c0",
+            "dma2.s4c0"
+          ]
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 18
+          }
+        ],
+        "name": "adc1",
+        "size": 256
+      },
+      {
+        "base": 1073816320,
+        "compatible": "st,stm32f4-adc-common",
+        "name": "adc_common",
+        "size": 256
+      },
+      {
+        "base": 536836650,
+        "compatible": "st,stm32f4-factory-cal",
+        "name": "factory_cal",
+        "size": 6
+      },
+      {
+        "base": 1073888256,
+        "compatible": "st,stm32f4-flash",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 4
+          }
+        ],
+        "name": "flash_if",
+        "size": 1024
+      },
+      {
+        "base": 1073872896,
+        "clock": {
+          "bit": 0,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioa",
+        "port": "A",
+        "size": 1024
+      },
+      {
+        "base": 1073873920,
+        "clock": {
+          "bit": 1,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiob",
+        "port": "B",
+        "size": 1024
+      },
+      {
+        "base": 1073874944,
+        "clock": {
+          "bit": 2,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioc",
+        "port": "C",
+        "size": 1024
+      },
+      {
+        "base": 1073875968,
+        "clock": {
+          "bit": 3,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiod",
+        "port": "D",
+        "size": 1024
+      },
+      {
+        "base": 1073876992,
+        "clock": {
+          "bit": 4,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioe",
+        "port": "E",
+        "size": 1024
+      },
+      {
+        "base": 1073878016,
+        "clock": {
+          "bit": 5,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiof",
+        "port": "F",
+        "size": 1024
+      },
+      {
+        "base": 1073879040,
+        "clock": {
+          "bit": 6,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpiog",
+        "port": "G",
+        "size": 1024
+      },
+      {
+        "base": 1073880064,
+        "clock": {
+          "bit": 7,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-gpio",
+        "name": "gpioh",
+        "port": "H",
+        "size": 1024
+      },
+      {
+        "base": 1073754112,
+        "compatible": "st,stm32f4-iwdg",
+        "name": "iwdg",
+        "size": 1024
+      },
+      {
+        "base": 1073752064,
+        "compatible": "st,stm32f4-rtc",
+        "irqs": [
+          {
+            "name": "alarm",
+            "number": 41
+          }
+        ],
+        "name": "rtc",
+        "size": 1024
+      },
+      {
+        "base": 1073822720,
+        "compatible": "st,stm32f4-exti",
+        "name": "exti",
+        "size": 1024
+      },
+      {
+        "base": 1073770496,
+        "clock": {
+          "bit": 28,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32f4-pwr",
+        "irqs": [
+          {
+            "name": "pvd",
+            "number": 1
+          }
+        ],
+        "name": "pwr",
+        "size": 1024
+      },
+      {
+        "base": 1073887232,
+        "compatible": "st,stm32f4-rcc",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 5
+          }
+        ],
+        "name": "rcc",
+        "size": 1024
+      },
+      {
+        "adc_trigger": 6,
+        "base": 1073741824,
+        "clock": {
+          "bit": 0,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 32,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 28
+          }
+        ],
+        "name": "tim2",
+        "size": 1024
+      },
+      {
+        "adc_trigger": 8,
+        "base": 1073742848,
+        "clock": {
+          "bit": 1,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 29
+          }
+        ],
+        "name": "tim3",
+        "size": 1024
+      },
+      {
+        "base": 1073743872,
+        "clock": {
+          "bit": 2,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 30
+          }
+        ],
+        "name": "tim4",
+        "size": 1024
+      },
+      {
+        "base": 1073744896,
+        "clock": {
+          "bit": 3,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 32,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 50
+          }
+        ],
+        "name": "tim5",
+        "size": 1024
+      },
+      {
+        "base": 1073823744,
+        "clock": {
+          "bit": 16,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 24
+          }
+        ],
+        "name": "tim9",
+        "size": 1024,
+        "timer_channels": 2
+      },
+      {
+        "base": 1073897472,
+        "clock": {
+          "bit": 21,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-dma",
+        "dma": {
+          "channels": 8,
+          "kind": "fixed",
+          "max_count": 65535,
+          "memory": false
+        },
+        "irqs": [
+          {
+            "name": "s0",
+            "number": 11
+          },
+          {
+            "name": "s1",
+            "number": 12
+          },
+          {
+            "name": "s2",
+            "number": 13
+          },
+          {
+            "name": "s3",
+            "number": 14
+          },
+          {
+            "name": "s4",
+            "number": 15
+          },
+          {
+            "name": "s5",
+            "number": 16
+          },
+          {
+            "name": "s6",
+            "number": 17
+          },
+          {
+            "name": "s7",
+            "number": 47
+          }
+        ],
+        "name": "dma1",
+        "size": 1024
+      },
+      {
+        "base": 1073898496,
+        "clock": {
+          "bit": 22,
+          "bus": "ahb1"
+        },
+        "compatible": "st,stm32-dma",
+        "dma": {
+          "channels": 8,
+          "kind": "fixed",
+          "max_count": 65535,
+          "memory": true
+        },
+        "irqs": [
+          {
+            "name": "s0",
+            "number": 56
+          },
+          {
+            "name": "s1",
+            "number": 57
+          },
+          {
+            "name": "s2",
+            "number": 58
+          },
+          {
+            "name": "s3",
+            "number": 59
+          },
+          {
+            "name": "s4",
+            "number": 60
+          },
+          {
+            "name": "s5",
+            "number": 68
+          },
+          {
+            "name": "s6",
+            "number": 69
+          },
+          {
+            "name": "s7",
+            "number": 70
+          }
+        ],
+        "name": "dma2",
+        "size": 1024
+      },
+      {
+        "base": 1073763328,
+        "clock": {
+          "bit": 21,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s0c1",
+            "dma1.s5c1"
+          ],
+          "tx": [
+            "dma1.s6c1",
+            "dma1.s7c1"
+          ]
+        },
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 31
+          },
+          {
+            "name": "er",
+            "number": 32
+          }
+        ],
+        "name": "i2c1",
+        "size": 1024
+      },
+      {
+        "base": 1073764352,
+        "clock": {
+          "bit": 22,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s2c7",
+            "dma1.s3c7"
+          ],
+          "tx": "dma1.s7c7"
+        },
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 33
+          },
+          {
+            "name": "er",
+            "number": 34
+          }
+        ],
+        "name": "i2c2",
+        "size": 1024
+      },
+      {
+        "base": 1073765376,
+        "clock": {
+          "bit": 23,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-i2c",
+        "dma_requests": {
+          "rx": [
+            "dma1.s1c1",
+            "dma1.s2c3"
+          ],
+          "tx": "dma1.s4c3"
+        },
+        "irqs": [
+          {
+            "name": "ev",
+            "number": 72
+          },
+          {
+            "name": "er",
+            "number": 73
+          }
+        ],
+        "name": "i2c3",
+        "size": 1024
+      },
+      {
+        "base": 1073756160,
+        "clock": {
+          "bit": 14,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-spi",
+        "dma_requests": {
+          "rx": "dma1.s3c0",
+          "tx": "dma1.s4c0"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 36
+          }
+        ],
+        "name": "spi2",
+        "size": 1024
+      },
+      {
+        "base": 1073761280,
+        "clock": {
+          "bit": 19,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s2c4",
+          "tx": "dma1.s4c4"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 52
+          }
+        ],
+        "name": "uart4",
+        "size": 1024
+      },
+      {
+        "base": 1073762304,
+        "clock": {
+          "bit": 20,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s0c4",
+          "tx": "dma1.s7c4"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 53
+          }
+        ],
+        "name": "uart5",
+        "size": 1024
+      },
+      {
+        "base": 1073811456,
+        "clock": {
+          "bit": 4,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": [
+            "dma2.s2c4",
+            "dma2.s5c4"
+          ],
+          "tx": "dma2.s7c4"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 37
+          }
+        ],
+        "name": "usart1",
+        "size": 1024
+      },
+      {
+        "base": 1073759232,
+        "clock": {
+          "bit": 17,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s5c4",
+          "tx": "dma1.s6c4"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 38
+          }
+        ],
+        "name": "usart2",
+        "size": 1024
+      },
+      {
+        "base": 1073760256,
+        "clock": {
+          "bit": 18,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": "dma1.s1c4",
+          "tx": [
+            "dma1.s3c4",
+            "dma1.s4c7"
+          ]
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 39
+          }
+        ],
+        "name": "usart3",
+        "size": 1024
+      },
+      {
+        "base": 1073812480,
+        "clock": {
+          "bit": 5,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-usart",
+        "dma_requests": {
+          "rx": [
+            "dma2.s1c5",
+            "dma2.s2c5"
+          ],
+          "tx": [
+            "dma2.s6c5",
+            "dma2.s7c5"
+          ]
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 71
+          }
+        ],
+        "name": "usart6",
+        "size": 1024
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "st"
+  },
+  "warnings": [
+    "soc/st/stm32f4/stm32f4.yaml:21: cpu.mpu: the cortex_m port does not use the MPU yet"
+  ]
+}

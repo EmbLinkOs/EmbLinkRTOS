@@ -23,6 +23,7 @@ extern "C" {
 
 #define EMB_STM32_PIN_OUTPUT 1u /* GPIOx_MODER: general-purpose output */
 #define EMB_STM32_PIN_AF     2u /* GPIOx_MODER: alternate function, AFRL/AFRH selects which */
+#define EMB_STM32_PIN_ANALOG 3u /* GPIOx_MODER: analog, an ADC's input (A129) */
 
 /* A pin's flags: an I2C line is open drain, pulled up where the board has no resistors. */
 #define EMB_STM32_PIN_OPEN_DRAIN 0x01u /* GPIOx_OTYPER */

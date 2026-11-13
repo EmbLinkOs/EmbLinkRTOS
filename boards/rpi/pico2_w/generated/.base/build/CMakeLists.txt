@@ -9,13 +9,13 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/rpi/pico2_w/board.yaml
-#     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
+#     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
 #   drivers/bindings.yaml
-#     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+#     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
 #   soc/rpi/rp2350/rp2350.yaml
-#     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+#     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
 #   soc/rpi/rp2350/rp2350a.yaml
-#     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+#     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
 # The board has no C of its own: its SoC family's board support builds emb_board from
 # ../src/board_pins.c and ../include/hw_config.h, and links ../linker/regions.ld.
 add_subdirectory("${EMB_SOC_DIR}" soc)

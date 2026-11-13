@@ -35,6 +35,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 | **rtc_oscillator**: an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second | 3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
 | **entropy_bytes**: bytes of one entropy read | the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read | application | application | no | base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore | SPEC-017 §11, A124; test_entropy, test_entropy_board |
+| **pwm_input**: the cycles of one captured input | the caller's timeout: one cycle and a part where the driver captures edges, the gate time, a quarter of the timeout from 4 to 50 ms, where it averages | application | application | no | base with CONFIG_EMB_DRV_PWM; the STM32 waits for the input's edges on the driver's semaphore, the RP2350 sleeps through its gate and polls for a count's change at each end | SPEC-017 §11b, A129; test_pwm, test_pwm_loop |
 | **task_handlers**: a task's state handlers, entry and exit handlers | the application's: each runs to completion, one at a time (KRN-TSK-001) | the application's handlers; the task's thread priority bounds what they delay | application | no | base, isolated: the task runtime (CONFIG_EMB_TASK); tiny: none | SPEC-020 §4, §5; tests/conformance/test_task.c |
 | **frame_bytes**: bytes of one frame: the payload encoded, or the frame decoded | the caller's: the payload it passes to emb_frame_encode(), and for a decoded frame the decoder's buffer, past which the frame is dropped | application: the buffers the caller gives | admission | no | every profile; the CRC is bitwise, eight steps a byte | SPEC-015 §7; OBS-019; test_frame |
 | **console_line**: the console's line time: bytes written polled at its baud rate | the frame's bytes, each one character time (87 us at 115200 baud) | application: what it sends, and the board's console rate | application | no | every profile; a thread holds the console's mutex while it writes a frame, so other threads' frames wait (A127) | SPEC-015 §7; A127 |
@@ -57,8 +58,10 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_init_list()` | O(count) plus the drivers' init | devices, device_deps, drivers |
 | `emb_device_resume()` | O(1) plus the driver's resume | drivers |
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
+| `emb_drv_adc_sampled()` | O(1) plus the callback | callbacks |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_counter_fired()` | O(1) plus the callback | callbacks |
 | `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
 | `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
 | `emb_drv_entropy_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
@@ -80,6 +83,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_drv_i2c_submit()` | O(segments) plus the driver's start when its lane was idle | i2c_bytes, drivers |
 | `emb_drv_i2c_transfer()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
 | `emb_drv_i2c_write_read()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
+| `emb_drv_pwm_capture()` | O(1) plus the input's cycles: one and a part, or the gate time an averaging driver takes, up to @timeout | pwm_input |
 | `emb_drv_rtc_alarm_fired()` | O(1) plus the callback | callbacks |
 | `emb_drv_rtc_set()` | O(1); the first set after power-up waits for the oscillator, up to 3 s, and a set with a fraction of a second waits for the hardware to take it, up to 100 ms | rtc_oscillator, drivers |
 | `emb_drv_spi_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |

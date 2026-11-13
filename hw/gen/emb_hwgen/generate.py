@@ -35,7 +35,7 @@ def generate(board_dir, root):
 def generate_system(system_path, root):
     """({board name: {file name: text}}, [warning]) for a system description (A125): on each of
     its boards, that board's outputs with the system's device settings, and the system's own,
-    written to generated/<board>/ beside it. Every board's errors are reported together."""
+    written to src/config/<board>/ beside it (A130). Every board's errors are reported together."""
     out, warnings, errors = {}, [], []
     for ref in system.boards(system_path, root):
         try:

@@ -44,6 +44,9 @@ The driver range is −64 to −127 (API-010). M4's classes take −64 to −95,
 | Flash | −84 to −87 | `EMB_EWRPROT` −84, `EMB_EVERIFY` −85 |
 | RTC | −88 to −91 | `EMB_ENOTSET` −88, `EMB_EOSCFAIL` −89 |
 | Entropy | −92 to −95 | `EMB_EHEALTH` −92 |
+| Counter | −96 to −99 | `EMB_EPAST` −96 |
+| PWM | −100 to −103 | `EMB_ENOSIGNAL` −100 |
+| ADC | −104 to −107 | none yet; samples lost are `EMB_EOVERRUN` |
 
 The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EMB_ECANCELED`, `EMB_EBUSY`, `EMB_ENOTSUP`, `EMB_EINVAL`) serve every class.
 
@@ -123,7 +126,7 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Dependencies | its clock |
 | Requests | not used by applications directly. A device's channels are given at generation (A119): its binding's `dma.<request>` fields, `emb_drv_dma_chan_t`. Its driver starts a job on one, `emb_drv_dma_start()`: memory to peripheral, peripheral to memory or memory to memory, of 1, 2 or 4-byte items, the memory side advancing or fixed (a fill, a sink). Channels run at once, each its own, so a job does not go through the device's request queue |
 | Blocking | none; the client driver's own request is what blocks |
-| Interrupts | a job's end, its status and the items moved, delivered to the client driver's callback in the DMA interrupt |
+| Interrupts | a job's end, its status and the items moved, delivered to the client driver's callback in the DMA interrupt. A circular job (`EMB_DRV_DMA_CIRCULAR`, A129) runs until stopped, between a peripheral and advancing memory in two halves: its callback runs at the end of each half, `count / 2` and then `count`, and a bus error ends it |
 | DMA ownership | while a transfer runs, its buffer belongs to the hardware: the client must not touch it until completion. Buffers must be in a region the description marks `dma` (SPEC-014 §3); the driver refuses others with `EMB_EINVAL`. No cache maintenance on the M4F and M33 (A109) |
 | Concurrency | channels are assigned at generation from `dma_requests`; two devices never share a channel. Starting a running channel is refused with `EMB_EBUSY` |
 | Timeouts | `emb_drv_dma_stop()` stops the channel and gives the items moved, the partial data in memory up to it (DRV-006); no end is delivered after it returns. A client's own cancel stops its transmit job, lets the data already sent arrive, then stops its receive job: an SPI transfer canceled by DMA ends after whole frames |
@@ -131,7 +134,7 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 | Errors | `EMB_EXFER` (a bus error during the transfer) |
 | Capabilities | `MEM_TO_MEM`, `CIRCULAR` |
 
-**Drivers:** `drivers/st/stm32_dma.c` (DMA1 and DMA2, a job per stream, direct mode for a peripheral and the FIFO for memory to memory, which only DMA2 does); `drivers/rpi/rp2350_dma.c` (16 channels, DREQ pacing, what moved counted from the advancing address, which an abort leaves as it was). **Clients:** the SPI drivers run transfers of 16 frames and more by DMA where the board gives the device channels and the buffers are where DMA reaches, and by interrupt otherwise; the UART drivers do the same for writes of 16 bytes and more, their reads staying with the interrupt and the class's ring. **Evidence:** the class's fake on the host; EmbSIM's NUCLEO-F446RE, SPI2 over DMA1 in CI; on both boards, SPI over DMA through the loop wire, with a cancel in the middle of a transfer; UART writes by DMA, the NUCLEO-F446RE's console's and the Pico 2 W's loop UART's, one canceled part-way.
+**Drivers:** `drivers/st/stm32_dma.c` (DMA1 and DMA2, a job per stream, direct mode for a peripheral and the FIFO for memory to memory, which only DMA2 does; a circular job in the stream's circular mode, its half- and full-transfer interrupts); `drivers/rpi/rp2350_dma.c` (16 channels, DREQ pacing, what moved counted from the advancing address, which an abort leaves as it was; a circular job on one channel that triggers itself again at each end, `TRANS_COUNT`'s TRIGGER_SELF mode, half the job at a time, its memory side wrapped by the address ring, so its memory is a power of two bytes, at most 32 KiB, aligned to its size). **Clients:** the SPI drivers run transfers of 16 frames and more by DMA where the board gives the device channels and the buffers are where DMA reaches, and by interrupt otherwise; the UART drivers do the same for writes of 16 bytes and more, their reads staying with the interrupt and the class's ring. **Evidence:** the class's fake on the host; EmbSIM's NUCLEO-F446RE, SPI2 over DMA1 in CI; on both boards, SPI over DMA through the loop wire, with a cancel in the middle of a transfer; UART writes by DMA, the NUCLEO-F446RE's console's and the Pico 2 W's loop UART's, one canceled part-way.
 
 ## 8. Watchdog
 
@@ -227,6 +230,57 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 The first run found the raw blocks failing the byte chi-square and the runs test, which is why the class conditions them.
 
 These are sanity checks of the driver and of gross faults in the source, not a certification of the source.
+
+## 11a. Counter (A129)
+
+| Checklist | |
+|---|---|
+| Dependencies | its timer's clock: the STM32F4's timer kernel clock, twice a divided APB bus's (A129), divided by the prescaler; the RP2350's tick generator in the TICKS block, from the crystal |
+| Requests | `emb_drv_counter_now()`, the count since the device started, widened to 64 bits; `emb_drv_counter_rate()`, its counts per second; `emb_drv_counter_channels()`; `emb_drv_counter_alarm_set()` at an absolute count and `_alarm_cancel()`; `emb_drv_counter_periodic()` and `_periodic_stop()` |
+| Blocking | none: every request is immediate, and may be made from an interrupt |
+| Interrupts | each callback runs in the counter's interrupt: the STM32 timer's global interrupt, for its update and its compare channels; the RP2350's alarm interrupt, one line per alarm |
+| DMA | none |
+| Concurrency | one alarm per channel, one-shot or periodic: arming one already armed is refused with `EMB_EBUSY`. A one-shot alarm is disarmed before its callback runs, which may arm it again; a periodic one is armed for its next period first, and its callback may stop it |
+| Timeouts | an alarm never fires before its count. A periodic callback's next period is due one period after the last was due, not after it ran, so it does not drift; periods passed while the interrupt was held off are skipped, and the callback's count shows the gap. A period the counter cannot keep, its next count passed every time it is armed, stops after four tries |
+| Width | the STM32F446's TIM2 and TIM5 count 32 bits and TIM3, TIM4 and TIM9 16, widened by the update interrupt's count of wraps; an alarm is programmed once its count falls in the current wrap, and fires only at its whole count. The RP2350's timers count 64 bits, and their alarms compare the low 32: one more than 2^32 counts away matches early, and its interrupt arms it again |
+| Errors | `EMB_EPAST` (the alarm's count has already passed, now or while it was armed: nothing is armed), `EMB_EINVAL` (no such channel; a period of 0 or 1; at initialization, a rate the hardware cannot make exactly), `EMB_EBUSY` |
+| Capabilities | `64BIT`: the hardware counts 64 bits |
+
+**Drivers:** `drivers/st/stm32_tim_counter.c`: TIM2 to TIM5, and TIM9 to TIM14 with their fewer channels (`timer_channels:` in the SoC's description), at the device's `rate_hz`, 1 MHz by default, which the prescaler must make exactly. Their compare channels drive no pin. `drivers/rpi/rp2350_timer.c`: TIMER0 and TIMER1, each on its tick generator at the device's rate, 1 MHz by default, which the crystal must divide exactly. M4.4's tickless time will take one counter of each board; the boards' devices leave TIM2, the controller's ADC trigger, and TIMER0 free. **Evidence:** the class's fake on the host. On EmbSIM's NUCLEO-F446RE in CI and on both boards, for every counter the board has (TIM5 and TIM9; TIMER1): its rate against the kernel's clock; its count rising, across TIM9's wraps; one-shot alarms 0.5 ms, 3 ms and 200 ms ahead, never early and at most 200 counts late; every channel in order; a passed count refused; a canceled alarm; a periodic callback over 100 periods of 1 ms, each a period after the last.
+
+## 11b. PWM (A129)
+
+| Checklist | |
+|---|---|
+| Dependencies | its timer's clock: the STM32F4's timer kernel clock; the RP2350's clk_sys; its pins, an output's and an input's alternate function (`pins:`) |
+| Requests | `emb_drv_pwm_set()`, a channel's period and pulse in nanoseconds with a polarity flag (`EMB_DRV_PWM_INVERTED`), rounded to the nearest the hardware makes and reported back; `emb_drv_pwm_stop()`; `emb_drv_pwm_capture()`, an input's period and pulse; `emb_drv_pwm_channels()` |
+| Blocking | `set` and `stop` are immediate, from a thread or an interrupt; `capture` blocks its thread for the input's cycles, up to its timeout, under the device's lock |
+| Interrupts | the STM32's capture: the timer's interrupt, at each edge and wrap, until a cycle is whole. The RP2350's needs none |
+| DMA | none |
+| Concurrency | a device's running channels share its period: a `set` at another period while another channel runs is refused with `EMB_EBUSY`; alone, a channel takes the new period at once. A running channel takes a new pulse at its next period, without a glitch. A channel outputs or captures, not both; the STM32's capture resets its timer's counter, so it is refused while any of its timer's channels outputs |
+| Timeouts | a capture with no whole cycle before its timeout gives `EMB_ENOSIGNAL`: a steady input, high or low, has none |
+| Resolution | an output's pulse in steps of its timer's clock through the smallest prescaler that brings the period within the counter: 11 ns on the STM32F446's TIM3 at 90 MHz for periods to 728 µs, 6.7 ns on the RP2350's slices for periods to 437 µs, coarser beyond. The STM32 captures one cycle exactly at the timer's clock, each edge timestamped on a counter its wraps extend (A129). The RP2350 averages over a gate (`CAP_CAPTURE_AVERAGED`): edges counted between two of its counter's changes, timed by the CPU's cycle counter, for the period, and clk_sys counted while the input is high, over exactly that many periods, for the pulse; the gate is a quarter of the timeout, from 4 to 50 ms |
+| Errors | `EMB_ENOSIGNAL`, `EMB_ENOTSUP` (no capture on the channel: the STM32 captures on channels 0 and 1, the RP2350 on B, channel 1), `EMB_EBUSY`, `EMB_EINVAL` (a period of 0, beyond the hardware's reach or shorter than two counts, or a pulse longer than its period) |
+| Capabilities | `CAPTURE`, `CAPTURE_AVERAGED` |
+
+**Drivers:** `drivers/st/stm32_tim_pwm.c`: a general-purpose timer's channels in PWM mode 1, the period and compares preloaded; a stopped channel forced to its inactive level, which its polarity sets. Its capture pairs channels 0 and 1 on one input, as PWM input mode does, the rising edge captured on the input's own channel and the falling edge on the other, on a counter that runs free, its wraps counted by the update interrupt: each edge is timestamped, a cycle is a rising edge, a falling edge and the next rising edge, and a late interrupt cannot move its start, as resetting the counter at the edge would. `drivers/rpi/rp2350_pwm.c`: a slice's A and B, its divider in sixteenths, the compares and TOP double-buffered; B its input. **Evidence:** the class's fake on the host. On both boards, an output wired to a capture input (the NUCLEO-F446RE's TIM3 channel 1 on D12 to TIM4 channel 1 on D10; the Pico 2 W's slice 7 A on GPIO14 to slice 0 B on GPIO17): waves from 50 kHz to 100 Hz captured back within a thousandth of the period and 60 ns, inverted too; a steady output with no cycle; a running output not captured. The logic analyzer records both outputs.
+
+## 11c. ADC (A129)
+
+| Checklist | |
+|---|---|
+| Dependencies | its clock: the STM32F446's PCLK2, through the ADC's prescaler to 36 MHz at most; the RP2350's clk_adc, 48 MHz from PLL_USB, which its driver starts; its analog pins (`pins:`, `adc1: { in4: PA4 }`); the STM32's pacing timer and the ADCs' common registers and factory calibration, which the device takes (`trigger: tim2`, `common:`, `cal:`); a DMA channel for sampling (`dma: [rx]`) |
+| Requests | `emb_drv_adc_read()`, one conversion of an input, waiting for the device, and `emb_drv_adc_read_polled()` from any context; `emb_drv_adc_to_mv()`, a count against the board's reference (`vref_mv`, 3300 unless the device says), full scale 2^bits − 1; `emb_drv_adc_temperature()`, in thousandths of a degree; `emb_drv_adc_sample_start()` and `_stop()`: a sequence of up to 8 inputs converted in turn at a rate, by DMA into the caller's buffer, a callback at each half. Inputs are the ADC's own numbers, and `EMB_DRV_ADC_TEMPERATURE` and `EMB_DRV_ADC_VREFINT` its internal ones |
+| Blocking | a read waits for the device, then converts in under 30 µs, polled; the polled form only converts |
+| Interrupts | a sampling's halves, in the DMA interrupt; the STM32's overrun, in the ADC's |
+| DMA | a sampling is a circular job (§7): a half is the callback's to read until the other is full; the RP2350's buffer is its DMA ring's, a power of two bytes, at most 32 KiB, aligned to its size |
+| Concurrency | the device is a conversion's or a sampling's: a read during either, or a sampling during a read, is refused with `EMB_EBUSY`; readers queue on the device's lock |
+| Timeouts | a stopped sampling calls nothing more; one the hardware ended, its samples lost, calls its callback a last time with `EMB_EOVERRUN` |
+| Resolution | 12 bits on both. The STM32F446 samples external inputs for 84 cycles and internal ones for 480, the temperature sensor's 10 µs; a sequence's sample time is the longest that fits its period. The RP2350 converts in 96 clocks, 500 kS/s at most, its rate set by its divider in 256ths |
+| Errors | `EMB_EOVERRUN`, `EMB_EBUSY`, `EMB_EINVAL` (an input it does not have; a sequence of 0 or more than 8 inputs, out of order where `ASCENDING`; a rate it cannot make; a buffer whose halves hold no whole number of sequences), `EMB_EIO` (a conversion that never ended, or failed; no calibration) |
+| Capabilities | `TEMPERATURE`, `CALIBRATED` (from the part's factory calibration), `VREFINT`, `SAMPLE`, `ASCENDING` (a sequence's inputs in ascending order, each once: the RP2350's round robin) |
+
+**Drivers:** `drivers/st/stm32_adc.c`: ADC1, set up by each request rather than at initialization, which gates its clock only, so an application that drives ADC1 by hand, as the reference controller does, keeps it as it set it until it uses the class. A sampling is a scanned regular sequence started by its timer's TRGO (`adc_trigger:`, the timer's EXTSEL code, in the SoC's description) and moved by DMA2. The temperature is read between the factory calibration's two points, the count first scaled to the 3.3 V they were taken at. `drivers/rpi/rp2350_adc.c`: the ADC on clk_adc, a sampling START_MANY round robin over the sequence's inputs, paced by its divider and drained through its FIFO by DMA, an overflow of the FIFO ending it; the temperature from the datasheet's typical 706 mV at 27 °C and −1.721 mV/°C. **Evidence:** the class's fake on the host. On EmbSIM's NUCLEO-F446RE in CI and on both boards, an input wired to the 3.3 V rail and one to ground (the NUCLEO-F446RE's A2 and A3; the Pico 2 W's GPIO26 and GPIO27): each converted and in millivolts; the temperature sensor in a room's range; the internal reference at 1.21 V where there is one; both sampled in turn at 1 kHz, every sample in its order, the halves on time and none after the stop.
 
 ## 12. Optional parts
 

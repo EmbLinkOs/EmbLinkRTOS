@@ -37,6 +37,8 @@ extern "C" {
 /* A job's flags. */
 #define EMB_DRV_DMA_FIXED_MEM \
     0x01u /* the memory side stays: a fill, or a sink; memory to memory, the source */
+#define EMB_DRV_DMA_CIRCULAR \
+    0x02u /* the job repeats over its memory until stopped, its end at each half (A129) */
 
 /* Capabilities (emb_device_caps()). */
 #define EMB_DRV_DMA_CAP_MEM_TO_MEM 0x01u
@@ -65,7 +67,9 @@ typedef struct emb_drv_dma_job {
 } emb_drv_dma_job_t;
 
 /* A job's end, in the DMA interrupt: EMB_OK with count moved, or EMB_EXFER (a bus error)
- * with what moved before it. */
+ * with what moved before it. A circular job's is each half of its memory, filled or sent:
+ * EMB_OK with count / 2 for the first half, count for the second, and the job goes on; a bus
+ * error ends it, EMB_EXFER. */
 typedef void (*emb_drv_dma_done_t)(void *arg, emb_status_t status, uint32_t moved);
 
 /* A DMA driver's operations: the device's, then a channel's job started and stopped. start()
@@ -109,9 +113,14 @@ extern const unsigned emb_board_dma_region_count;
  * emb_drv_dma_stop() returns: the caller must not touch it meanwhile. No cache maintenance is
  * done (A109).
  *
- * Return: EMB_OK; EMB_EINVAL (memory outside the board's DMA regions, or a count the
- * controller cannot take); EMB_ENOTSUP (memory to memory on a controller without it);
- * EMB_EBUSY (the channel is running); EMB_ESTATE (the controller is not READY).
+ * A circular job (EMB_DRV_DMA_CIRCULAR) runs until emb_drv_dma_stop(), between a peripheral and
+ * memory that advances, over an even count. The RP2350 wraps it by its address ring: its memory
+ * is a power of two bytes, at most 32 KiB, aligned to its size.
+ *
+ * Return: EMB_OK; EMB_EINVAL (memory outside the board's DMA regions, a count the controller
+ * cannot take, or a circular job of another shape); EMB_ENOTSUP (memory to memory, or a circular
+ * job, on a controller without it); EMB_EBUSY (the channel is running); EMB_ESTATE (the
+ * controller is not READY).
  */
 emb_status_t emb_drv_dma_start(const emb_drv_dma_chan_t *ch, const emb_drv_dma_job_t *job,
                                emb_drv_dma_done_t done, void *arg);

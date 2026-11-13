@@ -81,6 +81,15 @@ emb_status_t emb_drv_dma_start(const emb_drv_dma_chan_t *ch, const emb_drv_dma_j
         ((emb_device_caps(ch->dma) & EMB_DRV_DMA_CAP_MEM_TO_MEM) == 0u)) {
         return EMB_ENOTSUP;
     }
+    if ((job->flags & EMB_DRV_DMA_CIRCULAR) != 0u) { /* A129 */
+        if ((emb_device_caps(ch->dma) & EMB_DRV_DMA_CAP_CIRCULAR) == 0u) {
+            return EMB_ENOTSUP;
+        }
+        if ((job->dir == EMB_DRV_DMA_MEM_TO_MEM) || ((job->flags & EMB_DRV_DMA_FIXED_MEM) != 0u) ||
+            (job->count < 2u) || ((job->count % 2u) != 0u)) {
+            return EMB_EINVAL; /* a peripheral's and memory that advances, in two halves */
+        }
+    }
     if (!memory_ok(job)) {
         return EMB_EINVAL; /* the hardware cannot reach it, or must not (SPEC-017 §7) */
     }

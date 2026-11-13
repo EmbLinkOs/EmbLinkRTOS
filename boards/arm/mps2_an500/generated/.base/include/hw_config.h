@@ -17,7 +17,7 @@
  *   boards/arm/mps2_an500/board.yaml
  *     85401cc9579f569dbf39fdd796bd90d9a1e9502eef07276ba3a322c0ed3c0561
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/arm/mps2/an500.yaml
  *     6cf725200210826569b7fc32c2bbfe0a9759b6308986859af340ed1543f053f6
  *   soc/arm/mps2/mps2.yaml

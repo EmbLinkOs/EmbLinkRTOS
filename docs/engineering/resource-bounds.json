@@ -294,6 +294,16 @@
       "evidence": "SPEC-017 \u00a711, A124; test_entropy, test_entropy_board"
     },
     {
+      "id": "pwm_input",
+      "input": "the cycles of one captured input",
+      "bound": "the caller's timeout: one cycle and a part where the driver captures edges, the gate time, a quarter of the timeout from 4 to 50 ms, where it averages",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_PWM; the STM32 waits for the input's edges on the driver's semaphore, the RP2350 sleeps through its gate and polls for a count's change at each end",
+      "evidence": "SPEC-017 \u00a711b, A129; test_pwm, test_pwm_loop"
+    },
+    {
       "id": "task_handlers",
       "input": "a task's state handlers, entry and exit handlers",
       "bound": "the application's: each runs to completion, one at a time (KRN-TSK-001)",
@@ -889,6 +899,15 @@
     "emb_trace_dump": [
       "trace_ring",
       "console_line"
+    ],
+    "emb_drv_counter_fired": [
+      "callbacks"
+    ],
+    "emb_drv_pwm_capture": [
+      "pwm_input"
+    ],
+    "emb_drv_adc_sampled": [
+      "callbacks"
     ]
   }
 }

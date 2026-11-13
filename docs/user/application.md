@@ -69,7 +69,7 @@ Everything `emb_add_executable()` makes sits next to the image: on a board, `app
 
 ## Threads, tasks and objects from a system description
 
-Instead of writing `EMB_THREAD_DEFINE` and the other definition macros in C, describe the application in a `system.yaml`. It holds threads, tasks (threads written as state machines), kernel objects, device settings, SPI and I2C targets and the watchdog. The generator turns it into C and checks it before anything compiles (SPEC-014 §5, SPEC-020). `examples/tasks/system.yaml` is a complete one:
+Instead of writing `EMB_THREAD_DEFINE` and the other definition macros in C, describe the application in a `system.yaml`. It holds threads, tasks (threads written as state machines), kernel objects, device settings, SPI and I2C targets, the watchdog and your own interrupt handlers. The generator turns it into C in MPLAB Harmony's form and checks it before anything compiles (SPEC-014 §5, SPEC-020, A130). `examples/tasks/system.yaml` is a complete one:
 
 ```yaml
 schema_version: 0
@@ -78,7 +78,7 @@ name: my_app
 boards: [st/nucleo_f446re, rpi/pico2_w]
 tasks:
   - name: door
-    model: event                 # waits on its own queue
+    model: event                 # waits on its own queue: a handler per state
     priority: 5
     stack: 1K
     events: [open, close]
@@ -87,32 +87,50 @@ tasks:
     exit: [open]
     timeout: { open: 2s }        # no event for 2 s: the handler gets EMB_EV_TIMEOUT
   - name: blink
-    model: periodic
+    model: periodic              # Harmony's BLINK_Tasks(), every period
     period: 500ms
     priority: 2
     stack: 512
     states: [dark, lit]
     initial: dark
+interrupts:                      # your own handlers, optional
+  - { name: wake, irq: 61, handler: WAKE_InterruptHandler, level: 1 }
 ```
 
 ```sh
 python3 -I $HOME/EmbLinkRTOS/hw/gen/emb-hwgen.py generate --system system.yaml
 ```
 
-This writes:
+This writes, as MPLAB Harmony v3 lays out a project:
 
 ```text
 my_app/
   system.yaml
-  CMakeLists.txt              yours: generated once, editable
-  src/main.c                  yours
-  src/tasks/door.c, blink.c   yours: one handler per state, each returning the next state
-  generated/
-    .base/                    what the generator last wrote, for merging (commit it, do not edit)
-    nucleo_f446re/            per board: config/ include/ src/ linker/ build/ docs/
+  CMakeLists.txt              yours: generated, editable
+  src/
+    main.c                    yours: SYS_Initialize(NULL), then SYS_Tasks()
+    door.c, door.h            yours: DOOR_STATES, DOOR_EVENTS, DOOR_DATA, DOOR_Initialize()
+                              and a handler per state, DOOR_OnOpen() ...
+    blink.c, blink.h          yours: BLINK_STATES, BLINK_DATA, BLINK_Initialize() and
+                              BLINK_Tasks(), a switch on blinkData.state
+    interrupt_handlers.c      yours: WAKE_InterruptHandler()
+    config/
+      .base/                  what the generator last wrote, for merging (commit it, do not edit)
+      nucleo_f446re/          per board:
+        definitions.h         the one header to include: the API, the devices, the handles
+        configuration.h       the settings as macros: DOOR_PRIORITY, BLINK_PERIOD_MS ...
+        initialization.c      SYS_Initialize(), and the threads and objects
+        tasks.c               the tasks' threads and SYS_Tasks()
+        interrupts.c, .h      SYS_INT_Initialize(), and every interrupt line in use
+        peripheral/           the board's: hw_config.h, soc_devices.c and .h, board_pins.c
+        linker/ build/ docs/
 ```
 
-- **Your code:** write each task's behaviour in its handlers, for example `emb_state_t door_on_open(door_t *self, const emb_task_event_t *ev)`. Post events with `emb_task_post(DOOR_TASK, DOOR_EV_OPEN, value)`, from a thread or an interrupt.
+- **Your code:** each file is Harmony's template, with its banner, `Section:` headings, a block for each function and `TODO` markers.
+  - An **event task** handles each event in its state's handler, which returns the next state: `DOOR_STATES DOOR_OnOpen(const emb_task_event_t *event)`. Its entry and exit actions are `DOOR_EnterOpen()` and `DOOR_ExitOpen()`.
+  - A **periodic task** is Harmony's: `BLINK_Tasks()` switches on `blinkData.state` and moves by setting it, and its thread calls it every period without drift.
+  - Post an event with `emb_task_post(DOOR_TASK, DOOR_EVENT_OPEN, value)`, from a thread or an interrupt.
+  - Declare states and events in `system.yaml`: the generator writes the enumerations from it, and checks their values at compile time.
 - **Every generated file is editable.** When you change `system.yaml` and generate again:
   - a file whose generated text did not change is left as it is;
   - a file you did not edit is rewritten;
@@ -121,12 +139,13 @@ my_app/
   Only where you and the generator changed the same lines does `generate` report a conflict (`<<<<<<< yours` ... `>>>>>>> generated now`), and `check` fails until you resolve it.
 - **Checked at generation**, each refusal naming its line:
   - priorities;
-  - tasks' states, events and timeouts;
+  - tasks' states, events and timeouts, and a periodic task given entry or exit actions;
   - object types the configuration leaves out;
   - device options and baud rates;
-  - SPI clocks, I2C addresses and the watchdog timeout.
+  - SPI clocks, I2C addresses and the watchdog timeout;
+  - an interrupt on a line the SoC lacks or a device's driver connects, or at a level the port lacks.
 - **After the link**, with a `stack-roots.json`, a stack below its worst case fails the build.
-- **C definitions** still work beside the file. An application with hand-written sources sets `scaffold: false`, and the generator then writes only `generated/`.
+- **C definitions** still work beside the file. An application with hand-written sources sets `scaffold: false`, and the generator then writes only `src/config/`; its own C includes `definitions.h`.
 
 ## What the build checks
 

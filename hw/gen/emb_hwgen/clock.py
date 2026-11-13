@@ -64,7 +64,8 @@ def solve(soc, board, fail):
         out["bypass"] = False
     out["source_hz"] = in_hz
 
-    pll_spec = (clocks.get("plls") or [None])[0]
+    plls = clocks.get("plls") or []
+    pll_spec = next((s for s in plls if "output_hz" not in s), None)  # the CPU's
     given = board["clocks"].get("pll")
     if want == in_hz and given is None:
         out["pll"] = None
@@ -83,6 +84,24 @@ def solve(soc, board, fail):
             return None
         out["pll"] = pll
         sysclk = want
+
+    # the PLLs with an output of their own (A129): each solved for its rate from the clock source,
+    # started by the first driver that needs it
+    out["fixed_plls"] = {}
+    for spec in plls:
+        if "output_hz" not in spec:
+            continue
+        rate = spec["output_hz"]
+        if src_name not in spec["inputs"]:
+            fail("clocks.source", f"{src_name} cannot feed {spec['name']}, which makes {_mhz(rate)} (inputs: "
+                                  f"{', '.join(spec['inputs'])})")
+            return None
+        rec = _search(spec, in_hz, rate)
+        if rec is None:
+            fail("clocks.source", f"no {spec['name']} setting reaches exactly {_mhz(rate)} from {_mhz(in_hz)}")
+            return None
+        rec["hz"] = rate
+        out["fixed_plls"][spec["name"]] = rec
 
     buses = {b["name"]: b for b in clocks.get("buses", [])}
     ahb_max = min((b["max_hz"] for b in buses.values() if b["from"] == "hclk"), default=None)
@@ -104,6 +123,10 @@ def solve(soc, board, fail):
         out[f"{which}_div"] = div
         rates[which] = hclk // div
     out["bus_hz"] = {name: rates[b["from"]] for name, b in sorted(buses.items())}
+    # the timers' kernel clock on each bus: twice a divided APB clock on the STM32F4 (A129)
+    double = bool(clocks.get("timers_double_when_divided"))
+    out["bus_timer_hz"] = {name: rates[b["from"]] * (2 if double and out.get(f"{b['from']}_div", 1) > 1 else 1)
+                           for name, b in sorted(buses.items())}
     out["hclk_hz"] = hclk
     for which in ("pclk1", "pclk2"):
         if which in rates:

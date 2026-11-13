@@ -522,20 +522,22 @@ EMB_TEST(drv_status_codes_are_named_in_their_ranges)
         {EMB_EXFER, "EMB_EXFER"},           {EMB_EWINDOW, "EMB_EWINDOW"},
         {EMB_EWRPROT, "EMB_EWRPROT"},       {EMB_EVERIFY, "EMB_EVERIFY"},
         {EMB_ENOTSET, "EMB_ENOTSET"},       {EMB_EOSCFAIL, "EMB_EOSCFAIL"},
-        {EMB_EHEALTH, "EMB_EHEALTH"},
+        {EMB_EHEALTH, "EMB_EHEALTH"},       {EMB_EPAST, "EMB_EPAST"},
+        {EMB_ENOSIGNAL, "EMB_ENOSIGNAL"},
     };
     unsigned i;
     EMB_TEST_REQ("DRV-008");
     for (i = 0u; i < sizeof(codes) / sizeof(codes[0]); i++) { /* bounded by the table */
         /* in the driver range, each class's four codes apart from the others' */
-        EMB_ASSERT_TRUE(codes[i].code <= -64 && codes[i].code >= -95);
+        EMB_ASSERT_TRUE(codes[i].code <= -64 && codes[i].code >= -107);
         EMB_ASSERT_TRUE(i == 0u || codes[i].code < codes[i - 1u].code);
 #if CONFIG_EMB_STATUS_NAMES
         EMB_ASSERT_TRUE(strcmp(emb_status_name(codes[i].code), codes[i].name) == 0);
 #endif
     }
 #if CONFIG_EMB_STATUS_NAMES
-    EMB_ASSERT_TRUE(strcmp(emb_status_name(-67), "EMB_E?") == 0); /* the UART's spare code */
-    EMB_ASSERT_TRUE(strcmp(emb_status_name(-96), "EMB_E?") == 0); /* past M4's classes */
+    EMB_ASSERT_TRUE(strcmp(emb_status_name(-67), "EMB_E?") == 0);  /* the UART's spare code */
+    EMB_ASSERT_TRUE(strcmp(emb_status_name(-104), "EMB_E?") == 0); /* the ADC's, none yet */
+    EMB_ASSERT_TRUE(strcmp(emb_status_name(-108), "EMB_E?") == 0); /* past M4's classes */
 #endif
 }

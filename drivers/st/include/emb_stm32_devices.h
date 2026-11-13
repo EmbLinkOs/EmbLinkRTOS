@@ -22,11 +22,15 @@
 
 #include <emb/config.h>
 #include <emb/device.h>
+#include <emb/drv_adc.h>
+#include <emb/drv_counter.h>
 #include <emb/drv_dma.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_pwm.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
+#include <emb/sem.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -104,6 +108,91 @@ typedef struct emb_stm32_spi_data {
 } emb_stm32_spi_data_t;
 #endif
 
+/* A general-purpose timer, TIM2 to TIM5 (RM0390 §17) or TIM9 to TIM14 (§18): a counter's or
+ * PWM's (A129). */
+typedef struct emb_stm32_tim_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* its kernel clock: twice its APB bus's when that is divided */
+    uint32_t rate_hz;  /* a counter's counts per second: 1 MHz unless the board says */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq;
+    uint32_t bits;     /* its counter's width: 32 (TIM2, TIM5) or 16 */
+    uint32_t channels; /* 4 on TIM2 to TIM5, 2 on TIM9 and TIM12, 1 on TIM10, 11, 13 and 14 */
+} emb_stm32_tim_config_t;
+
+#if CONFIG_EMB_DRV_COUNTER
+/* A counter's RAM: the class's, first; the counts of the overflows so far, which widen the
+ * hardware's to 64 bits; and each channel's count, those not yet in the counter's epoch
+ * pending until it is. */
+typedef struct emb_stm32_counter_data {
+    emb_drv_counter_data_t counter;
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint64_t high;
+    uint64_t target[EMB_DRV_COUNTER_CHANNELS_MAX];
+    uint8_t pending;
+    uint8_t reserved_[7];
+} emb_stm32_counter_data_t;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* A PWM device's RAM: the class's, first; the prescaler its outputs share; and a capture's
+ * state: the semaphore its interrupt gives, the counter's wraps, which extend its count, the last
+ * rising edge's and the falling edge's extended counts, and the cycle measured, in timer clocks. */
+typedef struct emb_stm32_pwm_data {
+    emb_drv_pwm_data_t pwm;
+    emb_sem_storage_t done_storage;
+    emb_sem_t done;
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint32_t prescale;
+    uint64_t wraps;
+    uint64_t rise_at;
+    uint64_t fall_at;
+    uint64_t period;
+    uint64_t pulse;
+    uint8_t rises;  /* a rising edge seen: the cycle's start */
+    uint8_t fallen; /* a falling edge since it */
+    uint8_t input;  /* the channel captured: 0 or 1 */
+    uint8_t reserved_[5];
+} emb_stm32_pwm_data_t;
+#endif
+
+/* ADC1 (RM0390 §13) as the ADC class's (A129): its registers, the ADCs' common ones, the
+ * factory calibration, the timer whose update paces a sampling and its trigger select, its
+ * clock, its interrupt for overruns, the board's reference, and its inputs; its samples by DMA
+ * where the board gives a channel (dma: [rx]). */
+typedef struct emb_stm32_adc_config {
+    uintptr_t base;
+    uintptr_t common;
+    uintptr_t calibration;
+    uintptr_t trigger;
+    uint32_t trigger_hz; /* the timer's kernel clock */
+    uint32_t trigger_clken_offset;
+    uint32_t trigger_clken_bit;
+    uint32_t trigger_select; /* CR2.EXTSEL for the timer's TRGO */
+    uint32_t clock_hz;       /* PCLK2, before the ADC's prescaler */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq;
+    uint32_t vref_mv;
+    uint32_t bits;
+    uint32_t inputs;
+    uint32_t temperature; /* the sensor's input */
+    uint32_t vrefint;     /* the internal reference's */
+    emb_drv_dma_chan_t dma_rx;
+} emb_stm32_adc_config_t;
+
+#if CONFIG_EMB_DRV_ADC
+/* Its RAM: the class's, first; whether its interrupt is connected, which a sampling does. */
+typedef struct emb_stm32_adc_data {
+    emb_drv_adc_data_t adc;
+    const emb_device_t *dev;
+    uint8_t connected;
+    uint8_t sensors_on; /* the temperature sensor and VREFINT powered, settled */
+    uint8_t reserved_[6];
+} emb_stm32_adc_data_t;
+#endif
+
 /* The independent watchdog (RM0390 §19), clocked by the LSI: no clock gate. */
 typedef struct emb_stm32_iwdg_config {
     uintptr_t base;
@@ -160,6 +249,7 @@ typedef struct emb_stm32_dma_stream {
     uint32_t count;
     uint8_t index;
     uint8_t running;
+    uint8_t circular; /* the job repeats: its halves reported (A129) */
 } emb_stm32_dma_stream_t;
 
 /* A DMA controller's RAM. */
@@ -221,6 +311,24 @@ extern const emb_device_api_t emb_stm32_spi_api;
  * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
 extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
 #endif
+#if CONFIG_EMB_DRV_ADC
+/* The ADC class's operations (SPEC-017 §11c): ADC1's conversions, its temperature sensor from
+ * the factory calibration, and sequences paced by a timer's TRGO, their samples by DMA. */
+extern const emb_drv_adc_api_t emb_stm32_adc_api;
+#endif
+
+#if CONFIG_EMB_DRV_COUNTER
+/* The counter class's operations (SPEC-017 §11a): a general-purpose timer at its rate, widened
+ * to 64 bits by the update interrupt, an alarm on each of its compare channels. */
+extern const emb_drv_counter_api_t emb_stm32_counter_api;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* The PWM class's operations (SPEC-017 §11b): a general-purpose timer's channels in PWM mode 1,
+ * and one cycle of an input on channel 0 or 1 captured exactly in PWM input mode. */
+extern const emb_drv_pwm_api_t emb_stm32_pwm_api;
+#endif
+
 #if CONFIG_EMB_DRV_RTC
 /* The RTC class's operations (SPEC-017 §10): the calendar in the backup domain on the LSE,
  * alarm A, the 20 backup registers. */

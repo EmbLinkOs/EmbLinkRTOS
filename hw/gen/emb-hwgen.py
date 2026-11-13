@@ -58,10 +58,15 @@ def _board_placements(board, files, out=None):
     return [(gen / name, text, gen / ".base" / name) for name, text in sorted(files.items())]
 
 
+def _system_config(system):
+    """An application's configuration folder, Harmony's src/config/ (A130)."""
+    return system.parent / "src" / "config"
+
+
 def _system_placements(system, per_board, out=None):
-    """[(path, text, baseline path)] for a system's outputs: generated/<board>/ for each board, the
-    baseline under generated/.base/<board>/ (A126)."""
-    gen = Path(out) if out else system.parent / "generated"
+    """[(path, text, baseline path)] for a system's outputs: src/config/<board>/ for each board, the
+    baseline under src/config/.base/<board>/ (A126, A130)."""
+    gen = Path(out) if out else _system_config(system)
     out_list = []
     for board, files in sorted(per_board.items()):
         for name, text in sorted(files.items()):
@@ -77,6 +82,11 @@ def _target(args):
     if args.system:
         system = Path(args.system)
         per_board, warnings = generate.generate_system(system, ROOT)
+        # A126's folders, which A130 replaced: the application's edits there are its author's to move
+        for old, now in (("generated", "src/config/<board>/"), ("src/tasks", "src/<task>.c and .h")):
+            if (system.parent / old).is_dir():
+                warnings.append(f"{os.path.relpath(system.parent / old, ROOT)}/: A130 moved these files to {now}; "
+                                "move your edits there, then remove it")
         return _system_placements(system, per_board, getattr(args, "out", None)), warnings, system
     board = Path(args.board)
     files, warnings = generate.generate(board, ROOT)
@@ -133,7 +143,7 @@ def cmd_check(args):
                      f"--board {os.path.relpath(b, ROOT)}", args.strict))
     for s in systems:
         per_board, _ = generate.generate_system(s, ROOT)
-        jobs.append((s.parent / "generated", _system_placements(s, per_board), f"--system {os.path.relpath(s, ROOT)}", False))
+        jobs.append((_system_config(s), _system_placements(s, per_board), f"--system {os.path.relpath(s, ROOT)}", False))
     for gen, placements, how, strict in jobs:
         expected = {path for path, _, _ in placements}
         for path, text, base in placements:

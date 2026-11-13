@@ -41,11 +41,19 @@ extern "C" {
 #define EMB_RP2350_RESET_UART0      (1u << 26)
 #define EMB_RP2350_RESET_UART1      (1u << 27)
 #define EMB_RP2350_RESET_TRNG       ((uint32_t)1u << 25)
+#define EMB_RP2350_RESET_ADC        ((uint32_t)1u << 0)
+#define EMB_RP2350_RESET_PLL_USB    ((uint32_t)1u << 15)
+#define EMB_RP2350_RESET_PWM        ((uint32_t)1u << 16)
+#define EMB_RP2350_RESET_TIMER0     ((uint32_t)1u << 23)
+#define EMB_RP2350_RESET_TIMER1     ((uint32_t)1u << 24)
 
 /* clk_ref from the crystal, clk_sys from clk_ref and then, where the board asks for more,
  * from PLL_SYS at EMB_HW_CPU_HZ, the flash interface slowed first; clk_peri follows clk_sys.
  * Zero once done; nonzero when the crystal or the PLL never became ready. */
 int emb_rp2350_clock_init(void);
+/* Starts PLL_USB at its solved rate (EMB_HW_PLL_USB_HZ, 48 MHz) and clk_adc from it, once; what
+ * the ADC needs (A129). Zero once running; nonzero when the PLL never locked. */
+int emb_rp2350_clk_adc_start(void);
 /* Takes the blocks out of reset and waits, bounded, until they are. Zero once they are. */
 int emb_rp2350_unreset(uint32_t blocks);
 /* Applies the board's pin table: each line's function, then its pad out of isolation. */

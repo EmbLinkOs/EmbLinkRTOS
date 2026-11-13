@@ -83,7 +83,7 @@ typedef struct emb_task_desc {
     uint8_t reserved_;
 } emb_task_desc_t;
 
-/* A task's own state, first in the generated <task>_t. */
+/* A task's own state: the generated <task>_task, its handle <TASK>_TASK (A130). */
 typedef struct emb_task {
     const emb_task_desc_t *desc;
     emb_task_stats_t stats; /* lock domain: the critical section */

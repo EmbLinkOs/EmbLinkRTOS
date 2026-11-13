@@ -103,6 +103,35 @@
         ],
         "doc": "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
         "name": "uart1"
+      },
+      {
+        "doc": "TIMER1, 64 bits at 1 MHz: the counter class's (A129); TIMER0 is left for M4.4's tickless time",
+        "name": "timer1"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "slice 7, PWM out on A, GPIO14 (pin 19); the HIL suite wires it to pin 22",
+        "name": "pwm7"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "slice 0, PWM capture on B, GPIO17 (pin 22)",
+        "name": "pwm0"
+      },
+      {
+        "deps": [
+          "clocks",
+          "io_bank0"
+        ],
+        "dma": [
+          "rx"
+        ],
+        "doc": "the ADC on clk_adc, 48 MHz from PLL_USB: GPIO26 (pin 31, input 0) and GPIO27 (pin 32, input 1); the HIL suite wires pin 31 to 3V3 OUT and pin 32 to AGND",
+        "name": "adc"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -127,6 +156,10 @@
       }
     },
     "pins": {
+      "adc": {
+        "in0": "GPIO26",
+        "in1": "GPIO27"
+      },
       "i2c0": {
         "scl": "GPIO9.f3",
         "sda": "GPIO8.f3"
@@ -134,6 +167,12 @@
       "i2c1": {
         "scl": "GPIO7.f3",
         "sda": "GPIO6.f3"
+      },
+      "pwm0": {
+        "b": "GPIO17.f4"
+      },
+      "pwm7": {
+        "a": "GPIO14.f4"
       },
       "spi1": {
         "miso": "GPIO12.f1",
@@ -168,8 +207,24 @@
       "bus_hz": {
         "sys": 150000000
       },
+      "bus_timer_hz": {
+        "sys": 150000000
+      },
       "bypass": false,
       "cpu_hz": 150000000,
+      "fixed_plls": {
+        "pll_usb": {
+          "hz": 48000000,
+          "m": 1,
+          "n": 64,
+          "name": "pll_usb",
+          "p": 16,
+          "postdiv1": 4,
+          "postdiv2": 4,
+          "vco_hz": 768000000,
+          "vco_in_hz": 12000000
+        }
+      },
       "hclk_hz": 150000000,
       "pll": {
         "m": 1,
@@ -414,6 +469,78 @@
         "level": "kernel",
         "name": "i2c1",
         "peripheral": "i2c1"
+      },
+      {
+        "class": "counter",
+        "compatible": "rpi,rp2350-timer",
+        "deps": [],
+        "fields": {
+          "base": 1074495488,
+          "index": 1,
+          "irq0": 4,
+          "irq1": 5,
+          "irq2": 6,
+          "irq3": 7,
+          "rate_hz": 1000000
+        },
+        "level": "kernel",
+        "name": "timer1",
+        "peripheral": "timer1"
+      },
+      {
+        "class": "pwm",
+        "compatible": "rpi,rp2350-pwm",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074430092,
+          "clock_hz": 150000000,
+          "index": 7
+        },
+        "level": "kernel",
+        "name": "pwm7",
+        "peripheral": "pwm7"
+      },
+      {
+        "class": "pwm",
+        "compatible": "rpi,rp2350-pwm",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074429952,
+          "clock_hz": 150000000,
+          "index": 0
+        },
+        "level": "kernel",
+        "name": "pwm0",
+        "peripheral": "pwm0"
+      },
+      {
+        "class": "adc",
+        "compatible": "rpi,rp2350-adc",
+        "deps": [
+          "clocks",
+          "io_bank0",
+          "dma"
+        ],
+        "fields": {
+          "base": 1074397184,
+          "bits": 12,
+          "clock_hz": 48000000,
+          "dma_rx": {
+            "dma": "dma",
+            "request": 48,
+            "stream": 3
+          },
+          "inputs": 4,
+          "temperature": 4,
+          "vref_mv": 3300
+        },
+        "level": "kernel",
+        "name": "adc",
+        "peripheral": "adc"
       }
     ],
     "kconfig": {
@@ -578,6 +705,44 @@
         "pin": "GPIO13",
         "port": "",
         "signal": "spi1_cs0"
+      },
+      {
+        "af": 4,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 14,
+        "owner": "pins.pwm7.a",
+        "pin": "GPIO14",
+        "port": "",
+        "signal": "pwm7_a"
+      },
+      {
+        "af": 4,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 17,
+        "owner": "pins.pwm0.b",
+        "pin": "GPIO17",
+        "port": "",
+        "signal": "pwm0_b"
+      },
+      {
+        "gpio": "io_bank0",
+        "mode": "analog",
+        "number": 26,
+        "owner": "pins.adc.in0",
+        "pin": "GPIO26",
+        "port": "",
+        "signal": "adc_in0"
+      },
+      {
+        "gpio": "io_bank0",
+        "mode": "analog",
+        "number": 27,
+        "owner": "pins.adc.in1",
+        "pin": "GPIO27",
+        "port": "",
+        "signal": "adc_in1"
       }
     ],
     "profile": "base",
@@ -601,120 +766,154 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0"
+      "sha256": "345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd"
+      "sha256": "80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
-      "sha256": "045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff"
+      "sha256": "22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c"
     }
   ],
   "schema_version": 0,
   "soc": {
     "alternate_functions": {
       "GPIO0": {
-        "f2": "uart0_tx"
+        "f2": "uart0_tx",
+        "f4": "pwm0_a"
       },
       "GPIO1": {
-        "f2": "uart0_rx"
+        "f2": "uart0_rx",
+        "f4": "pwm0_b"
       },
       "GPIO10": {
         "f1": "spi1_sck",
-        "f11": "uart1_tx"
+        "f11": "uart1_tx",
+        "f4": "pwm5_a"
       },
       "GPIO11": {
         "f1": "spi1_mosi",
-        "f11": "uart1_rx"
+        "f11": "uart1_rx",
+        "f4": "pwm5_b"
       },
       "GPIO12": {
         "f1": "spi1_miso",
-        "f2": "uart0_tx"
+        "f2": "uart0_tx",
+        "f4": "pwm6_a"
       },
       "GPIO13": {
-        "f2": "uart0_rx"
+        "f2": "uart0_rx",
+        "f4": "pwm6_b"
       },
       "GPIO14": {
-        "f11": "uart0_tx"
+        "f11": "uart0_tx",
+        "f4": "pwm7_a"
       },
       "GPIO15": {
-        "f11": "uart0_rx"
+        "f11": "uart0_rx",
+        "f4": "pwm7_b"
       },
       "GPIO16": {
-        "f2": "uart0_tx"
+        "f2": "uart0_tx",
+        "f4": "pwm0_a"
       },
       "GPIO17": {
-        "f2": "uart0_rx"
+        "f2": "uart0_rx",
+        "f4": "pwm0_b"
       },
       "GPIO18": {
-        "f11": "uart0_tx"
+        "f11": "uart0_tx",
+        "f4": "pwm1_a"
       },
       "GPIO19": {
-        "f11": "uart0_rx"
+        "f11": "uart0_rx",
+        "f4": "pwm1_b"
       },
       "GPIO2": {
-        "f11": "uart0_tx"
+        "f11": "uart0_tx",
+        "f4": "pwm1_a"
       },
       "GPIO20": {
-        "f2": "uart1_tx"
+        "f2": "uart1_tx",
+        "f4": "pwm2_a"
       },
       "GPIO21": {
-        "f2": "uart1_rx"
+        "f2": "uart1_rx",
+        "f4": "pwm2_b"
       },
       "GPIO22": {
-        "f11": "uart1_tx"
+        "f11": "uart1_tx",
+        "f4": "pwm3_a"
       },
       "GPIO23": {
-        "f11": "uart1_rx"
+        "f11": "uart1_rx",
+        "f4": "pwm3_b"
       },
       "GPIO24": {
-        "f2": "uart1_tx"
+        "f2": "uart1_tx",
+        "f4": "pwm4_a"
       },
       "GPIO25": {
-        "f2": "uart1_rx"
+        "f2": "uart1_rx",
+        "f4": "pwm4_b"
       },
       "GPIO26": {
-        "f11": "uart1_tx"
+        "analog": "adc_in0",
+        "f11": "uart1_tx",
+        "f4": "pwm5_a"
       },
       "GPIO27": {
-        "f11": "uart1_rx"
+        "analog": "adc_in1",
+        "f11": "uart1_rx",
+        "f4": "pwm5_b"
       },
       "GPIO28": {
-        "f2": "uart0_tx"
+        "analog": "adc_in2",
+        "f2": "uart0_tx",
+        "f4": "pwm6_a"
       },
       "GPIO29": {
-        "f2": "uart0_rx"
+        "analog": "adc_in3",
+        "f2": "uart0_rx",
+        "f4": "pwm6_b"
       },
       "GPIO3": {
-        "f11": "uart0_rx"
+        "f11": "uart0_rx",
+        "f4": "pwm1_b"
       },
       "GPIO4": {
-        "f2": "uart1_tx"
+        "f2": "uart1_tx",
+        "f4": "pwm2_a"
       },
       "GPIO5": {
-        "f2": "uart1_rx"
+        "f2": "uart1_rx",
+        "f4": "pwm2_b"
       },
       "GPIO6": {
         "f11": "uart1_tx",
-        "f3": "i2c1_sda"
+        "f3": "i2c1_sda",
+        "f4": "pwm3_a"
       },
       "GPIO7": {
         "f11": "uart1_rx",
-        "f3": "i2c1_scl"
+        "f3": "i2c1_scl",
+        "f4": "pwm3_b"
       },
       "GPIO8": {
         "f2": "uart1_tx",
-        "f3": "i2c0_sda"
+        "f3": "i2c0_sda",
+        "f4": "pwm4_a"
       },
       "GPIO9": {
         "f2": "uart1_rx",
-        "f3": "i2c0_scl"
+        "f3": "i2c0_scl",
+        "f4": "pwm4_b"
       }
     },
     "arch": {
@@ -748,6 +947,33 @@
             320
           ],
           "name": "pll_sys",
+          "postdiv": [
+            1,
+            7
+          ],
+          "vco_in_hz": [
+            5000000,
+            800000000
+          ],
+          "vco_out_hz": [
+            750000000,
+            1600000000
+          ]
+        },
+        {
+          "inputs": [
+            "xosc"
+          ],
+          "m": [
+            1,
+            63
+          ],
+          "n": [
+            16,
+            320
+          ],
+          "name": "pll_usb",
+          "output_hz": 48000000,
           "postdiv": [
             1,
             7
@@ -906,6 +1132,12 @@
         "base": 1074069504,
         "compatible": "rpi,rp2350-pll",
         "name": "pll_sys",
+        "size": 16384
+      },
+      {
+        "base": 1074102272,
+        "compatible": "rpi,rp2350-pll",
+        "name": "pll_usb",
         "size": 16384
       },
       {
@@ -1093,6 +1325,213 @@
         "compatible": "rpi,rp2350-sio",
         "name": "sio",
         "size": 4096
+      },
+      {
+        "adc": {
+          "bits": 12,
+          "inputs": 4,
+          "temperature": 4
+        },
+        "base": 1074397184,
+        "clocked_by": "pll_usb",
+        "compatible": "rpi,rp2350-adc",
+        "dma_requests": {
+          "rx": "dma.dreq48"
+        },
+        "irqs": [
+          {
+            "name": "fifo",
+            "number": 35
+          }
+        ],
+        "name": "adc",
+        "size": 16384
+      },
+      {
+        "base": 1074430192,
+        "compatible": "rpi,rp2350-pwm-irq",
+        "irqs": [
+          {
+            "name": "wrap0",
+            "number": 8
+          },
+          {
+            "name": "wrap1",
+            "number": 9
+          }
+        ],
+        "name": "pwm",
+        "size": 32
+      },
+      {
+        "base": 1074429952,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq32"
+        },
+        "name": "pwm0",
+        "size": 20
+      },
+      {
+        "base": 1074429972,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq33"
+        },
+        "name": "pwm1",
+        "size": 20
+      },
+      {
+        "base": 1074429992,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq34"
+        },
+        "name": "pwm2",
+        "size": 20
+      },
+      {
+        "base": 1074430012,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq35"
+        },
+        "name": "pwm3",
+        "size": 20
+      },
+      {
+        "base": 1074430032,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq36"
+        },
+        "name": "pwm4",
+        "size": 20
+      },
+      {
+        "base": 1074430052,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq37"
+        },
+        "name": "pwm5",
+        "size": 20
+      },
+      {
+        "base": 1074430072,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq38"
+        },
+        "name": "pwm6",
+        "size": 20
+      },
+      {
+        "base": 1074430092,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq39"
+        },
+        "name": "pwm7",
+        "size": 20
+      },
+      {
+        "base": 1074430112,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq40"
+        },
+        "name": "pwm8",
+        "size": 20
+      },
+      {
+        "base": 1074430132,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq41"
+        },
+        "name": "pwm9",
+        "size": 20
+      },
+      {
+        "base": 1074430152,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq42"
+        },
+        "name": "pwm10",
+        "size": 20
+      },
+      {
+        "base": 1074430172,
+        "compatible": "rpi,rp2350-pwm",
+        "counter_bits": 16,
+        "dma_requests": {
+          "wrap": "dma.dreq43"
+        },
+        "name": "pwm11",
+        "size": 20
+      },
+      {
+        "base": 1074462720,
+        "compatible": "rpi,rp2350-timer",
+        "counter_bits": 64,
+        "irqs": [
+          {
+            "name": "alarm0",
+            "number": 0
+          },
+          {
+            "name": "alarm1",
+            "number": 1
+          },
+          {
+            "name": "alarm2",
+            "number": 2
+          },
+          {
+            "name": "alarm3",
+            "number": 3
+          }
+        ],
+        "name": "timer0",
+        "size": 16384
+      },
+      {
+        "base": 1074495488,
+        "compatible": "rpi,rp2350-timer",
+        "counter_bits": 64,
+        "irqs": [
+          {
+            "name": "alarm0",
+            "number": 4
+          },
+          {
+            "name": "alarm1",
+            "number": 5
+          },
+          {
+            "name": "alarm2",
+            "number": 6
+          },
+          {
+            "name": "alarm3",
+            "number": 7
+          }
+        ],
+        "name": "timer1",
+        "size": 16384
       }
     ],
     "schema_version": 0,

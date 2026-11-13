@@ -18,18 +18,20 @@ from . import load, schema
 
 LEVELS = ("early", "kernel")
 # EMB_DRV_CLASS_* in <emb/device.h>, numbered from 1 in this order (0 is no class)
-CLASSES = ("uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio")
+CLASSES = ("uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio", "counter", "pwm", "adc")
 COMPATIBLE = re.compile(r"^[a-z0-9-]+,[a-z0-9-]+$")
 # the keys of a board device that are not its properties
-DEVICE_KEYS = ("name", "peripheral", "compatible", "bus", "deps", "level", "doc")
+DEVICE_KEYS = ("name", "peripheral", "compatible", "class", "bus", "deps", "level", "doc")
 
 
 class Bindings:
     """drivers/bindings.yaml in the tree, and the board root's own (A84), merged: a
-    compatible is bound once."""
+    compatible is bound once for each class. A peripheral that more than one class can drive
+    (a timer: a counter or PWM, A129) has a binding per class, keyed `compatible:class`, and a
+    board device names the one it wants with `class:`."""
 
     def __init__(self, files, err_at):
-        self.table = {}  # compatible -> (binding, model, origin)
+        self.table = {}  # compatible -> {class: (binding, model, origin)}
         self.models = []
         for path, origin in files:
             m = load.flatten(path, path.parent.parent)
@@ -40,21 +42,43 @@ class Bindings:
             if not ok:
                 continue
             self.models.append(m)
-            for compat, b in m.data["bindings"].items():
-                where = f"bindings.{compat}"
+            for key, b in m.data["bindings"].items():
+                where = f"bindings.{key}"
+                compat, _, cls = key.partition(":")
                 if not COMPATIBLE.match(compat):
                     err_at(m, where, f"{compat!r} is not a compatible: vendor,name")
-                elif compat in self.table:
-                    err_at(m, where, f"{compat} is already bound in {self.table[compat][1].leaf.name}")
+                elif cls and cls != b["class"]:
+                    err_at(m, where, f"the key names the class {cls}, the binding {b['class']}")
+                elif b["class"] in self.table.get(compat, {}):
+                    err_at(m, where, f"{compat} is already bound for the {b['class']} class in "
+                                     f"{self.table[compat][b['class']][1].leaf.name}")
                 else:
-                    self.table[compat] = (b, m, origin)
+                    self.table.setdefault(compat, {})[b["class"]] = (b, m, origin)
+
+    def lookup(self, compat, cls=None):
+        """(binding, model, origin) for a compatible, or the reason there is none: a device whose
+        compatible several classes drive names its class."""
+        by_class = self.table.get(compat)
+        if not by_class:
+            return None, f"no driver binds {compat} (drivers/bindings.yaml)"
+        if cls is not None:
+            if cls not in by_class:
+                return None, f"no {cls} driver binds {compat}: it has {', '.join(sorted(by_class))}"
+            return by_class[cls], None
+        if len(by_class) > 1:
+            return None, f"{compat} has drivers for {' and '.join(sorted(by_class))}: say which with class:"
+        return next(iter(by_class.values())), None
 
 
 def _peripheral_view(p, soc, clk):
     """What a binding's `peripheral.*` fields read: the SoC node, its interrupts by name, its
-    clock gate with the bus's enable register, and the frequency it is clocked at."""
+    clock gate with the bus's enable register, and the frequency it is clocked at: its bus's, a
+    timer's on its bus (timer_clock_hz), or the PLL's it names in clocked_by."""
     view = {k: v for k, v in p.items() if k not in ("irqs", "clock", "doc", "curated")}
     view["irqs"] = {i["name"]: i["number"] for i in p.get("irqs", [])}
+    index = re.search(r"(\d+)$", p["name"])
+    if index:  # its number among its kind: timer1's 1, a PWM slice's (A129)
+        view["index"] = int(index.group(1))
     gate = p.get("clock")
     if gate is not None:
         bus = next((b for b in soc.get("clocks", {}).get("buses", []) if b["name"] == gate["bus"]), {})
@@ -63,6 +87,11 @@ def _peripheral_view(p, soc, clk):
             view["clock"]["enable_offset"] = bus["enable_offset"]
     if clk is not None:
         view["clock_hz"] = clk["bus_hz"].get(gate["bus"], clk["hclk_hz"]) if gate else clk["hclk_hz"]
+        timer = clk.get("bus_timer_hz", {})
+        view["timer_clock_hz"] = timer.get(gate["bus"], view["clock_hz"]) if gate else view["clock_hz"]
+        fixed = clk.get("fixed_plls", {}).get(p.get("clocked_by"))
+        if fixed is not None:  # a kernel clock of its own, a PLL's fixed output (A129)
+            view["clock_hz"] = view["timer_clock_hz"] = fixed["hz"]
     return view
 
 
@@ -237,13 +266,29 @@ def resolve(board, soc, clk, bindings, err, pins=None):
                 continue
             used[pname] = e["name"]
             compat = p["compatible"]
-        bound = bindings.table.get(compat)
+        bound, why = bindings.lookup(compat, e.get("class"))
         if bound is None:
-            err(at, f"no driver binds {compat} (drivers/bindings.yaml)")
+            err(at, why)
             continue
         b, _, origin = bound
+        takes = {}
+        for key, want in sorted(b.get("takes", {}).items()):  # its other peripherals (A129)
+            tname = e.get(key)
+            if not isinstance(tname, str):
+                err(at, f"the {compat} binding takes a {want} peripheral as {key}: name one ({key}: <peripheral>)")
+                continue
+            tp = periph.get(tname)
+            if tp is None:
+                err(f"{at}.{key}", f"unresolved reference: the SoC has no peripheral {tname!r}")
+            elif tp["compatible"] != want:
+                err(f"{at}.{key}", f"{tname} is a {tp['compatible']}, not the {want} the {compat} binding takes")
+            elif tname in used:
+                err(f"{at}.{key}", f"{tname} is already the device {used[tname]}")
+            else:
+                used[tname] = f"{e['name']} (its {key})"
+                takes[key] = tp
         devs[e["name"]] = {"index": i, "entry": e, "peripheral": p, "compatible": compat, "binding": b,
-                           "origin": origin, "level": e.get("level", b["level"])}
+                           "origin": origin, "level": e.get("level", b["level"]), "takes": takes}
 
     _dma_assign(devs, sorted(devs, key=lambda n: devs[n]["index"]), err)
     clock_devs = [n for n in names if n in devs and devs[n]["binding"]["class"] == "clock"]
@@ -253,8 +298,9 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         if "bus" in e:
             deps.append(e["bus"])
         deps += sorted({c["dma"] for c in d["dma"].values()})  # its DMA controllers first
-        if d["peripheral"] is not None and d["peripheral"].get("clock") and d["binding"]["class"] != "clock":
-            deps += clock_devs  # the clock tree first: it gates this one (SPEC-016 §4)
+        gated = [x for x in [d["peripheral"]] + list(d["takes"].values()) if x is not None and x.get("clock")]
+        if gated and d["binding"]["class"] != "clock":
+            deps += clock_devs  # the clock tree first: it gates this one, or what it takes (SPEC-016 §4)
         d["deps"] = []
         for dep in deps:
             if dep not in names:
@@ -299,11 +345,16 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             ctx["flash"] = {"geometry": _flash_geometry(n, e, soc.data, err)}
         if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
+        ctx["takes"] = {k: _peripheral_view(tp, soc.data, clk) for k, tp in d["takes"].items()}
         if "bus" in e:
             ctx["device"]["bus"] = {"device": e["bus"]}
         fields = []
-        for field, expr in b.get("fields", {}).items():
+        for field, spec in b.get("fields", {}).items():
+            expr, default = (spec, None) if isinstance(spec, str) else (spec["from"], spec["default"])
             v = _lookup(ctx, expr)
+            defaulted = v is None and default is not None
+            if defaulted:
+                v = default  # the device does not give it (A129)
             if v is None and expr.startswith("dma."):
                 v = {"dma": None}  # a request the board gives no channel: none
             if v is None and expr.startswith("pins."):
@@ -313,7 +364,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and not ({"device", "line", "dma", "flash_geometry"} & set(v))):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
-            fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})
+            fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)}
+                          | ({"default": True} if defaulted else {}))
         buffers = []
         for bname, spec in b.get("buffers", {}).items():
             size = _lookup(ctx, spec["size"])
@@ -350,7 +402,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             # what a system description may set (A125): the options the binding reads from the
             # device, and the limits its driver states for targets and timeouts
             "options": sorted({x[len("device."):].split(".")[0] for x in
-                               list(b.get("fields", {}).values()) + [v["size"] for v in b.get("buffers", {}).values()]
+                               [s if isinstance(s, str) else s["from"] for s in b.get("fields", {}).values()]
+                               + [v["size"] for v in b.get("buffers", {}).values()]
                                if x.startswith("device.") and x != "device.bus"}),
             "limits": b.get("limits", {}),
         })

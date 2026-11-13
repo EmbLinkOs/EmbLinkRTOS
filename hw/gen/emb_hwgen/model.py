@@ -297,6 +297,11 @@ class Resolver:
             clk = p.get("clock")
             if clk is not None and clk["bus"] not in buses:
                 self.err(soc, f"{where}.clock.bus", f"unresolved reference: no bus {clk['bus']!r}")
+            if "clocked_by" in p:  # a PLL of a fixed rate (A129)
+                fixed = {s["name"] for s in d.get("clocks", {}).get("plls", []) if "output_hz" in s}
+                if p["clocked_by"] not in fixed:
+                    self.err(soc, f"{where}.clocked_by", f"unresolved reference: no PLL {p['clocked_by']!r} with an "
+                                                         f"output_hz (it has {', '.join(sorted(fixed)) or 'none'})")
             for irq in p.get("irqs", []):
                 n = irq["number"]
                 at = f"{where}.irqs.{irq['name']}"
@@ -327,10 +332,11 @@ class Resolver:
             if bank and parsed["number"] >= d["gpio"]["lines"]:
                 self.err(soc, f"alternate_functions.{pin}", f"beyond the bank's {d['gpio']['lines']} lines")
             for af in sorted(afs):
-                ok = r"f([12][0-9]|3[01]|[0-9])" if bank else r"af(1[0-5]|[0-9])|fixed"
+                ok = r"f([12][0-9]|3[01]|[0-9])|analog" if bank else r"af(1[0-5]|[0-9])|fixed|analog"
                 if not re.fullmatch(ok, af):
                     self.err(soc, f"alternate_functions.{pin}.{af}",
-                             "not a function select (f0 to f31)" if bank else "not an alternate function (af0 to af15, or fixed)")
+                             "not a function select (f0 to f31, or analog)" if bank
+                             else "not an alternate function (af0 to af15, fixed or analog)")
 
         fl = d.get("flash")
         if fl is not None:
@@ -396,6 +402,10 @@ class Resolver:
                     entry.update({"mode": "fixed", "signal": signal})  # taken over when the peripheral is on
                     out.append(entry)
                     return
+                if pin["af"] is None and offered.get("analog") == signal:
+                    entry.update({"mode": "analog", "signal": signal})  # an ADC's input (A129)
+                    out.append(entry)
+                    return
                 if pin["af"] is None:
                     self.err(board, at, f"{pin['name']} needs its alternate function: {pin['name']}.{af_key(pin, '<n>')}")
                     return
@@ -455,17 +465,28 @@ class Resolver:
         return devs, [d for m in table.models for d in m.docs]
 
     def _loopbacks(self, board, devs):
-        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside, or an
-        I2C device wired to a peer by two nets, SCL to SCL and SDA to SDA."""
+        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside; an I2C
+        device wired to a peer by two nets, SCL to SCL and SDA to SDA; a PWM output wired to a
+        peer's capture input, their channels and the two ports (A129); an ADC's input wired high
+        and one low, their numbers and each one's net to a rail (A129)."""
         classes = {d["name"]: d["class"] for d in devs}
         for i, loop in enumerate(board.data.get("simulation", {}).get("loopbacks", [])):
             at = f"simulation.loopbacks[{i}]"
             cls = classes.get(loop["device"])
-            if cls == "i2c":
+            if cls == "pwm":
+                if (classes.get(loop.get("peer")) != "pwm" or "ports" not in loop or "channels" not in loop
+                        or "nets" in loop or "internal" in loop):
+                    self.err(board, at, "a PWM loopback names its peer, the capture's PWM device, the two channels "
+                                        "and the two ports wired")
+            elif cls == "adc":
+                if "channels" not in loop or "nets" not in loop or "peer" in loop or "ports" in loop or "internal" in loop:
+                    self.err(board, at, "an ADC loopback names its inputs, high then low, and two nets: each one's "
+                                        "port to a rail")
+            elif cls == "i2c":
                 if classes.get(loop.get("peer")) != "i2c" or "nets" not in loop or "ports" in loop or "internal" in loop:
                     self.err(board, at, "an I2C loopback names its peer, another I2C device, and two nets")
             elif cls not in ("uart", "spi"):
-                self.err(board, at, f"{loop['device']} is not a UART, SPI or I2C device of the board")
+                self.err(board, at, f"{loop['device']} is not a UART, SPI, I2C, PWM or ADC device of the board")
             elif ("ports" in loop) == ("internal" in loop) or "peer" in loop or "nets" in loop:
                 self.err(board, at, "a loopback names two ports or internal: true, one of them")
 

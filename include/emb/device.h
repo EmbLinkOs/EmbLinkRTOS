@@ -59,6 +59,9 @@ extern "C" {
 #define EMB_DRV_CLASS_ENTROPY  8u
 #define EMB_DRV_CLASS_CLOCK    9u
 #define EMB_DRV_CLASS_GPIO     10u
+#define EMB_DRV_CLASS_COUNTER  11u /* A129 */
+#define EMB_DRV_CLASS_PWM      12u
+#define EMB_DRV_CLASS_ADC      13u
 
 struct emb_device;
 struct emb_drv_request;

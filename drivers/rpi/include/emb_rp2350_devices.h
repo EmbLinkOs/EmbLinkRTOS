@@ -27,16 +27,17 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_adc.h>
+#include <emb/drv_counter.h>
 #include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_pwm.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
 #include <emb/sem.h>
 #endif
-#if CONFIG_EMB_DRV_DMA
-#include <emb/drv_dma.h>
-#endif
+#include <emb/drv_dma.h> /* a device's DMA channel is in its configuration, DMA or not */
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,6 +54,70 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+/* TIMER0 or TIMER1 (datasheet §12.8): its registers, its tick generator in the TICKS block
+ * (index), its rate, and its four alarms' interrupts (A129). */
+typedef struct emb_rp2350_timer_config {
+    uintptr_t base;
+    uint32_t index;
+    uint32_t rate_hz; /* counts per second: 1 MHz unless the board says */
+    uint32_t irq0;
+    uint32_t irq1;
+    uint32_t irq2;
+    uint32_t irq3;
+} emb_rp2350_timer_config_t;
+
+/* The ADC (datasheet §12.4): its registers, clk_adc, the board's reference, its inputs and the
+ * temperature sensor's; its samples by DMA where the board gives a channel (dma: [rx]). */
+typedef struct emb_rp2350_adc_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* clk_adc, PLL_USB's 48 MHz */
+    uint32_t vref_mv;
+    uint32_t bits;
+    uint32_t inputs;
+    uint32_t temperature;
+    emb_drv_dma_chan_t dma_rx;
+} emb_rp2350_adc_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ADC
+/* Its RAM: the class's, first. */
+typedef struct emb_rp2350_adc_data {
+    emb_drv_adc_data_t adc;
+    const emb_device_t *dev;
+} emb_rp2350_adc_data_t;
+#endif
+
+/* A PWM slice (datasheet §12.5): its five registers, its number, and clk_sys, which it counts. */
+typedef struct emb_rp2350_pwm_config {
+    uintptr_t base;
+    uint32_t index;
+    uint32_t clock_hz;
+} emb_rp2350_pwm_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_PWM
+/* A slice's RAM: the class's, first; the divider its two outputs share, in sixteenths. */
+typedef struct emb_rp2350_pwm_data {
+    emb_drv_pwm_data_t pwm;
+    uint32_t div16;
+} emb_rp2350_pwm_data_t;
+#endif
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_COUNTER
+/* An alarm's interrupt: its timer and its number. */
+typedef struct emb_rp2350_alarm {
+    const emb_device_t *dev;
+    uint8_t channel;
+    uint8_t reserved_[3];
+} emb_rp2350_alarm_t;
+
+/* A timer's RAM: the class's, first; each alarm's whole count, the hardware comparing the low
+ * 32 bits; each alarm interrupt's argument. */
+typedef struct emb_rp2350_timer_data {
+    emb_drv_counter_data_t counter;
+    uint64_t target[EMB_DRV_COUNTER_CHANNELS_MAX];
+    emb_rp2350_alarm_t alarm[EMB_DRV_COUNTER_CHANNELS_MAX];
+} emb_rp2350_timer_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ENTROPY
 /* The TRNG (datasheet §12.12): its registers, its interrupt, and the clocks between samples. */
@@ -129,6 +194,8 @@ typedef struct emb_rp2350_dma_channel {
     uint8_t width;
     uint8_t side; /* which side advances: 0 none, 1 the read, 2 the write */
     uint8_t running;
+    uint8_t circular; /* the job repeats: its halves reported (A129) */
+    uint8_t half;     /* a circular job's half under way: 0 the first, 1 the second */
 } emb_rp2350_dma_channel_t;
 
 /* The DMA controller's RAM. */
@@ -146,6 +213,24 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 /* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
  * reaching all but the oscillators, and the reset's cause from its REASON register. */
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
+#endif
+
+#if CONFIG_EMB_DRV_ADC
+/* The ADC class's operations (SPEC-017 §11c): one conversion; the temperature sensor from the
+ * datasheet's slope; a round robin of ascending inputs paced by its own divider, drained by DMA. */
+extern const emb_drv_adc_api_t emb_rp2350_adc_api;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* The PWM class's operations (SPEC-017 §11b): a slice's outputs A and B (channels 0 and 1), and
+ * its input B measured as an average over a gate time (CAP_CAPTURE_AVERAGED). */
+extern const emb_drv_pwm_api_t emb_rp2350_pwm_api;
+#endif
+
+#if CONFIG_EMB_DRV_COUNTER
+/* The counter class's operations (SPEC-017 §11a): TIMER0 or TIMER1, 64-bit counts of their
+ * tick, an alarm on each of the four alarms. */
+extern const emb_drv_counter_api_t emb_rp2350_timer_api;
 #endif
 
 #if CONFIG_EMB_DRV_ENTROPY

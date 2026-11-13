@@ -16,13 +16,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
+ *     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/rpi/rp2350/rp2350.yaml
- *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+ *     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
  *   soc/rpi/rp2350/rp2350a.yaml
- *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+ *     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
  */
 #include <emb/config.h>
 
@@ -295,6 +295,97 @@ const emb_device_t emb_dev_i2c1 = {
     .dep_count = 1u,
 };
 
+/* timer1: rpi,rp2350-timer, counter, KERNEL */
+static const emb_rp2350_timer_config_t timer1_config = {
+    .base = 0x400B8000u, /* peripheral.base */
+    .index = 1u,         /* peripheral.index */
+    .rate_hz = 1000000u, /* device.rate_hz, its default */
+    .irq0 = 4u,          /* peripheral.irqs.alarm0 */
+    .irq1 = 5u,          /* peripheral.irqs.alarm1 */
+    .irq2 = 6u,          /* peripheral.irqs.alarm2 */
+    .irq3 = 7u,          /* peripheral.irqs.alarm3 */
+};
+static emb_device_state_t timer1_state;
+static emb_rp2350_timer_data_t timer1_data;
+const emb_device_t emb_dev_timer1 = {
+    .name = "timer1",
+    .api = &emb_rp2350_timer_api.dev,
+    .config = &timer1_config,
+    .state = &timer1_state,
+    .data = &timer1_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_COUNTER,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 0u,
+};
+
+/* pwm7: rpi,rp2350-pwm, pwm, KERNEL */
+static const emb_rp2350_pwm_config_t pwm7_config = {
+    .base = 0x400A808Cu,    /* peripheral.base */
+    .index = 7u,            /* peripheral.index */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+};
+static emb_device_state_t pwm7_state;
+static emb_rp2350_pwm_data_t pwm7_data;
+static const emb_device_t *const pwm7_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_pwm7 = {
+    .name = "pwm7",
+    .api = &emb_rp2350_pwm_api.dev,
+    .config = &pwm7_config,
+    .state = &pwm7_state,
+    .data = &pwm7_data,
+    .deps = pwm7_deps,
+    .class_id = EMB_DRV_CLASS_PWM,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* pwm0: rpi,rp2350-pwm, pwm, KERNEL */
+static const emb_rp2350_pwm_config_t pwm0_config = {
+    .base = 0x400A8000u,    /* peripheral.base */
+    .index = 0u,            /* peripheral.index */
+    .clock_hz = 150000000u, /* peripheral.clock_hz */
+};
+static emb_device_state_t pwm0_state;
+static emb_rp2350_pwm_data_t pwm0_data;
+static const emb_device_t *const pwm0_deps[] = {&emb_dev_io_bank0};
+const emb_device_t emb_dev_pwm0 = {
+    .name = "pwm0",
+    .api = &emb_rp2350_pwm_api.dev,
+    .config = &pwm0_config,
+    .state = &pwm0_state,
+    .data = &pwm0_data,
+    .deps = pwm0_deps,
+    .class_id = EMB_DRV_CLASS_PWM,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* adc: rpi,rp2350-adc, adc, KERNEL */
+static const emb_rp2350_adc_config_t adc_config = {
+    .base = 0x400A0000u,                         /* peripheral.base */
+    .clock_hz = 48000000u,                       /* peripheral.clock_hz */
+    .vref_mv = 3300u,                            /* device.vref_mv, its default */
+    .bits = 12u,                                 /* peripheral.adc.bits */
+    .inputs = 4u,                                /* peripheral.adc.inputs */
+    .temperature = 4u,                           /* peripheral.adc.temperature */
+    .dma_rx = {&emb_dev_dma, 3u, 48u, {0u, 0u}}, /* dma.rx */
+};
+static emb_device_state_t adc_state;
+static emb_rp2350_adc_data_t adc_data;
+static const emb_device_t *const adc_deps[] = {&emb_dev_clocks, &emb_dev_io_bank0, &emb_dev_dma};
+const emb_device_t emb_dev_adc = {
+    .name = "adc",
+    .api = &emb_rp2350_adc_api.dev,
+    .config = &adc_config,
+    .state = &adc_state,
+    .data = &adc_data,
+    .deps = adc_deps,
+    .class_id = EMB_DRV_CLASS_ADC,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 3u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
@@ -309,9 +400,13 @@ static const emb_device_t *const devices[] = {
     &emb_dev_spi1,     /* 9: KERNEL */
     &emb_dev_i2c0,     /* 10: KERNEL */
     &emb_dev_i2c1,     /* 11: KERNEL */
+    &emb_dev_timer1,   /* 12: KERNEL */
+    &emb_dev_pwm7,     /* 13: KERNEL */
+    &emb_dev_pwm0,     /* 14: KERNEL */
+    &emb_dev_adc,      /* 15: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 12u, 8u};
+const emb_device_table_t emb_board_device_table = {devices, 16u, 8u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

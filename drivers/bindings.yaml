@@ -13,7 +13,10 @@
 # clock.enable_offset, and clock_hz, the frequency it is clocked at), device.<key> (the board
 # device's own properties; device.bus is a reference to the bus device), board.<path> or
 # soc.<path> (the SoC description's own facts: soc.gpio.lines), or pins.<signal> (the GPIO line
-# carrying the device's pin: an I2C bus's SCL and SDA, which its recovery drives by hand).
+# carrying the device's pin: an I2C bus's SCL and SDA, which its recovery drives by hand), or
+# takes.<key>.<field> (a peripheral the device takes besides its own: an ADC's pacing timer). A
+# field may have a default, { from: <expression>, default: <value> }. A peripheral several
+# classes can drive has a binding for each, keyed <compatible>:<class> (A129).
 schema_version: 0
 kind: bindings
 bindings:
@@ -72,6 +75,73 @@ bindings:
       dma_tx: dma.tx
     buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
+  st,stm32f4-adc:
+    class: adc
+    level: kernel
+    sources: [drivers/st/stm32_adc.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_adc_api.dev
+    config: emb_stm32_adc_config_t
+    data: emb_stm32_adc_data_t
+    takes: { trigger: "st,stm32-tim", common: "st,stm32f4-adc-common", cal: "st,stm32f4-factory-cal" }
+    fields:
+      base: peripheral.base
+      common: takes.common.base
+      calibration: takes.cal.base
+      trigger: takes.trigger.base
+      trigger_hz: takes.trigger.timer_clock_hz
+      trigger_clken_offset: takes.trigger.clock.enable_offset
+      trigger_clken_bit: takes.trigger.clock.bit
+      trigger_select: takes.trigger.adc_trigger
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      vref_mv: { from: device.vref_mv, default: 3300 }
+      bits: peripheral.adc.bits
+      inputs: peripheral.adc.inputs
+      temperature: peripheral.adc.temperature
+      vrefint: peripheral.adc.vrefint
+      dma_rx: dma.rx
+    doc: ADC1, its conversions and temperature sensor, sequences paced by a timer's TRGO and moved by DMA (SPEC-017 §11c, A129)
+  st,stm32-tim:counter:
+    class: counter
+    level: kernel
+    sources: [drivers/st/stm32_tim_counter.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_counter_api.dev
+    config: emb_stm32_tim_config_t
+    data: emb_stm32_counter_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.timer_clock_hz
+      rate_hz: { from: device.rate_hz, default: 1000000 }
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      bits: peripheral.counter_bits
+      channels: { from: peripheral.timer_channels, default: 4 }
+    doc: general-purpose timers as counters, widened to 64 bits, an alarm on each compare channel (SPEC-017 §11a, A129)
+  st,stm32-tim:pwm:
+    class: pwm
+    level: kernel
+    sources: [drivers/st/stm32_tim_pwm.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_pwm_api.dev
+    config: emb_stm32_tim_config_t
+    data: emb_stm32_pwm_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.timer_clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      bits: peripheral.counter_bits
+      channels: { from: peripheral.timer_channels, default: 4 }
+    doc: general-purpose timers' channels in PWM mode 1, and one cycle of an input captured exactly (SPEC-017 §11b, A129)
   arm,pl011:
     class: uart
     level: early
@@ -267,6 +337,53 @@ bindings:
     data: emb_rp2350_trng_data_t
     fields: { base: peripheral.base, irq: peripheral.irqs.irq, sample_count: device.sample_count }
     doc: the RP2350's TRNG (SPEC-017 §11), every health test on; KERNEL, as its read waits on a semaphore
+  rpi,rp2350-timer:
+    class: counter
+    level: kernel
+    sources: [drivers/rpi/rp2350_timer.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_timer_api.dev
+    config: emb_rp2350_timer_config_t
+    data: emb_rp2350_timer_data_t
+    fields:
+      base: peripheral.base
+      index: peripheral.index
+      rate_hz: { from: device.rate_hz, default: 1000000 }
+      irq0: peripheral.irqs.alarm0
+      irq1: peripheral.irqs.alarm1
+      irq2: peripheral.irqs.alarm2
+      irq3: peripheral.irqs.alarm3
+    doc: TIMER0 and TIMER1 as counters, 64 bits of their tick, an alarm on each of the four (SPEC-017 §11a, A129)
+  rpi,rp2350-adc:
+    class: adc
+    level: kernel
+    sources: [drivers/rpi/rp2350_adc.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_adc_api.dev
+    config: emb_rp2350_adc_config_t
+    data: emb_rp2350_adc_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      vref_mv: { from: device.vref_mv, default: 3300 }
+      bits: peripheral.adc.bits
+      inputs: peripheral.adc.inputs
+      temperature: peripheral.adc.temperature
+      dma_rx: dma.rx
+    doc: the ADC, its conversions and temperature sensor, round robins paced by its divider and drained by DMA (SPEC-017 §11c, A129)
+  rpi,rp2350-pwm:
+    class: pwm
+    level: kernel
+    sources: [drivers/rpi/rp2350_pwm.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_pwm_api.dev
+    config: emb_rp2350_pwm_config_t
+    data: emb_rp2350_pwm_data_t
+    fields: { base: peripheral.base, index: peripheral.index, clock_hz: peripheral.clock_hz }
+    doc: a PWM slice's outputs A and B, and its input B averaged over a gate time (SPEC-017 §11b, A129)
   rpi,rp2350-qmi:
     class: flash
     level: early
