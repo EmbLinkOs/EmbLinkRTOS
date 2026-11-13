@@ -1,0 +1,212 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+"""The system description (SPEC-014 §5, A125): a product's threads, objects, device settings,
+targets and watchdog over a board of the tree. One valid system, then one broken rule per case,
+each checking the system file, line and node path the error names (HW-002)."""
+import re
+import shutil
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent.parent
+sys.path.insert(0, str(HERE))
+from emb_hwgen import HwError, system  # noqa: E402
+
+GOOD = """\
+schema_version: 0
+kind: system
+name: controller
+board: st/nucleo_f446re
+conf: [app.conf]
+threads:
+  - { name: control_thread, entry: control, priority: 6, stack: 1K }
+  - { name: command_thread, entry: command, priority: 4, stack: 1K }
+  - { name: telemetry_thread, entry: telemetry, priority: 2, stack: 1K, autostart: false }
+objects:
+  - { name: samples, type: msgq, item: sample_t, capacity: 8 }
+  - { name: rx_bytes, type: msgq, item_size: 1, capacity: 64 }
+  - { name: console, type: mutex, protocol: inherit }
+  - { name: bus_lock, type: mutex, protocol: ceiling, users: [control_thread, command_thread] }
+  - { name: ready, type: sem, initial: 0, max: 1 }
+devices:
+  usart2: { baud: 57600, rx_buffer: 128 }
+spi_targets:
+  - { name: flash_chip, bus: spi2, hz: 8MHz, mode: 3, cs: 0 }
+i2c_targets:
+  - { name: env, bus: i2c1, address: 0x76, speed: fast }
+watchdog: { device: iwdg, timeout: 500ms }
+"""
+
+
+class Base(unittest.TestCase):
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp(prefix="hwgen-system-"))
+        self.addCleanup(shutil.rmtree, self.dir)
+        (self.dir / "app.conf").write_text("# the application's fragment\n", encoding="utf-8")
+        self.text = GOOD
+
+    def edit(self, old, new):
+        self.assertIn(old, self.text)
+        self.text = self.text.replace(old, new, 1)
+
+    def resolve(self):
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        return system.resolve(path, ROOT)
+
+    def line_of(self, needle):
+        for n, line in enumerate(self.text.splitlines(), 1):
+            if needle in line:
+                return n
+        raise AssertionError(f"{needle!r} not in the system description")
+
+    def expect(self, needle, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.resolve()
+        want = re.compile(rf"system\.yaml:{self.line_of(needle)}: {re.escape(path)}: .*{message}")
+        hits = [e for e in cm.exception.errors if want.search(e)]
+        self.assertTrue(hits, f"expected system.yaml:{self.line_of(needle)}: {path}: ...{message}, got:\n"
+                        + "\n".join(cm.exception.errors))
+
+
+class Valid(Base):
+    def test_resolves_with_the_board(self):
+        r = self.resolve()
+        s = r["system"]
+        self.assertEqual([t["name"] for t in s["threads"]], ["control_thread", "command_thread", "telemetry_thread"])
+        self.assertEqual(s["threads"][2]["flags"], ["EMB_THREAD_NO_AUTOSTART"])
+        lock = next(o for o in s["objects"] if o["name"] == "bus_lock")
+        self.assertEqual(lock["ceiling"], 6)  # the highest of its users: larger is higher (SPEC-008)
+        self.assertEqual(s["spi_targets"][0]["hz"], 8_000_000)
+        self.assertEqual(s["i2c_targets"][0]["hz"], 400_000)
+        self.assertEqual(s["watchdog"]["timeout_ms"], 500)
+        self.assertEqual(s["config"]["CONFIG_EMB_PRIORITY_COUNT"], 32)
+
+    def test_device_settings_replace_the_boards(self):
+        r = self.resolve()
+        usart2 = next(d for d in r["devices"] if d["name"] == "usart2")
+        self.assertEqual(next(f["value"] for f in usart2["fields"] if f["field"] == "baud"), 57600)
+        self.assertEqual(next(b["size"] for b in usart2["buffers"] if b["name"] == "rx"), 128)
+        self.assertEqual(r["console"]["baud"], 57600)  # the console is usart2: it follows
+        self.assertEqual(r["system"]["devices"]["usart2"]["baud"], {"value": 57600, "board": 115200})
+
+    def test_inputs_stamp_the_system_and_its_fragments(self):
+        names = {Path(i["path"]).name for i in self.resolve()["inputs"]}
+        self.assertTrue({"system.yaml", "app.conf", "board.yaml"} <= names, names)
+
+    def test_a_board_beside_the_system(self):
+        board = self.dir / "boards" / "acme_m4"
+        board.mkdir(parents=True)
+        text = (ROOT / "boards/arm/mps2_an386/board.yaml").read_text(encoding="utf-8")
+        (board / "board.yaml").write_text(text.replace("name: mps2_an386", "name: acme_m4"), encoding="utf-8")
+        self.text = "\n".join(l for l in GOOD.splitlines() if not re.match(r"^(  - \{ name: (flash_chip|env)|spi_targets|i2c_targets|watchdog|devices|  usart2)", l))
+        self.text = self.text.replace("board: st/nucleo_f446re", "board: boards/acme_m4") + "\n"
+        self.assertEqual(self.resolve()["board"]["name"], "acme_m4")
+
+
+class Negative(Base):
+    def test_unknown_key(self):
+        self.edit("name: controller", "name: controller\nflavour: lemon")
+        self.expect("flavour", "flavour", "unknown key")
+
+    def test_no_such_board(self):
+        self.edit("board: st/nucleo_f446re", "board: st/nucleo_f999")
+        self.expect("board:", "board", "no board 'st/nucleo_f999'")
+
+    def test_missing_fragment(self):
+        self.edit("conf: [app.conf]", "conf: [missing.conf]")
+        self.expect("conf:", "conf[0]", "no such file missing.conf")
+
+    def test_priority_zero_is_idle(self):
+        self.edit("priority: 2, stack: 1K, autostart", "priority: 0, stack: 1K, autostart")
+        self.expect("telemetry_thread", "threads.telemetry_thread.priority", "idle level")
+
+    def test_priority_above_the_count(self):
+        self.edit("priority: 6", "priority: 32")
+        self.expect("control_thread, entry", "threads.control_thread.priority", "outside 1 to 31")
+
+    def test_stack_below_the_ports_minimum(self):
+        self.edit("priority: 4, stack: 1K", "priority: 4, stack: 128")
+        self.expect("command_thread, entry", "threads.command_thread.stack", "below the port's minimum stack of 256")
+
+    def test_object_type_left_out_of_the_configuration(self):
+        (self.dir / "app.conf").write_text("CONFIG_EMB_MSGQ=n\n", encoding="utf-8")
+        self.expect("name: samples", "objects.samples.type", "needs CONFIG_EMB_MSGQ")
+
+    def test_option_of_another_type(self):
+        self.edit("type: sem, initial: 0, max: 1", "type: sem, initial: 0, max: 1, capacity: 4")
+        self.expect("name: ready", "objects.ready.capacity", "a sem takes no 'capacity'")
+
+    def test_ceiling_user_not_a_thread(self):
+        self.edit("users: [control_thread, command_thread]", "users: [control_thread, ghost]")
+        self.expect("name: bus_lock", "objects.bus_lock.users", "'ghost' is not a thread")
+
+    def test_msgq_item_and_item_size(self):
+        self.edit("item: sample_t, capacity: 8", "item: sample_t, item_size: 4, capacity: 8")
+        self.expect("name: samples", "objects.samples", "an item .* or an item_size")
+
+    def test_duplicate_name_across_sections(self):
+        self.edit("name: ready, type: sem", "name: console_lock, type: sem")
+        self.edit("name: env, bus: i2c1", "name: console_lock, bus: i2c1")
+        self.expect("name: console_lock, bus", "i2c_targets.console_lock", "already the name of objects.console_lock")
+
+    def test_device_not_on_the_board(self):
+        self.edit("usart2: { baud: 57600, rx_buffer: 128 }", "usart9: { baud: 57600 }")
+        self.expect("usart9", "devices.usart9", "has no device 'usart9'")
+
+    def test_option_the_binding_does_not_take(self):
+        self.edit("baud: 57600, rx_buffer: 128", "baud: 57600, parity: odd")
+        self.expect("usart2:", "devices.usart2.parity", "takes no option 'parity'")
+
+    def test_wiring_is_the_boards(self):
+        self.edit("baud: 57600, rx_buffer: 128", "baud: 57600, dma: tx")
+        self.expect("usart2:", "devices.usart2.dma", "the board's wiring")
+
+    def test_buffer_size_located_in_the_system(self):
+        self.edit("rx_buffer: 128", "rx_buffer: 0")
+        self.expect("usart2:", "devices.usart2.rx_buffer", "needs a size of 1 to 65535")
+
+    def test_baud_the_clock_cannot_make(self):
+        self.edit("baud: 57600", "baud: 2900000")
+        self.expect("usart2:", "devices.usart2.baud", "not within 2 %")
+
+    def test_spi_target_too_slow(self):
+        self.edit("hz: 8MHz", "hz: 100Hz")
+        self.expect("name: flash_chip", "spi_targets.flash_chip.hz", "below the slowest clock spi2 makes")
+
+    def test_spi_target_chip_select_out_of_range(self):
+        self.edit("mode: 3, cs: 0", "mode: 3, cs: 1")
+        self.expect("name: flash_chip", "spi_targets.flash_chip.cs", "has 1 chip select")
+
+    def test_spi_targets_sharing_a_chip_select(self):
+        self.edit("  - { name: flash_chip, bus: spi2, hz: 8MHz, mode: 3, cs: 0 }",
+                  "  - { name: flash_chip, bus: spi2, hz: 8MHz, mode: 3, cs: 0 }\n  - { name: other, bus: spi2, hz: 1MHz, cs: 0 }")
+        self.expect("name: other", "spi_targets.other.cs", "already flash_chip's")
+
+    def test_spi_target_on_an_i2c_bus(self):
+        self.edit("bus: spi2", "bus: i2c1")
+        self.expect("name: flash_chip", "spi_targets.flash_chip.bus", "i2c device, not an SPI controller")
+
+    def test_i2c_speed_the_controller_lacks(self):
+        self.edit("speed: fast", "speed: fast_plus")
+        self.expect("name: env", "i2c_targets.env.speed", "runs at standard, fast, not fast_plus")
+
+    def test_i2c_address_taken(self):
+        self.edit("  - { name: env, bus: i2c1, address: 0x76, speed: fast }",
+                  "  - { name: env, bus: i2c1, address: 0x76, speed: fast }\n  - { name: env2, bus: i2c1, address: 0x76 }")
+        self.expect("name: env2", "i2c_targets.env2.address", "already env's")
+
+    def test_watchdog_timeout_out_of_range(self):
+        self.edit("timeout: 500ms", "timeout: 30s")
+        self.expect("watchdog:", "watchdog.timeout", "30000 ms is outside iwdg's 1 to 22304 ms")
+
+    def test_watchdog_not_a_watchdog(self):
+        self.edit("device: iwdg", "device: rtc")
+        self.expect("watchdog:", "watchdog.device", "rtc is a rtc device, not a watchdog")
+
+
+if __name__ == "__main__":
+    unittest.main()

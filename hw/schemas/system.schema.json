@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/system.schema.json",
+  "title": "System description, schema v0 (SPEC-014 §5, A125)",
+  "description": "What a product does with its board: its threads, its kernel objects, its devices' settings, its bus targets and its watchdog. Generated into the application's generated/ by emb-hwgen generate --system.",
+  "type": "object",
+  "required": ["schema_version", "kind", "name", "board"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 0 },
+    "kind": { "const": "system" },
+    "name": { "$ref": "#/$defs/c_ident" },
+    "doc": { "type": "string" },
+    "board": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_./-]+$",
+      "description": "<vendor>/<board> in the tree, or a board directory relative to this file"
+    },
+    "profile": { "enum": ["tiny", "base", "isolated", "multicore", "native"], "description": "default: the board's" },
+    "conf": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Za-z0-9_./-]+\\.conf$" },
+      "description": "the application's Kconfig fragments, relative to this file, in the order the build applies them"
+    },
+    "includes": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Za-z0-9_./-]+\\.h$" },
+      "description": "headers system.c and system.h include: the types and functions they name"
+    },
+    "threads": { "type": "array", "items": { "$ref": "#/$defs/thread" } },
+    "objects": { "type": "array", "items": { "$ref": "#/$defs/object" } },
+    "devices": {
+      "type": "object",
+      "description": "the product's settings for the board's devices, by device name: the options their bindings read (device.<option>)",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "oneOf": [ { "type": "integer" }, { "type": "string" }, { "type": "boolean" } ] }
+      }
+    },
+    "spi_targets": { "type": "array", "items": { "$ref": "#/$defs/spi_target" } },
+    "i2c_targets": { "type": "array", "items": { "$ref": "#/$defs/i2c_target" } },
+    "watchdog": {
+      "type": "object",
+      "required": ["device", "timeout"],
+      "additionalProperties": false,
+      "properties": {
+        "device": { "$ref": "#/$defs/dev_name" },
+        "timeout": { "$ref": "#/$defs/duration" },
+        "doc": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "c_ident": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+    "c_expr": { "type": "string", "pattern": "^[^\\n]+$" },
+    "dev_name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "size": { "oneOf": [ { "type": "integer", "minimum": 1 }, { "type": "string", "pattern": "^[0-9]+[KM]$" } ] },
+    "duration": {
+      "oneOf": [ { "type": "integer", "minimum": 1 }, { "type": "string", "pattern": "^[0-9]+(ms|s)$" } ],
+      "description": "milliseconds, or 500ms, 2s"
+    },
+    "thread": {
+      "type": "object",
+      "required": ["name", "entry", "priority", "stack"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/c_ident" },
+        "entry": { "$ref": "#/$defs/c_ident" },
+        "arg": { "$ref": "#/$defs/c_expr" },
+        "priority": { "type": "integer", "minimum": 0 },
+        "stack": { "$ref": "#/$defs/size" },
+        "autostart": { "type": "boolean" },
+        "flags": { "type": "array", "items": { "enum": ["detached", "critical", "cancel_disabled"] } },
+        "doc": { "type": "string" }
+      }
+    },
+    "object": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/c_ident" },
+        "type": { "enum": ["mutex", "sem", "cond", "event", "msgq", "timer", "workq"] },
+        "protocol": { "enum": ["none", "inherit", "ceiling"] },
+        "users": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/c_ident" } },
+        "initial": { "type": "integer", "minimum": 0 },
+        "max": { "type": "integer", "minimum": 1 },
+        "item": { "$ref": "#/$defs/c_expr" },
+        "item_size": { "type": "integer", "minimum": 1 },
+        "capacity": { "type": "integer", "minimum": 1 },
+        "callback": { "$ref": "#/$defs/c_ident" },
+        "arg": { "$ref": "#/$defs/c_expr" },
+        "priority": { "type": "integer", "minimum": 0 },
+        "stack": { "$ref": "#/$defs/size" },
+        "doc": { "type": "string" }
+      }
+    },
+    "spi_target": {
+      "type": "object",
+      "required": ["name", "bus", "hz"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/c_ident" },
+        "bus": { "$ref": "#/$defs/dev_name" },
+        "hz": { "oneOf": [ { "type": "integer", "minimum": 1 }, { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(Hz|kHz|MHz)$" } ] },
+        "mode": { "enum": [0, 1, 2, 3] },
+        "cs": { "type": "integer", "minimum": 0 },
+        "bits": { "const": 8 },
+        "doc": { "type": "string" }
+      }
+    },
+    "i2c_target": {
+      "type": "object",
+      "required": ["name", "bus", "address"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/c_ident" },
+        "bus": { "$ref": "#/$defs/dev_name" },
+        "address": { "type": "integer", "minimum": 8, "maximum": 119 },
+        "speed": { "enum": ["standard", "fast", "fast_plus"] },
+        "doc": { "type": "string" }
+      }
+    }
+  }
+}

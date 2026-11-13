@@ -694,7 +694,7 @@ class Devices(unittest.TestCase):
                        "peripheral: usart2, baud: 115200, rx_buffer: 256 }")
         self.assertIn("static uint8_t console_rx[256];", self.files()["soc_devices.c"])
         self.root.edit(f"{BOARD}/board.yaml", "rx_buffer: 256", "rx_buffer: 70000")
-        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console")
+        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console.rx_buffer")
 
     def test_loopbacks(self):
         """simulation.loopbacks: a UART or SPI device, wired by two ports or looped inside."""
@@ -1153,7 +1153,7 @@ class Loader(unittest.TestCase):
 
 class Schemas(unittest.TestCase):
     def test_subset_only(self):
-        for kind in ("soc", "board", "hw", "bindings"):
+        for kind in ("soc", "board", "hw", "bindings", "system"):
             schema.load_schema(kind)  # raises on a keyword outside the supported subset
 
     def test_bool_is_not_integer(self):

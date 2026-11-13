@@ -43,6 +43,8 @@ def _hash_comment(r, cmd):
 
 
 def _cmd(r):
+    if "system_path" in r:  # an application's outputs, from its system description (A125)
+        return f"hw/gen/emb-hwgen.py generate --system {r['system_path']}"
     return f"hw/gen/emb-hwgen.py generate --board {r['board_dir']}"
 
 

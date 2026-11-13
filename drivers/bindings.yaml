@@ -101,6 +101,7 @@ bindings:
     fields: { base: peripheral.base, lines: soc.gpio.lines }
   arm,pl022:
     class: spi
+    limits: { divider: [2, 65024] }    # CPSDVSR 2 to 254, even, times 1 + SCR (1 to 256): pl022.c
     level: kernel
     sources: [drivers/arm/pl022.c]
     include: drivers/arm/include
@@ -112,6 +113,7 @@ bindings:
     doc: the RP2350's SPI controllers, and QEMU's MPS2 models (SPEC-017 §5)
   st,stm32-spi:
     class: spi
+    limits: { divider: [2, 256] }      # PCLK / 2^(BR + 1), BR 0 to 7: stm32_spi.c
     level: kernel
     sources: [drivers/st/stm32_spi.c]
     include: drivers/st/include
@@ -129,6 +131,7 @@ bindings:
       dma_rx: dma.rx
   st,stm32-i2c:
     class: i2c
+    limits: { speeds: [standard, fast] }   # no fast mode plus: stm32_i2c.c's capabilities
     level: kernel
     sources: [drivers/st/stm32_i2c.c]
     include: drivers/st/include
@@ -148,6 +151,7 @@ bindings:
     doc: the STM32F4's I2C, controller and target, standard and fast mode (SPEC-017 §6)
   snps,designware-i2c:
     class: i2c
+    limits: { speeds: [standard, fast, fast_plus] }
     level: kernel
     sources: [drivers/snps/dw_i2c.c]
     include: drivers/snps/include
@@ -193,6 +197,7 @@ bindings:
     doc: the RP2350's DMA, a job per channel paced by a DREQ (SPEC-017 §7); EARLY, so any device may use it
   st,stm32f4-iwdg:
     class: watchdog
+    limits: { timeout_ms: [1, 22304] }  # 4095 ticks of the LSI at its fastest 47 kHz, divided by 256: stm32_iwdg.c
     level: early
     sources: [drivers/st/stm32_iwdg.c]
     include: drivers/st/include
@@ -204,6 +209,7 @@ bindings:
     doc: the STM32F4's independent watchdog (SPEC-017 §8); EARLY, so the reset's cause is read at boot
   rpi,rp2350-watchdog:
     class: watchdog
+    limits: { timeout_ms: [1, 16777] }  # LOAD's 24 bits of microseconds: rp2350_watchdog.c
     level: early
     sources: [drivers/rpi/rp2350_watchdog.c]
     include: drivers/rpi/include
