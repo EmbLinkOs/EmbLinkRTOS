@@ -9,7 +9,9 @@ __pycache__/
 
 # Build trees
 build/
-# but not a generated directory's build/, the board's or application's CMake (A126)
+# but not a generated directory's build/, the board's or application's CMake (A126), nor an
+# application's configuration folder's, src/config/<board>/build/ (A130)
 !**/generated/**/build/
+!**/src/config/**/build/
 .venv/
 .venv-docs/
