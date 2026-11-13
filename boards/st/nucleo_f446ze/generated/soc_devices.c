@@ -18,11 +18,11 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     1525ea206692663af174039e30776d6a9a9b30275c9e5c9bdabf14ac0b70aa19
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/st/stm32f4/stm32f4.yaml
  *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
  *   soc/st/stm32f4/stm32f446.yaml
- *     1a7a08ee049164842f51e62877ec373ed21a1b90403b0833565d0a6c7f37b748
+ *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
  *   soc/st/stm32f4/stm32f446ze.yaml
  *     dabae95e9e4bc984c1a33275966665e0252068e929fe3b430d06589da6bdb6c9
  */
@@ -32,6 +32,8 @@
 #include "soc_devices.h"
 
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 
 #include <stddef.h>
 
@@ -64,7 +66,7 @@ static emb_device_state_t gpiob_state;
 static const emb_device_t *const gpiob_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpiob = {
     .name = "gpiob",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpiob_config,
     .state = &gpiob_state,
     .data = NULL,
@@ -84,7 +86,7 @@ static emb_device_state_t gpioc_state;
 static const emb_device_t *const gpioc_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpioc = {
     .name = "gpioc",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpioc_config,
     .state = &gpioc_state,
     .data = NULL,
@@ -104,7 +106,7 @@ static emb_device_state_t gpiod_state;
 static const emb_device_t *const gpiod_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_gpiod = {
     .name = "gpiod",
-    .api = &emb_stm32_gpio_api,
+    .api = &emb_stm32_gpio_api.dev,
     .config = &gpiod_config,
     .state = &gpiod_state,
     .data = NULL,
@@ -115,21 +117,27 @@ const emb_device_t emb_dev_gpiod = {
 };
 
 /* usart3: st,stm32-usart, uart, EARLY */
+static uint8_t usart3_rx[64];
 static const emb_stm32_usart_config_t usart3_config = {
-    .base = 0x40004800u,         /* peripheral.base */
-    .clock_hz = 45000000u,       /* peripheral.clock_hz */
-    .baud = 115200u,             /* device.baud */
-    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
-    .clken_bit = 18u,            /* peripheral.clock.bit */
+    .base = 0x40004800u,                /* peripheral.base */
+    .clock_hz = 45000000u,              /* peripheral.clock_hz */
+    .baud = 115200u,                    /* device.baud */
+    .clken_offset = 0x00000040u,        /* peripheral.clock.enable_offset */
+    .clken_bit = 18u,                   /* peripheral.clock.bit */
+    .irq = 39u,                         /* peripheral.irqs.global */
+    .dma_tx = {NULL, 0u, 0u, {0u, 0u}}, /* dma.tx */
+    .rx = usart3_rx,                    /* its rx buffer */
+    .rx_size = 64u,                     /* device.rx_buffer */
 };
 static emb_device_state_t usart3_state;
+static emb_stm32_usart_data_t usart3_data;
 static const emb_device_t *const usart3_deps[] = {&emb_dev_rcc};
 const emb_device_t emb_dev_usart3 = {
     .name = "usart3",
-    .api = &emb_stm32_usart_api,
+    .api = &emb_stm32_usart_api.dev,
     .config = &usart3_config,
     .state = &usart3_state,
-    .data = NULL,
+    .data = &usart3_data,
     .deps = usart3_deps,
     .class_id = EMB_DRV_CLASS_UART,
     .level = EMB_DEVICE_EARLY,
@@ -146,6 +154,21 @@ static const emb_device_t *const devices[] = {
 };
 
 const emb_device_table_t emb_board_device_table = {devices, 5u, 5u};
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */
+const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA
+ * class takes buffers (SPEC-017 §7) */
+const emb_drv_dma_region_t emb_board_dma_regions[] = {
+    {0x20000000u, 0x0001C000u}, /* sram1 */
+    {0x2001C000u, 0x00004000u}, /* sram2 */
+};
+const unsigned emb_board_dma_region_count = 2u;
+#endif
 #else
 /* ISO C: a translation unit declares something */
 typedef int emb_soc_devices_off_t;

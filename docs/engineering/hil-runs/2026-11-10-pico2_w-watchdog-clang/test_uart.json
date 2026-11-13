@@ -1,0 +1,97 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "uart_read_and_write_run_at_once",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "uart_ring_keeps_bytes_no_read_waits_for",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 10,
+      "name": "uart_idle_ends_a_read_early",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 11,
+      "name": "uart_overrun_and_damaged_bytes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "uart_read_times_out_with_what_it_got",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "uart_polled_calls_and_capabilities",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "uart_break_runs_after_the_writes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "uart_misuse_faults",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:28:45Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "31514269d16f5bb3",
+    "profile": "base",
+    "suite": "test_uart"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 5,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_uart.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_uart.uf2": "b1be01470a8f56cbbb50d144b701d2d5cbde6002b0c6553a8125b80d38849e34"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b3f1872e4d4031bbd2a637567d17d7eee5b1c8b",
+    "dirty": false
+  },
+  "image": "test_uart.elf",
+  "image_sha256": "a9e02a03146d496e4de5f8aa58c212747644cf6bbe47c6145b03d4e30844fef7",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T23:28:43Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 8
+  }
+}

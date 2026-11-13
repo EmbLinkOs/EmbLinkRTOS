@@ -61,6 +61,13 @@ class Graph(unittest.TestCase):
         self.assertEqual(path, ["a", "d2"])
         self.assertTrue(fp)  # c, through b, uses the FPU
 
+    def test_optional_targets_only_where_linked(self):
+        graph = {"usart_isr": {}, "spi_isr": {}}
+        self.assertEqual(sb.listed_targets(["usart_isr", "spi_isr?", "i2c_isr?"], graph),
+                         ["spi_isr", "usart_isr"])
+        # a plain name stays even when absent, so that Bound reports it
+        self.assertEqual(sb.listed_targets(["typo_isr"], graph), ["typo_isr"])
+
     def test_unresolved_and_recursion(self):
         g = {"x": {"calls": {"y"}, "indirect": True, "fp": False},
              "y": {"calls": {"x"}, "indirect": False, "fp": False}}

@@ -29,16 +29,30 @@ clocks:
   pll: { m: 1, n: 125, p: 10 }
 pins:
   uart0: { tx: GPIO0.f2, rx: GPIO1.f2 }
+  uart1: { tx: GPIO4.f2, rx: GPIO5.f2 }   # pins 6 and 7
+  spi1: { sck: GPIO10.f1, mosi: GPIO11.f1, miso: GPIO12.f1 } # pins 14, 15 and 16
+  i2c0: { sda: GPIO8.f3, scl: GPIO9.f3 }   # pins 11 and 12
+  i2c1: { sda: GPIO6.f3, scl: GPIO7.f3 }   # pins 9 and 10
 console: { device: uart0, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices; the RP2350's blocks have
 # no clock gates in the description, so the order is stated
 devices:
   - { name: clocks }
   - { name: io_bank0, deps: [clocks] }
+  - { name: watchdog, doc: "the watchdog" }
+  - { name: trng, sample_count: 200, doc: "the true random number generator: 200 clocks of clk_sys between samples, measured on the board: 100 still passed its health tests, 50 failed nearly every block" }
+  - { name: rtc, peripheral: powman, doc: "the always-on timer, ticked from the crystal: the clock kept across resets" }
+  - { name: flash, peripheral: qmi, size: 4M, doc: "the 4 MiB QSPI flash: its storage partition is the tests' (the last 64 KiB)" }
+  - { name: dma, doc: "the DMA controller: SPI1's transfers" }
   - { name: uart0, baud: 115200, deps: [io_bank0], doc: "the console, GPIO0 and GPIO1" }
+  - { name: spi1, deps: [io_bank0], cs: [GPIO13], dma: [tx, rx], doc: "SPI1 on GPIO10 to GPIO12, its chip select GPIO13 (pin 17); the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)" }
+  - { name: i2c0, deps: [io_bank0], doc: "I2C0 on GPIO8 (pin 11, SDA) and GPIO9 (pin 12, SCL); the HIL suite wires it to I2C1" }
+  - { name: i2c1, deps: [io_bank0], doc: "I2C1 on GPIO6 (pin 9, SDA) and GPIO7 (pin 10, SCL), the HIL suite's target for I2C0" }
+  - { name: uart1, baud: 115200, deps: [io_bank0], dma: [tx], doc: "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:
-  - { name: app, base: 0x10000000, size: 4M }
+  - { name: app, base: 0x10000000, size: 4032K }       # the first 4 MiB less 64 KiB
+  - { name: storage, base: 0x103F0000, size: 64K }     # sixteen 4 KiB sectors
 # SPAREIRQ_IRQ_0 and 1: lines no peripheral raises
 test_irqs: [46, 47]
 # picotool loads UF2 images of this family in BOOTSEL; the console is another port (UART0)

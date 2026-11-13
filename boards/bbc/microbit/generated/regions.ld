@@ -63,6 +63,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;

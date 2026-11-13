@@ -33,8 +33,9 @@ extern "C" {
 #define EMB_CRASH_VERSION_SMALL 2u /* 16-bit pointers (AVR): 34 bytes */
 
 /* What the kernel did after writing the record (emb_crash_record_t.reset_reason). */
-#define EMB_CRASH_RESET_REBOOT 1u /* CONFIG_EMB_FAULT_ACTION_REBOOT: reset */
-#define EMB_CRASH_RESET_HALT   2u /* CONFIG_EMB_FAULT_ACTION_HALT: stopped for a debugger */
+#define EMB_CRASH_RESET_REBOOT   1u /* CONFIG_EMB_FAULT_ACTION_REBOOT: reset */
+#define EMB_CRASH_RESET_HALT     2u /* CONFIG_EMB_FAULT_ACTION_HALT: stopped for a debugger */
+#define EMB_CRASH_RESET_WATCHDOG 3u /* the software watchdog stopped feeding (FLT-004) */
 
 #define EMB_CRASH_BUILD_ID_SIZE 20u /* version 2 keeps the first 4 bytes */
 #define EMB_CRASH_REGS_MAX      16u /* status and general registers together, version 1 */

@@ -33,6 +33,7 @@
 
 #include <stdint.h>
 
+#include <emb_cortex_m.h>
 #include <emb_irq_priority.h>
 
 /* ---- system control registers (Armv7-M ARM B3.2) ---------------------------------- */
@@ -406,6 +407,75 @@ uint32_t emb_arch_cycles_hz(void)
     return (uint32_t)CONFIG_EMB_CM_CPU_HZ;
 }
 
+/* ---- a stall longer than a tick (A122) ---------------------------------------------- */
+
+#define DEMCR          0xE000EDFCu
+#define DEMCR_TRCENA   ((uint32_t)1u << 24)
+#define DWT_CTRL       0xE0001000u
+#define DWT_CYCCNT     0xE0001004u
+#define DWT_CYCCNTENA  ((uint32_t)1u << 0)
+#define DWT_NOCYCCNT   ((uint32_t)1u << 25) /* the counter is not implemented */
+#define ICSR_PENDSTSET ((uint32_t)1u << 26)
+
+#if (__ARM_ARCH >= 7) || defined(__ARM_ARCH_8M_MAIN__)
+/* Starts DWT CYCCNT where the core has it; whether it counts. */
+static bool cycle_counter(void)
+{
+    REG32(DEMCR) |= DEMCR_TRCENA;
+    if ((REG32(DWT_CTRL) & DWT_NOCYCCNT) == 0u) {
+        REG32(DWT_CTRL) |= DWT_CYCCNTENA;
+    }
+    return (REG32(DWT_CTRL) & DWT_CYCCNTENA) != 0u;
+}
+
+uint32_t emb_cm_cycle_count(void)
+{
+    return cycle_counter() ? REG32(DWT_CYCCNT) : 0u;
+}
+
+void emb_cm_stall_begin(emb_cm_stall_t *s)
+{
+    s->counting = (uint8_t)(cycle_counter() ? 1u : 0u);
+    s->cycles = (s->counting != 0u) ? REG32(DWT_CYCCNT) : 0u;
+    s->into = tick_reload - REG32(SYST_CVR);
+    s->pending = (uint8_t)(((REG32(SCB_ICSR) & ICSR_PENDSTSET) != 0u) ? 1u : 0u);
+}
+
+void emb_cm_stall_end(const emb_cm_stall_t *s)
+{
+    uint64_t spent;
+    uint64_t passed;
+    if ((s->counting == 0u) || (tick_reload == 0u)) {
+        return;
+    }
+    spent = (uint64_t)s->into + (uint64_t)(uint32_t)(REG32(DWT_CYCCNT) - s->cycles);
+    passed = spent / ((uint64_t)tick_reload + 1u); /* the tick boundaries passed */
+    if ((passed != 0u) && (s->pending == 0u)) {
+        passed--; /* SysTick's pending interrupt delivers one of them */
+    }
+    embk_time_ticks_missed((emb_tick_t)passed);
+}
+#else
+/* ARMv6-M: no cycle counter, so nothing to count by and nothing added. */
+uint32_t emb_cm_cycle_count(void)
+{
+    return 0u;
+}
+
+void emb_cm_stall_begin(emb_cm_stall_t *s)
+{
+    s->counting = 0u;
+    s->cycles = 0u;
+    s->into = 0u;
+    s->pending = 0u;
+}
+
+void emb_cm_stall_end(const emb_cm_stall_t *s)
+{
+    (void)s;
+}
+#endif
+
 /* ---- startup and kernel start (SPEC-011 §4) ------------------------------------------- */
 
 void emb_arch_early_init(void)
@@ -515,9 +585,17 @@ void emb_arch_reset(const emb_fault_info_t *info)
     emb_arch_system_reset();
 }
 
+/* The board's last words before a reset: a console with a transmit FIFO lets its bytes out
+ * (the RP2350's PL011 holds 32, which a reset would cut off mid-line). */
+EMB_WEAK void emb_board_reset_prepare(void);
+EMB_WEAK void emb_board_reset_prepare(void)
+{
+}
+
 void emb_arch_system_reset(void)
 {
     __asm__ __volatile__("cpsid i" ::: "memory");
+    emb_board_reset_prepare();
     __asm__ __volatile__("dsb" ::: "memory");
     REG32(SCB_AIRCR) = (0x5FAu << 16) | (1u << 2); /* SYSRESETREQ */
     __asm__ __volatile__("dsb" ::: "memory");

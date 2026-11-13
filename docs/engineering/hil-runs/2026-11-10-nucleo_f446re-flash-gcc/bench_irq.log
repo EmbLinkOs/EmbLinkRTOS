@@ -1,0 +1,5 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image bench_irq.elf sha256 25d787fa2a552f0d1d93e25f8d3ad833fcef6224cd1f26f4188bab05ead4e878
+bench irq pend to handler: min 174 max 595 avg x100 17447 cycle-units over 1000 runs
+BENCH v1 name=irq_pend_to_handler min=174 max=595 avg_x100=17447 ops=1000 unit_hz=180000000 checked=1
+meta: board nucleo_f446re, compiler gcc, profile base, checked 1, cycle unit hz 180000000
+BENCH_END

@@ -1,0 +1,61 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 260,
+      "name": "flash_board_erase_keeps_the_clock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2312,
+      "name": "flash_board_program_and_read_back",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T20:51:45Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "d2766df657716aad",
+    "profile": "base",
+    "suite": "test_flash_board"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_flash_board.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_flash_board.uf2": "f7c2d15753cd66b958ffd2c6049c593a3c6cd448c09708a7220dae9139f9874e"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_flash_board.elf",
+  "image_sha256": "29fc7102015d622765d520aea1b09a0c637e69399293c354ae562f5d3022e050",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T20:51:41Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

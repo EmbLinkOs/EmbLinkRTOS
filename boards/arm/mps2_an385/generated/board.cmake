@@ -9,13 +9,13 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/arm/mps2_an385/board.yaml
-#     0a1a8b51fa766a545b3878d1ff9ab2a3ddc9f48bc391487612d22dfafaedd7da
+#     a5b0b55c085af47e34d849874a2b9c5d70300eb3cd49ec418adc5b0a9bb43c08
 #   drivers/bindings.yaml
-#     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+#     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
 #   soc/arm/mps2/an385.yaml
 #     a33c411be3b6ebf62765e2f39d0065dfe40520d534ebe7b83cdfa16814488a4b
 #   soc/arm/mps2/mps2.yaml
-#     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
+#     7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71
 # mps2_an385: Cortex-M3, cortex-m3 at 25 MHz.
 set(EMB_BOARD_ARCH cortex_m)
 set(EMB_BOARD_VARIANT armv7m)
@@ -26,10 +26,12 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/arm/mps2")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M mps2-an385 -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel)
 set(EMB_BOARD_RESETS_IN qemu) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_SPI_LOOP_INTERNAL spi0)
 # the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
 set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/arm/cmsdk_uart.c"
+    "${EMB_BASE}/drivers/arm/pl022.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/arm/include"
@@ -37,8 +39,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
-    "boards/arm/mps2_an385/board.yaml=0a1a8b51fa766a545b3878d1ff9ab2a3ddc9f48bc391487612d22dfafaedd7da"
-    "drivers/bindings.yaml=c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480"
+    "boards/arm/mps2_an385/board.yaml=a5b0b55c085af47e34d849874a2b9c5d70300eb3cd49ec418adc5b0a9bb43c08"
+    "drivers/bindings.yaml=e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
     "soc/arm/mps2/an385.yaml=a33c411be3b6ebf62765e2f39d0065dfe40520d534ebe7b83cdfa16814488a4b"
-    "soc/arm/mps2/mps2.yaml=e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9"
+    "soc/arm/mps2/mps2.yaml=7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71"
 )

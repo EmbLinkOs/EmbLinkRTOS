@@ -1,0 +1,139 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 8,
+      "name": "mutex_lock_unlock_and_ownership",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "mutex_recursive_counts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 16,
+      "name": "mutex_contended_lock_inherits_and_hands_off",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 14,
+      "name": "mutex_timeout_removes_the_contribution",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 28,
+      "name": "mutex_inheritance_propagates_along_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "mutex_deadlock_is_detected_on_the_chain",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "mutex_ceiling_raises_the_owner",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_ceiling_violation_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "mutex_ceiling_violation_when_owned",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_owner_death_policy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 15,
+      "name": "mutex_destroy_rules",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "mutex_storage_reuse_requires_destroy",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 20,
+      "name": "mutex_waiter_priority_change_reorders_and_propagates",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "mutex_init_validates_arguments",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "mutex_define_constructs_in_init_table",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T22:42:42Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "df5c8385dd9f1b46",
+    "profile": "base",
+    "suite": "test_mutex"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 11,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_mutex.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_mutex.uf2": "8138a43b81cb77ae0352a2d815c1533cb5ead24305c4051075c1aeb61a6ac296"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "211c4d98e15600f78d500595cad767c34a328b07",
+    "dirty": false
+  },
+  "image": "test_mutex.elf",
+  "image_sha256": "1df64135ce266d83ce14ddeb17be89cf4c99aa26ffd770e3441d1bc263505721",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T22:42:40Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 15
+  }
+}

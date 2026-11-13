@@ -1,0 +1,235 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright 2026 Junior Deogracias */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_spi_loop.c
+ * @brief   The SPI class on a real controller (SPEC-017 §5; DRV-004 to DRV-006), its MOSI looped to
+ *          its MISO.
+ *
+ * @details
+ * By a wire on the bench and in EmbSIM, or inside the controller where it has a loopback mode and
+ * the emulator models it (QEMU's PL022). Built where one of these exists: EMB_TEST_SPI_LOOP names
+ * the device (tests/conformance/CMakeLists.txt).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
+#include <emb_test.h>
+#include <soc_devices.h>
+#include <string.h>
+
+#define LOOP EMB_TEST_SPI_LOOP_DEV
+#ifdef EMB_TEST_SPI_LOOP_INTERNAL
+#define LOOP_FLAGS EMB_DRV_SPI_LOOPBACK
+#else
+#define LOOP_FLAGS 0u
+#endif
+
+#define NO_CS         \
+    {                 \
+        NULL, 0u, 0u, \
+        {             \
+            0u, 0u    \
+        }             \
+    }
+
+static uint8_t out[256];
+static uint8_t in[256];
+
+static void pattern(size_t n, uint8_t seed)
+{
+    size_t i;
+    for (i = 0u; i < n; i++) { /* bounded by n: every byte value, zeros included */
+        out[i] = (uint8_t)((i * 73u) + seed);
+    }
+    (void)memset(in, 0, sizeof(in));
+}
+
+EMB_TEST(spi_loop_frames_come_back_intact)
+{
+    static const emb_drv_spi_target_t t = {1000000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u, NO_CS};
+    size_t done = 0u;
+    EMB_TEST_REQ("DRV-004", "DRV-005");
+    EMB_ASSERT_TRUE(emb_device_ready(LOOP));
+    pattern(sizeof(out), 0x3Cu);
+    EMB_ASSERT_OK(
+        emb_drv_spi_transfer(LOOP, &t, out, in, sizeof(out), EMB_TIMEOUT(EMB_MS(1000)), &done));
+    EMB_ASSERT_EQ(done, sizeof(out));
+    EMB_ASSERT_TRUE(memcmp(in, out, sizeof(out)) == 0);
+}
+
+EMB_TEST(spi_loop_every_mode)
+{
+    uint8_t mode;
+    EMB_TEST_REQ("DRV-004");
+    for (mode = EMB_DRV_SPI_MODE_0; mode <= EMB_DRV_SPI_MODE_3; mode++) { /* the four modes */
+        const emb_drv_spi_target_t t = {2000000u, mode, 8u, LOOP_FLAGS, 0u, NO_CS};
+        pattern(16u, mode);
+        EMB_ASSERT_OK(
+            emb_drv_spi_transfer(LOOP, &t, out, in, 16u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+        EMB_ASSERT_TRUE(memcmp(in, out, 16u) == 0);
+    }
+}
+
+/* 200 kHz: within every controller here (the F446's SPI2 reaches 45 MHz / 256 = 176 kHz). */
+EMB_TEST(spi_loop_slow_and_fast_clocks)
+{
+    static const emb_drv_spi_target_t slow = {200000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
+                                              NO_CS};
+    static const emb_drv_spi_target_t fast = {8000000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
+                                              NO_CS};
+    EMB_TEST_REQ("DRV-004");
+    pattern(32u, 0x11u);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &slow, out, in, 32u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 32u) == 0);
+    pattern(32u, 0x22u);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &fast, out, in, 32u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 32u) == 0);
+}
+
+EMB_TEST(spi_loop_refuses_a_clock_too_slow)
+{
+    static const emb_drv_spi_target_t crawl = {1u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u, NO_CS};
+    static const emb_drv_spi_target_t t = {1000000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u, NO_CS};
+    size_t done = 9u;
+    EMB_TEST_REQ("DRV-006");
+    pattern(8u, 0x44u);
+    EMB_ASSERT_STATUS(
+        emb_drv_spi_transfer(LOOP, &crawl, out, in, 8u, EMB_TIMEOUT(EMB_MS(1000)), &done),
+        EMB_ENOTSUP); /* the rate is a ceiling: no divider reaches 1 Hz */
+    EMB_ASSERT_EQ(done, 0u);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &t, out, in, 8u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 8u) == 0); /* the controller is still usable */
+}
+
+/* 256 frames at 200 kHz take some 10 ms; a 2 ms timeout stops the transfer part-way, after
+ * whole frames. An emulator that moves frames at once finishes it first: either way the frames
+ * counted came back intact and the controller goes on. */
+EMB_TEST(spi_loop_timeout_stops_after_whole_frames)
+{
+    static const emb_drv_spi_target_t slow = {200000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
+                                              NO_CS};
+    static const emb_drv_spi_target_t t = {1000000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u, NO_CS};
+    size_t done = 0u;
+    emb_status_t st;
+    EMB_TEST_REQ("DRV-006");
+    pattern(sizeof(out), 0x5Au);
+    st = emb_drv_spi_transfer(LOOP, &slow, out, in, sizeof(out), EMB_TIMEOUT(EMB_MS(2)), &done);
+    if (st == EMB_OK) {
+        EMB_ASSERT_EQ(done, sizeof(out));
+    } else {
+        EMB_ASSERT_STATUS(st, EMB_ETIMEDOUT);
+        EMB_ASSERT_TRUE(done > 0u && done < sizeof(out));
+    }
+    EMB_ASSERT_TRUE(memcmp(in, out, done) == 0);
+    pattern(16u, 0x66u);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &t, out, in, 16u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 16u) == 0); /* nothing left over from the stopped one */
+}
+
+EMB_TEST(spi_loop_no_transmit_buffer_sends_ones)
+{
+    static const emb_drv_spi_target_t t = {1000000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u, NO_CS};
+    size_t i;
+    EMB_TEST_REQ("DRV-005");
+    (void)memset(in, 0, sizeof(in));
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &t, NULL, in, 16u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    for (i = 0u; i < 16u; i++) { /* bounded: 16 frames */
+        EMB_ASSERT_EQ(in[i], 0xFFu);
+    }
+}
+
+#ifdef EMB_TEST_SPI_LOOP_CS
+/* The board's chip select (devices[].cs): set up deasserted at boot, asserted for each
+ * transfer and across a held bus, read back at the pin. */
+static const emb_drv_spi_target_t with_cs = {200000u, EMB_DRV_SPI_MODE_0,  8u, LOOP_FLAGS,
+                                             0u,      EMB_TEST_SPI_LOOP_CS};
+
+static bool cs_high(void)
+{
+    bool high = false;
+    EMB_ASSERT_OK(emb_drv_gpio_read(with_cs.cs.gpio, with_cs.cs.line, &high));
+    return high;
+}
+
+EMB_TEST(spi_loop_chip_select_at_the_pin)
+{
+    emb_drv_spi_req_t req;
+    EMB_TEST_REQ("DRV-004");
+    EMB_ASSERT_TRUE(cs_high()); /* deasserted since boot */
+    pattern(sizeof(out), 0x77u);
+    emb_drv_spi_req_transfer(&req, &with_cs, out, in, sizeof(out)); /* some 11 ms of frames */
+    EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
+    EMB_ASSERT_TRUE(!cs_high()); /* asserted while they run */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(50)));
+    EMB_ASSERT_STATUS(req.req.status, EMB_OK);
+    EMB_ASSERT_TRUE(cs_high()); /* released at the end */
+    EMB_ASSERT_TRUE(memcmp(in, out, sizeof(out)) == 0);
+
+    EMB_ASSERT_OK(emb_drv_spi_acquire(LOOP, &with_cs, EMB_NO_WAIT));
+    EMB_ASSERT_TRUE(!cs_high());
+    pattern(16u, 0x12u);
+    EMB_ASSERT_OK(
+        emb_drv_spi_transfer(LOOP, &with_cs, out, in, 16u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(!cs_high()); /* held between transfers */
+    EMB_ASSERT_OK(
+        emb_drv_spi_transfer(LOOP, &with_cs, out, in, 16u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 16u) == 0);
+    EMB_ASSERT_OK(emb_drv_spi_release(LOOP));
+    EMB_ASSERT_TRUE(cs_high());
+}
+#endif
+
+#ifdef EMB_TEST_SPI_LOOP_DMA_TX
+/* The board gives the controller DMA channels: a long transfer runs by DMA, its transmit
+ * channel the SPI's while it does, and a cancel in the middle stops after whole frames. */
+static const emb_drv_dma_chan_t loop_dma_tx = EMB_TEST_SPI_LOOP_DMA_TX;
+static uint8_t probe;
+
+static void probe_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    (void)arg;
+    (void)st;
+    (void)moved;
+}
+
+EMB_TEST(spi_loop_runs_by_dma)
+{
+    static const emb_drv_spi_target_t slow = {200000u, EMB_DRV_SPI_MODE_0, 8u, LOOP_FLAGS, 0u,
+                                              NO_CS};
+    emb_drv_spi_req_t req;
+    emb_status_t st;
+    emb_drv_dma_job_t job = {
+        (uintptr_t)&probe, (uintptr_t)&probe, 1u, EMB_DRV_DMA_TO_PERIPH, 1u, 0u, 0u};
+    EMB_TEST_REQ("DRV-004", "DRV-006");
+    pattern(sizeof(out), 0x2Bu);
+    emb_drv_spi_req_transfer(&req, &slow, out, in, sizeof(out)); /* some 11 ms of frames */
+    EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
+    st = emb_drv_dma_start(&loop_dma_tx, &job, probe_done, NULL);
+    if (st == EMB_OK) {
+        (void)emb_drv_dma_stop(&loop_dma_tx, NULL); /* free: the probe must not keep it */
+    }
+    EMB_ASSERT_STATUS(st, EMB_EBUSY);
+    /* the transfer has the channel */ /* the SPI's transmit job has it */
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(50)));
+    EMB_ASSERT_STATUS(req.req.status, EMB_OK);
+    EMB_ASSERT_EQ(req.req.done, sizeof(out));
+    EMB_ASSERT_TRUE(memcmp(in, out, sizeof(out)) == 0);
+
+    pattern(sizeof(out), 0x3Cu);
+    emb_drv_spi_req_transfer(&req, &slow, out, in, sizeof(out));
+    EMB_ASSERT_OK(emb_drv_spi_submit(LOOP, &req));
+    EMB_ASSERT_OK(emb_thread_sleep(EMB_MS(3)));
+    EMB_ASSERT_OK(emb_drv_cancel(LOOP, &req.req)); /* part-way */
+    EMB_ASSERT_STATUS(req.req.status, EMB_ECANCELED);
+    EMB_ASSERT_TRUE(req.req.done > 0u && req.req.done < sizeof(out));
+    EMB_ASSERT_TRUE(memcmp(in, out, req.req.done) == 0); /* whole frames, intact */
+    pattern(32u, 0x4Du);
+    EMB_ASSERT_OK(emb_drv_spi_transfer(LOOP, &slow, out, in, 32u, EMB_TIMEOUT(EMB_MS(1000)), NULL));
+    EMB_ASSERT_TRUE(memcmp(in, out, 32u) == 0); /* and the next is clean */
+}
+#endif

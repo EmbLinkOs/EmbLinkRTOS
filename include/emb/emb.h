@@ -24,6 +24,28 @@
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 #endif
+#if CONFIG_EMB_DRV_UART
+#include <emb/drv_uart.h>
+#endif
+#if CONFIG_EMB_DRV_SPI
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
+#include <emb/drv_flash.h>
+#include <emb/drv_gpio.h>
+#include <emb/drv_i2c.h>
+#include <emb/drv_rtc.h>
+#include <emb/drv_spi.h>
+#include <emb/drv_wdt.h>
+#endif
+#if CONFIG_EMB_DRV_FLASH
+#include <emb/flash_area.h>
+#endif
+#if CONFIG_EMB_WALLCLOCK
+#include <emb/wallclock.h>
+#endif
+#if CONFIG_EMB_WDOG
+#include <emb/wdog.h>
+#endif
 #if CONFIG_EMB_CRASH_RECORD
 #include <emb/crash.h>
 #endif

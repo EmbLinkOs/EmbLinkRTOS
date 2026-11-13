@@ -1,0 +1,47 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_notify.elf sha256 12c87932c64d74de687d2664fd0b3c0372cedbe94225864ff9508aae1177646b
+EVIDENCE v1 suite=test_notify config=9e4854acdc9e5692 profile=base board=pico2_w checked=1
+TEST notify_bits_are_level_sensitive
+  -> ok
+  req KRN-NOTIF-001 KRN-NOTIF-002
+CASE notify_bits_are_level_sensitive outcome=passed asserts=7 skips=0
+TEST notify_any_and_all_modes
+  -> ok
+  req KRN-NOTIF-001
+CASE notify_any_and_all_modes outcome=passed asserts=12 skips=0
+TEST notify_wake_from_thread_hands_off_bits
+  -> ok
+  req KRN-NOTIF-003 KRN-WAIT-012
+CASE notify_wake_from_thread_hands_off_bits outcome=passed asserts=5 skips=0
+TEST notify_wake_from_isr
+  -> ok
+  req KRN-NOTIF-002 KRN-IRQ-010
+CASE notify_wake_from_isr outcome=passed asserts=3 skips=0
+TEST notify_wait_times_out
+  -> ok
+  req KRN-NOTIF-001 KRN-WAIT-004
+CASE notify_wait_times_out outcome=passed asserts=5 skips=0
+TEST notify_rejects_kernel_bits_and_terminated_targets
+  fault checks that reset the board: 3
+  -> ok
+  req KRN-NOTIF-002 KRN-NOTIF-006
+CASE notify_rejects_kernel_bits_and_terminated_targets outcome=passed asserts=6 skips=0
+TEST notify_semaphore_binding_signals_ready_transition
+  -> ok
+  req KRN-NOTIF-004 KRN-NOTIF-005
+CASE notify_semaphore_binding_signals_ready_transition outcome=passed asserts=10 skips=0
+TEST notify_unbind_stops_signals
+  -> ok
+  req KRN-NOTIF-009 KRN-NOTIF-013
+CASE notify_unbind_stops_signals outcome=passed asserts=14 skips=0
+TEST notify_bound_target_cannot_be_destroyed
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-NOTIF-014 KRN-NOTIF-009
+CASE notify_bound_target_cannot_be_destroyed outcome=passed asserts=11 skips=0
+TEST notify_bind_refuses_a_terminated_target
+  -> ok
+  req KRN-NOTIF-014
+CASE notify_bind_refuses_a_terminated_target outcome=passed asserts=6 skips=0
+ISR_STACK size=2048 used=176
+10 tests, 0 failed, 0 skipped, 26 ticks
+EMB_TEST_END

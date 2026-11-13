@@ -9,13 +9,13 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/arm/mps2_an505/board.yaml
-#     d965ba7ec28f53c6f5ed0499684e4c6be812ff001b0b2bceec15b6dd12631a0c
+#     e294320434bc265e8bb036ae1c2d2f2fb520d6704fe597f587a7db006ffab05a
 #   drivers/bindings.yaml
-#     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+#     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
 #   soc/arm/mps2/an505.yaml
-#     ac349c5c09a3da2c3d8109b87a636d1844aa43117eb59132d11e8c454c194909
+#     d145c50a12402e61748bd8e2a58d54e9e9861d24292914ca6bb4d6b1338c06e3
 #   soc/arm/mps2/mps2.yaml
-#     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
+#     7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71
 # The board has no C of its own: its SoC family's board support builds emb_board from
 # board_pins.c and hw_config.h here, and links regions.ld.
 add_subdirectory("${EMB_SOC_DIR}" soc)

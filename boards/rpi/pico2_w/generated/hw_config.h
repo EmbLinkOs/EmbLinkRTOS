@@ -15,11 +15,11 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     1d69ae1499b014fc981253ac7f943d4b73d5a93722e62154862e4671e5631752
+ *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/rpi/rp2350/rp2350.yaml
- *     54dbc947d229a7204ed119c7d59c9b108bcafa842d1868df9e538a13af61bda3
+ *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
  *   soc/rpi/rp2350/rp2350a.yaml
  *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
  */
@@ -57,19 +57,40 @@
 #define EMB_HW_IRQ_PRIORITY_BITS 4u
 
 /* peripherals: register blocks, interrupt lines, clock gates */
+#define EMB_HW_BOOTRAM_BASE       0x400E0000u
 #define EMB_HW_CLOCKS_BASE        0x40010000u
 #define EMB_HW_CLOCKS_IRQ         30u
+#define EMB_HW_DMA_BASE           0x50000000u
+#define EMB_HW_DMA_IRQ_IRQ0       10u
+#define EMB_HW_DMA_IRQ_IRQ1       11u
+#define EMB_HW_DMA_IRQ_IRQ2       12u
+#define EMB_HW_DMA_IRQ_IRQ3       13u
+#define EMB_HW_I2C0_BASE          0x40090000u
+#define EMB_HW_I2C0_IRQ           36u
+#define EMB_HW_I2C1_BASE          0x40098000u
+#define EMB_HW_I2C1_IRQ           37u
 #define EMB_HW_IO_BANK0_BASE      0x40028000u
 #define EMB_HW_IO_BANK0_IRQ_BANK0 21u
 #define EMB_HW_PADS_BANK0_BASE    0x40038000u
 #define EMB_HW_PLL_SYS_BASE       0x40050000u
+#define EMB_HW_POWMAN_BASE        0x40100000u
+#define EMB_HW_POWMAN_IRQ_TIMER   45u
+#define EMB_HW_PSM_BASE           0x40018000u
 #define EMB_HW_QMI_BASE           0x400D0000u
 #define EMB_HW_RESETS_BASE        0x40020000u
 #define EMB_HW_SIO_BASE           0xD0000000u
+#define EMB_HW_SPI0_BASE          0x40080000u
+#define EMB_HW_SPI0_IRQ           31u
+#define EMB_HW_SPI1_BASE          0x40088000u
+#define EMB_HW_SPI1_IRQ           32u
+#define EMB_HW_TICKS_BASE         0x40108000u
+#define EMB_HW_TRNG_BASE          0x400F0000u
+#define EMB_HW_TRNG_IRQ_IRQ       39u
 #define EMB_HW_UART0_BASE         0x40070000u
 #define EMB_HW_UART0_IRQ          33u
 #define EMB_HW_UART1_BASE         0x40078000u
 #define EMB_HW_UART1_IRQ          34u
+#define EMB_HW_WATCHDOG_BASE      0x400D8000u
 #define EMB_HW_XOSC_BASE          0x40048000u
 
 /* console: uart0 */

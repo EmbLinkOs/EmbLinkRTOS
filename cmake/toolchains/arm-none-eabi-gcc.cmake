@@ -16,6 +16,8 @@ set(CMAKE_SIZE arm-none-eabi-size)
 set(CMAKE_NM arm-none-eabi-nm)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(EMB_TOOLCHAIN_C_FLAGS -mthumb -Os -g)
-set(EMB_TOOLCHAIN_LINK_FLAGS -mthumb -nostartfiles --specs=nano.specs -Wl,--gc-sections)
+# RAM holds code where a board runs some from it (.ramfunc: the RP2350's flash routines, run
+# while XIP is off), so its load segment is writable and executable, as the core allows
+set(EMB_TOOLCHAIN_LINK_FLAGS -mthumb -nostartfiles --specs=nano.specs -Wl,--gc-sections -Wl,--no-warn-rwx-segments)
 set(EMB_TOOLCHAIN_DEFINES)
 set(CMAKE_EXECUTABLE_SUFFIX ".elf")

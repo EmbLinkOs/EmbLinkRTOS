@@ -1,0 +1,46 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_cond.elf sha256 ec2541fc5f9c21ace59f5cf42f3e8b3abb283a88a49ba08371358a5a095a0ebd
+EVIDENCE v1 suite=test_cond config=a224274669778551 profile=base board=pico2_w checked=1
+TEST cond_signal_wakes_one_waiter_which_owns_the_mutex
+  -> ok
+  req KRN-SYNC-030 KRN-WAIT-001
+CASE cond_signal_wakes_one_waiter_which_owns_the_mutex outcome=passed asserts=17 skips=0
+TEST cond_broadcast_wakes_all_in_priority_order
+  -> ok
+  req KRN-SYNC-030 KRN-WAIT-013
+CASE cond_broadcast_wakes_all_in_priority_order outcome=passed asserts=18 skips=0
+TEST cond_signal_is_not_stored
+  -> ok
+  req KRN-SYNC-030
+CASE cond_signal_is_not_stored outcome=passed asserts=13 skips=0
+TEST cond_relock_after_timeout_waits_for_the_mutex
+  -> ok
+  req KRN-SYNC-030
+CASE cond_relock_after_timeout_waits_for_the_mutex outcome=passed asserts=12 skips=0
+TEST cond_cancel_returns_with_the_mutex_owned
+  -> ok
+  req KRN-SYNC-030 KRN-WAIT-017
+CASE cond_cancel_returns_with_the_mutex_owned outcome=passed asserts=10 skips=0
+TEST cond_destroy_aborts_waiters_which_relock
+  -> ok
+  req KRN-OBJ-001 KRN-SYNC-030
+CASE cond_destroy_aborts_waiters_which_relock outcome=passed asserts=9 skips=0
+TEST cond_d¡}Ý…¥Ñ•ÉÍ}¥Í}µ¥ÍÕÍ•  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001 API-013
+CASE cond_destroy_with_waiters_is_misuse outcome=passed asserts=11 skips=0
+TEST cond_w]}Í¥¹±•}½Ý¹•ÉÍ¡¥Á  fault checks that reset the board: 1
+  -> ok
+  req KRN-SYNC-030 API-013
+CASE cond_wait_requires_single_ownership outcome=passed asserts=12 skips=0
+TEST cond_sreuse_requires_destroy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE cond_storage_reuse_requires_destroy outcome=passed asserts=5 skips=0
+TEST cond_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE cond_define_constructs_in_init_table outcome=passed asserts=2 skips=0
+ISR_STACK size=2048 used=176
+10 tests, 0 failed, 0 skipped, 27 ticks
+EMB_TEST_END

@@ -1,0 +1,14 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_wdog.elf sha256 496259cff9e125e6948649f284d4a55fbc96239f2272f4e72c1d1eefcae6beec
+EVIDENCE v1 suite=test_wdog config=c5d19d2de829d384 profile=base board=nucleo_f446re checked=1
+TEST wdog_refusals
+  fault checks that reset the board: 4
+  -> ok
+  req FLT-004
+CASE wdog_refusals outcome=passed asserts=13 skips=0
+TEST wdog_feeds_until_a_party_misses
+  -> ok
+  req FLT-004
+CASE wdog_feeds_until_a_party_misses outcome=passed asserts=122 skips=0
+ISR_STACK size=2048 used=280
+2 tests, 0 failed, 0 skipped, 472 ticks
+EMB_TEST_END

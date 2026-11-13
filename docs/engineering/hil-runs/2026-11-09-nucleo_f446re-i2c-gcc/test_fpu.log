@@ -1,0 +1,11 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_fpu.elf sha256 7ebf81b272f56a93eae1ec5bcb38aafb81c22cf69369309aa03d1306501ac461
+EVIDENCE v1 suite=test_fpu config=58171f48454d7671 profile=base board=nucleo_f446re checked=1
+TEST fpu_state_survives_preemption
+  -> ok
+CASE fpu_state_survives_preemption outcome=passed asserts=6 skips=0
+TEST fpu_callee_saved_registers_survive_a_switch
+  -> ok
+CASE fpu_callee_saved_registers_survive_a_switch outcome=passed asserts=6 skips=0
+ISR_STACK size=2048 used=192
+2 tests, 0 failed, 0 skipped, 41 ticks
+EMB_TEST_END

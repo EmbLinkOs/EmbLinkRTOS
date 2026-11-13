@@ -9,13 +9,13 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/arm/mps2_an505/board.yaml
-#     d965ba7ec28f53c6f5ed0499684e4c6be812ff001b0b2bceec15b6dd12631a0c
+#     e294320434bc265e8bb036ae1c2d2f2fb520d6704fe597f587a7db006ffab05a
 #   drivers/bindings.yaml
-#     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+#     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
 #   soc/arm/mps2/an505.yaml
-#     ac349c5c09a3da2c3d8109b87a636d1844aa43117eb59132d11e8c454c194909
+#     d145c50a12402e61748bd8e2a58d54e9e9861d24292914ca6bb4d6b1338c06e3
 #   soc/arm/mps2/mps2.yaml
-#     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
+#     7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71
 # mps2_an505: Cortex-M33, cortex-m33f at 20 MHz.
 set(EMB_BOARD_ARCH cortex_m)
 set(EMB_BOARD_VARIANT armv8m-main)
@@ -26,10 +26,12 @@ set(EMB_SOC_DIR "${EMB_BASE}/soc/arm/mps2")
 set(EMB_BOARD_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}" "${EMB_SOC_DIR}/include")
 set(EMB_BOARD_QEMU_ARGS -M mps2-an505 -icount shift=5,sleep=off -semihosting-config enable=on,target=native -kernel)
 set(EMB_BOARD_RESETS_IN qemu) # restart the image with RAM kept (test_crash_reset)
+set(EMB_BOARD_SPI_LOOP_INTERNAL spi0)
 # the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
 set(EMB_BOARD_DRIVER_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/soc_devices.c"
     "${EMB_BASE}/drivers/arm/cmsdk_uart.c"
+    "${EMB_BASE}/drivers/arm/pl022.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/arm/include"
@@ -37,8 +39,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
-    "boards/arm/mps2_an505/board.yaml=d965ba7ec28f53c6f5ed0499684e4c6be812ff001b0b2bceec15b6dd12631a0c"
-    "drivers/bindings.yaml=c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480"
-    "soc/arm/mps2/an505.yaml=ac349c5c09a3da2c3d8109b87a636d1844aa43117eb59132d11e8c454c194909"
-    "soc/arm/mps2/mps2.yaml=e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9"
+    "boards/arm/mps2_an505/board.yaml=e294320434bc265e8bb036ae1c2d2f2fb520d6704fe597f587a7db006ffab05a"
+    "drivers/bindings.yaml=e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
+    "soc/arm/mps2/an505.yaml=d145c50a12402e61748bd8e2a58d54e9e9861d24292914ca6bb4d6b1338c06e3"
+    "soc/arm/mps2/mps2.yaml=7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71"
 )

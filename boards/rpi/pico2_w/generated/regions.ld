@@ -16,11 +16,11 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     1d69ae1499b014fc981253ac7f943d4b73d5a93722e62154862e4671e5631752
+ *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/rpi/rp2350/rp2350.yaml
- *     54dbc947d229a7204ed119c7d59c9b108bcafa842d1868df9e538a13af61bda3
+ *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
  *   soc/rpi/rp2350/rp2350a.yaml
  *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
  */
@@ -28,7 +28,7 @@ ENTRY(embn_cm_reset)
 
 MEMORY
 {
-  FLASH (rx)  : ORIGIN = 0x10000000, LENGTH = 4M
+  FLASH (rx)  : ORIGIN = 0x10000000, LENGTH = 4032K
   RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 520K
 }
 
@@ -65,6 +65,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;

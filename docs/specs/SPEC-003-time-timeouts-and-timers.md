@@ -262,6 +262,8 @@ emb_status_t emb_wallclock_adjust(int64_t delta_ns);             /* slew or step
 
 Wall clock is `monotonic + offset`. Setting or adjusting it changes the offset only; no timeout, timer, or deadline moves (KRN-TIM-031). An RTC driver may seed it at boot and a synchronization service may discipline it; both are middleware. Nothing in the kernel reads it.
 
+M4 implements it (A123): `<emb/wallclock.h>`, behind `CONFIG_EMB_WALLCLOCK`, which needs 64-bit ticks. Its time is `EMB_ENOTSET` until it is set or a board's RTC seeds it when the RTC's device starts (SPEC-017 §10). `emb_wallclock_adjust()` steps; slewing is later work.
+
 ## 11. Conversions and documentation
 
 The macros and rules of SPEC-001 §7.3 apply. In addition:

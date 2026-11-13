@@ -143,6 +143,33 @@ extern EMB_FLASH_CONST char emb_test_suite[];
 bool emb_test_fault_begin(unsigned line, const char *what_flash);
 void emb_test_fault_none(void);
 
+/* A reset check: `stmt` must reset the board (a watchdog starved), and the case goes on after
+ * the reset, on the next boot, the statements before the check replayed without output. Where
+ * the board cannot reset and resume, skipped. */
+#if EMB_TEST_FAULT_BY_RESET
+#define EMB_ASSERT_RESETS(stmt)                                           \
+    do {                                                                  \
+        emb_test_asserted();                                              \
+        if (emb_test_reset_begin(__LINE__, EMB_TEST_FAULT_WHAT(#stmt))) { \
+            stmt;                                                         \
+            emb_test_reset_none();                                        \
+        }                                                                 \
+    } while (0)
+#else
+#define EMB_ASSERT_RESETS(stmt)                                                  \
+    do {                                                                         \
+        if (0) {                                                                 \
+            stmt; /* compiled, never run: keeps the test's symbols referenced */ \
+        }                                                                        \
+        emb_test_skip(EMB_TEST_STR("reset check needs a board that resumes"));   \
+    } while (0)
+#endif
+bool emb_test_reset_begin(unsigned line, const char *what_flash);
+void emb_test_reset_none(void);
+/* Inside a reset check's statement: from here a reset is what the check expects; before it,
+ * a reset fails the check (a watchdog that reset the board while it was still fed). */
+void emb_test_reset_expected(void);
+
 bool emb_test_fork_begin(void);
 EMB_NORETURN void emb_test_fork_child_no_fault(void);
 void emb_test_fork_expect_fault(unsigned line, const char *what_flash);

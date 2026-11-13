@@ -55,7 +55,7 @@ SEC-006 to 011 originate in `docs/architecture/04-platform-architecture.md` §6.
 **Rationale.** A deterministic generator presented as entropy produces predictable keys; an honest absence lets the application decide (the STM32F446 has no RNG).
 **Status.** Accepted 2026-11-09 at the M4.0 review
 **Verification.** Test: on the NUCLEO-F446RE, capability discovery reports no entropy device and the class returns `EMB_ENOTSUP`.
-**Trace.** SPEC-017 (entropy class); ADR-057
+**Trace.** SPEC-017 §11 (entropy class, A124); ADR-057; `test_entropy` (`entropy_board_source_or_its_absence`)
 
 ### SEC-013  Signing keys stay out of the tree
 **Statement.** No private signing key for images or releases shall be in the repository; a key used by tests shall be named and marked as a test key, and images signed with it shall be refused by a production configuration.

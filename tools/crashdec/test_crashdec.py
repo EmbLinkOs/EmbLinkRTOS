@@ -27,7 +27,7 @@ KERNEL_V1 = ("454d424301005c001b36f06945ce27faa5ddd7d1948407becf061e47302e322e30
 
 def v1(**f):
     body = b"EMBC" + struct.pack("<HH", 1, 92) + struct.pack(
-        "<20s8sQIBBHHBBHHIIIIIIBBH", f.get("build_id", b"\x11" * 20), b"0.2.0", f.get("uptime", 7), 1,
+        "<20s8sQIBBHHBBHHIIIIIIBBH", f.get("build_id", b"\x11" * 20), b"0.2.0", f.get("uptime", 7), f.get("reset", 1),
         f.get("fault_class", 11), f.get("argument", 0), f.get("code", 0x5EED), f.get("api_id", 0), 0, 0,
         f.get("thread", 2), 0, 0, f.get("pc", 0x8000123), 0, 0x20001000, 0, 0, 0, 0, 0)
     return body + struct.pack("<I", zlib.crc32(body))
@@ -61,6 +61,12 @@ class Decode(unittest.TestCase):
         self.assertEqual((r["fault_class"], r["argument"], r["code"], r["api_id"], r["thread_index"]),
                          (5, 2, 0x0102, 0x0029, 3))
         self.assertEqual((r["address"], r["pc"], r["sp"], r["reset_reason"]), (0x1234, 0x5678, 0x7ABC, 1))
+
+    def test_a_missed_watchdog_window(self):
+        """FLT-004: the software watchdog's record names the class, the party and the reset."""
+        r = crashdec.describe(crashdec.parse(v1(fault_class=14, code=7, reset=3)), crashdec.fault_classes(), {})
+        self.assertEqual((r["fault_class_name"], r["code"]), ("watchdog", 7))
+        self.assertIn("watchdog", r["reset_reason_name"])
 
     def test_refusals(self):
         bad_crc = bytearray(v1())

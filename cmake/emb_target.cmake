@@ -81,11 +81,19 @@ function(emb_add_test name)
     if(EMB_TEST_EMULATOR STREQUAL "hil")
       # a physical board (tools/hil/run_hil.py): flash, reset, read the console; one at a time.
       # Each run's record goes to EMB_HIL_ARCHIVE (default <build>/hil-archive, A89).
+      # a suite that runs longer than the runner's two minutes names its own wait, in seconds,
+      # as EMB_HIL_TIMEOUT_<name> before emb_add_test()
+      set(_emb_hil_wait "")
+      set(_emb_ctest_wait 400)
+      if(DEFINED EMB_HIL_TIMEOUT_${name})
+        set(_emb_hil_wait --timeout ${EMB_HIL_TIMEOUT_${name}})
+        math(EXPR _emb_ctest_wait "${EMB_HIL_TIMEOUT_${name}} + 120")
+      endif()
       add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/hil/run_hil.py"
                --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}"
                --log "${CMAKE_CURRENT_BINARY_DIR}/${name}.console.log" --archive "${EMB_HIL_ARCHIVE}"
-               "$<TARGET_FILE:${name}>")
-      set_tests_properties(${name} PROPERTIES RUN_SERIAL TRUE TIMEOUT 400)
+               ${_emb_hil_wait} "$<TARGET_FILE:${name}>")
+      set_tests_properties(${name} PROPERTIES RUN_SERIAL TRUE TIMEOUT ${_emb_ctest_wait})
     elseif(EMB_TEST_EMULATOR STREQUAL "embsim")
       if(EMB_EMBSIM AND EMB_BOARD_EMBSIM_TARGET)
         # the ELF, or the flash image where the board boots one
@@ -99,7 +107,8 @@ function(emb_add_test name)
           set(_clock --core-hz ${EMB_BOARD_EMBSIM_CORE_HZ})
         endif()
         add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/embsim/run_embsim.py"
-                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" ${_clock} "${_image}")
+                 --embsim "${EMB_EMBSIM}" --target "${EMB_BOARD_EMBSIM_TARGET}" ${_clock}
+                 ${EMB_EMBSIM_ARGS_${name}} "${_image}")
         set_tests_properties(${name} PROPERTIES TIMEOUT 400)
       endif()
     elseif(EMB_QEMU)

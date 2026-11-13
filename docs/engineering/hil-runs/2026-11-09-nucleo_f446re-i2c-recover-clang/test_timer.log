@@ -1,0 +1,36 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_timer.elf sha256 50d4a92770b2cac992ccf056f1916baebea01c266ab0919c9f375f0fd9233cc6
+EVIDENCE v1 suite=test_timer config=58171f48454d7671 profile=base board=nucleo_f446re checked=1
+TEST timer_isr_context_one_shot_and_periodic_without_drift
+  -> ok
+  req KRN-TIM-025 KRN-TIM-005 KRN-TIM-014 KRN-TIM-015
+CASE timer_isr_context_one_shot_and_periodic_without_drift outcome=passed asserts=22 skips=0
+TEST timer_restart_remaining_and_stop_states
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-TIM-025 KRN-TIM-028
+CASE timer_restart_remaining_and_stop_states outcome=passed asserts=22 skips=0
+TEST timer_callback_runs_on_its_work_queue
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-TIM-013 KRN-TIM-005 KRN-TIM-026
+CASE timer_callback_runs_on_its_work_queue outcome=passed asserts=11 skips=0
+TEST timer_stop_sync_waits_for_a_running_callback
+  -> ok
+  req KRN-TIM-028 KRN-WAIT-012
+CASE timer_stop_sync_waits_for_a_running_callback outcome=passed asserts=13 skips=0
+TEST timer_expiries_during_a_long_callback_are_overruns
+  -> ok
+  req KRN-TIM-027
+CASE timer_expiries_during_a_long_callback_are_overruns outcome=passed asserts=13 skips=0
+TEST timer_init_needs_a_queue_or_isr_context
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-TIM-013 API-015
+CASE timer_init_needs_a_queue_or_isr_context outcome=passed asserts=3 skips=0
+TEST timer_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE timer_define_constructs_in_init_table outcome=passed asserts=4 skips=0
+ISR_STACK size=2048 used=164
+7 tests, 0 failed, 0 skipped, 29 ticks
+EMB_TEST_END

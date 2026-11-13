@@ -15,25 +15,33 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/arm/mps2_an505/board.yaml
- *     d965ba7ec28f53c6f5ed0499684e4c6be812ff001b0b2bceec15b6dd12631a0c
+ *     e294320434bc265e8bb036ae1c2d2f2fb520d6704fe597f587a7db006ffab05a
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/arm/mps2/an505.yaml
- *     ac349c5c09a3da2c3d8109b87a636d1844aa43117eb59132d11e8c454c194909
+ *     d145c50a12402e61748bd8e2a58d54e9e9861d24292914ca6bb4d6b1338c06e3
  *   soc/arm/mps2/mps2.yaml
- *     e2b206c6b824690d2532f20d4e1b56678da704d8c9b2c570916c2dc5d6c830e9
+ *     7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71
  */
 #ifndef EMB_SOC_DEVICES_H
 #define EMB_SOC_DEVICES_H
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 1u
+#define EMB_SOC_DEVICE_COUNT 2u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
 
 extern const emb_device_t emb_dev_uart0;
+extern const emb_device_t emb_dev_spi0;
+
+/* which devices the board has, for code that uses one only where it exists */
+#define EMB_SOC_HAS_UART0 1
+#define EMB_SOC_HAS_SPI0  1
+
+/* the console's UART device (the board's console:) */
+#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_uart0)
 #endif
 
 #endif /* EMB_SOC_DEVICES_H */

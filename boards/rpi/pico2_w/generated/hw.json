@@ -34,12 +34,75 @@
         "name": "io_bank0"
       },
       {
+        "doc": "the watchdog",
+        "name": "watchdog"
+      },
+      {
+        "doc": "the true random number generator: 200 clocks of clk_sys between samples, measured on the board: 100 still passed its health tests, 50 failed nearly every block",
+        "name": "trng",
+        "sample_count": 200
+      },
+      {
+        "doc": "the always-on timer, ticked from the crystal: the clock kept across resets",
+        "name": "rtc",
+        "peripheral": "powman"
+      },
+      {
+        "doc": "the 4 MiB QSPI flash: its storage partition is the tests' (the last 64 KiB)",
+        "name": "flash",
+        "peripheral": "qmi",
+        "size": 4194304
+      },
+      {
+        "doc": "the DMA controller: SPI1's transfers",
+        "name": "dma"
+      },
+      {
         "baud": 115200,
         "deps": [
           "io_bank0"
         ],
         "doc": "the console, GPIO0 and GPIO1",
         "name": "uart0"
+      },
+      {
+        "cs": [
+          "GPIO13"
+        ],
+        "deps": [
+          "io_bank0"
+        ],
+        "dma": [
+          "tx",
+          "rx"
+        ],
+        "doc": "SPI1 on GPIO10 to GPIO12, its chip select GPIO13 (pin 17); the HIL suite's loopback wires GPIO11 (pin 15, MOSI) to GPIO12 (pin 16, MISO)",
+        "name": "spi1"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "I2C0 on GPIO8 (pin 11, SDA) and GPIO9 (pin 12, SCL); the HIL suite wires it to I2C1",
+        "name": "i2c0"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "I2C1 on GPIO6 (pin 9, SDA) and GPIO7 (pin 10, SCL), the HIL suite's target for I2C0",
+        "name": "i2c1"
+      },
+      {
+        "baud": 115200,
+        "deps": [
+          "io_bank0"
+        ],
+        "dma": [
+          "tx"
+        ],
+        "doc": "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
+        "name": "uart1"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -47,7 +110,12 @@
       {
         "base": 268435456,
         "name": "app",
-        "size": 4194304
+        "size": 4128768
+      },
+      {
+        "base": 272564224,
+        "name": "storage",
+        "size": 65536
       }
     ],
     "kind": "board",
@@ -59,9 +127,26 @@
       }
     },
     "pins": {
+      "i2c0": {
+        "scl": "GPIO9.f3",
+        "sda": "GPIO8.f3"
+      },
+      "i2c1": {
+        "scl": "GPIO7.f3",
+        "sda": "GPIO6.f3"
+      },
+      "spi1": {
+        "miso": "GPIO12.f1",
+        "mosi": "GPIO11.f1",
+        "sck": "GPIO10.f1"
+      },
       "uart0": {
         "rx": "GPIO1.f2",
         "tx": "GPIO0.f2"
+      },
+      "uart1": {
+        "rx": "GPIO5.f2",
+        "tx": "GPIO4.f2"
       }
     },
     "schema_version": 0,
@@ -131,11 +216,70 @@
           "clocks"
         ],
         "fields": {
-          "base": 1073905664
+          "base": 1073905664,
+          "lines": 30
         },
         "level": "early",
         "name": "io_bank0",
         "peripheral": "io_bank0"
+      },
+      {
+        "class": "watchdog",
+        "compatible": "rpi,rp2350-watchdog",
+        "deps": [],
+        "fields": {
+          "base": 1074626560
+        },
+        "level": "early",
+        "name": "watchdog",
+        "peripheral": "watchdog"
+      },
+      {
+        "class": "rtc",
+        "compatible": "rpi,rp2350-powman",
+        "deps": [],
+        "fields": {
+          "base": 1074790400,
+          "irq": 45
+        },
+        "level": "early",
+        "name": "rtc",
+        "peripheral": "powman"
+      },
+      {
+        "class": "flash",
+        "compatible": "rpi,rp2350-qmi",
+        "deps": [],
+        "fields": {
+          "base": 1074593792,
+          "geometry": {
+            "flash_geometry": {
+              "base": 268435456,
+              "count": 1024,
+              "erased": 255,
+              "name": "flash",
+              "sector_size": 4096,
+              "sectors": null,
+              "size": 4194304,
+              "write_unit": 256
+            }
+          }
+        },
+        "level": "early",
+        "name": "flash",
+        "peripheral": "qmi"
+      },
+      {
+        "class": "dma",
+        "compatible": "rpi,rp2350-dma",
+        "deps": [],
+        "fields": {
+          "base": 1342177280,
+          "irq": 10
+        },
+        "level": "early",
+        "name": "dma",
+        "peripheral": "dma"
       },
       {
         "class": "uart",
@@ -146,11 +290,130 @@
         "fields": {
           "base": 1074200576,
           "baud": 115200,
-          "clock_hz": 150000000
+          "clock_hz": 150000000,
+          "dma_tx": {
+            "dma": null
+          },
+          "irq": 33,
+          "rx": "uart0_rx",
+          "rx_size": 64
         },
         "level": "early",
         "name": "uart0",
         "peripheral": "uart0"
+      },
+      {
+        "class": "uart",
+        "compatible": "arm,pl011",
+        "deps": [
+          "io_bank0",
+          "dma"
+        ],
+        "fields": {
+          "base": 1074233344,
+          "baud": 115200,
+          "clock_hz": 150000000,
+          "dma_tx": {
+            "dma": "dma",
+            "request": 30,
+            "stream": 2
+          },
+          "irq": 34,
+          "rx": "uart1_rx",
+          "rx_size": 64
+        },
+        "level": "early",
+        "name": "uart1",
+        "peripheral": "uart1"
+      },
+      {
+        "class": "entropy",
+        "compatible": "rpi,rp2350-trng",
+        "deps": [],
+        "fields": {
+          "base": 1074724864,
+          "irq": 39,
+          "sample_count": 200
+        },
+        "level": "kernel",
+        "name": "trng",
+        "peripheral": "trng"
+      },
+      {
+        "class": "spi",
+        "compatible": "arm,pl022",
+        "deps": [
+          "io_bank0",
+          "dma"
+        ],
+        "fields": {
+          "base": 1074298880,
+          "clock_hz": 150000000,
+          "dma_rx": {
+            "dma": "dma",
+            "request": 27,
+            "stream": 1
+          },
+          "dma_tx": {
+            "dma": "dma",
+            "request": 26,
+            "stream": 0
+          },
+          "irq": 32
+        },
+        "level": "kernel",
+        "name": "spi1",
+        "peripheral": "spi1"
+      },
+      {
+        "class": "i2c",
+        "compatible": "snps,designware-i2c",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074331648,
+          "clock_hz": 150000000,
+          "irq": 36,
+          "scl": {
+            "gpio": "io_bank0",
+            "line": 9,
+            "pin": "GPIO9"
+          },
+          "sda": {
+            "gpio": "io_bank0",
+            "line": 8,
+            "pin": "GPIO8"
+          }
+        },
+        "level": "kernel",
+        "name": "i2c0",
+        "peripheral": "i2c0"
+      },
+      {
+        "class": "i2c",
+        "compatible": "snps,designware-i2c",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074364416,
+          "clock_hz": 150000000,
+          "irq": 37,
+          "scl": {
+            "gpio": "io_bank0",
+            "line": 7,
+            "pin": "GPIO7"
+          },
+          "sda": {
+            "gpio": "io_bank0",
+            "line": 6,
+            "pin": "GPIO6"
+          }
+        },
+        "level": "kernel",
+        "name": "i2c1",
+        "peripheral": "i2c1"
       }
     ],
     "kconfig": {
@@ -161,7 +424,7 @@
     },
     "linker": {
       "flash": {
-        "length": 4194304,
+        "length": 4128768,
         "origin": 268435456
       },
       "ram": {
@@ -177,8 +440,22 @@
       {
         "base": 268435456,
         "name": "app",
+        "pages": [
+          0,
+          1007
+        ],
         "reserved": false,
-        "size": 4194304
+        "size": 4128768
+      },
+      {
+        "base": 272564224,
+        "name": "storage",
+        "pages": [
+          1008,
+          1023
+        ],
+        "reserved": false,
+        "size": 65536
       }
     ],
     "pins": [
@@ -201,6 +478,106 @@
         "pin": "GPIO1",
         "port": "",
         "signal": "uart0_rx"
+      },
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 4,
+        "owner": "pins.uart1.tx",
+        "pin": "GPIO4",
+        "port": "",
+        "signal": "uart1_tx"
+      },
+      {
+        "af": 2,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 5,
+        "owner": "pins.uart1.rx",
+        "pin": "GPIO5",
+        "port": "",
+        "signal": "uart1_rx"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.i2c1.sda",
+        "pin": "GPIO6",
+        "port": "",
+        "signal": "i2c1_sda"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 7,
+        "owner": "pins.i2c1.scl",
+        "pin": "GPIO7",
+        "port": "",
+        "signal": "i2c1_scl"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 8,
+        "owner": "pins.i2c0.sda",
+        "pin": "GPIO8",
+        "port": "",
+        "signal": "i2c0_sda"
+      },
+      {
+        "af": 3,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 9,
+        "owner": "pins.i2c0.scl",
+        "pin": "GPIO9",
+        "port": "",
+        "signal": "i2c0_scl"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 10,
+        "owner": "pins.spi1.sck",
+        "pin": "GPIO10",
+        "port": "",
+        "signal": "spi1_sck"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 11,
+        "owner": "pins.spi1.mosi",
+        "pin": "GPIO11",
+        "port": "",
+        "signal": "spi1_mosi"
+      },
+      {
+        "af": 1,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 12,
+        "owner": "pins.spi1.miso",
+        "pin": "GPIO12",
+        "port": "",
+        "signal": "spi1_miso"
+      },
+      {
+        "gpio": "io_bank0",
+        "level": 1,
+        "mode": "output",
+        "number": 13,
+        "owner": "devices.spi1.cs[0]",
+        "pin": "GPIO13",
+        "port": "",
+        "signal": "spi1_cs0"
       }
     ],
     "profile": "base",
@@ -224,15 +601,15 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "1d69ae1499b014fc981253ac7f943d4b73d5a93722e62154862e4671e5631752"
+      "sha256": "dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480"
+      "sha256": "e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "54dbc947d229a7204ed119c7d59c9b108bcafa842d1868df9e538a13af61bda3"
+      "sha256": "9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
@@ -249,12 +626,15 @@
         "f2": "uart0_rx"
       },
       "GPIO10": {
+        "f1": "spi1_sck",
         "f11": "uart1_tx"
       },
       "GPIO11": {
+        "f1": "spi1_mosi",
         "f11": "uart1_rx"
       },
       "GPIO12": {
+        "f1": "spi1_miso",
         "f2": "uart0_tx"
       },
       "GPIO13": {
@@ -321,16 +701,20 @@
         "f2": "uart1_rx"
       },
       "GPIO6": {
-        "f11": "uart1_tx"
+        "f11": "uart1_tx",
+        "f3": "i2c1_sda"
       },
       "GPIO7": {
-        "f11": "uart1_rx"
+        "f11": "uart1_rx",
+        "f3": "i2c1_scl"
       },
       "GPIO8": {
-        "f2": "uart1_tx"
+        "f2": "uart1_tx",
+        "f3": "i2c0_sda"
       },
       "GPIO9": {
-        "f2": "uart1_rx"
+        "f2": "uart1_rx",
+        "f3": "i2c0_scl"
       }
     },
     "arch": {
@@ -408,6 +792,13 @@
       "swd": true
     },
     "family": "rp2350",
+    "flash": {
+      "geometry": {
+        "page_size": 4096,
+        "write_granularity": 256
+      },
+      "region": "xip"
+    },
     "gpio": {
       "controller": "io_bank0",
       "lines": 30
@@ -520,6 +911,10 @@
       {
         "base": 1074200576,
         "compatible": "arm,pl011",
+        "dma_requests": {
+          "rx": "dma.dreq29",
+          "tx": "dma.dreq28"
+        },
         "irqs": [
           {
             "name": "global",
@@ -532,6 +927,10 @@
       {
         "base": 1074233344,
         "compatible": "arm,pl011",
+        "dma_requests": {
+          "rx": "dma.dreq31",
+          "tx": "dma.dreq30"
+        },
         "irqs": [
           {
             "name": "global",
@@ -542,10 +941,152 @@
         "size": 16384
       },
       {
+        "base": 1074266112,
+        "compatible": "arm,pl022",
+        "dma_requests": {
+          "rx": "dma.dreq25",
+          "tx": "dma.dreq24"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 31
+          }
+        ],
+        "name": "spi0",
+        "size": 16384
+      },
+      {
+        "base": 1074298880,
+        "compatible": "arm,pl022",
+        "dma_requests": {
+          "rx": "dma.dreq27",
+          "tx": "dma.dreq26"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 32
+          }
+        ],
+        "name": "spi1",
+        "size": 16384
+      },
+      {
+        "base": 1074331648,
+        "compatible": "snps,designware-i2c",
+        "dma_requests": {
+          "rx": "dma.dreq45",
+          "tx": "dma.dreq44"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 36
+          }
+        ],
+        "name": "i2c0",
+        "size": 16384
+      },
+      {
+        "base": 1074364416,
+        "compatible": "snps,designware-i2c",
+        "dma_requests": {
+          "rx": "dma.dreq47",
+          "tx": "dma.dreq46"
+        },
+        "irqs": [
+          {
+            "name": "global",
+            "number": 37
+          }
+        ],
+        "name": "i2c1",
+        "size": 16384
+      },
+      {
+        "base": 1342177280,
+        "compatible": "rpi,rp2350-dma",
+        "dma": {
+          "channels": 16,
+          "kind": "dreq",
+          "max_count": 268435455,
+          "memory": true
+        },
+        "irqs": [
+          {
+            "name": "irq0",
+            "number": 10
+          },
+          {
+            "name": "irq1",
+            "number": 11
+          },
+          {
+            "name": "irq2",
+            "number": 12
+          },
+          {
+            "name": "irq3",
+            "number": 13
+          }
+        ],
+        "name": "dma",
+        "size": 4096
+      },
+      {
+        "base": 1074626560,
+        "compatible": "rpi,rp2350-watchdog",
+        "name": "watchdog",
+        "size": 16384
+      },
+      {
+        "base": 1074823168,
+        "compatible": "rpi,rp2350-ticks",
+        "name": "ticks",
+        "size": 16384
+      },
+      {
+        "base": 1073840128,
+        "compatible": "rpi,rp2350-psm",
+        "name": "psm",
+        "size": 16384
+      },
+      {
         "base": 1074593792,
         "compatible": "rpi,rp2350-qmi",
         "name": "qmi",
         "size": 16384
+      },
+      {
+        "base": 1074790400,
+        "compatible": "rpi,rp2350-powman",
+        "irqs": [
+          {
+            "name": "timer",
+            "number": 45
+          }
+        ],
+        "name": "powman",
+        "size": 16384
+      },
+      {
+        "base": 1074724864,
+        "compatible": "rpi,rp2350-trng",
+        "irqs": [
+          {
+            "name": "irq",
+            "number": 39
+          }
+        ],
+        "name": "trng",
+        "size": 4096
+      },
+      {
+        "base": 1074659328,
+        "compatible": "rpi,rp2350-bootram",
+        "name": "bootram",
+        "size": 1024
       },
       {
         "base": 3489660928,

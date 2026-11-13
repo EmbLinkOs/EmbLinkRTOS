@@ -47,7 +47,23 @@ enum emb_status_code {
     EMB_EINTR = -17,     /* reserved; not returned in 1.0 */
     EMB_EDEADLK =
         -32, /* the lock would complete a cycle; first kernel-reserved code (SPEC-005 §3.1) */
-    EMB_EAPP_BASE = -128 /* application-defined codes from here down to -255 */
+    /* the driver classes' codes, four per class (SPEC-017 §3, DRV-008); -96 to -127 later */
+    EMB_EFRAMING = -64,   /* UART: a character without its stop bit */
+    EMB_EPARITY = -65,    /* UART: a parity error */
+    EMB_EOVERRUN = -66,   /* UART: bytes lost, the receiver or its ring full */
+    EMB_ECRC = -68,       /* SPI: the hardware CRC did not match */
+    EMB_EMODEFAULT = -69, /* SPI: another controller drove the bus */
+    EMB_ENACK = -72,      /* I2C: the target did not acknowledge */
+    EMB_EARBLOST = -73,   /* I2C: arbitration lost to another controller */
+    EMB_EBUSERR = -74,    /* I2C: a misplaced start or stop on the bus */
+    EMB_EXFER = -76,      /* DMA: the transfer failed (a bus or FIFO error) */
+    EMB_EWINDOW = -80,    /* watchdog: refreshed outside its window */
+    EMB_EWRPROT = -84,    /* flash: the sector is write-protected */
+    EMB_EVERIFY = -85,    /* flash: what was read back differs from what was written */
+    EMB_ENOTSET = -88,    /* RTC: the time was never set since power-up */
+    EMB_EOSCFAIL = -89,   /* RTC: its oscillator stopped */
+    EMB_EHEALTH = -92,    /* entropy: the source failed its health test */
+    EMB_EAPP_BASE = -128  /* application-defined codes from here down to -255 */
 };
 
 /**

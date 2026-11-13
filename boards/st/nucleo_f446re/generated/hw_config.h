@@ -15,13 +15,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     91becf0c37f5656261bfec363956b47996bd1db3c6a3b7cbcfcfe40d6a94109b
+ *     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/st/stm32f4/stm32f4.yaml
  *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
  *   soc/st/stm32f4/stm32f446.yaml
- *     1a7a08ee049164842f51e62877ec373ed21a1b90403b0833565d0a6c7f37b748
+ *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -82,6 +82,29 @@
 #define EMB_HW_ADC1_CLKEN_OFFSET   0x44u
 #define EMB_HW_ADC1_IRQ            18u
 #define EMB_HW_ADC_COMMON_BASE     0x40012300u
+#define EMB_HW_DMA1_BASE           0x40026000u
+#define EMB_HW_DMA1_CLKEN_BIT      21u
+#define EMB_HW_DMA1_CLKEN_OFFSET   0x30u
+#define EMB_HW_DMA1_IRQ_S0         11u
+#define EMB_HW_DMA1_IRQ_S1         12u
+#define EMB_HW_DMA1_IRQ_S2         13u
+#define EMB_HW_DMA1_IRQ_S3         14u
+#define EMB_HW_DMA1_IRQ_S4         15u
+#define EMB_HW_DMA1_IRQ_S5         16u
+#define EMB_HW_DMA1_IRQ_S6         17u
+#define EMB_HW_DMA1_IRQ_S7         47u
+#define EMB_HW_DMA2_BASE           0x40026400u
+#define EMB_HW_DMA2_CLKEN_BIT      22u
+#define EMB_HW_DMA2_CLKEN_OFFSET   0x30u
+#define EMB_HW_DMA2_IRQ_S0         56u
+#define EMB_HW_DMA2_IRQ_S1         57u
+#define EMB_HW_DMA2_IRQ_S2         58u
+#define EMB_HW_DMA2_IRQ_S3         59u
+#define EMB_HW_DMA2_IRQ_S4         60u
+#define EMB_HW_DMA2_IRQ_S5         68u
+#define EMB_HW_DMA2_IRQ_S6         69u
+#define EMB_HW_DMA2_IRQ_S7         70u
+#define EMB_HW_EXTI_BASE           0x40013C00u
 #define EMB_HW_FACTORY_CAL_BASE    0x1FFF7A2Au
 #define EMB_HW_FLASH_IF_BASE       0x40023C00u
 #define EMB_HW_FLASH_IF_IRQ        4u
@@ -109,6 +132,21 @@
 #define EMB_HW_GPIOH_BASE          0x40021C00u
 #define EMB_HW_GPIOH_CLKEN_BIT     7u
 #define EMB_HW_GPIOH_CLKEN_OFFSET  0x30u
+#define EMB_HW_I2C1_BASE           0x40005400u
+#define EMB_HW_I2C1_CLKEN_BIT      21u
+#define EMB_HW_I2C1_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C1_IRQ_ER         32u
+#define EMB_HW_I2C1_IRQ_EV         31u
+#define EMB_HW_I2C2_BASE           0x40005800u
+#define EMB_HW_I2C2_CLKEN_BIT      22u
+#define EMB_HW_I2C2_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C2_IRQ_ER         34u
+#define EMB_HW_I2C2_IRQ_EV         33u
+#define EMB_HW_I2C3_BASE           0x40005C00u
+#define EMB_HW_I2C3_CLKEN_BIT      23u
+#define EMB_HW_I2C3_CLKEN_OFFSET   0x40u
+#define EMB_HW_I2C3_IRQ_ER         73u
+#define EMB_HW_I2C3_IRQ_EV         72u
 #define EMB_HW_IWDG_BASE           0x40003000u
 #define EMB_HW_PWR_BASE            0x40007000u
 #define EMB_HW_PWR_CLKEN_BIT       28u
@@ -116,6 +154,12 @@
 #define EMB_HW_PWR_IRQ_PVD         1u
 #define EMB_HW_RCC_BASE            0x40023800u
 #define EMB_HW_RCC_IRQ             5u
+#define EMB_HW_RTC_BASE            0x40002800u
+#define EMB_HW_RTC_IRQ_ALARM       41u
+#define EMB_HW_SPI2_BASE           0x40003800u
+#define EMB_HW_SPI2_CLKEN_BIT      14u
+#define EMB_HW_SPI2_CLKEN_OFFSET   0x40u
+#define EMB_HW_SPI2_IRQ            36u
 #define EMB_HW_TIM2_BASE           0x40000000u
 #define EMB_HW_TIM2_CLKEN_BIT      0u
 #define EMB_HW_TIM2_CLKEN_OFFSET   0x40u

@@ -42,7 +42,8 @@ enum emb_fault_class {
     EMB_FAULT_HARDWARE = 10,        /* architecture fault entry (SPEC-002 §9) */
     EMB_FAULT_CHECK = 11,           /* EMB_CHECK() saw a failure */
     EMB_FAULT_PI_DEPTH = 12,        /* inheritance chain deeper than CONFIG_EMB_PI_MAX_DEPTH */
-    EMB_FAULT_LOCK_BUDGET = 13      /* critical section longer than its declared budget */
+    EMB_FAULT_LOCK_BUDGET = 13,     /* critical section longer than its declared budget */
+    EMB_FAULT_WATCHDOG = 14         /* a party missed its window (FLT-004): code = its id */
 };
 
 typedef struct emb_fault_info {

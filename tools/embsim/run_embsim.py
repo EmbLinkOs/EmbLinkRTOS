@@ -18,12 +18,18 @@ summary, or an EmbSIM error. Simulated timing is never evidence (SIM-003): this 
 checks behavior only. With --core-hz (a board's EMB_BOARD_EMBSIM_CORE_HZ) the image is run
 a second time for EmbSIM's JSON report, in which the board's MCU must end at that core
 clock: the board's clock setup took effect (status 1 if not).
+
+With --net PORT,PORT (repeatable) the board runs inside a project whose nets join its
+ports, as a bench's wires do: --net A0,A1 is the NUCLEO-F446RE's loopback of UART4. A
+project run stops at --until, which then should be short, and its console is the board's
+console UART in EmbSIM's JSON report.
 """
 import argparse
 import json
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 SUMMARY = re.compile(r"(\d+) tests, (\d+) failed")
 END = "EMB_TEST_END"
@@ -38,7 +44,11 @@ def main(argv):
     ap.add_argument("--timeout", type=float, default=240.0, help="the wall-time limit, in seconds")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument("--core-hz", type=int, default=0, help="the core clock the MCU must end at")
+    ap.add_argument("--net", action="append", default=[], metavar="PORT,PORT",
+                    help="wire the board's ports together, in a project")
     args = ap.parse_args(argv)
+    if args.net:
+        return run_project(args)
     cmd = [args.embsim, "run", "--target", args.target, "--image", args.elf, "--policy", "functional",
            "--until", args.until, "--until-text", END]
     try:
@@ -75,6 +85,53 @@ def main(argv):
     if args.core_hz and clocks != [args.core_hz]:
         print(f"\nrun_embsim: the MCU ends at a core clock of {clocks} Hz, not {args.core_hz}", file=sys.stderr)
         return 1
+    return 0 if int(m.group(2)) == 0 else 1
+
+
+def project(elf, target, nets):
+    """An EmbSIM project of one board, B1, running the image, its ports joined by the nets."""
+    return {
+        "schema_version": 1, "kind": "project", "name": "run-embsim",
+        "description": "run_embsim.py: one board and the wires the test needs",
+        "policy": "functional",
+        "boards": [{"id": "B1", "board": target, "layout": {"x": 0, "y": 0},
+                    "firmware": {"image": str(Path(elf).resolve()), "format": "elf"}}],
+        "components": [],
+        "nets": {f"W{i}": [f"B1.{port}" for port in net.split(",")] for i, net in enumerate(nets)},
+    }
+
+
+def run_project(args):
+    # beside the image, by a short relative name: EmbSIM refuses a long project path
+    name = Path(args.elf).name + ".embsim.json"
+    Path(name).write_text(json.dumps(project(args.elf, args.target, args.net), indent=1) + "\n",
+                          encoding="utf-8")
+    cmd = [args.embsim, "run", name, "--until", args.until, "--json"]
+    try:
+        p = subprocess.run(cmd, capture_output=True, timeout=args.timeout, stdin=subprocess.DEVNULL)
+    except OSError as e:
+        print(f"run_embsim: cannot start {args.embsim}: {e}", file=sys.stderr)
+        return 2
+    except subprocess.TimeoutExpired:
+        print("run_embsim: timeout", file=sys.stderr)
+        return 2
+    try:
+        report = json.loads(p.stdout.decode("utf-8", "replace"))
+        serial = report["serial"]["B1"]
+        out = serial[serial["console"]]
+    except (ValueError, KeyError, TypeError):
+        print(f"run_embsim: EmbSIM's report has no console (embsim exit {p.returncode})", file=sys.stderr)
+        sys.stderr.write(p.stderr.decode("utf-8", "replace"))
+        return 2
+    end = out.find(END)
+    out = out[:end + len(END) + 1] if end >= 0 else out  # the first run: the image restarts after
+    if not args.quiet:
+        sys.stdout.write(out)
+    m = SUMMARY.search(out)
+    if not m or end < 0:
+        print(f"\nrun_embsim: no summary by {args.until} of virtual time (embsim exit {p.returncode})",
+              file=sys.stderr)
+        return 2
     return 0 if int(m.group(2)) == 0 else 1
 
 

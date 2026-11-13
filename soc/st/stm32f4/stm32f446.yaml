@@ -58,6 +58,12 @@ peripherals:
   - { name: gpioh, compatible: "st,stm32-gpio", base: 0x40021C00, size: 0x400, port: H, clock: { bus: ahb1, bit: 7 } }
   # the independent watchdog (RM0390 §19), clocked by the 32 kHz LSI, no clock gate
   - { name: iwdg, compatible: "st,stm32f4-iwdg", base: 0x40003000, size: 0x400 }
+  # the RTC (RM0390 §26) in the backup domain, its clock the board's LSE; alarm A through EXTI
+  # line 17 to RTC_Alarm (position 41)
+  - { name: rtc, compatible: "st,stm32f4-rtc", base: 0x40002800, size: 0x400,
+      irqs: [ { name: alarm, number: 41 } ] }
+  # the external interrupt controller (RM0390 §10.3); the RTC's alarm is its line 17
+  - { name: exti, compatible: "st,stm32f4-exti", base: 0x40013C00, size: 0x400 }
   - { name: pwr, compatible: "st,stm32f4-pwr", base: 0x40007000, size: 0x400, clock: { bus: apb1, bit: 28 },
       irqs: [ { name: pvd, number: 1 } ] }
   - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,
@@ -65,36 +71,77 @@ peripherals:
   # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §18): its update event is ADC1's trigger
   - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, clock: { bus: apb1, bit: 0 },
       irqs: [ { name: global, number: 28 } ] }
+  # the DMA controllers (RM0390 §9), on AHB1, an interrupt per stream (SVD 1.9): each request on
+  # the streams Tables 28 and 29 list it on, with its channel select (dma_requests: A119, the
+  # tables cross-checked with EmbSIM's STM32F446 model); DMA2 alone copies memory to memory
+  - { name: dma1, compatible: "st,stm32-dma", base: 0x40026000, size: 0x400, clock: { bus: ahb1, bit: 21 },
+      irqs: [ { name: s0, number: 11 }, { name: s1, number: 12 }, { name: s2, number: 13 }, { name: s3, number: 14 },
+              { name: s4, number: 15 }, { name: s5, number: 16 }, { name: s6, number: 17 }, { name: s7, number: 47 } ],
+      dma: { kind: fixed, channels: 8, max_count: 65535, memory: false } }
+  - { name: dma2, compatible: "st,stm32-dma", base: 0x40026400, size: 0x400, clock: { bus: ahb1, bit: 22 },
+      irqs: [ { name: s0, number: 56 }, { name: s1, number: 57 }, { name: s2, number: 58 }, { name: s3, number: 59 },
+              { name: s4, number: 60 }, { name: s5, number: 68 }, { name: s6, number: 69 }, { name: s7, number: 70 } ],
+      dma: { kind: fixed, channels: 8, max_count: 65535, memory: true } }
+  # the I2C controllers (RM0390 §24), on APB1, each with an event and an error interrupt (SVD 1.9)
+  - { name: i2c1, compatible: "st,stm32-i2c", base: 0x40005400, size: 0x400, clock: { bus: apb1, bit: 21 },
+      irqs: [ { name: ev, number: 31 }, { name: er, number: 32 } ],
+      dma_requests: { tx: [dma1.s6c1, dma1.s7c1], rx: [dma1.s0c1, dma1.s5c1] } }
+  - { name: i2c2, compatible: "st,stm32-i2c", base: 0x40005800, size: 0x400, clock: { bus: apb1, bit: 22 },
+      irqs: [ { name: ev, number: 33 }, { name: er, number: 34 } ],
+      dma_requests: { tx: dma1.s7c7, rx: [dma1.s2c7, dma1.s3c7] } }
+  - { name: i2c3, compatible: "st,stm32-i2c", base: 0x40005C00, size: 0x400, clock: { bus: apb1, bit: 23 },
+      irqs: [ { name: ev, number: 72 }, { name: er, number: 73 } ],
+      dma_requests: { tx: dma1.s4c3, rx: [dma1.s1c1, dma1.s2c3] } }
+  # SPI2 (RM0390 §26), on APB1; its pins PB13 to PB15 keep PA5, the NUCLEO's LED, free
+  - { name: spi2, compatible: "st,stm32-spi", base: 0x40003800, size: 0x400, clock: { bus: apb1, bit: 14 },
+      irqs: [ { name: global, number: 36 } ],
+      dma_requests: { tx: dma1.s4c0, rx: dma1.s3c0 } }
   - { name: uart4, compatible: "st,stm32-usart", base: 0x40004C00, size: 0x400, clock: { bus: apb1, bit: 19 },
-      irqs: [ { name: global, number: 52 } ] }
+      irqs: [ { name: global, number: 52 } ],
+      dma_requests: { tx: dma1.s4c4, rx: dma1.s2c4 } }
   - { name: uart5, compatible: "st,stm32-usart", base: 0x40005000, size: 0x400, clock: { bus: apb1, bit: 20 },
-      irqs: [ { name: global, number: 53 } ] }
+      irqs: [ { name: global, number: 53 } ],
+      dma_requests: { tx: dma1.s7c4, rx: dma1.s0c4 } }
   - { name: usart1, compatible: "st,stm32-usart", base: 0x40011000, size: 0x400, clock: { bus: apb2, bit: 4 },
-      irqs: [ { name: global, number: 37 } ] }
+      irqs: [ { name: global, number: 37 } ],
+      dma_requests: { tx: dma2.s7c4, rx: [dma2.s2c4, dma2.s5c4] } }
   - { name: usart2, compatible: "st,stm32-usart", base: 0x40004400, size: 0x400, clock: { bus: apb1, bit: 17 },
-      irqs: [ { name: global, number: 38 } ] }
+      irqs: [ { name: global, number: 38 } ],
+      dma_requests: { tx: dma1.s6c4, rx: dma1.s5c4 } }
   - { name: usart3, compatible: "st,stm32-usart", base: 0x40004800, size: 0x400, clock: { bus: apb1, bit: 18 },
-      irqs: [ { name: global, number: 39 } ] }
+      irqs: [ { name: global, number: 39 } ],
+      dma_requests: { tx: [dma1.s3c4, dma1.s4c7], rx: dma1.s1c4 } }
   - { name: usart6, compatible: "st,stm32-usart", base: 0x40011400, size: 0x400, clock: { bus: apb2, bit: 5 },
-      irqs: [ { name: global, number: 71 } ] }
+      irqs: [ { name: global, number: 71 } ],
+      dma_requests: { tx: [dma2.s6c5, dma2.s7c5], rx: [dma2.s1c5, dma2.s2c5] } }
 # The serial pins' alternate functions. Ports A to C and PD2 from ST's open pin data
-# (STM32F446R(C-E)Tx.xml); PD5, PD6, PD8 and PD9 from DS10693 Table 11.
+# (STM32F446R(C-E)Tx.xml and GPIO-STM32F446_gpio_v1_0_Modes.xml, the I2C pins' AF4 among them);
+# PD5, PD6, PD8 and PD9 from DS10693 Table 11.
 alternate_functions:
   PA0: { af8: uart4_tx }
   PA1: { af8: uart4_rx }
   PA2: { af7: usart2_tx }
   PA3: { af7: usart2_rx }
+  PA8: { af4: i2c3_scl }
   PA9: { af7: usart1_tx }
   PA10: { af7: usart1_rx }
-  PB6: { af7: usart1_tx }
-  PB7: { af7: usart1_rx }
-  PB10: { af7: usart3_tx }
+  PB3: { af4: i2c2_sda }
+  PB4: { af4: i2c3_sda }
+  PB6: { af4: i2c1_scl, af7: usart1_tx }
+  PB7: { af4: i2c1_sda, af7: usart1_rx }
+  PB8: { af4: i2c1_scl }
+  PB9: { af4: i2c1_sda }
+  PB10: { af4: i2c2_scl, af7: usart3_tx }
+  PB13: { af5: spi2_sck }
+  PB14: { af5: spi2_miso }
+  PB15: { af5: spi2_mosi }
   PC5: { af7: usart3_rx }
   PC6: { af8: usart6_tx }
   PC7: { af8: usart6_rx }
+  PC9: { af4: i2c3_sda }
   PC10: { af7: usart3_tx, af8: uart4_tx }
   PC11: { af7: usart3_rx, af8: uart4_rx }
-  PC12: { af8: uart5_tx }
+  PC12: { af4: i2c2_sda, af8: uart5_tx }
   PD2: { af8: uart5_rx }
   PD5: { af7: usart2_tx }
   PD6: { af7: usart2_rx }

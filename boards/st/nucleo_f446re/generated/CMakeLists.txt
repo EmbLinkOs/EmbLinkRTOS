@@ -9,13 +9,13 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/st/nucleo_f446re/board.yaml
-#     91becf0c37f5656261bfec363956b47996bd1db3c6a3b7cbcfcfe40d6a94109b
+#     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
 #   drivers/bindings.yaml
-#     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+#     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
 #   soc/st/stm32f4/stm32f4.yaml
 #     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
 #   soc/st/stm32f4/stm32f446.yaml
-#     1a7a08ee049164842f51e62877ec373ed21a1b90403b0833565d0a6c7f37b748
+#     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
 #   soc/st/stm32f4/stm32f446re.yaml
 #     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
 # The board has no C of its own: its SoC family's board support builds emb_board from

@@ -4,8 +4,9 @@
 # This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
 # Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
 
-# Editor setup: clangd reads the compilation database of the native checked build,
-# which carries the include paths and the generated <emb/config.h> and <emb/storage.h>.
-# Create it once with `cmake --preset native-gcc`; headers borrow a nearby source's flags.
+# Editor setup: clangd reads one compilation database merged from every configured build, so
+# board and driver sources (STM32, RP2350, the ports) find their headers too, not only the
+# native build's. Configure the presets you work with, then run `python3 tools/dev/compile_db.py`
+# to write build/compile_commands.json; headers borrow a nearby source's flags.
 CompileFlags:
-  CompilationDatabase: build/native-gcc
+  CompilationDatabase: build

@@ -384,8 +384,12 @@ jobs:
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Debug descriptor reader (OBS-008, A107)
         run: python3 -I -m unittest discover -s tools/descriptor -p 'test_*.py' -v
+      - name: EmbSIM runner, its project mode (SIM-002)
+        run: python3 -I -m unittest discover -s tools/embsim -p 'test_*.py' -v
       - name: UF2 writer (A79)
         run: python3 -I -m unittest discover -s tools/uf2 -p 'test_*.py' -v
+      - name: Entropy sample checks (A124)
+        run: python3 -I -m unittest discover -s tools/entropy -p 'test_*.py' -v
       - name: Board support matrix (ADR-051, A81)
         run: |
           python3 -I -m unittest discover -s tools/support -p 'test_*.py' -v
@@ -479,8 +483,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
     env:
-      # EmbSIM main as of 2026-11-04: emblink/nucleo_f446re and emblink/nucleo_f446ze
-      EMBSIM_REF: 2529ab80801e7f9ed0d898d49b9d4534efeaa8d3
+      # EmbSIM main as of 2026-11-09 (e4616fa): its F446 models the USART's interrupts, which the
+      # UART class uses (SPEC-017 §4); emblink/nucleo_f446re and emblink/nucleo_f446ze
+      EMBSIM_REF: e4616fa0b97ee9c5444213cec0056b2781a42d5e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

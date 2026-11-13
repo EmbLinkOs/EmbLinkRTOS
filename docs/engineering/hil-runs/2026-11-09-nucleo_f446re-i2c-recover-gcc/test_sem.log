@@ -1,0 +1,56 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_sem.elf sha256 bbaadf2b83cab6348d820e1d470b3eca1f6d31eb6a28b6195f868eb53442a5ce
+EVIDENCE v1 suite=test_sem config=58171f48454d7671 profile=base board=nucleo_f446re checked=1
+TEST sem_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE sem_define_constructs_in_init_table outcome=passed asserts=6 skips=0
+TEST sem_blocking_take_from_prekernel_or_isr_rejected
+  -> ok
+  req API-012 API-013
+CASE sem_blocking_take_from_prekernel_or_isr_rejected outcome=passed asserts=4 skips=0
+TEST sem_storage_reuse_requires_destroy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE sem_storage_reuse_requires_destroy outcome=passed asserts=9 skips=0
+TEST sem_destroy_with_waiters_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001 API-013
+CASE sem_destroy_with_waiters_is_misuse outcome=passed asserts=7 skips=0
+TEST sem_destroy_aborts_waiters_when_allowed
+  -> ok
+  req KRN-OBJ-001 KRN-WAIT-018
+CASE sem_destroy_aborts_waiters_when_allowed outcome=passed asserts=5 skips=0
+TEST sem_init_validates_arguments
+  fault checks that reset the board: 2
+  -> ok
+  req API-015
+CASE sem_init_validates_arguments outcome=passed asserts=2 skips=0
+TEST sem_max_overflow_and_saturate
+  -> ok
+  req KRN-SYNC-020
+CASE sem_max_overflow_and_saturate outcome=passed asserts=13 skips=0
+TEST sem_give_from_isr_wakes_at_exit
+  -> ok
+  req KRN-SYNC-022 KRN-IRQ-010 KRN-IRQ-033
+CASE sem_give_from_isr_wakes_at_exit outcome=passed asserts=6 skips=0
+TEST sem_take_times_out_and_disarms
+  -> ok
+  req KRN-WAIT-004 KRN-WAIT-013
+CASE sem_take_times_out_and_disarms outcome=passed asserts=9 skips=0
+TEST sem_fifo_option_orders_by_arrival
+  -> ok
+  req KRN-WAIT-002
+CASE sem_fifo_option_orders_by_arrival outcome=passed asserts=9 skips=0
+TEST sem_give_hands_off_to_highest_waiter
+  -> ok
+  req KRN-WAIT-001 KRN-WAIT-012 KRN-SYNC-022
+CASE sem_give_hands_off_to_highest_waiter outcome=passed asserts=13 skips=0
+TEST sem_counts_and_nowait
+  -> ok
+  req KRN-SYNC-020 KRN-SYNC-021
+CASE sem_counts_and_nowait outcome=passed asserts=8 skips=0
+ISR_STACK size=2048 used=200
+12 tests, 0 failed, 0 skipped, 108 ticks
+EMB_TEST_END

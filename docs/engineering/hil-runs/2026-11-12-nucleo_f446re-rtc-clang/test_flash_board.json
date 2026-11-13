@@ -1,0 +1,59 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 516,
+      "name": "flash_board_erase_keeps_the_clock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4616,
+      "name": "flash_board_program_and_read_back",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T21:06:54Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "a15060c03d47d9b0",
+    "profile": "base",
+    "suite": "test_flash_board"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_flash_board.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_flash_board.elf": "6ca3f2e4d876d1424a17b2d56086e2d36620ba871071255ba29aee85728b6f97"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "aa704b2b2f49d643d2e0b1563a2622df026c049c",
+    "dirty": false
+  },
+  "image": "test_flash_board.elf",
+  "image_sha256": "6ca3f2e4d876d1424a17b2d56086e2d36620ba871071255ba29aee85728b6f97",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-12T21:06:44Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

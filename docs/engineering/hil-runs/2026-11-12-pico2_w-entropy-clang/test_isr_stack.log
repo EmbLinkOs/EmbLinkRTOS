@@ -1,0 +1,24 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_isr_stack.elf sha256 6dbb3f853d39cefe9a33b537115a1339dc84e9d220f07bbc83062f2d9bdd89a8
+EVIDENCE v1 suite=test_isr_stack config=1aafec98e5605967 profile=base board=pico2_w checked=1
+TEST isr_stack_info_reports_size_and_use
+  -> ok
+  req PORT-016 KRN-MEM-009
+CASE isr_stack_info_reports_size_and_use outcome=passed asserts=6 skips=0
+TEST isr_stack_guard_is_checked_at_the_outermost_exit
+  fault checks that reset the board: 1
+  -> ok
+  req PORT-016 KRN-MEM-010
+CASE isr_stack_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+TEST thread_guard_is_checked_at_the_outermost_exit
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-MEM-010 PORT-016
+CASE thread_guard_is_checked_at_the_outermost_exit outcome=passed asserts=1 skips=0
+TEST isr_stack_limit_stops_an_overflowing_interrupt
+  fault checks that reset the board: 1
+  -> ok
+  req PORT-016 KRN-MEM-010
+CASE isr_stack_limit_stops_an_overflowing_interrupt outcome=passed asserts=1 skips=0
+ISR_STACK size=2048 used=188
+4 tests, 0 failed, 0 skipped, 13 ticks
+EMB_TEST_END

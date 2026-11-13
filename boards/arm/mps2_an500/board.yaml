@@ -22,8 +22,10 @@ console: { device: uart0, baud: 115200 }
 # the board's devices (SPEC-016): the console UART, initialized with the EARLY devices
 devices:
   - { name: uart0, baud: 115200 }
+  - { name: spi0, doc: "a PL022 QEMU models; its tests use its internal loopback" }
 test_irqs: [30, 31]
 simulation:
+  loopbacks: [ { device: spi0, internal: true } ] # QEMU's PL022 loops back inside (LBM)
   qemu: [-M, mps2-an500, -icount, "shift=5,sleep=off", -semihosting-config, "enable=on,target=native", -kernel] # ~31 MIPS, deterministic time
   resets_in: [qemu] # SYSRESETREQ restarts the image, RAM kept (test_crash_reset)
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

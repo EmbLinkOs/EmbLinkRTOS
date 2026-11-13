@@ -17,6 +17,9 @@ emb_add_test(test_thread_join test_thread_join.c)
 emb_add_test(test_thread_identity test_thread_identity.c)
 target_link_libraries(test_thread_identity PRIVATE emb_kernel_private)
 emb_add_test(test_time test_time.c)
+if(CONFIG_EMB_WALLCLOCK)
+  emb_add_test(test_wallclock test_wallclock.c) # KRN-TIM-031
+endif()
 if(CONFIG_EMB_NOTIFY)
   emb_add_test(test_notify test_notify.c)
 endif()
@@ -45,6 +48,160 @@ if(CONFIG_EMB_TIMER)
 endif()
 if(CONFIG_EMB_DEVICE)
   emb_add_test(test_device test_device.c) # devices and driver requests (SPEC-016)
+  if(CONFIG_EMB_DRV_UART)
+    emb_add_test(test_uart test_uart.c) # SPEC-017 §4
+    # the class on the board's own console, where its description makes the console a device
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_console REGEX "EMB_SOC_CONSOLE_DEVICE")
+      if(_emb_console)
+        emb_add_test(test_uart_board test_uart_board.c)
+      endif()
+    endif()
+    # a UART whose transmit pin is wired to its receive pin, on a bench that has the wire:
+    # EMB_TEST_UART_LOOP=<device> (uart4 on the NUCLEO-F446RE, uart1 on the Pico 2 W)
+    set(EMB_TEST_UART_LOOP "" CACHE STRING "A UART device wired TX to RX, for test_uart_loop")
+    # on EmbSIM, the board's description wires its ports as the bench would
+    if(EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_UART_LOOP AND NOT EMB_TEST_UART_LOOP)
+      list(GET EMB_BOARD_EMBSIM_UART_LOOP 0 EMB_TEST_UART_LOOP)
+      list(GET EMB_BOARD_EMBSIM_UART_LOOP 1 _emb_loop_ports)
+      set(EMB_EMBSIM_ARGS_test_uart_loop --net "${_emb_loop_ports}" --until 1s)
+    endif()
+    if(EMB_TEST_UART_LOOP)
+      emb_add_test(test_uart_loop test_uart_loop.c)
+      target_compile_definitions(test_uart_loop PRIVATE "EMB_TEST_UART_LOOP_DEV=(&emb_dev_${EMB_TEST_UART_LOOP})")
+      string(TOUPPER "${EMB_TEST_UART_LOOP}" _emb_uart_up)
+      if("tx" IN_LIST EMB_BOARD_${_emb_uart_up}_DMA) # its writes by DMA
+        target_compile_definitions(test_uart_loop PRIVATE "EMB_TEST_UART_LOOP_DMA_TX=EMB_SOC_${_emb_uart_up}_DMA_TX")
+      endif()
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_GPIO)
+    emb_add_test(test_gpio test_gpio.c) # SPEC-017 §5a
+  endif()
+  if(CONFIG_EMB_DRV_DMA)
+    emb_add_test(test_dma test_dma.c) # SPEC-017 §7
+  endif()
+  if(CONFIG_EMB_DRV_ENTROPY)
+    emb_add_test(test_entropy test_entropy.c) # SPEC-017 §11, SEC-012
+    target_link_libraries(test_entropy PRIVATE emb_kernel_private) # its SHA-256, to check
+    # the board's own source, where it has one (and the native board's host source): 1 MiB
+    # tested on the board; a physical board also prints a 64 KiB sample for the host's checks
+    set(_emb_entropy OFF)
+    if(CONFIG_EMB_ARCH STREQUAL "native")
+      set(_emb_entropy ON)
+    elseif(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_ent REGEX "EMB_SOC_ENTROPY_DEVICE")
+      if(_emb_ent)
+        set(_emb_entropy ON)
+      endif()
+    endif()
+    if(_emb_entropy)
+      set(EMB_HIL_TIMEOUT_test_entropy_board 300) # 2 MiB raw for the conditioned MiB: some 2 min
+      emb_add_test(test_entropy_board test_entropy_board.c)
+      target_link_libraries(test_entropy_board PRIVATE emb_kernel_private) # its SHA-256
+      if(EMB_TEST_EMULATOR STREQUAL "hil")
+        target_compile_definitions(test_entropy_board PRIVATE EMB_ENTROPY_DUMP=1)
+      endif()
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_RTC)
+    emb_add_test(test_rtc test_rtc.c) # SPEC-017 §10
+    # the board's own RTC: its time, its alarm, across a reset
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_rtc REGEX "EMB_SOC_RTC_DEVICE")
+      if(_emb_rtc)
+        emb_add_test(test_rtc_board test_rtc_board.c)
+      endif()
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_FLASH)
+    emb_add_test(test_flash test_flash.c flash_sim.c) # SPEC-017 §9, a NOR flash in RAM
+    # the board's own flash, where it has a storage partition: erased, programmed and read back
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_storage REGEX "EMB_FLASH_AREA_STORAGE")
+      if(_emb_storage)
+        emb_add_test(test_flash_board test_flash_board.c)
+      endif()
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_WDT)
+    emb_add_test(test_wdt test_wdt.c) # SPEC-017 §8
+    if(CONFIG_EMB_WDOG)
+      emb_add_test(test_wdog test_wdog.c) # FLT-004
+      target_link_libraries(test_wdog PRIVATE emb_kernel_private) # the record, as a boot reads it
+    endif()
+    # the board's own watchdog, where it has one: it resets the board, and says so after
+    if(EXISTS "${EMB_BOARD_DIR}/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/soc_devices.h" _emb_wdt REGEX "EMB_SOC_WATCHDOG_DEVICE")
+      if(_emb_wdt)
+        emb_add_test(test_wdt_board test_wdt_board.c)
+        if(CONFIG_EMB_WDOG)
+          emb_add_test(test_wdog_board test_wdog_board.c) # FLT-004's demonstration
+        endif()
+      endif()
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_I2C)
+    emb_add_test(test_i2c test_i2c.c) # SPEC-017 §6
+    # two I2C controllers of the chip joined SCL to SCL and SDA to SDA: on the bench
+    # (EMB_TEST_I2C_LOOP=<controller>,<target>: i2c1,i2c2 on the NUCLEO-F446RE, i2c0,i2c1 on the
+    # Pico 2 W), or the board's EmbSIM wires
+    set(EMB_TEST_I2C_LOOP "" CACHE STRING "Two I2C devices wired line to line, controller first, for test_i2c_loop")
+    set(_emb_i2c_loop "${EMB_TEST_I2C_LOOP}")
+    if(NOT _emb_i2c_loop AND EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_I2C_LOOP)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 0 _emb_i2c_ctrl)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 1 _emb_i2c_tgt)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 2 _emb_i2c_net0)
+      list(GET EMB_BOARD_EMBSIM_I2C_LOOP 3 _emb_i2c_net1)
+      set(_emb_i2c_loop "${_emb_i2c_ctrl},${_emb_i2c_tgt}")
+      set(EMB_EMBSIM_ARGS_test_i2c_loop --net "${_emb_i2c_net0}" --net "${_emb_i2c_net1}" --until 1s)
+    endif()
+    if(_emb_i2c_loop)
+      string(REPLACE "," ";" _emb_i2c_pair "${_emb_i2c_loop}")
+      list(GET _emb_i2c_pair 0 _emb_i2c_ctrl)
+      list(GET _emb_i2c_pair 1 _emb_i2c_tgt)
+      emb_add_test(test_i2c_loop test_i2c_loop.c)
+      target_compile_definitions(test_i2c_loop PRIVATE "EMB_TEST_I2C_CTRL_DEV=(&emb_dev_${_emb_i2c_ctrl})"
+                                                       "EMB_TEST_I2C_TGT_DEV=(&emb_dev_${_emb_i2c_tgt})")
+      # the controller's lines, which the recovery case drives by hand (soc_devices.h)
+      string(TOUPPER "${_emb_i2c_ctrl}" _emb_i2c_up)
+      target_compile_definitions(test_i2c_loop PRIVATE "EMB_TEST_I2C_CTRL_SCL=EMB_SOC_${_emb_i2c_up}_SCL"
+                                                       "EMB_TEST_I2C_CTRL_SDA=EMB_SOC_${_emb_i2c_up}_SDA")
+    endif()
+  endif()
+  if(CONFIG_EMB_DRV_SPI)
+    emb_add_test(test_spi test_spi.c) # SPEC-017 §5
+    # an SPI controller whose MOSI is looped to its MISO: a wire on the bench
+    # (EMB_TEST_SPI_LOOP=<device>: spi2 on the NUCLEO-F446RE, spi1 on the Pico 2 W), the
+    # board's EmbSIM wire, or the controller's own loopback in an emulator that models it
+    set(EMB_TEST_SPI_LOOP "" CACHE STRING "An SPI device with MOSI wired to MISO, for test_spi_loop")
+    set(_emb_spi_loop "${EMB_TEST_SPI_LOOP}")
+    set(_emb_spi_internal OFF)
+    if(NOT _emb_spi_loop AND EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_SPI_LOOP)
+      list(GET EMB_BOARD_EMBSIM_SPI_LOOP 0 _emb_spi_loop)
+      list(GET EMB_BOARD_EMBSIM_SPI_LOOP 1 _emb_loop_ports)
+      set(EMB_EMBSIM_ARGS_test_spi_loop --net "${_emb_loop_ports}" --until 1s)
+    elseif(NOT _emb_spi_loop AND EMB_BOARD_SPI_LOOP_INTERNAL AND NOT EMB_TEST_EMULATOR STREQUAL "hil")
+      set(_emb_spi_loop "${EMB_BOARD_SPI_LOOP_INTERNAL}")
+      set(_emb_spi_internal ON)
+    endif()
+    if(_emb_spi_loop)
+      emb_add_test(test_spi_loop test_spi_loop.c)
+      target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_DEV=(&emb_dev_${_emb_spi_loop})")
+      if(_emb_spi_internal)
+        target_compile_definitions(test_spi_loop PRIVATE EMB_TEST_SPI_LOOP_INTERNAL=1)
+      endif()
+      # the board's first chip select of that device, read back at the pin
+      string(TOUPPER "${_emb_spi_loop}" _emb_spi_up)
+      if(EMB_BOARD_${_emb_spi_up}_CS_COUNT)
+        target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_CS=EMB_SOC_${_emb_spi_up}_CS0")
+      endif()
+      # its DMA transmit channel, where the board gives it one: the transfers run by DMA
+      if("tx" IN_LIST EMB_BOARD_${_emb_spi_up}_DMA)
+        target_compile_definitions(test_spi_loop PRIVATE "EMB_TEST_SPI_LOOP_DMA_TX=EMB_SOC_${_emb_spi_up}_DMA_TX")
+      endif()
+    endif()
+  endif()
 endif()
 emb_add_test(test_first_execution test_first_execution.c)
 if(CONFIG_EMB_CRASH_RECORD)

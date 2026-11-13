@@ -1,0 +1,22 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_dma.elf sha256 03c0d892a985c0cdaa92f8ef54fdb17240e19cf48c7bf2c6d4e383dfe23c19d2
+EVIDENCE v1 suite=test_dma config=df5c8385dd9f1b46 profile=base board=pico2_w checked=1
+TEST dma_misuse_faults
+  fault checks that reset the board: 8
+  -> ok
+  req DRV-004
+CASE dma_misuse_faults outcome=passed asserts=10 skips=0
+TEST dma_refusals
+  -> ok
+  req DRV-004
+CASE dma_refusals outcome=passed asserts=5 skips=0
+TEST dma_stop_gives_what_moved
+  -> ok
+  req DRV-006
+CASE dma_stop_gives_what_moved outcome=passed asserts=7 skips=0
+TEST dma_job_starts_and_ends
+  -> ok
+  req DRV-004
+CASE dma_job_starts_and_ends outcome=passed asserts=10 skips=0
+ISR_STACK size=2048 used=208
+4 tests, 0 failed, 0 skipped, 37 ticks
+EMB_TEST_END

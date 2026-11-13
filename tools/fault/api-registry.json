@@ -984,6 +984,444 @@
       "name": "emb_drv_wait",
       "header": "device.h",
       "state": "active"
+    },
+    {
+      "id": 168,
+      "name": "emb_device_caps",
+      "header": "device.h",
+      "state": "active"
+    },
+    {
+      "id": 169,
+      "name": "emb_drv_uart_req_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 170,
+      "name": "emb_drv_uart_req_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 171,
+      "name": "emb_drv_uart_submit",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 172,
+      "name": "emb_drv_uart_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 173,
+      "name": "emb_drv_uart_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 174,
+      "name": "emb_drv_uart_poll_write",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 175,
+      "name": "emb_drv_uart_poll_read",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 176,
+      "name": "emb_drv_uart_rx_init",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 177,
+      "name": "emb_drv_uart_rx_byte",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 178,
+      "name": "emb_drv_uart_rx_idle",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 179,
+      "name": "emb_drv_uart_rx_error",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 180,
+      "name": "emb_drv_uart_rx_start",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 181,
+      "name": "emb_drv_uart_rx_stop",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 182,
+      "name": "emb_drv_uart_req_break",
+      "header": "drv_uart.h",
+      "state": "active"
+    },
+    {
+      "id": 183,
+      "name": "emb_drv_spi_req_transfer",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 184,
+      "name": "emb_drv_spi_submit",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 185,
+      "name": "emb_drv_spi_transfer",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 186,
+      "name": "emb_drv_gpio_configure",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 187,
+      "name": "emb_drv_gpio_write",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 188,
+      "name": "emb_drv_gpio_read",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 189,
+      "name": "emb_drv_gpio_assert",
+      "header": "drv_gpio.h",
+      "state": "active"
+    },
+    {
+      "id": 190,
+      "name": "emb_drv_spi_acquire",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 191,
+      "name": "emb_drv_spi_release",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 192,
+      "name": "emb_drv_spi_bus_init",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 193,
+      "name": "emb_drv_spi_begin",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 194,
+      "name": "emb_drv_spi_end",
+      "header": "drv_spi.h",
+      "state": "active"
+    },
+    {
+      "id": 195,
+      "name": "emb_drv_i2c_req_transfer",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 196,
+      "name": "emb_drv_i2c_req_listen",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 197,
+      "name": "emb_drv_i2c_submit",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 198,
+      "name": "emb_drv_i2c_transfer",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 199,
+      "name": "emb_drv_i2c_write_read",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 200,
+      "name": "emb_drv_i2c_listen",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 201,
+      "name": "emb_drv_i2c_bus_init",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 202,
+      "name": "emb_drv_i2c_acquire",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 203,
+      "name": "emb_drv_i2c_release",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 204,
+      "name": "emb_drv_i2c_recover",
+      "header": "drv_i2c.h",
+      "state": "active"
+    },
+    {
+      "id": 205,
+      "name": "emb_drv_dma_start",
+      "header": "drv_dma.h",
+      "state": "active"
+    },
+    {
+      "id": 206,
+      "name": "emb_drv_dma_stop",
+      "header": "drv_dma.h",
+      "state": "active"
+    },
+    {
+      "id": 207,
+      "name": "emb_drv_wdt_start",
+      "header": "drv_wdt.h",
+      "state": "active"
+    },
+    {
+      "id": 208,
+      "name": "emb_drv_wdt_feed",
+      "header": "drv_wdt.h",
+      "state": "active"
+    },
+    {
+      "id": 209,
+      "name": "emb_drv_wdt_caused_reset",
+      "header": "drv_wdt.h",
+      "state": "active"
+    },
+    {
+      "id": 210,
+      "name": "emb_wdog_start",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 211,
+      "name": "emb_wdog_watch",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 212,
+      "name": "emb_wdog_unwatch",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 213,
+      "name": "emb_wdog_checkin",
+      "header": "wdog.h",
+      "state": "active"
+    },
+    {
+      "id": 214,
+      "name": "emb_drv_flash_geometry_get",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 215,
+      "name": "emb_drv_flash_sector",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 216,
+      "name": "emb_drv_flash_read",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 217,
+      "name": "emb_drv_flash_program",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 218,
+      "name": "emb_drv_flash_erase",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 219,
+      "name": "emb_drv_flash_poll_read",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 220,
+      "name": "emb_drv_flash_poll_program",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 221,
+      "name": "emb_drv_flash_poll_erase",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 222,
+      "name": "emb_flash_area_read",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 223,
+      "name": "emb_flash_area_program",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 224,
+      "name": "emb_flash_area_erase",
+      "header": "flash_area.h",
+      "state": "active"
+    },
+    {
+      "id": 225,
+      "name": "emb_drv_flash_lock_init",
+      "header": "drv_flash.h",
+      "state": "active"
+    },
+    {
+      "id": 226,
+      "name": "emb_wallclock_get",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 227,
+      "name": "emb_wallclock_set",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 228,
+      "name": "emb_wallclock_adjust",
+      "header": "wallclock.h",
+      "state": "active"
+    },
+    {
+      "id": 229,
+      "name": "emb_drv_rtc_get",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 230,
+      "name": "emb_drv_rtc_set",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 231,
+      "name": "emb_drv_rtc_alarm_set",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 232,
+      "name": "emb_drv_rtc_alarm_cancel",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 233,
+      "name": "emb_drv_rtc_backup_read",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 234,
+      "name": "emb_drv_rtc_backup_write",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 235,
+      "name": "emb_drv_rtc_started",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 236,
+      "name": "emb_drv_rtc_alarm_fired",
+      "header": "drv_rtc.h",
+      "state": "active"
+    },
+    {
+      "id": 237,
+      "name": "emb_drv_entropy_board",
+      "header": "drv_entropy.h",
+      "state": "active"
+    },
+    {
+      "id": 238,
+      "name": "emb_drv_entropy_lock_init",
+      "header": "drv_entropy.h",
+      "state": "active"
+    },
+    {
+      "id": 239,
+      "name": "emb_drv_entropy_read",
+      "header": "drv_entropy.h",
+      "state": "active"
+    },
+    {
+      "id": 240,
+      "name": "emb_drv_entropy_read_raw",
+      "header": "drv_entropy.h",
+      "state": "active"
     }
   ]
 }

@@ -19,11 +19,11 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     1525ea206692663af174039e30776d6a9a9b30275c9e5c9bdabf14ac0b70aa19
  *   drivers/bindings.yaml
- *     c0fca7c05d36867a23bac8bb7147726739dd0d73d59cd6a0b9465171daabe480
+ *     e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090
  *   soc/st/stm32f4/stm32f4.yaml
  *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
  *   soc/st/stm32f4/stm32f446.yaml
- *     1a7a08ee049164842f51e62877ec373ed21a1b90403b0833565d0a6c7f37b748
+ *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
  *   soc/st/stm32f4/stm32f446ze.yaml
  *     dabae95e9e4bc984c1a33275966665e0252068e929fe3b430d06589da6bdb6c9
  */
@@ -68,6 +68,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;
