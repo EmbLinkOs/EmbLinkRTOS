@@ -11,8 +11,9 @@
  *
  * @details
  * With CONFIG_EMB_TRACE every kernel event is delivered to one registered sink; the native port's
- * test harness forwards them to the reference-model bridge (SPEC-013 §8). The CTF encoding and the
- * packetized rings of SPEC-015 come with the observability milestone.
+ * test harness forwards them to the reference-model bridge (SPEC-013 §8). The trace ring (A128)
+ * is the other sink: events kept as compact records in RAM, dumped or streamed framed on
+ * channel 1, which tools/trace turns into CTF and Perfetto's JSON on the host.
  *
  * @see     kernel/trace/trace.c
  * @author  Junior Deogracias
@@ -21,6 +22,7 @@
 #ifndef EMB_TRACE_H
 #define EMB_TRACE_H
 
+#include <emb/status.h>
 #include <emb/types.h>
 
 #ifdef __cplusplus
@@ -104,6 +106,92 @@ typedef void (*emb_trace_sink_t)(const emb_trace_event_t *event, void *ctx);
  * @stable   experimental
  */
 void emb_trace_set_sink(emb_trace_sink_t sink, void *ctx);
+
+/* ---- the trace ring (A128) -------------------------------------------------------- */
+
+/* A ring's event as it is kept and sent: 20 bytes, little-endian. */
+#define EMB_TRACE_RECORD_SIZE 20u
+
+/* A channel-1 packet's kind (A128). */
+#define EMB_TRACE_PACKET_EVENTS 0u /* events, oldest first */
+#define EMB_TRACE_PACKET_NAMES  1u /* threads' indexes and names */
+
+typedef struct emb_trace_stats {
+    uint32_t recorded;    /* events written into the ring since emb_trace_start() */
+    uint32_t overwritten; /* events the ring dropped, oldest first, before they were sent */
+    uint32_t sent;        /* events sent on channel 1 */
+} emb_trace_stats_t;
+
+/**
+ * emb_trace_start() - Record the kernel's events into the trace ring.
+ *
+ * @ctx      prekernel thread
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_TRACE_RING
+ * @req      OBS-005 OBS-007
+ * @since    0.3
+ * @stable   no
+ *
+ * The ring becomes the trace sink (emb_trace_set_sink()): each event is written into it in the
+ * critical section it happens in, as a 20-byte record with the cycle counter's time. A full
+ * ring overwrites its oldest events, counted. Calling it links the ring into the image.
+ *
+ * Return: EMB_OK.
+ */
+emb_status_t emb_trace_start(void);
+
+/**
+ * emb_trace_stop() - Stop recording: the ring keeps what it holds, for a dump.
+ *
+ * @ctx      prekernel thread isr
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_TRACE_RING
+ * @req      OBS-007
+ * @since    0.3
+ * @stable   no
+ */
+void emb_trace_stop(void);
+
+/**
+ * emb_trace_dump() - Send the ring's events on the framed console's channel 1.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   yes, in a thread: for the console
+ * @time     O(events in the ring) plus the console's line time
+ * @owns     none
+ * @config   CONFIG_EMB_TRACE_RING CONFIG_EMB_CONSOLE_FRAMED
+ * @req      OBS-007
+ * @since    0.3
+ * @stable   no
+ *
+ * The snapshot of SPEC-015 §3.3: from a thread, a packet of the threads' names first; then the
+ * events in the ring when it is called, oldest first, in packets of whole events. Events that
+ * happen while it sends are not in this dump.
+ *
+ * Return: EMB_OK; EMB_ENOTSUP when the console is plain text.
+ */
+emb_status_t emb_trace_dump(void);
+
+/**
+ * emb_trace_stats_get() - The trace ring's counters.
+ * @out: Receives them, read together.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_TRACE_RING
+ * @req      OBS-005
+ * @since    0.3
+ * @stable   no
+ *
+ * Return: EMB_OK; EMB_EINVAL for a NULL @out.
+ */
+emb_status_t emb_trace_stats_get(emb_trace_stats_t *out);
 
 #ifdef __cplusplus
 }

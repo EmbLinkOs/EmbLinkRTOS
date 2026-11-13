@@ -15,6 +15,9 @@ endif()
 if(CONFIG_EMB_LOG)
   list(APPEND EMB_SUBSYS_SOURCES logging/log.c) # SPEC-015 §2, A127
 endif()
+if(CONFIG_EMB_TRACE_RING)
+  list(APPEND EMB_SUBSYS_SOURCES trace/ring.c) # SPEC-015 §3, A128
+endif()
 
 add_library(emb_subsys STATIC ${EMB_SUBSYS_SOURCES})
 emb_use_kernel_compiler(emb_subsys)

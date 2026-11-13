@@ -1477,6 +1477,36 @@
       "name": "emb_console_frame",
       "header": "console.h",
       "state": "active"
+    },
+    {
+      "id": 256,
+      "name": "emb_log_format_check_",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 257,
+      "name": "emb_trace_start",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 258,
+      "name": "emb_trace_stop",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 259,
+      "name": "emb_trace_dump",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 260,
+      "name": "emb_trace_stats_get",
+      "header": "trace.h",
+      "state": "active"
     }
   ]
 }

@@ -122,4 +122,48 @@ config EMB_LOG_LINE_MAX
 
 endif # EMB_LOG
 
+config EMB_TRACE_RING
+	bool "Trace ring: the kernel's events in RAM, sent on channel 1 (A128)"
+	depends on EMB_TRACE
+	default y
+	help
+	  emb_trace_start() makes the ring the trace sink: each kernel event is
+	  kept as a 20-byte record with the cycle counter's time, the newest
+	  overwriting the oldest. emb_trace_dump() sends them framed on channel
+	  1, and tools/trace writes CTF and Perfetto's JSON from them. Linked
+	  only when the application calls emb_trace_start().
+
+if EMB_TRACE_RING
+
+config EMB_TRACE_RING_EVENTS
+	int "Events the ring keeps (a power of two)"
+	default 64 if EMB_PROFILE_TINY
+	default 256
+	range 8 65536
+
+config EMB_TRACE_STREAM
+	bool "Stream: a thread sends the events as they come, every period"
+	depends on EMB_CONSOLE_FRAMED
+	default n
+
+config EMB_TRACE_STREAM_MS
+	int "Stream period, milliseconds"
+	depends on EMB_TRACE_STREAM
+	default 100
+	range 1 60000
+
+config EMB_TRACE_STREAM_PRIORITY
+	int "Stream thread priority; 0 selects the lowest application priority"
+	depends on EMB_TRACE_STREAM
+	default 0
+	range 0 255
+
+config EMB_TRACE_STREAM_STACK
+	int "Stream thread stack, bytes"
+	depends on EMB_TRACE_STREAM
+	default 1024
+	range EMB_ARCH_STACK_MIN 65536
+
+endif # EMB_TRACE_RING
+
 endmenu

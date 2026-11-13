@@ -302,6 +302,46 @@
       "masked": false,
       "profiles": "every profile; the CRC is bitwise, eight steps a byte",
       "evidence": "SPEC-015 \u00a77; OBS-019; test_frame"
+    },
+    {
+      "id": "console_line",
+      "input": "the console's line time: bytes written polled at its baud rate",
+      "bound": "the frame's bytes, each one character time (87 us at 115200 baud)",
+      "limit": "application: what it sends, and the board's console rate",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "every profile; a thread holds the console's mutex while it writes a frame, so other threads' frames wait (A127)",
+      "evidence": "SPEC-015 \u00a77; A127"
+    },
+    {
+      "id": "log_record",
+      "input": "one log record's bytes: its arguments, strings and hexdump",
+      "bound": "at most eight arguments; a string cut at CONFIG_EMB_LOG_STR_MAX, a hexdump at CONFIG_EMB_LOG_HEXDUMP_MAX",
+      "limit": "configuration: CONFIG_EMB_LOG_STR_MAX, CONFIG_EMB_LOG_HEXDUMP_MAX",
+      "enforcement": "configuration",
+      "masked": false,
+      "profiles": "every profile with logging; the reservation is the only masked part, a bounded number of instructions",
+      "evidence": "SPEC-015 \u00a72.3; OBS-003; A127; test_log"
+    },
+    {
+      "id": "log_ring",
+      "input": "records in the log ring",
+      "bound": "the ring's bytes: CONFIG_EMB_LOG_RING_SIZE",
+      "limit": "configuration: CONFIG_EMB_LOG_RING_SIZE",
+      "enforcement": "configuration",
+      "masked": false,
+      "profiles": "every profile with logging; a record is copied out with interrupts enabled",
+      "evidence": "SPEC-015 \u00a72.3; A127; test_log"
+    },
+    {
+      "id": "trace_ring",
+      "input": "events in the trace ring",
+      "bound": "CONFIG_EMB_TRACE_RING_EVENTS, each 20 bytes",
+      "limit": "configuration: CONFIG_EMB_TRACE_RING_EVENTS",
+      "enforcement": "configuration",
+      "masked": false,
+      "profiles": "every profile with the trace ring; an event is read with interrupts masked, 20 bytes at a time",
+      "evidence": "SPEC-015 \u00a73; A128; test_trace_ring"
     }
   ],
   "apis": {
@@ -805,6 +845,25 @@
     ],
     "emb_frame_decode_byte": [
       "frame_bytes"
+    ],
+    "emb_console_frame": [
+      "frame_bytes",
+      "console_line"
+    ],
+    "emb_frame_write": [
+      "frame_bytes",
+      "callbacks"
+    ],
+    "emb_log_flush": [
+      "log_ring",
+      "console_line"
+    ],
+    "emb_log_write": [
+      "log_record"
+    ],
+    "emb_trace_dump": [
+      "trace_ring",
+      "console_line"
     ]
   }
 }

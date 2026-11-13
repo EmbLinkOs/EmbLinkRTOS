@@ -303,7 +303,7 @@ typedef struct emb_log_header {
  *
  * @ctx      thread isr prekernel
  * @blocks   no
- * @time     O(1): it appears only inside sizeof, so no code is emitted
+ * @time     O(1)
  * @owns     none
  * @config   CONFIG_EMB_LOG
  * @req      OBS-001
