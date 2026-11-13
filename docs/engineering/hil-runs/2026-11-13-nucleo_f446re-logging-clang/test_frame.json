@@ -1,0 +1,101 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 9,
+      "name": "frame_encoding_matches_the_host_tool",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 39,
+      "name": "frame_runs_at_the_cobs_boundary",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 12,
+      "name": "frame_round_trip_through_the_decoder",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 17,
+      "name": "frame_decoder_resynchronizes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "frame_decoder_drops_an_overrun",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "frame_misuse_is_refused",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 383,
+      "name": "frame_random_stream_with_damage",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 122,
+      "name": "frame_write_streams_the_encoders_bytes",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "frame_write_misuse_is_refused",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-13T05:27:52Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "aa8dd55373872741",
+    "profile": "base",
+    "suite": "test_frame"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/wt/hil/build/nucleo-clang/tests/conformance/test_frame.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_frame.elf": "5b147777f902c4e96556bced1d0a3e0f0fb310a0c7fce023bfd254aaab762f8f"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "34dde4f3d84c0082aa1f0763aed41d6506ba1d06",
+    "dirty": false
+  },
+  "image": "test_frame.elf",
+  "image_sha256": "5b147777f902c4e96556bced1d0a3e0f0fb310a0c7fce023bfd254aaab762f8f",
+  "isr_stack": {
+    "size": 2048,
+    "used": 176
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-13T05:27:50Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 9
+  }
+}

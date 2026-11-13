@@ -1,0 +1,37 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_spi_loop.elf sha256 582dfcc611c3917daa31050895f8080cc4c93b0418d89362bbf6f1a15dfd5c67
+EVIDENCE v1 suite=test_spi_loop config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST spi_loop_frames_come_back_intact
+  -> ok
+  req DRV-004 DRV-005
+CASE spi_loop_frames_come_back_intact outcome=passed asserts=4 skips=0
+TEST spi_loop_every_mode
+  -> ok
+  req DRV-004
+CASE spi_loop_every_mode outcome=passed asserts=8 skips=0
+TEST spi_loop_slow_and_fast_clocks
+  -> ok
+  req DRV-004
+CASE spi_loop_slow_and_fast_clocks outcome=passed asserts=4 skips=0
+TEST spi_loop_refuses_a_clock_too_slow
+  -> ok
+  req DRV-006
+CASE spi_loop_refuses_a_clock_too_slow outcome=passed asserts=4 skips=0
+TEST spi_loop_timeout_stops_after_whole_frames
+  -> ok
+  req DRV-006
+CASE spi_loop_timeout_stops_after_whole_frames outcome=passed asserts=5 skips=0
+TEST spi_loop_no_transmit_buffer_sends_ones
+  -> ok
+  req DRV-005
+CASE spi_loop_no_transmit_buffer_sends_ones outcome=passed asserts=17 skips=0
+TEST spi_loop_chip_select_at_the_pin
+  -> ok
+  req DRV-004
+CASE spi_loop_chip_select_at_the_pin outcome=passed asserts=21 skips=0
+TEST spi_loop_runs_by_dma
+  -> ok
+  req DRV-004 DRV-006
+CASE spi_loop_runs_by_dma outcome=passed asserts=14 skips=0
+ISR_STACK size=2048 used=188
+8 tests, 0 failed, 0 skipped, 198 ticks
+EMB_TEST_END

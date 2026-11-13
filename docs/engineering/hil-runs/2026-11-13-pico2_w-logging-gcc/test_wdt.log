@@ -1,0 +1,14 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_wdt.elf sha256 c1aa435afe3aa53070e7510c7447c1630a078c8f77aeffa0543528e1d2413139
+EVIDENCE v1 suite=test_wdt config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST wdt_not_ready_and_misuse
+  fault checks that reset the board: 3
+  -> ok
+  req FLT-004
+CASE wdt_not_ready_and_misuse outcome=passed asserts=7 skips=0
+TEST wdt_start_feed_and_cause
+  -> ok
+  req FLT-004
+CASE wdt_start_feed_and_cause outcome=passed asserts=13 skips=0
+ISR_STACK size=2048 used=216
+2 tests, 0 failed, 0 skipped, 20 ticks
+EMB_TEST_END

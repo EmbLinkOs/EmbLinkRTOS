@@ -1,0 +1,41 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_frame.elf sha256 3532d4475a86bb81bce919a444d8a6acf037c3634a9339685fa5e04501cee0cb
+EVIDENCE v1 suite=test_frame config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST frame_encoding_matches_the_host_tool
+  -> ok
+  req OBS-019
+CASE frame_encoding_matches_the_host_tool outcome=passed asserts=9 skips=0
+TEST frame_runs_at_the_cobs_boundary
+  -> ok
+  req OBS-019
+CASE frame_runs_at_the_cobs_boundary outcome=passed asserts=39 skips=0
+TEST frame_round_trip_through_the_decoder
+  -> ok
+  req OBS-019
+CASE frame_round_trip_through_the_decoder outcome=passed asserts=12 skips=0
+TEST frame_decoder_resynchronizes
+  -> ok
+  req OBS-019
+CASE frame_decoder_resynchronizes outcome=passed asserts=17 skips=0
+TEST frame_decoder_drops_an_overrun
+  -> ok
+  req OBS-019
+CASE frame_decoder_drops_an_overrun outcome=passed asserts=6 skips=0
+TEST frame_misuse_is_refused
+  -> ok
+  req OBS-019
+CASE frame_misuse_is_refused outcome=passed asserts=8 skips=0
+TEST frame_random_stream_with_damage
+  -> ok
+  req OBS-019
+CASE frame_random_stream_with_damage outcome=passed asserts=383 skips=0
+TEST frame_write_streams_the_encoders_bytes
+  -> ok
+  req OBS-019
+CASE frame_write_streams_the_encoders_bytes outcome=passed asserts=122 skips=0
+TEST frame_write_misuse_is_refused
+  -> ok
+  req OBS-019
+CASE frame_write_misuse_is_refused outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=188
+9 tests, 0 failed, 0 skipped, 120 ticks
+EMB_TEST_END

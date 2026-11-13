@@ -1,0 +1,35 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_log.elf sha256 8c906d2d50afdf39fc55ed36b04e4fe942ec0ede15235335c0867ee95b00e5b9
+EVIDENCE v1 suite=test_log config=aa8dd55373872741 profile=base board=nucleo_f446re checked=1
+TEST log_record_layout
+  -> ok
+  req OBS-013
+CASE log_record_layout outcome=passed asserts=3 skips=0
+TEST log_text_formats
+  -> ok
+  req OBS-013
+CASE log_text_formats outcome=passed asserts=11 skips=0
+TEST log_levels_compile_and_run_time
+  -> ok
+  req OBS-002
+CASE log_levels_compile_and_run_time outcome=passed asserts=9 skips=0
+TEST log_overflow_drops_and_counts
+  -> ok
+  req OBS-003
+CASE log_overflow_drops_and_counts outcome=passed asserts=84 skips=0
+TEST log_isr_record_waits_for_the_one_before_it
+  -> ok
+  req OBS-003
+CASE log_isr_record_waits_for_the_one_before_it outcome=passed asserts=6 skips=0
+TEST log_flush_sends_what_is_committed
+[0.064] I t: flushed 1
+[0.064] I t: flushed 2
+  -> ok
+  req OBS-003
+CASE log_flush_sends_what_is_committed outcome=passed asserts=4 skips=0
+TEST log_producers_at_once_keep_their_order
+  -> ok
+  req OBS-003
+CASE log_producers_at_once_keep_their_order outcome=passed asserts=2855 skips=0
+ISR_STACK size=2048 used=204
+7 tests, 0 failed, 0 skipped, 110 ticks
+EMB_TEST_END

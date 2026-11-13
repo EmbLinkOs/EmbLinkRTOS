@@ -1,0 +1,35 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_log.elf sha256 321c9394e101dcf44abd9ffb7c2a5682657fb57fe6d6448f9ded541be539045d
+EVIDENCE v1 suite=test_log config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST log_producers_at_once_keep_their_order
+  -> ok
+  req OBS-003
+CASE log_producers_at_once_keep_their_order outcome=passed asserts=2828 skips=0
+TEST log_flush_sends_what_is_committed
+[0.036] I t: flushed 1
+[0.036] I t: flushed 2
+  -> ok
+  req OBS-003
+CASE log_flush_sends_what_is_committed outcome=passed asserts=4 skips=0
+TEST log_isr_record_waits_for_the_one_before_it
+  -> ok
+  req OBS-003
+CASE log_isr_record_waits_for_the_one_before_it outcome=passed asserts=6 skips=0
+TEST log_overflow_drops_and_counts
+  -> ok
+  req OBS-003
+CASE log_overflow_drops_and_counts outcome=passed asserts=84 skips=0
+TEST log_levels_compile_and_run_time
+  -> ok
+  req OBS-002
+CASE log_levels_compile_and_run_time outcome=passed asserts=9 skips=0
+TEST log_text_formats
+  -> ok
+  req OBS-013
+CASE log_text_formats outcome=passed asserts=11 skips=0
+TEST log_record_layout
+  -> ok
+  req OBS-013
+CASE log_record_layout outcome=passed asserts=3 skips=0
+ISR_STACK size=2048 used=236
+7 tests, 0 failed, 0 skipped, 103 ticks
+EMB_TEST_END

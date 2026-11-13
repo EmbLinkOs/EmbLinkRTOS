@@ -1,0 +1,71 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_device.elf sha256 d73ec6be61b3d28808d32cb412d25f80396e1f940e34bdd6dc8a845b2e86c7d6
+EVIDENCE v1 suite=test_device config=aa8dd55373872741 profile=base board=nucleo_f446re checked=1
+TEST drv_status_codes_are_named_in_their_ranges
+  -> ok
+  req DRV-008
+CASE drv_status_codes_are_named_in_their_ranges outcome=passed asserts=47 skips=0
+TEST device_misuse_faults
+  fault checks that reset the board: 10
+  -> ok
+  req DRV-002 DRV-004
+CASE device_misuse_faults outcome=passed asserts=11 skips=0
+TEST drv_setters_ignore_a_missing_request
+  -> ok
+  req DRV-005
+CASE drv_setters_ignore_a_missing_request outcome=passed asserts=3 skips=0
+TEST device_optional_operations
+  -> ok
+  req DRV-002 DRV-006 PWR-002
+CASE device_optional_operations outcome=passed asserts=23 skips=0
+TEST device_board_devices_ready_in_dependency_order
+  -> ok
+  req DRV-001 DRV-002
+CASE device_board_devices_ready_in_dependency_order outcome=passed asserts=38 skips=0
+TEST drv_wait_returns_the_result_or_times_out
+  -> ok
+  req DRV-004 DRV-006
+CASE drv_wait_returns_the_result_or_times_out outcome=passed asserts=8 skips=0
+TEST drv_cancel_queued_and_running_requests_complete_once
+  -> ok
+  req DRV-006
+CASE drv_cancel_queued_and_running_requests_complete_once outcome=passed asserts=15 skips=0
+TEST drv_lanes_run_independently
+  fault checks that reset the board: 1
+  -> ok
+  req DRV-004 DRV-006
+CASE drv_lanes_run_independently outcome=passed asserts=15 skips=0
+TEST drv_queue_is_first_in_first_out
+  -> ok
+  req DRV-004
+CASE drv_queue_is_first_in_first_out outcome=passed asserts=8 skips=0
+TEST drv_completion_targets
+  -> ok
+  req DRV-005
+CASE drv_completion_targets outcome=passed asserts=13 skips=0
+TEST drv_request_completes_from_the_interrupt
+  -> ok
+  req DRV-004 DRV-005
+CASE drv_request_completes_from_the_interrupt outcome=passed asserts=6 skips=0
+TEST drv_submit_refused_unless_ready
+  -> ok
+  req DRV-003
+CASE drv_submit_refused_unless_ready outcome=passed asserts=2 skips=0
+TEST device_suspend_and_resume
+  -> ok
+  req DRV-002 PWR-002
+CASE device_suspend_and_resume outcome=passed asserts=10 skips=0
+TEST device_list_initializes_past_a_failure
+  -> ok
+  req DRV-001 DRV-003
+CASE device_list_initializes_past_a_failure outcome=passed asserts=4 skips=0
+TEST device_on_a_failed_dependency_fails_without_its_driver
+  -> ok
+  req DRV-003
+CASE device_on_a_failed_dependency_fails_without_its_driver outcome=passed asserts=5 skips=0
+TEST device_init_reaches_ready_or_failed
+  -> ok
+  req DRV-002 DRV-003
+CASE device_init_reaches_ready_or_failed outcome=passed asserts=10 skips=0
+ISR_STACK size=2048 used=264
+16 tests, 0 failed, 0 skipped, 111 ticks
+EMB_TEST_END

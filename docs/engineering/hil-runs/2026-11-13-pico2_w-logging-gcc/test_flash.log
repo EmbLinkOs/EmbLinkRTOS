@@ -1,0 +1,30 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_flash.elf sha256 53cd46054dd9f6b23b768c96bfcf4fb448ebd87bf3e80320fa60c081e195023a
+EVIDENCE v1 suite=test_flash config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST flash_polled_calls
+  -> ok
+  req DRV-007
+CASE flash_polled_calls outcome=passed asserts=6 skips=0
+TEST flash_power_loss_tears_an_operation
+  -> ok
+  req DRV-001
+CASE flash_power_loss_tears_an_operation outcome=passed asserts=15 skips=0
+TEST flash_area_stays_inside
+  -> ok
+  req DRV-001
+CASE flash_area_stays_inside outcome=passed asserts=10 skips=0
+TEST flash_refusals
+  fault checks that reset the board: 4
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_refusals outcome=passed asserts=14 skips=0
+TEST flash_program_read_erase
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_program_read_erase outcome=passed asserts=10 skips=0
+TEST flash_geometry_and_sectors
+  -> ok
+  req DRV-001
+CASE flash_geometry_and_sectors outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=216
+6 tests, 0 failed, 0 skipped, 32 ticks
+EMB_TEST_END

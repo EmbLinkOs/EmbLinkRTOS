@@ -1,0 +1,26 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_gpio.elf sha256 c2e1c23185ea206ead32645e145c57c83ade73e52b16efa01f2790721dbbd6cc
+EVIDENCE v1 suite=test_gpio config=9461e3c42192b75e profile=base board=pico2_w checked=1
+TEST gpio_misuse_faults
+  fault checks that reset the board: 10
+  -> ok
+  req DRV-004
+CASE gpio_misuse_faults outcome=passed asserts=11 skips=0
+TEST gpio_driver_refusals
+  -> ok
+  req DRV-004
+CASE gpio_driver_refusals outcome=passed asserts=3 skips=0
+TEST gpio_named_line_follows_its_sense
+  -> ok
+  req DRV-004
+CASE gpio_named_line_follows_its_sense outcome=passed asserts=13 skips=0
+TEST gpio_input_reads_its_pull
+  -> ok
+  req DRV-004
+CASE gpio_input_reads_its_pull outcome=passed asserts=6 skips=0
+TEST gpio_output_drives_and_reads_back
+  -> ok
+  req DRV-004
+CASE gpio_output_drives_and_reads_back outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=216
+5 tests, 0 failed, 0 skipped, 52 ticks
+EMB_TEST_END
