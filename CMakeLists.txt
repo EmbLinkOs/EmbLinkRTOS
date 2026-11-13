@@ -32,7 +32,7 @@ if(EMB_BUILD_TESTS)
         "EMB_TEST_EMULATOR=hil: where each run's console log and record go (tools/hil/archive.py)")
     if(EMB_TEST_EMULATOR STREQUAL "hil")
       # a board described in YAML: its generated hw.json names the probe and the console
-      if(EMB_HIL_PORT AND EXISTS "${EMB_BOARD_DIR}/hw.json")
+      if(EMB_HIL_PORT AND EXISTS "${EMB_BOARD_HW_JSON}")
         enable_testing()
       else()
         message(STATUS "hil: set EMB_HIL_PORT to the board's console (a board with a generated hw.json): test images are built without ctest entries")

@@ -105,7 +105,7 @@ def build_identity(build):
 
 def hardware_hash(base, board):
     """SHA-256 over the board description's inputs, as the generator recorded them (hw.json)."""
-    for hw in sorted(Path(base).glob(f"boards/*/{board}/generated/hw.json")):
+    for hw in sorted(Path(base).glob(f"boards/*/{board}/generated/docs/hw.json")):
         inputs = json.loads(hw.read_text(encoding="utf-8")).get("inputs", [])
         text = "".join(f"{i['path']} {i['sha256']}\n" for i in sorted(inputs, key=lambda i: i["path"]))
         return hashlib.sha256(text.encode()).hexdigest(), [i["path"] for i in inputs]

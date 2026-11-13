@@ -38,18 +38,20 @@ Register base addresses, interrupt numbers, clock gates and pin functions come f
 
 ## Outputs
 
+The generated directory is laid out by kind (A126): `config/`, `include/`, `src/`, `linker/`, `build/` and `docs/`.
+
 | File | Consumer | Content |
 |---|---|---|
-| `hw_config.h` | board and driver C | identity, clock tree, memory regions, NVIC size, every peripheral's base, interrupt lines and clock gate, the console, LEDs and buttons, the test framework's interrupt lines |
-| `board_pins.c` | board initialization (STM32 only) | the pins to configure: port, number, mode and alternate function |
-| `regions.ld` | linker | FLASH (text on AVR) from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2; the SRAM on AVR), the kernel's table brackets |
-| `embld.opts` | embld (AVR only, HW-006) | `-Ttext`, `-Tdata` and `--rom-limit` for the same map as `regions.ld` |
-| `board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
-| `board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes; with devices, `EMB_BOARD_DRIVER_SOURCES` and `EMB_BOARD_DRIVER_INCLUDE_DIRS` |
-| `CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
-| `soc_devices.c`, `soc_devices.h` | the kernel, drivers and applications | each device's configuration, RAM and `emb_device_t`; `emb_board_device_table` in initialization order; the `extern` declarations `EMB_DEVICE(name)` reaches |
-| `hw.json` | tools (HW-005) | the flattened descriptions and everything derived, validated by `hw.schema.json` |
-| `board.md`, `build_report.md` | reviewers | board reference; clock results against the limits, image layout, warnings |
+| `include/hw_config.h` | board and driver C | identity, clock tree, memory regions, NVIC size, every peripheral's base, interrupt lines and clock gate, the console, LEDs and buttons, the test framework's interrupt lines |
+| `src/board_pins.c` | board initialization (STM32 only) | the pins to configure: port, number, mode and alternate function |
+| `linker/regions.ld` | linker | FLASH (text on AVR) from the `app` partition, RAM from the contiguous writable regions (SRAM1 + SRAM2; the SRAM on AVR), the kernel's table brackets |
+| `linker/embld.opts` | embld (AVR only, HW-006) | `-Ttext`, `-Tdata` and `--rom-limit` for the same map as `regions.ld` |
+| `config/board.conf` | configuration | the port's hardware symbols (CPU clock, IRQ count, priority bits), then the board's defaults |
+| `build/board.cmake` | CMake | port, variant, default profile, CPU flags, the SoC family's board support directory and include paths, EmbSIM target, input hashes; with devices, `EMB_BOARD_DRIVER_SOURCES` and `EMB_BOARD_DRIVER_INCLUDE_DIRS` |
+| `build/CMakeLists.txt` | CMake | hands the build to the SoC family's board support |
+| `src/soc_devices.c`, `include/soc_devices.h` | the kernel, drivers and applications | each device's configuration, RAM and `emb_device_t`; `emb_board_device_table` in initialization order; the `extern` declarations `EMB_DEVICE(name)` reaches |
+| `docs/hw.json` | tools (HW-005) | the flattened descriptions and everything derived, validated by `hw.schema.json` |
+| `docs/board.md`, `docs/build_report.md` | reviewers | board reference; clock results against the limits, image layout, warnings |
 
 Each output is sorted and carries no timestamp. It names the generator version, the schema version and the SHA-256 of every input: the board, the SoC chain and the port manifest (HW-013).
 
@@ -68,9 +70,9 @@ Each output is sorted and carries no timestamp. It names the generator version, 
 
 A board described in YAML holds `board.yaml` and `generated/` and nothing else ([A69](../specs/AMENDMENTS-M3.md)):
 
-- **Finding the board.** Configuration finds the board through `generated/board.cmake`, and `generated/` becomes the board directory.
+- **Finding the board.** Configuration finds the board through `generated/build/board.cmake`, and `generated/` becomes the board directory.
 - **Staleness.** Each input's SHA-256 is compared with the one `board.cmake` records. A mismatch stops configuration with the `generate` command to run, and editing a description reconfigures.
-- **The build.** `generated/CMakeLists.txt` hands the build to the family's board support, `soc/st/stm32f4/CMakeLists.txt`. It compiles four things into `emb_board`:
+- **The build.** `generated/build/CMakeLists.txt` hands the build to the family's board support, `soc/st/stm32f4/CMakeLists.txt`. It compiles four things into `emb_board`:
   - `board.c`, the `emb_board.h` interface for every STM32F4 board;
   - the drivers in `drivers/st/`: clock-tree bring-up (`stm32f4_rcc.c`), the pin table and toggling (`stm32f4_gpio.c`), and the polled console (`stm32_usart.c`);
   - the board's `board_pins.c`;

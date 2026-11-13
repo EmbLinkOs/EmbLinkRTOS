@@ -25,7 +25,7 @@ from emb_hwgen import HwError, facts, generate  # noqa: E402
 
 
 def _boards(root):
-    return sorted(p.parent.parent for p in root.glob("boards/*/*/generated/hw_config.h"))
+    return sorted(p.parent.parent.parent for p in root.glob("boards/*/*/generated/include/hw_config.h"))
 
 
 _SKIP = {"build", "third_party", ".git", "node_modules"}
@@ -58,8 +58,8 @@ def _target(args):
 def cmd_generate(args):
     outputs, warnings, _ = _target(args)
     for out, files in outputs:
-        out.mkdir(parents=True, exist_ok=True)
-        for name, text in files.items():
+        for name, text in files.items():  # config/, include/, src/, linker/, build/, docs/ (A126)
+            (out / name).parent.mkdir(parents=True, exist_ok=True)
             (out / name).write_text(text, encoding="utf-8")
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
@@ -83,11 +83,12 @@ def cmd_check(args):
         how = f"--system {os.path.relpath(s, ROOT)}"
         jobs += [(s.parent / "generated" / name, files, how) for name, files in sorted(per_board.items())]
         base = s.parent / "generated"
-        for extra in sorted(p for p in base.iterdir() if p.is_dir() and p.name not in per_board) if base.is_dir() else []:
+        for extra in sorted(p for p in base.iterdir() if p.is_dir() and p.name not in per_board and p.name != ".base") if base.is_dir() else []:
             bad += 1
             print(f"{os.path.relpath(extra, ROOT)}: not a board of {os.path.relpath(s, ROOT)}; remove it")
     for gen, files, how in jobs:
-        names = set(files) | ({p.name for p in gen.iterdir() if p.is_file()} if gen.is_dir() else set())
+        names = set(files) | ({p.relative_to(gen).as_posix() for p in gen.rglob("*")
+                               if p.is_file() and ".base" not in p.relative_to(gen).parts} if gen.is_dir() else set())
         for name in sorted(names):
             path = gen / name
             have = path.read_text(encoding="utf-8") if path.is_file() else None

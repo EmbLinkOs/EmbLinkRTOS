@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The pin table emb-hwgen writes into a board's generated/board_pins.c (SPEC-014 §6). */
+/* The pin table emb-hwgen writes into a board's generated/src/board_pins.c (SPEC-014 §6). */
 #ifndef EMB_STM32_PINS_H
 #define EMB_STM32_PINS_H
 

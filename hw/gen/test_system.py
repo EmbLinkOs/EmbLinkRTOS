@@ -129,9 +129,9 @@ class SeveralBoards(Base):
         per_board, _ = generate.generate_system(path, ROOT)
         self.assertEqual(sorted(per_board), ["nucleo_f446re", "nucleo_f446ze"])
         for name, files in per_board.items():
-            self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, 3u, 512u, 0u);", files["system.c"])
-            self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", files["system.c"])
-            self.assertIn(f'"board": "{name}"', files["system.json"])
+            self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, 3u, 512u, 0u);", files["src/system.c"])
+            self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", files["src/system.c"])
+            self.assertIn(f'"board": "{name}"', files["docs/system.json"])
 
     def test_an_error_names_its_board(self):
         self.text = MINIMAL.replace("    max: 10", "    max: 10") + "devices:\n  usart2: { baud: 57600 }\n"
@@ -155,7 +155,7 @@ class Outputs(Base):
         path = self.dir / "system.yaml"
         path.write_text(self.text, encoding="utf-8")
         files = generate.generate_system(path, ROOT)[0]["nucleo_f446re"]
-        c, h = files["system.c"], files["system.h"]
+        c, h = files["src/system.c"], files["include/system.h"]
         self.assertIn("EMB_THREAD_DEFINE(telemetry_thread, telemetry, NULL, 2u, 1024u, EMB_THREAD_NO_AUTOSTART);", c)
         self.assertIn("EMB_MSGQ_DEFINE(samples, sizeof(sample_t), 8u, 0u);", c)
         self.assertIn("EMB_MUTEX_DEFINE(bus_lock, EMB_MUTEX_CEILING, 6u, 0u);", c)
@@ -166,9 +166,9 @@ class Outputs(Base):
         self.assertIn('#include "app.h"', h)
         self.assertIn("#define EMB_SYSTEM_WATCHDOG_TIMEOUT_MS 500u", h)
         self.assertIn("generate --system <path to>/", c)  # no path of this machine (HW-013)
-        self.assertIn("| usart2 | baud | 57600 | 115200 |", files["system.md"])
+        self.assertIn("| usart2 | baud | 57600 | 115200 |", files["docs/system.md"])
         # the board's outputs carry the system's settings
-        self.assertIn("57600", files["hw_config.h"])
+        self.assertIn("57600", files["include/hw_config.h"])
 
 
 class Negative(Base):

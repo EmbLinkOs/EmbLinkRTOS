@@ -21,10 +21,10 @@ done
 mkdir -p "$out"
 CC=${ARM_GCC:-arm-none-eabi-gcc}
 $CC -mthumb -mcpu=cortex-m4 -mfloat-abi=soft -Os -g -std=c11 -ffunction-sections -fdata-sections \
-    -Wall -Wextra -Werror -I"$bd" -I"$root/drivers/st/include" -I"$root/soc/st/stm32f4/include" \
+    -Wall -Wextra -Werror -I"$bd/include" -I"$root/drivers/st/include" -I"$root/soc/st/stm32f4/include" \
     "$here/relay.c" "$root/drivers/st/stm32f4_rcc.c" "$root/drivers/st/stm32f4_gpio.c" \
     "$root/drivers/st/stm32_usart.c" -nostartfiles --specs=nano.specs -Wl,--gc-sections \
-    -Wl,--no-warn-rwx-segments -T"$bd/regions.ld" -o "$out/relay.elf"
+    -Wl,--no-warn-rwx-segments -T"$bd/linker/regions.ld" -o "$out/relay.elf"
 ${ARM_SIZE:-arm-none-eabi-size} "$out/relay.elf"
 if [ "$flash" = 1 ]; then
     openocd -f board/st_nucleo_f4.cfg -c "program $out/relay.elf verify reset exit"

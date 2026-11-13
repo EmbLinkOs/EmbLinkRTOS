@@ -431,14 +431,20 @@ def board_cmake(r):
     out += f"set(EMB_BOARD_DEFAULT_PROFILE {r['profile']})\n"
     if soc["cpu"].get("cflags"):
         out += f"set(EMB_BOARD_C_FLAGS {' '.join(soc['cpu']['cflags'])})\n"
-    out += "# the SoC family's board support and drivers build this board (generated/CMakeLists.txt)\n"
+    # the generated directory's layout (A126): this file is in build/, beside config/, include/,
+    # src/, linker/ and docs/
+    out += "get_filename_component(EMB_BOARD_GENERATED_DIR \"${CMAKE_CURRENT_LIST_DIR}/..\" ABSOLUTE)\n"
+    out += "set(EMB_BOARD_CONF \"${EMB_BOARD_GENERATED_DIR}/config/board.conf\")\n"
+    out += "set(EMB_BOARD_HW_JSON \"${EMB_BOARD_GENERATED_DIR}/docs/hw.json\")\n"
+    out += "set(EMB_BOARD_BUILD_DIR \"${CMAKE_CURRENT_LIST_DIR}\")  # build/CMakeLists.txt\n"
+    out += "# the SoC family's board support and drivers build this board (build/CMakeLists.txt)\n"
     if r.get("soc_in_board_root"):
-        # the project's own SoC family, beside its boards (A84): generated/ is
+        # the project's own SoC family, beside its boards (A84): the generated directory is
         # <root>/boards/<vendor>/<board>/generated
-        out += f"get_filename_component(EMB_SOC_DIR \"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{soc_dir}\" ABSOLUTE)\n"
+        out += f"get_filename_component(EMB_SOC_DIR \"${{EMB_BOARD_GENERATED_DIR}}/../../../../{soc_dir}\" ABSOLUTE)\n"
     else:
         out += f"set(EMB_SOC_DIR \"${{EMB_BASE}}/{soc_dir}\")\n"
-    out += "set(EMB_BOARD_INCLUDE_DIRS \"${CMAKE_CURRENT_LIST_DIR}\" \"${EMB_SOC_DIR}/include\")\n"
+    out += "set(EMB_BOARD_INCLUDE_DIRS \"${EMB_BOARD_GENERATED_DIR}/include\" \"${EMB_SOC_DIR}/include\")\n"
     qemu = r["board"].get("simulation", {}).get("qemu")
     if qemu:
         out += f"set(EMB_BOARD_QEMU_ARGS {' '.join(qemu)})\n"
@@ -482,8 +488,8 @@ def board_cmake(r):
 
 def _driver_path(r, d, rel):
     if d["origin"] == "board":
-        # the board root's own driver (A84): generated/ is <root>/boards/<vendor>/<board>/generated
-        return f"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{rel}"
+        # the board root's own driver (A84): the generated directory is <root>/boards/<vendor>/<board>/generated
+        return f"${{EMB_BOARD_GENERATED_DIR}}/../../../../{rel}"
     return f"${{EMB_BASE}}/{rel}"
 
 
@@ -500,7 +506,7 @@ def _device_sources(r):
             if path not in includes:
                 includes.append(path)
     out = "# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)\n"
-    out += "set(EMB_BOARD_DRIVER_SOURCES\n    \"${CMAKE_CURRENT_LIST_DIR}/soc_devices.c\"\n"
+    out += "set(EMB_BOARD_DRIVER_SOURCES\n    \"${EMB_BOARD_GENERATED_DIR}/src/soc_devices.c\"\n"
     out += "".join(f"    \"{s}\"\n" for s in sources) + ")\n"
     if includes:
         out += "set(EMB_BOARD_DRIVER_INCLUDE_DIRS\n" + "".join(f"    \"{i}\"\n" for i in includes) + ")\n"
@@ -510,7 +516,7 @@ def _device_sources(r):
 def cmakelists_txt(r):
     out = "# SPDX-License-Identifier: Apache-2.0\n" + _hash_comment(r, _cmd(r))
     out += "# The board has no C of its own: its SoC family's board support builds emb_board from\n"
-    out += "# board_pins.c and hw_config.h here, and links regions.ld.\n"
+    out += "# ../src/board_pins.c and ../include/hw_config.h, and links ../linker/regions.ld.\n"
     out += "add_subdirectory(\"${EMB_SOC_DIR}\" soc)\n"
     return out
 
@@ -894,6 +900,23 @@ FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c},
 PORT_OUTPUTS = {"avr": {"embld.opts": embld_opts}}
 
 
+# Where each output goes in the generated directory (A126): config/, include/, src/, linker/,
+# build/ and docs/.
+LAYOUT = {
+    "board.conf": "config",
+    "hw_config.h": "include", "soc_devices.h": "include", "system.h": "include", "tasks.h": "include",
+    "soc_devices.c": "src", "board_pins.c": "src", "boot_block.c": "src", "system.c": "src", "tasks.c": "src",
+    "regions.ld": "linker", "embld.opts": "linker",
+    "board.cmake": "build", "CMakeLists.txt": "build",
+    "board.md": "docs", "build_report.md": "docs", "hw.json": "docs", "system.md": "docs", "system.json": "docs",
+}
+
+
+def placed(name):
+    """An output's path in the generated directory."""
+    return f"{LAYOUT[name]}/{name}"
+
+
 def render(resolved):
     outputs = dict(OUTPUTS)
     outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
@@ -906,4 +929,4 @@ def render(resolved):
                         "system.c": lambda r: emit_system.system_c(r, c),
                         "system.json": emit_system.system_json,
                         "system.md": lambda r: emit_system.system_md(r, _md_stamp(r))})
-    return {name: fn(resolved) for name, fn in sorted(outputs.items())}
+    return {placed(name): fn(resolved) for name, fn in sorted(outputs.items())}

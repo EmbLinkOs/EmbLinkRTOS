@@ -13,8 +13,8 @@ function(emb_add_executable name)
   _emb_add_image(${name} ${ARGN})
   if(EMB_SYSTEM)
     # the system's static definitions and targets (SPEC-014 §5.1), and its headers' directory
-    target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/system.c")
-    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}" "${EMB_SYSTEM_DIR}")
+    target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/system.c")
+    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}/include" "${EMB_SYSTEM_DIR}")
     _emb_stack_check(${name})
   endif()
   if(CONFIG_EMB_ARCH STREQUAL "native")
@@ -45,7 +45,7 @@ function(_emb_stack_check name)
   add_custom_command(TARGET ${name} POST_BUILD
     COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/footprint/stack_bound.py"
             --elf "$<TARGET_FILE:${name}>" --build "${CMAKE_BINARY_DIR}" --roots "${_roots}"
-            --system "${EMB_BOARD_DIR}/system.json" --objdump "${CMAKE_OBJDUMP}" --nm "${CMAKE_NM}"
+            --system "${EMB_BOARD_DIR}/docs/system.json" --objdump "${CMAKE_OBJDUMP}" --nm "${CMAKE_NM}"
             --json "$<TARGET_FILE:${name}>.stack.json"
     COMMENT "stack check: ${name}'s threads against their worst case (A125)")
 endfunction()
@@ -116,7 +116,7 @@ function(emb_add_test name)
         math(EXPR _emb_ctest_wait "${EMB_HIL_TIMEOUT_${name}} + 120")
       endif()
       add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/hil/run_hil.py"
-               --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}"
+               --hw-json "${EMB_BOARD_HW_JSON}" --port "${EMB_HIL_PORT}"
                --log "${CMAKE_CURRENT_BINARY_DIR}/${name}.console.log" --archive "${EMB_HIL_ARCHIVE}"
                ${_emb_hil_wait} "$<TARGET_FILE:${name}>")
       set_tests_properties(${name} PROPERTIES RUN_SERIAL TRUE TIMEOUT ${_emb_ctest_wait})

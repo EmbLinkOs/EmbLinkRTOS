@@ -184,7 +184,7 @@ class Runner(unittest.TestCase):
         self.assertTrue(b.flag.exists())
 
     def test_avrdude_command_from_the_committed_uno(self):
-        hw = json.loads((HERE.parent.parent / "boards/arduino/arduino_uno/generated/hw.json").read_text())
+        hw = json.loads((HERE.parent.parent / "boards/arduino/arduino_uno/generated/docs/hw.json").read_text())
         self.assertTrue(run_hil.shares_port(hw))
         cmd = run_hil.flash_command(hw, Path("/b/test_sem.elf"), None, "/dev/cu.usbmodem1101", "avrdude")
         self.assertEqual(cmd, ["avrdude", "-q", "-p", "atmega328p", "-c", "arduino", "-P", "/dev/cu.usbmodem1101",
@@ -212,7 +212,7 @@ class Runner(unittest.TestCase):
         self.assertEqual(hw["derived"]["console"]["baud"], 115200)
 
     def test_picotool_command_from_the_committed_pico2_w(self):
-        hw = json.loads((HERE.parent.parent / "boards/rpi/pico2_w/generated/hw.json").read_text())
+        hw = json.loads((HERE.parent.parent / "boards/rpi/pico2_w/generated/docs/hw.json").read_text())
         self.assertFalse(run_hil.shares_port(hw))  # the console is a USB-UART on UART0
         self.assertFalse(run_hil.resets_after_open(hw))
         self.assertTrue(run_hil.uses_picotool(hw))
@@ -252,7 +252,7 @@ class Runner(unittest.TestCase):
         self.assertEqual(run_hil.parse_console(buf)["fault_checks_by_reset"], 5)
 
     def test_the_committed_board_has_the_hints(self):
-        hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/hw.json").read_text())
+        hw = json.loads((HERE.parent.parent / "boards/st/nucleo_f446re/generated/docs/hw.json").read_text())
         self.assertEqual(run_hil.flash_command(hw, Path("t.elf"), None)[:3], ["openocd", "-f", "board/st_nucleo_f4.cfg"])
         self.assertEqual(hw["derived"]["console"]["baud"], 115200)
 

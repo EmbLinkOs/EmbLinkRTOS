@@ -36,9 +36,9 @@ class Repo:
         self.d = Path(tempfile.mkdtemp(prefix="support-"))
         for name in ("hwboard", "emuboard", "builtboard", "lonely"):
             b = self.d / "boards" / "v" / name
-            (b / "generated").mkdir(parents=True)
+            (b / "generated" / "docs").mkdir(parents=True)
             (b / "board.yaml").write_text("kind: board\n")
-            (b / "generated" / "hw.json").write_text(json.dumps({"soc": {"part": "P1", "cpu": {"core": "c1"}}}))
+            (b / "generated" / "docs" / "hw.json").write_text(json.dumps({"soc": {"part": "P1", "cpu": {"core": "c1"}}}))
         presets = [{"name": "hw-x", "cacheVariables": {"EMB_BOARD": "hwboard"}},
                    {"name": "emu-a", "cacheVariables": {"EMB_BOARD": "emuboard"}},
                    {"name": "built-c", "cacheVariables": {"EMB_BOARD": "builtboard"}},

@@ -62,7 +62,7 @@ class Identity(unittest.TestCase):
 
     def test_hardware_hash_is_order_independent(self):
         with tempfile.TemporaryDirectory() as d:
-            hw = Path(d) / "boards/v/b/generated"
+            hw = Path(d) / "boards/v/b/generated/docs"
             hw.mkdir(parents=True)
             inputs = [{"path": "soc/x.yaml", "sha256": "22"}, {"path": "boards/v/b/board.yaml", "sha256": "11"}]
             (hw / "hw.json").write_text(json.dumps({"inputs": inputs}))
