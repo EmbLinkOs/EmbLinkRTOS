@@ -67,6 +67,45 @@ cmake --build build/my_app
 
 Everything `emb_add_executable()` makes sits next to the image: on a board, `app.elf`, `app.hex`, `app.elf.map` and a size report, and, where the board boots one, `app.bin` (the ESP32 and ESP32-C3) or `app.uf2` (Pico 2 W).
 
+## Threads and objects from a system description
+
+Instead of `EMB_THREAD_DEFINE` and the other definition macros in C, an application can describe its threads, kernel objects, device settings, SPI and I2C targets and watchdog in a `system.yaml` beside its sources. The generator turns that file into C and checks it before anything compiles (SPEC-014 §5). `examples/controller/system.yaml` is a complete one:
+
+```yaml
+schema_version: 0
+kind: system
+name: my_app
+board: mps2_an386                    # or boards: [...] for several
+conf: [my_app.conf]                  # your Kconfig fragments stay as they are
+includes: [my_app.h]                 # the types and functions the file names
+threads:
+  - { name: blink_thread, entry: blink, priority: 2, stack: 512 }
+objects:
+  - { name: events, type: msgq, item: event_t, capacity: 8 }
+  - { name: bus_lock, type: mutex, protocol: ceiling, users: [blink_thread] }
+```
+
+```sh
+python3 -I $HOME/EmbLinkRTOS/hw/gen/emb-hwgen.py generate --system system.yaml
+```
+
+This writes `generated/<board>/`. Commit it with `system.yaml`: `emb-hwgen check` and the build both refuse outputs older than their description. Your sources `#include "system.h"`, which declares the handles (`blink_thread`, `events`, `bus_lock`) and the entry functions you define. In CMake, set `EMB_SYSTEM` to the file and, on Cortex-M, `EMB_STACK_ROOTS` to your `stack-roots.json`:
+
+```cmake
+set(EMB_SYSTEM "${CMAKE_CURRENT_LIST_DIR}/system.yaml" CACHE FILEPATH "")
+set(EMB_STACK_ROOTS "${CMAKE_CURRENT_LIST_DIR}/stack-roots.json" CACHE FILEPATH "")
+```
+
+- **At generation**, the generator refuses, naming the line:
+  - a priority outside the configuration;
+  - an object type the configuration leaves out;
+  - a ceiling user that is not a thread;
+  - a device option its driver does not take, or a baud rate the clock cannot make;
+  - an SPI clock the controller cannot reach, or an I2C address used twice;
+  - a watchdog timeout out of range.
+- **After the link**, a thread's stack below the worst case `tools/footprint/stack_bound.py` computes fails the build.
+- **Mixing:** definitions in C still work beside the file.
+
 ## What the build checks
 
 The configuration step runs the same checks as the RTOS's own build: the board's generated files must be current (HW-003), the configuration must be valid for the port, and the storage sizes come from the compiled layout probe. The same warnings apply to your sources (`-Wall -Wextra -Werror` and the rest, CODING-STANDARD CS-13). Pass `-DEMB_WERROR=OFF` to keep warnings from failing your build.

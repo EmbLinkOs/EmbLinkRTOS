@@ -232,6 +232,17 @@ python3 -I hw/import/pins.py ... --against soc/st/stm32f4/stm32f446re.yaml
 
 The draft is the package file's `gpio.ports` and the `alternate_functions` of the peripherals the SoC description has. For the F446RE and F446ZE it agrees with the curated files: 0 differences. It also lists the functions the table leaves out, such as CTS, RTS, MCO and the ZE's USART6 on PG9 and PG14.
 
+## Applications: the system description
+
+An application's `system.yaml` (SPEC-014 §5, A125) names its boards, Kconfig fragments, threads, kernel objects, device settings, SPI and I2C targets and watchdog. `generate --system` resolves it on each of its boards and writes `generated/<board>/` beside it. The board's outputs are rendered again with the system's device settings, and `system.h`, `system.c`, `system.json` and `system.md` are added. `check` finds every `system.yaml` in the tree, outside build directories, and compares each board's directory as it does a board's.
+
+- **Device settings:** the system's settings replace the board description's values before the board is resolved, each keeping its own line. An error about one therefore names `system.yaml`.
+- **Configuration:** comes from `tools/kconfig/embconfig.py`, run over the board's fragment, the profile's and the system's, as the build runs it.
+- **Limits:** the target and watchdog checks read `limits:` in `drivers/bindings.yaml`, the figures each driver enforces.
+- **Several boards:** with more than one board, an error found on one names it.
+
+The build takes the system with `EMB_SYSTEM`, picks a board with `EMB_BOARD` (the first of `system.json`'s `boards` by default), compiles `system.c` with the application, and, with `EMB_STACK_ROOTS` on Cortex-M, runs `stack_bound.py --system` after the link. The tests are `hw/gen/test_system.py`.
+
 ## A board outside the tree
 
 A board does not have to live in this repository ([A76](../specs/AMENDMENTS-M3.md), [ADR-051](../architecture/06-decision-records.md)). A project keeps its own boards, a custom PCB for example, in its own tree, with the same layout, and names that tree with `EMB_BOARD_ROOT`:
