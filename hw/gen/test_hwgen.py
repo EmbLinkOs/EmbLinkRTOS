@@ -470,7 +470,7 @@ class Bank(unittest.TestCase):
     def test_wrong_function_select(self):
         f = f"{PICO}/board.yaml"
         self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO0.f11")
-        self.expect(PICO, f, "tx: GPIO0.f11", "pins.uart0.tx", r"GPIO0 f11 is not uart0_tx \(GPIO0 offers f2 uart0_tx\)")
+        self.expect(PICO, f, "tx: GPIO0.f11", "pins.uart0.tx", r"GPIO0 f11 is not uart0_tx \(GPIO0 offers f2 uart0_tx, f4 pwm0_a\)")
 
     def test_function_select_needed(self):
         f = f"{PICO}/board.yaml"
@@ -487,13 +487,29 @@ class Bank(unittest.TestCase):
 
     def test_bank_soc_rules(self):
         die = "soc/rpi/rp2350/rp2350.yaml"
-        self.root.edit(die, "  GPIO29: { f2: uart0_rx }", "  GPIO31: { f2: uart0_rx }")
-        self.root.edit(die, "  GPIO28: { f2: uart0_tx }", "  GPIO28: { af2: uart0_tx }")
+        self.root.edit(die, "  GPIO29: { f2: uart0_rx,", "  GPIO31: { f2: uart0_rx,")
+        self.root.edit(die, "  GPIO28: { f2: uart0_tx,", "  GPIO28: { af2: uart0_tx,")
         with self.assertRaises(HwError) as cm:
             self.root.resolve(PICO)
         text = "\n".join(cm.exception.errors)
         self.assertIn("alternate_functions.GPIO31: beyond the bank's 30 lines", text)
-        self.assertIn("alternate_functions.GPIO28.af2: not a function select (f0 to f31)", text)
+        self.assertIn("alternate_functions.GPIO28.af2: not a function select (f0 to f31, or analog)", text)
+
+    def test_analog_pin(self):
+        """A129: an ADC's input is claimed by its signal alone (GPIO26, adc_in0), the pad's input
+        and digital function off, no pull."""
+        f = f"{PICO}/board.yaml"
+        self.root.edit(f, "pins:\n", "pins:\n  adc: { in0: GPIO26 }\n")
+        files, _ = generate.generate(self.root.dir / PICO, self.root.dir)
+        self.assertIn("{26u, 31u, 0u, EMB_RP2350_PULL_NONE, EMB_RP2350_OUT_NONE},", files["src/board_pins.c"])
+        self.root.edit(f, "in0: GPIO26", "in0: GPIO26.f4")
+        self.expect(PICO, f, "in0: GPIO26.f4", "pins.adc.in0", r"GPIO26 f4 is not adc_in0")
+
+    def test_clocked_by_names_a_fixed_pll(self):
+        die = "soc/rpi/rp2350/rp2350.yaml"
+        self.root.edit(die, "clocked_by: pll_usb", "clocked_by: pll_sys")
+        self.expect(PICO, die, "clocked_by: pll_sys", "peripherals.adc.clocked_by",
+                    r"no PLL 'pll_sys' with an output_hz \(it has pll_usb\)")
 
     def test_ports_and_lines_exclude_each_other(self):
         part = "soc/rpi/rp2350/rp2350a.yaml"
@@ -699,6 +715,52 @@ class Devices(unittest.TestCase):
 
     def test_deterministic(self):
         self.assertEqual(self.files(), self.files())
+
+    TIM_BINDINGS = (
+        "  st,stm32-tim:counter: { class: counter, level: kernel, sources: [drivers/st/tim_counter.c], header: tim.h,\n"
+        "                          api: tim_counter_api, config: tim_config_t,\n"
+        "                          fields: { base: peripheral.base, clock_hz: peripheral.timer_clock_hz,\n"
+        "                                    bits: peripheral.counter_bits } }\n"
+        "  st,stm32-tim:pwm: { class: pwm, level: kernel, sources: [drivers/st/tim_pwm.c], header: tim.h,\n"
+        "                      api: tim_pwm_api, config: tim_config_t, fields: { base: peripheral.base } }\n"
+        "  acme,part:")
+
+    def test_class_picks_the_binding(self):
+        """A129: a timer is a counter or PWM, a binding for each, keyed compatible:class; a board
+        device names its class, and only its class's driver is built. A timer on APB1 runs at
+        twice the divided bus: 90 MHz beside APB1's 45."""
+        self.root.edit("drivers/bindings.yaml", "  acme,part:", self.TIM_BINDINGS)
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }",
+                       "{ name: rcc }\n  - { name: tim5, class: counter }\n  - { name: tim3, class: pwm }")
+        devs = {d["name"]: d for d in self.root.resolve()["devices"]}
+        self.assertEqual({f["field"]: f["c"] for f in devs["tim5"]["fields"]},
+                         {"base": "0x40000C00u", "clock_hz": "90000000u", "bits": "32u"})
+        self.assertEqual(devs["tim5"]["deps"], ["rcc"])  # its clock gate
+        files = self.files()
+        self.assertIn("    .class_id = EMB_DRV_CLASS_COUNTER,\n", files["src/soc_devices.c"])
+        self.assertIn("    .class_id = EMB_DRV_CLASS_PWM,\n", files["src/soc_devices.c"])
+        cmake = files["build/board.cmake"]
+        self.assertIn("drivers/st/tim_counter.c", cmake)
+        self.assertIn("drivers/st/tim_pwm.c", cmake)
+        self.assertNotIn("unused_tim.c", cmake)
+
+    def test_class_needed_where_several_bind(self):
+        self.root.edit("drivers/bindings.yaml", "  acme,part:", self.TIM_BINDINGS)
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: tim5 }")
+        self.expect(r"st,stm32-tim has drivers for clock and counter and pwm: say which with class:",
+                    needle="name: tim5", path="devices.tim5")
+
+    def test_class_with_no_binding(self):
+        self.root.edit("drivers/bindings.yaml", "  acme,part:", self.TIM_BINDINGS)
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: tim5, class: adc }")
+        self.expect(r"no adc driver binds st,stm32-tim: it has clock, counter, pwm", needle="name: tim5",
+                    path="devices.tim5")
+
+    def test_binding_key_names_its_class(self):
+        self.root.edit("drivers/bindings.yaml", "  acme,part:",
+                       self.TIM_BINDINGS.replace("st,stm32-tim:pwm: { class: pwm", "st,stm32-tim:pwm: { class: adc"))
+        self.expect(r"the key names the class pwm, the binding adc", file="drivers/bindings.yaml",
+                    needle="st,stm32-tim:pwm:", path="bindings.st,stm32-tim:pwm")
 
     def test_buffers(self):
         """A binding's buffers: sized by a device property or the binding's default, emitted as
@@ -1265,6 +1327,35 @@ class PostDividers(unittest.TestCase):
     def test_above_the_bus_limit_refused(self):
         _, problems = self.solve(200_000_000, {"m": 1, "n": 100, "p": 6})
         self.assertIn("clocks.cpu_hz", [w for w, _ in problems])
+
+    def with_usb(self, rate):
+        usb = dict(self.SOC["clocks"]["plls"][0], name="pll_usb", output_hz=rate)
+        return {"clocks": dict(self.SOC["clocks"], plls=[usb] + self.SOC["clocks"]["plls"])}
+
+    def test_fixed_pll_solved_from_the_crystal(self):
+        """A129: a PLL with an output_hz (PLL_USB's 48 MHz) is solved from the board's source,
+        whatever the CPU runs at; the CPU's PLL is the one without, wherever it is listed."""
+        from emb_hwgen import clock
+        board = {"oscillators": {"xosc": {"hz": 12_000_000, "source": "external_crystal"}},
+                 "clocks": {"cpu_hz": 150_000_000, "source": "xosc"}}
+        problems = []
+        c = clock.solve(self.with_usb(48_000_000), board, lambda w, m: problems.append((w, m)))
+        self.assertEqual(problems, [])
+        usb = c["fixed_plls"]["pll_usb"]
+        self.assertEqual(usb["hz"], 48_000_000)
+        self.assertEqual(usb["vco_hz"] // (usb["postdiv1"] * usb["postdiv2"]), 48_000_000)
+        self.assertEqual(c["pll"]["name"], "pll_sys")
+        board["clocks"]["cpu_hz"] = 12_000_000  # the CPU on the crystal: PLL_USB still solved
+        c = clock.solve(self.with_usb(48_000_000), board, lambda w, m: problems.append((w, m)))
+        self.assertEqual((problems, c["pll"], c["fixed_plls"]["pll_usb"]["hz"]), ([], None, 48_000_000))
+
+    def test_fixed_pll_out_of_reach_refused(self):
+        from emb_hwgen import clock
+        board = {"oscillators": {"xosc": {"hz": 12_000_000, "source": "external_crystal"}},
+                 "clocks": {"cpu_hz": 150_000_000, "source": "xosc"}}
+        problems = []
+        clock.solve(self.with_usb(1_000_000), board, lambda w, m: problems.append((w, m)))  # under the VCO's floor
+        self.assertIn(("clocks.source", "no pll_usb setting reaches exactly 1 MHz from 12 MHz"), problems)
 
 
 class Loader(unittest.TestCase):

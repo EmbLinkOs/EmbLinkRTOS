@@ -208,8 +208,14 @@
         "apb1": 45000000,
         "apb2": 90000000
       },
+      "bus_timer_hz": {
+        "ahb1": 180000000,
+        "apb1": 90000000,
+        "apb2": 180000000
+      },
       "bypass": true,
       "cpu_hz": 180000000,
+      "fixed_plls": {},
       "flash_wait_states": 5,
       "hclk_hz": 180000000,
       "pclk1_div": 4,
@@ -734,11 +740,11 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
-      "sha256": "3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f"
+      "sha256": "796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055"
+      "sha256": "f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",
@@ -749,19 +755,49 @@
   "soc": {
     "alternate_functions": {
       "PA0": {
-        "af8": "uart4_tx"
+        "af1": "tim2_ch1",
+        "af2": "tim5_ch1",
+        "af8": "uart4_tx",
+        "analog": "adc1_in0"
       },
       "PA1": {
-        "af8": "uart4_rx"
+        "af1": "tim2_ch2",
+        "af2": "tim5_ch2",
+        "af8": "uart4_rx",
+        "analog": "adc1_in1"
       },
       "PA10": {
         "af7": "usart1_rx"
       },
+      "PA15": {
+        "af1": "tim2_ch1"
+      },
       "PA2": {
-        "af7": "usart2_tx"
+        "af1": "tim2_ch3",
+        "af2": "tim5_ch3",
+        "af7": "usart2_tx",
+        "analog": "adc1_in2"
       },
       "PA3": {
-        "af7": "usart2_rx"
+        "af1": "tim2_ch4",
+        "af2": "tim5_ch4",
+        "af7": "usart2_rx",
+        "analog": "adc1_in3"
+      },
+      "PA4": {
+        "analog": "adc1_in4"
+      },
+      "PA5": {
+        "af1": "tim2_ch1",
+        "analog": "adc1_in5"
+      },
+      "PA6": {
+        "af2": "tim3_ch1",
+        "analog": "adc1_in6"
+      },
+      "PA7": {
+        "af2": "tim3_ch2",
+        "analog": "adc1_in7"
       },
       "PA8": {
         "af4": "i2c3_scl"
@@ -769,7 +805,16 @@
       "PA9": {
         "af7": "usart1_tx"
       },
+      "PB0": {
+        "af2": "tim3_ch3",
+        "analog": "adc1_in8"
+      },
+      "PB1": {
+        "af2": "tim3_ch4",
+        "analog": "adc1_in9"
+      },
       "PB10": {
+        "af1": "tim2_ch3",
         "af4": "i2c2_scl",
         "af7": "usart3_tx"
       },
@@ -782,25 +827,45 @@
       "PB15": {
         "af5": "spi2_mosi"
       },
+      "PB2": {
+        "af1": "tim2_ch4"
+      },
       "PB3": {
+        "af1": "tim2_ch2",
         "af4": "i2c2_sda"
       },
       "PB4": {
+        "af2": "tim3_ch1",
         "af4": "i2c3_sda"
       },
+      "PB5": {
+        "af2": "tim3_ch2"
+      },
       "PB6": {
+        "af2": "tim4_ch1",
         "af4": "i2c1_scl",
         "af7": "usart1_tx"
       },
       "PB7": {
+        "af2": "tim4_ch2",
         "af4": "i2c1_sda",
         "af7": "usart1_rx"
       },
       "PB8": {
+        "af1": "tim2_ch1",
+        "af2": "tim4_ch3",
         "af4": "i2c1_scl"
       },
       "PB9": {
+        "af1": "tim2_ch2",
+        "af2": "tim4_ch4",
         "af4": "i2c1_sda"
+      },
+      "PC0": {
+        "analog": "adc1_in10"
+      },
+      "PC1": {
+        "analog": "adc1_in11"
       },
       "PC10": {
         "af7": "usart3_tx",
@@ -814,16 +879,32 @@
         "af4": "i2c2_sda",
         "af8": "uart5_tx"
       },
+      "PC2": {
+        "analog": "adc1_in12"
+      },
+      "PC3": {
+        "analog": "adc1_in13"
+      },
+      "PC4": {
+        "analog": "adc1_in14"
+      },
       "PC5": {
-        "af7": "usart3_rx"
+        "af7": "usart3_rx",
+        "analog": "adc1_in15"
       },
       "PC6": {
+        "af2": "tim3_ch1",
         "af8": "usart6_tx"
       },
       "PC7": {
+        "af2": "tim3_ch2",
         "af8": "usart6_rx"
       },
+      "PC8": {
+        "af2": "tim3_ch3"
+      },
       "PC9": {
+        "af2": "tim3_ch4",
         "af4": "i2c3_sda"
       },
       "PD2": {
@@ -952,6 +1033,7 @@
           "name": "lse"
         }
       ],
+      "timers_double_when_divided": true,
       "voltage_scales": [
         {
           "max_hz": 120000000,
@@ -1093,12 +1175,24 @@
     "part": "STM32F446RE",
     "peripherals": [
       {
+        "adc": {
+          "bits": 12,
+          "inputs": 16,
+          "temperature": 18,
+          "vrefint": 17
+        },
         "base": 1073815552,
         "clock": {
           "bit": 8,
           "bus": "apb2"
         },
         "compatible": "st,stm32f4-adc",
+        "dma_requests": {
+          "rx": [
+            "dma2.s0c0",
+            "dma2.s4c0"
+          ]
+        },
         "irqs": [
           {
             "name": "global",
@@ -1279,6 +1373,7 @@
           "bus": "apb1"
         },
         "compatible": "st,stm32-tim",
+        "counter_bits": 32,
         "irqs": [
           {
             "name": "global",
@@ -1286,6 +1381,57 @@
           }
         ],
         "name": "tim2",
+        "size": 1024
+      },
+      {
+        "base": 1073742848,
+        "clock": {
+          "bit": 1,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 29
+          }
+        ],
+        "name": "tim3",
+        "size": 1024
+      },
+      {
+        "base": 1073743872,
+        "clock": {
+          "bit": 2,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 30
+          }
+        ],
+        "name": "tim4",
+        "size": 1024
+      },
+      {
+        "base": 1073744896,
+        "clock": {
+          "bit": 3,
+          "bus": "apb1"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 32,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 50
+          }
+        ],
+        "name": "tim5",
         "size": 1024
       },
       {

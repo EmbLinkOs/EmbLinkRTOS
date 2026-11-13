@@ -35,6 +35,8 @@ clocks:
     - { name: pll, inputs: [hsi, hse], m: [2, 63], n: [50, 432], p: [2, 4, 6, 8], q: [2, 15], r: [2, 7],
         vco_in_hz: [1MHz, 2MHz], vco_out_hz: [100MHz, 432MHz] }
   prescalers: { ahb: [1, 2, 4, 8, 16, 64, 128, 256, 512], apb: [1, 2, 4, 8, 16] }
+  # RM0390 §6.2: a timer on an APB bus divided from HCLK counts at twice the bus's clock
+  timers_double_when_divided: true
   # RM0390 Table 5, 2.7 to 3.6 V: one wait state per 30 MHz of HCLK
   flash_latency: { hz_per_wait_state: 30MHz, max_wait_states: 15 }
 interrupts:

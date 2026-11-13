@@ -18,18 +18,20 @@ from . import load, schema
 
 LEVELS = ("early", "kernel")
 # EMB_DRV_CLASS_* in <emb/device.h>, numbered from 1 in this order (0 is no class)
-CLASSES = ("uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio")
+CLASSES = ("uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio", "counter", "pwm", "adc")
 COMPATIBLE = re.compile(r"^[a-z0-9-]+,[a-z0-9-]+$")
 # the keys of a board device that are not its properties
-DEVICE_KEYS = ("name", "peripheral", "compatible", "bus", "deps", "level", "doc")
+DEVICE_KEYS = ("name", "peripheral", "compatible", "class", "bus", "deps", "level", "doc")
 
 
 class Bindings:
     """drivers/bindings.yaml in the tree, and the board root's own (A84), merged: a
-    compatible is bound once."""
+    compatible is bound once for each class. A peripheral that more than one class can drive
+    (a timer: a counter or PWM, A129) has a binding per class, keyed `compatible:class`, and a
+    board device names the one it wants with `class:`."""
 
     def __init__(self, files, err_at):
-        self.table = {}  # compatible -> (binding, model, origin)
+        self.table = {}  # compatible -> {class: (binding, model, origin)}
         self.models = []
         for path, origin in files:
             m = load.flatten(path, path.parent.parent)
@@ -40,19 +42,38 @@ class Bindings:
             if not ok:
                 continue
             self.models.append(m)
-            for compat, b in m.data["bindings"].items():
-                where = f"bindings.{compat}"
+            for key, b in m.data["bindings"].items():
+                where = f"bindings.{key}"
+                compat, _, cls = key.partition(":")
                 if not COMPATIBLE.match(compat):
                     err_at(m, where, f"{compat!r} is not a compatible: vendor,name")
-                elif compat in self.table:
-                    err_at(m, where, f"{compat} is already bound in {self.table[compat][1].leaf.name}")
+                elif cls and cls != b["class"]:
+                    err_at(m, where, f"the key names the class {cls}, the binding {b['class']}")
+                elif b["class"] in self.table.get(compat, {}):
+                    err_at(m, where, f"{compat} is already bound for the {b['class']} class in "
+                                     f"{self.table[compat][b['class']][1].leaf.name}")
                 else:
-                    self.table[compat] = (b, m, origin)
+                    self.table.setdefault(compat, {})[b["class"]] = (b, m, origin)
+
+    def lookup(self, compat, cls=None):
+        """(binding, model, origin) for a compatible, or the reason there is none: a device whose
+        compatible several classes drive names its class."""
+        by_class = self.table.get(compat)
+        if not by_class:
+            return None, f"no driver binds {compat} (drivers/bindings.yaml)"
+        if cls is not None:
+            if cls not in by_class:
+                return None, f"no {cls} driver binds {compat}: it has {', '.join(sorted(by_class))}"
+            return by_class[cls], None
+        if len(by_class) > 1:
+            return None, f"{compat} has drivers for {' and '.join(sorted(by_class))}: say which with class:"
+        return next(iter(by_class.values())), None
 
 
 def _peripheral_view(p, soc, clk):
     """What a binding's `peripheral.*` fields read: the SoC node, its interrupts by name, its
-    clock gate with the bus's enable register, and the frequency it is clocked at."""
+    clock gate with the bus's enable register, and the frequency it is clocked at: its bus's, a
+    timer's on its bus (timer_clock_hz), or the PLL's it names in clocked_by."""
     view = {k: v for k, v in p.items() if k not in ("irqs", "clock", "doc", "curated")}
     view["irqs"] = {i["name"]: i["number"] for i in p.get("irqs", [])}
     gate = p.get("clock")
@@ -63,6 +84,11 @@ def _peripheral_view(p, soc, clk):
             view["clock"]["enable_offset"] = bus["enable_offset"]
     if clk is not None:
         view["clock_hz"] = clk["bus_hz"].get(gate["bus"], clk["hclk_hz"]) if gate else clk["hclk_hz"]
+        timer = clk.get("bus_timer_hz", {})
+        view["timer_clock_hz"] = timer.get(gate["bus"], view["clock_hz"]) if gate else view["clock_hz"]
+        fixed = clk.get("fixed_plls", {}).get(p.get("clocked_by"))
+        if fixed is not None:  # a kernel clock of its own, a PLL's fixed output (A129)
+            view["clock_hz"] = view["timer_clock_hz"] = fixed["hz"]
     return view
 
 
@@ -237,9 +263,9 @@ def resolve(board, soc, clk, bindings, err, pins=None):
                 continue
             used[pname] = e["name"]
             compat = p["compatible"]
-        bound = bindings.table.get(compat)
+        bound, why = bindings.lookup(compat, e.get("class"))
         if bound is None:
-            err(at, f"no driver binds {compat} (drivers/bindings.yaml)")
+            err(at, why)
             continue
         b, _, origin = bound
         devs[e["name"]] = {"index": i, "entry": e, "peripheral": p, "compatible": compat, "binding": b,

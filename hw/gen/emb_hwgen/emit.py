@@ -103,6 +103,11 @@ def hw_config_h(r):
             if f in pll:
                 clocks[f"EMB_HW_PLL_{f.upper()}"] = f"{pll[f]}u"
         clocks["EMB_HW_PLL_VCO_HZ"] = f"{int(pll['vco_hz'])}u"
+    for name, pll in sorted(clk.get("fixed_plls", {}).items()):  # A129: a PLL of a fixed rate
+        for f in ("m", "n", "postdiv1", "postdiv2"):
+            if f in pll:
+                clocks[f"EMB_HW_{_sym(name)}_{f.upper()}"] = f"{pll[f]}u"
+        clocks[f"EMB_HW_{_sym(name)}_HZ"] = f"{pll['hz']}u"
     buses = soc.get("clocks", {}).get("buses", [])
     if buses:
         clocks["EMB_HW_AHB_DIV"] = f"{clk['ahb_div']}u"
@@ -197,7 +202,7 @@ def hw_config_h(r):
 # --------------------------------------------------------------------------- board_pins.c
 
 def board_pins_c(r):
-    mode = {"af": "EMB_STM32_PIN_AF", "output": "EMB_STM32_PIN_OUTPUT"}
+    mode = {"af": "EMB_STM32_PIN_AF", "output": "EMB_STM32_PIN_OUTPUT", "analog": "EMB_STM32_PIN_ANALOG"}
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
     out += ("/* The pins board initialization configures, by port and number. Inputs left at their\n"
@@ -654,6 +659,10 @@ def build_report_md(r):
                 f"{'Given by the board, checked' if 'pll' in r['board']['clocks'] else 'Solved'}.\n\n")
     else:
         out += f"{clk['source']} {_mhz(clk['source_hz'])}, used directly.\n\n"
+    for name, p in sorted(clk.get("fixed_plls", {}).items()):
+        post = f"/ {p['postdiv1']} / {p['postdiv2']}" if "postdiv1" in p else f"/ P {p['p']}"
+        out += (f"{name}: {clk['source']} {_mhz(clk['source_hz'])} / M {p['m']} x N {p['n']} = {_mhz(p['vco_hz'])} "
+                f"VCO, {post} = {_mhz(p['hz'])}. Solved; started by the drivers that use it.\n\n")
     buses = soc.get("clocks", {}).get("buses", [])
     if buses:
         out += "| Bus | Frequency | Limit |\n|---|---|---|\n"
@@ -695,17 +704,21 @@ def rp2350_pins_c(r):
             " * state need no entry. */\n")
     out += "#include <emb_rp2350_pins.h>\n#include <hw_config.h>\n\n"
     out += "const emb_rp2350_pin_t emb_board_pins[] = {\n"
-    entries = [e for e in r["pins"] if e["mode"] in ("af", "output")]
+    entries = [e for e in r["pins"] if e["mode"] in ("af", "output", "analog")]
     for e in entries:
         what = e.get("signal", e["mode"])
-        funcsel = e["af"] if e["mode"] == "af" else 5
-        # a peripheral's pad reads its line too, and a chip select's, so a read shows its level
+        # an ADC's input takes no function (NULL, 31), as the datasheet asks (A129)
+        funcsel = e["af"] if e["mode"] == "af" else (31 if e["mode"] == "analog" else 5)
+        # a peripheral's pad reads its line too, and a chip select's, so a read shows its level;
+        # an analog input's digital input is off, so it draws nothing
         is_input = 1 if e["mode"] == "af" or "level" in e else 0
         # a UART's receive and an I2C line idle high: pulled up, so a line left open does not
-        # read as a break, and a bus without resistors still works at 100 kHz
-        pull = "EMB_RP2350_PULL_UP" if str(what).endswith(("_rx", "_scl", "_sda")) else "EMB_RP2350_PULL_RESET"
+        # read as a break, and a bus without resistors still works at 100 kHz; an analog input
+        # is pulled neither way
+        pull = ("EMB_RP2350_PULL_NONE" if e["mode"] == "analog"
+                else "EMB_RP2350_PULL_UP" if str(what).endswith(("_rx", "_scl", "_sda")) else "EMB_RP2350_PULL_RESET")
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        drive = "EMB_RP2350_OUT_NONE" if e["mode"] == "af" else ("EMB_RP2350_OUT_HIGH" if e.get("level") else "EMB_RP2350_OUT_LOW")
+        drive = "EMB_RP2350_OUT_NONE" if e["mode"] in ("af", "analog") else ("EMB_RP2350_OUT_HIGH" if e.get("level") else "EMB_RP2350_OUT_LOW")
         out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}, {drive}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"

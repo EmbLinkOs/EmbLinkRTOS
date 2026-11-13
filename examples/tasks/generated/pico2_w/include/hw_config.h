@@ -21,9 +21,9 @@
  *   examples/tasks/system.yaml
  *     3dd9de88918f06e4b3a41232cb716a9e7d1c4b74ad18e71fd51644ae394ebf9c
  *   soc/rpi/rp2350/rp2350.yaml
- *     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+ *     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
  *   soc/rpi/rp2350/rp2350a.yaml
- *     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+ *     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
  */
 #ifndef HW_CONFIG_H
 #define HW_CONFIG_H
@@ -34,17 +34,22 @@
 #define EMB_HW_SOC_PACKAGE "qfn60"
 
 /* clock tree (150 MHz) */
-#define EMB_HW_AHB_DIV      1u
-#define EMB_HW_CPU_HZ       150000000u
-#define EMB_HW_PLL_M        1u
-#define EMB_HW_PLL_N        125u
-#define EMB_HW_PLL_P        10u
-#define EMB_HW_PLL_POSTDIV1 5u
-#define EMB_HW_PLL_POSTDIV2 2u
-#define EMB_HW_PLL_VCO_HZ   1500000000u
-#define EMB_HW_SYS_HZ       150000000u
-#define EMB_HW_XOSC_BYPASS  0
-#define EMB_HW_XOSC_HZ      12000000u
+#define EMB_HW_AHB_DIV          1u
+#define EMB_HW_CPU_HZ           150000000u
+#define EMB_HW_PLL_M            1u
+#define EMB_HW_PLL_N            125u
+#define EMB_HW_PLL_P            10u
+#define EMB_HW_PLL_POSTDIV1     5u
+#define EMB_HW_PLL_POSTDIV2     2u
+#define EMB_HW_PLL_USB_HZ       48000000u
+#define EMB_HW_PLL_USB_M        1u
+#define EMB_HW_PLL_USB_N        64u
+#define EMB_HW_PLL_USB_POSTDIV1 4u
+#define EMB_HW_PLL_USB_POSTDIV2 4u
+#define EMB_HW_PLL_VCO_HZ       1500000000u
+#define EMB_HW_SYS_HZ           150000000u
+#define EMB_HW_XOSC_BYPASS      0
+#define EMB_HW_XOSC_HZ          12000000u
 
 /* memory regions */
 #define EMB_HW_SRAM_BASE    0x20000000u
@@ -59,6 +64,8 @@
 #define EMB_HW_IRQ_PRIORITY_BITS 4u
 
 /* peripherals: register blocks, interrupt lines, clock gates */
+#define EMB_HW_ADC_BASE           0x400A0000u
+#define EMB_HW_ADC_IRQ_FIFO       35u
 #define EMB_HW_BOOTRAM_BASE       0x400E0000u
 #define EMB_HW_CLOCKS_BASE        0x40010000u
 #define EMB_HW_CLOCKS_IRQ         30u
@@ -75,9 +82,25 @@
 #define EMB_HW_IO_BANK0_IRQ_BANK0 21u
 #define EMB_HW_PADS_BANK0_BASE    0x40038000u
 #define EMB_HW_PLL_SYS_BASE       0x40050000u
+#define EMB_HW_PLL_USB_BASE       0x40058000u
 #define EMB_HW_POWMAN_BASE        0x40100000u
 #define EMB_HW_POWMAN_IRQ_TIMER   45u
 #define EMB_HW_PSM_BASE           0x40018000u
+#define EMB_HW_PWM0_BASE          0x400A8000u
+#define EMB_HW_PWM10_BASE         0x400A80C8u
+#define EMB_HW_PWM11_BASE         0x400A80DCu
+#define EMB_HW_PWM1_BASE          0x400A8014u
+#define EMB_HW_PWM2_BASE          0x400A8028u
+#define EMB_HW_PWM3_BASE          0x400A803Cu
+#define EMB_HW_PWM4_BASE          0x400A8050u
+#define EMB_HW_PWM5_BASE          0x400A8064u
+#define EMB_HW_PWM6_BASE          0x400A8078u
+#define EMB_HW_PWM7_BASE          0x400A808Cu
+#define EMB_HW_PWM8_BASE          0x400A80A0u
+#define EMB_HW_PWM9_BASE          0x400A80B4u
+#define EMB_HW_PWM_BASE           0x400A80F0u
+#define EMB_HW_PWM_IRQ_WRAP0      8u
+#define EMB_HW_PWM_IRQ_WRAP1      9u
 #define EMB_HW_QMI_BASE           0x400D0000u
 #define EMB_HW_RESETS_BASE        0x40020000u
 #define EMB_HW_SIO_BASE           0xD0000000u
@@ -86,6 +109,16 @@
 #define EMB_HW_SPI1_BASE          0x40088000u
 #define EMB_HW_SPI1_IRQ           32u
 #define EMB_HW_TICKS_BASE         0x40108000u
+#define EMB_HW_TIMER0_BASE        0x400B0000u
+#define EMB_HW_TIMER0_IRQ_ALARM0  0u
+#define EMB_HW_TIMER0_IRQ_ALARM1  1u
+#define EMB_HW_TIMER0_IRQ_ALARM2  2u
+#define EMB_HW_TIMER0_IRQ_ALARM3  3u
+#define EMB_HW_TIMER1_BASE        0x400B8000u
+#define EMB_HW_TIMER1_IRQ_ALARM0  4u
+#define EMB_HW_TIMER1_IRQ_ALARM1  5u
+#define EMB_HW_TIMER1_IRQ_ALARM2  6u
+#define EMB_HW_TIMER1_IRQ_ALARM3  7u
 #define EMB_HW_TRNG_BASE          0x400F0000u
 #define EMB_HW_TRNG_IRQ_IRQ       39u
 #define EMB_HW_UART0_BASE         0x40070000u

@@ -15,9 +15,9 @@
 #   examples/tasks/system.yaml
 #     3dd9de88918f06e4b3a41232cb716a9e7d1c4b74ad18e71fd51644ae394ebf9c
 #   soc/rpi/rp2350/rp2350.yaml
-#     9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd
+#     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
 #   soc/rpi/rp2350/rp2350a.yaml
-#     045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff
+#     22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c
 # The board has no C of its own: its SoC family's board support builds emb_board from
 # ../src/board_pins.c and ../include/hw_config.h, and links ../linker/regions.ld.
 add_subdirectory("${EMB_SOC_DIR}" soc)

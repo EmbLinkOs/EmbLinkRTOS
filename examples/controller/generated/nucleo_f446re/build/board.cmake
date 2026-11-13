@@ -17,9 +17,9 @@
 #   examples/controller/system.yaml
 #     2a91f71f1de638aa1ffaa18f0f76fc3ccde44d2560aef98a9a48120775773af3
 #   soc/st/stm32f4/stm32f4.yaml
-#     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
+#     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
 #   soc/st/stm32f4/stm32f446.yaml
-#     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
+#     f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a
 #   soc/st/stm32f4/stm32f446re.yaml
 #     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
 # nucleo_f446re: STM32F446RE, cortex-m4f at 180 MHz.
@@ -64,7 +64,7 @@ set(EMB_BOARD_HW_INPUTS
     "drivers/bindings.yaml=d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
     "examples/controller/controller.conf=f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1"
     "examples/controller/system.yaml=2a91f71f1de638aa1ffaa18f0f76fc3ccde44d2560aef98a9a48120775773af3"
-    "soc/st/stm32f4/stm32f4.yaml=3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f"
-    "soc/st/stm32f4/stm32f446.yaml=0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055"
+    "soc/st/stm32f4/stm32f4.yaml=796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
+    "soc/st/stm32f4/stm32f446.yaml=f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a"
     "soc/st/stm32f4/stm32f446re.yaml=b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4"
 )

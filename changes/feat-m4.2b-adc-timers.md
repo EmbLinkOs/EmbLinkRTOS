@@ -1,0 +1,4 @@
+### Added (the counter, PWM and ADC classes' descriptions, 2026-11-13)
+
+- The STM32F446's description gains TIM3, TIM4 and TIM5 and their channels' pins, its ADC1's inputs, temperature sensor, internal reference and DMA2 streams, and the analog function of PA0 to PA7, PB0, PB1 and PC0 to PC5. The RP2350's gains its ADC, the PWM block's twelve slices, TIMER0 and TIMER1, PLL_USB at 48 MHz for clk_adc, each line's PWM function and the ADC's inputs on GPIO26 to GPIO29 ([A129](docs/specs/AMENDMENTS-M4.md)).
+- The generator takes a binding per class for a peripheral several classes can drive, keyed `compatible:class`, and a board device's `class:` picks one; it computes the STM32F4 timers' doubled clock, solves a PLL of a fixed rate, configures analog pins, and reads a timer's `counter_bits` and an ADC's `adc:` facts ([hwgen](docs/engineering/hwgen.md)).

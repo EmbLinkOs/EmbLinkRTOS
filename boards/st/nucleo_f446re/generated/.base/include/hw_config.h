@@ -19,9 +19,9 @@
  *   drivers/bindings.yaml
  *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
  *   soc/st/stm32f4/stm32f4.yaml
- *     3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f
+ *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055
+ *     f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -164,6 +164,18 @@
 #define EMB_HW_TIM2_CLKEN_BIT      0u
 #define EMB_HW_TIM2_CLKEN_OFFSET   0x40u
 #define EMB_HW_TIM2_IRQ            28u
+#define EMB_HW_TIM3_BASE           0x40000400u
+#define EMB_HW_TIM3_CLKEN_BIT      1u
+#define EMB_HW_TIM3_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM3_IRQ            29u
+#define EMB_HW_TIM4_BASE           0x40000800u
+#define EMB_HW_TIM4_CLKEN_BIT      2u
+#define EMB_HW_TIM4_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM4_IRQ            30u
+#define EMB_HW_TIM5_BASE           0x40000C00u
+#define EMB_HW_TIM5_CLKEN_BIT      3u
+#define EMB_HW_TIM5_CLKEN_OFFSET   0x40u
+#define EMB_HW_TIM5_IRQ            50u
 #define EMB_HW_UART4_BASE          0x40004C00u
 #define EMB_HW_UART4_CLKEN_BIT     19u
 #define EMB_HW_UART4_CLKEN_OFFSET  0x40u

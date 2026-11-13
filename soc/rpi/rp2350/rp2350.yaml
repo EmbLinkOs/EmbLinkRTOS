@@ -39,6 +39,10 @@ clocks:
     # (N, 16 to 320), 750 to 1600 MHz; clk_sys = VCO / (POSTDIV1 x POSTDIV2), each 1 to 7
     - { name: pll_sys, inputs: [xosc], m: [1, 63], n: [16, 320], postdiv: [1, 7],
         vco_in_hz: [5MHz, 800MHz], vco_out_hz: [750MHz, 1600MHz] }
+    # PLL_USB, the same PLL, for clk_usb and clk_adc, which run at 48 MHz (§8.1, §12.4.2): solved
+    # from the crystal like PLL_SYS, and started by the first driver that needs it (A129)
+    - { name: pll_usb, inputs: [xosc], m: [1, 63], n: [16, 320], postdiv: [1, 7],
+        vco_in_hz: [5MHz, 800MHz], vco_out_hz: [750MHz, 1600MHz], output_hz: 48MHz }
   buses:
     # clk_sys: the processors and the bus fabric, 150 MHz at the default core voltage (§1.2)
     - { name: sys, from: hclk, max_hz: 150MHz }
@@ -56,6 +60,7 @@ peripherals:
   - { name: pads_bank0, compatible: "rpi,rp2350-pads", base: 0x40038000, size: 0x4000 }
   - { name: xosc, compatible: "rpi,rp2350-xosc", base: 0x40048000, size: 0x4000 }
   - { name: pll_sys, compatible: "rpi,rp2350-pll", base: 0x40050000, size: 0x4000 }
+  - { name: pll_usb, compatible: "rpi,rp2350-pll", base: 0x40058000, size: 0x4000 }
   - { name: uart0, compatible: "arm,pl011", base: 0x40070000, size: 0x4000, irqs: [{ name: global, number: 33 }],
       dma_requests: { tx: dma.dreq28, rx: dma.dreq29 } }
   - { name: uart1, compatible: "arm,pl011", base: 0x40078000, size: 0x4000, irqs: [{ name: global, number: 34 }],
@@ -93,40 +98,81 @@ peripherals:
   # boot RAM (datasheet §5.4.1): the boot ROM leaves its XIP setup function in the first 256 bytes
   - { name: bootram, compatible: "rpi,rp2350-bootram", base: 0x400E0000, size: 0x400 }
   - { name: sio, compatible: "rpi,rp2350-sio", base: 0xD0000000, size: 0x1000 }
+  # the ADC (datasheet §12.4): 12 bits, 500 kS/s at clk_adc's 48 MHz, its result FIFO drained by
+  # DREQ_ADC; the inputs and the temperature sensor's depend on the package
+  - { name: adc, compatible: "rpi,rp2350-adc", base: 0x400A0000, size: 0x4000, clocked_by: pll_usb,
+      adc: { bits: 12 }, irqs: [ { name: fifo, number: 35 } ], dma_requests: { rx: dma.dreq48 } }
+  # the PWM block (datasheet §12.5): twelve slices of five registers each (CSR, DIV, CTR, CC, TOP,
+  # 0x14 apart), each a 16-bit counter with two outputs, A and B, B also an input that gates or
+  # clocks the counter; their DREQs are DREQ_PWM_WRAP0 to 11. The slices' shared registers follow
+  # them: EN, INTR and the two interrupts' enables, forces and status, PWM_IRQ_WRAP_0 and _1
+  - { name: pwm, compatible: "rpi,rp2350-pwm-irq", base: 0x400A80F0, size: 0x20,
+      irqs: [ { name: wrap0, number: 8 }, { name: wrap1, number: 9 } ] }
+  - { name: pwm0, compatible: "rpi,rp2350-pwm", base: 0x400A8000, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq32 } }
+  - { name: pwm1, compatible: "rpi,rp2350-pwm", base: 0x400A8014, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq33 } }
+  - { name: pwm2, compatible: "rpi,rp2350-pwm", base: 0x400A8028, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq34 } }
+  - { name: pwm3, compatible: "rpi,rp2350-pwm", base: 0x400A803C, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq35 } }
+  - { name: pwm4, compatible: "rpi,rp2350-pwm", base: 0x400A8050, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq36 } }
+  - { name: pwm5, compatible: "rpi,rp2350-pwm", base: 0x400A8064, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq37 } }
+  - { name: pwm6, compatible: "rpi,rp2350-pwm", base: 0x400A8078, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq38 } }
+  - { name: pwm7, compatible: "rpi,rp2350-pwm", base: 0x400A808C, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq39 } }
+  - { name: pwm8, compatible: "rpi,rp2350-pwm", base: 0x400A80A0, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq40 } }
+  - { name: pwm9, compatible: "rpi,rp2350-pwm", base: 0x400A80B4, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq41 } }
+  - { name: pwm10, compatible: "rpi,rp2350-pwm", base: 0x400A80C8, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq42 } }
+  - { name: pwm11, compatible: "rpi,rp2350-pwm", base: 0x400A80DC, size: 0x14, counter_bits: 16,
+      dma_requests: { wrap: dma.dreq43 } }
+  # the timers (datasheet §12.8): 64-bit counts of the TICKS block's microseconds, four alarms
+  # each on the counter's low 32 bits, an interrupt per alarm
+  - { name: timer0, compatible: "rpi,rp2350-timer", base: 0x400B0000, size: 0x4000, counter_bits: 64,
+      irqs: [ { name: alarm0, number: 0 }, { name: alarm1, number: 1 }, { name: alarm2, number: 2 }, { name: alarm3, number: 3 } ] }
+  - { name: timer1, compatible: "rpi,rp2350-timer", base: 0x400B8000, size: 0x4000, counter_bits: 64,
+      irqs: [ { name: alarm0, number: 4 }, { name: alarm1, number: 5 }, { name: alarm2, number: 6 }, { name: alarm3, number: 7 } ] }
 # The UARTs' function selects (pico-sdk 2.1.1, hardware/regs/io_bank0.h): f2, and f11 (UART_AUX);
 # SPI1's, f1, on the lines of its first bank the Pico 2 W brings out; I2C0's and I2C1's, f3, on
-# GPIO6 to GPIO9
+# GPIO6 to GPIO9; PWM's, f4, slice (n / 2) mod 8, A on the even lines and B on the odd; the ADC's
+# inputs 0 to 3 on GPIO26 to GPIO29 (datasheet §9.4, §12.4.3)
 alternate_functions:
-  GPIO0: { f2: uart0_tx }
-  GPIO1: { f2: uart0_rx }
-  GPIO2: { f11: uart0_tx }
-  GPIO3: { f11: uart0_rx }
-  GPIO4: { f2: uart1_tx }
-  GPIO5: { f2: uart1_rx }
-  GPIO6: { f3: i2c1_sda, f11: uart1_tx }
-  GPIO7: { f3: i2c1_scl, f11: uart1_rx }
-  GPIO8: { f2: uart1_tx, f3: i2c0_sda }
-  GPIO9: { f2: uart1_rx, f3: i2c0_scl }
-  GPIO10: { f1: spi1_sck, f11: uart1_tx }
-  GPIO11: { f1: spi1_mosi, f11: uart1_rx }
-  GPIO12: { f1: spi1_miso, f2: uart0_tx }
-  GPIO13: { f2: uart0_rx }
-  GPIO14: { f11: uart0_tx }
-  GPIO15: { f11: uart0_rx }
-  GPIO16: { f2: uart0_tx }
-  GPIO17: { f2: uart0_rx }
-  GPIO18: { f11: uart0_tx }
-  GPIO19: { f11: uart0_rx }
-  GPIO20: { f2: uart1_tx }
-  GPIO21: { f2: uart1_rx }
-  GPIO22: { f11: uart1_tx }
-  GPIO23: { f11: uart1_rx }
-  GPIO24: { f2: uart1_tx }
-  GPIO25: { f2: uart1_rx }
-  GPIO26: { f11: uart1_tx }
-  GPIO27: { f11: uart1_rx }
-  GPIO28: { f2: uart0_tx }
-  GPIO29: { f2: uart0_rx }
+  GPIO0: { f2: uart0_tx, f4: pwm0_a }
+  GPIO1: { f2: uart0_rx, f4: pwm0_b }
+  GPIO2: { f4: pwm1_a, f11: uart0_tx }
+  GPIO3: { f4: pwm1_b, f11: uart0_rx }
+  GPIO4: { f2: uart1_tx, f4: pwm2_a }
+  GPIO5: { f2: uart1_rx, f4: pwm2_b }
+  GPIO6: { f3: i2c1_sda, f4: pwm3_a, f11: uart1_tx }
+  GPIO7: { f3: i2c1_scl, f4: pwm3_b, f11: uart1_rx }
+  GPIO8: { f2: uart1_tx, f3: i2c0_sda, f4: pwm4_a }
+  GPIO9: { f2: uart1_rx, f3: i2c0_scl, f4: pwm4_b }
+  GPIO10: { f1: spi1_sck, f4: pwm5_a, f11: uart1_tx }
+  GPIO11: { f1: spi1_mosi, f4: pwm5_b, f11: uart1_rx }
+  GPIO12: { f1: spi1_miso, f2: uart0_tx, f4: pwm6_a }
+  GPIO13: { f2: uart0_rx, f4: pwm6_b }
+  GPIO14: { f4: pwm7_a, f11: uart0_tx }
+  GPIO15: { f4: pwm7_b, f11: uart0_rx }
+  GPIO16: { f2: uart0_tx, f4: pwm0_a }
+  GPIO17: { f2: uart0_rx, f4: pwm0_b }
+  GPIO18: { f4: pwm1_a, f11: uart0_tx }
+  GPIO19: { f4: pwm1_b, f11: uart0_rx }
+  GPIO20: { f2: uart1_tx, f4: pwm2_a }
+  GPIO21: { f2: uart1_rx, f4: pwm2_b }
+  GPIO22: { f4: pwm3_a, f11: uart1_tx }
+  GPIO23: { f4: pwm3_b, f11: uart1_rx }
+  GPIO24: { f2: uart1_tx, f4: pwm4_a }
+  GPIO25: { f2: uart1_rx, f4: pwm4_b }
+  GPIO26: { f4: pwm5_a, f11: uart1_tx, analog: adc_in0 }
+  GPIO27: { f4: pwm5_b, f11: uart1_rx, analog: adc_in1 }
+  GPIO28: { f2: uart0_tx, f4: pwm6_a, analog: adc_in2 }
+  GPIO29: { f2: uart0_rx, f4: pwm6_b, analog: adc_in3 }
 # The boot ROM boots a flash image with a valid IMAGE_DEF block in its first 4 KiB (datasheet
 # §5.9); image_type 0x1021 says EXE, SECURITY_S, CPU_ARM, CHIP_RP2350 (pico-sdk's picobin.h).
 # The UF2 family ID is the ROM's for Arm Secure images.

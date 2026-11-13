@@ -27,6 +27,7 @@
 #define PADS_GPIO(n)    (EMB_HW_PADS_BANK0_BASE + 0x04u + 4u * (n))
 #define PAD_ISO         (1u << 8)
 #define PAD_OD          (1u << 7)
+#define FUNCSEL_NULL    31u /* IO_BANK0 GPIOn_CTRL: no function, an analog input */
 #define PAD_IE          (1u << 6)
 #define PAD_PUE         (1u << 3)
 #define PAD_PDE         (1u << 2)
@@ -59,6 +60,13 @@ void emb_rp2350_pins_apply(const emb_rp2350_pin_t *pins, unsigned count)
         uint32_t pad = REG(PADS_GPIO(p->gpio)) & ~(PAD_ISO | PAD_OD | PAD_IE);
         if (p->pull == EMB_RP2350_PULL_UP) {
             pad = (pad & ~PAD_PDE) | PAD_PUE;
+        } else if (p->pull == EMB_RP2350_PULL_NONE) {
+            pad &= ~(PAD_PDE | PAD_PUE);
+        } else {
+            /* the pad's reset pull-down stays */
+        }
+        if (p->funcsel == FUNCSEL_NULL) {
+            pad |= PAD_OD; /* an analog input: no digital output either, as the ADC chapter asks */
         }
         REG(PADS_GPIO(p->gpio)) = pad |
                                   ((p->input_en != 0u) ? PAD_IE : 0u); /* then out of isolation */

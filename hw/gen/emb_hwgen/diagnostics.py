@@ -20,9 +20,9 @@ from . import VERSION
 FORMAT = 1  # the document's own version: a field added keeps it, one changed or removed bumps it
 
 # a Windows drive is part of the file name; a node path has no spaces, and its segments may be
-# compatibles (bindings.st,stm32f4-iwdg.class)
+# compatibles (bindings.st,stm32f4-iwdg.class), with a class (bindings.st,stm32-tim:pwm, A129)
 _LINE = re.compile(r"^(?P<file>(?:[A-Za-z]:)?[^:\n]+?)(?::(?P<line>\d+))?: "
-                   r"(?:(?P<path>\(root\)|\(file\)|[A-Za-z_][\w,+-]*(?:\.[\w,+-]+|\[\d+\])*): )?"
+                   r"(?:(?P<path>\(root\)|\(file\)|[A-Za-z_][\w,+-]*(?:\.[\w,+:-]+|\[\d+\])*): )?"
                    r"(?P<message>.+)$", re.S)
 _FACT = re.compile(r"^(?P<file>(?:[A-Za-z]:)?[^:\n]+?)(?::(?P<line>\d+))?: (?P<message>.+)$", re.S)
 

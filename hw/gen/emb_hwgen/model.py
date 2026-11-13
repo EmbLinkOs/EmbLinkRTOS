@@ -297,6 +297,11 @@ class Resolver:
             clk = p.get("clock")
             if clk is not None and clk["bus"] not in buses:
                 self.err(soc, f"{where}.clock.bus", f"unresolved reference: no bus {clk['bus']!r}")
+            if "clocked_by" in p:  # a PLL of a fixed rate (A129)
+                fixed = {s["name"] for s in d.get("clocks", {}).get("plls", []) if "output_hz" in s}
+                if p["clocked_by"] not in fixed:
+                    self.err(soc, f"{where}.clocked_by", f"unresolved reference: no PLL {p['clocked_by']!r} with an "
+                                                         f"output_hz (it has {', '.join(sorted(fixed)) or 'none'})")
             for irq in p.get("irqs", []):
                 n = irq["number"]
                 at = f"{where}.irqs.{irq['name']}"
@@ -327,10 +332,11 @@ class Resolver:
             if bank and parsed["number"] >= d["gpio"]["lines"]:
                 self.err(soc, f"alternate_functions.{pin}", f"beyond the bank's {d['gpio']['lines']} lines")
             for af in sorted(afs):
-                ok = r"f([12][0-9]|3[01]|[0-9])" if bank else r"af(1[0-5]|[0-9])|fixed"
+                ok = r"f([12][0-9]|3[01]|[0-9])|analog" if bank else r"af(1[0-5]|[0-9])|fixed|analog"
                 if not re.fullmatch(ok, af):
                     self.err(soc, f"alternate_functions.{pin}.{af}",
-                             "not a function select (f0 to f31)" if bank else "not an alternate function (af0 to af15, or fixed)")
+                             "not a function select (f0 to f31, or analog)" if bank
+                             else "not an alternate function (af0 to af15, fixed or analog)")
 
         fl = d.get("flash")
         if fl is not None:
@@ -394,6 +400,10 @@ class Resolver:
                 offered = afs.get(pin["name"], {})
                 if pin["af"] is None and offered.get("fixed") == signal:
                     entry.update({"mode": "fixed", "signal": signal})  # taken over when the peripheral is on
+                    out.append(entry)
+                    return
+                if pin["af"] is None and offered.get("analog") == signal:
+                    entry.update({"mode": "analog", "signal": signal})  # an ADC's input (A129)
                     out.append(entry)
                     return
                 if pin["af"] is None:

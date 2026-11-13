@@ -22,7 +22,7 @@
       "required": ["class", "level", "sources", "header", "api", "config"],
       "additionalProperties": false,
       "properties": {
-        "class": { "enum": ["uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio"] },
+        "class": { "enum": ["uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio", "counter", "pwm", "adc"] },
         "level": { "enum": ["early", "kernel"] },
         "sources": {
           "type": "array",

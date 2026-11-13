@@ -37,11 +37,11 @@
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd"
+      "sha256": "80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
-      "sha256": "045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff"
+      "sha256": "22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c"
     }
   ],
   "name": "tasks_demo",

@@ -37,9 +37,13 @@ interrupts:
   # vector lines with no peripheral behind them (RM0390 Table 38): free for software use
   reserved: [61, 62, 79, 80, 81, 82, 83, 85, 86, 88, 89, 90]
 peripherals:
-  # ADC1 (RM0390 §13): its global interrupt line is shared by ADC1 to ADC3
+  # ADC1 (RM0390 §13): 12 bits, inputs 0 to 15 on pins, the temperature sensor on 18 and VREFINT
+  # on 17 (§13.10, §13.11); its global interrupt line is shared by ADC1 to ADC3; its results by
+  # DMA2 stream 0 or 4, channel 0 (Table 29)
   - { name: adc1, compatible: "st,stm32f4-adc", base: 0x40012000, size: 0x100, clock: { bus: apb2, bit: 8 },
-      irqs: [ { name: global, number: 18 } ] }
+      adc: { bits: 12, inputs: 16, temperature: 18, vrefint: 17 },
+      irqs: [ { name: global, number: 18 } ],
+      dma_requests: { rx: [dma2.s0c0, dma2.s4c0] } }
   # the ADCs' common registers (RM0390 §13.13.16): the prescaler, the temperature sensor's enable
   - { name: adc_common, compatible: "st,stm32f4-adc-common", base: 0x40012300, size: 0x100 }
   # factory calibration in system memory (DS10693 §6.3.22, §6.3.23): VREFINT_CAL at +0, the
@@ -69,8 +73,20 @@ peripherals:
   - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,
       irqs: [ { name: global, number: 5 } ] }
   # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §18): its update event is ADC1's trigger
-  - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, clock: { bus: apb1, bit: 0 },
+  - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, counter_bits: 32,
+      clock: { bus: apb1, bit: 0 },
       irqs: [ { name: global, number: 28 } ] }
+  # TIM3 and TIM4, 16-bit, and TIM5, 32-bit, the same general-purpose timers on APB1 (RM0390 §18,
+  # Table 38): four channels each, for PWM, capture and compare
+  - { name: tim3, compatible: "st,stm32-tim", base: 0x40000400, size: 0x400, counter_bits: 16,
+      clock: { bus: apb1, bit: 1 },
+      irqs: [ { name: global, number: 29 } ] }
+  - { name: tim4, compatible: "st,stm32-tim", base: 0x40000800, size: 0x400, counter_bits: 16,
+      clock: { bus: apb1, bit: 2 },
+      irqs: [ { name: global, number: 30 } ] }
+  - { name: tim5, compatible: "st,stm32-tim", base: 0x40000C00, size: 0x400, counter_bits: 32,
+      clock: { bus: apb1, bit: 3 },
+      irqs: [ { name: global, number: 50 } ] }
   # the DMA controllers (RM0390 §9), on AHB1, an interrupt per stream (SVD 1.9): each request on
   # the streams Tables 28 and 29 list it on, with its channel select (dma_requests: A119, the
   # tables cross-checked with EmbSIM's STM32F446 model); DMA2 alone copies memory to memory
@@ -118,27 +134,42 @@ peripherals:
 # (STM32F446R(C-E)Tx.xml and GPIO-STM32F446_gpio_v1_0_Modes.xml, the I2C pins' AF4 among them);
 # PD5, PD6, PD8 and PD9 from DS10693 Table 11.
 alternate_functions:
-  PA0: { af8: uart4_tx }
-  PA1: { af8: uart4_rx }
-  PA2: { af7: usart2_tx }
-  PA3: { af7: usart2_rx }
+  PA0: { af1: tim2_ch1, af2: tim5_ch1, af8: uart4_tx, analog: adc1_in0 }
+  PA1: { af1: tim2_ch2, af2: tim5_ch2, af8: uart4_rx, analog: adc1_in1 }
+  PA2: { af1: tim2_ch3, af2: tim5_ch3, af7: usart2_tx, analog: adc1_in2 }
+  PA3: { af1: tim2_ch4, af2: tim5_ch4, af7: usart2_rx, analog: adc1_in3 }
+  PA4: { analog: adc1_in4 }
+  PA5: { af1: tim2_ch1, analog: adc1_in5 }
+  PA6: { af2: tim3_ch1, analog: adc1_in6 }
+  PA7: { af2: tim3_ch2, analog: adc1_in7 }
   PA8: { af4: i2c3_scl }
   PA9: { af7: usart1_tx }
   PA10: { af7: usart1_rx }
-  PB3: { af4: i2c2_sda }
-  PB4: { af4: i2c3_sda }
-  PB6: { af4: i2c1_scl, af7: usart1_tx }
-  PB7: { af4: i2c1_sda, af7: usart1_rx }
-  PB8: { af4: i2c1_scl }
-  PB9: { af4: i2c1_sda }
-  PB10: { af4: i2c2_scl, af7: usart3_tx }
+  PA15: { af1: tim2_ch1 }
+  PB0: { af2: tim3_ch3, analog: adc1_in8 }
+  PB1: { af2: tim3_ch4, analog: adc1_in9 }
+  PB2: { af1: tim2_ch4 }
+  PB3: { af1: tim2_ch2, af4: i2c2_sda }
+  PB4: { af2: tim3_ch1, af4: i2c3_sda }
+  PB5: { af2: tim3_ch2 }
+  PB6: { af2: tim4_ch1, af4: i2c1_scl, af7: usart1_tx }
+  PB7: { af2: tim4_ch2, af4: i2c1_sda, af7: usart1_rx }
+  PB8: { af1: tim2_ch1, af2: tim4_ch3, af4: i2c1_scl }
+  PB9: { af1: tim2_ch2, af2: tim4_ch4, af4: i2c1_sda }
+  PB10: { af1: tim2_ch3, af4: i2c2_scl, af7: usart3_tx }
   PB13: { af5: spi2_sck }
   PB14: { af5: spi2_miso }
   PB15: { af5: spi2_mosi }
-  PC5: { af7: usart3_rx }
-  PC6: { af8: usart6_tx }
-  PC7: { af8: usart6_rx }
-  PC9: { af4: i2c3_sda }
+  PC0: { analog: adc1_in10 }
+  PC1: { analog: adc1_in11 }
+  PC2: { analog: adc1_in12 }
+  PC3: { analog: adc1_in13 }
+  PC4: { analog: adc1_in14 }
+  PC5: { af7: usart3_rx, analog: adc1_in15 }
+  PC6: { af2: tim3_ch1, af8: usart6_tx }
+  PC7: { af2: tim3_ch2, af8: usart6_rx }
+  PC8: { af2: tim3_ch3 }
+  PC9: { af2: tim3_ch4, af4: i2c3_sda }
   PC10: { af7: usart3_tx, af8: uart4_tx }
   PC11: { af7: usart3_rx, af8: uart4_rx }
   PC12: { af4: i2c2_sda, af8: uart5_tx }

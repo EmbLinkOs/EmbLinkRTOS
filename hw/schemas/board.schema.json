@@ -71,6 +71,10 @@
           "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "peripheral": { "$ref": "#/$defs/ident" },
           "compatible": { "type": "string", "pattern": "^[a-z0-9-]+,[a-z0-9-]+$" },
+          "class": {
+            "description": "the driver class, for a peripheral more than one class can drive (a timer: counter or pwm, A129)",
+            "enum": ["uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio", "counter", "pwm", "adc"]
+          },
           "bus": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "deps": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" } },
           "level": { "enum": ["early", "kernel"] },

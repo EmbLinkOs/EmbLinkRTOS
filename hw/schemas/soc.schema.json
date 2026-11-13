@@ -107,9 +107,14 @@
               "postdiv": { "$ref": "#/$defs/range" },
               "vco_in_hz": { "$ref": "#/$defs/range" },
               "vco_out_hz": { "$ref": "#/$defs/range" },
+              "output_hz": { "type": "integer", "minimum": 1, "description": "a PLL with an output of its own, not the CPU's: solved for exactly this rate from the board's clock source (A129); a peripheral clocked by it names it in clocked_by" },
               "doc": { "type": "string" }
             }
           }
+        },
+        "timers_double_when_divided": {
+          "type": "boolean",
+          "description": "the timers on an APB bus run at twice its clock when its prescaler is not 1 (the STM32F4: RM0390 \u00a76.2); a binding reads the rate as peripheral.timer_clock_hz"
         },
         "prescalers": {
           "type": "object",
@@ -226,6 +231,26 @@
               { "$ref": "#/$defs/dma_request" },
               { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/dma_request" } }
             ] }
+          },
+          "counter_bits": {
+            "description": "a timer's counter width in bits (A129): the counter, PWM and ADC classes' drivers widen and scale by it",
+            "enum": [16, 24, 32, 64]
+          },
+          "clocked_by": {
+            "$ref": "#/$defs/ident",
+            "description": "the PLL with an output_hz its kernel clock comes from, where that is not its bus (A129): a binding reads the rate as peripheral.clock_hz"
+          },
+          "adc": {
+            "description": "an ADC (A129): its resolution in bits, its external inputs, and the inputs its temperature sensor and internal reference are on, where it has them",
+            "type": "object",
+            "required": ["bits"],
+            "additionalProperties": false,
+            "properties": {
+              "bits": { "type": "integer", "minimum": 1, "maximum": 32 },
+              "inputs": { "type": "integer", "minimum": 1 },
+              "temperature": { "type": "integer", "minimum": 0 },
+              "vrefint": { "type": "integer", "minimum": 0 }
+            }
           },
           "curated": { "type": "boolean" },
           "doc": { "type": "string" }
