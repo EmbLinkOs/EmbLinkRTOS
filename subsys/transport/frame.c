@@ -29,15 +29,15 @@
 static uint16_t crc16(uint16_t crc, uint8_t byte)
 {
     unsigned bit;
-    crc = (uint16_t)(crc ^ (uint16_t)((uint16_t)byte << 8));
+    uint16_t c = (uint16_t)(crc ^ (uint16_t)((uint16_t)byte << 8));
     for (bit = 0u; bit < 8u; bit++) { /* bounded: eight bits */
-        if ((crc & 0x8000u) != 0u) {
-            crc = (uint16_t)((uint16_t)(crc << 1) ^ CRC_POLY);
+        if ((c & 0x8000u) != 0u) {
+            c = (uint16_t)((uint16_t)(c << 1) ^ CRC_POLY);
         } else {
-            crc = (uint16_t)(crc << 1);
+            c = (uint16_t)(c << 1);
         }
     }
-    return crc;
+    return c;
 }
 
 /* The encoder's state: where the open run's code byte goes, and the run's code so far. */
@@ -75,12 +75,12 @@ emb_status_t emb_frame_encode(uint8_t channel, const void *payload, size_t len, 
     cobs_t c;
     uint16_t crc = CRC_INIT;
     size_t i;
-    if (channel > EMB_FRAME_CHANNEL_MAX || out == NULL || out_len == NULL ||
-        (payload == NULL && len != 0u)) {
+    if ((channel > EMB_FRAME_CHANNEL_MAX) || (out == NULL) || (out_len == NULL) ||
+        ((payload == NULL) && (len != 0u))) {
         return EMB_EINVAL;
     }
     /* the bound is computed so that it cannot wrap: a payload this long is refused first */
-    if (len > (SIZE_MAX / 2u) || cap < EMB_FRAME_ENCODED_MAX(len)) {
+    if ((len > (SIZE_MAX / 2u)) || (cap < EMB_FRAME_ENCODED_MAX(len))) {
         return EMB_EOVERFLOW;
     }
     c.out = out;
@@ -144,15 +144,15 @@ static bool frame_end(emb_frame_decoder_t *dec, emb_frame_t *frame)
     if (dec->code == 0u) {
         return false; /* no frame: a zero between frames */
     }
-    if (dec->left != 0u || n < EMB_FRAME_OVERHEAD) {
+    if ((dec->left != 0u) || (n < EMB_FRAME_OVERHEAD)) {
         dec->errors++; /* a block cut short, or too short to hold a channel and a CRC */
         return false;
     }
-    for (i = 0u; i < n - 2u; i++) { /* bounded by the frame's length */
+    for (i = 0u; i < (n - 2u); i++) { /* bounded by the frame's length */
         crc = crc16(crc, dec->buf[i]);
     }
-    if ((uint8_t)(crc & 0xFFu) != dec->buf[n - 2u] || (uint8_t)(crc >> 8) != dec->buf[n - 1u] ||
-        dec->buf[0] > EMB_FRAME_CHANNEL_MAX) {
+    if (((uint8_t)(crc & 0xFFu) != dec->buf[n - 2u]) || ((uint8_t)(crc >> 8) != dec->buf[n - 1u]) ||
+        (dec->buf[0] > EMB_FRAME_CHANNEL_MAX)) {
         dec->errors++;
         return false;
     }
@@ -165,12 +165,11 @@ static bool frame_end(emb_frame_decoder_t *dec, emb_frame_t *frame)
 
 bool emb_frame_decode_byte(emb_frame_decoder_t *dec, uint8_t byte, emb_frame_t *frame)
 {
-    bool good;
-    if (dec == NULL || frame == NULL) {
+    if ((dec == NULL) || (frame == NULL)) {
         return false;
     }
     if (byte == 0u) {
-        good = frame_end(dec, frame);
+        bool good = frame_end(dec, frame);
         dec->len = 0u;
         dec->code = 0u;
         dec->left = 0u;
@@ -178,7 +177,7 @@ bool emb_frame_decode_byte(emb_frame_decoder_t *dec, uint8_t byte, emb_frame_t *
         return good;
     }
     if (dec->left == 0u) { /* a code byte: the zero the last run stood for comes first */
-        if (dec->code != 0u && dec->code != COBS_RUN_MAX) {
+        if ((dec->code != 0u) && (dec->code != COBS_RUN_MAX)) {
             keep(dec, 0u);
         }
         dec->code = byte;

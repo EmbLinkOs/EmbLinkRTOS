@@ -465,6 +465,9 @@
  "include/emb/fault.h": {
   "misra-c2012-2.4": 1
  },
+ "include/emb/frame.h": {
+  "misra-c2012-2.5": 6
+ },
  "include/emb/irq.h": {
   "misra-c2012-2.3": 1,
   "misra-c2012-2.5": 1,
@@ -919,5 +922,9 @@
  "soc/st/stm32f4/include/emb_stm32_pins.h": {
   "misra-c2012-20.10": 1,
   "misra-c2012-8.11": 1
+ },
+ "subsys/transport/frame.c": {
+  "misra-c2012-11.5": 1,
+  "misra-c2012-8.7": 3
  }
 }
