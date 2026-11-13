@@ -100,6 +100,36 @@ typedef struct emb_frame_decoder {
 emb_status_t emb_frame_encode(uint8_t channel, const void *payload, size_t len, uint8_t *out,
                               size_t cap, size_t *out_len);
 
+/* Where emb_frame_write() sends a frame's bytes, a run at a time. */
+typedef void (*emb_frame_sink_t)(void *ctx, const uint8_t *bytes, size_t len);
+
+/**
+ * emb_frame_write() - Send one frame to a sink as it is encoded, without a buffer.
+ * @channel: 0 to EMB_FRAME_CHANNEL_MAX.
+ * @payload: The payload; may be NULL when @len is 0.
+ * @len:     Its bytes.
+ * @sink:    Receives the frame's bytes in order, the delimiter last; called once per COBS
+ *           run or code byte.
+ * @ctx:     Passed to @sink.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(len) plus @sink's
+ * @owns     none
+ * @config   CONFIG_EMB_FRAME
+ * @req      OBS-019
+ * @since    0.3
+ * @stable   no
+ *
+ * Sends the bytes emb_frame_encode() would write, reading the payload in place: a code byte
+ * is found by looking ahead in the payload for its run's end, so no copy of the frame is
+ * kept. The payload must not change until this returns.
+ *
+ * Return: EMB_OK; EMB_EINVAL (a channel above 15, or a pointer missing).
+ */
+emb_status_t emb_frame_write(uint8_t channel, const void *payload, size_t len,
+                             emb_frame_sink_t sink, void *ctx);
+
 /**
  * emb_frame_decoder_init() - Start a stream decoder on a buffer.
  * @dec: The decoder.

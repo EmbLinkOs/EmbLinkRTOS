@@ -1440,6 +1440,12 @@
       "name": "emb_frame_decode_byte",
       "header": "frame.h",
       "state": "active"
+    },
+    {
+      "id": 250,
+      "name": "emb_frame_write",
+      "header": "frame.h",
+      "state": "active"
     }
   ]
 }

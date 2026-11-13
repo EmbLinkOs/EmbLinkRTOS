@@ -101,6 +101,95 @@ emb_status_t emb_frame_encode(uint8_t channel, const void *payload, size_t len, 
     return EMB_OK;
 }
 
+/* The frame's bytes before COBS, read in place: the channel, the payload, the CRC (LSB first). */
+typedef struct frame_src {
+    const uint8_t *payload;
+    size_t len;   /* the payload's */
+    uint8_t head; /* the channel */
+    uint8_t crc[2];
+} frame_src_t;
+
+static uint8_t src_byte(const frame_src_t *s, size_t i)
+{
+    uint8_t b;
+    if (i == 0u) {
+        b = s->head;
+    } else if (i <= s->len) {
+        b = s->payload[i - 1u];
+    } else {
+        b = s->crc[i - 1u - s->len];
+    }
+    return b;
+}
+
+/* Sends the source's bytes [from, to): the payload's part as one piece, read in place. */
+static void src_send(const frame_src_t *s, size_t from, size_t to, emb_frame_sink_t sink, void *ctx)
+{
+    size_t lo = from;
+    size_t hi;
+    if ((lo == 0u) && (to > 0u)) {
+        sink(ctx, &s->head, 1u);
+        lo = 1u;
+    }
+    hi = (to < (s->len + 1u)) ? to : (s->len + 1u);
+    if (lo < hi) {
+        sink(ctx, &s->payload[lo - 1u], hi - lo);
+        lo = hi;
+    }
+    if (lo < to) {
+        sink(ctx, &s->crc[lo - 1u - s->len], to - lo);
+    }
+}
+
+emb_status_t emb_frame_write(uint8_t channel, const void *payload, size_t len,
+                             emb_frame_sink_t sink, void *ctx)
+{
+    frame_src_t s;
+    uint16_t crc = CRC_INIT;
+    size_t total;
+    size_t i = 0u;
+    size_t k;
+    bool more = true;
+    static const uint8_t delimiter = 0u;
+    if ((channel > EMB_FRAME_CHANNEL_MAX) || (sink == NULL) || ((payload == NULL) && (len != 0u)) ||
+        (len > (SIZE_MAX / 2u))) {
+        return EMB_EINVAL;
+    }
+    s.payload = (const uint8_t *)payload;
+    s.len = len;
+    s.head = channel;
+    crc = crc16(crc, channel);
+    for (k = 0u; k < len; k++) { /* bounded by len */
+        crc = crc16(crc, s.payload[k]);
+    }
+    s.crc[0] = (uint8_t)(crc & 0xFFu);
+    s.crc[1] = (uint8_t)(crc >> 8);
+    total = len + EMB_FRAME_OVERHEAD;
+    /* One run per pass, as cobs_put() makes them: its code byte, then its nonzero bytes. A run
+     * that a zero ended skips the zero; a full run skips nothing, and when it is the last, an
+     * empty run follows it, as the encoder writes. */
+    while (more) { /* bounded: each pass moves i forward, and the last pass ends at total */
+        size_t end = i;
+        uint8_t code;
+        while ((end < total) && ((end - i) < (size_t)(COBS_RUN_MAX - 1u)) &&
+               (src_byte(&s, end) != 0u)) {
+            end++; /* bounded by the run's 254 bytes */
+        }
+        code = (uint8_t)((end - i) + 1u);
+        sink(ctx, &code, 1u);
+        src_send(&s, i, end, sink, ctx);
+        if (code == COBS_RUN_MAX) {
+            i = end;
+        } else if (end == total) {
+            more = false;
+        } else {
+            i = end + 1u;
+        }
+    }
+    sink(ctx, &delimiter, 1u);
+    return EMB_OK;
+}
+
 void emb_frame_decoder_init(emb_frame_decoder_t *dec, uint8_t *buf, size_t cap)
 {
     if (dec == NULL) {

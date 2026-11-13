@@ -244,5 +244,6 @@
 #define EMB_API_ID_FRAME_ENCODE                  0x00F7u
 #define EMB_API_ID_FRAME_DECODER_INIT            0x00F8u
 #define EMB_API_ID_FRAME_DECODE_BYTE             0x00F9u
+#define EMB_API_ID_FRAME_WRITE                   0x00FAu
 
 #endif /* EMB_API_IDS_H */

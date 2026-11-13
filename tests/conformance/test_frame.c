@@ -231,3 +231,68 @@ EMB_TEST(frame_random_stream_with_damage)
     EMB_ASSERT_EQ(dec.frames, sent_good);
     EMB_ASSERT_TRUE(dec.errors > 0u);
 }
+
+/* emb_frame_write()'s sink: collects the frame, and counts the calls. */
+static uint8_t streamed[EMB_FRAME_ENCODED_MAX(300u) + 16u];
+static size_t streamed_len;
+static unsigned sink_calls;
+
+static void collect(void *ctx, const uint8_t *bytes, size_t len)
+{
+    (void)ctx;
+    if ((streamed_len + len) <= sizeof(streamed)) {
+        (void)memcpy(&streamed[streamed_len], bytes, len);
+    }
+    streamed_len += len;
+    sink_calls++;
+}
+
+EMB_TEST(frame_write_streams_the_encoders_bytes)
+{
+    /* lengths around COBS's 254-byte run, with no zero, zeros inside, and a zero last */
+    static const size_t lens[] = {0u, 1u, 2u, 250u, 251u, 252u, 253u, 254u, 255u, 300u};
+    size_t li;
+    unsigned pattern;
+    EMB_TEST_REQ("OBS-019");
+    for (pattern = 0u; pattern < 3u; pattern++) {                    /* bounded: three patterns */
+        for (li = 0u; li < (sizeof(lens) / sizeof(lens[0])); li++) { /* bounded by the table */
+            size_t len = lens[li];
+            size_t i;
+            size_t n;
+            for (i = 0u; i < len; i++) { /* bounded by len */
+                payload[i] = (uint8_t)(1u + (i % 255u));
+                if ((pattern == 1u) && ((i % 97u) == 40u)) {
+                    payload[i] = 0u;
+                }
+            }
+            if ((pattern == 2u) && (len > 0u)) {
+                payload[len - 1u] = 0u;
+            }
+            n = encode(EMB_FRAME_CHANNEL_SHELL, payload, len);
+            streamed_len = 0u;
+            sink_calls = 0u;
+            EMB_ASSERT_OK(emb_frame_write(EMB_FRAME_CHANNEL_SHELL, payload, len, collect, NULL));
+            EMB_ASSERT_EQ(streamed_len, n);
+            EMB_ASSERT_TRUE(memcmp(streamed, wire, n) == 0);
+        }
+    }
+    /* a run inside the payload goes to the sink in one piece, not byte by byte */
+    for (li = 0u; li < 200u; li++) { /* bounded: 200 bytes */
+        payload[li] = 0x55u;
+    }
+    sink_calls = 0u;
+    streamed_len = 0u;
+    EMB_ASSERT_OK(emb_frame_write(EMB_FRAME_CHANNEL_LOG, payload, 200u, collect, NULL));
+    EMB_ASSERT_TRUE(sink_calls <= 6u);
+}
+
+EMB_TEST(frame_write_misuse_is_refused)
+{
+    EMB_TEST_REQ("OBS-019");
+    EMB_ASSERT_STATUS(emb_frame_write(16u, payload, 1u, collect, NULL), EMB_EINVAL);
+    EMB_ASSERT_STATUS(emb_frame_write(0u, NULL, 1u, collect, NULL), EMB_EINVAL);
+    EMB_ASSERT_STATUS(emb_frame_write(0u, payload, 1u, NULL, NULL), EMB_EINVAL);
+    streamed_len = 0u;
+    EMB_ASSERT_OK(emb_frame_write(0u, NULL, 0u, collect, NULL));
+    EMB_ASSERT_EQ(streamed_len, sizeof(v_empty));
+}
