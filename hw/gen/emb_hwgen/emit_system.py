@@ -8,9 +8,6 @@ import textwrap
 
 from . import SCHEMA_VERSION, VERSION
 
-# the header each object type's handle and macro come from
-HEADERS = {"thread": "emb/thread.h", "mutex": "emb/mutex.h", "sem": "emb/sem.h", "cond": "emb/cond.h",
-           "event": "emb/event.h", "msgq": "emb/msgq.h", "timer": "emb/timer.h", "workq": "emb/work.h"}
 HANDLE = {"thread": "emb_thread_t", "mutex": "emb_mutex_t", "sem": "emb_sem_t", "cond": "emb_cond_t",
           "event": "emb_event_t", "msgq": "emb_msgq_t", "timer": "emb_timer_t", "workq": "emb_workq_t"}
 PROTOCOL = {"inherit": "EMB_MUTEX_INHERIT", "ceiling": "EMB_MUTEX_CEILING", "none": "EMB_MUTEX_NONE"}
@@ -32,14 +29,8 @@ def system_h(r, c_comment):
     out = _intro(r, c_comment, f"The system {s['name']}'s threads, objects, targets and watchdog for the application's "
                                "sources (SPEC-014 §5, A125).")
     out += "#ifndef EMB_SYSTEM_H\n#define EMB_SYSTEM_H\n\n"
-    kinds = {"thread"} if s["threads"] else set()
-    kinds |= {o["type"] for o in s["objects"]}
-    incs = sorted(HEADERS[k] for k in kinds)
-    if s["spi_targets"]:
-        incs.append("emb/drv_spi.h")
-    if s["i2c_targets"]:
-        incs.append("emb/drv_i2c.h")
-    out += "".join(f"#include <{h}>\n" for h in sorted(set(incs)))
+    # the API, and the storage types the static definition macros take (<emb/storage.h>)
+    out += "#include <emb/emb.h>\n"
     if s["includes"]:
         out += "\n" + "".join(f'#include "{h}"\n' for h in s["includes"])
     out += "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n"
@@ -113,8 +104,8 @@ def system_json(r):
     s = r["system"]
     doc = {"generator": {"name": "emb-hwgen", "version": VERSION}, "schema_version": SCHEMA_VERSION,
            "inputs": r["inputs"], "board": r["board"]["name"], "profile": r["profile"]}
-    doc.update({k: s[k] for k in ("name", "threads", "objects", "devices", "spi_targets", "i2c_targets", "watchdog",
-                                  "config", "includes", "conf")})
+    doc.update({k: s[k] for k in ("name", "boards", "threads", "objects", "devices", "spi_targets", "i2c_targets",
+                                  "watchdog", "config", "includes", "conf")})
     return json.dumps(doc, indent=2, sort_keys=True) + "\n"
 
 

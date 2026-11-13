@@ -45,6 +45,23 @@ class Graph(unittest.TestCase):
         self.assertTrue(g["c"]["fp"])
         self.assertEqual(g["d"]["calls"], {"a"})  # a branch inside d is not a call
 
+    def test_llvm_objdump_targets(self):
+        """llvm-objdump writes a target as 0x200 <b>, with its immediate after: the same edges."""
+        funcs = {
+            "a": fn(0x100, ("push", "{lr}"), ("bl", "0x200 <b> @ imm = #0xfc"), ("blx", "r3")),
+            "b": fn(0x200, ("push", "{r4, lr}"), ("b.w", "0x300 <c> @ imm = #0xfc")),
+            "c": fn(0x300, ("bx", "lr")),
+        }
+        g = sb.call_graph(funcs)
+        self.assertEqual((g["a"]["calls"], g["b"]["calls"]), ({"b"}, {"c"}))
+        self.assertEqual(sb.prologue_frame(fn(0, ("sub", "sp, #0x18"))["insns"]), 24)
+
+    def test_a_disassembly_not_read_is_refused(self):
+        g = sb.call_graph({"a": fn(0x100, ("bl", "200 b")), "b": fn(0x200, ("bx", "lr"))})  # no <name>
+        with self.assertRaises(ValueError):
+            sb.check_read(g, "some-objdump")
+        sb.check_read(sb.call_graph(self.funcs()), "arm-none-eabi-objdump")  # a graph with calls passes
+
     def test_depth_resolves_indirect(self):
         funcs = self.funcs()
         g = sb.call_graph(funcs)
@@ -127,6 +144,18 @@ Linker script and memory map
             p.unlink()
         self.assertEqual([(r["name"], r["length"]) for r in regs], [("FLASH", 0x80000), ("RAM", 0x20000)])
 
+
+
+class System(unittest.TestCase):
+    def test_system_threads_over_the_roots(self):
+        """A125: a system description's threads, with their entries and stacks, replace the roots
+        file's of the same name; a thread defined in C stays."""
+        roots = {"control": {"entry": "control", "size": 512}, "c_only": {"entry": "worker", "size": 768}}
+        system = {"threads": [{"name": "control", "entry": "control", "stack": 1024},
+                              {"name": "telemetry", "entry": "telemetry", "stack": 2048}]}
+        self.assertEqual(sb.system_threads(roots, system),
+                         {"control": {"entry": "control", "size": 1024}, "c_only": {"entry": "worker", "size": 768},
+                          "telemetry": {"entry": "telemetry", "size": 2048}})
 
 if __name__ == "__main__":
     unittest.main()

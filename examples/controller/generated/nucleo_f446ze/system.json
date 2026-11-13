@@ -1,0 +1,119 @@
+{
+  "board": "nucleo_f446ze",
+  "boards": [
+    "nucleo_f446re",
+    "nucleo_f446ze"
+  ],
+  "conf": [
+    "controller.conf"
+  ],
+  "config": {
+    "CONFIG_EMB_ARCH_STACK_MIN": 256,
+    "CONFIG_EMB_PRIORITY_COUNT": 32,
+    "CONFIG_EMB_PROFILE": "base"
+  },
+  "devices": {},
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "i2c_targets": [],
+  "includes": [
+    "controller.h"
+  ],
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+    },
+    {
+      "path": "boards/st/nucleo_f446ze/board.yaml",
+      "sha256": "d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "2027e4379e2a7f6593162f47be353f46700c31db9561aec85c5104e28f5f15e4"
+    },
+    {
+      "path": "examples/controller/controller.conf",
+      "sha256": "414484d4e194b1af84841326878ce4ed19f98a53fdd5664d0e71eb3f0a14ec8e"
+    },
+    {
+      "path": "examples/controller/system.yaml",
+      "sha256": "c6a5f5a0f6130a20762458ceedaf90dcc16620bb2ed783279b5401249b3bcfd1"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f4.yaml",
+      "sha256": "5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446.yaml",
+      "sha256": "9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446ze.yaml",
+      "sha256": "98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"
+    }
+  ],
+  "name": "controller",
+  "objects": [
+    {
+      "capacity": 8,
+      "doc": "ADC1's handler to the control thread",
+      "item": "sample_t",
+      "item_size": null,
+      "name": "samples",
+      "type": "msgq"
+    },
+    {
+      "capacity": 64,
+      "doc": "USART2's handler to the command thread",
+      "item": null,
+      "item_size": 1,
+      "name": "rx_bytes",
+      "type": "msgq"
+    },
+    {
+      "doc": "the replies and the telemetry share USART2",
+      "name": "console",
+      "protocol": "inherit",
+      "type": "mutex"
+    }
+  ],
+  "profile": "base",
+  "schema_version": 0,
+  "spi_targets": [],
+  "threads": [
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "filters each sample, drives the heater; the highest",
+      "entry": "control",
+      "flags": [],
+      "name": "control_thread",
+      "priority": 6,
+      "stack": 1024
+    },
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "the console's commands",
+      "entry": "command",
+      "flags": [],
+      "name": "command_thread",
+      "priority": 4,
+      "stack": 1024
+    },
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "a TLM line a second; feeds the watchdog",
+      "entry": "telemetry",
+      "flags": [],
+      "name": "telemetry_thread",
+      "priority": 2,
+      "stack": 1024
+    }
+  ],
+  "watchdog": null
+}

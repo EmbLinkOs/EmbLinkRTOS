@@ -105,6 +105,7 @@ class System:
             raise HwError(self.errors)
         r["system"] = {
             "name": s["name"],
+            "boards": [Path(b).name for b in boards(self.model.leaf.path, self.root)],  # in order: the first is the build's default
             "path": load.rel(system_path, self.root),
             "dir": load.rel(self.dir, self.root),
             "board_dir": load.rel(board_dir, self.root),

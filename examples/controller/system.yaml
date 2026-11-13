@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+# The reference controller's system (SPEC-014 §5, A125): its threads and objects, which
+# hw/gen/emb-hwgen.py generate --system writes into generated/<board>/system.c.
+schema_version: 0
+kind: system
+name: controller
+boards: [st/nucleo_f446re, st/nucleo_f446ze]
+conf: [controller.conf]
+includes: [controller.h]
+threads:
+  - { name: control_thread, entry: control, priority: 6, stack: 1K, doc: "filters each sample, drives the heater; the highest" }
+  - { name: command_thread, entry: command, priority: 4, stack: 1K, doc: "the console's commands" }
+  - { name: telemetry_thread, entry: telemetry, priority: 2, stack: 1K, doc: "a TLM line a second; feeds the watchdog" }
+objects:
+  - { name: samples, type: msgq, item: sample_t, capacity: 8, doc: "ADC1's handler to the control thread" }
+  - { name: rx_bytes, type: msgq, item_size: 1, capacity: 64, doc: "USART2's handler to the command thread" }
+  - { name: console, type: mutex, protocol: inherit, doc: "the replies and the telemetry share USART2" }

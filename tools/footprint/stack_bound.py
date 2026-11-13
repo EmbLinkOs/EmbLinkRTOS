@@ -5,7 +5,11 @@
 
     stack_bound.py --elf build/controller/controller.elf --build build/controller \\
                    --roots examples/controller/stack-roots.json [--objdump arm-none-eabi-objdump] \\
-                   [--json out.json]
+                   [--system examples/controller/generated/nucleo_f446re/system.json] [--json out.json]
+
+With --system, the threads a system description declares (SPEC-014 §5, A125) are taken from
+its generated system.json, each with its entry and its stack: the roots file then lists only
+the interrupt levels, the indirect calls and any thread defined in C.
 
 The call graph comes from the linked image's disassembly: every bl, every branch to another
 function's start (a tail call), and every blx through a register, which the roots file
@@ -35,7 +39,8 @@ from pathlib import Path
 
 FUNC = re.compile(r"^([0-9a-f]+) <([^>]+)>:$")
 INSN = re.compile(r"^\s*([0-9a-f]+):\s+(?:[0-9a-f]{4}\s?){1,2}\s+(\S+)\s*(.*)$")
-TARGET = re.compile(r"\b([0-9a-f]+) <([^>+]+)(\+0x[0-9a-f]+)?>")
+# a branch's target: GNU objdump writes 8006d90 <name>, llvm-objdump 0x8006d90 <name>
+TARGET = re.compile(r"\b(?:0x)?([0-9a-f]+) <([^>+]+)(\+0x[0-9a-f]+)?>")
 SU = re.compile(r"^(.*):(\d+):(\d+):(\S+)\s+(\d+)\s+(\S+)$")
 FP_OPS = re.compile(r"^v[a-z]")
 HW_FRAME, HW_FRAME_FP = 32, 104
@@ -159,6 +164,15 @@ def call_graph(funcs):
                 indirect.append(addr)
         graph[name] = {"calls": calls, "indirect": sorted(set(indirect)), "fp": fp}
     return graph
+
+
+def check_read(graph, objdump):
+    """An image whose functions call nothing is a disassembly this tool did not read: every
+    bound would be a lone frame, and pass. Refused, so that a check after the link (A125) fails
+    instead."""
+    if len(graph) > 1 and not any(g["calls"] for g in graph.values()):
+        raise ValueError(f"no call found in {len(graph)} functions of {objdump}'s disassembly: "
+                         "its format is not one this tool reads")
 
 
 CLONE = re.compile(r"\.(?:constprop|isra|part|cold|lto_priv)\.\d+")
@@ -288,6 +302,7 @@ def analyze(elf, build, roots, objdump, nm, addr2line=None):
     funcs = trim(disassemble(elf, objdump), symbol_sizes(elf, nm))
     su = read_su(build)
     graph = call_graph(funcs)
+    check_read(graph, objdump)
     frames, sources, problems = {}, {}, []
     for name, f in funcs.items():
         pro = prologue_frame(f["insns"])
@@ -355,6 +370,14 @@ def text(rep):
     return "\n".join(lines)
 
 
+def system_threads(threads, system):
+    """The roots file's threads with the system description's over them, by name (A125)."""
+    out = dict(threads)
+    for t in system.get("threads", []):
+        out[t["name"]] = {"entry": t["entry"], "size": t["stack"]}
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--elf", required=True)
@@ -364,9 +387,13 @@ def main(argv=None):
     ap.add_argument("--nm", default="arm-none-eabi-nm")
     ap.add_argument("--addr2line", help="default: the objdump's addr2line")
     ap.add_argument("--json", help="write the report here")
+    ap.add_argument("--system", help="a system description's generated system.json: its threads")
     args = ap.parse_args(argv)
     try:
         roots = json.loads(Path(args.roots).read_text(encoding="utf-8"))
+        if args.system:
+            roots["threads"] = system_threads(roots.get("threads", {}),
+                                              json.loads(Path(args.system).read_text(encoding="utf-8")))
         rep = analyze(args.elf, args.build, roots, args.objdump, args.nm, args.addr2line)
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as e:
         print(f"stack_bound: {e}", file=sys.stderr)
