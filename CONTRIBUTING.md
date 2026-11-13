@@ -16,7 +16,7 @@ Good ways to contribute now, from the smallest:
 - **Drivers and ports**, after an issue agrees the approach: the next milestone's drivers are planned for the STM32F4 and RP2350.
 - **Design changes**, written as an Architecture Decision Record (the format is in `docs/architecture/06-decision-records.md`), or answers to `docs/architecture/08-open-questions.md`.
 
-Issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue) are scoped for a first contribution. Ask on an issue before starting a large change.
+Issues labelled [`good first issue`](https://github.com/EmbLinkOs/EmbLinkRTOS/labels/good%20first%20issue) are scoped for a first contribution. Ask on an issue before starting a large change. Everyone whose pull request has merged is listed in [CONTRIBUTORS.md](CONTRIBUTORS.md); add your row there in your first pull request.
 
 Every source file follows [the coding standard](docs/CODING-STANDARD.md) and the specification it implements. A change to kernel semantics updates the specification, the reference model (`tools/model/`) and the conformance suite in the same pull request.
 
@@ -32,14 +32,42 @@ Signed-off-by: Your Name <your.email@example.com>
 
 Add it with `git commit -s`. The Repository policy check requires a matching author trailer on every non-merge commit in the change. GitHub-generated merge commits are excluded; authored conflict-resolution changes belong in a separate signed-off commit. DCO certification is distinct from cryptographic signing.
 
-Every source file starts with an SPDX header:
+Every C, assembly and linker-script source starts with this header (CODING-STANDARD CS-11.1):
 
 ```c
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 <your name or organization> */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    my_driver.c
+ * @brief   What the file is, in one sentence, with the specification sections it follows.
+ *
+ * @details
+ * The rest of what it implements and why, as long as it needs.
+ *
+ * @see     my_driver.h
+ * @author  Your Name
+ * @date    2026-11-13 (created)
+ */
 ```
 
-Hardware descriptions, scripts, and other files use the same two lines in their comment syntax.
+`@author` is whoever created the file and `@date` the day it was created; neither changes later. `@see` names the file's companion header or source, where it has one. You can write the first three comments and a plain description comment, and let `python3 tools/dev/file_headers.py --write my_driver.c` turn it into the rest, with your name and today's date. CI runs `tools/dev/file_headers.py --check`.
+
+Files commented with `#` (Python, CMake, Kconfig, YAML descriptions, shell scripts) start with the same lines in `#` comments, without the Doxygen block; a Python module's docstring says what it is:
+
+```python
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 <your name or organization>
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+```
+
+`tools/dev/file_headers.py --write` adds the notice to such a file too.
 
 ## Process
 
@@ -51,7 +79,7 @@ Hardware descriptions, scripts, and other files use the same two lines in their 
 
 Use the bug/feature issue forms and PR checklist. The required GitHub check names are **CI merge gate**, **Documentation build**, and **Repository policy**; the first aggregates the full existing compiler/port matrix plus lint/model/configuration jobs. See [Repository workflow](docs/engineering/repository-workflow.md) for DCO checks, limitations and activation of the `main` ruleset. A policy file alone does not enable branch protection.
 
-For editor support, run `cmake --preset native-gcc` once: every configure writes `compile_commands.json`, and the repository's `.clangd` points clangd at that build so it sees the include paths, the generated headers and the `.clang-tidy` checks. Format with clang-format 18, the version the lint job runs; later versions lay out some existing files differently.
+For editor support, configure the presets you work with (`cmake --preset native-gcc`, and for example `cm4-nucleo-hil` or `cm33-pico2w` for board and driver code), then run `python3 tools/dev/compile_db.py`. It merges every build's `compile_commands.json` into `build/compile_commands.json`, which the repository's `.clangd` names, so clangd sees each file's include paths, the generated headers and the `.clang-tidy` checks. Run it again after configuring another preset. Format with clang-format 18, the version the lint job runs; later versions lay out some existing files differently.
 
 A user-visible change adds a file to [`changes/`](changes/README.md), not an edit of `CHANGELOG.md`, so pull requests do not conflict on the changelog. Maintainers merge through a merge queue, so a pull request never needs `main` merged in just to be up to date. Use the [release checklist](docs/engineering/releases.md) for versioning, artifacts, evidence, signing and support; no supported release is implied by the current development version.
 

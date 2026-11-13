@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Board description (SPEC-014 §4): MPS2 AN505 (Cortex-M33) as QEMU models it (machine mps2-an505), the
 # emulated Cortex-M reference. emb-hwgen turns it into generated/.
 schema_version: 0
@@ -15,8 +19,13 @@ clocks:
   cpu_hz: 20MHz
   source: sysclk
 console: { device: uart0, baud: 115200 }
+# the board's devices (SPEC-016): the console UART, initialized with the EARLY devices
+devices:
+  - { name: uart0, baud: 115200 }
+  - { name: spi0, doc: "a PL022 QEMU models; its tests use its internal loopback" }
 test_irqs: [120, 121]
 simulation:
+  loopbacks: [ { device: spi0, internal: true } ] # QEMU's PL022 loops back inside (LBM)
   qemu: [-M, mps2-an505, -icount, "shift=5,sleep=off", -semihosting-config, "enable=on,target=native", -kernel] # ~31 MIPS, deterministic time
   resets_in: [qemu] # SYSRESETREQ restarts the image, RAM kept (test_crash_reset)
 defaults: { CONFIG_EMB_PROFILE: base, CONFIG_EMB_TICK_NS: 1000000 }

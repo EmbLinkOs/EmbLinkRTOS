@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Build manuals, extracted C API and a design-requirement catalog without a kernel build."""
 import argparse
 import csv
@@ -69,7 +73,8 @@ def prepare_headers(output):
     folder = output / "doxygen-input"
     folder.mkdir(exist_ok=True)
     contracts = {"ctx", "blocks", "time", "owns", "config", "req", "since", "stable", "isr-note"}
-    standard = {"param", "return", "returns", "brief", "note", "warning", "deprecated", "see", "ref"}
+    standard = {"param", "return", "returns", "brief", "note", "warning", "deprecated", "see", "ref",
+                "file", "details", "author", "date"}  # the latter four: the file header (CS-11.1)
     def comment(match):
         text = match[0]
         text = re.sub(r"@(\w+):", lambda m: f"@param {m[1]}", text)
@@ -182,6 +187,8 @@ audit
     metadata = {}
     for header in sorted((ROOT / "include/emb").glob("*.h")):
         for block in re.findall(r"/\*\*(.*?)\*/", header.read_text(), re.S):
+            if re.search(r"^\s*\*\s*@file\b", block, re.M):
+                continue  # the file header: it may name functions, but documents none
             clean = re.sub(r"^\s*\* ?", "", block, flags=re.M)
             name = re.search(r"\b(emb_[A-Za-z0-9_]+)\(\)", clean)
             if name:

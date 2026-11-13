@@ -1,0 +1,13 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_crash_reset.elf sha256 28c8d83eabfdbc45c1e8bca87e2191c56ff6d3ecedc295de4e3b75857e644867
+EVIDENCE v1 suite=test_crash_reset config=0912f8545cffda7d profile=base board=nucleo_f446re checked=1
+TEST crash_record_survives_reset
+crash_record_survives_reset: first boot, faulting
+EVIDENCE v1 suite=test_crash_reset config=0912f8545cffda7d profile=base board=nucleo_f446re checked=1
+TEST crash_record_survives_reset
+EMB_CRASH 454d424301005c00e052ae0734247d86b44dd5e0a72bc572de00f30f302e322e300000000f00000000000000020000000b00ed5e000000000000000000000000ed0300080000000000000000000000000000000000000000df5d1870
+  -> ok
+  req OBS-016 KRN-IRQ-030 ARCH-AVR-008
+CASE crash_record_survives_reset outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=164
+1 tests, 0 failed, 0 skipped, 40 ticks
+EMB_TEST_END

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Footprint report from a GNU ld map file (TEST-011, R-003 T1 and T2, SPEC-012 §13).
 
 Reads the input-section lines of a map file, attributes each to the object file that

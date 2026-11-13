@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # cppcheck checks turned off for the whole tree (CODING-STANDARD §12, CS-13.3), read by
 # tools/analysis/cppcheck.py. Each line is a check id, after a comment that gives its reason.
 # A finding at one site is fixed or recorded there (`cppcheck-suppress <id>` with a MISRA Dev

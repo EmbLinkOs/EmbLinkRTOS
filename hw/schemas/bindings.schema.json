@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/bindings.schema.json",
+  "title": "Driver bindings, schema v0 (SPEC-016 §8)",
+  "description": "drivers/bindings.yaml: for each compatible, its driver class, the sources that implement it and how its configuration structure is filled from the board's description.",
+  "type": "object",
+  "required": ["schema_version", "kind", "bindings"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 0 },
+    "kind": { "const": "bindings" },
+    "doc": { "type": "string" },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/binding" }
+    }
+  },
+  "$defs": {
+    "c_ident": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+    "binding": {
+      "type": "object",
+      "required": ["class", "level", "sources", "header", "api", "config"],
+      "additionalProperties": false,
+      "properties": {
+        "class": { "enum": ["uart", "spi", "i2c", "dma", "watchdog", "flash", "rtc", "entropy", "clock", "gpio"] },
+        "level": { "enum": ["early", "kernel"] },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]*\\.c$" }
+        },
+        "include": { "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]*$" },
+        "header": { "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9_./-]*\\.h$" },
+        "api": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$" },
+        "config": { "$ref": "#/$defs/c_ident" },
+        "data": { "$ref": "#/$defs/c_ident" },
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" }
+        },
+        "buffers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["size"],
+            "additionalProperties": false,
+            "properties": {
+              "size": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" },
+              "default": { "type": "integer", "minimum": 1, "maximum": 65535 }
+            }
+          }
+        },
+        "doc": { "type": "string" }
+      }
+    }
+  }
+}

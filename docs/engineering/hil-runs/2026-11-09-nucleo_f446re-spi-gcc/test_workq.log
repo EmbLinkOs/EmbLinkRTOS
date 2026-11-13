@@ -1,0 +1,71 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_workq.elf sha256 5255ed95f0c6d9970e4e2feeb34301659b8cc231ddc644c7726ff98f0cd80fb4
+EVIDENCE v1 suite=test_workq config=c16e1c6b0306ac27 profile=base board=nucleo_f446re checked=1
+TEST workq_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE workq_define_constructs_in_init_table outcome=passed asserts=2 skips=0
+TEST dwork_cancel_sync_waits_for_a_running_handler
+  -> ok
+  req KRN-WQ-007 KRN-WQ-006
+CASE dwork_cancel_sync_waits_for_a_running_handler outcome=passed asserts=10 skips=0
+TEST dwork_cancel_reports_pending_for_a_delay_and_a_queued_itemŠ  fault checks that reset the board: 1
+  -> ok
+  req KRN-WQ-007 KRN-WQ-004
+CASE dwork_cancel_reports_pending_for_a_delay_and_a_queued_item outcome=passed asserts=19 skips=0
+TEST dwork_rescheduled_during_its_expiry_keeps_the_new_delay
+  -> ok
+  req KRN-WQ-007 KRN-TIM-024
+CASE dwork_rescheduled_during_its_expiry_keeps_the_new_delay outcome=passed asserts=9 skips=0
+TEST dwork_reschedule_replaces_the_delay
+  -> ok
+  req KRN-WQ-007
+CASE dwork_reschedule_replaces_the_delay outcome=passed asserts=7 skips=0
+TEST dwork_runs_after_its_delay_and_schedule_is_idempotent
+  -> ok
+  req KRN-WQ-003 KRN-WQ-007
+CASE dwork_runs_after_its_delay_and_schedule_is_idempotent outcome=passed asserts=7 skips=0
+TEST workq_system_queue_runs_items
+  -> ok
+  req KRN-WQ-008
+CASE workq_system_queue_runs_items outcome=passed asserts=3 skips=0
+TEST workq_storage_reuse_requires_destroyÊ  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE workq_storage_reuse_requires_destroy outcome=passed asserts=3 skips=0
+TEST workq_destroy_refuses_a_busy_queue
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-OBJ-001 KRN-WQ-010 API-013
+CASE workq_destroy_refuses_a_busy_queue outcome=passed asserts=8 skips=0
+TEST workq_thread_is_a_kernel_thread
+  fault checks that reset the board: 2
+  -> ok
+  req KRN-WQ-009 KRN-WQ-010
+CASE workq_thread_is_a_kernel_thread outcome=passed asserts=8 skips=0
+TEST workq_submit_from_isr_runs_at_exit
+  -> ok
+  req KRN-WQ-001 KRN-IRQ-010
+CASE workq_submit_from_isr_runs_at_exit outcome=passed asserts=5 skips=0
+TEST workq_flush_waits_for_items_queued_before_it
+  -> ok
+  req KRN-WQ-006 KRN-WAIT-012
+CASE workq_flush_waits_for_items_queued_before_it outcome=passed asserts=9 skips=0
+TEST workq_cancel_reports_pending_running_and_idle
+  -> ok
+  req KRN-WQ-004 KRN-WQ-006
+CASE workq_cancel_reports_pending_running_and_idle outcome=passed asserts=17 skips=0
+TEST workq_item_belongs_to_one_queue_at_a_time
+  -> ok
+  req KRN-WQ-005
+CASE workq_item_belongs_to_one_queue_at_a_time outcome=passed asserts=12 skips=0
+TEST workq_resubmit_while_running_runs_again
+  -> ok
+  req KRN-WQ-005
+CASE workq_resubmit_while_running_runs_again outcome=passed asserts=5 skips=0
+TEST workq_runs_items_in_fifo_order_on_its_thread
+  -> ok
+  req KRN-WQ-001 KRN-WQ-002 KRN-WQ-005 KRN-WQ-009
+CASE workq_runs_items_in_fifo_order_on_its_thread outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=252
+16 tests, 0 failed, 0 skipped, 111 ticks
+EMB_TEST_END

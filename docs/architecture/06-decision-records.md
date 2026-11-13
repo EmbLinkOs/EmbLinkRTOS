@@ -48,7 +48,7 @@ Each record: context, decision, alternatives, consequences, status. **Proposed**
 
 **Alternatives.** Adopt DeviceTree source directly (largest reuse of existing board files and tooling, but notoriously hard to author, poor error messages, and a large dependency); hand-written C board files (does not scale, v0.1 already rejects this).
 
-**Consequences.** Full control of schema and error quality; EmbStudio can edit the model directly; DTS files from other ecosystems remain usable through import; the schema must be versioned from 1.0.
+**Consequences.** Full control of schema and error quality; EmbLink Studio can edit the model directly; DTS files from other ecosystems remain usable through import; the schema must be versioned from 1.0.
 
 **Status.** Accepted 2026-10-06.
 

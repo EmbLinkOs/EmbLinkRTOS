@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 #
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+#
 # Build the ESP32 bring-up probe with EmbCC (docs/ports/xtensa.md):
 #   tools/esp/bringup/build.sh [OUTDIR]          (default build/esp32-bringup)
 # then flash OUTDIR/esp32_hello.bin at 0x1000, where the ESP32's ROM boots from:

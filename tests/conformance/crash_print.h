@@ -1,7 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The crash record as one console line, "EMB_CRASH <hex>", which tools/crashdec reads from
- * a run's log (SPEC-015 §4). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    crash_print.h
+ * @brief   The crash record as one console line, "EMB_CRASH <hex>", which tools/crashdec reads from
+ *          a run's log (SPEC-015 §4).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
+ */
 #ifndef CRASH_PRINT_H
 #define CRASH_PRINT_H
 

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Thread awareness under a real debugger: OBS-008's consumer test on an emulated port (A107).
 
     gdb_check.py --qemu qemu-system-arm --qemu-args "-M mps2-an386 -kernel" --gdb gdb-multiarch \\
@@ -11,7 +15,8 @@ gdbstub, loads tools/descriptor/emb_gdb.py and stops at debug_descriptor_checkpo
 the test has put its threads in known states. Through the descriptor alone it then lists the
 threads and takes the backtrace of each switched-out one, which unwinds only when the frame
 the port described is read right: the sleeper must show sleeper(), the suspended thread
-parked(), the mutex waiter waiter(). Exit status 0 when every check holds, 1 when one fails,
+parked(), the mutex waiter waiter(). It lists the board's devices too, each of which must
+be READY by then (SPEC-016 §9). Exit status 0 when every check holds, 1 when one fails,
 2 when the run itself could not be made.
 """
 import argparse
@@ -25,6 +30,8 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import descriptor as dd  # noqa: E402
 
 GDB_SCRIPT = r'''
 import gdb, json, sys
@@ -40,6 +47,8 @@ out = {"info": gdb.execute("emb info", to_string=True),
        "table": gdb.execute("emb threads", to_string=True)}
 line = gdb.execute("emb threads --json", to_string=True)
 out["threads"] = json.loads(line.split("EMB_THREADS ", 1)[1])
+line = gdb.execute("emb devices --json", to_string=True)
+out["devices"] = json.loads(line.split("EMB_DEVICES ", 1)[1])
 out["bt"] = {}
 for t in out["threads"]:
     try:
@@ -98,6 +107,10 @@ def check(result):
             problems.append(f"the running thread owns {owner['owned']}, expected dd_lock")
         if owner["effective_priority"] != 5:
             problems.append(f"the owner's effective priority is {owner['effective_priority']}, expected 5")
+    # SPEC-016 §9: the board's devices, which the kernel initialized before the first thread ran
+    for dev in result.get("devices", []):
+        if dev["lifecycle"] != "ready":
+            problems.append(f"device {dev['name']}: {dev['lifecycle']} (status {dev['last_status']}), expected ready")
     if not result.get("finished"):
         problems.append("the target did not run on after the backtraces")
     return problems
@@ -142,6 +155,8 @@ def main(argv=None):
         if t["state"] == "blocked":
             print(f"--- emb bt {t['index']} ({t['name']})")
             print(result["bt"][str(t["index"])].rstrip())
+    if result.get("devices"):
+        print(dd.device_table(result["devices"]))
     problems = check(result)
     for p in problems:
         print(f"FAIL {p}")

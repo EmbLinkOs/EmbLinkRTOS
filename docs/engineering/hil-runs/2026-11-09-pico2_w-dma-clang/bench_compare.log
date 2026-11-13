@@ -1,0 +1,7 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image bench_compare.elf sha256 153122608f7cf782b9de031f5e6c603113edd753127e48341088dc3cc06f6723
+bench_compare: EmbLinkRTOS 0.2.0
+BENCH v1 name=notify_handover units=11996818 ops=20000 per_op_x100=59984 unit_hz=150000000 os=emblink
+BENCH v1 name=sem_handover units=11166707 ops=20000 per_op_x100=55833 unit_hz=150000000 os=emblink
+BENCH v1 name=sem_give_take units=1643914 ops=10000 per_op_x100=16439 unit_hz=150000000 os=emblink
+BENCH v1 name=isr_wake units=6059344 ops=5000 per_op_x100=121186 unit_hz=150000000 os=emblink
+BENCH_END

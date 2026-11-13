@@ -1,0 +1,5 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image bench_switch.elf sha256 a9771db2de61619d580e2bc69249b7a655aac8bea350216835ccd56bc1420770
+bench notify round trip (2 switches): total 11941941 cycle-units over 20000 ops; per op x100 = 59709
+BENCH v1 name=notify_handover units=11941941 ops=20000 per_op_x100=59709 unit_hz=150000000 checked=1
+meta: board pico2_w, compiler clang, profile base, checked 1, cycle unit hz 150000000
+BENCH_END

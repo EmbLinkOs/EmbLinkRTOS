@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The clock tree (SPEC-014 §6 soc_clocks): PLL factors, bus dividers, flash wait states and
 the regulator scale that reach the board's requested CPU frequency, checked against the
 SoC's limits.
@@ -24,7 +28,8 @@ def _in(v, rng):
 
 
 def _mhz(hz):
-    return f"{Fraction(hz) / 10**6:g} MHz" if Fraction(hz).denominator == 1 else f"{float(hz) / 1e6:.3f} MHz"
+    # float() first: a Fraction takes a format spec only from Python 3.12, and 3.10 is the floor
+    return f"{float(Fraction(hz) / 10**6):g} MHz" if Fraction(hz).denominator == 1 else f"{float(hz) / 1e6:.3f} MHz"
 
 
 def solve(soc, board, fail):

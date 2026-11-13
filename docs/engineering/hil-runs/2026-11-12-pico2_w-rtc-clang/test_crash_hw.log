@@ -1,0 +1,13 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_crash_hw.elf sha256 43ae770064904b25e23d8000941822e3fedfae717500f74ed2897360e4612ed8
+EVIDENCE v1 suite=test_crash_hw config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST crash_record_keeps_a_hardware_fault
+crash_record_keeps_a_hardware_fault: first boot, trapping
+EVIDENCE v1 suite=test_crash_hw config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST crash_record_keeps_a_hardware_fault
+EMB_CRASH 454d424301008c005af578a3cacb99c18100ab31ae8fd6edc3e859af302e322e300000000d00000000000000020000000a000600000000000000000000000100420300104303001090240020000000000000000004080000000001000000000034ed00e038ed00e045030010900b0020fb8001000000007ce0140020430300104203001000000061e8a23966
+  -> ok
+  req OBS-016 KRN-IRQ-030
+CASE crash_record_keeps_a_hardware_fault outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=176
+1 tests, 0 failed, 0 skipped, 45 ticks
+EMB_TEST_END

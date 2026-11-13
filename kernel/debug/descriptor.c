@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The debug descriptor (SPEC-015 §5, OBS-008, A107): the kernel's private layout, written
- * out as addresses and offsets for tools/descriptor and debugger plugins. Nothing in the
- * kernel reads it; emb_kernel_init() refers to it so that the linker keeps it.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    descriptor.c
+ * @brief   The debug descriptor (SPEC-015 §5, OBS-008, A107).
+ *
+ * @details
+ * The kernel's private layout, written out as addresses and offsets for tools/descriptor and
+ * debugger plugins. Nothing in the kernel reads it; emb_kernel_init() refers to it so that the
+ * linker keeps it.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #include <emb/debug.h>
 #include <emb/version.h>
@@ -16,6 +28,9 @@
 #endif
 #if CONFIG_EMB_CRASH_RECORD
 #include <embk/crash.h>
+#endif
+#if CONFIG_EMB_DEVICE
+#include <emb/device.h>
 #endif
 
 #include <emb_arch_debug.h>
@@ -203,5 +218,27 @@ EMB_USED const emb_debug_descriptor_t emb_debug_descriptor = {
             [EMB_DEBUG_FRAME_SIZE] = EMB_ARCH_DEBUG_FRAME_SIZE,
             [EMB_DEBUG_FRAME_TABLE] = FRAME_TABLE,
             [EMB_DEBUG_FRAME_TABLE_COUNT] = FRAME_TABLE_COUNT,
+
+#if CONFIG_EMB_DEVICE
+            [EMB_DEBUG_DEVICE_TABLE] = ADDR(&emb_board_device_table),
+            [EMB_DEBUG_DT_DEVICES] = OFF(emb_device_table_t, devices),
+            [EMB_DEBUG_DT_COUNT] = OFF(emb_device_table_t, count),
+            [EMB_DEBUG_DT_EARLY] = OFF(emb_device_table_t, early),
+            [EMB_DEBUG_D_NAME] = OFF(emb_device_t, name),
+            [EMB_DEBUG_D_STATE] = OFF(emb_device_t, state),
+            [EMB_DEBUG_D_CLASS] = OFF(emb_device_t, class_id),
+            [EMB_DEBUG_DS_LIFECYCLE] = OFF(emb_device_state_t, lifecycle),
+            [EMB_DEBUG_DS_LAST_STATUS] = OFF(emb_device_state_t, last_status),
+#else
+            [EMB_DEBUG_DEVICE_TABLE] = ABSENT,
+            [EMB_DEBUG_DT_DEVICES] = ABSENT,
+            [EMB_DEBUG_DT_COUNT] = ABSENT,
+            [EMB_DEBUG_DT_EARLY] = ABSENT,
+            [EMB_DEBUG_D_NAME] = ABSENT,
+            [EMB_DEBUG_D_STATE] = ABSENT,
+            [EMB_DEBUG_D_CLASS] = ABSENT,
+            [EMB_DEBUG_DS_LIFECYCLE] = ABSENT,
+            [EMB_DEBUG_DS_LAST_STATUS] = ABSENT,
+#endif
         },
 };

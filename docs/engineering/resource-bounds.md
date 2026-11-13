@@ -22,6 +22,19 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **init_table**: entries of the initialization table | the EMB_*_DEFINE objects linked into the image | application, fixed at link time | application | no | prekernel only | KRN-OBJ-009 |
 | **callbacks**: application callbacks the kernel calls (fault hook, trace sink, foreach visitor) | not bounded by the kernel | application | application | yes | the fault hook and the trace sink can run with interrupts masked; the foreach visitor runs under the scheduler lock | API-017; SPEC-015 |
 | **port_action**: the port's fault action (halt or reset) | does not return | port | structural | yes | CONFIG_EMB_FAULT_ACTION | 03 §10; SPEC-011 §14 |
+| **device_deps**: dependencies of one device | at most 255: emb_device_t.dep_count is 8 bits, and the generator emits them from the description | configuration, fixed at generation | configuration | no | base with CONFIG_EMB_DEVICE (off on tiny and AVR) | SPEC-016 §4; DRV-001; hw/gen/test_hwgen.py Devices |
+| **devices**: devices initialized from one list | the count passed; the board's table holds at most 65,535 (a 16-bit count) | configuration: the board's devices, fixed at generation | configuration | no | base with CONFIG_EMB_DEVICE | SPEC-016 §4, §8; DRV-003 |
+| **device_queue**: requests queued on one device | not limited by the kernel: the requests callers have submitted and not yet seen complete | application | application | yes | a singly linked FIFO per device; cancel walks it in the device's critical section | SPEC-016 §5, §6; DRV-006 |
+| **drivers**: a driver's operations (init, start, stop, suspend, resume) and a request's completion target | not bounded by the kernel: each driver's own, stated with its class | the driver and the application | application | no | called outside the device's critical section; completion delivery too | SPEC-016 §5; SPEC-017 |
+| **uart_bytes**: bytes of one UART request, or of a polled call | the caller's: the length it passes; a read also stops at the ring's bytes when it starts | application | application | yes | base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section | SPEC-017 §4; test_uart |
+| **spi_frames**: frames of one SPI transfer | the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt | application | application | no | base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section | SPEC-017 §5; test_spi, test_spi_loop |
+| **i2c_bytes**: bytes and segments of one I2C transaction or listen | the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size | application | application | no | base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time | SPEC-017 §6; test_i2c, test_i2c_loop |
+| **dma_regions**: the board's DMA regions a job's memory is checked against, and a channel's stop | the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count | the board's description | configuration | yes | base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section | SPEC-017 §7; test_dma, test_spi_loop |
+| **wdog_parties**: the parties the software watchdog watches | the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one | application | application | yes | base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section | FLT-004, A121; test_wdog, test_wdog_board |
+| **flash_bytes**: bytes of one flash read or program, and their read-back | the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces | application | application | yes | base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
+| **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
+| **rtc_oscillator**: an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second | 3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
+| **entropy_bytes**: bytes of one entropy read | the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read | application | application | no | base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore | SPEC-017 §11, A124; test_entropy, test_entropy_board |
 | **frame_bytes**: bytes of one frame: the payload encoded, or the frame decoded | the caller's: the payload it passes to emb_frame_encode(), and for a decoded frame the decoder's buffer, past which the frame is dropped | application: the buffers the caller gives | admission | no | every profile; the CRC is bitwise, eight steps a byte | SPEC-015 §7; OBS-019; test_frame |
 
 ## Public functions
@@ -34,6 +47,52 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_cond_signal()` | O(1) selection, plus profile-specific timeout removal and scheduling | timeouts, reschedule |
 | `emb_cond_wait()` | O(waiters + timeouts) enqueue, a full mutex release, then the cost of emb_mutex_lock() | waiters, timeouts, owned, pi_depth, reschedule |
 | `emb_cond_wait_until()` | as emb_cond_wait() | waiters, timeouts, owned, pi_depth, reschedule |
+| `emb_device_init()` | O(dependencies) plus the driver's init | device_deps, drivers |
+| `emb_device_init_list()` | O(count) plus the drivers' init | devices, device_deps, drivers |
+| `emb_device_resume()` | O(1) plus the driver's resume | drivers |
+| `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
+| `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
+| `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
+| `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
+| `emb_drv_entropy_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_entropy_read()` | O(entropy_bytes) of the source's own time, twice over, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_entropy_read_raw()` | O(entropy_bytes) of the source's own time, plus the lock's priority inheritance | entropy_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_flash_poll_erase()` | O(flash_sectors) of the flash's own time | flash_sectors, drivers |
+| `emb_drv_flash_poll_program()` | O(flash_bytes) of the flash's own time | flash_bytes, drivers |
+| `emb_drv_flash_poll_read()` | O(flash_bytes) | flash_bytes, drivers |
+| `emb_drv_flash_program()` | O(flash_bytes) of the flash's own time, plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_read()` | O(flash_bytes) plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_drv_flash_sector()` | O(flash_sectors) | flash_sectors |
+| `emb_drv_i2c_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
+| `emb_drv_i2c_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_i2c_listen()` | O(bytes) of the bus's time; bounded by the timeout and the driver's stop | i2c_bytes, drivers |
+| `emb_drv_i2c_recover()` | O(1) plus the mutex's priority inheritance: nine clocks and a stop, about 100 us | owned, waiters, pi_depth, timeouts |
+| `emb_drv_i2c_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |
+| `emb_drv_i2c_submit()` | O(segments) plus the driver's start when its lane was idle | i2c_bytes, drivers |
+| `emb_drv_i2c_transfer()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
+| `emb_drv_i2c_write_read()` | O(bytes) on the bus after any wait for it; bounded by the timeout and the driver's stop | i2c_bytes, drivers, owned, waiters, pi_depth, timeouts, reschedule |
+| `emb_drv_rtc_alarm_fired()` | O(1) plus the callback | callbacks |
+| `emb_drv_rtc_set()` | O(1); the first set after power-up waits for the oscillator, up to 3 s, and a set with a fraction of a second waits for the hardware to take it, up to 100 ms | rtc_oscillator, drivers |
+| `emb_drv_spi_acquire()` | O(1) plus the mutex's priority inheritance | owned, waiters, pi_depth, timeouts |
+| `emb_drv_spi_bus_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_drv_spi_release()` | O(1) plus the mutex's priority inheritance | owned, pi_depth, timeouts, reschedule |
+| `emb_drv_spi_submit()` | O(1) plus the driver's start when the controller was idle | drivers |
+| `emb_drv_spi_transfer()` | O(len) of the bus's time, after a wait for the bus; bounded by the timeout and the driver's stop | spi_frames, drivers, owned, waiters, pi_depth, timeouts, reschedule |
+| `emb_drv_submit()` | O(1) plus the driver's start when the queue was empty | drivers |
+| `emb_drv_uart_poll_read()` | O(len) | uart_bytes |
+| `emb_drv_uart_poll_write()` | O(len) of the line's time | uart_bytes |
+| `emb_drv_uart_read()` | O(len) of the line's time; bounded by the timeout and the driver's stop | uart_bytes, drivers |
+| `emb_drv_uart_rx_byte()` | O(1) plus the read's completion when this byte fills it | drivers |
+| `emb_drv_uart_rx_error()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_rx_idle()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_rx_start()` | O(min(len, the ring's bytes)) | uart_bytes, drivers |
+| `emb_drv_uart_rx_stop()` | O(1) plus the read's completion | drivers |
+| `emb_drv_uart_submit()` | O(1) plus the driver's start when its lane was idle | drivers |
+| `emb_drv_uart_write()` | O(len) of the line's time; bounded by the timeout and the driver's stop | uart_bytes, drivers |
+| `emb_drv_wait()` | O(1) plus the request's own time; bounded by the timeout and the driver's stop | drivers |
 | `emb_dwork_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_dwork_reschedule()` | O(armed timers) insertion | armed_timers, timeouts |
 | `emb_dwork_schedule()` | O(armed timers) insertion | armed_timers, timeouts |
@@ -45,6 +104,9 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_event_wait_until()` | O(1) check; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_fault()` | O(1) preparation plus trace/hook and the non-returning port action | callbacks, port_action |
 | `emb_fault_hook()` | the application's | callbacks |
+| `emb_flash_area_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_flash_area_program()` | O(flash_bytes) of the flash's own time, plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_flash_area_read()` | O(flash_bytes) plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_frame_decode_byte()` | O(len) at a delimiter, for the CRC; O(1) otherwise | frame_bytes |
 | `emb_frame_encode()` | O(len) | frame_bytes |
 | `emb_isr_stack_info()` | O(stack) scan | stack |
@@ -85,6 +147,8 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_timer_start_at()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_start_periodic()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_stop_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_wdog_start()` | O(1); O(active timers) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
+| `emb_wdog_unwatch()` | O(wdog_parties): the list walked to unlink it | wdog_parties |
 | `emb_work_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_work_submit()` | O(1), plus the queue thread's wake | timeouts, reschedule |
 | `emb_workq_destroy()` | O(1) plus the queue thread's exit | timeouts, reschedule |

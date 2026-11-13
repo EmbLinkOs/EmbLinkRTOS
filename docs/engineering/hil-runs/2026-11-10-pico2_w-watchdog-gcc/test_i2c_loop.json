@@ -1,0 +1,91 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 88,
+      "name": "i2c_loop_recovers_a_stuck_target",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "i2c_loop_listen_times_out",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "i2c_loop_fast_mode",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_target_drops_beyond_its_buffer",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "i2c_loop_nobody_answers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 32,
+      "name": "i2c_loop_register_reads_of_every_length",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "i2c_loop_write_to_the_target",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:27:44Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "31514269d16f5bb3",
+    "profile": "base",
+    "suite": "test_i2c_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/cm33-pico2w-hil/tests/conformance/test_i2c_loop.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_i2c_loop.uf2": "be1205136a5ed538a4134b3627faa8c6c09debb4b252c12a30f4a6056fbb97f7"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b3f1872e4d4031bbd2a637567d17d7eee5b1c8b",
+    "dirty": false
+  },
+  "image": "test_i2c_loop.elf",
+  "image_sha256": "a715e4437b941bbc9988f6c1b727eadf2dfb12ed4bff24db8ba3d81c38228a0c",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "RP2350A",
+  "started": "2026-11-09T23:27:42Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

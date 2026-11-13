@@ -1,0 +1,17 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_smoke.elf sha256 432350f301f889b8775732e963c70c015446b21b20fff7fc165f5b47f3df610c
+EVIDENCE v1 suite=test_smoke config=c16e1c6b0306ac27 profile=base board=nucleo_f446re checked=1
+TEST smoke_libc_errno_from_a_thread
+  -> ok
+  req PORT-015
+CASE smoke_libc_errno_from_a_thread outcome=passed asserts=3 skips=0
+TEST smoke_sleep_advances_virtual_time
+  -> ok
+  req KRN-TIM-001 KRN-TIM-010
+CASE smoke_sleep_advances_virtual_time outcome=passed asserts=2 skips=0
+TEST smoke_thread_runs_and_exits
+  -> ok
+  req KRN-THR-001 KRN-THR-005 KRN-THR-017
+CASE smoke_thread_runs_and_exits outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=160
+3 tests, 0 failed, 0 skipped, 56 ticks
+EMB_TEST_END

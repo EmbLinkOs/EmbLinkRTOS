@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Stress runs (SPEC-013 §5, A93): the native port's asynchronous interrupt mode. Not
 # reproducible, so not differential evidence; the invariant checker is the oracle.
 # Not under ThreadSanitizer: it reports any memory a signal handler and its own thread share as a

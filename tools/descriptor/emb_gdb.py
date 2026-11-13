@@ -1,11 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""EmbLink thread awareness for GDB, from the image's debug descriptor (A107).
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
+"""EmbLink thread and device awareness for GDB, from the image's debug descriptor (A107).
 
     (gdb) source tools/descriptor/emb_gdb.py
     (gdb) emb info                  the descriptor's header
     (gdb) emb threads [--json]      every thread: state, priorities, stack, pc, owned mutexes
     (gdb) emb bt INDEX [FRAMES]     the backtrace of the thread with that index (64 frames at most)
+    (gdb) emb devices [--json]      the board's devices: class, level, lifecycle, last status
 
 GDB itself sees one context: whatever the core runs. `emb bt` shows a switched-out
 thread's stack by loading the registers its switch frame saved, running `bt`, and putting
@@ -43,7 +48,7 @@ def load():
 
 
 class Emb(gdb.Command):
-    """EmbLink kernel awareness: emb info, emb threads [--json], emb bt INDEX."""
+    """EmbLink kernel awareness: emb info, emb threads [--json], emb bt INDEX, emb devices [--json]."""
 
     def __init__(self):
         super().__init__("emb", gdb.COMMAND_DATA, gdb.COMPLETE_NONE, True)
@@ -77,6 +82,22 @@ class EmbThreads(gdb.Command):
             gdb.write("EMB_THREADS " + json.dumps(threads) + "\n")
         else:
             gdb.write(dd.table(threads) + "\n")
+
+
+class EmbDevices(gdb.Command):
+    """The board's devices in initialization order (SPEC-016 §9): emb devices [--json]."""
+
+    def __init__(self):
+        super().__init__("emb devices", gdb.COMMAND_DATA)
+
+    def invoke(self, arg, from_tty):
+        devices = load().devices()
+        if arg.strip() == "--json":
+            gdb.write("EMB_DEVICES " + json.dumps(devices) + "\n")
+        elif not devices:
+            gdb.write("no devices (CONFIG_EMB_DEVICE=n, or none on this board)\n")
+        else:
+            gdb.write(dd.device_table(devices) + "\n")
 
 
 # GDB's register names for what the frames hold
@@ -153,3 +174,4 @@ Emb()
 EmbInfo()
 EmbThreads()
 EmbBt()
+EmbDevices()

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Board description, SPEC-012 §11 (schema: SPEC-014). Consumed by emb-hwgen from M3;
 # in M1 the matching hw_config.h is written by hand (include/hw_config.h).
 board: esp32c3_devkitm1

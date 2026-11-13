@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Resolution and semantic validation (SPEC-014 §7, HW-011): a board and its SoC become one
 resolved model, or every problem found is reported as 'file:line: node.path: message'."""
 import re
 from pathlib import Path
 
-from . import HwError, clock, load, schema
+from . import HwError, clock, devices, load, schema
 
 PIN = re.compile(r"^P([A-K])(1[0-5]|[0-9])(?:\.af(1[0-5]|[0-9]))?$")
 # a SoC with one numbered bank (gpio.lines, A79): GPIO<n>, with function select <k> as .f<k>
@@ -13,7 +17,7 @@ PIN_BANK = re.compile(r"^GPIO([1-5][0-9]|6[0-3]|[0-9])(?:\.f([12][0-9]|3[01]|[0-
 
 # Sections whose items are named and must be unique (SPEC-014 §7: duplicate name).
 SOC_NAMED = ("memory.regions", "peripherals", "clocks.sources", "clocks.plls", "clocks.buses", "clocks.voltage_scales")
-BOARD_NAMED = ("leds", "buttons", "flash_partitions")
+BOARD_NAMED = ("leds", "buttons", "flash_partitions", "devices")
 
 
 def _get(data, dotted):
@@ -42,6 +46,12 @@ def af_key(pin, n):
     return f"f{n}" if pin["bank"] else f"af{n}"
 
 
+
+def cs_list(entry):
+    """A device entry's chip selects as a list: cs is a pin, {pin, active}, or a list of them."""
+    cs = entry.get("cs", [])
+    return cs if isinstance(cs, list) else [cs]
+
 class Resolver:
     def __init__(self, root):
         self.root = Path(root)
@@ -59,6 +69,24 @@ class Resolver:
         if load.inside(self.board_dir, self.root):
             return None
         return self.board_dir.resolve().parent.parent.parent
+
+    def _dma_rules(self, soc):
+        """dma_requests (A119): each names a DMA controller of the SoC, a stream it has with a
+        channel select on a fixed one, or a request number on a dreq one."""
+        from .devices import _dma_options
+        periph = {p["name"]: p for p in soc.data["peripherals"]}
+        for p in soc.data["peripherals"]:
+            for req, text in p.get("dma_requests", {}).items():
+                at = f"peripherals.{p['name']}.dma_requests.{req}"
+                for ctrl, stream, _ in _dma_options(text):
+                    spec = periph.get(ctrl, {}).get("dma")
+                    if spec is None:
+                        self.err(soc, at, f"{ctrl} is not a DMA controller of the SoC")
+                    elif (stream is None) != (spec["kind"] == "dreq"):
+                        self.err(soc, at, f"{ctrl} is a {spec['kind']} controller: "
+                                 + ("name a DREQ, dreq<n>" if spec["kind"] == "dreq" else "name a stream and channel, s<n>c<m>"))
+                    elif stream is not None and stream >= spec["channels"]:
+                        self.err(soc, at, f"{ctrl} has {spec['channels']} streams, not a stream {stream}")
 
     def _soc_path(self, board):
         """The board's SoC description: in the tree, or in its board root's soc/ (A84), but not
@@ -113,6 +141,9 @@ class Resolver:
         partitions = self._partitions(board, soc)
         linker = self._linker(board, soc)
         kconfig, profile = self._kconfig(board, soc, clk)
+        devs, binding_docs = self._devices(board, soc, clk, pins)
+        self._loopbacks(board, devs)
+        self._chip_selects(board, devs, pins)
         if self.errors:
             raise HwError(self.errors)
         self._curation(board, soc)
@@ -120,7 +151,7 @@ class Resolver:
         if console is not None and clk is not None:
             gate = console["clock"]
             console["clock_hz"] = clk["bus_hz"][gate["bus"]] if gate else clk["hclk_hz"]
-        docs = soc.docs + board.docs + ([manifest] if manifest else [])
+        docs = soc.docs + board.docs + ([manifest] if manifest else []) + binding_docs
         return {
             "board": {k: v for k, v in board.data.items()},
             "soc": {k: v for k, v in soc.data.items() if k not in ("extends", "abstract")},
@@ -128,6 +159,7 @@ class Resolver:
             "pins": pins,
             "console": console,
             "test_irqs": test_irqs,
+            "devices": devs,
             "partitions": partitions,
             "linker": linker,
             "kconfig": kconfig,
@@ -180,6 +212,7 @@ class Resolver:
 
     def _soc_rules(self, soc):
         d = soc.data
+        self._dma_rules(soc)
         # address spaces are separate (AVR: program, data, eeprom); the default is one space
         regions = sorted(d["memory"]["regions"], key=lambda r: (r.get("space", "main"), r["base"], r["name"]))
         for a, b in zip(regions, regions[1:]):
@@ -291,7 +324,7 @@ class Resolver:
         owner = {}
         out = []
 
-        def claim(text, at, mode, signal=None):
+        def claim(text, at, mode, signal=None, level=None):
             pin = parse_pin(text)
             bank = "lines" in soc.data.get("gpio", {})
             if pin["bank"] != bank:
@@ -310,6 +343,8 @@ class Resolver:
                 return  # reported by the SoC rules: gpio.ports names a port no peripheral drives
             entry = {"pin": pin["name"], "port": pin["port"], "number": pin["number"], "mode": mode, "owner": at,
                      "gpio": gpio["name"]}
+            if level is not None:
+                entry.update({"level": level, "signal": signal})
             if mode == "af":
                 offered = afs.get(pin["name"], {})
                 if pin["af"] is None and offered.get("fixed") == signal:
@@ -339,6 +374,12 @@ class Resolver:
         for kind, mode in (("leds", "output"), ("buttons", "input")):
             for line in d.get(kind, []):
                 claim(line["gpio"], f"{kind}.{line['name']}", mode)
+        # a device's chip selects: outputs that start deasserted (SPEC-017 §5, A116)
+        for dev in d.get("devices", []):
+            for i, cs in enumerate(cs_list(dev)):
+                low = cs.get("active", "low") == "low" if isinstance(cs, dict) else True
+                claim(cs["pin"] if isinstance(cs, dict) else cs, f"devices.{dev['name']}.cs[{i}]", "output",
+                      f"{dev['name']}_cs{i}", 1 if low else 0)
         return sorted(out, key=lambda e: (e["port"], e["number"]))
 
     def _console(self, board, soc):
@@ -353,6 +394,68 @@ class Resolver:
             return None
         return {"device": dev, "baud": board.data["console"]["baud"], "base": p["base"], "clock": p.get("clock"),
                 "irqs": p.get("irqs", [])}
+
+    def _devices(self, board, soc, clk, pins=None):
+        """The board's devices bound and ordered (SPEC-016 §8), and the bindings files read:
+        drivers/bindings.yaml in the tree and in the board root (A84)."""
+        if not board.data.get("devices"):
+            return [], []
+        files = [(self.root / "drivers" / "bindings.yaml", "tree")]
+        broot = self.board_root()
+        if broot is not None:
+            files.append((broot / "drivers" / "bindings.yaml", "board"))
+        files = [(p, o) for p, o in files if p.is_file()]
+        table = devices.Bindings(files, lambda m, p, msg: self.errors.append(f"{m.at(p)}: {msg}"))
+        devs = devices.resolve(board, soc, clk, table, lambda p, m: self.err(board, p, m), pins)
+        return devs, [d for m in table.models for d in m.docs]
+
+    def _loopbacks(self, board, devs):
+        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside, or an
+        I2C device wired to a peer by two nets, SCL to SCL and SDA to SDA."""
+        classes = {d["name"]: d["class"] for d in devs}
+        for i, loop in enumerate(board.data.get("simulation", {}).get("loopbacks", [])):
+            at = f"simulation.loopbacks[{i}]"
+            cls = classes.get(loop["device"])
+            if cls == "i2c":
+                if classes.get(loop.get("peer")) != "i2c" or "nets" not in loop or "ports" in loop or "internal" in loop:
+                    self.err(board, at, "an I2C loopback names its peer, another I2C device, and two nets")
+            elif cls not in ("uart", "spi"):
+                self.err(board, at, f"{loop['device']} is not a UART, SPI or I2C device of the board")
+            elif ("ports" in loop) == ("internal" in loop) or "peer" in loop or "nets" in loop:
+                self.err(board, at, "a loopback names two ports or internal: true, one of them")
+
+    def _chip_selects(self, board, devs, pins):
+        """devices[].cs (SPEC-014 §4, A116): a device on an SPI bus names its chip select
+        (EMB_SOC_<DEVICE>_CS); an SPI controller may list spare ones for the application
+        (EMB_SOC_<DEVICE>_CS<n>). Each is a line of one of the board's GPIO devices, set on the
+        device as d["cs"] for soc_devices.h."""
+        by_name = {d["name"]: d for d in devs}
+        gpio_dev = {d["peripheral"]: d["name"] for d in devs if d["class"] == "gpio"}
+        for entry in board.data.get("devices", []):
+            if "cs" not in entry:
+                continue
+            d = by_name.get(entry["name"])
+            if d is None:
+                continue  # reported by the device rules
+            on_bus = by_name.get(entry.get("bus", ""), {}).get("class") == "spi"
+            if d["class"] != "spi" and not on_bus:
+                self.err(board, f"devices.{entry['name']}.cs",
+                         f"{entry['name']} is not an SPI controller or a device on one: only they have chip selects")
+                continue
+            if on_bus and len(cs_list(entry)) != 1:
+                self.err(board, f"devices.{entry['name']}.cs", "a device on an SPI bus has one chip select")
+                continue
+            d["cs"] = []
+            for i, _ in enumerate(cs_list(entry)):
+                at = f"devices.{entry['name']}.cs[{i}]"
+                pin = next((p for p in pins if p["owner"] == at), None)
+                if pin is None:
+                    continue  # reported by the pin rules
+                if pin["gpio"] not in gpio_dev:
+                    self.err(board, at, f"{pin['pin']} is a line of {pin['gpio']}, which the board does not list in devices:")
+                    continue
+                d["cs"].append({"index": None if on_bus else i, "pin": pin["pin"], "gpio": gpio_dev[pin["gpio"]], "line": pin["number"],
+                                "active_low": pin["level"] == 1})
 
     def _test_irqs(self, board, soc):
         irqs = board.data.get("test_irqs")

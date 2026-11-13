@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Host build with EmbCC (09 §2). Storage generation now passes, but current Linux
 # native compilation needs a compatible POSIX header/runtime/link strategy.
 # For the explicit experimental EmbCC-kernel/GCC-host build, use the native-embcc

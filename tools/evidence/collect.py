@@ -31,7 +31,9 @@ VERSION = 1
 BLOCK_START = re.compile(r"^\d+/\d+ Testing: (\S+)\s*$")
 BLOCK_RESULT = re.compile(r"^Test (Passed|Failed)\.?\s*$")
 EVIDENCE = re.compile(r"^EVIDENCE v1 (.*)$")
-TEST = re.compile(r"^TEST (\S+)\s*$")
+# a board that resets for each fault check may print the replay's note on the TEST line itself:
+# the reset cut the line's newline while it was still leaving the UART (A89)
+TEST = re.compile(r"^TEST (\S+)(?:\s+fault checks that reset the board: \d+)?\s*$")
 SKIP = re.compile(r"^  skip: (.*)$")
 REQ = re.compile(r"^  req (.*)$")
 CASE = re.compile(r"^CASE (\S+) outcome=(passed|failed|skipped) asserts=(\d+) skips=(\d+)\s*$")

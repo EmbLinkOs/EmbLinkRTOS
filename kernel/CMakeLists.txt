@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The kernel library. Feature files are excluded from the build, not #if'd away
 # (CODING-STANDARD CS-10.6).
 
@@ -38,6 +42,45 @@ if(CONFIG_EMB_WORKQ)
 endif()
 if(CONFIG_EMB_TIMER)
   list(APPEND EMB_KERNEL_SOURCES time/timer.c)
+endif()
+if(CONFIG_EMB_WALLCLOCK)
+  list(APPEND EMB_KERNEL_SOURCES time/wallclock.c) # KRN-TIM-031
+endif()
+if(CONFIG_EMB_DEVICE)
+  list(APPEND EMB_KERNEL_SOURCES device/device.c)
+  if(CONFIG_EMB_DRV_UART)
+    list(APPEND EMB_KERNEL_SOURCES device/uart.c)
+  endif()
+  if(CONFIG_EMB_DRV_GPIO)
+    list(APPEND EMB_KERNEL_SOURCES device/gpio.c)
+  endif()
+  if(CONFIG_EMB_DRV_SPI OR CONFIG_EMB_DRV_I2C OR CONFIG_EMB_DRV_FLASH OR CONFIG_EMB_DRV_ENTROPY)
+    list(APPEND EMB_KERNEL_SOURCES device/bus.c) # the held bus the SPI and I2C classes build on; flash's lock
+  endif()
+  if(CONFIG_EMB_DRV_SPI)
+    list(APPEND EMB_KERNEL_SOURCES device/spi.c)
+  endif()
+  if(CONFIG_EMB_DRV_I2C)
+    list(APPEND EMB_KERNEL_SOURCES device/i2c.c)
+  endif()
+  if(CONFIG_EMB_DRV_DMA)
+    list(APPEND EMB_KERNEL_SOURCES device/dma.c)
+  endif()
+  if(CONFIG_EMB_DRV_FLASH)
+    list(APPEND EMB_KERNEL_SOURCES device/flash.c)
+  endif()
+  if(CONFIG_EMB_DRV_ENTROPY)
+    list(APPEND EMB_KERNEL_SOURCES device/entropy.c device/sha256.c) # conditioned by SHA-256
+  endif()
+  if(CONFIG_EMB_DRV_RTC)
+    list(APPEND EMB_KERNEL_SOURCES device/rtc.c)
+  endif()
+  if(CONFIG_EMB_DRV_WDT)
+    list(APPEND EMB_KERNEL_SOURCES device/wdt.c)
+    if(CONFIG_EMB_WDOG)
+      list(APPEND EMB_KERNEL_SOURCES fault/wdog.c) # FLT-004
+    endif()
+  endif()
 endif()
 if(CONFIG_EMB_TIMER AND CONFIG_EMB_WORKQ)
   list(APPEND EMB_KERNEL_SOURCES work/dwork.c)

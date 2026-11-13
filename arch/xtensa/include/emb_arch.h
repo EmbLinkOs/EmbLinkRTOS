@@ -1,10 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Xtensa port header, the classic ESP32's LX6 (contract SPEC-011 §3, §6; docs/ports/xtensa.md):
- * the critical-section primitives, the handler declaration macros, and the port's types. The
- * critical section raises PS.INTLEVEL to 1, which masks every kernel-aware interrupt (all are
- * level 1 in this milestone); the key is the whole previous PS.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch.h
+ * @brief   Xtensa port header, the classic ESP32's LX6 (contract SPEC-011 §3, §6;
+ *          docs/ports/xtensa.md).
+ *
+ * @details
+ * The critical-section primitives, the handler declaration macros, and the port's types. The
+ * critical section raises PS.INTLEVEL to 1, which masks every kernel-aware interrupt (all are level
+ * 1 in this milestone); the key is the whole previous PS.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #ifndef EMB_XTENSA_EMB_ARCH_H
 #define EMB_XTENSA_EMB_ARCH_H

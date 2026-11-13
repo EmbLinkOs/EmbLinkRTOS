@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """An image's complete flash and RAM accounting, reconciled with its sections (05 §5, KRN-MEM-009).
 
     memory_report.py build/controller/controller.elf.map --elf build/controller/controller.elf \\

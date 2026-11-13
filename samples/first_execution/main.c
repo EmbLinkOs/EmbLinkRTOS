@@ -1,13 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The first-execution sequence of v0.1 §41.3 (M1 exit criterion, 07 §2): reset, SoC
- * startup, architecture and kernel initialization, idle plus Task A and Task B, start
- * the scheduler, A runs, a scheduling event switches to B, repeat for very large switch
- * counts. A and B share a priority and hand over with emb_thread_yield(); a third
- * thread wakes on the timer every tick so that interrupt-driven preemption happens too.
- * The LED toggles every 1000 round trips. On the native port the run ends after the
- * configured number of switches with the counts printed.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    main.c
+ * @brief   The first-execution sequence of v0.1 §41.3 (M1 exit criterion, 07 §2).
+ *
+ * @details
+ * Reset, SoC startup, architecture and kernel initialization, idle plus Task A and Task B, start
+ * the scheduler, A runs, a scheduling event switches to B, repeat for very large switch counts. A
+ * and B share a priority and hand over with emb_thread_yield(); a third thread wakes on the timer
+ * every tick so that interrupt-driven preemption happens too. The LED toggles every 1000 round
+ * trips. On the native port the run ends after the configured number of switches with the counts
+ * printed.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/emb.h>
 

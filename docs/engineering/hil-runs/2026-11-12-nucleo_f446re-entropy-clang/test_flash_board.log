@@ -1,0 +1,13 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_flash_board.elf sha256 dcf993577a81ff7d7e3b7e534c9fe340f7096bff43dd813a02cc8a13389f0288
+EVIDENCE v1 suite=test_flash_board config=4648a817b7d5fc56 profile=base board=nucleo_f446re checked=1
+TEST flash_board_erase_keeps_the_clock
+  erase of 128 KiB: 895 ms by the cycles, 896 ms by the clock  -> ok
+  req DRV-001 DRV-003
+CASE flash_board_erase_keeps_the_clock outcome=passed asserts=516 skips=0
+TEST flash_board_program_and_read_back
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_board_program_and_read_back outcome=passed asserts=4616 skips=0
+ISR_STACK size=2048 used=176
+2 tests, 0 failed, 0 skipped, 8200 ticks
+EMB_TEST_END

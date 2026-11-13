@@ -1,0 +1,18 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_crash.elf sha256 ea0cf8e28d39afecf9695239b14be13e381762f631ecff9cab31f98882306d11
+EVIDENCE v1 suite=test_crash config=310f7b08ddae875a profile=base board=pico2_w checked=1
+TEST crash_record_round_trip
+EMB_CRASH 454d424301005c00f5943a41e7ad0c0ca41b360f4d2ecf6f2b261b54302e322e30000000070000000000000001000000050202012900000003000000341200007856000000000000bc7a0000000000000000000000000000f0c777dd
+  -> ok
+  req OBS-016 API-017
+CASE crash_record_round_trip outcome=passed asserts=38 skips=0
+TEST crash_record_corruption_is_ignored
+  -> ok
+  req OBS-016
+CASE crash_record_corruption_is_ignored outcome=passed asserts=6 skips=0
+TEST%•½É‘}•Ñ}É•™ÕÍ•Í}¹Õ±±  fault checks that reset the board: 1
+  -> ok
+  req OBS-016 API-015
+CASE crash_record_get_refuses_null outcome=passed asserts=1 skips=0
+ISR_STACK size=2048 used=116
+3 tests, 0 failed, 0 skipped, 13 ticks
+EMB_TEST_END

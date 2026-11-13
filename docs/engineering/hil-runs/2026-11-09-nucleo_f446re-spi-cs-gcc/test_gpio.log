@@ -1,0 +1,26 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_gpio.elf sha256 f6270e7d55ab39c42f75f6b3ca4952b01e7d0c769bf807ca6ab5eb5684ff87da
+EVIDENCE v1 suite=test_gpio config=0912f8545cffda7d profile=base board=nucleo_f446re checked=1
+TEST gpio_misuse_faults
+  fault checks that reset the board: 10
+  -> ok
+  req DRV-004
+CASE gpio_misuse_faults outcome=passed asserts=11 skips=0
+TEST gpio_driver_refusals
+  -> ok
+  req DRV-004
+CASE gpio_driver_refusals outcome=passed asserts=3 skips=0
+TEST gpio_named_line_follows_its_sense
+  -> ok
+  req DRV-004
+CASE gpio_named_line_follows_its_sense outcome=passed asserts=13 skips=0
+TEST gpio_input_reads_its_pull
+  -> ok
+  req DRV-004
+CASE gpio_input_reads_its_pull outcome=passed asserts=6 skips=0
+TEST gpio_output_drives_and_reads_back
+  -> ok
+  req DRV-004
+CASE gpio_output_drives_and_reads_back outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=192
+5 tests, 0 failed, 0 skipped, 55 ticks
+EMB_TEST_END

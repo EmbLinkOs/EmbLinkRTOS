@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Thread join and detach (SPEC-008 §5, §6; KRN-THR-004, 006, 017, 018, 022): split from
- * test_thread.c, whose image no longer fit the Uno's 32,256-byte partition. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_thread_join.c
+ * @brief   Thread join and detach (SPEC-008 §5, §6; KRN-THR-004, 006, 017, 018, 022).
+ *
+ * @details
+ * Split from test_thread.c, whose image no longer fit the Uno's 32,256-byte partition.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
+ */
 #include <emb_test.h>
 
 static void exit_with_code(void *arg)

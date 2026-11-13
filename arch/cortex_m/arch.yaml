@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Port manifest for Cortex-M (format: SPEC-011 §2). Variants: Armv6-M (Cortex-M0/M0+: PRIMASK
 # critical sections, no CAS, A86), Armv7-M (Cortex-M3),
 # Armv7E-M (Cortex-M4/M7, with or without FPU), Armv8-M Mainline (Cortex-M33, in the Secure

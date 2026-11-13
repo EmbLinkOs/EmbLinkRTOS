@@ -69,7 +69,7 @@ Exit: each promoted port/profile/version has its declared evidence and no inheri
 
 ### M6+ - Advanced platform
 
-SMP, AMP/Ports/leases, budget donation, DEADLINE/TIME_TABLE classes, middleware/network/USB/filesystems, secure-side integration/attestation, wider boards and EmbStudio integration retain their design direction. Validate hardware architecture-selection constraints before committing to heterogeneous mixed-core configurations. Each needs its own semantic model, interoperability/fault campaign and performance evidence.
+SMP, AMP/Ports/leases, budget donation, DEADLINE/TIME_TABLE classes, middleware/network/USB/filesystems, secure-side integration/attestation, wider boards and EmbLink Studio integration retain their design direction. Validate hardware architecture-selection constraints before committing to heterogeneous mixed-core configurations. Each needs its own semantic model, interoperability/fault campaign and performance evidence.
 
 ## 3. Specification work order (before M1 code)
 

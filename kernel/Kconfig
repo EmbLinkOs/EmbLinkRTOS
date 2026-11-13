@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Kernel options. Defaults follow the reference profiles of 03 §11 and the per-specification
 # values; a symbol's help names the specification that defines its meaning.
 
@@ -270,6 +274,123 @@ config EMB_TIMER
 endmenu
 
 menu "Work queues"
+
+config EMB_DEVICE
+	bool "Devices and driver requests (SPEC-016)"
+	depends on EMB_NOTIFY && EMB_SEM
+	default n if EMB_PROFILE_TINY || EMB_ARCH_AVR
+	default y
+	help
+	  Device instances with a lifecycle, and the request and completion core every driver
+	  class is built on: queued requests, completion by notification, semaphore, work item
+	  or callback, cancellation, and a blocking wrapper. Off on the tiny profile and AVR,
+	  whose boards keep their free functions.
+
+config EMB_DRV_UART
+	bool "The UART class (SPEC-017 §4)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Requests to write and read bytes, their blocking wrappers, the polled
+	  calls, and the receive core every UART driver shares.
+
+config EMB_DRV_GPIO
+	bool "The GPIO class (SPEC-017 §5a)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A controller's lines set up as inputs or outputs, driven and read from
+	  any context: chip selects, resets, LEDs.
+
+config EMB_DRV_WDT
+	bool "The watchdog class (SPEC-017 §8)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A hardware watchdog started once with its timeout, fed from any context,
+	  never stopped; and whether it caused the last reset.
+
+config EMB_WALLCLOCK
+	bool "The wall clock (SPEC-003 §10, KRN-TIM-031)"
+	depends on !EMB_TICK_32BIT
+	default y if !EMB_PROFILE_TINY
+	help
+	  Calendar time, nanoseconds since the Unix epoch: the monotonic clock
+	  plus an offset that setting or adjusting it changes, and a board's
+	  RTC seeds at boot. No timeout or deadline depends on it. It needs
+	  64-bit ticks, which do not wrap.
+
+config EMB_DRV_RTC
+	bool "The RTC class (SPEC-017 §10)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A real-time clock kept across resets: its time get and set, one
+	  alarm, and backup registers where the part has them. With the wall
+	  clock, a set RTC seeds it when the device starts.
+
+config EMB_DRV_ENTROPY
+	bool "The entropy class (SPEC-017 §11)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Bytes from a hardware source of randomness, each block through the
+	  source's health tests. A board without a source has no entropy
+	  device and says so (EMB_ENOTSUP): nothing stands in for one.
+
+config EMB_DRV_FLASH
+	bool "The flash class and partitions (SPEC-017 §9)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  A NOR flash read, programmed and erased by offset, its geometry from
+	  the description, each operation run to its end in the caller; and
+	  the board's flash partitions, <emb/flash_area.h>.
+
+config EMB_TIME_CATCH_UP
+	bool
+	default y if EMB_DRV_FLASH && !EMB_TICKLESS
+	help
+	  The periodic tick adds the ticks that passed while interrupts were
+	  held off, or the core stalled, for longer than a tick: a flash
+	  operation (A122). The port counts them; without this the hook does
+	  nothing, and costs no RAM.
+
+config EMB_WDOG
+	bool "The software watchdog (FLT-004)"
+	depends on EMB_DRV_WDT && EMB_TIMER
+	default y
+	help
+	  Feeds the hardware watchdog only while every party it watches has
+	  checked in within its window, from a timer in the timer interrupt. A
+	  party that misses its window is written into the crash record
+	  (EMB_FAULT_WATCHDOG), and the hardware watchdog resets the part.
+
+config EMB_DRV_DMA
+	bool "The DMA class (SPEC-017 §7)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Channels a driver's device is given at generation, jobs started on them
+	  and their ends delivered to the driver: for drivers, not applications.
+
+config EMB_DRV_I2C
+	bool "The I2C class (SPEC-017 §6)"
+	depends on EMB_DEVICE && EMB_MUTEX_INHERIT
+	default y
+	help
+	  Transactions of write and read segments to a target's address, joined by
+	  repeated starts; and, as a target, the transactions another controller
+	  makes to this one's own address.
+
+config EMB_DRV_SPI
+	bool "The SPI controller class (SPEC-017 §5)"
+	depends on EMB_DEVICE && EMB_DRV_GPIO && EMB_MUTEX_INHERIT
+	default y
+	help
+	  Transfers to a target in its mode, at its speed and word size, and their
+	  blocking wrapper; each target's chip select, and the bus held across
+	  several transfers by a mutex with priority inheritance.
 
 config EMB_WORKQ
 	bool "Work queues (SPEC-006 §4)"

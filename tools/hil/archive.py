@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """File a hardware run's records in the repository (A89, 05 §4.4).
 
     archive.py BUILD/hil-archive --to docs/engineering/hil-runs/2026-11-05-arduino_uno-checked \\

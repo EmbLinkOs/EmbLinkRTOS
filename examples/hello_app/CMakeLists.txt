@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # An application kept outside the RTOS tree (docs/user/application.md). Your own project
 # starts from these five lines and sets EmbLinkRTOS_DIR to the RTOS's cmake/ directory, for
 # example with -DEmbLinkRTOS_DIR=$HOME/EmbLinkRTOS/cmake.

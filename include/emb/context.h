@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Execution contexts (SPEC-001 §5.1, SPEC-002 §2.1). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    context.h
+ * @brief   Execution contexts (SPEC-001 §5.1, SPEC-002 §2.1).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_CONTEXT_H
 #define EMB_CONTEXT_H
 

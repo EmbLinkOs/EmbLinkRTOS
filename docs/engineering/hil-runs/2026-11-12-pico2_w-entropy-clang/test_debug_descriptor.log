@@ -1,0 +1,21 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_debug_descriptor.elf sha256 453b98af6218dedd43c00223283838d6dfa41d70c03a91c52789f121b16ea43a
+EVIDENCE v1 suite=test_debug_descriptor config=1aafec98e5605967 profile=base board=pico2_w checked=1
+TEST debug_descriptor_header
+  -> ok
+  req OBS-008 PORT-012
+CASE debug_descriptor_header outcome=passed asserts=12 skips=0
+TEST debug_descriptor_finds_the_running_thread
+  -> ok
+  req OBS-008
+CASE debug_descriptor_finds_the_running_thread outcome=passed asserts=7 skips=0
+TEST debug_descriptor_isr_stack
+  -> ok
+  req PORT-012
+CASE debug_descriptor_isr_stack outcome=passed asserts=2 skips=0
+TEST debug_descriptor_reads_thread_states
+  -> ok
+  req OBS-008 PORT-012
+CASE debug_descriptor_reads_thread_states outcome=passed asserts=82 skips=0
+ISR_STACK size=2048 used=188
+4 tests, 0 failed, 0 skipped, 56 ticks
+EMB_TEST_END

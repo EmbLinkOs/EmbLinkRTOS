@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * A hardware fault in the crash record, across a real reset (SPEC-015 §4, A74): the first
- * boot executes a trap instruction (EMB_TRAP: udf on Cortex-M; on RISC-V, ebreak from GCC and
- * unimp from Clang) with a fault hook that resets the part; the second boot finds the record with
- * the port's registers: the fault status registers and the stacked or trapped general registers.
- * Its own image, like test_crash_reset, since the second boot runs every case of the image from the
- * top.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_crash_hw.c
+ * @brief   A hardware fault in the crash record, across a real reset (SPEC-015 §4, A74).
+ *
+ * @details
+ * The first boot executes a trap instruction (EMB_TRAP: udf on Cortex-M; on RISC-V, ebreak from GCC
+ * and unimp from Clang) with a fault hook that resets the part; the second boot finds the record
+ * with the port's registers: the fault status registers and the stacked or trapped general
+ * registers. Its own image, like test_crash_reset, since the second boot runs every case of the
+ * image from the top.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include "crash_print.h"
 

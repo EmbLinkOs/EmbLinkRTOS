@@ -1,0 +1,14 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_wallclock.elf sha256 8dd5e2137df17feb9f3652e354cb1b5f6344faafe869291b79a9488271e801e8
+EVIDENCE v1 suite=test_wallclock config=4648a817b7d5fc56 profile=base board=nucleo_f446re checked=1
+TEST wallclock_adjust_moves_no_deadline
+  -> ok
+  req KRN-TIM-031
+CASE wallclock_adjust_moves_no_deadline outcome=passed asserts=9 skips=0
+TEST wallclock_set_and_get
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-TIM-031
+CASE wallclock_set_and_get outcome=passed asserts=8 skips=0
+ISR_STACK size=2048 used=264
+2 tests, 0 failed, 0 skipped, 63 ticks
+EMB_TEST_END

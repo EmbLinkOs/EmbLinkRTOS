@@ -1,0 +1,25 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_thread_identity.elf sha256 83ab7112c5024ff1f044081b1716fc709433ae24bbf2161acb29f788d58521c4
+EVIDENCE v1 suite=test_thread_identity config=310f7b08ddae875a profile=base board=pico2_w checked=1
+TEST idle_context¹}…ÁÁ±¥…Ñ‘  fault checks that reset the board: 2
+  -> ok
+  req KRN-THR-025 KRN-THR-026
+CASE idle_context_is_not_an_application_thread outcome=passed asserts=6 skips=0
+TEST thread_stï•}É•ÅÕ¥É•Í}  fault checks that reset the board: 2
+  -> ok
+  req KRN-THR-015 KRN-THR-023
+CASE thread_storage_reuse_requires_destroy outcome=passed asserts=9 skips=0
+TEST thread_identity_survives_suspend_and_resume
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_suspend_and_resume outcome=passed asserts=12 skips=0
+TEST thread_identity_repeated_construction_does_not_alias_live_object
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_repeated_construction_does_not_alias_live_object outcome=passed asserts=1200 skips=0
+TEST thread_identity_surviv¥Ñå}…¹‘}Ñ•Éµ¥¹…Ñ¥½¹  fault checks that reset the board: 1
+  -> ok
+  req KRN-THR-025
+CASE thread_identity_survives_priority_and_termination outcome=passed asserts=15 skips=0
+ISR_STACK size=2048 used=140
+5 tests, 0 failed, 0 skipped, 14 ticks
+EMB_TEST_END

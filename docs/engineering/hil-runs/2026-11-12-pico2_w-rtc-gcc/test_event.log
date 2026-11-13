@@ -1,0 +1,52 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_event.elf sha256 bb0ebe8336176c09e00ca6783873d0a13865b130c3202df04ed348e20246af96
+EVIDENCE v1 suite=test_event config=d2766df657716aad profile=base board=pico2_w checked=1
+TEST event_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE event_define_constructs_in_init_table outcome=passed asserts=1 skips=0
+TEST event_storage_reuse_requires_destroy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE event_storage_reuse_requires_destroy outcome=passed asserts=5 skips=0
+TEST event_binding_fires_after_direct_waiters
+  -> ok
+  req KRN-SYNC-035 KRN-NOTIF-004 KRN-NOTIF-005 KRN-NOTIF-013
+CASE event_binding_fires_after_direct_waiters outcome=passed asserts=15 skips=0
+TEST event_wait_validates_arguments
+  fault checks that reset the board: 3
+  -> ok
+  req KRN-SYNC-029 API-015
+CASE event_wait_validates_arguments outcome=passed asserts=5 skips=0
+TEST event_destroy_with_waiters_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001 API-013
+CASE event_destroy_with_waiters_is_misuse outcome=passed asserts=7 skips=0
+TEST event_destroy_aborts_waiters_when_allowed
+  -> ok
+  req KRN-OBJ-001 KRN-WAIT-018
+CASE event_destroy_aborts_waiters_when_allowed outcome=passed asserts=5 skips=0
+TEST event_wait_times_out_cancels_and_ignores_clear
+  -> ok
+  req KRN-SYNC-029 KRN-WAIT-004 KRN-WAIT-017
+CASE event_wait_times_out_cancels_and_ignores_clear outcome=passed asserts=12 skips=0
+TEST event_set_from_isr_wakes_at_exit
+  -> ok
+  req KRN-SYNC-029 KRN-SYNC-027
+CASE event_set_from_isr_wakes_at_exit outcome=passed asserts=6 skips=0
+TEST event_set_wakes_every_satisfied_waiter_in_one_pass
+  -> ok
+  req KRN-SYNC-029 KRN-WAIT-013
+CASE event_set_wakes_every_satisfied_waiter_in_one_pass outcome=passed asserts=11 skips=0
+TEST event_overlapping_clear_serves_waiters_in_order
+  -> ok
+  req KRN-SYNC-029 KRN-WAIT-001
+CASE event_overlapping_clear_serves_waiters_in_order outcome=passed asserts=11 skips=0
+TEST event_any_all_and_clear
+  -> ok
+  req KRN-SYNC-029
+CASE event_any_all_and_clear outcome=passed asserts=15 skips=0
+ISR_STACK size=2048 used=208
+11 tests, 0 failed, 0 skipped, 115 ticks
+EMB_TEST_END

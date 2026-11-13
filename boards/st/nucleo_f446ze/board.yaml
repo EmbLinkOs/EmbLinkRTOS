@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Board description (SPEC-014 §4): NUCLEO-F446ZE, MB1137 (UM1974). The second board on the
 # STM32F446: it has no C of its own (SPEC-014 §11). Uncurated until checked on a physical board.
 schema_version: 0
@@ -22,6 +26,14 @@ clocks:
 pins:
   usart3: { tx: PD8.af7, rx: PD9.af7 }
 console: { device: usart3, baud: 115200 }
+# the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
+# GPIO ports in use and the console
+devices:
+  - { name: rcc }
+  - { name: gpiob, doc: LD1 to LD3 }
+  - { name: gpioc, doc: B1 }
+  - { name: gpiod, doc: "the console's pins" }
+  - { name: usart3, baud: 115200, doc: "the console, the ST-LINK's virtual COM port" }
 leds:
   - { name: green, gpio: PB0, active: high, doc: LD1 }
   - { name: blue, gpio: PB7, active: high, doc: LD2 }

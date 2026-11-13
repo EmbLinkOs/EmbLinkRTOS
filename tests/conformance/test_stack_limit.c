@@ -1,10 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The hardware stack limit (KRN-MEM-010, A80), on Armv8-M Mainline: a thread that runs past its
- * stack's base takes a STKOF UsageFault at the first push below PSPLIM, before it writes beyond
- * its stack. The fault is the stack overflow class, with the fault status registers in the crash
- * record. The first boot overflows with a hook that resets the part; the second finds the record.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_stack_limit.c
+ * @brief   The hardware stack limit (KRN-MEM-010, A80), on Armv8-M Mainline.
+ *
+ * @details
+ * A thread that runs past its stack's base takes a STKOF UsageFault at the first push below PSPLIM,
+ * before it writes beyond its stack. The fault is the stack overflow class, with the fault status
+ * registers in the crash record. The first boot overflows with a hook that resets the part; the
+ * second finds the record.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include "crash_print.h"
 

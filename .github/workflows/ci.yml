@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
 # Cortex-M with arm-none-eabi-gcc and RISC-V with riscv64-unknown-elf-gcc run under QEMU,
 # AVR with avr-gcc run under QEMU and on EmbSIM's Arduino Uno, the Cortex-M4F suite on EmbSIM's
@@ -382,8 +386,12 @@ jobs:
         run: python3 -I -m unittest discover -s tools/descriptor -p 'test_*.py' -v
       - name: Framed byte streams, the host's side (SPEC-015 §7)
         run: python3 -I -m unittest discover -s tools/transport -p 'test_*.py' -v
+      - name: EmbSIM runner, its project mode (SIM-002)
+        run: python3 -I -m unittest discover -s tools/embsim -p 'test_*.py' -v
       - name: UF2 writer (A79)
         run: python3 -I -m unittest discover -s tools/uf2 -p 'test_*.py' -v
+      - name: Entropy sample checks (A124)
+        run: python3 -I -m unittest discover -s tools/entropy -p 'test_*.py' -v
       - name: Board support matrix (ADR-051, A81)
         run: |
           python3 -I -m unittest discover -s tools/support -p 'test_*.py' -v
@@ -406,6 +414,10 @@ jobs:
             --conf boards/arduino/arduino_uno/generated/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: IRQ configuration and encoding regressions
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
+      - name: File headers (CS-11.1)
+        run: |
+          python3 -I -m unittest discover -s tools/dev -p 'test_*.py' -v
+          python3 -I tools/dev/file_headers.py --check
       - name: Crash record decoder
         run: python3 -I -m unittest discover -s tools/crashdec -p 'test_*.py' -v
       - name: Hardware-in-the-loop runner (a pseudo-terminal for the board)
@@ -420,6 +432,44 @@ jobs:
         run: |
           pip install hypothesis pytest
           cd tools/model && python3 -m pytest -q
+
+  python-floor:
+    # the host tools on the oldest Python the README promises, 3.10: every unittest suite in
+    # the tree, found by its test_*.py files so a new one joins without an edit here, the
+    # reference model, the generator's committed outputs, and a native build, whose configure
+    # runs the configuration and generator tools. The lint job runs them on the runner's 3.12.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30 # a hung step fails the job in minutes, not GitHub's six hours
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.10'
+      - name: Install tools
+        timeout-minutes: 15 # apt has hung for six hours here (#32, #34, #35, #44)
+        uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
+        with:
+          packages: ninja-build
+      - name: The tools' Python packages
+        run: python -m pip install jsonschema pyyaml hypothesis pytest
+      - name: Every host tool's tests
+        run: |
+          python --version
+          git ls-files '*/test_*.py' ':!tools/model/**' | xargs -n1 dirname | sort -u |
+            while read -r d; do
+              echo "::group::$d"
+              python -I -m unittest discover -s "$d" -p 'test_*.py' -v || exit 1
+              echo "::endgroup::"
+            done
+      - name: Reference model
+        run: cd tools/model && python -m pytest -q
+      - name: The generator's committed outputs
+        run: python -I hw/gen/emb-hwgen.py check
+      - name: A native build, configured with this Python
+        run: |
+          cmake --preset native-gcc -DPython3_EXECUTABLE="$(command -v python)"
+          cmake --build --preset native-gcc
+          ctest --preset native-gcc --output-on-failure --no-tests=error
 
   avr-embsim:
     # the conformance suite on EmbSIM's Arduino Uno (SIM-002): EmbSIM built from source,
@@ -473,8 +523,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90 # a hung step fails the job in minutes, not GitHub's six hours
     env:
-      # EmbSIM main as of 2026-11-04: emblink/nucleo_f446re and emblink/nucleo_f446ze
-      EMBSIM_REF: 2529ab80801e7f9ed0d898d49b9d4534efeaa8d3
+      # EmbSIM main as of 2026-11-09 (e4616fa): its F446 models the USART's interrupts, which the
+      # UART class uses (SPEC-017 §4); emblink/nucleo_f446re and emblink/nucleo_f446ze
+      EMBSIM_REF: e4616fa0b97ee9c5444213cec0056b2781a42d5e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -748,8 +799,8 @@ jobs:
           retention-days: 30
 
   application:
-    # an application outside the tree, through find_package(EmbLinkRTOS) (A91): built for four
-    # boards, run natively and under QEMU until its own end line
+    # applications outside the tree, through find_package(EmbLinkRTOS) (A91): hello_app and
+    # blinky built for four boards, run natively and under QEMU until their own end lines
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -759,23 +810,35 @@ jobs:
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
           packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
-      - name: Copy the example out of the tree
-        run: cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
-      - name: Build it for native, the MPS2 AN386, RV32 virt and the Uno
+      - name: Copy the examples out of the tree
+        run: |
+          cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
+          cp -r examples/blinky "$RUNNER_TEMP/blinky"
+      - name: Build them for native, the MPS2 AN386, RV32 virt and the Uno
         run: |
           for b in native mps2_an386 riscv32_virt arduino_uno; do
-            cmake -S "$RUNNER_TEMP/hello_app" -B "build/hello-$b" -G Ninja \
-                  -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
-            cmake --build "build/hello-$b"
+            for app in hello_app blinky; do
+              cmake -S "$RUNNER_TEMP/$app" -B "build/$app-$b" -G Ninja \
+                    -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
+              cmake --build "build/$app-$b"
+            done
           done
       - name: Run it natively and under QEMU
         run: |
-          build/hello-native/hello | tee hello-native.log
+          build/hello_app-native/hello | tee hello-native.log
           grep -q "hello_app: done" hello-native.log
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until "hello_app: done" --timeout 60 \
-            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello-mps2_an386/hello.elf
+            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/hello_app-mps2_an386/hello.elf
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "hello_app: done" --timeout 60 \
-            --qemu-args "-M virt -bios none -kernel" build/hello-riscv32_virt/hello.elf
+            --qemu-args "-M virt -bios none -kernel" build/hello_app-riscv32_virt/hello.elf
+      - name: Run blinky natively, where it stops after ten toggles, and under QEMU, where it blinks on
+        run: |
+          build/blinky-native/blinky | tee blinky-native.log
+          test "$(grep -c '^blinky: ' blinky-native.log)" -eq 10
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-arm --until "blinky: off" --timeout 60 \
+            --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/blinky-mps2_an386/blinky.elf
+          python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "blinky: off" --timeout 60 \
+            --qemu-args "-M virt -bios none -kernel" build/blinky-riscv32_virt/blinky.elf
       - name: Build the reference controller for both NUCLEO-F446 boards (it runs on the board, not here)
         run: |
           cp -r examples/controller "$RUNNER_TEMP/controller"
@@ -962,7 +1025,7 @@ jobs:
   merge_gate:
     name: CI merge gate
     if: ${{ always() }}
-    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, evidence, static-analysis, reproducibility]
+    needs: [native, cortex_m, riscv, clang-cross, lto, avr, avr-embsim, cm4-embsim, rv32-embsim, embcc, xtensa-gcc, xtensa-clang, application, lint, python-floor, evidence, static-analysis, reproducibility]
     runs-on: ubuntu-24.04
     steps:
       - name: Require every matrix and lint job to succeed

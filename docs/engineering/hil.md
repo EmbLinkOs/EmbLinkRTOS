@@ -111,6 +111,7 @@ The exit status is 0 on a pass, 1 on failures, and 2 on a flash failure or a tim
 - The next boot reads the framework's 64 retained bytes and skips the cases already finished. It replays the faulting case with its output held back, up to that check, and when the case ends it prints `fault checks that reset the board: N`. The record carries N across the boots.
 - The run's console therefore spans several boots, and the runner reads straight through them.
 - A check whose statement returns fails in a checked build. A fault fails in a release build.
+- A reset check (`EMB_ASSERT_RESETS`, A120) runs the same way, for a statement that should reset the board itself, such as a starved watchdog. The statement calls `emb_test_reset_expected()` just before the reset should come. A reset before that call fails the check, and so does a fault or no reset at all. Elsewhere the check is skipped.
 
 **The record of each run (A89).** Every CTest entry also passes `--archive ${EMB_HIL_ARCHIVE}` (default `<build>/hil-archive`). For each image the runner writes `<image>.log`, its `hil:` line followed by the console, and `<image>.json`. The JSON holds:
 - the board, the port and the flash command;

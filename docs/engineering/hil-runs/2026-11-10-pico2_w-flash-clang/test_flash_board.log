@@ -1,0 +1,13 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_flash_board.elf sha256 c8a965343816095f6380f820f85fc6683684956f5f8687bc153e5b91e2675005
+EVIDENCE v1 suite=test_flash_board config=c1f79b836c910433 profile=base board=pico2_w checked=1
+TEST flash_board_erase_keeps_the_clock
+  erase of 64 KiB: 536 ms by the cycles, 536 ms by the clock  -> ok
+  req DRV-001 DRV-003
+CASE flash_board_erase_keeps_the_clock outcome=passed asserts=260 skips=0
+TEST flash_board_program_and_read_back
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_board_program_and_read_back outcome=passed asserts=2312 skips=0
+ISR_STACK size=2048 used=176
+2 tests, 0 failed, 0 skipped, 3111 ticks
+EMB_TEST_END

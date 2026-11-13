@@ -1,8 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The per-port part of the test framework: output, flash strings, exit, fork, sizes,
- * and the software interrupt. One implementation per port under tests/framework/.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_test_platform.h
+ * @brief   The per-port part of the test framework.
+ *
+ * @details
+ * Output, flash strings, exit, fork, sizes, and the software interrupt. One implementation per port
+ * under tests/framework/.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_TEST_PLATFORM_H
 #define EMB_TEST_PLATFORM_H

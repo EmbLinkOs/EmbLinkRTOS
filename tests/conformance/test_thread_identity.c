@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Diagnostic identity is independent of scheduler priority and execution lifetime. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_thread_identity.c
+ * @brief   Diagnostic identity is independent of scheduler priority and execution lifetime.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-21 (created)
+ */
 #include <embk/kernel.h>
 #include <embk/sched.h>
 

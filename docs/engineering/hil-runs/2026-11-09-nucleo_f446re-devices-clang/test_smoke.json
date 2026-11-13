@@ -1,0 +1,65 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 5,
+      "name": "smoke_thread_runs_and_exits",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "smoke_sleep_advances_virtual_time",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "smoke_libc_errno_from_a_thread",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T14:17:23Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "437d1338a32c060a",
+    "profile": "base",
+    "suite": "test_smoke"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil-clang/tests/conformance/test_smoke.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_smoke.elf": "cf81e300b52f3952dc5f880544ffd37c69f643b2dfea05649789a8c9c03d37f4"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "afccf47fff5a44eb66873d0d1f7e6f8a2483436d",
+    "dirty": false
+  },
+  "image": "test_smoke.elf",
+  "image_sha256": "cf81e300b52f3952dc5f880544ffd37c69f643b2dfea05649789a8c9c03d37f4",
+  "isr_stack": {
+    "size": 2048,
+    "used": 116
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T14:17:21Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 3
+  }
+}

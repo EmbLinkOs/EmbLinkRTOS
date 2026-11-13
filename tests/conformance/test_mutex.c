@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Mutex conformance (SPEC-005 §2, §3; KRN-SYNC-001 to 019). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_mutex.c
+ * @brief   Mutex conformance (SPEC-005 §2, §3; KRN-SYNC-001 to 019).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb_test.h>
 #if CONFIG_EMB_SCHED_TABLE
 #include <embk/sched.h> /* embk_sched_raised_count: white-box (mutex_exit_while_raised) */

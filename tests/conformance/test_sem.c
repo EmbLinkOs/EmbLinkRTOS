@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Semaphore conformance (SPEC-005 §4; KRN-SYNC-020 to 022, KRN-WAIT-001, 004, 012, 013). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_sem.c
+ * @brief   Semaphore conformance (SPEC-005 §4; KRN-SYNC-020 to 022, KRN-WAIT-001, 004, 012, 013).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb_test.h>
 
 #define IRQ_S 2u /* software interrupt slot */

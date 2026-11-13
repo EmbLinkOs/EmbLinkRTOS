@@ -1,6 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The wait and wake protocol (SPEC-004 §4). Internal interface; contexts per SPEC-001 §5. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wait.h
+ * @brief   The wait and wake protocol (SPEC-004 §4).
+ *
+ * @details
+ * Internal interface; contexts per SPEC-001 §5.
+ *
+ * @see     kernel/wait/wait.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMBK_WAIT_H
 #define EMBK_WAIT_H
 

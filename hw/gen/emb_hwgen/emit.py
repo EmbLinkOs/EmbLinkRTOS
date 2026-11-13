@@ -1,12 +1,19 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
-"""The generated outputs of the first increment (SPEC-014 §6, A68): hw_config.h,
-board_pins.c, regions.ld, board.conf, board.cmake, hw.json, board.md and build_report.md.
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
+"""The generated outputs (SPEC-014 §6, A68): hw_config.h, board_pins.c, regions.ld,
+board.conf, board.cmake, hw.json, board.md and build_report.md, soc_devices.c and
+soc_devices.h, the board's device table (SPEC-016 §8).
 
 Every output is sorted, carries no timestamp and names the generator version, the schema
 version and the SHA-256 of each input (HW-013).
 """
 import json
+import re
+import textwrap
 from pathlib import Path
 
 from . import SCHEMA_VERSION, VERSION
@@ -200,7 +207,10 @@ def board_pins_c(r):
         g = _sym(e["gpio"])
         what = e.get("signal", e["mode"])
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u}},\n"
+        # an I2C line: open drain, pulled up (the bench and the NUCLEO have no resistors)
+        i2c = str(e.get("signal", "")).endswith(("_scl", "_sda"))
+        flags = "EMB_STM32_PIN_I2C" if i2c else "0u"
+        out += f"    {{EMB_STM32_PORT({e['port']}), {e['number']}u, {mode[e['mode']]}, {e.get('af', 0)}u, {e.get('level', 0)}u, {flags}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -250,6 +260,9 @@ SECTIONS
   __data_load = LOADADDR(.data);
   .data : ALIGN(8) {{
     __data_start = .;
+    /* code that runs from RAM, copied with the data: the RP2350's flash routines, which run
+       while XIP is off (SPEC-017 §9) */
+    *(.ramfunc .ramfunc.*)
     *(.data .data.*)
     . = ALIGN(8);
     __data_end = .;
@@ -439,16 +452,62 @@ def board_cmake(r):
     sim = r["board"].get("simulation", {}).get("embsim")
     if sim:
         out += f"set(EMB_BOARD_EMBSIM_TARGET {sim}) # EMB_TEST_EMULATOR=embsim\n"
+    classes = {d["name"]: d["class"] for d in r["devices"]}
+    for d in r["devices"]:
+        if d.get("dma"):  # its DMA channels, EMB_SOC_<DEVICE>_DMA_<REQUEST> in soc_devices.h
+            out += f"set(EMB_BOARD_{d['name'].upper()}_DMA {' '.join(sorted(d['dma']))})\n"
+        if d.get("cs"):  # its chip selects, EMB_SOC_<DEVICE>_CS<n> in soc_devices.h
+            out += f"set(EMB_BOARD_{d['name'].upper()}_CS_COUNT {len(d['cs'])})\n"
+    for loop in r["board"].get("simulation", {}).get("loopbacks", []):
+        cls = classes[loop["device"]].upper()  # checked by the resolver: a UART, SPI or I2C device
+        if "nets" in loop:
+            # two I2C controllers joined line to line, for the class's loop test
+            nets = " ".join(f'"{a},{b}"' for a, b in loop["nets"])
+            out += f"set(EMB_BOARD_EMBSIM_{cls}_LOOP {loop['device']} {loop['peer']} {nets})\n"
+        elif "ports" in loop:
+            # a device whose EmbSIM board ports are wired together, for its class's loop test
+            out += f"set(EMB_BOARD_EMBSIM_{cls}_LOOP {loop['device']} \"{','.join(loop['ports'])}\")\n"
+        else:
+            # a device looped back inside itself, in any emulator that models it (QEMU's PL022)
+            out += f"set(EMB_BOARD_{cls}_LOOP_INTERNAL {loop['device']})\n"
     boot = soc.get("boot")
     if boot:
         out += f"set(EMB_BOARD_FLASH_IMAGE {boot['image']}) # what the SoC's boot ROM loads (A79)\n"
         if "uf2_family" in boot:
             out += f"set(EMB_BOARD_UF2_FAMILY 0x{boot['uf2_family']:08X})\n"
+    out += _device_sources(r)
     out += "# the inputs this directory was generated from, for the configure-time staleness check\n"
     out += "set(EMB_BOARD_HW_INPUTS\n"
     for i in r["inputs"]:
         out += f"    \"{i['path']}={i['sha256']}\"\n"
     out += ")\n"
+    return out
+
+
+def _driver_path(r, d, rel):
+    if d["origin"] == "board":
+        # the board root's own driver (A84): generated/ is <root>/boards/<vendor>/<board>/generated
+        return f"${{CMAKE_CURRENT_LIST_DIR}}/../../../../{rel}"
+    return f"${{EMB_BASE}}/{rel}"
+
+
+def _device_sources(r):
+    """SPEC-016 §8: the board's devices and the drivers they use, and only those."""
+    sources, includes = [], []
+    for d in r["devices"]:
+        for src in d["sources"]:
+            path = _driver_path(r, d, src)
+            if path not in sources:
+                sources.append(path)
+        if d["include"]:
+            path = _driver_path(r, d, d["include"])
+            if path not in includes:
+                includes.append(path)
+    out = "# the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)\n"
+    out += "set(EMB_BOARD_DRIVER_SOURCES\n    \"${CMAKE_CURRENT_LIST_DIR}/soc_devices.c\"\n"
+    out += "".join(f"    \"{s}\"\n" for s in sources) + ")\n"
+    if includes:
+        out += "set(EMB_BOARD_DRIVER_INCLUDE_DIRS\n" + "".join(f"    \"{i}\"\n" for i in includes) + ")\n"
     return out
 
 
@@ -476,6 +535,8 @@ def hw_json_data(r):
             "partitions": r["partitions"],
             "pins": r["pins"],
             "test_irqs": r["test_irqs"],
+            "devices": [{k: d[k] for k in ("name", "compatible", "peripheral", "class", "level", "deps")}
+                        | {"fields": {f["field"]: f["value"] for f in d["fields"]}} for d in r["devices"]],
             "timer": r["timer"],
             "kconfig": r["kconfig"],
             "profile": r["profile"],
@@ -530,6 +591,13 @@ def board_md(r):
     for e in r["pins"]:
         m = {"af": f"af{e.get('af')} ({e.get('signal')})", "fixed": f"fixed ({e.get('signal')})"}.get(e["mode"], e["mode"])
         out += f"| {e['pin']} | `{e['owner']}` | {m} |\n"
+    if r["devices"]:
+        out += "\n## Devices\n\nIn initialization order (SPEC-016 §4).\n\n"
+        out += "| Device | Compatible | Class | Level | Depends on |\n|---|---|---|---|---|\n"
+        for d in r["devices"]:
+            what = d["compatible"] + (f" ({d['peripheral']})" if d["peripheral"] and d["peripheral"] != d["name"] else "")
+            deps = ", ".join(d["deps"]) or "-"
+            out += f"| {d['name']} | `{what}` | {d['class']} | {d['level'].upper()} | {deps} |\n"
     out += "\n## Interrupt lines\n\n| Line | Owner |\n|---|---|\n"
     rows = []
     for p in soc["peripherals"]:
@@ -592,17 +660,23 @@ def rp2350_pins_c(r):
     out = "/* SPDX-License-Identifier: Apache-2.0 */\n"
     out += _c_comment(r, _cmd(r))
     out += ("/* The pins board initialization configures: GPIO line, function select (SIO, 5, for an\n"
-            " * output) and whether the pad's input is enabled (on for a peripheral's pins). Inputs\n"
-            " * left at their reset state need no entry. */\n")
+            " * output), whether the pad's input is enabled (on for a peripheral's pins), its pull (up\n"
+            " * for a line that idles high), and an output's level at boot. Inputs left at their reset\n"
+            " * state need no entry. */\n")
     out += "#include <emb_rp2350_pins.h>\n#include <hw_config.h>\n\n"
     out += "const emb_rp2350_pin_t emb_board_pins[] = {\n"
     entries = [e for e in r["pins"] if e["mode"] in ("af", "output")]
     for e in entries:
         what = e.get("signal", e["mode"])
         funcsel = e["af"] if e["mode"] == "af" else 5
-        is_input = 1 if e["mode"] == "af" else 0  # a peripheral's pad reads its line too
+        # a peripheral's pad reads its line too, and a chip select's, so a read shows its level
+        is_input = 1 if e["mode"] == "af" or "level" in e else 0
+        # a UART's receive and an I2C line idle high: pulled up, so a line left open does not
+        # read as a break, and a bus without resistors still works at 100 kHz
+        pull = "EMB_RP2350_PULL_UP" if str(what).endswith(("_rx", "_scl", "_sda")) else "EMB_RP2350_PULL_RESET"
         out += f"    /* {e['pin']}: {e['owner']} ({what}) */\n"
-        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u}},\n"
+        drive = "EMB_RP2350_OUT_NONE" if e["mode"] == "af" else ("EMB_RP2350_OUT_HIGH" if e.get("level") else "EMB_RP2350_OUT_LOW")
+        out += f"    {{{e['number']}u, {funcsel}u, {is_input}u, {pull}, {drive}}},\n"
     out += "};\n\n"
     out += "const unsigned emb_board_pin_count = (unsigned)(sizeof(emb_board_pins) / sizeof(emb_board_pins[0]));\n"
     return out
@@ -629,14 +703,250 @@ def rp2350_boot_block_c(r):
     return out
 
 
+# --------------------------------------------------------------------------- soc_devices.c, .h
+
+def _flash_areas(r):
+    """The partitions on a flash device of the board: (partition, device, offset in it)."""
+    out = []
+    for p in r["partitions"]:
+        for d in r["devices"]:
+            g = next((f["value"]["flash_geometry"] for f in d["fields"]
+                      if isinstance(f["value"], dict) and "flash_geometry" in f["value"]), None)
+            if g is not None and g["base"] <= p["base"] and p["base"] + p["size"] <= g["base"] + g["size"]:
+                out.append((p, d["name"], p["base"] - g["base"]))
+                break
+    return out
+
+
+def soc_devices_h(r):
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+    out += "/* The board's devices, each reached by symbol with EMB_DEVICE(name) (SPEC-016 §2). */\n"
+    out += "#ifndef EMB_SOC_DEVICES_H\n#define EMB_SOC_DEVICES_H\n\n#include <emb/config.h>\n\n"
+    out += f"#define EMB_SOC_DEVICE_COUNT {len(r['devices'])}u\n\n"
+    out += "#if CONFIG_EMB_DEVICE\n#include <emb/device.h>\n" + ("#include <emb/flash_area.h>\n" if _flash_areas(r) else "") + "\n"
+    for d in r["devices"]:
+        out += f"extern const emb_device_t emb_dev_{d['name']};\n"
+    if r["devices"]:
+        out += "\n/* which devices the board has, for code that uses one only where it exists */\n"
+        width = max(len(f"EMB_SOC_HAS_{d['name'].upper()}") for d in r["devices"])
+        for d in r["devices"]:
+            macro = f"EMB_SOC_HAS_{d['name'].upper()}"
+            out += f"#define {macro.ljust(width)} 1\n"
+        wdt = next((d for d in r["devices"] if d["class"] == "watchdog"), None)
+        if wdt is not None:
+            out += "\n/* the board's watchdog device: the first of its class */\n"
+            out += f"#define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_{wdt['name']})\n"
+        rtc = next((d for d in r["devices"] if d["class"] == "rtc"), None)
+        if rtc is not None:
+            out += "\n/* the board's RTC device: the first of its class */\n"
+            out += f"#define EMB_SOC_RTC_DEVICE (&emb_dev_{rtc['name']})\n"
+        ent = next((d for d in r["devices"] if d["class"] == "entropy"), None)
+        if ent is not None:
+            out += "\n/* the board's entropy source: the first of its class (SPEC-017 §11) */\n"
+            out += f"#define EMB_SOC_ENTROPY_DEVICE (&emb_dev_{ent['name']})\n"
+        console = (r.get("console") or {}).get("device")
+        for d in r["devices"]:
+            if console is not None and d["peripheral"] == console and d["class"] == "uart":
+                out += "\n/* the console's UART device (the board's console:) */\n"
+                out += f"#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_{d['name']})\n"
+                if "tx" in d.get("dma", {}):
+                    c = d["dma"]["tx"]
+                    out += ("/* its writes' DMA channel (devices[].dma, A119) */\n/* clang-format off */\n"
+                            f"#define EMB_SOC_CONSOLE_DMA_TX {{&emb_dev_{c['dma']}, {c['stream']}u, {c['request']}u, {{0u, 0u}}}}\n"
+                            "/* clang-format on */\n")
+        lines = [(d, f) for d in r["devices"] for f in d["fields"] if str(f["expr"]).startswith("pins.")]
+        if lines:
+            out += ("\n/* the lines a device's pins are on (its binding's pins.<signal>), emb_drv_gpio_line_t\n"
+                    " * initializers: an I2C bus's, for its recovery */\n/* clang-format off */\n")
+            for d, f in lines:
+                out += f"#define EMB_SOC_{d['name'].upper()}_{f['field'].upper()} {f['c']} /* {f['value']['pin']} */\n"
+            out += "/* clang-format on */\n"
+        chans = [(d, req, c) for d in r["devices"] for req, c in sorted(d.get("dma", {}).items())]
+        if chans:
+            out += ("\n/* the DMA channels the board gave its devices (devices[].dma, A119), emb_drv_dma_chan_t\n"
+                    " * initializers */\n/* clang-format off */\n")
+            for d, req, c in chans:
+                out += (f"#define EMB_SOC_{d['name'].upper()}_DMA_{req.upper()} "
+                        f"{{&emb_dev_{c['dma']}, {c['stream']}u, {c['request']}u, {{0u, 0u}}}}\n")
+            out += "/* clang-format on */\n"
+        cs = [(d, c) for d in r["devices"] for c in d.get("cs", [])]
+        if cs:
+            out += ("\n/* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin\n"
+                    " * table sets each up deasserted at boot */\n/* clang-format off */\n")
+            for d, c in cs:
+                suffix = "" if c["index"] is None else str(c["index"])  # a device's own, or a spare
+                out += (f"#define EMB_SOC_{d['name'].upper()}_CS{suffix} "
+                        f"{{&emb_dev_{c['gpio']}, {c['line']}u, {1 if c['active_low'] else 0}u, {{0u, 0u}}}} /* {c['pin']} */\n")
+            out += "/* clang-format on */\n"
+        areas = _flash_areas(r)
+        if areas:
+            out += "\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:, <emb/flash_area.h>) */\n"
+            for p, _dev, _off in areas:
+                out += f"extern const emb_flash_area_t emb_flash_area_{p['name']};\n"
+            width = max(len(f"EMB_FLASH_AREA_{p['name'].upper()}") for p, _d, _o in areas)
+            for p, _dev, _off in areas:
+                macro = f"EMB_FLASH_AREA_{p['name'].upper()}"
+                out += f"#define {macro.ljust(width)} (&emb_flash_area_{p['name']})\n"
+            out += "#endif\n"
+    out += "#endif\n\n#endif /* EMB_SOC_DEVICES_H */\n"
+    return out
+
+
+def soc_devices_c(r):
+    out = "/* SPDX-License-Identifier: Apache-2.0 */\n" + _c_comment(r, _cmd(r))
+    out += ("/* The board's devices (SPEC-016 §8): each one's configuration, RAM and instance, and the\n"
+            " * table the kernel initializes them from: EARLY first, each device after its dependencies. */\n")
+    out += "#include <emb/config.h>\n\n#if CONFIG_EMB_DEVICE\n"
+    headers = []
+    for d in r["devices"]:
+        if d["header"] not in headers:
+            headers.append(d["header"])
+    # the include blocks in .clang-format's order: this directory, emb/, the C library, drivers
+    out += ("#include \"soc_devices.h\"\n\n#include <emb/device.h>\n#include <emb/drv_dma.h>\n#include <emb/drv_entropy.h>\n"
+            + ("#include <emb/flash_area.h>\n" if _flash_areas(r) else "") + "\n#include <stddef.h>\n")
+    if headers:
+        out += "\n" + "".join(f"#include <{h}>\n" for h in sorted(headers))
+    early = 0
+    for d in r["devices"]:
+        n = d["name"]
+        early += d["level"] == "early"
+        out += f"\n/* {n}: {d['compatible']}, {d['class']}, {d['level'].upper()} */\n"
+        for buf in d["buffers"]:
+            out += f"static uint8_t {n}_{buf['name']}[{buf['size']}];\n"
+        geometry = any(isinstance(f["value"], dict) and "flash_geometry" in f["value"] for f in d["fields"])
+        if geometry:
+            out += "/* clang-format off */\n"  # the geometry's initializer, one line beside its source
+        for f in d["fields"]:
+            g = f["value"].get("flash_geometry") if isinstance(f["value"], dict) else None
+            if g is not None and g["sectors"]:
+                out += (f"static const uint32_t {n}_sectors[{len(g['sectors'])}] = {{"
+                        + ", ".join(f"0x{x:X}u" for x in g["sectors"]) + "};\n")
+        if d["fields"]:
+            out += f"static const {d['config']} {n}_config = {{\n"
+            width = max(len(f".{f['field']} = {f['c']},") for f in d["fields"])
+            for f in d["fields"]:
+                init = f".{f['field']} = {f['c']},"
+                out += f"    {init.ljust(width)} /* {f['expr']} */\n"
+            out += "};\n"
+            if geometry:
+                out += "/* clang-format on */\n"
+        else:
+            out += f"static const {d['config']} {n}_config;\n"
+        out += f"static emb_device_state_t {n}_state;\n"
+        if d["data"]:
+            out += f"static {d['data']} {n}_data;\n"
+        if d["deps"]:
+            out += f"static const emb_device_t *const {n}_deps[] = {{" + ", ".join(f"&emb_dev_{x}" for x in d["deps"]) + "};\n"
+        out += f"const emb_device_t emb_dev_{n} = {{\n"
+        out += f"    .name = \"{n}\",\n"
+        out += f"    .api = &{d['api']},\n"
+        out += f"    .config = &{n}_config,\n"
+        out += f"    .state = &{n}_state,\n"
+        out += f"    .data = {'&' + n + '_data' if d['data'] else 'NULL'},\n"
+        out += f"    .deps = {n + '_deps' if d['deps'] else 'NULL'},\n"
+        out += f"    .class_id = EMB_DRV_CLASS_{d['class'].upper()},\n"
+        out += f"    .level = EMB_DEVICE_{d['level'].upper()},\n"
+        out += f"    .dep_count = {len(d['deps'])}u,\n"
+        out += "};\n"
+    if r["devices"]:
+        out += "\n/* in initialization order */\nstatic const emb_device_t *const devices[] = {\n"
+        width = max(len(f"&emb_dev_{d['name']},") for d in r["devices"])
+        for i, d in enumerate(r["devices"]):
+            entry = f"&emb_dev_{d['name']},"
+            out += f"    {entry.ljust(width)} /* {i}: {d['level'].upper()} */\n"
+        out += "};\n\n"
+        out += f"const emb_device_table_t emb_board_device_table = {{devices, {len(r['devices'])}u, {early}u}};\n"
+    else:
+        out += "\n/* the board declares no devices (its description has no devices:) */\n"
+        out += "const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};\n"
+    ent = next((d for d in r["devices"] if d["class"] == "entropy"), None)
+    out += ("\n#if CONFIG_EMB_DRV_ENTROPY\n/* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, "
+            "SEC-012) */\n")
+    out += (f"const emb_device_t *const emb_board_entropy = &emb_dev_{ent['name']};\n" if ent is not None
+            else "const emb_device_t *const emb_board_entropy = NULL; /* the SoC has no source */\n")
+    out += "#endif\n"
+    areas = _flash_areas(r)
+    if areas:
+        out += ("\n#if CONFIG_EMB_DRV_FLASH\n/* the board's flash partitions (flash_partitions:), each on its flash device, from the\n"
+                " * device's start (SPEC-017 §9) */\n")
+        out += "/* clang-format off */\n"
+        for p, dev, off in areas:
+            out += (f"const emb_flash_area_t emb_flash_area_{p['name']} = "
+                    f"{{\"{p['name']}\", &emb_dev_{dev}, 0x{off:08X}u, 0x{p['size']:08X}u}};\n")
+        out += "/* clang-format on */\n#endif\n"
+    regions = [g for g in r["soc"]["memory"]["regions"] if "dma" in g.get("attrs", [])]
+    out += ("\n#if CONFIG_EMB_DRV_DMA\n/* the memory DMA reaches: the regions the SoC marks dma (SPEC-014 §3), where the DMA\n"
+            " * class takes buffers (SPEC-017 §7) */\n")
+    if regions:
+        out += "const emb_drv_dma_region_t emb_board_dma_regions[] = {\n"
+        for g in regions:
+            out += f"    {{0x{g['base']:08X}u, 0x{g['size']:08X}u}}, /* {g['name']} */\n"
+        out += "};\n"
+    else:
+        out += "const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}}; /* none */\n"
+    out += f"const unsigned emb_board_dma_region_count = {len(regions)}u;\n#endif\n"
+    out += "#else\n/* ISO C: a translation unit declares something */\ntypedef int emb_soc_devices_off_t;\n#endif\n"
+    return out
+
+
+DEVICE_OUTPUTS = {"soc_devices.c": soc_devices_c, "soc_devices.h": soc_devices_h}
+
+
 # outputs only some families or ports have: the pin tables, AVR's embld option set
 FAMILY_OUTPUTS = {"stm32f4": {"board_pins.c": board_pins_c},
                   "rp2350": {"board_pins.c": rp2350_pins_c, "boot_block.c": rp2350_boot_block_c}}
 PORT_OUTPUTS = {"avr": {"embld.opts": embld_opts}}
 
 
+# The notice every C, assembly and linker source carries (CS-11.1; tools/dev/file_headers.py
+# checks that the generated ones carry this same text).
+NOTICE = ("/*\n"
+          " * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.\n"
+          " * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.\n"
+          " */\n")
+_SPDX_C = "/* SPDX-License-Identifier: Apache-2.0 */\n"
+# The same notice in # comments, one block with the stamp (no blank line: any format that reads
+# # comments reads it)
+HASH_NOTICE = "#\n" + "".join("# " + line[3:] + "\n" for line in NOTICE.split("\n")[1:3])
+_SPDX_HASH = "# SPDX-License-Identifier: Apache-2.0\n"
+
+
+def _comment_at(text, at):
+    """The /* */ comment starting at index at: its lines' text, and the index after it."""
+    end = text.index("*/", at) + 2
+    body = text[at + 2:end - 2]
+    lines = [re.sub(r"^\s*\* ?", "", line).rstrip() for line in body.split("\n")]
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return lines, end + (1 if text[end:end + 1] == "\n" else 0)
+
+
+def _file_header(name, text):
+    """A generated source's header as a hand-written one has it (CS-11.1). In # comments: the
+    SPDX line, the notice, then the generator's stamp. In C: the SPDX line, the
+    notice, then a Doxygen block whose brief is the file's own description and whose details are
+    the generator's stamp. No author or date: the generator writes it, from its inputs alone."""
+    if text.startswith(_SPDX_HASH + "# Generated by emb-hwgen"):  # CMake, Kconfig, embld options
+        return _SPDX_HASH + HASH_NOTICE + "#\n" + text[len(_SPDX_HASH):]
+    if not text.startswith(_SPDX_C + "/*\n * Generated by emb-hwgen"):
+        return text
+    stamp, at = _comment_at(text, len(_SPDX_C))
+    if text.startswith("/*", at):
+        desc, at = _comment_at(text, at)
+    else:
+        desc = ["Generated from the board's description."]
+    brief = textwrap.wrap(" ".join(line.strip() for line in desc), 100,
+                          initial_indent=" * @brief   ", subsequent_indent=" *          ",
+                          break_on_hyphens=False, break_long_words=False)
+    block = ["/**", f" * @file    {name}", *brief, " *", " * @details", *(f" * {l}".rstrip() for l in stamp), " */"]
+    return _SPDX_C + NOTICE + "\n" + "\n".join(block) + "\n" + text[at:]
+
+
 def render(resolved):
     outputs = dict(OUTPUTS)
     outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
     outputs.update(PORT_OUTPUTS.get(resolved["soc"]["arch"]["port"], {}))
-    return {name: fn(resolved) for name, fn in sorted(outputs.items())}
+    outputs.update(DEVICE_OUTPUTS)  # every board defines its device table, empty or not
+    return {name: _file_header(name, fn(resolved)) for name, fn in sorted(outputs.items())}

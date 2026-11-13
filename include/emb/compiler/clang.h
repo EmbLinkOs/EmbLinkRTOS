@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Compiler portability layer for Clang (SPEC-001 §10, BLD-002). Clang accepts the GCC
- * attribute set used here; the differences are the version macro and the
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    clang.h
+ * @brief   Compiler portability layer for Clang (SPEC-001 §10, BLD-002).
+ *
+ * @details
+ * Clang accepts the GCC attribute set used here; the differences are the version macro and the
  * fallthrough spelling.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_COMPILER_CLANG_H
 #define EMB_COMPILER_CLANG_H

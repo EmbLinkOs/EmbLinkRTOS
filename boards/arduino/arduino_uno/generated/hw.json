@@ -108,6 +108,7 @@
         }
       ]
     },
+    "devices": [],
     "kconfig": {
       "CONFIG_EMB_AVR_F_CPU": 16000000,
       "CONFIG_EMB_AVR_MCU": "\"atmega328p\"",
@@ -190,15 +191,15 @@
   "inputs": [
     {
       "path": "arch/avr/arch.yaml",
-      "sha256": "58c66a86537d0dbfa8f5bbe0092e61104d774a3f4628b64ad0d41f37f8be7f42"
+      "sha256": "3e99f7e6706f4fec43025ae826e21925a192f520ef19b4ebcf7c5c343f8360de"
     },
     {
       "path": "boards/arduino/arduino_uno/board.yaml",
-      "sha256": "45ece4d738c8b89cc1750f9e70c421a6839531805e0acc07eb90146d653d51e6"
+      "sha256": "c6ac27b20a275593ffb2e2867f0577837ef677bdc316187330f846865b023940"
     },
     {
       "path": "soc/microchip/atmega/atmega328p.yaml",
-      "sha256": "f7f140d64a86063f9dc531e3d17806507ed89a79a4030d98b8a01279a481ea18"
+      "sha256": "ae1cb906f4e5453fcf672aa658d080ffdba5e4471320add0c54d856c48d081f3"
     }
   ],
   "schema_version": 0,

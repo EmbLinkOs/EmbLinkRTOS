@@ -1,8 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * RISC-V context frame, switch, trap entry and reset (docs/ports/riscv.md). One 128-byte
- * frame serves the thread switch, the trap path and the initial frame:
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rv_switch.S
+ * @brief   RISC-V context frame, switch, trap entry and reset (docs/ports/riscv.md).
+ *
+ * @details
+ * One 128-byte frame serves the thread switch, the trap path and the initial frame:
  *
  *   word 0 mepc, 1 ra, 2-4 t0-t2, 5-6 s0-s1, 7-14 a0-a7, 15-24 s2-s11, 25-28 t3-t6,
  *   29 mstatus, 30-31 padding (16-byte alignment)
@@ -13,6 +21,9 @@
  * gp is not used by this port and is not saved. tp points from reset at the one
  * thread-local block of the C library (errno, A88), which every thread shares, so no frame
  * carries it either.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb/config.h>
 

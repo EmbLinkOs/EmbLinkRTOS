@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Thread notifications (SPEC-006 §2): one word of level-sensitive bits per thread,
- * set from any context, waited on by the owner only. The canonical ISR-to-thread
- * completion path and the only wake mechanism the tiny profile needs besides timeouts.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    notify.h
+ * @brief   Thread notifications (SPEC-006 §2).
+ *
+ * @details
+ * One word of level-sensitive bits per thread, set from any context, waited on by the owner only.
+ * The canonical ISR-to-thread completion path and the only wake mechanism the tiny profile needs
+ * besides timeouts.
+ *
+ * @see     kernel/notify/notify.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_NOTIFY_H
 #define EMB_NOTIFY_H

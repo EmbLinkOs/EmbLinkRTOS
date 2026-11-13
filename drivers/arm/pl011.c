@@ -1,0 +1,385 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Copyright 2026 Junior Deogracias */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    pl011.c
+ * @brief   Arm PrimeCell UART PL011 (Arm DDI 0183G): polled transmit, and the device of SPEC-016.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
+#include <emb_pl011.h>
+
+#define REG32(a)   (*(volatile uint32_t *)(uintptr_t)(a))
+#define UART_DR    0x00u
+#define UART_FR    0x18u
+#define UART_IBRD  0x24u
+#define UART_FBRD  0x28u
+#define UART_LCR_H 0x2Cu
+#define UART_CR    0x30u
+#define FR_TXFF    (1u << 5)
+#define FR_BUSY    (1u << 3)
+#define LCR_8N1    0x60u  /* WLEN 8 bits, one stop bit, no parity */
+#define LCR_FEN    0x10u  /* the FIFOs */
+#define CR_UARTEN  0x001u /* the UART */
+#define CR_ENABLE  0x301u /* UARTEN | TXE | RXE */
+#define IBRD_MAX   0xFFFFu
+
+/* One character at 115200 baud from a 150 MHz core is ~13 000 cycles, a few thousand polls. */
+#define TX_BOUND 100000u
+#define TX_FIFO  32u /* the transmit FIFO's depth (PL011 TRM §2.4.2) */
+
+/* pico-sdk's divisor: 64ths of the 16x oversampled bit time, rounded; IBRD its upper part */
+static uint32_t divisor(uint32_t clock_hz, uint32_t baud)
+{
+    return ((8u * clock_hz) / baud) + 1u;
+}
+
+void emb_pl011_setup(uintptr_t base, uint32_t clock_hz, uint32_t baud)
+{
+    uint32_t div = divisor(clock_hz, baud);
+    REG32(base + UART_CR) = 0u;
+    REG32(base + UART_IBRD) = div >> 7;
+    REG32(base + UART_FBRD) = (div & 0x7Fu) >> 1;
+    REG32(base + UART_LCR_H) = LCR_8N1 | LCR_FEN; /* also latches the divisors */
+    REG32(base + UART_CR) = CR_ENABLE;
+}
+
+void emb_pl011_putc(uintptr_t base, char c)
+{
+    uint32_t n;
+    for (n = 0u; n < TX_BOUND; n++) { /* bounded by TX_BOUND: one character time */
+        if ((REG32(base + UART_FR) & FR_TXFF) == 0u) {
+            break;
+        }
+    }
+    REG32(base + UART_DR) = (uint32_t)(unsigned char)c;
+}
+
+void emb_pl011_flush(uintptr_t base)
+{
+    uint32_t n;
+    for (n = 0u; n < (TX_BOUND * TX_FIFO); n++) { /* bounded: a full FIFO's character times */
+        if ((REG32(base + UART_FR) & FR_BUSY) == 0u) {
+            break;
+        }
+    }
+}
+
+#if CONFIG_EMB_DRV_UART
+#include <emb/irq.h>
+
+#define UART_IMSC  0x38u
+#define UART_MIS   0x40u
+#define UART_ICR   0x44u
+#define UART_DMACR 0x48u
+#define DMACR_TX   (1u << 1)
+#define DMA_MIN    16u /* bytes: shorter writes stay with the FIFO and its interrupt */
+#define FR_RXFE    (1u << 4)
+#define DR_FE      (1u << 8)
+#define DR_PE      (1u << 9)
+#define DR_BE      (1u << 10) /* a break: the line low past a whole frame */
+#define INT_RX     (1u << 4)  /* the receive FIFO at its level */
+#define INT_TX     (1u << 5)  /* the transmit FIFO at or below its level */
+#define INT_RT     (1u << 6)  /* the receive timeout: bytes waiting, the line idle */
+#define INT_ALL    0x7FFu
+#define LCR_BRK    0x01u /* the line held low while set */
+#define BRK_NONE   0u
+#define BRK_WAIT   1u /* the transmitter still sends what came before */
+#define BRK_LOW    2u
+
+static const emb_pl011_config_t *config(const emb_device_t *dev)
+{
+    return (const emb_pl011_config_t *)dev->config;
+}
+
+static emb_pl011_data_t *data(const emb_device_t *dev)
+{
+    return (emb_pl011_data_t *)dev->data;
+}
+
+/* Fills the transmit FIFO from the write in progress; true once the write is all queued. */
+static bool tx_fill(uintptr_t base, emb_drv_uart_req_t *w)
+{
+    while ((size_t)w->req.done < w->len && (REG32(base + UART_FR) & FR_TXFF) == 0u) {
+        REG32(base + UART_DR) = w->tx[w->req.done]; /* bounded by the FIFO and the write */
+        w->req.done++;
+    }
+    return (size_t)w->req.done >= w->len;
+}
+
+static void pl011_isr(void *arg)
+{
+    emb_pl011_data_t *d = (emb_pl011_data_t *)arg;
+    uintptr_t base = config(d->dev)->base;
+    uint32_t mis = REG32(base + UART_MIS);
+    REG32(base + UART_ICR) = mis;
+    if ((mis & (INT_RX | INT_RT)) != 0u) {
+        while ((REG32(base + UART_FR) & FR_RXFE) == 0u) { /* bounded by the FIFO's 32 */
+            uint32_t dr = REG32(base + UART_DR);
+            if ((dr & (DR_FE | DR_BE)) != 0u) {
+                emb_drv_uart_rx_error(d->dev, &d->rx, EMB_EFRAMING);
+            } else if ((dr & DR_PE) != 0u) {
+                emb_drv_uart_rx_error(d->dev, &d->rx, EMB_EPARITY);
+            } else {
+                emb_drv_uart_rx_byte(d->dev, &d->rx, (uint8_t)dr);
+            }
+        }
+        if ((mis & INT_RT) != 0u) {
+            emb_drv_uart_rx_idle(d->dev, &d->rx);
+        }
+    }
+    if ((mis & INT_TX) != 0u) {
+        emb_drv_uart_req_t *w = d->tx;
+        if (w == NULL || tx_fill(base, w)) {
+            REG32(base + UART_IMSC) &= ~INT_TX;
+            d->tx = NULL;
+            if (w != NULL) {
+                emb_drv_complete(d->dev, &w->req, EMB_OK, w->req.done);
+            }
+        }
+    }
+}
+
+#if CONFIG_EMB_TIMER
+/* A break lasts two character times, ten bits each, and at least 1 ms: the timer's grain. */
+static emb_duration_t break_time(const emb_pl011_config_t *cfg)
+{
+    uint32_t ms = (20000u + cfg->baud - 1u) / cfg->baud;
+    return EMB_MS((ms == 0u) ? 1u : ms);
+}
+
+/* The break's timer, in its expiry interrupt: the line is free, so hold it low; or the time
+ * is up, so release it and end the request. */
+static void break_tick(emb_timer_t timer, void *arg)
+{
+    emb_pl011_data_t *d = (emb_pl011_data_t *)arg;
+    const emb_pl011_config_t *cfg = config(d->dev);
+    emb_drv_uart_req_t *r;
+    (void)timer;
+    if (d->brk_phase == BRK_WAIT) {
+        if ((REG32(cfg->base + UART_FR) & FR_BUSY) != 0u) {
+            (void)emb_timer_start(d->brk_timer, EMB_MS(1)); /* earlier bytes still leaving */
+            return;
+        }
+        REG32(cfg->base + UART_LCR_H) |= LCR_BRK;
+        d->brk_phase = BRK_LOW;
+        (void)emb_timer_start(d->brk_timer, break_time(cfg));
+        return;
+    }
+    if (d->brk_phase == BRK_LOW) {
+        REG32(cfg->base + UART_LCR_H) &= ~LCR_BRK;
+        r = d->brk_req;
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+        if (r != NULL) {
+            emb_drv_complete(d->dev, &r->req, EMB_OK, 0u);
+        }
+    }
+}
+#endif
+
+static emb_status_t uart_init(const emb_device_t *dev)
+{
+    const emb_pl011_config_t *cfg = config(dev);
+    emb_pl011_data_t *d = data(dev);
+    uint32_t div;
+    if (cfg->baud == 0u) {
+        return EMB_EINVAL;
+    }
+    div = divisor(cfg->clock_hz, cfg->baud);
+    if (((div >> 7) == 0u) || ((div >> 7) > IBRD_MAX)) {
+        return EMB_EINVAL; /* the divisor cannot reach the rate */
+    }
+    if (((REG32(cfg->base + UART_CR) & CR_UARTEN) == 0u) ||
+        (REG32(cfg->base + UART_IBRD) != (div >> 7)) ||
+        (REG32(cfg->base + UART_FBRD) != ((div & 0x7Fu) >> 1))) {
+        emb_pl011_flush(cfg->base); /* it may be sending: let its character finish */
+        emb_pl011_setup(cfg->base, cfg->clock_hz, cfg->baud);
+    } /* else the board's console, already at this rate: left as the board set it */
+    emb_drv_uart_rx_init(&d->rx, cfg->rx, cfg->rx_size);
+    d->tx = NULL;
+    d->dma = 0u;
+    d->dev = dev;
+    d->irq_on = 0u;
+#if CONFIG_EMB_TIMER
+    {
+        emb_timer_attr_t attr;
+        emb_timer_attr_default(&attr);
+        attr.name = dev->name;
+        attr.fn = break_tick;
+        attr.arg = d;
+        attr.flags = EMB_TIMER_ISR_CONTEXT;
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+        if (emb_timer_init(&d->brk_storage, &attr, &d->brk_timer) != EMB_OK) {
+            return EMB_ENOMEM;
+        }
+    }
+#endif
+    return (emb_irq_connect((emb_irq_t)cfg->irq, pl011_isr, d) == EMB_OK) ? EMB_OK : EMB_EINVAL;
+}
+
+/* The first request turns the interrupt on; until then the board may drive the UART. */
+static void irq_on(const emb_device_t *dev)
+{
+    const emb_pl011_config_t *cfg = config(dev);
+    emb_pl011_data_t *d = data(dev);
+    if (d->irq_on != 0u) {
+        return;
+    }
+    d->irq_on = 1u;
+    REG32(cfg->base + UART_ICR) = INT_ALL;
+    REG32(cfg->base + UART_IMSC) |= INT_RX | INT_RT;
+    (void)emb_irq_enable((emb_irq_t)cfg->irq);
+}
+
+/* A write by DMA ended: its last byte is in the FIFO. */
+static void uart_dma_done(void *arg, emb_status_t st, uint32_t moved)
+{
+    emb_pl011_data_t *d = (emb_pl011_data_t *)arg;
+    emb_drv_uart_req_t *w = d->tx;
+    REG32(config(d->dev)->base + UART_DMACR) &= ~DMACR_TX;
+    d->tx = NULL;
+    d->dma = 0u;
+    if (w != NULL) {
+        emb_drv_complete(d->dev, &w->req, st, moved);
+    }
+}
+
+/* The write by DMA, where the board gives the UART a channel and DMA reaches the bytes; false
+ * leaves it to the FIFO and its interrupt. */
+static bool uart_dma_write(const emb_device_t *dev, emb_pl011_data_t *d,
+                           const emb_drv_uart_req_t *r)
+{
+    const emb_pl011_config_t *cfg = config(dev);
+    emb_drv_dma_job_t job;
+    if ((cfg->dma_tx.dma == NULL) || (r->len < DMA_MIN) || (r->len > UINT32_MAX)) {
+        return false;
+    }
+    job.src = (uintptr_t)r->tx;
+    job.dst = cfg->base + UART_DR;
+    job.count = (uint32_t)r->len;
+    job.dir = EMB_DRV_DMA_TO_PERIPH;
+    job.width = 1u;
+    job.flags = 0u;
+    job.reserved_ = 0u;
+    if (emb_drv_dma_start(&cfg->dma_tx, &job, uart_dma_done, d) != EMB_OK) {
+        return false;
+    }
+    REG32(cfg->base + UART_DMACR) |= DMACR_TX; /* the requests, the job ready */
+    return true;
+}
+
+static emb_status_t uart_start(const emb_device_t *dev, emb_drv_request_t *req)
+{
+    emb_pl011_data_t *d = data(dev);
+    emb_drv_uart_req_t *r = EMB_DRV_UART_REQ(req);
+    uintptr_t base = config(dev)->base;
+    emb_irq_key_t key;
+    irq_on(dev);
+    if (req->lane == EMB_DRV_UART_LANE_RX) {
+        return emb_drv_uart_rx_start(dev, &d->rx, r);
+    }
+    if (r->op == EMB_DRV_UART_OP_BREAK) {
+#if CONFIG_EMB_TIMER
+        /* the timer waits for the line to be free, holds it low, and ends the request */
+        d->brk_req = r;
+        d->brk_phase = BRK_WAIT;
+        return (emb_timer_start(d->brk_timer, EMB_MS(1)) == EMB_OK) ? EMB_EBUSY : EMB_EIO;
+#else
+        return EMB_ENOTSUP; /* no timer to time it (SPEC-016 §11) */
+#endif
+    }
+    key = emb_irq_lock();
+    d->tx = r;
+    if (uart_dma_write(dev, d, r)) {
+        d->dma = 1u;
+        emb_irq_unlock(key);
+        return EMB_EBUSY; /* the DMA job's end completes it */
+    }
+    d->tx = NULL;
+    if (tx_fill(base, r)) {
+        /* all of it in the FIFO: done now. The transmit interrupt comes only when the FIFO
+         * drains past its level, which a write this short may never cross. */
+        emb_irq_unlock(key);
+        return EMB_OK;
+    }
+    d->tx = r;
+    REG32(base + UART_IMSC) |= INT_TX; /* the FIFO draining past its level refills it */
+    emb_irq_unlock(key);
+    return EMB_EBUSY;
+}
+
+static void uart_stop(const emb_device_t *dev, emb_drv_request_t *req)
+{
+    emb_pl011_data_t *d = data(dev);
+    emb_irq_key_t key;
+    if (req->lane == EMB_DRV_UART_LANE_RX) {
+        emb_drv_uart_rx_stop(dev, &d->rx, EMB_DRV_UART_REQ(req));
+        return;
+    }
+    key = emb_irq_lock();
+    if ((d->tx == EMB_DRV_UART_REQ(req)) && (d->dma != 0u)) {
+        uint32_t moved = 0u;
+        bool stopped = emb_drv_dma_stop(&config(dev)->dma_tx, &moved) == EMB_OK;
+        REG32(config(dev)->base + UART_DMACR) &= ~DMACR_TX;
+        d->tx = NULL;
+        d->dma = 0u;
+        emb_irq_unlock(key);
+        if (stopped) { /* otherwise its end came first, and completed it */
+            emb_drv_complete(dev, req, EMB_ECANCELED, moved);
+        }
+        return;
+    }
+    if (d->tx == EMB_DRV_UART_REQ(req)) {
+        d->tx = NULL; /* what is in the FIFO still goes out; no more is added */
+        REG32(config(dev)->base + UART_IMSC) &= ~INT_TX;
+    }
+#if CONFIG_EMB_TIMER
+    if (d->brk_req == EMB_DRV_UART_REQ(req)) {
+        (void)emb_timer_stop(d->brk_timer, NULL);
+        REG32(config(dev)->base + UART_LCR_H) &= ~LCR_BRK; /* the line released */
+        d->brk_phase = BRK_NONE;
+        d->brk_req = NULL;
+    }
+#endif
+    emb_irq_unlock(key);
+    emb_drv_complete(dev, req, EMB_ECANCELED, req->done);
+}
+
+static emb_status_t uart_poll_write(const emb_device_t *dev, const uint8_t *buf, size_t len)
+{
+    size_t i;
+    for (i = 0u; i < len; i++) { /* bounded by len */
+        emb_pl011_putc(config(dev)->base, (char)buf[i]);
+    }
+    return EMB_OK;
+}
+
+static size_t uart_poll_read(const emb_device_t *dev, uint8_t *buf, size_t len)
+{
+    uintptr_t base = config(dev)->base;
+    size_t n = 0u;
+    while (n < len && (REG32(base + UART_FR) & FR_RXFE) == 0u) { /* bounded by len */
+        buf[n] = (uint8_t)REG32(base + UART_DR);
+        n++;
+    }
+    return n;
+}
+
+const emb_drv_uart_api_t emb_pl011_api = {
+#if CONFIG_EMB_TIMER
+    {uart_init, uart_start, uart_stop, NULL, NULL,
+     EMB_DRV_UART_CAP_IDLE_DETECT | EMB_DRV_UART_CAP_BREAK},
+#else
+    {uart_init, uart_start, uart_stop, NULL, NULL, EMB_DRV_UART_CAP_IDLE_DETECT},
+#endif
+    uart_poll_write,
+    uart_poll_read,
+};
+#endif

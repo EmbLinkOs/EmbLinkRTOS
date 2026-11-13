@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The SVD importer's table for Raspberry Pi (hw/import/svd.py): the RP2350's peripherals the
 # family board support drives. Its SVD gives no group names, so rules match peripheral names.
 schema_version: 0

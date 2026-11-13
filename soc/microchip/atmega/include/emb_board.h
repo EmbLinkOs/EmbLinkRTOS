@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board interface of every ATmega board described in YAML: the console and the first LED are
- * the ones the board's generated hw_config.h names (SPEC-012 §11, SPEC-014). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_board.h
+ * @brief   The board interface of every ATmega board described in YAML.
+ *
+ * @details
+ * The console and the first LED are the ones the board's generated hw_config.h names (SPEC-012 §11,
+ * SPEC-014).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 

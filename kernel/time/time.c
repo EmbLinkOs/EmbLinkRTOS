@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The kernel clock, the timeout list, and the timer hooks (SPEC-003 §3 to §5).
- * Periodic mode counts the port's tick interrupt; tickless mode re-bases the clock
- * from the port's free-running counter and programs the next deadline only. The
- * clock is read with a sequence lock where the port says so (EMB_ARCH_CLOCK_SEQLOCK)
- * and inside the critical section otherwise (AVR, SPEC-003 §3.1).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    time.c
+ * @brief   The kernel clock, the timeout list, and the timer hooks (SPEC-003 §3 to §5).
+ *
+ * @details
+ * Periodic mode counts the port's tick interrupt; tickless mode re-bases the clock from the port's
+ * free-running counter and programs the next deadline only. The clock is read with a sequence lock
+ * where the port says so (EMB_ARCH_CLOCK_SEQLOCK) and inside the critical section otherwise (AVR,
+ * SPEC-003 §3.1).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <embk/kernel.h>
 #include <embk/sched.h>
@@ -40,6 +51,9 @@ typedef struct embk_time_state {
 } embk_time_state_t;
 
 static embk_time_state_t ts;
+#if CONFIG_EMB_TIME_CATCH_UP
+static emb_tick_t missed; /* lock domain: the timeout lock; ticks the next tick adds */
+#endif
 
 /* ---- clock ---------------------------------------------------------------------- */
 
@@ -478,7 +492,12 @@ void embk_time_timer_isr(void)
     }
 #else
     clock_write_begin();
+#if CONFIG_EMB_TIME_CATCH_UP
+    ts.ticks += 1u + missed; /* and those that passed with interrupts held off (A122) */
+    missed = 0u;
+#else
     ts.ticks++;
+#endif
     clock_write_end();
     EMBK_TRACE(EMB_TRACE_TICK, (uint32_t)ts.ticks, 0u, 0u);
 #endif
@@ -488,6 +507,17 @@ void embk_time_timer_isr(void)
 #endif
     embk_time_program();
     embk_unlock_timeout(key);
+}
+
+void embk_time_ticks_missed(emb_tick_t n)
+{
+#if CONFIG_EMB_TIME_CATCH_UP
+    emb_irq_key_t key = embk_lock_timeout();
+    missed += n;
+    embk_unlock_timeout(key);
+#else
+    (void)n; /* tickless: the clock reads the hardware counter; or no flash to stall it */
+#endif
 }
 
 void embk_time_on_wake(void)

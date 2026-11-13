@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Mutexes (SPEC-005 §3): one type, protocol INHERIT (default), CEILING, or NONE,
- * optionally recursive; hand-off to the first waiter on unlock (no barging);
- * deadlock detection along the inheritance chain; owner-death policy from
- * CONFIG_EMB_MUTEX_OWNER_DEATH. Mutating operations are thread-only; is_owner returns false in an
- * ISR.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    mutex.h
+ * @brief   Mutexes (SPEC-005 §3).
+ *
+ * @details
+ * One type, protocol INHERIT (default), CEILING, or NONE, optionally recursive; hand-off to the
+ * first waiter on unlock (no barging); deadlock detection along the inheritance chain; owner-death
+ * policy from CONFIG_EMB_MUTEX_OWNER_DEATH. Mutating operations are thread-only; is_owner returns
+ * false in an ISR.
+ *
+ * @see     kernel/sync/mutex.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_MUTEX_H
 #define EMB_MUTEX_H

@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * STM32F4 clock-tree bring-up (RM0390 Rev 6 §5.1.4, §6.3). The sequence is fixed; the values
- * (oscillator, PLL factors, regulator scale, over-drive, wait states, dividers) come from the
- * generated hw_config.h, where emb-hwgen's solver checked them against the SoC's limits.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32f4_rcc.c
+ * @brief   STM32F4 clock-tree bring-up (RM0390 Rev 6 §5.1.4, §6.3).
+ *
+ * @details
+ * The sequence is fixed; the values (oscillator, PLL factors, regulator scale, over-drive, wait
+ * states, dividers) come from the generated hw_config.h, where emb-hwgen's solver checked them
+ * against the SoC's limits.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb_stm32_drivers.h>
 #include <hw_config.h>
@@ -135,14 +147,20 @@ int emb_stm32f4_clock_init(void)
     return wait_for(&RCC_CFGR, CFGR_SWS_MASK, (uint32_t)EMB_HW_SYSCLK_SOURCE << CFGR_SWS_SHIFT);
 }
 
-/* RCC_CSR (RM0390 §6.3.27): the reset flags of the last reset, cleared here so that the next
- * reset's are its own. */
+/* RCC_CSR (RM0390 §6.3.27): the reset flags of the last reset, read once and cleared so that
+ * the next reset's are its own; every later call gives the same flags, so the watchdog's
+ * driver and an application both see this boot's cause. */
 #define RCC_CSR  REG32(EMB_HW_RCC_BASE + 0x74u)
 #define CSR_RMVF (1u << 24)
 
 uint32_t emb_stm32f4_reset_flags_take(void)
 {
-    uint32_t flags = RCC_CSR & EMB_STM32F4_RESET_MASK;
-    RCC_CSR |= CSR_RMVF;
-    return flags;
+    static uint32_t boot_flags;
+    static uint8_t boot_flags_read;
+    if (boot_flags_read == 0u) {
+        boot_flags = RCC_CSR & EMB_STM32F4_RESET_MASK;
+        RCC_CSR |= CSR_RMVF;
+        boot_flags_read = 1u;
+    }
+    return boot_flags;
 }

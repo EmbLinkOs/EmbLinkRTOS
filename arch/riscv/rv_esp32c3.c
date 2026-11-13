@@ -1,11 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The RISC-V port on the ESP32-C3 (docs/ports/riscv.md; Espressif's ESP32-C3 Technical
- * Reference Manual v1.4, chapters 1, 8, 10, 11 and 12). The part has no mtime, no
- * mtimecmp and no mie: its interrupts come through the interrupt matrix to CPU
- * interrupts 1-31, each with a type, a priority and an enable bit, above a threshold,
- * and mtvec is vectored.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rv_esp32c3.c
+ * @brief   The RISC-V port on the ESP32-C3 (docs/ports/riscv.md; Espressif's ESP32-C3 Technical
+ *          Reference Manual v1.4, chapters 1, 8, 10, 11 and 12).
+ *
+ * @details
+ * The part has no mtime, no mtimecmp and no mie: its interrupts come through the interrupt matrix
+ * to CPU interrupts 1-31, each with a type, a priority and an enable bit, above a threshold, and
+ * mtvec is vectored.
  *
  *   - the tick: SYSTIMER's comparator 0 in period mode on unit 0 (16 MHz), its source
  *     (37) on CPU interrupt 2, level-triggered, cleared through INT_CLR;
@@ -18,6 +26,9 @@
  * watchdog and timer group 0's. A second-stage bootloader stops them, and so does
  * embn_rv_soc_early_init(), first; the super watchdog is set to feed itself as
  * ESP-IDF's startup sets it.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-22 (created)
  */
 #include "rv_soc.h"
 

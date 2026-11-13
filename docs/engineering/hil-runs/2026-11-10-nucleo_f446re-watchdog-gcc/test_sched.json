@@ -1,0 +1,101 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 6,
+      "name": "sched_raising_a_ready_thread_above_the_caller_preempts",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_thread_self_and_priorities",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "sched_idle_runs_when_nothing_is_ready",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 1,
+      "name": "sched_blocking_under_scheduler_lock_is_misuse",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 8,
+      "name": "sched_preempted_thread_goes_ahead_of_its_peers",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "sched_fifo_within_level_and_yield_rotates",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_yield_never_to_lower_priority",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "sched_lock_defers_preemption_until_unlock",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 3,
+      "name": "sched_higher_priority_runs_first",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-09T23:24:13Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "a753436b81822c32",
+    "profile": "base",
+    "suite": "test_sched"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 1,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/cm4-nucleo-hil/tests/conformance/test_sched.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_sched.elf": "f1c8599542aca6473c85400598dc2a626f3c0201792381706d59c005f06b814d"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "4b3f1872e4d4031bbd2a637567d17d7eee5b1c8b",
+    "dirty": false
+  },
+  "image": "test_sched.elf",
+  "image_sha256": "f1c8599542aca6473c85400598dc2a626f3c0201792381706d59c005f06b814d",
+  "isr_stack": {
+    "size": 2048,
+    "used": 208
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem11103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-09T23:24:11Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 9
+  }
+}

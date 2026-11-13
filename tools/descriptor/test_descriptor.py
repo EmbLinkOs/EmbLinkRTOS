@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The descriptor reader on synthetic memory, and its index list against include/emb/debug.h."""
 import re
 import struct
@@ -123,6 +127,35 @@ class Reader(unittest.TestCase):
         m.put(DESC, blob)
         with self.assertRaisesRegex(dd.DescriptorError, "version 9"):
             dd.Descriptor(m, DESC)
+
+    def test_devices(self):
+        """SPEC-016 §9: the board's devices in order, with lifecycle, level and last status."""
+        m = build()
+        blob = bytearray(m.blobs[DESC])
+        table, array, d1, d2, s1, s2, names = 0x5000, 0x5010, 0x5020, 0x5040, 0x5060, 0x5070, 0x5080
+        vals = {"DEVICE_TABLE": table, "DT_DEVICES": 0, "DT_COUNT": 4, "DT_EARLY": 6, "D_NAME": 0, "D_STATE": 12,
+                "D_CLASS": 24, "DS_LIFECYCLE": 0, "DS_LAST_STATUS": 4}
+        for name, value in vals.items():
+            struct.pack_into("<I", blob, 16 + 4 * dd.INDEXES.index(name), value)
+        m.put(DESC, bytes(blob))
+        m.put(table, struct.pack("<IHH", array, 2, 1))
+        m.put(array, struct.pack("<II", d1, d2))
+        for dev, name, state, cls in ((d1, names, s1, 1), (d2, names + 8, s2, 5)):
+            b = bytearray(32)
+            struct.pack_into("<I", b, 0, name)
+            struct.pack_into("<I", b, 12, state)
+            struct.pack_into("<H", b, 24, cls)
+            m.put(dev, bytes(b))
+        m.put(s1, struct.pack("<BBBBh", 2, 0, 0, 0, 0) + bytes(4))
+        m.put(s2, struct.pack("<BBBBh", 4, 0, 0, 0, -5) + bytes(4))
+        m.put(names, b"uart0\0\0\0wdt\0")
+        devs = dd.Descriptor(m, DESC).devices()
+        self.assertEqual([(x["name"], x["class"], x["level"], x["lifecycle"], x["last_status"]) for x in devs],
+                         [("uart0", "uart", "early", "ready", 0), ("wdt", "watchdog", "kernel", "failed", -5)])
+        self.assertIn("wdt     watchdog  kernel  failed  -5", dd.device_table(devs))
+
+    def test_no_devices(self):
+        self.assertEqual(dd.Descriptor(build(), DESC).devices(), [])  # ABSENT: CONFIG_EMB_DEVICE=n
 
     def test_older_kernel_has_fewer_values(self):
         m = build()

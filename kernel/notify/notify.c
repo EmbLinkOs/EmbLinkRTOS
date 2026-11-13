@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Thread notifications (SPEC-006 §2): level-sensitive bits with hand-off on satisfaction. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    notify.c
+ * @brief   Thread notifications (SPEC-006 §2): level-sensitive bits with hand-off on satisfaction.
+ *
+ * @see     include/emb/notify.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb/notify.h>
 
 #include <embk/binding.h>

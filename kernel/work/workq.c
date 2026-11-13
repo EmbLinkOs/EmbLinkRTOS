@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Work queues (SPEC-006 §4): a kernel thread and an intrusive FIFO. A submit appends the
- * item and sets EMB_NOTIFY_K_WORK on the queue's thread, which drains the FIFO one item
- * at a time, marking it RUNNING while its handler runs outside the critical section. A
- * submit during the handler marks the item for one more run, so an item never runs
- * concurrently with itself and no submission is lost. cancel_sync and flush wait on the
- * completion queue with the awaited item (a stack marker for flush) in wake_data.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    workq.c
+ * @brief   Work queues (SPEC-006 §4): a kernel thread and an intrusive FIFO.
+ *
+ * @details
+ * A submit appends the item and sets EMB_NOTIFY_K_WORK on the queue's thread, which drains the FIFO
+ * one item at a time, marking it RUNNING while its handler runs outside the critical section. A
+ * submit during the handler marks the item for one more run, so an item never runs concurrently
+ * with itself and no submission is lost. cancel_sync and flush wait on the completion queue with
+ * the awaited item (a stack marker for flush) in wake_data.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/storage.h>
 #include <emb/thread.h>

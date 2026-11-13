@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Delayed work (SPEC-006 §4.3, KRN-WQ-003, KRN-WQ-007): a public work item and an
- * internal ISR_CONTEXT timer whose only action is the O(1) submit, so no second queue hop
- * is paid. While the delay runs the item holds a timer reference on its target queue,
- * which therefore cannot be destroyed (A55). The target is the armed marker: cancel clears
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    dwork.c
+ * @brief   Delayed work (SPEC-006 §4.3, KRN-WQ-003, KRN-WQ-007).
+ *
+ * @details
+ * A public work item and an internal ISR_CONTEXT timer whose only action is the O(1) submit, so no
+ * second queue hop is paid. While the delay runs the item holds a timer reference on its target
+ * queue, which therefore cannot be destroyed (A55). The target is the armed marker: cancel clears
  * it, so an expiry already past its timer but not yet submitting does nothing.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-30 (created)
  */
 #include <emb/storage.h>
 #include <emb/timer.h>

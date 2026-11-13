@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32F4 ADC1 reading the internal temperature sensor on an external trigger (RM0390 Rev 6
- * §13): one regular conversion of channel 18 per TIM2 TRGO edge, its end-of-conversion
- * interrupt on, and the factory calibration (DS10693 §6.3.22) to turn a reading into degrees. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32f4_adc.c
+ * @brief   STM32F4 ADC1 reading the internal temperature sensor on an external trigger (RM0390 Rev
+ *          6 §13).
+ *
+ * @details
+ * One regular conversion of channel 18 per TIM2 TRGO edge, its end-of-conversion interrupt on, and
+ * the factory calibration (DS10693 §6.3.22) to turn a reading into degrees.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-07 (created)
+ */
 #include <emb_stm32_drivers.h>
 
 #define REG32(a)       (*(volatile uint32_t *)(uintptr_t)(a))

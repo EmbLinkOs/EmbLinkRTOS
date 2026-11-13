@@ -1,11 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The debug descriptor (SPEC-015 §5, ADR-011, OBS-008, PORT-012, A107): a read-only table
- * every image exports at the symbol emb_debug_descriptor, so that a debugger or a memory
- * dump reader finds the kernel's threads, their states, priorities, stacks and owned
- * mutexes, and each switched-out thread's saved registers, without knowing the private
- * structures' layout.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    debug.h
+ * @brief   The debug descriptor (SPEC-015 §5, ADR-011, OBS-008, PORT-012, A107).
+ *
+ * @details
+ * A read-only table every image exports at the symbol emb_debug_descriptor, so that a debugger or a
+ * memory dump reader finds the kernel's threads, their states, priorities, stacks and owned
+ * mutexes, and each switched-out thread's saved registers, without knowing the private structures'
+ * layout.
  *
  * The format is the header below followed by `count` values, each `pointer_size` bytes in
  * the image's byte order: an address, a field offset, a size or a small constant, by the
@@ -13,6 +21,9 @@
  * (all ones). Indexes are append-only: a later kernel adds values at the end and raises
  * count, never moves or redefines one; `version` changes only if the header itself does.
  * tools/descriptor reads it (docs/engineering/debug-descriptor.md).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #ifndef EMB_DEBUG_H
 #define EMB_DEBUG_H
@@ -123,6 +134,16 @@ enum emb_debug_index {
     EMB_DEBUG_FRAME_SIZE,        /* bytes the table covers from the saved sp */
     EMB_DEBUG_FRAME_TABLE,       /* address of uint8_t pairs: GDB register number, word */
     EMB_DEBUG_FRAME_TABLE_COUNT, /* pairs */
+    /* the board's devices (SPEC-016 §9); ABSENT without CONFIG_EMB_DEVICE */
+    EMB_DEBUG_DEVICE_TABLE,   /* address of emb_board_device_table (<emb/device.h>) */
+    EMB_DEBUG_DT_DEVICES,     /* offset of its array of device pointers, pointer-sized */
+    EMB_DEBUG_DT_COUNT,       /* offset of its device count, 2 bytes */
+    EMB_DEBUG_DT_EARLY,       /* offset of how many come first at the EARLY level, 2 bytes */
+    EMB_DEBUG_D_NAME,         /* offset of a device's name, pointer-sized */
+    EMB_DEBUG_D_STATE,        /* offset of its state's address, pointer-sized */
+    EMB_DEBUG_D_CLASS,        /* offset of its class, 2 bytes: EMB_DRV_CLASS_* */
+    EMB_DEBUG_DS_LIFECYCLE,   /* offset in the state of the lifecycle, 1 byte: EMB_DEVICE_* */
+    EMB_DEBUG_DS_LAST_STATUS, /* offset in the state of the last status, 2 bytes, signed */
     EMB_DEBUG_COUNT
 };
 

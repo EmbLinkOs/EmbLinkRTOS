@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32 general-purpose timer as a periodic trigger (RM0390 Rev 6 §18): its update event drives
- * TRGO, which another peripheral (ADC1's regular conversions) takes as its start. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_tim.c
+ * @brief   STM32 general-purpose timer as a periodic trigger (RM0390 Rev 6 §18).
+ *
+ * @details
+ * Its update event drives TRGO, which another peripheral (ADC1's regular conversions) takes as its
+ * start.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-07 (created)
+ */
 #include <emb_stm32_drivers.h>
 
 #define REG32(a)    (*(volatile uint32_t *)(uintptr_t)(a))
