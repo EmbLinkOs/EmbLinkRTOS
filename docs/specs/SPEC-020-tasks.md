@@ -2,7 +2,7 @@
 
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; the configurator phase implements it.
 
-**Status:** Proposed 2026-11-13 for the project owner's acceptance, from the owner's decisions of that day (§10).
+**Status:** Accepted 2026-11-13 by the project owner ("accept as written"), with the decisions of §10.
 **Requirements:** KRN-THR (threads), KRN-SYN (message queues); new requirements are listed in §9.
 **Builds on:** SPEC-008 (threads), SPEC-005 §5 (message queues), SPEC-003 (time), SPEC-014 §5 (the system description, A125, A126).
 

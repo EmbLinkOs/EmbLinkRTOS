@@ -196,7 +196,7 @@ After the link, the build compares each thread's `stack` with the worst case the
 
 ### 5.3 Tasks, editable outputs and the layout
 
-*Proposed by [A126](AMENDMENTS-M4.md) on 2026-11-13, for the project owner's acceptance. Where it differs from §5.1, it replaces it.*
+*Added by [A126](AMENDMENTS-M4.md), accepted by the project owner on 2026-11-13. Where it differs from §5.1, it replaces it.*
 
 **Tasks.** A system's `tasks:` declares threads written as state machines ([SPEC-020](SPEC-020-tasks.md)): each task has its model (event or periodic), states, events and handlers, and the generator writes their tables and threads.
 
