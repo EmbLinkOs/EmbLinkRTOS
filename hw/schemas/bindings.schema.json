@@ -17,6 +17,7 @@
   },
   "$defs": {
     "c_ident": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+    "expr": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash|takes)(\\.[A-Za-z0-9_]+)+$" },
     "binding": {
       "type": "object",
       "required": ["class", "level", "sources", "header", "api", "config"],
@@ -36,7 +37,24 @@
         "data": { "$ref": "#/$defs/c_ident" },
         "fields": {
           "type": "object",
-          "additionalProperties": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" }
+          "additionalProperties": { "oneOf": [
+            { "$ref": "#/$defs/expr" },
+            {
+              "description": "a field with a default, for a device that does not give it (A129)",
+              "type": "object",
+              "required": ["from", "default"],
+              "additionalProperties": false,
+              "properties": {
+                "from": { "$ref": "#/$defs/expr" },
+                "default": { "type": ["integer", "boolean"] }
+              }
+            }
+          ] }
+        },
+        "takes": {
+          "description": "peripherals a device takes for itself besides its own, by the device key that names each, with the compatible it must have: an ADC's pacing timer (trigger: tim2, A129); a field reads one as takes.<key>.<field>",
+          "type": "object",
+          "additionalProperties": { "type": "string" }
         },
         "buffers": {
           "type": "object",
@@ -45,7 +63,7 @@
             "required": ["size"],
             "additionalProperties": false,
             "properties": {
-              "size": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash)(\\.[A-Za-z0-9_]+)+$" },
+              "size": { "type": "string", "pattern": "^(peripheral|device|board|soc|pins|dma|flash|takes)(\\.[A-Za-z0-9_]+)+$" },
               "default": { "type": "integer", "minimum": 1, "maximum": 65535 }
             }
           }

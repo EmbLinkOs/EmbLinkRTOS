@@ -268,8 +268,24 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             err(at, why)
             continue
         b, _, origin = bound
+        takes = {}
+        for key, want in sorted(b.get("takes", {}).items()):  # its other peripherals (A129)
+            tname = e.get(key)
+            if not isinstance(tname, str):
+                err(at, f"the {compat} binding takes a {want} peripheral as {key}: name one ({key}: <peripheral>)")
+                continue
+            tp = periph.get(tname)
+            if tp is None:
+                err(f"{at}.{key}", f"unresolved reference: the SoC has no peripheral {tname!r}")
+            elif tp["compatible"] != want:
+                err(f"{at}.{key}", f"{tname} is a {tp['compatible']}, not the {want} the {compat} binding takes")
+            elif tname in used:
+                err(f"{at}.{key}", f"{tname} is already the device {used[tname]}")
+            else:
+                used[tname] = f"{e['name']} (its {key})"
+                takes[key] = tp
         devs[e["name"]] = {"index": i, "entry": e, "peripheral": p, "compatible": compat, "binding": b,
-                           "origin": origin, "level": e.get("level", b["level"])}
+                           "origin": origin, "level": e.get("level", b["level"]), "takes": takes}
 
     _dma_assign(devs, sorted(devs, key=lambda n: devs[n]["index"]), err)
     clock_devs = [n for n in names if n in devs and devs[n]["binding"]["class"] == "clock"]
@@ -279,8 +295,9 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         if "bus" in e:
             deps.append(e["bus"])
         deps += sorted({c["dma"] for c in d["dma"].values()})  # its DMA controllers first
-        if d["peripheral"] is not None and d["peripheral"].get("clock") and d["binding"]["class"] != "clock":
-            deps += clock_devs  # the clock tree first: it gates this one (SPEC-016 §4)
+        gated = [x for x in [d["peripheral"]] + list(d["takes"].values()) if x is not None and x.get("clock")]
+        if gated and d["binding"]["class"] != "clock":
+            deps += clock_devs  # the clock tree first: it gates this one, or what it takes (SPEC-016 §4)
         d["deps"] = []
         for dep in deps:
             if dep not in names:
@@ -325,11 +342,15 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             ctx["flash"] = {"geometry": _flash_geometry(n, e, soc.data, err)}
         if d["peripheral"] is not None:
             ctx["peripheral"] = _peripheral_view(d["peripheral"], soc.data, clk)
+        ctx["takes"] = {k: _peripheral_view(tp, soc.data, clk) for k, tp in d["takes"].items()}
         if "bus" in e:
             ctx["device"]["bus"] = {"device": e["bus"]}
         fields = []
-        for field, expr in b.get("fields", {}).items():
+        for field, spec in b.get("fields", {}).items():
+            expr, default = (spec, None) if isinstance(spec, str) else (spec["from"], spec["default"])
             v = _lookup(ctx, expr)
+            if v is None and default is not None:
+                v = default  # the device does not give it (A129)
             if v is None and expr.startswith("dma."):
                 v = {"dma": None}  # a request the board gives no channel: none
             if v is None and expr.startswith("pins."):
@@ -376,7 +397,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             # what a system description may set (A125): the options the binding reads from the
             # device, and the limits its driver states for targets and timeouts
             "options": sorted({x[len("device."):].split(".")[0] for x in
-                               list(b.get("fields", {}).values()) + [v["size"] for v in b.get("buffers", {}).values()]
+                               [s if isinstance(s, str) else s["from"] for s in b.get("fields", {}).values()]
+                               + [v["size"] for v in b.get("buffers", {}).values()]
                                if x.startswith("device.") and x != "device.bus"}),
             "limits": b.get("limits", {}),
         })

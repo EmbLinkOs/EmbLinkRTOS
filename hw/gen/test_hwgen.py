@@ -762,6 +762,41 @@ class Devices(unittest.TestCase):
         self.expect(r"the key names the class pwm, the binding adc", file="drivers/bindings.yaml",
                     needle="st,stm32-tim:pwm:", path="bindings.st,stm32-tim:pwm")
 
+    ADC_BINDING = (
+        "  st,stm32f4-adc: { class: adc, level: kernel, sources: [drivers/st/adc.c], header: adc.h, api: adc_api,\n"
+        "                    config: adc_config_t, takes: { trigger: \"st,stm32-tim\" },\n"
+        "                    fields: { base: peripheral.base, trigger: takes.trigger.base,\n"
+        "                              trigger_hz: takes.trigger.timer_clock_hz, trigger_bit: takes.trigger.clock.bit,\n"
+        "                              vref_mv: { from: device.vref_mv, default: 3300 } } }\n"
+        "  acme,part:")
+
+    def test_taken_peripheral_and_field_default(self):
+        """A129: an ADC takes its pacing timer, named by the device (trigger: tim2), and its
+        fields read it; a field with a default takes it where the device gives none."""
+        self.root.edit("drivers/bindings.yaml", "  acme,part:", self.ADC_BINDING)
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: rcc }", "{ name: rcc }\n  - { name: adc1, trigger: tim2 }")
+        devs = {d["name"]: d for d in self.root.resolve()["devices"]}
+        self.assertEqual({f["field"]: f["c"] for f in devs["adc1"]["fields"]},
+                         {"base": "0x40012000u", "trigger": "0x40000000u", "trigger_hz": "90000000u",
+                          "trigger_bit": "0u", "vref_mv": "3300u"})
+        self.assertEqual(devs["adc1"]["deps"], ["rcc"])
+        self.assertEqual(devs["adc1"]["options"], ["vref_mv"])  # what a system may set
+        self.root.edit(f"{BOARD}/board.yaml", "trigger: tim2 }", "trigger: tim2, vref_mv: 3000 }")
+        devs = {d["name"]: d for d in self.root.resolve()["devices"]}
+        self.assertIn({"field": "vref_mv", "expr": "device.vref_mv", "value": 3000, "c": "3000u"}, devs["adc1"]["fields"])
+
+    def test_taken_peripheral_checked(self):
+        self.root.edit("drivers/bindings.yaml", "  acme,part:", self.ADC_BINDING)
+        f = f"{BOARD}/board.yaml"
+        self.root.edit(f, "{ name: rcc }", "{ name: rcc }\n  - { name: adc1 }")
+        self.expect(r"the st,stm32f4-adc binding takes a st,stm32-tim peripheral as trigger: name one",
+                    needle="name: adc1", path="devices.adc1")
+        self.root.edit(f, "{ name: adc1 }", "{ name: adc1, trigger: usart2 }")
+        self.expect(r"usart2 is a st,stm32-usart, not the st,stm32-tim the st,stm32f4-adc binding takes",
+                    needle="name: adc1", path="devices.adc1.trigger")
+        self.root.edit(f, "trigger: usart2 }", "trigger: tim2 }\n  - { name: tim2 }")
+        self.expect(r"tim2 is already the device adc1 \(its trigger\)", needle="name: tim2", path="devices.tim2")
+
     def test_buffers(self):
         """A binding's buffers: sized by a device property or the binding's default, emitted as
         RAM beside the configuration, which names them and their sizes."""
