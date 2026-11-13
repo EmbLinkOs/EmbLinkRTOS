@@ -390,6 +390,8 @@ jobs:
         run: python3 -I -m unittest discover -s tools/logdec -p 'test_*.py' -v
       - name: Trace converter's tests (A128)
         run: python3 -I -m unittest discover -s tools/trace -p 'test_*.py' -v
+      - name: The emb command-line tool's tests (BLD-005)
+        run: python3 -I -m unittest discover -s tools/emb -p 'test_*.py' -v
       - name: EmbSIM runner, its project mode (SIM-002)
         run: python3 -I -m unittest discover -s tools/embsim -p 'test_*.py' -v
       - name: UF2 writer (A79)

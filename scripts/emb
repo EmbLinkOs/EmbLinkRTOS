@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
+# emb: the command-line tool (BLD-005), tools/emb/emb.py. Put scripts/ on PATH, or call it here.
+here=$(cd "$(dirname "$0")" && pwd)
+exec "${EMB_PYTHON:-python3}" "$here/../tools/emb/emb.py" "$@"
