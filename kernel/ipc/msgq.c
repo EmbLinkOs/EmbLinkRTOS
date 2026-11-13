@@ -1,12 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Message queues (SPEC-007 §2): fixed-size items copied by value through a caller's ring,
- * with a wait queue for receivers (while empty) and one for senders (while full). A send
- * copies straight into a waiting receiver's out_item, whose pointer waits in wake_data; a
- * receive that frees a slot moves the first waiting sender's item, whose pointer waits in
- * wake_data likewise, into the ring. A woken thread never re-checks. Each section copies
- * at most two items of at most CONFIG_EMB_MSGQ_MAX_ITEM bytes (KRN-IPC-011).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    msgq.c
+ * @brief   Message queues (SPEC-007 §2).
+ *
+ * @details
+ * Fixed-size items copied by value through a caller's ring, with a wait queue for receivers (while
+ * empty) and one for senders (while full). A send copies straight into a waiting receiver's
+ * out_item, whose pointer waits in wake_data; a receive that frees a slot moves the first waiting
+ * sender's item, whose pointer waits in wake_data likewise, into the ring. A woken thread never
+ * re-checks. Each section copies at most two items of at most CONFIG_EMB_MSGQ_MAX_ITEM bytes
+ * (KRN-IPC-011).
+ *
+ * @see     include/emb/msgq.h
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/msgq.h>
 #include <emb/storage.h>

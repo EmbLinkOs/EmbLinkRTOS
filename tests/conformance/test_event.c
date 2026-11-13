@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Event flag conformance (SPEC-005 §5; KRN-SYNC-029, KRN-SYNC-035, KRN-WAIT-013). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_event.c
+ * @brief   Event flag conformance (SPEC-005 §5; KRN-SYNC-029, KRN-SYNC-035, KRN-WAIT-013).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #include <emb_test.h>
 
 #define E0    ((emb_event_bits_t)0x01u)

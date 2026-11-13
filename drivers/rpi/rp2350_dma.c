@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RP2350's DMA controller (datasheet §12.6; register offsets and bits as pico-sdk 2.1.1's
- * hardware/regs/dma.h names them) as a DMA class device (SPEC-017 §7, A119): a job per
- * channel, paced by the DREQ the generator gave it, or always ready for memory to memory; its
- * end on DMA_IRQ_0. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_dma.c
+ * @brief   The RP2350's DMA controller (datasheet §12.6; register offsets and bits as pico-sdk
+ *          2.1.1's hardware/regs/dma.h names them) as a DMA class device (SPEC-017 §7, A119).
+ *
+ * @details
+ * A job per channel, paced by the DREQ the generator gave it, or always ready for memory to memory;
+ * its end on DMA_IRQ_0.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_rp2350_devices.h>

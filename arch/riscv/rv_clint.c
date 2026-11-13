@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The RISC-V port on a CLINT (QEMU virt; docs/ports/riscv.md): the machine timer (mtime,
- * mtimecmp) as the periodic tick and the cycle counter, the machine software interrupt
- * (msip) as interrupt 0, mtvec in direct mode. The PLIC's sources come later.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rv_clint.c
+ * @brief   The RISC-V port on a CLINT (QEMU virt; docs/ports/riscv.md).
+ *
+ * @details
+ * The machine timer (mtime, mtimecmp) as the periodic tick and the cycle counter, the machine
+ * software interrupt (msip) as interrupt 0, mtvec in direct mode. The PLIC's sources come later.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-22 (created)
  */
 #include "rv_soc.h"
 

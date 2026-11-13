@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # ESP32-C3-DevKitM-1 (V1.0): the ESP32-C3-MINI-1, RV32IMC, booted by its ROM from the image
 # at flash offset 0 (tools/esp/esp_image.py), everything in internal SRAM.
 set(EMB_BOARD_ARCH riscv)

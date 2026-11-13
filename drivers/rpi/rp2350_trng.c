@@ -1,13 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RP2350's true random number generator (datasheet §12.12; registers as pico-sdk 2.1.1's
- * hardware/regs/trng.h names them) as an entropy class device (SPEC-017 §11, A124): a ring
- * oscillator sampled into 192-bit blocks, each passing the block's own health tests (the von
- * Neumann corrector, the continuous test, the autocorrelation test), which pico-sdk's
- * pico_rand bypasses and this driver keeps. A block's end, or a test's failure, raises the
- * TRNG's interrupt, which wakes the read. A failed block is discarded: after the von Neumann or
- * the continuous test the source starts again; after the autocorrelation test, which only a
- * reset of the block clears, the TRNG is reset and set up again. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_trng.c
+ * @brief   The RP2350's true random number generator (datasheet §12.12; registers as pico-sdk
+ *          2.1.1's hardware/regs/trng.h names them) as an entropy class device (SPEC-017 §11,
+ *          A124).
+ *
+ * @details
+ * A ring oscillator sampled into 192-bit blocks, each passing the block's own health tests (the von
+ * Neumann corrector, the continuous test, the autocorrelation test), which pico-sdk's pico_rand
+ * bypasses and this driver keeps. A block's end, or a test's failure, raises the TRNG's interrupt,
+ * which wakes the read. A failed block is discarded: after the von Neumann or the continuous test
+ * the source starts again; after the autocorrelation test, which only a reset of the block clears,
+ * the TRNG is reset and set up again.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 #include <emb/sem.h>
 

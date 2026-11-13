@@ -158,23 +158,23 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     },
     {
       "path": "boards/arm/mps2_an385/board.yaml",
-      "sha256": "ffb11f5ba747481a9325d7dc88102f9a7fe61b978a497e8ee77fc62acff584ce"
+      "sha256": "a5b0b55c085af47e34d849874a2b9c5d70300eb3cd49ec418adc5b0a9bb43c08"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
+      "sha256": "e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
     },
     {
       "path": "soc/arm/mps2/an385.yaml",
-      "sha256": "95046802bc5d77858700f8d31c2c1353c6305223b768bbc2b6eb6ed36318d3ec"
+      "sha256": "a33c411be3b6ebf62765e2f39d0065dfe40520d534ebe7b83cdfa16814488a4b"
     },
     {
       "path": "soc/arm/mps2/mps2.yaml",
-      "sha256": "5f1a9b6b2fbaad815ac91a8f226d1359f307bce78b388c93e2fae759b29be8d7"
+      "sha256": "7bc066c165dbd50db2c6c3e35cf8a3f12ae360b7ad578cfe06983b3f807d1d71"
     }
   ],
   "schema_version": 0,

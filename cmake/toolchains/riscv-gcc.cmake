@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # RV32 with the riscv64-unknown-elf GCC and picolibc. The ISA and ABI flags come from
 # the board (EMB_BOARD_C_FLAGS in board.cmake).
 set(CMAKE_SYSTEM_NAME Generic)

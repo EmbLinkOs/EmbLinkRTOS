@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Thread lifecycle (SPEC-008), sleep and yield (SPEC-003 §6), priorities
- * (SPEC-005 §2). Threads live in caller-provided storage, are joinable by default,
- * end only by their own action, and keep their object until joined, detached, or
- * destroyed (KRN-THR-006).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    thread.h
+ * @brief   Thread lifecycle (SPEC-008), sleep and yield (SPEC-003 §6), priorities (SPEC-005 §2).
+ *
+ * @details
+ * Threads live in caller-provided storage, are joinable by default, end only by their own action,
+ * and keep their object until joined, detached, or destroyed (KRN-THR-006).
+ *
+ * @see     kernel/thread/thread.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_THREAD_H
 #define EMB_THREAD_H

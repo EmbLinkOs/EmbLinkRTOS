@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The software watchdog (FLT-004, A121), over a fake hardware watchdog that counts its feeds:
- * it feeds while every party checks in within its window; one that misses stops the feeding
- * for good and is written into the crash record. The hardware's reset itself is
- * test_wdog_board's. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_wdog.c
+ * @brief   The software watchdog (FLT-004, A121), over a fake hardware watchdog that counts its
+ *          feeds.
+ *
+ * @details
+ * It feeds while every party checks in within its window; one that misses stops the feeding for
+ * good and is written into the crash record. The hardware's reset itself is test_wdog_board's.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/crash.h>
 
 #include <embk/crash.h>

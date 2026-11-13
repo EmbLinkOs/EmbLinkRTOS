@@ -1,7 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Devices and driver requests (SPEC-016): the device instance, its lifecycle, and the
- * request/completion core every driver class is built on. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    device.h
+ * @brief   Devices and driver requests (SPEC-016).
+ *
+ * @details
+ * The device instance, its lifecycle, and the request/completion core every driver class is built
+ * on.
+ *
+ * @see     kernel/device/device.c
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #ifndef EMB_DEVICE_H
 #define EMB_DEVICE_H
 

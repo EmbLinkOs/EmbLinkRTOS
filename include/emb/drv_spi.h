@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The SPI controller class (SPEC-017 §5): transfers to a target in its mode, at its speed
- * and word size, their blocking wrapper, and what a driver shares to serve them. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_spi.h
+ * @brief   The SPI controller class (SPEC-017 §5).
+ *
+ * @details
+ * Transfers to a target in its mode, at its speed and word size, their blocking wrapper, and what a
+ * driver shares to serve them.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_SPI_H
 #define EMB_DRV_SPI_H
 

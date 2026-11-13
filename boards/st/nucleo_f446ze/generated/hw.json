@@ -349,27 +349,27 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     },
     {
       "path": "boards/st/nucleo_f446ze/board.yaml",
-      "sha256": "d94b79c733adb17fba6ef0f0a92addecacafe2f49e37b20aa93da91db1479a7d"
+      "sha256": "1525ea206692663af174039e30776d6a9a9b30275c9e5c9bdabf14ac0b70aa19"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
+      "sha256": "e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
-      "sha256": "5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
+      "sha256": "3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f"
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f"
+      "sha256": "0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055"
     },
     {
       "path": "soc/st/stm32f4/stm32f446ze.yaml",
-      "sha256": "98a26960619bbcfc7b436999b5aca354464a19aa72f3ca94f7b11b9a5cc17002"
+      "sha256": "dabae95e9e4bc984c1a33275966665e0252068e929fe3b430d06589da6bdb6c9"
     }
   ],
   "schema_version": 0,
@@ -1260,7 +1260,7 @@
   },
   "warnings": [
     "boards/st/nucleo_f446ze/board.yaml:1: (root): uncurated description (curated: false or absent)",
-    "soc/st/stm32f4/stm32f4.yaml:17: cpu.mpu: the cortex_m port does not use the MPU yet",
+    "soc/st/stm32f4/stm32f4.yaml:21: cpu.mpu: the cortex_m port does not use the MPU yet",
     "soc/st/stm32f4/stm32f446ze.yaml:1: (root): uncurated description (curated: false or absent)"
   ]
 }

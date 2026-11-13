@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The DMA class (SPEC-017 §7, A119; DRV-004, DRV-006): its checks over a driver's channels,
- * through a fake controller of two channels whose jobs end when the test says. A board whose
- * memory DMA reaches nothing (an emulator's without a DMA controller) skips what needs it. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_dma.c
+ * @brief   The DMA class (SPEC-017 §7, A119; DRV-004, DRV-006).
+ *
+ * @details
+ * Its checks over a driver's channels, through a fake controller of two channels whose jobs end
+ * when the test says. A board whose memory DMA reaches nothing (an emulator's without a DMA
+ * controller) skips what needs it.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <stdint.h>
 
 #include <emb_test.h>

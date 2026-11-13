@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* A bus held across requests (SPEC-016 §6): what a class keeps, first in each controller's
- * RAM, so that one target has the bus for a sequence of transfers. The SPI and I2C classes
- * build their acquire and release on it; drivers only declare it and initialize it through
- * their class (emb_drv_spi_bus_init(), emb_drv_i2c_bus_init()). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_bus.h
+ * @brief   A bus held across requests (SPEC-016 §6).
+ *
+ * @details
+ * What a class keeps, first in each controller's RAM, so that one target has the bus for a sequence
+ * of transfers. The SPI and I2C classes build their acquire and release on it; drivers only declare
+ * it and initialize it through their class (emb_drv_spi_bus_init(), emb_drv_i2c_bus_init()).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_BUS_H
 #define EMB_DRV_BUS_H
 

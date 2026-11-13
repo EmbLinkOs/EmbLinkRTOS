@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Compiler portability layer for GCC (SPEC-001 §10, BLD-002). Nothing includes this
- * file directly: <emb/compiler.h> selects it. Every macro here has a fallback in
- * <emb/compiler.h>; this file defines only what GCC does better than the fallback.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    gcc.h
+ * @brief   Compiler portability layer for GCC (SPEC-001 §10, BLD-002).
+ *
+ * @details
+ * Nothing includes this file directly: <emb/compiler.h> selects it. Every macro here has a fallback
+ * in <emb/compiler.h>; this file defines only what GCC does better than the fallback.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_COMPILER_GCC_H
 #define EMB_COMPILER_GCC_H

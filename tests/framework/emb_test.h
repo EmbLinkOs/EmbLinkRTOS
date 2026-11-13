@@ -1,13 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Minimal test framework for the conformance and kernel suites (05 §4.3, CODING-STANDARD
- * §14). Tests run inside the kernel on a low-priority runner thread; each EMB_TEST
- * function creates the threads it needs at higher priorities and synchronizes with
- * kernel primitives only (CS-14.2). The same sources run on every port: the platform
- * layer (emb_test_platform.h) supplies output, the software interrupt, and the exit.
- * Requirement citations (EMB_TEST_REQ) are printed with each case, and every case ends
- * with a machine-readable outcome line (M2-04, docs/engineering/case-evidence.md).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_test.h
+ * @brief   Minimal test framework for the conformance and kernel suites (05 §4.3, CODING-STANDARD
+ *          §14).
+ *
+ * @details
+ * Tests run inside the kernel on a low-priority runner thread; each EMB_TEST function creates the
+ * threads it needs at higher priorities and synchronizes with kernel primitives only (CS-14.2). The
+ * same sources run on every port: the platform layer (emb_test_platform.h) supplies output, the
+ * software interrupt, and the exit. Requirement citations (EMB_TEST_REQ) are printed with each
+ * case, and every case ends with a machine-readable outcome line (M2-04,
+ * docs/engineering/case-evidence.md).
+ *
+ * @see     emb_test.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_TEST_H
 #define EMB_TEST_H

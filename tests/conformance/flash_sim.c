@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* A NOR flash in RAM (flash_sim.h). A torn program has programmed its first half, and of the
- * byte where it stopped only the high nibble; a torn erase has erased its first half and left
- * the byte where it stopped half set. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    flash_sim.c
+ * @brief   A NOR flash in RAM (flash_sim.h).
+ *
+ * @details
+ * A torn program has programmed its first half, and of the byte where it stopped only the high
+ * nibble; a torn erase has erased its first half and left the byte where it stopped half set.
+ *
+ * @see     flash_sim.h
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include "flash_sim.h"
 
 static flash_sim_t *flash_sim_of(const emb_device_t *dev)

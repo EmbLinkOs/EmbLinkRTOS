@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The host's sanity checks of the entropy a board printed (test_entropy_board, A124): the
 ENTROPY lines of a run's log, the conditioned sample checked against the SHA-256 the board gave
 it, then the monobit test, the byte frequencies by chi-square, the runs test (NIST SP 800-22

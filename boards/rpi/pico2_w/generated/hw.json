@@ -597,23 +597,23 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "2990e8fdb10e9a805f64ffa0542acc21e5cfdc096023a29474c6dbff314775ef"
+      "sha256": "dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "3807d1d8f7d13164fea66fefb84ecb1ac88a1c1800e7a1b9f3bc3980810169fe"
+      "sha256": "e2d41a719af169273b0f6db55ec1ad60178f0011b23f984c5691ac886decd090"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",
-      "sha256": "c13765b1e098e2dfa796f41221d5120b50df358a44c453fdd94ef2c5b53c422d"
+      "sha256": "9e60e99ecac8782bccd69e3bd69014af1d8891d6b6fbd822acff5bd9a526d8cd"
     },
     {
       "path": "soc/rpi/rp2350/rp2350a.yaml",
-      "sha256": "5e89c4ba60615ed9b7813d2393a826e3083a2503d287921af7774bcadc7293ab"
+      "sha256": "045cef7794c3b6c6d2ff48ba294c6308d00fe13bc65e346f2ba2ccde1cea24ff"
     }
   ],
   "schema_version": 0,
@@ -1100,6 +1100,6 @@
   },
   "warnings": [
     "boards/rpi/pico2_w/board.yaml:1: (root): uncurated description (curated: false or absent)",
-    "soc/rpi/rp2350/rp2350.yaml:21: cpu.mpu: the cortex_m port does not use the MPU yet"
+    "soc/rpi/rp2350/rp2350.yaml:25: cpu.mpu: the cortex_m port does not use the MPU yet"
   ]
 }

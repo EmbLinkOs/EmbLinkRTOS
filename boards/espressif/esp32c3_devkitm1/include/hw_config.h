@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Hardware configuration of esp32c3_devkitm1 (ESP32-C3-MINI-1, DevKitM-1 V1.0). Hand-written
- * from Espressif's ESP32-C3 Technical Reference Manual v1.4 and the board's schematic;
- * emb-hwgen generates it from M3 (SPEC-014). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    hw_config.h
+ * @brief   Hardware configuration of esp32c3_devkitm1 (ESP32-C3-MINI-1, DevKitM-1 V1.0).
+ *
+ * @details
+ * Hand-written from Espressif's ESP32-C3 Technical Reference Manual v1.4 and the board's schematic;
+ * emb-hwgen generates it from M3 (SPEC-014).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-22 (created)
+ */
 #ifndef HW_CONFIG_H
 #define HW_CONFIG_H
 

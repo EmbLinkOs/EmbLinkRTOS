@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Cortex-M port services for boards and tests (not kernel API): the Arm semihosting exit
- * that emulated boards end a run with, the halt that hardware boards end it with, and the
- * floating-point register probes of the FPU
- * conformance test. Inline assembly stays in arch/ (CODING-STANDARD CS-1.5).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_cortex_m.h
+ * @brief   Cortex-M port services for boards and tests (not kernel API).
+ *
+ * @details
+ * The Arm semihosting exit that emulated boards end a run with, the halt that hardware boards end
+ * it with, and the floating-point register probes of the FPU conformance test. Inline assembly
+ * stays in arch/ (CODING-STANDARD CS-1.5).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #ifndef EMB_CORTEX_M_H
 #define EMB_CORTEX_M_H

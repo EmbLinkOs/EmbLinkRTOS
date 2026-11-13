@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Scheduler lock and priority constants (SPEC-002 §5, SPEC-008 §1). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sched.h
+ * @brief   Scheduler lock and priority constants (SPEC-002 §5, SPEC-008 §1).
+ *
+ * @see     kernel/sched/sched.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_SCHED_H
 #define EMB_SCHED_H
 

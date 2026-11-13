@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The public API: an interface target with the include paths, plus the generated
 # <emb/storage.h> (SPEC-001 §6.2, SPEC-009): a probe object compiled against the real
 # kernel layout carries text markers with the sizes, so they are measured, never guessed.

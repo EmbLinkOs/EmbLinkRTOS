@@ -1,12 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RP2350's QSPI flash as a flash class device (SPEC-017 §9, A122), through the boot ROM's
- * routines (datasheet §5.5.8; the sequence pico-sdk 2.1.1's hardware_flash uses): connect the
- * flash, leave XIP, erase or program, flush the XIP cache, then run the XIP setup function the
- * boot ROM left in boot RAM, copied to RAM at initialization. While XIP is off nothing may be
- * fetched from flash: not this code, not the bytes being programmed, not an interrupt's
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_flash.c
+ * @brief   The RP2350's QSPI flash as a flash class device (SPEC-017 §9, A122), through the boot
+ *          ROM's routines (datasheet §5.5.8; the sequence pico-sdk 2.1.1's hardware_flash uses).
+ *
+ * @details
+ * Connect the flash, leave XIP, erase or program, flush the XIP cache, then run the XIP setup
+ * function the boot ROM left in boot RAM, copied to RAM at initialization. While XIP is off nothing
+ * may be fetched from flash: not this code, not the bytes being programmed, not an interrupt's
  * vector. So the routine runs from RAM (.ramfunc) with PRIMASK set, a page at a time from a RAM
- * copy, and the kernel's clock catches up after each page or sector. */
+ * copy, and the kernel's clock catches up after each page or sector.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_cortex_m.h>

@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The GPIO class (SPEC-017 §5a, A116): its checks over a driver's line operations. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    gpio.c
+ * @brief   The GPIO class (SPEC-017 §5a, A116): its checks over a driver's line operations.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_gpio.h>
 
 #include <embk/kernel.h>

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # QEMU's RISC-V virt machine with one RV32IMAC hart in machine mode, started with -bios none:
 # QEMU loads the image into RAM at 0x80000000. From QEMU's hw/riscv/virt.c. An emulation
 # reference (SIM-002): the hart has no clock of its own, the timebase is the one fixed rate.

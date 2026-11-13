@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The debug descriptor (OBS-008, PORT-012, A107), read the way a debugger reads it: this
- * test knows only <emb/debug.h> and reads memory at the addresses and offsets the
- * descriptor gives, never the kernel's structures. It sets up threads in known states,
- * finds them through the descriptor, and checks what it finds against the public API.
- * tools/descriptor runs the same image under a debugger and stops in
- * debug_descriptor_checkpoint(), where every thread is in the state checked here.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_debug_descriptor.c
+ * @brief   The debug descriptor (OBS-008, PORT-012, A107), read the way a debugger reads it.
+ *
+ * @details
+ * This test knows only <emb/debug.h> and reads memory at the addresses and offsets the descriptor
+ * gives, never the kernel's structures. It sets up threads in known states, finds them through the
+ * descriptor, and checks what it finds against the public API. tools/descriptor runs the same image
+ * under a debugger and stops in debug_descriptor_checkpoint(), where every thread is in the state
+ * checked here.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #include <emb/arch.h> /* emb_arch_isr_stack: where the port says its interrupt stack is */
 #include <emb/debug.h>

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """STM32 pin importer tests (HW-012, A85): synthetic open pin data files, the bonding masks,
 the alternate functions of the described peripherals, and the comparison that never writes.
 With EMB_PIN_DATA naming a checkout of STM32_open_pin_data, the F446RE and F446ZE are compared

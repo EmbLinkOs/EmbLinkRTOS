@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Smoke test: the kernel starts, threads run and switch, time advances. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_smoke.c
+ * @brief   Smoke test: the kernel starts, threads run and switch, time advances.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <limits.h>
 #include <stdlib.h>
 

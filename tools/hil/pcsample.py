@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """A statistical profile of a Cortex-M3/M4/M7/M33 board as it runs: OpenOCD attaches without
 halting the core and reads the DWT's PC sample register (DWT_PCSR) again and again; each read
 is where the CPU was at that instant. The samples fold into functions with the image's symbol

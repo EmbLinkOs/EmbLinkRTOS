@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The GPIO class (SPEC-017 §5a, A116): a controller's lines set as inputs or outputs, driven
- * and read, at once and from any context. What a chip select, a reset line or an LED needs;
- * a board's fixed pins stay in its generated pin table. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_gpio.h
+ * @brief   The GPIO class (SPEC-017 §5a, A116).
+ *
+ * @details
+ * A controller's lines set as inputs or outputs, driven and read, at once and from any context.
+ * What a chip select, a reset line or an LED needs; a board's fixed pins stay in its generated pin
+ * table.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_GPIO_H
 #define EMB_DRV_GPIO_H
 

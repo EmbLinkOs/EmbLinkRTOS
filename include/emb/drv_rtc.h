@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RTC class (SPEC-017 §10, A123): a clock kept across resets, its time as nanoseconds since
- * the Unix epoch (UTC), the wall clock's unit; one alarm, its callback in the alarm interrupt;
- * and backup registers where the part has them. A set RTC seeds the wall clock when its device
- * starts (<emb/wallclock.h>). The wake-up timer is M4.4's, with the power policy. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_rtc.h
+ * @brief   The RTC class (SPEC-017 §10, A123).
+ *
+ * @details
+ * A clock kept across resets, its time as nanoseconds since the Unix epoch (UTC), the wall clock's
+ * unit; one alarm, its callback in the alarm interrupt; and backup registers where the part has
+ * them. A set RTC seeds the wall clock when its device starts (<emb/wallclock.h>). The wake-up
+ * timer is M4.4's, with the power policy.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_RTC_H
 #define EMB_DRV_RTC_H
 

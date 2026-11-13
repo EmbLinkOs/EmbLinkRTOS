@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4 drivers as devices (SPEC-016): thin adapters over emb_stm32_drivers.h. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_devices.c
+ * @brief   The STM32F4 drivers as devices (SPEC-016): thin adapters over emb_stm32_drivers.h.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #include <emb_stm32_devices.h>
 #include <emb_stm32_drivers.h>
 #include <emb_stm32_pins.h>

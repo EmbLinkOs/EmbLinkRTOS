@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* A bus held across requests (SPEC-016 §6), shared by the SPI and I2C classes: a recursive
- * mutex with priority inheritance, the key of the target holding it, and its depth. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bus.c
+ * @brief   A bus held across requests (SPEC-016 §6), shared by the SPI and I2C classes.
+ *
+ * @details
+ * A recursive mutex with priority inheritance, the key of the target holding it, and its depth.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <embk/drv_bus.h>
 
 #include <stddef.h>

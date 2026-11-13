@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for every ATmega board described in YAML: the emb_board.h interface over the
- * megaAVR drivers, with the console and LED from the board's generated hw_config.h (SPEC-012 §11,
- * SPEC-014). The clock is the board's oscillator, selected by the fuses: nothing to set up.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for every ATmega board described in YAML.
+ *
+ * @details
+ * The emb_board.h interface over the megaAVR drivers, with the console and LED from the board's
+ * generated hw_config.h (SPEC-012 §11, SPEC-014). The clock is the board's oscillator, selected by
+ * the fuses: nothing to set up.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/irq.h>
 

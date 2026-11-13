@@ -1,12 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel-private core: the thread control block, per-CPU state, lock domains,
- * misuse and invariant macros, and trace macros. Every kernel module includes this.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    kernel.h
+ * @brief   Kernel-private core.
+ *
+ * @details
+ * The thread control block, per-CPU state, lock domains, misuse and invariant macros, and trace
+ * macros. Every kernel module includes this.
  *
  * Lock domains (SPEC-004 §8): on a uniprocessor every domain (object lock, scheduler
  * domain, timeout lock) is the one critical section. The names are kept distinct so
  * the SMP work can split them without touching the callers.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMBK_KERNEL_H
 #define EMBK_KERNEL_H

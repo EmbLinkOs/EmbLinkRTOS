@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The GPIO class (SPEC-017 §5a; DRV-004): its checks and a named line's sense, through a fake
- * controller of eight lines whose inputs read what its outputs drive. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_gpio.c
+ * @brief   The GPIO class (SPEC-017 §5a; DRV-004).
+ *
+ * @details
+ * Its checks and a named line's sense, through a fake controller of eight lines whose inputs read
+ * what its outputs drive.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

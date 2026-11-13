@@ -1,10 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * What the RISC-V port's common part (rv_port.c) asks of the SoC's interrupt controller
- * and timer: the CLINT (rv_clint.c) or the ESP32-C3's interrupt matrix and SYSTIMER
- * (rv_esp32c3.c). The SoC file also defines the arch API's interrupt, timer and cycle
- * functions (emb_arch_irq_*, emb_arch_timer_*, emb_arch_cycles*).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rv_soc.h
+ * @brief   What the RISC-V port's common part (rv_port.c) asks of the SoC's interrupt controller
+ *          and timer.
+ *
+ * @details
+ * The CLINT (rv_clint.c) or the ESP32-C3's interrupt matrix and SYSTIMER (rv_esp32c3.c). The SoC
+ * file also defines the arch API's interrupt, timer and cycle functions (emb_arch_irq_*,
+ * emb_arch_timer_*, emb_arch_cycles*).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-22 (created)
  */
 #ifndef EMB_RISCV_RV_SOC_H
 #define EMB_RISCV_RV_SOC_H

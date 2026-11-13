@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The kernel's side of the device model (SPEC-016 §4). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    device.h
+ * @brief   The kernel's side of the device model (SPEC-016 §4).
+ *
+ * @see     kernel/device/device.c
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #ifndef EMBK_DEVICE_H
 #define EMBK_DEVICE_H
 

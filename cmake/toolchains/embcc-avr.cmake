@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # ATmega328P with EmbCC and embld (09 §7). Untested until EmbCC is available in CI.
 # Current embld supports AVR linker scripts. This file retains the compatibility
 # option-set path of SPEC-012 §8; generated inputs and RTOS qualification remain

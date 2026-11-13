@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Message queue conformance (SPEC-007 §2; KRN-IPC-010 to 012, 018, 019). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_msgq.c
+ * @brief   Message queue conformance (SPEC-007 §2; KRN-IPC-010 to 012, 018, 019).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #include <emb_test.h>
 
 #define CAP   3u

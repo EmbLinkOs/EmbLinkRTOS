@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # emb_board for an RP2350 board described in YAML (A79): the family's board support over the
 # RP2350 drivers and the PL011's, compiled against the board's generated hw_config.h, with its
 # generated pin table and linker script, and the board's devices with the drivers they use

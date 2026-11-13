@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The entropy class (SPEC-017 §11, SEC-012, A124): a read assembled from a driver's blocks,
- * under the device's lock and one timeout, conditioned by SHA-256 over twice the raw bytes it
- * puts out (NIST SP 800-90B §3.1.5); a block that fails its health test ends the read; and
- * what the class held is cleared before it returns. The raw read skips the conditioning. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    entropy.c
+ * @brief   The entropy class (SPEC-017 §11, SEC-012, A124).
+ *
+ * @details
+ * A read assembled from a driver's blocks, under the device's lock and one timeout, conditioned by
+ * SHA-256 over twice the raw bytes it puts out (NIST SP 800-90B §3.1.5); a block that fails its
+ * health test ends the read; and what the class held is cleared before it returns. The raw read
+ * skips the conditioning.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_entropy.h>
 
 #include <embk/drv_bus.h>

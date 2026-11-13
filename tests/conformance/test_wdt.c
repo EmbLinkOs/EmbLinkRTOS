@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The watchdog class (SPEC-017 §8; FLT-004): its checks over a driver's operations, through a
- * fake watchdog that counts its feeds. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_wdt.c
+ * @brief   The watchdog class (SPEC-017 §8; FLT-004).
+ *
+ * @details
+ * Its checks over a driver's operations, through a fake watchdog that counts its feeds.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

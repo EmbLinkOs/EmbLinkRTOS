@@ -1,8 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Native port controls for test harnesses and samples (SPEC-013 §5, §6, §9).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_native.h
+ * @brief   Native port controls for test harnesses and samples (SPEC-013 §5, §6, §9).
+ *
+ * @details
  * Everything here runs under the gate: call it from simulated code only.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_NATIVE_H
 #define EMB_NATIVE_H

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # ESP32 development board with the ESP-WROOM-32 module (DevKitC and its "ESP-32S" copies): the
 # classic ESP32's PRO_CPU, booted by its ROM from the image at flash offset 0x1000
 # (tools/esp/esp_image.py --chip esp32), everything in internal SRAM (ADR-054).

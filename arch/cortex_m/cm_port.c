@@ -1,8 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Cortex-M port, Armv7-M and Armv7E-M (docs/ports/cortex_m.md; contract SPEC-011).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    cm_port.c
+ * @brief   Cortex-M port, Armv7-M and Armv7E-M (docs/ports/cortex_m.md; contract SPEC-011).
  *
+ * @details
  * Switching. Threads run in thread mode on PSP; handlers run on MSP. Every switch is
  * done by PendSV, at the lowest priority, so it happens only when no other handler is
  * active. The port keeps two pointers: embn_cm_running, the thread whose registers are
@@ -16,6 +23,9 @@
  *
  * Critical sections are BASEPRI (emb_arch.h); PendSV is masked by any nonzero BASEPRI,
  * so it always runs with BASEPRI 0 and every context it resumes was saved at 0.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb/arch.h>
 #include <emb/context.h>

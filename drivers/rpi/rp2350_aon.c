@@ -1,11 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RP2350's always-on timer (datasheet §6.5; registers and sequences as pico-sdk 2.1.1's
- * hardware_powman) as an RTC class device (SPEC-017 §10, A123): a 64-bit millisecond counter in
- * POWMAN, ticked at 1 kHz from the crystal, holding milliseconds since the Unix epoch once set.
- * It has no calendar and no backup registers. It runs on across resets and stops with power, so
- * while it is not running the time is not set. Every write to POWMAN carries its password in the
- * upper half. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_aon.c
+ * @brief   The RP2350's always-on timer (datasheet §6.5; registers and sequences as pico-sdk
+ *          2.1.1's hardware_powman) as an RTC class device (SPEC-017 §10, A123).
+ *
+ * @details
+ * A 64-bit millisecond counter in POWMAN, ticked at 1 kHz from the crystal, holding milliseconds
+ * since the Unix epoch once set. It has no calendar and no backup registers. It runs on across
+ * resets and stops with power, so while it is not running the time is not set. Every write to
+ * POWMAN carries its password in the upper half.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_rp2350_devices.h>

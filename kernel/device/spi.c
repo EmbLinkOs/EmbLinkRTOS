@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The SPI controller class (SPEC-017 §5): its requests and blocking wrapper over the device
- * core, each target's chip select around its transfers, and the bus held across several
- * (SPEC-016 §6). A controller runs one transfer at a time, on lane 0. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    spi.c
+ * @brief   The SPI controller class (SPEC-017 §5).
+ *
+ * @details
+ * Its requests and blocking wrapper over the device core, each target's chip select around its
+ * transfers, and the bus held across several (SPEC-016 §6). A controller runs one transfer at a
+ * time, on lane 0.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_spi.h>
 
 #include <embk/drv_bus.h>

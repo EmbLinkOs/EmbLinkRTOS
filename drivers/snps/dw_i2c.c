@@ -1,14 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* DW_apb_i2c (the RP2350 datasheet §12.2; register offsets and bits as pico-sdk 2.1.1's
- * hardware/regs/i2c.h names them) as an I2C class device (SPEC-017 §6), by interrupt.
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    dw_i2c.c
+ * @brief   DW_apb_i2c (the RP2350 datasheet §12.2; register offsets and bits as pico-sdk 2.1.1's
+ *          hardware/regs/i2c.h names them) as an I2C class device (SPEC-017 §6), by interrupt.
  *
+ * @details
  * A transaction is a stream of commands in the transmit FIFO: a byte to write, or a read,
  * with RESTART on a segment's first and STOP on the last. Reads come back in the receive
  * FIFO, at most its depth in flight. The stop condition (STOP_DET) ends a transaction; an
  * abort (TX_ABRT) ends it early with the controller's own stop, its reason in
  * IC_TX_ABRT_SOURCE. As a target the controller answers its address (IC_SAR): bytes written
- * arrive in the receive FIFO, a read request (RD_REQ) asks for the next byte to send. */
+ * arrive in the receive FIFO, a read request (RD_REQ) asks for the next byte to send.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_dw_i2c.h>

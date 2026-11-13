@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Test platform for the AVR port: console output through the board's USART, strings in
- * flash, no fork, and a software interrupt built on the USART data-register-empty
- * interrupt: enabling UDRIE0 raises USART_UDRE at once (level-pending while masked,
- * taken at the unlock), and the handler disables it again. QEMU's arduino-uno machine
- * emulates it, and so does the board.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    platform_avr.c
+ * @brief   Test platform for the AVR port.
+ *
+ * @details
+ * Console output through the board's USART, strings in flash, no fork, and a software interrupt
+ * built on the USART data-register-empty interrupt: enabling UDRIE0 raises USART_UDRE at once
+ * (level-pending while masked, taken at the unlock), and the handler disables it again. QEMU's
+ * arduino-uno machine emulates it, and so does the board.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <stdarg.h>
 #include <stdio.h>

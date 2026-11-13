@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* SHA-256 (FIPS 180-4 §6.2), the entropy class's conditioning function (A124): the message
- * schedule and 64 rounds per 512-bit block, the padding and the length at the end, and the
- * state cleared once the digest is out, since it held the raw entropy. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sha256.c
+ * @brief   SHA-256 (FIPS 180-4 §6.2), the entropy class's conditioning function (A124).
+ *
+ * @details
+ * The message schedule and 64 rounds per 512-bit block, the padding and the length at the end, and
+ * the state cleared once the digest is out, since it held the raw entropy.
+ *
+ * @see     kernel/include/embk/sha256.h
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <embk/sha256.h>
 
 static uint32_t sha256_rotr(uint32_t x, uint32_t n)

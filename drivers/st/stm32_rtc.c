@@ -1,11 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4's RTC (RM0390 Rev 6 §26) as an RTC class device (SPEC-017 §10, A123): a BCD
- * calendar in the backup domain, clocked by the 32.768 kHz LSE crystal through the 128 and 256
- * prescalers, so its subseconds count 1/256 s; alarm A through EXTI line 17; 20 backup
- * registers. It runs on across resets and is lost with power, the NUCLEO-F446RE having no
- * battery on VBAT. Initialization starts the LSE and does not wait for it, which takes up to
- * 2 s from cold: the first set waits instead. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_rtc.c
+ * @brief   The STM32F4's RTC (RM0390 Rev 6 §26) as an RTC class device (SPEC-017 §10, A123).
+ *
+ * @details
+ * A BCD calendar in the backup domain, clocked by the 32.768 kHz LSE crystal through the 128 and
+ * 256 prescalers, so its subseconds count 1/256 s; alarm A through EXTI line 17; 20 backup
+ * registers. It runs on across resets and is lost with power, the NUCLEO-F446RE having no battery
+ * on VBAT. Initialization starts the LSE and does not wait for it, which takes up to 2 s from cold:
+ * the first set waits instead.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 #include <emb/thread.h>
 

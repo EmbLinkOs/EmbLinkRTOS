@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The RISC-V port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107): the one
- * 128-byte frame of rv_switch.S, which the switch, the trap path and the initial frame
- * share, and the interrupt stack. A thread resumes with sp at the saved sp plus the frame
- * and pc at mepc (word 0). Only kernel/debug/descriptor.c includes this.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch_debug.h
+ * @brief   The RISC-V port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107).
+ *
+ * @details
+ * The one 128-byte frame of rv_switch.S, which the switch, the trap path and the initial frame
+ * share, and the interrupt stack. A thread resumes with sp at the saved sp plus the frame and pc at
+ * mepc (word 0). Only kernel/debug/descriptor.c includes this.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #ifndef EMB_ARCH_DEBUG_H
 #define EMB_ARCH_DEBUG_H

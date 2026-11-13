@@ -1,11 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4's flash interface (RM0390 Rev 6 §3) as a flash class device (SPEC-017 §9, A122).
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_flash.c
+ * @brief   The STM32F4's flash interface (RM0390 Rev 6 §3) as a flash class device (SPEC-017 §9,
+ *          A122).
+ *
+ * @details
  * Its one bank stalls the CPU's every fetch and read from flash while it erases or programs, so
  * each operation runs with interrupts held off and the kernel's clock catches up after it:
- * interrupts would only wait on the stall too. Erases are a sector at a time and programs a
- * word at a time where aligned, at the 32-bit parallelism 2.7 to 3.6 V allows; then the flash
- * caches are reset, since they may hold what was there before. */
+ * interrupts would only wait on the stall too. Erases are a sector at a time and programs a word at
+ * a time where aligned, at the 32-bit parallelism 2.7 to 3.6 V allows; then the flash caches are
+ * reset, since they may hold what was there before.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_cortex_m.h>

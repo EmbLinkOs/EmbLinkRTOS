@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The flash class (SPEC-017 §9, A122): a NOR flash read, programmed and erased by offset, its
- * geometry from the description. An operation runs to its end in the caller: the STM32F446's
- * CPU stalls on its flash meanwhile, and the RP2350's runs from RAM with interrupts held off,
- * so a request queue would not let anything else run. Partitions (<emb/flash_area.h>) are
- * how applications use it. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_flash.h
+ * @brief   The flash class (SPEC-017 §9, A122).
+ *
+ * @details
+ * A NOR flash read, programmed and erased by offset, its geometry from the description. An
+ * operation runs to its end in the caller: the STM32F446's CPU stalls on its flash meanwhile, and
+ * the RP2350's runs from RAM with interrupts held off, so a request queue would not let anything
+ * else run. Partitions (<emb/flash_area.h>) are how applications use it.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_FLASH_H
 #define EMB_DRV_FLASH_H
 

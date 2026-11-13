@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The UART class (SPEC-017 §4): its requests and wrappers over the device core, and the
- * receive core its drivers share. The receive state's lock domain is the device's critical
- * section; a read is completed outside it, as the core delivers every completion.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    uart.c
+ * @brief   The UART class (SPEC-017 §4).
+ *
+ * @details
+ * Its requests and wrappers over the device core, and the receive core its drivers share. The
+ * receive state's lock domain is the device's critical section; a read is completed outside it, as
+ * the core delivers every completion.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #include <emb/drv_uart.h>
 #include <emb/irq.h>

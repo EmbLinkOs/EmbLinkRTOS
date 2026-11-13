@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The STM32F4 drivers as devices (SPEC-016): the operations and generated configurations the
- * bindings name (drivers/bindings.yaml). Each adapter is thin: the free functions of
- * emb_stm32_drivers.h stay the low layer, used by the board support before the kernel and by
- * applications. The classes' requests come with SPEC-017.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_stm32_devices.h
+ * @brief   The STM32F4 drivers as devices (SPEC-016).
+ *
+ * @details
+ * The operations and generated configurations the bindings name (drivers/bindings.yaml). Each
+ * adapter is thin: the free functions of emb_stm32_drivers.h stay the low layer, used by the board
+ * support before the kernel and by applications. The classes' requests come with SPEC-017.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #ifndef EMB_STM32_DEVICES_H
 #define EMB_STM32_DEVICES_H

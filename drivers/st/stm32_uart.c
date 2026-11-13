@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The STM32 USART as a device of the UART class (SPEC-017 §4; RM0390 Rev 6 §25): writes sent
- * by the transmit-empty interrupt, bytes received into the class's receive core, the idle
- * line, framing and parity errors. The free functions of emb_stm32_drivers.h stay its
- * polled low layer.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_uart.c
+ * @brief   The STM32 USART as a device of the UART class (SPEC-017 §4; RM0390 Rev 6 §25).
+ *
+ * @details
+ * Writes sent by the transmit-empty interrupt, bytes received into the class's receive core, the
+ * idle line, framing and parity errors. The free functions of emb_stm32_drivers.h stay its polled
+ * low layer.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #include <emb_stm32_devices.h>
 #include <emb_stm32_drivers.h>

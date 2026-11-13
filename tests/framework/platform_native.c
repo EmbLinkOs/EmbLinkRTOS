@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Test platform for the native port: host stdio, fork-based fault checks, an injected interrupt. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    platform_native.c
+ * @brief   Test platform for the native port: host stdio, fork-based fault checks, an injected
+ *          interrupt.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

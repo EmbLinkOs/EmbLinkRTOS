@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* FLT-004's demonstration: the software watchdog over the board's watchdog. A thread that
- * hangs, while the test's own thread keeps checking in, stops the feeding; the board's
- * watchdog resets the part, and after the reset the crash record names the hung thread's
- * party and the watchdog says it caused the reset. Built where the board has a watchdog
- * device; the reset check needs a board that resumes a case after a reset. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_wdog_board.c
+ * @brief   FLT-004's demonstration: the software watchdog over the board's watchdog.
+ *
+ * @details
+ * A thread that hangs, while the test's own thread keeps checking in, stops the feeding; the
+ * board's watchdog resets the part, and after the reset the crash record names the hung thread's
+ * party and the watchdog says it caused the reset. Built where the board has a watchdog device; the
+ * reset check needs a board that resumes a case after a reset.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/crash.h>
 
 #include <emb_test.h>

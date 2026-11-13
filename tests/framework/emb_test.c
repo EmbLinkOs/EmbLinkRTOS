@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Test runner: main() starts the kernel, a runner thread executes every EMB_TEST. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_test.c
+ * @brief   Test runner: main() starts the kernel, a runner thread executes every EMB_TEST.
+ *
+ * @see     emb_test.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb/arch.h>
 
 #include <stdarg.h>

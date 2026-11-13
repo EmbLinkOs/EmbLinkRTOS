@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The flash class and partitions (SPEC-017 §9, A122; DRV-001, DRV-003, DRV-007): its checks
- * over a driver, through a NOR flash in RAM (flash_sim.c) of uneven sectors and a 4-byte write
- * unit, a power loss torn into a program and an erase, and the polled calls. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_flash.c
+ * @brief   The flash class and partitions (SPEC-017 §9, A122; DRV-001, DRV-003, DRV-007).
+ *
+ * @details
+ * Its checks over a driver, through a NOR flash in RAM (flash_sim.c) of uneven sectors and a 4-byte
+ * write unit, a power loss torn into a program and an erase, and the polled calls.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include "flash_sim.h"
 
 #include <emb/flash_area.h>

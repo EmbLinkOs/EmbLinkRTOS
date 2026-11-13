@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Board description (SPEC-014 §4): the Raspberry Pi Pico 2 W, an RP2350A run on its Arm cores
 # (A79). From pico-sdk 2.1.1's boards/pico2_w.h and the Pico 2 W datasheet. emb-hwgen turns it
 # into generated/.

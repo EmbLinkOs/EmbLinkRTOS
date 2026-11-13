@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The kernel clock, the timeout list, and the timer hooks (SPEC-003 §3 to §5).
- * Periodic mode counts the port's tick interrupt; tickless mode re-bases the clock
- * from the port's free-running counter and programs the next deadline only. The
- * clock is read with a sequence lock where the port says so (EMB_ARCH_CLOCK_SEQLOCK)
- * and inside the critical section otherwise (AVR, SPEC-003 §3.1).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    time.c
+ * @brief   The kernel clock, the timeout list, and the timer hooks (SPEC-003 §3 to §5).
+ *
+ * @details
+ * Periodic mode counts the port's tick interrupt; tickless mode re-bases the clock from the port's
+ * free-running counter and programs the next deadline only. The clock is read with a sequence lock
+ * where the port says so (EMB_ARCH_CLOCK_SEQLOCK) and inside the critical section otherwise (AVR,
+ * SPEC-003 §3.1).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <embk/kernel.h>
 #include <embk/sched.h>

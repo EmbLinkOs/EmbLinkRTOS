@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for the MPS2 boards as QEMU models them (mps2-an385, mps2-an386), each
- * described in YAML: console on the CMSDK APB UART0, LED0 in the FPGA I/O block, run end
- * through Arm semihosting (QEMU runs with -semihosting); addresses from hw_config.h. A reference
- * board for emulation (SIM-002), not a hardware target: semihosting halts a part with
- * no debugger attached.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for the MPS2 boards as QEMU models them (mps2-an385, mps2-an386), each
+ *          described in YAML.
+ *
+ * @details
+ * Console on the CMSDK APB UART0, LED0 in the FPGA I/O block, run end through Arm semihosting (QEMU
+ * runs with -semihosting); addresses from hw_config.h. A reference board for emulation (SIM-002),
+ * not a hardware target: semihosting halts a part with no debugger attached.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb/fault.h>
 

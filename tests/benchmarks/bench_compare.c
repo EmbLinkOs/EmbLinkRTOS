@@ -1,13 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The same four measurements for EmbLinkRTOS and for FreeRTOS on the same board (R-003 §6,
- * the review's F14): one source, two kernels. Built here for EmbLinkRTOS; built for FreeRTOS with
- * -DBENCH_FREERTOS by tools/bench/freertos-avr/build.sh on the Uno, and as an ESP-IDF application
- * by tools/bench/freertos-esp32/ on the ESP32 (ESP-IDF's FreeRTOS, as ESP32 projects run it), and
- * by tools/bench/freertos-cm4/ on Cortex-M4 boards. On the Uno both count Timer1 at F_CPU / 64
- * (250 kHz); on the ESP32 both count CCOUNT; on Cortex-M both count CPU cycles from SysTick.
- * Each figure is a total over thousands of operations:
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bench_compare.c
+ * @brief   The same four measurements for EmbLinkRTOS and for FreeRTOS on the same board (R-003 §6,
+ *          the review's F14).
+ *
+ * @details
+ * One source, two kernels. Built here for EmbLinkRTOS; built for FreeRTOS with -DBENCH_FREERTOS by
+ * tools/bench/freertos-avr/build.sh on the Uno, and as an ESP-IDF application by
+ * tools/bench/freertos-esp32/ on the ESP32 (ESP-IDF's FreeRTOS, as ESP32 projects run it), and by
+ * tools/bench/freertos-cm4/ on Cortex-M4 boards. On the Uno both count Timer1 at F_CPU / 64 (250
+ * kHz); on the ESP32 both count CCOUNT; on Cortex-M both count CPU cycles from SysTick. Each figure
+ * is a total over thousands of operations:
  *
  *   notify_handover  a direct-to-thread notification bounced between two threads (2 switches)
  *   sem_handover     a binary semaphore each way between two threads (2 switches)
@@ -19,6 +28,9 @@
  * is USART_UDRE, which fires as soon as UDRIE0 is set while the transmitter is idle; elsewhere
  * (the ESP32, ADR-054) the board's test line, raised by emb_irq_pend(), and the unit is the
  * port's cycle counter.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <stdint.h>
 

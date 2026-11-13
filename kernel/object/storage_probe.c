@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Layout probe for the generated <emb/storage.h> (SPEC-001 §6.2, SPEC-009, ADR-006).
- * Compiled with the real configuration, never linked into an image. Each PROBE writes
- * the size and alignment of a kernel object into the object file as a text marker
- * (EMB_LAYOUT_MARKER), which tools/storage/gen_storage.py reads from an ELF, Mach-O,
- * or COFF object alike, for the host or a cross target.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    storage_probe.c
+ * @brief   Layout probe for the generated <emb/storage.h> (SPEC-001 §6.2, SPEC-009, ADR-006).
+ *
+ * @details
+ * Compiled with the real configuration, never linked into an image. Each PROBE writes the size and
+ * alignment of a kernel object into the object file as a text marker (EMB_LAYOUT_MARKER), which
+ * tools/storage/gen_storage.py reads from an ELF, Mach-O, or COFF object alike, for the host or a
+ * cross target.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <embk/ipc.h>
 #include <embk/kernel.h>

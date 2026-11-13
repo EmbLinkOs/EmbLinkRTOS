@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The crash record (SPEC-015 §4, OBS-016, A71 to A73): what a fault writes, what boot
- * validation accepts and refuses, get and clear. On the native port a forked child faults
- * for real and the parent, as the next boot, reads the host file it left. The record across
- * a real reset is test_crash_reset.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_crash.c
+ * @brief   The crash record (SPEC-015 §4, OBS-016, A71 to A73).
+ *
+ * @details
+ * What a fault writes, what boot validation accepts and refuses, get and clear. On the native port
+ * a forked child faults for real and the parent, as the next boot, reads the host file it left. The
+ * record across a real reset is test_crash_reset.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include "crash_print.h"
 

@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4 DMA controller (RM0390 Rev 6 §9) as a DMA class device (SPEC-017 §7, A119): a
- * job per stream, its request picked by the channel select the generator gave it, its end by
- * the stream's interrupt. A peripheral's job runs in direct mode; memory to memory, which only
- * DMA2 does, through the stream's FIFO. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_dma.c
+ * @brief   The STM32F4 DMA controller (RM0390 Rev 6 §9) as a DMA class device (SPEC-017 §7, A119).
+ *
+ * @details
+ * A job per stream, its request picked by the channel select the generator gave it, its end by the
+ * stream's interrupt. A peripheral's job runs in direct mode; memory to memory, which only DMA2
+ * does, through the stream's FIFO.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_stm32_devices.h>

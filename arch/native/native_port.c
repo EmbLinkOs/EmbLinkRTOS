@@ -1,10 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Native port (SPEC-013), POSIX backend. One host thread per EmbLinkRTOS thread behind
- * a gate: a mutex held by whichever host thread is running simulated code, plus one
- * condition variable per thread. Interrupts are events delivered at gate crossings
- * (deterministic mode); time is virtual and advances only in idle. The kernel's
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    native_port.c
+ * @brief   Native port (SPEC-013), POSIX backend.
+ *
+ * @details
+ * One host thread per EmbLinkRTOS thread behind a gate: a mutex held by whichever host thread is
+ * running simulated code, plus one condition variable per thread. Interrupts are events delivered
+ * at gate crossings (deterministic mode); time is virtual and advances only in idle. The kernel's
  * scheduling decisions are therefore exact and every run is reproducible (SIM-004).
  *
  * Asynchronous mode (§5, A93), for stress runs: an injector host thread sends SIGUSR2 to
@@ -15,6 +23,9 @@
  *
  * Host usage is confined to this file's embh_* wrappers (§3) and the diagnostic
  * printing of the fault path.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h>
 #include <emb/irq.h>

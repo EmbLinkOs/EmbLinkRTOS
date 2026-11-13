@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The crash record's kernel side (SPEC-015 §4, A71 to A73): written on the fault path,
- * validated at boot. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    crash.h
+ * @brief   The crash record's kernel side (SPEC-015 §4, A71 to A73).
+ *
+ * @details
+ * Written on the fault path, validated at boot.
+ *
+ * @see     kernel/fault/crash.c
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
+ */
 #ifndef EMBK_CRASH_H
 #define EMBK_CRASH_H
 

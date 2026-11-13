@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * FreeRTOS for tests/benchmarks/bench_compare.c on the Arduino Uno (ATmega328P at 16 MHz),
- * configured to match the EmbLinkRTOS build it is compared with (tiny profile, release): static
- * allocation only, no heap; preemption without time slicing; a 1 kHz tick; 32-bit ticks;
- * no stack-overflow checks, assertions, trace, hooks or software timers.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    FreeRTOSConfig.h
+ * @brief   FreeRTOS for tests/benchmarks/bench_compare.c on the Arduino Uno (ATmega328P at 16 MHz),
+ *          configured to match the EmbLinkRTOS build it is compared with (tiny profile, release).
+ *
+ * @details
+ * Static allocation only, no heap; preemption without time slicing; a 1 kHz tick; 32-bit ticks; no
+ * stack-overflow checks, assertions, trace, hooks or software timers.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H

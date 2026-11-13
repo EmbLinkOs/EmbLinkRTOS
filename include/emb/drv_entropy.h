@@ -1,11 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The entropy class (SPEC-017 §11, SEC-012, A124): bytes from a hardware source of randomness.
- * The source's blocks pass its own health tests where it has them, then the class conditions
- * them, as NIST SP 800-90B asks of a raw noise source: SHA-256 over twice the raw bytes it puts
- * out. A board without a source has no entropy device, and says so: nothing stands in for one.
- * The bytes are for seeding a cryptographic generator; no claim of certified full entropy is
- * made. The raw blocks stay readable, for measuring the source. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_entropy.h
+ * @brief   The entropy class (SPEC-017 §11, SEC-012, A124): bytes from a hardware source of
+ *          randomness.
+ *
+ * @details
+ * The source's blocks pass its own health tests where it has them, then the class conditions them,
+ * as NIST SP 800-90B asks of a raw noise source: SHA-256 over twice the raw bytes it puts out. A
+ * board without a source has no entropy device, and says so: nothing stands in for one. The bytes
+ * are for seeding a cryptographic generator; no claim of certified full entropy is made. The raw
+ * blocks stay readable, for measuring the source.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_ENTROPY_H
 #define EMB_DRV_ENTROPY_H
 

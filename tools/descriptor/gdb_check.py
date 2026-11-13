@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Thread awareness under a real debugger: OBS-008's consumer test on an emulated port (A107).
 
     gdb_check.py --qemu qemu-system-arm --qemu-args "-M mps2-an386 -kernel" --gdb gdb-multiarch \\

@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board's RTC (SPEC-017 §10, A123): set and read back; kept in step with the kernel's clock,
- * two crystals, over two seconds; its alarm on time, and canceled; its backup registers; and its
- * time across a reset, which then seeds the wall clock. The reset check needs a board that
- * resumes a case after a reset. Built where the board has an RTC (EMB_SOC_RTC_DEVICE). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_rtc_board.c
+ * @brief   The board's RTC (SPEC-017 §10, A123).
+ *
+ * @details
+ * Set and read back; kept in step with the kernel's clock, two crystals, over two seconds; its
+ * alarm on time, and canceled; its backup registers; and its time across a reset, which then seeds
+ * the wall clock. The reset check needs a board that resumes a case after a reset. Built where the
+ * board has an RTC (EMB_SOC_RTC_DEVICE).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/arch.h>
 #if CONFIG_EMB_WALLCLOCK
 #include <emb/wallclock.h>

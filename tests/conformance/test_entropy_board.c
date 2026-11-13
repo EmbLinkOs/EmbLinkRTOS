@@ -1,15 +1,28 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board's entropy source (SPEC-017 §11, A124). 1 MiB read, conditioned, and tested on the
- * board itself: the bytes' frequencies by chi-square, the balance of ones and zeros, the bit
- * transitions, the longest repetition of a byte; the health failures counted. On a physical
- * board (EMB_ENTROPY_DUMP) the first 64 KiB are printed in hex for the host's own checks
- * (tools/entropy/check.py), with the SHA-256 they must have. Then 256 KiB of the source's raw
- * blocks, measured, not judged by those tests: a raw noise source is biased and correlated,
- * which is why the class conditions it. Its min-entropy is estimated by NIST SP 800-90B's
- * most-common-value test and must reach the 4 bits a byte that conditioning 2:1 needs. These
- * are sanity checks of the driver and the source, not a certification of the source. Built
- * where the board has an entropy device, and on the native board's host source. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_entropy_board.c
+ * @brief   The board's entropy source (SPEC-017 §11, A124).
+ *
+ * @details
+ * 1 MiB read, conditioned, and tested on the board itself: the bytes' frequencies by chi-square,
+ * the balance of ones and zeros, the bit transitions, the longest repetition of a byte; the health
+ * failures counted. On a physical board (EMB_ENTROPY_DUMP) the first 64 KiB are printed in hex for
+ * the host's own checks (tools/entropy/check.py), with the SHA-256 they must have. Then 256 KiB of
+ * the source's raw blocks, measured, not judged by those tests: a raw noise source is biased and
+ * correlated, which is why the class conditions it. Its min-entropy is estimated by NIST SP
+ * 800-90B's most-common-value test and must reach the 4 bits a byte that conditioning 2:1 needs.
+ * These are sanity checks of the driver and the source, not a certification of the source. Built
+ * where the board has an entropy device, and on the native board's host source.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <embk/sha256.h>
 
 #include <emb_test.h>

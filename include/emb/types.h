@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Basic types shared by every public header (SPEC-001 §6.1, §7.1): the tick scalar,
- * the maximal-alignment type for object storage, handle declaration and the handle
- * helper macros. Handles are one machine word in a per-object struct so the compiler
- * keeps object types apart (ADR-014); nothing in application code dereferences one.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    types.h
+ * @brief   Basic types shared by every public header (SPEC-001 §6.1, §7.1).
+ *
+ * @details
+ * The tick scalar, the maximal-alignment type for object storage, handle declaration and the handle
+ * helper macros. Handles are one machine word in a per-object struct so the compiler keeps object
+ * types apart (ADR-014); nothing in application code dereferences one.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_TYPES_H
 #define EMB_TYPES_H

@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The UART class on the board's own console (SPEC-017 §4; DRV-004, DRV-006, DRV-007): its
- * driver's interrupt-driven writes, a read that times out on a line nobody types on, and
- * the polled calls, on every board whose console is a UART device. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_uart_board.c
+ * @brief   The UART class on the board's own console (SPEC-017 §4; DRV-004, DRV-006, DRV-007).
+ *
+ * @details
+ * Its driver's interrupt-driven writes, a read that times out on a line nobody types on, and the
+ * polled calls, on every board whose console is a UART device.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <soc_devices.h>
 #include <string.h>

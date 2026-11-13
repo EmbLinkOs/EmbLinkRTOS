@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board's flash (SPEC-017 §9, A122): its storage partition erased, programmed and read back
- * three times over, and an erase of it written all over timed by the processor's cycle counter
- * against the kernel's clock, which caught up with the time interrupts were held off or the CPU
- * stalled. Built where the board has a storage partition (EMB_FLASH_AREA_STORAGE); Cortex-M boards.
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_flash_board.c
+ * @brief   The board's flash (SPEC-017 §9, A122).
+ *
+ * @details
+ * Its storage partition erased, programmed and read back three times over, and an erase of it
+ * written all over timed by the processor's cycle counter against the kernel's clock, which caught
+ * up with the time interrupts were held off or the CPU stalled. Built where the board has a storage
+ * partition (EMB_FLASH_AREA_STORAGE); Cortex-M boards.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #include <emb_cortex_m.h>
 #include <emb_test.h>

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 #
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+#
 # FreeRTOS's build of tests/benchmarks/bench_compare.c for a Cortex-M4 board, as the Uno's
 # (tools/bench/freertos-avr/build.sh): FreeRTOS-Kernel V11.1.0 at its pinned commit, its
 # GCC/ARM_CM4F port, the flags of cmake/toolchains/arm-none-eabi-gcc.cmake and the board's CPU

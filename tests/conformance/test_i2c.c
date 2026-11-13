@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The I2C class (SPEC-017 §6; DRV-004 to DRV-006): its requests and blocking wrappers, through
- * a fake controller. As a controller its "bus" holds one device, a register file at 0x50
- * that a write points into and a read reads from; as a target it answers a "remote
- * controller", a software interrupt that writes and reads this one's own address. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_i2c.c
+ * @brief   The I2C class (SPEC-017 §6; DRV-004 to DRV-006).
+ *
+ * @details
+ * Its requests and blocking wrappers, through a fake controller. As a controller its "bus" holds
+ * one device, a register file at 0x50 that a write points into and a read reads from; as a target
+ * it answers a "remote controller", a software interrupt that writes and reads this one's own
+ * address.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 
