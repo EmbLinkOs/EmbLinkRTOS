@@ -171,6 +171,55 @@ class Outputs(Base):
         self.assertIn("57600", files["include/hw_config.h"])
 
 
+class Regenerate(Base):
+    """A126: an edited generated file survives regeneration, merged with the generator's change;
+    a change to the same lines is a conflict that check refuses."""
+
+    def cli(self, *argv):
+        import contextlib
+        import importlib.util
+        import io
+        spec = importlib.util.spec_from_file_location("emb_hwgen_cli", HERE / "emb-hwgen.py")
+        cli = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cli)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            code = cli.main(list(argv))
+        return code, out.getvalue()
+
+    def test_an_edit_survives_a_change_of_the_description(self):
+        self.text = MINIMAL.replace("boards: [st/nucleo_f446re, st/nucleo_f446ze]", "board: st/nucleo_f446re")
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        self.assertEqual(self.cli("generate", "--system", str(path))[0], 0)
+        c = self.dir / "generated/nucleo_f446re/src/system.c"
+        self.assertTrue((self.dir / "generated/.base/nucleo_f446re/src/system.c").is_file())
+        c.write_text(c.read_text(encoding="utf-8").replace('#include "system.h"\n', '#include "system.h"\n/* my note */\n'),
+                     encoding="utf-8")
+        # the description changes: one more object
+        path.write_text(self.text + "  - { name: done, type: sem, initial: 0, max: 1 }\n", encoding="utf-8")
+        code, out = self.cli("generate", "--system", str(path))
+        self.assertEqual(code, 0, out)
+        self.assertIn("merged", out)
+        text = c.read_text(encoding="utf-8")
+        self.assertIn("/* my note */", text)                    # the edit stayed
+        self.assertIn("EMB_SEM_DEFINE(done, 0u, 1u);", text)   # and the change came in
+
+    def test_a_conflict_is_reported_and_refused(self):
+        self.text = MINIMAL.replace("boards: [st/nucleo_f446re, st/nucleo_f446ze]", "board: st/nucleo_f446re")
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        self.cli("generate", "--system", str(path))
+        c = self.dir / "generated/nucleo_f446re/src/system.c"
+        c.write_text(c.read_text(encoding="utf-8").replace("3u, 512u", "3u, 600u"), encoding="utf-8")
+        path.write_text(self.text.replace("stack: 512", "stack: 768"), encoding="utf-8")
+        code, out = self.cli("generate", "--system", str(path))
+        self.assertEqual(code, 1)
+        self.assertIn("conflict", out)
+        from emb_hwgen import writer
+        self.assertTrue(writer.has_conflict(c.read_text(encoding="utf-8")))
+
+
 class Negative(Base):
     def test_unknown_key(self):
         self.edit("name: controller", "name: controller\nflavour: lemon")

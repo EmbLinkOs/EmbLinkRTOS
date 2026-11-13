@@ -1,0 +1,210 @@
+{
+  "board": {
+    "clocks": {
+      "cpu_hz": 16000000,
+      "source": "hfclk"
+    },
+    "console": {
+      "baud": 115200,
+      "device": "uart0"
+    },
+    "curated": true,
+    "defaults": {
+      "CONFIG_EMB_CM_IRQ_PRIORITY": 128,
+      "CONFIG_EMB_CM_KERNEL_BASEPRI": 64,
+      "CONFIG_EMB_PROFILE": "tiny",
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "doc": "QEMU's micro:bit: an nRF51822 (Cortex-M0) at 16 MHz, the console on its UART at 115200 baud, the run's end through Arm semihosting. An emulation reference: on a physical micro:bit the console's pin is not selected.",
+    "kind": "board",
+    "name": "microbit",
+    "schema_version": 0,
+    "simulation": {
+      "qemu": [
+        "-M",
+        "microbit",
+        "-icount",
+        "shift=5,sleep=off",
+        "-semihosting-config",
+        "enable=on,target=native",
+        "-kernel"
+      ]
+    },
+    "soc": "nordic/nrf51/nrf51822.yaml",
+    "test_irqs": [
+      20,
+      21
+    ],
+    "vendor": "bbc"
+  },
+  "derived": {
+    "clock": {
+      "ahb_div": 1,
+      "bus_hz": {},
+      "bypass": false,
+      "cpu_hz": 16000000,
+      "hclk_hz": 16000000,
+      "pll": null,
+      "source": "hfclk",
+      "source_hz": 16000000
+    },
+    "console": {
+      "base": 1073750016,
+      "baud": 115200,
+      "clock": null,
+      "clock_hz": 16000000,
+      "device": "uart0",
+      "irqs": [
+        {
+          "name": "global",
+          "number": 2
+        }
+      ]
+    },
+    "devices": [],
+    "kconfig": {
+      "CONFIG_EMB_CM_CPU_HZ": 16000000,
+      "CONFIG_EMB_CM_IRQ_COUNT": 32,
+      "CONFIG_EMB_CM_IRQ_PRIORITY": 128,
+      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS": 2,
+      "CONFIG_EMB_CM_KERNEL_BASEPRI": 64,
+      "CONFIG_EMB_TICK_NS": 1000000
+    },
+    "linker": {
+      "flash": {
+        "length": 262144,
+        "origin": 0
+      },
+      "ram": {
+        "length": 16384,
+        "origin": 536870912,
+        "regions": [
+          "sram"
+        ]
+      }
+    },
+    "partitions": [],
+    "pins": [],
+    "profile": "tiny",
+    "test_irqs": {
+      "high": 21,
+      "low": 20
+    },
+    "timer": {
+      "hz": 16000000,
+      "source": "systick"
+    }
+  },
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+    },
+    {
+      "path": "boards/bbc/microbit/board.yaml",
+      "sha256": "cda18387661b10addd5ad6e724192d5c9e675a842bc3add652494f8918c057e2"
+    },
+    {
+      "path": "soc/nordic/nrf51/nrf51.yaml",
+      "sha256": "4486cb5e81c14213d4029ff71a34757e3841fd70b9b16b9d5d2d3959650e26a7"
+    },
+    {
+      "path": "soc/nordic/nrf51/nrf51822.yaml",
+      "sha256": "530ed388d56cb9c222217ad7676b994c6fb833522a477dd618ae2900f441fe3e"
+    }
+  ],
+  "schema_version": 0,
+  "soc": {
+    "arch": {
+      "port": "cortex_m",
+      "variant": "armv6m"
+    },
+    "clocks": {
+      "sources": [
+        {
+          "doc": "HCLK, fixed in QEMU's model",
+          "hz": 16000000,
+          "name": "hfclk"
+        }
+      ]
+    },
+    "cpu": {
+      "cflags": [
+        "-mcpu=cortex-m0",
+        "-mfloat-abi=soft"
+      ],
+      "core": "cortex-m0",
+      "cycle_counter": "systick"
+    },
+    "curated": true,
+    "family": "nrf51",
+    "interrupts": {
+      "controller": "nvic",
+      "count": 32,
+      "priority_bits": 2,
+      "reserved": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "systick": true
+    },
+    "kind": "soc",
+    "memory": {
+      "regions": [
+        {
+          "attrs": [
+            "r",
+            "x",
+            "boot"
+          ],
+          "base": 0,
+          "name": "flash",
+          "size": 262144
+        },
+        {
+          "attrs": [
+            "r",
+            "w",
+            "x"
+          ],
+          "base": 536870912,
+          "name": "sram",
+          "size": 16384
+        }
+      ]
+    },
+    "name": "nrf51822",
+    "part": "nRF51822",
+    "peripherals": [
+      {
+        "base": 1073750016,
+        "compatible": "nordic,nrf-uart",
+        "irqs": [
+          {
+            "name": "global",
+            "number": 2
+          }
+        ],
+        "name": "uart0",
+        "size": 4096
+      }
+    ],
+    "schema_version": 0,
+    "vendor": "nordic"
+  },
+  "warnings": []
+}

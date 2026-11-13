@@ -417,7 +417,7 @@ jobs:
           pip install jsonschema
           python3 -I -m unittest discover -s hw/gen -p 'test_*.py' -v
           python3 -I -m unittest discover -s hw/import -p 'test_*.py' -v
-          python3 -I hw/gen/emb-hwgen.py check
+          python3 -I hw/gen/emb-hwgen.py check --strict
       - name: Reference model
         run: |
           pip install hypothesis pytest
@@ -454,7 +454,7 @@ jobs:
       - name: Reference model
         run: cd tools/model && python -m pytest -q
       - name: The generator's committed outputs
-        run: python -I hw/gen/emb-hwgen.py check
+        run: python -I hw/gen/emb-hwgen.py check --strict
       - name: A native build, configured with this Python
         run: |
           cmake --preset native-gcc -DPython3_EXECUTABLE="$(command -v python)"

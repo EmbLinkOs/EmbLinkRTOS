@@ -509,7 +509,7 @@ class Outputs(unittest.TestCase):
         ze = ROOT / "boards/st/nucleo_f446ze"
         self.assertEqual(sorted(p.name for p in ze.iterdir() if not p.name.startswith(".")), ["board.yaml", "generated"])
         gen = ze / "generated"
-        c_files = [p for p in gen.rglob("*") if p.suffix in (".c", ".h")]
+        c_files = [p for p in gen.rglob("*") if p.suffix in (".c", ".h") and ".base" not in p.relative_to(gen).parts]
         files, warnings = generate.generate(ze, ROOT)
         self.assertEqual(sorted(p.relative_to(gen).as_posix() for p in c_files),
                          ["include/hw_config.h", "include/soc_devices.h", "src/board_pins.c", "src/soc_devices.c"])

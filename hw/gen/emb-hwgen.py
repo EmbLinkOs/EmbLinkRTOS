@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from emb_hwgen import HwError, facts, generate  # noqa: E402
+from emb_hwgen import HwError, facts, generate, writer  # noqa: E402
 
 
 def _boards(root):
@@ -41,34 +41,57 @@ def _systems(root):
     return out
 
 
+def _board_placements(board, files, out=None):
+    """[(path, text, baseline path)] for a board's outputs: generated/ and generated/.base/ (A126)."""
+    gen = Path(out) if out else board / "generated"
+    return [(gen / name, text, gen / ".base" / name) for name, text in sorted(files.items())]
+
+
+def _system_placements(system, per_board, out=None):
+    """[(path, text, baseline path)] for a system's outputs: generated/<board>/ for each board, the
+    baseline under generated/.base/<board>/ (A126)."""
+    gen = Path(out) if out else system.parent / "generated"
+    return [(gen / board / name, text, gen / ".base" / board / name)
+            for board, files in sorted(per_board.items()) for name, text in sorted(files.items())]
+
+
 def _target(args):
-    """([(output directory, files)], warnings, what) for --board or --system: a system writes
-    generated/<board>/ for each of its boards (A125)."""
+    """([(path, text, baseline path)], warnings, what) for --board or --system."""
     if args.system:
         system = Path(args.system)
         per_board, warnings = generate.generate_system(system, ROOT)
-        base = Path(args.out) if getattr(args, "out", None) else system.parent / "generated"
-        return [(base / name, files) for name, files in sorted(per_board.items())], warnings, system
+        return _system_placements(system, per_board, getattr(args, "out", None)), warnings, system
     board = Path(args.board)
     files, warnings = generate.generate(board, ROOT)
-    out = Path(args.out) if getattr(args, "out", None) else board / "generated"
-    return [(out, files)], warnings, board
+    return _board_placements(board, files, getattr(args, "out", None)), warnings, board
 
 
 def cmd_generate(args):
-    outputs, warnings, _ = _target(args)
-    for out, files in outputs:
-        for name, text in files.items():  # config/, include/, src/, linker/, build/, docs/ (A126)
-            (out / name).parent.mkdir(parents=True, exist_ok=True)
-            (out / name).write_text(text, encoding="utf-8")
+    """Each file written over what is there, edits kept (A126): created, unchanged, rewritten,
+    merged with its edits, or a conflict for its author to resolve."""
+    placements, warnings, _ = _target(args)
+    outcomes = {}
+    for path, text, base in placements:
+        outcome = writer.write(path, text, base)
+        outcomes.setdefault(outcome, []).append(path)
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
-    for out, files in outputs:
-        print(f"emb-hwgen: wrote {len(files)} files to {os.path.relpath(out, ROOT)}")
+    for outcome in ("merged", "conflict"):
+        for path in outcomes.get(outcome, []):
+            print(f"  {outcome:9} {os.path.relpath(path, ROOT)}")
+    counts = ", ".join(f"{len(v)} {k}" for k, v in sorted(outcomes.items()))
+    print(f"emb-hwgen: {len(placements)} files: {counts}")
+    if outcomes.get("conflict"):
+        print("emb-hwgen: resolve the conflicts (between <<<<<<< yours and >>>>>>> generated now), then "
+              "check again", file=sys.stderr)
+        return 1
     return 0
 
 
 def cmd_check(args):
+    """Every baseline is what the descriptions give now (HW-003), no conflict is left, and nothing
+    in a generated directory is an output of no description. With --strict, a board's files are
+    exactly their baseline: a board's facts belong in its description (A126)."""
     bad = 0
     roots = [Path(r) for r in args.board_root] or [ROOT]
     for r in roots:
@@ -77,33 +100,40 @@ def cmd_check(args):
             return 2
     boards = [b for r in roots for b in _boards(r)]
     systems = [s for r in roots for s in _systems(r)]
-    jobs = [(b / "generated", generate.generate(b, ROOT)[0], f"--board {os.path.relpath(b, ROOT)}") for b in boards]
+    jobs = []  # (generated directory, placements, how, strict)
+    for b in boards:
+        jobs.append((b / "generated", _board_placements(b, generate.generate(b, ROOT)[0]),
+                     f"--board {os.path.relpath(b, ROOT)}", args.strict))
     for s in systems:
         per_board, _ = generate.generate_system(s, ROOT)
-        how = f"--system {os.path.relpath(s, ROOT)}"
-        jobs += [(s.parent / "generated" / name, files, how) for name, files in sorted(per_board.items())]
-        base = s.parent / "generated"
-        for extra in sorted(p for p in base.iterdir() if p.is_dir() and p.name not in per_board and p.name != ".base") if base.is_dir() else []:
-            bad += 1
-            print(f"{os.path.relpath(extra, ROOT)}: not a board of {os.path.relpath(s, ROOT)}; remove it")
-    for gen, files, how in jobs:
-        names = set(files) | ({p.relative_to(gen).as_posix() for p in gen.rglob("*")
-                               if p.is_file() and ".base" not in p.relative_to(gen).parts} if gen.is_dir() else set())
-        for name in sorted(names):
-            path = gen / name
-            have = path.read_text(encoding="utf-8") if path.is_file() else None
-            want = files.get(name)
-            if have == want:
-                continue
-            bad += 1
+        jobs.append((s.parent / "generated", _system_placements(s, per_board), f"--system {os.path.relpath(s, ROOT)}", False))
+    for gen, placements, how, strict in jobs:
+        expected = {path for path, _, _ in placements}
+        for path, text, base in placements:
             rel = os.path.relpath(path, ROOT)
-            if want is None:
-                print(f"{rel}: not an output of emb-hwgen; remove it")
-            elif have is None:
+            have = path.read_text(encoding="utf-8") if path.is_file() else None
+            baseline = base.read_text(encoding="utf-8") if base.is_file() else None
+            if have is None:
+                bad += 1
                 print(f"{rel}: missing; run emb-hwgen.py generate {how}")
-            else:
-                sys.stdout.writelines(difflib.unified_diff(have.splitlines(True), want.splitlines(True),
-                                                           f"{rel} (committed)", f"{rel} (generated)"))
+            elif baseline != text:
+                bad += 1
+                print(f"{rel}: its description changed since it was generated; run emb-hwgen.py generate {how}")
+                sys.stdout.writelines(difflib.unified_diff((baseline or "").splitlines(True), text.splitlines(True),
+                                                           f"{rel} (generated then)", f"{rel} (generated now)"))
+            elif writer.has_conflict(have):
+                bad += 1
+                print(f"{rel}: an unresolved merge conflict (<<<<<<< yours ... >>>>>>> generated now)")
+            elif strict and have != text:
+                bad += 1
+                print(f"{rel}: edited; a board's facts belong in its description (check --strict)")
+                sys.stdout.writelines(difflib.unified_diff(text.splitlines(True), have.splitlines(True),
+                                                           f"{rel} (generated)", f"{rel} (committed)"))
+        if gen.is_dir():
+            for path in sorted(p for p in gen.rglob("*") if p.is_file() and ".base" not in p.relative_to(gen).parts):
+                if path not in expected:
+                    bad += 1
+                    print(f"{os.path.relpath(path, ROOT)}: not an output of emb-hwgen; remove it")
     # HW-001 for the tree, or for each board root: its boards hold no hand-written files, and its
     # own SoC families' C no address-like constant (A84)
     problems = [p for r in roots for p in facts.check(r)]
@@ -132,6 +162,8 @@ def main(argv=None):
     g.add_argument("--out", help="output directory (default: generated/ beside the board.yaml or system.yaml)")
     c = sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003), "
                        "and look for hardware facts outside the descriptions (HW-001)")
+    c.add_argument("--strict", action="store_true",
+                   help="a board's files must be exactly what was generated: no edits (the tree's boards, in CI)")
     c.add_argument("--board-root", action="append", default=[],
                    help="check the boards under DIR/boards/ instead of the tree's (repeatable)")
     v = sub.add_parser("validate", help="validate a board and its SoC, or a system, without writing anything")
