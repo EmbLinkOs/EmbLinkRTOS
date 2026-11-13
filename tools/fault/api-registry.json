@@ -1446,6 +1446,36 @@
       "name": "emb_frame_write",
       "header": "frame.h",
       "state": "active"
+    },
+    {
+      "id": 251,
+      "name": "emb_log_write",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 252,
+      "name": "emb_log_level_set",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 253,
+      "name": "emb_log_flush",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 254,
+      "name": "emb_log_stats_get",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 255,
+      "name": "emb_console_frame",
+      "header": "console.h",
+      "state": "active"
     }
   ]
 }

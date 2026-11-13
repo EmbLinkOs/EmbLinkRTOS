@@ -245,5 +245,10 @@
 #define EMB_API_ID_FRAME_DECODER_INIT            0x00F8u
 #define EMB_API_ID_FRAME_DECODE_BYTE             0x00F9u
 #define EMB_API_ID_FRAME_WRITE                   0x00FAu
+#define EMB_API_ID_LOG_WRITE                     0x00FBu
+#define EMB_API_ID_LOG_LEVEL_SET                 0x00FCu
+#define EMB_API_ID_LOG_FLUSH                     0x00FDu
+#define EMB_API_ID_LOG_STATS_GET                 0x00FEu
+#define EMB_API_ID_CONSOLE_FRAME                 0x00FFu
 
 #endif /* EMB_API_IDS_H */

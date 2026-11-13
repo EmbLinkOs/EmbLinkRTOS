@@ -14,4 +14,87 @@ config EMB_FRAME
 	  each zero delimiter, for the log, trace, crash, shell and update channels
 	  over one byte stream. Linked only into an image that calls it.
 
+config EMB_CONSOLE_FRAMED
+	bool "Framed console: every stream on the console in frames (A127)"
+	depends on EMB_FRAME && EMB_MUTEX
+	default n
+	help
+	  Everything on the console travels in SPEC-015 §7 frames, each preceded
+	  by a zero: the board's text on channel 3, log records on 0, trace on 1,
+	  crash records on 2. `emb monitor` decodes and shows them. Off, the
+	  console is plain text, which the test runners and any terminal read.
+
+config EMB_LOG
+	bool "Logging (SPEC-015 §2, A127), linked only when a call references it"
+	depends on EMB_SEM
+	default y
+	help
+	  EMB_LOG_ERR() to EMB_LOG_DBG(): a call packs its arguments into a
+	  ring in the caller, from any context and without waiting, and a log
+	  thread sends the records on. Records that do not fit are dropped and
+	  counted (OBS-003). The ring and the thread come with the first call:
+	  an image that logs nothing has neither.
+
+if EMB_LOG
+
+choice EMB_LOG_BACKEND
+	prompt "Log backend (08 Q13)"
+	default EMB_LOG_DEFERRED if EMB_CONSOLE_FRAMED && !EMB_PROFILE_TINY
+	default EMB_LOG_TEXT
+
+config EMB_LOG_DEFERRED
+	bool "Deferred: the record is sent and the host formats it from the ELF (ADR-009)"
+	depends on EMB_CONSOLE_FRAMED && !EMB_ARCH_AVR
+
+config EMB_LOG_TEXT
+	bool "Plain text: the log thread formats the record on the target"
+
+endchoice
+
+config EMB_LOG_LEVEL_MAX
+	int "Most detailed level compiled: 1 errors, 2 warnings, 3 information, 4 debug"
+	default 3
+	range 0 4
+
+config EMB_LOG_RING_SIZE
+	int "Log ring, bytes (a power of two)"
+	default 256 if EMB_PROFILE_TINY
+	default 1024
+	range 64 65536
+
+config EMB_LOG_STR_MAX
+	int "Longest string argument a record keeps, bytes"
+	default 16 if EMB_PROFILE_TINY
+	default 32
+	range 1 255
+
+config EMB_LOG_HEXDUMP_MAX
+	int "Longest hexdump a record keeps, bytes"
+	default 16 if EMB_PROFILE_TINY
+	default 64
+	range 1 1024
+
+config EMB_LOG_TIMESTAMP
+	bool "Records carry the kernel clock's ticks"
+	default y
+
+config EMB_LOG_THREAD_PRIORITY
+	int "Log thread priority; 0 selects the lowest application priority"
+	default 0
+	range 0 255
+
+config EMB_LOG_THREAD_STACK
+	int "Log thread stack, bytes"
+	default 1024
+	range EMB_ARCH_STACK_MIN 65536
+
+config EMB_LOG_LINE_MAX
+	int "Longest line the plain-text backend formats, bytes"
+	depends on EMB_LOG_TEXT
+	default 64 if EMB_PROFILE_TINY
+	default 128
+	range 16 1024
+
+endif # EMB_LOG
+
 endmenu

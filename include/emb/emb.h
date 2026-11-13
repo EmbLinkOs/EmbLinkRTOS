@@ -20,6 +20,7 @@
 #if CONFIG_EMB_COND
 #include <emb/cond.h>
 #endif
+#include <emb/console.h>
 #include <emb/context.h>
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -55,6 +56,7 @@
 #include <emb/fault.h>
 #include <emb/irq.h>
 #include <emb/kernel.h>
+#include <emb/log.h>
 #if CONFIG_EMB_MSGQ
 #include <emb/msgq.h>
 #endif

@@ -76,6 +76,11 @@ extern "C" {
 #ifndef EMB_USED
 #define EMB_USED
 #endif
+/* The compiler checks a call's arguments against a printf format: argument f is the format,
+ * a the first checked. EmbCC and unknown compilers check nothing. */
+#ifndef EMB_PRINTF_FORMAT
+#define EMB_PRINTF_FORMAT(f, a)
+#endif
 #ifndef EMB_WEAK
 #define EMB_WEAK
 #define EMB_HAS_WEAK 0 /* a default definition cannot be overridden */

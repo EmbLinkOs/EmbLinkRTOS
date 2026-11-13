@@ -36,10 +36,11 @@ void emb_board_led_toggle(void)
     /* the host has no LED */
 }
 
-void emb_board_puts(const char *s)
+/* The console's bytes as they are (A127): emb_board_puts() and the framed console call it. */
+void emb_board_write(const void *buf, size_t len)
 {
     emb_native_host_begin();
-    (void)fputs(s, stdout);
+    (void)fwrite(buf, 1u, len, stdout);
     emb_native_host_end();
 }
 

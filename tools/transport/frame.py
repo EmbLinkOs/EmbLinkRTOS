@@ -126,6 +126,57 @@ class Decoder:
             self.buf = bytearray()
         return out
 
+    def feed_all(self, data):
+        """As feed(), keeping what is not a frame: ("frame", channel, payload) for a good frame,
+        ("raw", bytes, None) for bytes between zeros that are not one and read as text (a boot
+        ROM's message, text before a framed console started). A framed console precedes each
+        frame with a zero, so such text ends before the next frame (A127)."""
+        out = []
+        for b in data:
+            if b != 0:
+                if not self.dropping:
+                    self.buf.append(b)
+                    if len(self.buf) > self.max * 2:
+                        if _texty(self.buf):
+                            out.append(("raw", bytes(self.buf), None))
+                        else:
+                            self.overruns += 1
+                        self.buf = bytearray()
+                continue
+            self.dropping = False
+            if self.buf:
+                out.extend(self._end())
+            self.buf = bytearray()
+        return out
+
+    def finish(self):
+        """The bytes after the last zero, when they read as text."""
+        out = [("raw", bytes(self.buf), None)] if self.buf and _texty(self.buf) else []
+        self.buf = bytearray()
+        return out
+
+    def _end(self):
+        try:
+            ch, payload = decode(bytes(self.buf))
+        except FrameError:
+            if _texty(self.buf):
+                return [("raw", bytes(self.buf), None)]
+            self.errors += 1
+            return []
+        if len(payload) + 3 > self.max:
+            self.overruns += 1
+            return []
+        self.frames += 1
+        return [("frame", ch, payload)]
+
+
+def _texty(buf):
+    """Whether bytes read as text: printable ASCII, tabs and line ends, at least nine in ten."""
+    if not buf:
+        return False
+    good = sum(1 for b in buf if 32 <= b < 127 or b in (9, 10, 13))
+    return good * 10 >= len(buf) * 9
+
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])

@@ -39,11 +39,13 @@ void emb_board_led_toggle(void)
 #endif
 }
 
-void emb_board_puts(const char *s)
+/* The console's bytes as they are (A127): emb_board_puts() and the framed console call it. */
+void emb_board_write(const void *buf, size_t len)
 {
-    while (*s != '\0') { /* bounded by the string */
-        emb_avr_usart_putc(EMB_HW_CONSOLE_BASE, *s);
-        s++;
+    const char *p = (const char *)buf;
+    size_t i;
+    for (i = 0u; i < len; i++) { /* bounded by len */
+        emb_avr_usart_putc(EMB_HW_CONSOLE_BASE, p[i]);
     }
 }
 

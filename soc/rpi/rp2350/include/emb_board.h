@@ -21,6 +21,7 @@
 #include <emb/compiler.h>
 #include <emb/fault.h>
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include <hw_config.h>
@@ -34,6 +35,7 @@ extern "C" {
 void emb_board_init(void);
 void emb_board_led_toggle(void);
 void emb_board_puts(const char *s);
+void emb_board_write(const void *buf, size_t len); /* raw bytes (A127) */
 void emb_board_put_u32(uint32_t v);
 EMB_NORETURN void emb_board_exit(int code);
 void emb_board_fault_report(const emb_fault_info_t *info);

@@ -168,11 +168,13 @@ static void put_char(char c)
     UART_FIFO = (uint32_t)(unsigned char)c;
 }
 
-void emb_board_puts(const char *s)
+/* The console's bytes as they are (A127): emb_board_puts() and the framed console call it. */
+void emb_board_write(const void *buf, size_t len)
 {
-    while (*s != '\0') { /* bounded by the string */
-        put_char(*s);
-        s++;
+    const char *p = (const char *)buf;
+    size_t i;
+    for (i = 0u; i < len; i++) { /* bounded by len */
+        put_char(p[i]);
     }
 }
 
