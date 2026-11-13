@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emblinkos.org/schemas/hw/0/diagnostics.schema.json",
+  "title": "emb-hwgen's outcome, format 1 (--format json, HW-002)",
+  "description": "What one emb-hwgen command did, for tools and IDEs: its status and exit code, every finding with its file, line, node path and message apart, and the files it wrote. Format 1: a field added keeps the format, a field changed or removed bumps it.",
+  "type": "object",
+  "required": ["tool", "version", "format", "command", "status", "exit_code", "diagnostics", "files"],
+  "additionalProperties": false,
+  "properties": {
+    "tool": { "const": "emb-hwgen" },
+    "version": { "type": "string", "description": "emb-hwgen's own version" },
+    "format": { "const": 1 },
+    "command": { "enum": ["generate", "check", "validate"] },
+    "status": {
+      "enum": ["ok", "errors", "stale", "internal-error"],
+      "description": "ok (exit 0, warnings possible); errors (exit 2: the descriptions are wrong, or check found no boards/); stale (exit 1: check found generated files that differ, or hardware facts outside a description; generate left a merge conflict in an edited file, A126); internal-error (exit 3: the generator itself failed, see error)"
+    },
+    "exit_code": { "enum": [0, 1, 2, 3] },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "generate: the files written, relative to the repository root"
+    },
+    "boards": { "type": "integer", "minimum": 0, "description": "check: the boards checked" },
+    "systems": { "type": "integer", "minimum": 0, "description": "check: the system descriptions checked (A125)" },
+    "error": {
+      "type": "object",
+      "required": ["type", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "description": "the Python exception's class" },
+        "message": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "finding": {
+      "type": "object",
+      "required": ["severity", "rule", "file", "line", "path", "message", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "severity": { "enum": ["error", "warning"] },
+        "rule": {
+          "type": ["string", "null"],
+          "description": "HW-002 (a description error or warning), HW-001 (a hardware fact outside a description), HW-003 (a generated file out of date), or null"
+        },
+        "file": { "type": ["string", "null"], "description": "relative to the repository root, or absolute for a board outside it" },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "path": {
+          "type": ["string", "null"],
+          "description": "the node in the description, dotted (console.baud, devices[2].cs), (root) or (file)"
+        },
+        "message": { "type": "string" },
+        "text": { "type": "string", "description": "the finding as the text output prints it" },
+        "diff": {
+          "type": ["string", "null"],
+          "description": "HW-003 only: a unified diff from the committed file to what emb-hwgen generates now"
+        }
+      }
+    }
+  }
+}
