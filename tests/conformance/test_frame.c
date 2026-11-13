@@ -232,16 +232,20 @@ EMB_TEST(frame_random_stream_with_damage)
     EMB_ASSERT_TRUE(dec.errors > 0u);
 }
 
-/* emb_frame_write()'s sink: collects the frame, and counts the calls. */
-static uint8_t streamed[EMB_FRAME_ENCODED_MAX(300u) + 16u];
+/* emb_frame_write()'s sink: compares each byte with what emb_frame_encode() wrote into wire, as
+ * it comes, so no second buffer is needed (the Uno has 2 KiB), and counts the calls. */
 static size_t streamed_len;
 static unsigned sink_calls;
+static unsigned mismatches;
 
 static void collect(void *ctx, const uint8_t *bytes, size_t len)
 {
+    size_t i;
     (void)ctx;
-    if ((streamed_len + len) <= sizeof(streamed)) {
-        (void)memcpy(&streamed[streamed_len], bytes, len);
+    for (i = 0u; i < len; i++) { /* bounded by len */
+        if (((streamed_len + i) >= sizeof(wire)) || (wire[streamed_len + i] != bytes[i])) {
+            mismatches++;
+        }
     }
     streamed_len += len;
     sink_calls++;
@@ -271,9 +275,10 @@ EMB_TEST(frame_write_streams_the_encoders_bytes)
             n = encode(EMB_FRAME_CHANNEL_SHELL, payload, len);
             streamed_len = 0u;
             sink_calls = 0u;
+            mismatches = 0u;
             EMB_ASSERT_OK(emb_frame_write(EMB_FRAME_CHANNEL_SHELL, payload, len, collect, NULL));
             EMB_ASSERT_EQ(streamed_len, n);
-            EMB_ASSERT_TRUE(memcmp(streamed, wire, n) == 0);
+            EMB_ASSERT_EQ(mismatches, 0u);
         }
     }
     /* a run inside the payload goes to the sink in one piece, not byte by byte */
