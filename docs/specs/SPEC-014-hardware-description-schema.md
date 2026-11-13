@@ -127,7 +127,7 @@ A device's `cs` is a chip select (A116): a GPIO pin, active low unless written `
 
 ## 5. System schema
 
-*Proposed by [A125](AMENDMENTS-M4.md) (2026-11-13), for the project owner's acceptance; it replaces the sketch this section held. Partitions, shares, trace, log and images join the schema with the phases that implement them (M3b, M4.3, M4.5).*
+*Rewritten by [A125](AMENDMENTS-M4.md), accepted by the project owner on 2026-11-13; it replaces the sketch this section held. Partitions, shares, trace, log and images join the schema with the phases that implement them (M3b, M4.3, M4.5).*
 
 The system description, `system.yaml` beside the application's sources, says what a product does with its board: its threads, its kernel objects, and the settings it wants from the board's devices. The board description keeps what the PCB fixes. Two products on one board differ only in their system descriptions.
 
