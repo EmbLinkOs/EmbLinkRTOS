@@ -1,0 +1,10 @@
+{
+  "format": "emb-tasks-demo v1",
+  "board": "pico2_w",
+  "compiler": "Homebrew Clang 23.1.5 with LLD 23.1.5",
+  "image": "tasks_demo.elf",
+  "image_sha256": "905254d14cb6dea885751a03712c305f6f0b3375bcf5df9a81401239c264edda",
+  "git": {"commit": "b3ae7131013d9bdc0b2b6b1ea05ca4c53e7b00e0", "dirty": false},
+  "seconds": 21,
+  "console": "console.log, through the NUCLEO-F446RE UART relay"
+}

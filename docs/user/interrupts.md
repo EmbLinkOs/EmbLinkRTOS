@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-143 functions, from the headers' `@ctx` tags.
+147 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -154,6 +154,10 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_sem_count()` | `<emb/sem.h>` | no |
 | `emb_sem_give()` | `<emb/sem.h>` | no |
 | `emb_status_name()` | `<emb/status.h>` | no |
+| `emb_task_post()` | `<emb/task.h>` | no |
+| `emb_task_post_event()` | `<emb/task.h>` | no |
+| `emb_task_state()` | `<emb/task.h>` | no |
+| `emb_task_stats_get()` | `<emb/task.h>` | no |
 | `emb_thread_attr_default()` | `<emb/thread.h>` | no |
 | `emb_thread_cancel()` | `<emb/thread.h>` | no |
 | `emb_thread_detach()` | `<emb/thread.h>` | no |

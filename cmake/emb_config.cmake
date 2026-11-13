@@ -23,12 +23,47 @@ foreach(_r ${EMB_BOARD_ROOT})
   endif()
   list(APPEND _emb_roots "${_r}")
 endforeach()
+# An application with a system description (SPEC-014 §5, A125): its board is one of the
+# system's, generated with the system's settings into generated/<board>/ beside it; EMB_BOARD
+# picks it, the system's first board by default.
+set(EMB_SYSTEM "" CACHE FILEPATH "The application's system.yaml (SPEC-014 §5), relative to its source tree")
 set(_emb_board_cmake "")
 set(_all "")
+if(EMB_SYSTEM)
+  get_filename_component(EMB_SYSTEM "${EMB_SYSTEM}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+  get_filename_component(EMB_SYSTEM_DIR "${EMB_SYSTEM}" DIRECTORY)
+  file(GLOB _sys_json "${EMB_SYSTEM_DIR}/generated/*/docs/system.json")
+  if(NOT _sys_json)
+    message(FATAL_ERROR "EMB_SYSTEM: ${EMB_SYSTEM} has no generated/<board>/; "
+                        "run python3 -I hw/gen/emb-hwgen.py generate --system ${EMB_SYSTEM}")
+  endif()
+  list(GET _sys_json 0 _one)
+  file(READ "${_one}" _json)
+  string(JSON _nboards LENGTH "${_json}" boards)
+  set(_sys_boards "")
+  math(EXPR _last "${_nboards} - 1")
+  foreach(_i RANGE ${_last})
+    string(JSON _b GET "${_json}" boards ${_i})
+    list(APPEND _sys_boards "${_b}")
+  endforeach()
+  if(NOT EMB_BOARD)
+    list(GET _sys_boards 0 EMB_BOARD)
+  endif()
+  if(NOT EMB_BOARD IN_LIST _sys_boards)
+    string(REPLACE ";" " " _names "${_sys_boards}")
+    message(FATAL_ERROR "EMB_BOARD='${EMB_BOARD}' is not one of the system's boards: ${_names}")
+  endif()
+  set(_emb_board_cmake "${EMB_SYSTEM_DIR}/generated/${EMB_BOARD}/build/board.cmake")
+  if(NOT EXISTS "${_emb_board_cmake}")
+    message(FATAL_ERROR "EMB_SYSTEM: no generated/${EMB_BOARD}/; "
+                        "run python3 -I hw/gen/emb-hwgen.py generate --system ${EMB_SYSTEM}")
+  endif()
+  set(_emb_roots "")
+endif()
 foreach(_r ${_emb_roots})
-  file(GLOB _found "${_r}/boards/*/${EMB_BOARD}/board.cmake" "${_r}/boards/*/${EMB_BOARD}/generated/board.cmake")
+  file(GLOB _found "${_r}/boards/*/${EMB_BOARD}/board.cmake" "${_r}/boards/*/${EMB_BOARD}/generated/build/board.cmake")
   list(APPEND _emb_board_cmake ${_found})
-  file(GLOB _found "${_r}/boards/*/*/board.cmake" "${_r}/boards/*/*/generated/board.cmake")
+  file(GLOB _found "${_r}/boards/*/*/board.cmake" "${_r}/boards/*/*/generated/build/board.cmake")
   list(APPEND _all ${_found})
 endforeach()
 list(LENGTH _emb_board_cmake _n)
@@ -39,7 +74,7 @@ endif()
 if(NOT _n EQUAL 1)
   set(_names "")
   foreach(_b ${_all})
-    string(REGEX REPLACE "/generated/board.cmake$|/board.cmake$" "" _d "${_b}")
+    string(REGEX REPLACE "/generated/build/board.cmake$|/board.cmake$" "" _d "${_b}")
     get_filename_component(_nm "${_d}" NAME)
     string(APPEND _names " ${_nm}")
   endforeach()
@@ -48,6 +83,20 @@ endif()
 get_filename_component(EMB_BOARD_DIR "${_emb_board_cmake}" DIRECTORY)
 set(EMB_BOARD_INCLUDE_DIRS "${EMB_BOARD_DIR}/include")
 include("${_emb_board_cmake}")   # EMB_BOARD_ARCH, EMB_BOARD_VARIANT, EMB_BOARD_DEFAULT_PROFILE, EMB_BOARD_MCU
+if(DEFINED EMB_BOARD_GENERATED_DIR)
+  # a generated board (A126): its files are in config/, include/, src/, linker/, build/ and
+  # docs/ under its generated directory, which is the board directory
+  set(EMB_BOARD_DIR "${EMB_BOARD_GENERATED_DIR}")
+endif()
+if(NOT DEFINED EMB_BOARD_CONF)
+  set(EMB_BOARD_CONF "${EMB_BOARD_DIR}/board.conf")  # a hand-written board's
+endif()
+if(NOT DEFINED EMB_BOARD_HW_JSON)
+  set(EMB_BOARD_HW_JSON "${EMB_BOARD_DIR}/hw.json")
+endif()
+if(NOT DEFINED EMB_BOARD_BUILD_DIR)
+  set(EMB_BOARD_BUILD_DIR "${EMB_BOARD_DIR}")
+endif()
 if(DEFINED EMB_BOARD_HW_INPUTS)
   # a generated board: refuse outputs older than their descriptions (HW-003), and reconfigure
   # when a description changes
@@ -56,6 +105,9 @@ if(DEFINED EMB_BOARD_HW_INPUTS)
     set(_rel "${CMAKE_MATCH_1}")
     set(_want "${CMAKE_MATCH_2}")
     string(REGEX REPLACE "/generated$" "" _bd "${EMB_BOARD_DIR}")
+    if(EMB_SYSTEM)
+      set(_bd "${EMB_SYSTEM_DIR}")  # a system outside the tree records its files from its directory
+    endif()
     if(_rel MATCHES "^@board/(.*)$")
       # a board outside the tree records its own files from its directory (emb-hwgen, A76)
       get_filename_component(_path "${_bd}/${CMAKE_MATCH_1}" ABSOLUTE)
@@ -71,6 +123,10 @@ if(DEFINED EMB_BOARD_HW_INPUTS)
       file(RELATIVE_PATH _rbd "${EMB_BASE}" "${_bd}")
       if(_rbd MATCHES "^\\.\\./")
         set(_rbd "${_bd}")   # outside the tree: its absolute path
+      endif()
+      if(EMB_SYSTEM)
+        message(FATAL_ERROR "${EMB_BOARD}: ${_rel} changed since generated/ was written; "
+                            "run python3 -I hw/gen/emb-hwgen.py generate --system ${EMB_SYSTEM}")
       endif()
       message(FATAL_ERROR "${EMB_BOARD}: ${_rel} changed since generated/ was written; "
                           "run python3 -I hw/gen/emb-hwgen.py generate --board ${_rbd}")
@@ -94,13 +150,13 @@ set(_args
   --manifest "${EMB_BASE}/arch/${EMB_BOARD_ARCH}/arch.yaml"
   --variant "${EMB_BOARD_VARIANT}"
   --host-word-bits "${_host_word_bits}"
-  --conf "${EMB_BOARD_DIR}/board.conf"
+  --conf "${EMB_BOARD_CONF}"
   --conf "${EMB_BASE}/configs/${EMB_PROFILE}.conf"
   --out-header "${EMB_CONFIG_HEADER}"
   --out-cmake "${EMB_GENERATED_DIR}/config.cmake"
   --out-json "${EMB_GENERATED_DIR}/config.json"
   --out-dotconfig "${CMAKE_BINARY_DIR}/.config")
-set(_deps "${EMB_BASE}/Kconfig" "${EMB_BOARD_DIR}/board.conf"
+set(_deps "${EMB_BASE}/Kconfig" "${EMB_BOARD_CONF}"
           "${EMB_BASE}/configs/${EMB_PROFILE}.conf"
           "${EMB_BASE}/arch/${EMB_BOARD_ARCH}/arch.yaml"
           "${EMB_BASE}/tools/kconfig/embconfig.py")

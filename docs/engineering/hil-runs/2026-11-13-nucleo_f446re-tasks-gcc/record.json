@@ -1,0 +1,10 @@
+{
+  "format": "emb-tasks-demo v1",
+  "board": "nucleo_f446re",
+  "compiler": "Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1)",
+  "image": "tasks_demo.elf",
+  "image_sha256": "b73baf800b2e422ce3aeac0dc36a65515e4fa58465388c66fbd26eabefcaa8be",
+  "git": {"commit": "dab3513a11632758328cb72f50e5cef29de8ae08", "dirty": false},
+  "seconds": 21,
+  "console": "console.log"
+}

@@ -49,7 +49,7 @@ def boards(root):
     """{name: {dir, soc, core, kind}} for every board directory."""
     out = {}
     for d in sorted(root.glob("boards/*/*")):
-        hw = d / "generated" / "hw.json"
+        hw = d / "generated" / "docs" / "hw.json"
         if (d / "board.yaml").is_file() and hw.is_file():
             j = json.loads(hw.read_text(encoding="utf-8"))
             soc = j.get("soc", {})

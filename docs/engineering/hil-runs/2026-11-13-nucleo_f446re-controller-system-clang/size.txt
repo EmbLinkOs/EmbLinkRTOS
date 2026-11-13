@@ -1,0 +1,2 @@
+   text	   data	    bss	    dec	    hex	filename
+  33408	     24	   8424	  41856	   a380	controller.elf

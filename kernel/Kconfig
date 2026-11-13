@@ -392,6 +392,16 @@ config EMB_DRV_SPI
 	  blocking wrapper; each target's chip select, and the bus held across
 	  several transfers by a mutex with priority inheritance.
 
+config EMB_TASK
+	bool "Tasks: threads written as state machines (SPEC-020)"
+	depends on EMB_MSGQ
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  A task's states, events and handlers come from the system description;
+	  the runtime runs its machine, by events on its own queue or by period.
+	  Linked only into an image that has tasks.
+
 config EMB_WORKQ
 	bool "Work queues (SPEC-006 §4)"
 	depends on EMB_NOTIFY && !EMB_SCHED_TABLE

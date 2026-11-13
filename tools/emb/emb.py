@@ -76,7 +76,8 @@ def hw_json(build):
         if c.get(key) and Path(c[key]).is_file():
             return json.loads(Path(c[key]).read_text(encoding="utf-8"))
     bdir = Path(c.get("EMB_BOARD_DIR") or board_dir(c.get("EMB_BOARD", "")))
-    for cand in (bdir / "hw.json", bdir / "generated" / "hw.json", bdir / "docs" / "hw.json"):
+    for cand in (bdir / "docs" / "hw.json", bdir / "generated" / "docs" / "hw.json", bdir / "hw.json",
+                 bdir / "generated" / "hw.json"):
         if cand.is_file():
             return json.loads(cand.read_text(encoding="utf-8"))
     raise EmbError(f"{build}: no hw.json for board {c.get('EMB_BOARD')}")
@@ -134,7 +135,11 @@ def build_command(args):
         conf.append(f"-DEMB_HIL_PORT={args.port}")
     if args.clang:
         import json
-        hw = json.loads((board_dir(args.board) / "generated" / "hw.json").read_text(encoding="utf-8"))
+        gen = board_dir(args.board) / "generated"
+        hw_path = next((c for c in (gen / "docs" / "hw.json", gen / "hw.json") if c.is_file()), None)
+        if hw_path is None:
+            raise EmbError(f"board {args.board}: no generated hw.json")
+        hw = json.loads(hw_path.read_text(encoding="utf-8"))
         tc = CLANG_TOOLCHAIN.get(hw["soc"]["arch"]["port"])
         if tc is None:
             raise EmbError(f"no Clang toolchain file for {hw['soc']['arch']['port']}")

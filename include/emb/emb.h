@@ -77,5 +77,8 @@
 #if CONFIG_EMB_WORKQ
 #include <emb/work.h>
 #endif
+#if CONFIG_EMB_TASK
+#include <emb/task.h>
+#endif
 
 #endif /* EMB_EMB_H */

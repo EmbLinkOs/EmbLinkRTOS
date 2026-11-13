@@ -1,0 +1,10 @@
+{
+  "format": "emb-tasks-demo v1",
+  "board": "nucleo_f446re",
+  "compiler": "Homebrew Clang 23.1.5 with LLD 23.1.5",
+  "image": "tasks_demo.elf",
+  "image_sha256": "b263332bd05a4b205d3cf4cd159903fec2784fc6e5cb006c847f155307603df5",
+  "git": {"commit": "dab3513a11632758328cb72f50e5cef29de8ae08", "dirty": false},
+  "seconds": 21,
+  "console": "console.log"
+}

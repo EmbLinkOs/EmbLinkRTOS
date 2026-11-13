@@ -11,8 +11,19 @@
 #   a map file, and a size report; registers the image for the footprint tracker. Adds
 #   run_<name>, which runs the image: on the host for native, under the board's QEMU
 #   machine elsewhere when there is one (Ctrl-A X leaves QEMU, A91).
+set(EMB_STACK_ROOTS "" CACHE FILEPATH "The application's stack-roots.json, for the stack check after the link (A125)")
+
 function(emb_add_executable name)
   _emb_add_image(${name} ${ARGN})
+  if(EMB_SYSTEM)
+    # the system's static definitions and targets (SPEC-014 §5.1), and its headers' directory
+    target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/system.c")
+    if(EXISTS "${EMB_BOARD_DIR}/src/tasks.c")
+      target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/tasks.c")  # the system's tasks (SPEC-020)
+    endif()
+    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}/include" "${EMB_SYSTEM_DIR}" "${EMB_SYSTEM_DIR}/src")
+    _emb_stack_check(${name})
+  endif()
   if(CONFIG_EMB_ARCH STREQUAL "native")
     add_custom_target(run_${name} COMMAND "$<TARGET_FILE:${name}>" DEPENDS ${name} USES_TERMINAL
                       COMMENT "run ${name}")
@@ -22,6 +33,30 @@ function(emb_add_executable name)
                       DEPENDS ${name} USES_TERMINAL
                       COMMENT "run ${name} under QEMU (Ctrl-A X to leave)")
   endif()
+endfunction()
+
+# A125: each thread's stack against the worst case tools/footprint/stack_bound.py computes from
+# the linked image; a stack below it, or a bound it cannot compute, fails the build. The tool
+# reads Arm images, from GCC's -fstack-usage and the disassembly: elsewhere the build says the
+# check did not run.
+function(_emb_stack_check name)
+  if(NOT CONFIG_EMB_ARCH STREQUAL "cortex_m")
+    message(STATUS "${name}: the stack check after the link runs on Cortex-M images only; not on ${CONFIG_EMB_ARCH}")
+    return()
+  endif()
+  if(NOT EMB_STACK_ROOTS)
+    # the check needs the application's roots: its interrupt levels and indirect calls
+    message(WARNING "${name}: no stack check after the link: set EMB_STACK_ROOTS to the application's "
+                    "stack-roots.json (tools/footprint/stack_bound.py)")
+    return()
+  endif()
+  get_filename_component(_roots "${EMB_STACK_ROOTS}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
+  add_custom_command(TARGET ${name} POST_BUILD
+    COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/footprint/stack_bound.py"
+            --elf "$<TARGET_FILE:${name}>" --build "${CMAKE_BINARY_DIR}" --roots "${_roots}"
+            --system "${EMB_BOARD_DIR}/docs/system.json" --objdump "${CMAKE_OBJDUMP}" --nm "${CMAKE_NM}"
+            --json "$<TARGET_FILE:${name}>.stack.json"
+    COMMENT "stack check: ${name}'s threads against their worst case (A125)")
 endfunction()
 
 # The image without a run target: emb_add_executable() and emb_add_test() share it.
@@ -90,7 +125,7 @@ function(emb_add_test name)
         math(EXPR _emb_ctest_wait "${EMB_HIL_TIMEOUT_${name}} + 120")
       endif()
       add_test(NAME ${name} COMMAND "${Python3_EXECUTABLE}" -I "${EMB_BASE}/tools/hil/run_hil.py"
-               --hw-json "${EMB_BOARD_DIR}/hw.json" --port "${EMB_HIL_PORT}"
+               --hw-json "${EMB_BOARD_HW_JSON}" --port "${EMB_HIL_PORT}"
                --log "${CMAKE_CURRENT_BINARY_DIR}/${name}.console.log" --archive "${EMB_HIL_ARCHIVE}"
                ${_emb_hil_wait} "$<TARGET_FILE:${name}>")
       set_tests_properties(${name} PROPERTIES RUN_SERIAL TRUE TIMEOUT ${_emb_ctest_wait})

@@ -39,6 +39,8 @@
 #include <emb/arch.h>
 #include <emb/emb.h>
 
+#include "system.h"
+
 #include <emb_board.h>
 #include <emb_stm32_drivers.h>
 #include <emb_stm32_pins.h>
@@ -69,22 +71,8 @@ static const emb_stm32_pin_t markers[] = {
     {EMB_STM32_PORT(A), MARK_ISR, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
 };
 
-typedef struct sample {
-    uint32_t cycles; /* emb_arch_cycles() at the conversion's interrupt */
-    uint16_t raw;    /* the ADC reading */
-    uint16_t seq;    /* the conversion's number, modulo 65536 */
-} sample_t;
-
-static void control(void *arg);
-static void command(void *arg);
-static void telemetry(void *arg);
-
-EMB_THREAD_DEFINE(control_thread, control, NULL, 6u, 1024u, 0u);
-EMB_THREAD_DEFINE(command_thread, command, NULL, 4u, 1024u, 0u);
-EMB_THREAD_DEFINE(telemetry_thread, telemetry, NULL, 2u, 1024u, 0u);
-EMB_MSGQ_DEFINE(samples, sizeof(sample_t), 8u, 0u);
-EMB_MSGQ_DEFINE(rx_bytes, 1u, 64u, 0u);
-EMB_MUTEX_DEFINE(console, EMB_MUTEX_INHERIT, 0u, 0u);
+/* The threads, the sample and byte queues and the console's mutex are system.yaml's: the
+ * generated system.c defines them, system.h declares them and the entries below (A125). */
 
 /* What the threads and the handlers share. Each field has one writer; the readers take a
  * snapshot, and a torn read of a counter is at most one update old. */
@@ -216,7 +204,7 @@ static void work(uint32_t from, uint32_t cycles)
     }
 }
 
-static void control(void *arg)
+void control(void *arg)
 {
     int32_t filtered = INT32_MIN;
     uint32_t consecutive = 0u;
@@ -400,7 +388,7 @@ static void execute(char *line)
     unlock();
 }
 
-static void command(void *arg)
+void command(void *arg)
 {
     char line[CTL_LINE_MAX];
     unsigned n = 0u;
@@ -422,7 +410,7 @@ static void command(void *arg)
 
 /* ---- telemetry ----------------------------------------------------------------------------- */
 
-static void telemetry(void *arg)
+void telemetry(void *arg)
 {
     emb_instant_t next = emb_time_now();
     uint32_t last_beat = st.heartbeat;

@@ -7,7 +7,7 @@
 
 """Run a test image on a physical board (hardware in the loop) and read its console.
 
-    run_hil.py IMAGE --hw-json BOARD/generated/hw.json --port /dev/ttyACM0
+    run_hil.py IMAGE --hw-json BOARD/generated/docs/hw.json --port /dev/ttyACM0
                [--flash-cmd "openocd -f board/st_nucleo_f4.cfg -c 'program {image} verify reset exit'"]
                [--until TEXT] [--timeout S] [--log FILE]
 

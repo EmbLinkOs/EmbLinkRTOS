@@ -281,15 +281,15 @@ class ChipSelects(unittest.TestCase):
 
     def test_active_low_by_default(self):
         files = self.files()
-        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
-        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u, 0u},", files["board_pins.c"])  # starts high
-        self.assertIn("set(EMB_BOARD_SPI2_CS_COUNT 1)", files["board.cmake"])
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */", files["include/soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u, 0u},", files["src/board_pins.c"])  # starts high
+        self.assertIn("set(EMB_BOARD_SPI2_CS_COUNT 1)", files["build/board.cmake"])
 
     def test_active_high(self):
         self.root.edit(self.board, "cs: [PB12]", "cs: [{ pin: PB12, active: high }]")
         files = self.files()
-        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 0u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
-        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},", files["board_pins.c"])  # starts low
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 0u, {0u, 0u}} /* PB12 */", files["include/soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},", files["src/board_pins.c"])  # starts low
 
     def test_needs_the_ports_device(self):
         self.root.edit(self.board, '  - { name: gpiob, doc: "SPI2\'s chip select, PB12" }\n', "")
@@ -307,7 +307,7 @@ class ChipSelects(unittest.TestCase):
             "  acme,flash: { class: flash, level: kernel, sources: [drivers/acme/flash.c], header: flash.h, api: flash_api, config: flash_config_t }\n",
             encoding="utf-8")
         files = self.files()
-        self.assertIn("#define EMB_SOC_NOR_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["soc_devices.h"])
+        self.assertIn("#define EMB_SOC_NOR_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["include/soc_devices.h"])
         self.root.edit(self.board, "bus: spi2, cs: PB1 }", "bus: spi2, cs: [PB1, PB2] }")
         self.expect("name: nor", "devices.nor.cs", "a device on an SPI bus has one chip select")
 
@@ -332,10 +332,10 @@ class DmaChannels(unittest.TestCase):
 
     def test_assigned_and_named(self):
         files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
-        self.assertIn(".dma_tx = {&emb_dev_dma1, 4u, 0u, {0u, 0u}}, /* dma.tx */", files["soc_devices.c"])
-        self.assertIn("#define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}", files["soc_devices.h"])
-        self.assertIn("set(EMB_BOARD_SPI2_DMA rx tx)", files["board.cmake"])
-        self.assertIn("{0x20000000u, 0x0001C000u}, /* sram1 */", files["soc_devices.c"])  # where DMA reaches
+        self.assertIn(".dma_tx = {&emb_dev_dma1, 4u, 0u, {0u, 0u}}, /* dma.tx */", files["src/soc_devices.c"])
+        self.assertIn("#define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}", files["include/soc_devices.h"])
+        self.assertIn("set(EMB_BOARD_SPI2_DMA rx tx)", files["build/board.cmake"])
+        self.assertIn("{0x20000000u, 0x0001C000u}, /* sram1 */", files["src/soc_devices.c"])  # where DMA reaches
 
     def test_a_stream_two_devices_want(self):
         # UART4's transmit is on DMA1 stream 4 alone, which SPI2's transmit took first
@@ -374,7 +374,7 @@ class FlashGeometry(unittest.TestCase):
 
     def test_listed_sectors_and_partitions(self):
         files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
-        c, h = files["soc_devices.c"], files["soc_devices.h"]
+        c, h = files["src/soc_devices.c"], files["include/soc_devices.h"]
         self.assertIn("static const uint32_t flash_sectors[8] = {0x4000u, 0x4000u, 0x4000u, 0x4000u, "
                       "0x10000u, 0x20000u, 0x20000u, 0x20000u};", c)
         self.assertIn(".geometry = {0x08000000u, 0x00080000u, flash_sectors, 0u, 8u, 1u, 0xFFu, {0u, 0u, 0u}},", c)
@@ -382,11 +382,11 @@ class FlashGeometry(unittest.TestCase):
                       "0x00020000u};", c)
         self.assertIn("#define EMB_FLASH_AREA_STORAGE (&emb_flash_area_storage)", h)
         self.assertIn("#include <emb/flash_area.h>", h)
-        self.assertIn("*(.ramfunc .ramfunc.*)", files["regions.ld"])
+        self.assertIn("*(.ramfunc .ramfunc.*)", files["linker/regions.ld"])
 
     def test_uniform_sectors_up_to_the_chip(self):
         files, _ = generate.generate(self.root.dir / PICO, self.root.dir)
-        c = files["soc_devices.c"]
+        c = files["src/soc_devices.c"]
         self.assertIn(".geometry = {0x10000000u, 0x00400000u, NULL, 4096u, 1024u, 256u, 0xFFu, {0u, 0u, 0u}},", c)
         self.assertIn('{"storage", &emb_dev_flash, 0x003F0000u, 0x00010000u};', c)
 
@@ -414,8 +414,8 @@ class PinLines(unittest.TestCase):
 
     def test_lines_in_the_configuration_and_the_header(self):
         files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
-        self.assertIn(".scl = {&emb_dev_gpiob, 8u, 0u, {0u, 0u}}, /* pins.scl */", files["soc_devices.c"])
-        self.assertIn("#define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */", files["soc_devices.h"])
+        self.assertIn(".scl = {&emb_dev_gpiob, 8u, 0u, {0u, 0u}}, /* pins.scl */", files["src/soc_devices.c"])
+        self.assertIn("#define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */", files["include/soc_devices.h"])
 
     def test_a_port_without_its_gpio_device(self):
         self.root.edit(self.board, "  - { name: gpiob, doc: \"SPI2's chip select, PB12\" }\n", "")
@@ -442,15 +442,15 @@ class Bank(unittest.TestCase):
 
     def test_pin_table(self):
         files, _ = generate.generate(ROOT / PICO, ROOT)
-        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # UART0 TX
-        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # RX idles high
+        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},", files["src/board_pins.c"])  # UART0 TX
+        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},", files["src/board_pins.c"])  # RX idles high
         # SPI1's chip select: an SIO output, its input on so it reads back, starting deasserted
-        self.assertIn("{13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},", files["board_pins.c"])
+        self.assertIn("{13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},", files["src/board_pins.c"])
         self.assertIn("#define EMB_SOC_SPI1_CS0 {&emb_dev_io_bank0, 13u, 1u, {0u, 0u}} /* GPIO13 */",
-                      files["soc_devices.h"])
-        self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
-        self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
-        self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])
+                      files["include/soc_devices.h"])
+        self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["build/board.cmake"])
+        self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["build/board.cmake"])
+        self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["src/boot_block.c"])
 
     def test_line_beyond_the_bank(self):
         f = f"{PICO}/board.yaml"
@@ -501,7 +501,9 @@ class Outputs(unittest.TestCase):
             files, _ = generate.generate(board, ROOT)
             gen = board / "generated"
             with self.subTest(board=board.name):
-                self.assertEqual(sorted(files), sorted(p.name for p in gen.iterdir() if p.is_file()))
+                on_disk = sorted(p.relative_to(gen).as_posix() for p in gen.rglob("*")
+                                 if p.is_file() and ".base" not in p.relative_to(gen).parts)
+                self.assertEqual(sorted(files), on_disk)
                 for name, text in files.items():
                     self.assertEqual((gen / name).read_text(encoding="utf-8"), text, name)
 
@@ -510,18 +512,20 @@ class Outputs(unittest.TestCase):
         same SoC support and drivers as the NUCLEO-F446RE."""
         ze = ROOT / "boards/st/nucleo_f446ze"
         self.assertEqual(sorted(p.name for p in ze.iterdir() if not p.name.startswith(".")), ["board.yaml", "generated"])
-        c_files = [p for p in (ze / "generated").iterdir() if p.suffix in (".c", ".h")]
+        gen = ze / "generated"
+        c_files = [p for p in gen.rglob("*") if p.suffix in (".c", ".h") and ".base" not in p.relative_to(gen).parts]
         files, warnings = generate.generate(ze, ROOT)
-        self.assertEqual(sorted(p.name for p in c_files), ["board_pins.c", "hw_config.h", "soc_devices.c", "soc_devices.h"])
+        self.assertEqual(sorted(p.relative_to(gen).as_posix() for p in c_files),
+                         ["include/hw_config.h", "include/soc_devices.h", "src/board_pins.c", "src/soc_devices.c"])
         for p in c_files:
-            self.assertEqual(p.read_text(encoding="utf-8"), files[p.name])  # generated, not edited
-        re_cmake = (ROOT / BOARD / "generated/board.cmake").read_text(encoding="utf-8")
+            self.assertEqual(p.read_text(encoding="utf-8"), files[p.relative_to(gen).as_posix()])  # generated, not edited
+        re_cmake = (ROOT / BOARD / "generated/build/board.cmake").read_text(encoding="utf-8")
         self.assertIn('set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")', re_cmake)
-        self.assertIn('set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")', files["board.cmake"])
+        self.assertIn('set(EMB_SOC_DIR "${EMB_BASE}/soc/st/stm32f4")', files["build/board.cmake"])
         self.assertTrue(any("nucleo_f446ze/board.yaml" in w and "uncurated" in w for w in warnings))
 
     def test_second_board_solves_its_own_clock(self):
-        data = json.loads(generate.generate(ROOT / "boards/st/nucleo_f446ze", ROOT)[0]["hw.json"])
+        data = json.loads(generate.generate(ROOT / "boards/st/nucleo_f446ze", ROOT)[0]["docs/hw.json"])
         pll = data["derived"]["clock"]["pll"]
         self.assertEqual((pll["m"], pll["n"], pll["p"], pll["q"]), (4, 180, 2, 8))
         self.assertEqual(data["derived"]["console"]["device"], "usart3")
@@ -541,7 +545,7 @@ class Outputs(unittest.TestCase):
 
     def test_stamps(self):
         files, _ = generate.generate(ROOT / BOARD, ROOT)
-        data = json.loads(files["hw.json"])
+        data = json.loads(files["docs/hw.json"])
         self.assertEqual(data["generator"]["name"], "emb-hwgen")
         self.assertEqual(data["schema_version"], 0)
         paths = [i["path"] for i in data["inputs"]]
@@ -556,14 +560,14 @@ class Outputs(unittest.TestCase):
     def test_hand_written_values_preserved(self):
         """The generated header keeps every value the hand-written one had (H2 swaps them)."""
         files, _ = generate.generate(ROOT / BOARD, ROOT)
-        h = files["hw_config.h"]
+        h = files["include/hw_config.h"]
         for macro, value in [("EMB_HW_BOARD", '"nucleo_f446re"'), ("EMB_HW_SOC", '"STM32F446RE"'),
                              ("EMB_HW_HSE_HZ", "8000000u"), ("EMB_HW_CPU_HZ", "180000000u"),
                              ("EMB_HW_APB1_HZ", "45000000u"), ("EMB_HW_CONSOLE_BAUD", "115200u"),
                              ("EMB_HW_USART2_BASE", "0x40004400u"), ("EMB_HW_LED_PIN", "5u"),
                              ("EMB_HW_TEST_IRQ", "61u"), ("EMB_HW_TEST_IRQ_HIGH", "62u")]:
             self.assertRegex(h, rf"#define {macro}\s+{re.escape(value)}\n")
-        conf = files["board.conf"]
+        conf = files["config/board.conf"]
         for line in ("CONFIG_EMB_CM_CPU_HZ=180000000", "CONFIG_EMB_CM_IRQ_COUNT=97",
                      "CONFIG_EMB_CM_IRQ_PRIORITY_BITS=4", "CONFIG_EMB_TICK_NS=1000000"):
             self.assertIn(line + "\n", conf)
@@ -572,11 +576,11 @@ class Outputs(unittest.TestCase):
         for board in sorted(p.parent for p in ROOT.glob("boards/*/*/generated")):
             files, _ = generate.generate(board, ROOT)
             with self.subTest(board=board.name):
-                self.assertEqual(schema.validate(json.loads(files["hw.json"]), schema.load_schema("hw")), [])
+                self.assertEqual(schema.validate(json.loads(files["docs/hw.json"]), schema.load_schema("hw")), [])
 
     def test_harness_metadata_fields(self):
         """HW-015: board, SoC, clock, timer source and probe hints are in hw.json."""
-        data = json.loads(generate.generate(ROOT / BOARD, ROOT)[0]["hw.json"])
+        data = json.loads(generate.generate(ROOT / BOARD, ROOT)[0]["docs/hw.json"])
         self.assertEqual(data["board"]["name"], "nucleo_f446re")
         self.assertEqual(data["soc"]["part"], "STM32F446RE")
         self.assertEqual(data["derived"]["clock"]["hclk_hz"], 180_000_000)
@@ -662,7 +666,7 @@ class Devices(unittest.TestCase):
 
     def test_outputs(self):
         files = self.files()
-        c, h, cmake = files["soc_devices.c"], files["soc_devices.h"], files["board.cmake"]
+        c, h, cmake = files["src/soc_devices.c"], files["include/soc_devices.h"], files["build/board.cmake"]
         self.assertIn("const emb_device_table_t emb_board_device_table = {devices, 5u, 3u};", c)
         self.assertIn("static const emb_device_t *const sensor_deps[] = {&emb_dev_console};", c)
         self.assertIn("    .api = &usart_api.dev,\n", c)
@@ -677,10 +681,10 @@ class Devices(unittest.TestCase):
         self.assertNotIn("unused_tim.c", cmake)
         self.assertIn('"${EMB_BASE}/drivers/st/include"', cmake)
         self.assertIn("drivers/bindings.yaml", c)  # an input, stamped
-        data = json.loads(files["hw.json"])
+        data = json.loads(files["docs/hw.json"])
         self.assertEqual([d["name"] for d in data["derived"]["devices"]], ["rcc", "console", "gpioa", "wdt", "sensor"])
         self.assertEqual(schema.validate(data, schema.load_schema("hw")), [])
-        self.assertIn("| sensor | `acme,part` | gpio | KERNEL | console |", files["board.md"])
+        self.assertIn("| sensor | `acme,part` | gpio | KERNEL | console |", files["docs/board.md"])
 
     def test_deterministic(self):
         self.assertEqual(self.files(), self.files())
@@ -690,22 +694,22 @@ class Devices(unittest.TestCase):
         RAM beside the configuration, which names them and their sizes."""
         self.root.edit("drivers/bindings.yaml", "data: usart_data_t,",
                        "data: usart_data_t, buffers: { rx: { size: device.rx_buffer, default: 64 } },")
-        c = self.files()["soc_devices.c"]
+        c = self.files()["src/soc_devices.c"]
         self.assertIn("static uint8_t console_rx[64];", c)
         self.assertIn("    .rx = console_rx,", c)
         self.assertIn("    .rx_size = 64u,", c)
         self.root.edit(f"{BOARD}/board.yaml", "peripheral: usart2, baud: 115200 }",
                        "peripheral: usart2, baud: 115200, rx_buffer: 256 }")
-        self.assertIn("static uint8_t console_rx[256];", self.files()["soc_devices.c"])
+        self.assertIn("static uint8_t console_rx[256];", self.files()["src/soc_devices.c"])
         self.root.edit(f"{BOARD}/board.yaml", "rx_buffer: 256", "rx_buffer: 70000")
-        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console")
+        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console.rx_buffer")
 
     def test_loopbacks(self):
         """simulation.loopbacks: a UART or SPI device, wired by two ports or looped inside."""
         self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console, ports: [A0, A1] } ]\n")
-        self.assertIn('set(EMB_BOARD_EMBSIM_UART_LOOP console "A0,A1")', self.files()["board.cmake"])
+        self.assertIn('set(EMB_BOARD_EMBSIM_UART_LOOP console "A0,A1")', self.files()["build/board.cmake"])
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, ports: [A0, A1] }", "{ device: console, internal: true }")
-        self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["board.cmake"])
+        self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["build/board.cmake"])
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, internal: true }", "{ device: rcc, internal: true }")
         self.expect(r"rcc is not a UART, SPI or I2C device", needle="device: rcc", path="simulation.loopbacks[0]")
 
@@ -714,7 +718,7 @@ class Devices(unittest.TestCase):
         self.expect(r"two ports or internal: true", needle="device: console }", path="simulation.loopbacks[0]")
 
     def test_presence_and_console_macros(self):
-        h = self.files()["soc_devices.h"]
+        h = self.files()["include/soc_devices.h"]
         self.assertIn("#define EMB_SOC_HAS_SENSOR  1", h)
         self.assertIn("#define EMB_SOC_HAS_CONSOLE 1", h)
         self.assertIn("#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_console)", h)  # the device on usart2
@@ -725,9 +729,9 @@ class Devices(unittest.TestCase):
         bindings."""
         self.root.edit(f"{BOARD}/board.yaml", DEVICES, "")
         files = self.files()
-        self.assertIn("const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};", files["soc_devices.c"])
-        self.assertIn("#define EMB_SOC_DEVICE_COUNT 0u", files["soc_devices.h"])
-        cmake = files["board.cmake"]
+        self.assertIn("const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};", files["src/soc_devices.c"])
+        self.assertIn("#define EMB_SOC_DEVICE_COUNT 0u", files["include/soc_devices.h"])
+        cmake = files["build/board.cmake"]
         sources = cmake[cmake.index("set(EMB_BOARD_DRIVER_SOURCES"):]
         self.assertEqual(sources[:sources.index(")")].count('"'), 2)  # soc_devices.c alone
         self.assertNotIn("EMB_BOARD_DRIVER_INCLUDE_DIRS", cmake)
@@ -800,7 +804,7 @@ class OutOfTree(unittest.TestCase):
     def test_inputs_are_stamped_from_the_board(self):
         d, board = self.project()
         files, _ = generate.generate(board, ROOT)
-        cmake = files["board.cmake"]
+        cmake = files["build/board.cmake"]
         self.assertRegex(cmake, r'"@board/board\.yaml=[0-9a-f]{64}"')
         self.assertIn('"soc/arm/mps2/an386.yaml=', cmake)
         self.assertIn("generate --board <path to>/acme_m4", cmake)
@@ -822,7 +826,7 @@ class OutOfTree(unittest.TestCase):
         (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("curated: true", "curated: false"))
         files, warnings = generate.generate(board, ROOT)
         self.assertTrue(any(str((board / "board.yaml").resolve()) in w for w in warnings), warnings)
-        self.assertIn("@board/board.yaml:1: (root): uncurated description", files["hw.json"])
+        self.assertIn("@board/board.yaml:1: (root): uncurated description", files["docs/hw.json"])
 
     def soc_project(self):
         """A board root that also holds its own SoC family (A84): a copy of the MPS2's."""
@@ -837,9 +841,9 @@ class OutOfTree(unittest.TestCase):
     def test_soc_in_the_board_root(self):
         d, board = self.soc_project()
         files, _ = generate.generate(board, ROOT)
-        self.assertIn('"@board/../../../soc/acme/mps2x/an386.yaml=', files["board.cmake"])
-        self.assertIn('get_filename_component(EMB_SOC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../soc/acme/mps2x" ABSOLUTE)',
-                      files["board.cmake"])
+        self.assertIn('"@board/../../../soc/acme/mps2x/an386.yaml=', files["build/board.cmake"])
+        self.assertIn('get_filename_component(EMB_SOC_DIR "${EMB_BOARD_GENERATED_DIR}/../../../../soc/acme/mps2x" ABSOLUTE)',
+                      files["build/board.cmake"])
         for text in files.values():
             self.assertNotIn(str(d.resolve()), text)
 
@@ -866,7 +870,7 @@ class OutOfTree(unittest.TestCase):
         self.assertEqual(run("generate", "--board", str(board)).returncode, 0)
         r = run("check", "--board-root", str(d))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("1 board(s), 0 stale file(s)", r.stdout)
+        self.assertIn("1 board(s), 0 system(s), 0 stale file(s)", r.stdout)
         (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("baud: 115200", "baud: 57600"))
         r = run("check", "--board-root", str(d))
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
@@ -886,9 +890,9 @@ class Avr(unittest.TestCase):
         """HW-006: regions.ld and embld.opts describe the same text and data regions."""
         f = self.files()
         memory = re.findall(r"^\s*(text|data)\s+\([^)]*\)\s*:\s*ORIGIN = (0x[0-9a-f]+), LENGTH = (\d+)$",
-                            f["regions.ld"], re.M)
+                            f["linker/regions.ld"], re.M)
         mem = {name: (int(origin, 16), int(length)) for name, origin, length in memory}
-        opts = dict(line.split("=", 1) for line in f["embld.opts"].splitlines() if line.startswith("-"))
+        opts = dict(line.split("=", 1) for line in f["linker/embld.opts"].splitlines() if line.startswith("-"))
         self.assertEqual(int(opts["-Ttext"], 16), mem["text"][0])
         self.assertEqual(int(opts["--rom-limit"]), mem["text"][1])
         self.assertEqual(int(opts["-Tdata"], 16), mem["data"][0])
@@ -897,13 +901,13 @@ class Avr(unittest.TestCase):
 
     def test_embcc_toolchain_uses_the_generated_options(self):
         """The EmbCC AVR toolchain file passes embld exactly the generated option set."""
-        opts = [line for line in self.files()["embld.opts"].splitlines() if line.startswith("-")]
+        opts = [line for line in self.files()["linker/embld.opts"].splitlines() if line.startswith("-")]
         toolchain = (ROOT / "cmake/toolchains/embcc-avr.cmake").read_text(encoding="utf-8")
         for o in opts:
             self.assertIn(f"-Wl,{o}", toolchain)
 
     def test_hand_written_values_preserved(self):
-        h = self.files()["hw_config.h"]
+        h = self.files()["include/hw_config.h"]
         vectors = ["RESET", "INT0", "INT1", "PCINT0", "PCINT1", "PCINT2", "WDT", "TIMER2_COMPA", "TIMER2_COMPB",
                    "TIMER2_OVF", "TIMER1_CAPT", "TIMER1_COMPA", "TIMER1_COMPB", "TIMER1_OVF", "TIMER0_COMPA",
                    "TIMER0_COMPB", "TIMER0_OVF", "SPI_STC", "USART_RX", "USART_UDRE", "USART_TX", "ADC",
@@ -914,15 +918,15 @@ class Avr(unittest.TestCase):
                              ("EMB_HW_SRAM_BASE", "0x00000100u"), ("EMB_HW_SRAM_SIZE", "2048u"),
                              ("EMB_HW_CONSOLE_BAUD", "115200u"), ("EMB_HW_LED_PIN", "5u")]:
             self.assertRegex(h, rf"#define {macro}\s+{re.escape(value)}\n")
-        conf = self.files()["board.conf"]
+        conf = self.files()["config/board.conf"]
         for line in ('CONFIG_EMB_AVR_MCU="atmega328p"', "CONFIG_EMB_AVR_F_CPU=16000000", "CONFIG_EMB_TICK_NS=1000000"):
             self.assertIn(line + "\n", conf)
-        cmake = self.files()["board.cmake"]
+        cmake = self.files()["build/board.cmake"]
         self.assertIn("set(EMB_BOARD_DEFAULT_PROFILE tiny)", cmake)
         self.assertIn("set(EMB_BOARD_QEMU_ARGS -M arduino-uno -icount shift=6,sleep=off -bios)", cmake)
 
     def test_derived_model(self):
-        data = json.loads(self.files()["hw.json"])
+        data = json.loads(self.files()["docs/hw.json"])
         d = data["derived"]
         self.assertIsNone(d["clock"]["pll"])
         self.assertEqual(d["timer"], {"source": "timer1", "hz": 16_000_000})
@@ -996,23 +1000,23 @@ class QemuBoards(unittest.TestCase):
                 for macro, value in [("EMB_HW_SOC", f'"{soc}"'), ("EMB_HW_CPU_HZ", "25000000u"),
                                      ("EMB_HW_UART0_BASE", "0x40004000u"), ("EMB_HW_TEST_IRQ", "30u"),
                                      ("EMB_HW_TEST_IRQ_HIGH", "31u"), ("EMB_HW_IRQ_PRIORITY_BITS", "3u")]:
-                    self.assertRegex(f["hw_config.h"], rf"#define {macro}\s+{re.escape(value)}\n")
+                    self.assertRegex(f["include/hw_config.h"], rf"#define {macro}\s+{re.escape(value)}\n")
                 for line in ("CONFIG_EMB_CM_CPU_HZ=25000000", "CONFIG_EMB_CM_IRQ_COUNT=32",
                              "CONFIG_EMB_CM_IRQ_PRIORITY_BITS=3", "CONFIG_EMB_TICK_NS=1000000"):
-                    self.assertIn(line + "\n", f["board.conf"])
-                self.assertIn("FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 4M", f["regions.ld"])
+                    self.assertIn(line + "\n", f["config/board.conf"])
+                self.assertIn("FLASH (rx)  : ORIGIN = 0x00000000, LENGTH = 4M", f["linker/regions.ld"])
                 self.assertNotIn("board_pins.c", f)
 
     def test_riscv32_virt(self):
         f = self.files("boards/qemu/riscv32_virt")
         for line in ("CONFIG_EMB_RV_CLINT_BASE=0x02000000", "CONFIG_EMB_RV_IRQ_COUNT=8",
                      "CONFIG_EMB_RV_MTIME_HZ=10000000"):
-            self.assertIn(line + "\n", f["board.conf"])  # the hex symbol spelled as before: same hash
-        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_IRQ\s+0u\n")
-        self.assertNotIn("EMB_HW_TEST_IRQ_HIGH", f["hw_config.h"])
-        self.assertRegex(f["hw_config.h"], r"#define EMB_HW_TEST_BASE\s+0x00100000u\n")
-        self.assertIn("RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 16M", f["regions.ld"])
-        self.assertIn("ENTRY(embn_rv_reset)", f["regions.ld"])
+            self.assertIn(line + "\n", f["config/board.conf"])  # the hex symbol spelled as before: same hash
+        self.assertRegex(f["include/hw_config.h"], r"#define EMB_HW_TEST_IRQ\s+0u\n")
+        self.assertNotIn("EMB_HW_TEST_IRQ_HIGH", f["include/hw_config.h"])
+        self.assertRegex(f["include/hw_config.h"], r"#define EMB_HW_TEST_BASE\s+0x00100000u\n")
+        self.assertIn("RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 16M", f["linker/regions.ld"])
+        self.assertIn("ENTRY(embn_rv_reset)", f["linker/regions.ld"])
 
 
 class Facts(unittest.TestCase):
@@ -1157,7 +1161,7 @@ class Loader(unittest.TestCase):
 
 class Schemas(unittest.TestCase):
     def test_subset_only(self):
-        for kind in ("soc", "board", "hw", "bindings"):
+        for kind in ("soc", "board", "hw", "bindings", "system"):
             schema.load_schema(kind)  # raises on a keyword outside the supported subset
 
     def test_bool_is_not_integer(self):
@@ -1176,7 +1180,7 @@ class Schemas(unittest.TestCase):
                 cases.append(("soc", m.data))
         board = load.load(ROOT / BOARD / "board.yaml", ROOT).data
         cases.append(("board", board))
-        cases.append(("hw", json.loads(generate.generate(ROOT / BOARD, ROOT)[0]["hw.json"])))
+        cases.append(("hw", json.loads(generate.generate(ROOT / BOARD, ROOT)[0]["docs/hw.json"])))
         bad = json.loads(json.dumps(board))
         bad["console"]["baud"] = "fast"
         cases.append(("board", bad))
@@ -1193,7 +1197,7 @@ class Schemas(unittest.TestCase):
         cases.append(("bindings", load.load(ROOT / "drivers" / "bindings.yaml", ROOT).data))
         mps2 = load.load(ROOT / "boards/arm/mps2_an386/board.yaml", ROOT).data
         cases.append(("board", mps2))
-        cases.append(("hw", json.loads(generate.generate(ROOT / "boards/arm/mps2_an386", ROOT)[0]["hw.json"])))
+        cases.append(("hw", json.loads(generate.generate(ROOT / "boards/arm/mps2_an386", ROOT)[0]["docs/hw.json"])))
         bad = json.loads(json.dumps(mps2))
         bad["devices"][0]["name"] = "Uart-0"
         cases.append(("board", bad))
