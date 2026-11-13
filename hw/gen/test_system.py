@@ -13,7 +13,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 sys.path.insert(0, str(HERE))
-from emb_hwgen import HwError, system  # noqa: E402
+from emb_hwgen import HwError, generate, system  # noqa: E402
 
 GOOD = """\
 schema_version: 0
@@ -105,6 +105,70 @@ class Valid(Base):
         self.text = "\n".join(l for l in GOOD.splitlines() if not re.match(r"^(  - \{ name: (flash_chip|env)|spi_targets|i2c_targets|watchdog|devices|  usart2)", l))
         self.text = self.text.replace("board: st/nucleo_f446re", "board: boards/acme_m4") + "\n"
         self.assertEqual(self.resolve()["board"]["name"], "acme_m4")
+
+
+MINIMAL = """\
+schema_version: 0
+kind: system
+name: blinky
+boards: [st/nucleo_f446re, st/nucleo_f446ze]
+threads:
+  - { name: blink_thread, entry: blink, priority: 3, stack: 512 }
+objects:
+  - { name: ticks, type: sem, initial: 0, max: 10 }
+"""
+
+
+class SeveralBoards(Base):
+    def test_each_board_resolved_and_generated(self):
+        self.text = MINIMAL
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        self.assertEqual(system.boards(path, ROOT), ["st/nucleo_f446re", "st/nucleo_f446ze"])
+        self.assertEqual(system.resolve(path, ROOT, "st/nucleo_f446ze")["board"]["name"], "nucleo_f446ze")
+        per_board, _ = generate.generate_system(path, ROOT)
+        self.assertEqual(sorted(per_board), ["nucleo_f446re", "nucleo_f446ze"])
+        for name, files in per_board.items():
+            self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, 3u, 512u, 0u);", files["system.c"])
+            self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", files["system.c"])
+            self.assertIn(f'"board": "{name}"', files["system.json"])
+
+    def test_an_error_names_its_board(self):
+        self.text = MINIMAL.replace("    max: 10", "    max: 10") + "devices:\n  usart2: { baud: 57600 }\n"
+        with self.assertRaises(HwError) as cm:
+            path = self.dir / "system.yaml"
+            path.write_text(self.text, encoding="utf-8")
+            generate.generate_system(path, ROOT)
+        self.assertTrue(any("nucleo_f446ze has no device 'usart2'" in e for e in cm.exception.errors), cm.exception.errors)
+        self.assertFalse(any("nucleo_f446re has no device" in e for e in cm.exception.errors))
+
+    def test_board_and_boards_both(self):
+        self.text = MINIMAL.replace("boards: [", "board: st/nucleo_f446re\nboards: [")
+        with self.assertRaises(HwError) as cm:
+            self.resolve()
+        self.assertTrue(any("one of them" in e for e in cm.exception.errors), cm.exception.errors)
+
+
+class Outputs(Base):
+    def test_system_c_and_h(self):
+        self.text = self.text.replace("conf: [app.conf]", "conf: [app.conf]\nincludes: [app.h]")
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        files = generate.generate_system(path, ROOT)[0]["nucleo_f446re"]
+        c, h = files["system.c"], files["system.h"]
+        self.assertIn("EMB_THREAD_DEFINE(telemetry_thread, telemetry, NULL, 2u, 1024u, EMB_THREAD_NO_AUTOSTART);", c)
+        self.assertIn("EMB_MSGQ_DEFINE(samples, sizeof(sample_t), 8u, 0u);", c)
+        self.assertIn("EMB_MUTEX_DEFINE(bus_lock, EMB_MUTEX_CEILING, 6u, 0u);", c)
+        self.assertIn("const emb_drv_spi_target_t flash_chip = {8000000u, EMB_DRV_SPI_MODE_3, 8u, 0u, 0u, EMB_SOC_SPI2_CS0};", c)
+        self.assertIn("const emb_drv_i2c_target_t env = {EMB_DRV_I2C_FAST, 0x76u, {0u, 0u}};", c)
+        self.assertIn("void control(void *arg);", h)
+        self.assertIn("extern emb_mutex_t bus_lock;", h)
+        self.assertIn('#include "app.h"', h)
+        self.assertIn("#define EMB_SYSTEM_WATCHDOG_TIMEOUT_MS 500u", h)
+        self.assertIn("generate --system <path to>/", c)  # no path of this machine (HW-013)
+        self.assertIn("| usart2 | baud | 57600 | 115200 |", files["system.md"])
+        # the board's outputs carry the system's settings
+        self.assertIn("57600", files["hw_config.h"])
 
 
 class Negative(Base):

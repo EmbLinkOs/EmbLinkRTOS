@@ -42,13 +42,30 @@ def duration_ms(value):
     return int(m.group(1)) * (1000 if m.group(2) == "s" else 1)
 
 
+def boards(system_path, root):
+    """The board references a system description names, in order: boards:, or board: alone."""
+    m = load.flatten(Path(system_path), root)
+    errors = [f"{m.at(p)}: {msg}" for p, msg in schema.validate(m.data, schema.load_schema("system"))]
+    if ("board" in m.data) == ("boards" in m.data):
+        errors.append(f"{m.at('(root)')}: name the product's board (board:) or its boards (boards:), one of them")
+    if errors:
+        raise HwError(errors)
+    refs = m.data["boards"] if "boards" in m.data else [m.data["board"]]
+    if len(set(refs)) != len(refs):
+        raise HwError([f"{m.at('boards')}: a board named twice"])
+    return refs
+
+
 class System:
-    def __init__(self, root):
+    def __init__(self, root, board_ref, several):
         self.root = Path(root)
         self.errors = []
+        self.board_ref = board_ref
+        self.several = several  # with several boards, each error says which one it is about
 
     def err(self, path, msg):
-        self.errors.append(f"{self.model.at(path)}: {msg}")
+        where = f" (on {Path(self.board_ref).name})" if self.several else ""
+        self.errors.append(f"{self.model.at(path)}: {msg}{where}")
 
     # -------------------------------------------------------------- entry point
 
@@ -61,7 +78,8 @@ class System:
         if self.errors:
             raise HwError(self.errors)
         s = self.model.data
-        board_dir = self._board_dir(s["board"])
+        at = "boards" if "boards" in s else "board"
+        board_dir = self._board_dir(self.board_ref, at)
         if board_dir is None:
             raise HwError(self.errors)
         # the board's own device values, before the system's settings replace them
@@ -69,7 +87,9 @@ class System:
                               load.flatten(board_dir / "board.yaml", self.root).data.get("devices", [])}
         r = model.resolve(board_dir, self.root, self.model)
         r["board_dir"] = load.rel(board_dir, self.root)
-        r["system_path"] = load.rel(system_path, self.root)  # the outputs' regeneration hint
+        # the outputs' regeneration hint: its path in the tree, or a placeholder outside it (HW-013)
+        r["system_path"] = (load.rel(system_path, self.root) if load.inside(system_path, self.root)
+                            else f"<path to>/{system_path.resolve().parent.name}/system.yaml")
         if s.get("profile"):
             r["profile"] = s["profile"]
         cfg = self._config(r, board_dir)
@@ -104,13 +124,13 @@ class System:
                              key=lambda i: i["path"])
         return r
 
-    def _board_dir(self, ref):
+    def _board_dir(self, ref, at):
         """<vendor>/<board> in the tree, or a directory relative to the system description."""
         for cand in (self.root / "boards" / ref, self.dir / ref):
             if (cand / "board.yaml").is_file():
                 return cand
-        self.err("board", f"no board {ref!r}: neither boards/{ref}/ in the tree nor {ref}/ beside this file "
-                          "holds a board.yaml")
+        self.err(at, f"no board {ref!r}: neither boards/{ref}/ in the tree nor {ref}/ beside this file "
+                     "holds a board.yaml")
         return None
 
     # -------------------------------------------------------------- the configuration
@@ -370,5 +390,10 @@ class System:
 _CONFIG_SHOWN = ("CONFIG_EMB_PRIORITY_COUNT", "CONFIG_EMB_ARCH_STACK_MIN", "CONFIG_EMB_PROFILE")
 
 
-def resolve(system_path, root):
-    return System(root).resolve(system_path)
+def resolve(system_path, root, board_ref=None):
+    """The system resolved on one of its boards (the first by default)."""
+    refs = boards(system_path, root)
+    ref = board_ref if board_ref is not None else refs[0]
+    if ref not in refs:
+        raise HwError([f"{load.rel(system_path, root)}:1: boards: {ref!r} is not one of the system's boards"])
+    return System(root, ref, len(refs) > 1).resolve(system_path)

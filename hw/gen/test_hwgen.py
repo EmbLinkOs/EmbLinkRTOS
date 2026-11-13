@@ -862,7 +862,7 @@ class OutOfTree(unittest.TestCase):
         self.assertEqual(run("generate", "--board", str(board)).returncode, 0)
         r = run("check", "--board-root", str(d))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-        self.assertIn("1 board(s), 0 stale file(s)", r.stdout)
+        self.assertIn("1 board(s), 0 system(s), 0 stale file(s)", r.stdout)
         (board / "board.yaml").write_text((board / "board.yaml").read_text().replace("baud: 115200", "baud: 57600"))
         r = run("check", "--board-root", str(d))
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)

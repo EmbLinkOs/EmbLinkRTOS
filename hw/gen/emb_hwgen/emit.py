@@ -899,4 +899,11 @@ def render(resolved):
     outputs.update(FAMILY_OUTPUTS.get(resolved["soc"]["family"], {}))
     outputs.update(PORT_OUTPUTS.get(resolved["soc"]["arch"]["port"], {}))
     outputs.update(DEVICE_OUTPUTS)  # every board defines its device table, empty or not
+    if "system" in resolved:  # an application's outputs: the board's with its settings, and the system's (A125)
+        from . import emit_system
+        c = _c_comment(resolved, _cmd(resolved))
+        outputs.update({"system.h": lambda r: emit_system.system_h(r, c),
+                        "system.c": lambda r: emit_system.system_c(r, c),
+                        "system.json": emit_system.system_json,
+                        "system.md": lambda r: emit_system.system_md(r, _md_stamp(r))})
     return {name: fn(resolved) for name, fn in sorted(outputs.items())}

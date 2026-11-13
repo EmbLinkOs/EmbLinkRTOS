@@ -135,7 +135,7 @@ The system description, `system.yaml` beside the application's sources, says wha
 schema_version: 0
 kind: system
 name: controller
-board: st/nucleo_f446re          # <vendor>/<board> of the tree or a board root (A76), or a directory
+boards: [st/nucleo_f446re, st/nucleo_f446ze]   # <vendor>/<board> of the tree, or a directory; board: for one
 conf: [controller.conf]          # the application's Kconfig fragments, read for the checks below
 includes: [controller.h]         # headers the generated sources need (item types, entry functions)
 threads:
@@ -168,13 +168,15 @@ watchdog: { device: iwdg, timeout: 500ms }
 
 A binding states the limits these checks use, with the figures its driver enforces (`limits:` in `drivers/bindings.yaml`: an SPI controller's divider range, an I2C controller's speeds, a watchdog's timeout range).
 
+**Boards:** `boards:` lists the boards the product runs on, or `board:` names its one board. The system is checked against each, and an error found on one of several names it. `profile:` chooses the kernel profile where the board's default is not the product's.
+
 **Kconfig options stay in their fragments** (`.conf`), which `conf:` names so the generator can resolve them with the board's defaults and check against them; the build uses the same fragments.
 
 **Threads and objects may also be defined in C** with the same macros. The generator does not see them: their names are the linker's to keep apart, and the checks after the link (below) cover them.
 
 ### 5.1 What the generator writes
 
-`emb-hwgen generate --system <dir>/system.yaml` resolves the board and the system together and writes the application's `generated/` beside `system.yaml`, committed with it and kept current by `emb-hwgen check` (HW-003), as a board's is:
+`emb-hwgen generate --system <dir>/system.yaml` resolves each board with the system and writes `generated/<board>/` beside `system.yaml`, committed with it and kept current by `emb-hwgen check` (HW-003), as a board's outputs are. The build takes the system with `EMB_SYSTEM` and one of its boards with `EMB_BOARD`, the first by default:
 
 | Output | Content |
 |---|---|

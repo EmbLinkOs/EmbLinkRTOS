@@ -8,6 +8,7 @@
     emb-hwgen.py check              # every generated/ is up to date; no hardware facts in C (HW-001)
     emb-hwgen.py check --board-root ~/my-project   # the boards a project keeps outside the tree
     emb-hwgen.py validate --board boards/st/nucleo_f446re
+    emb-hwgen.py generate --system examples/controller/system.yaml   # an application (A125)
 
 Exit status 0 on success, 1 when check finds a difference, 2 on a description error; each
 error is printed as 'file:line: node.path: message' (HW-002).
@@ -27,16 +28,43 @@ def _boards(root):
     return sorted(p.parent.parent for p in root.glob("boards/*/*/generated/hw_config.h"))
 
 
-def cmd_generate(args):
+_SKIP = {"build", "third_party", ".git", "node_modules"}
+
+
+def _systems(root):
+    """Every system description under the root (A125), but none in build trees or vendored code."""
+    out = []
+    for p in sorted(root.rglob("system.yaml")):
+        parts = p.relative_to(root).parts
+        if not any(x in _SKIP or x.startswith(".venv") for x in parts):
+            out.append(p)
+    return out
+
+
+def _target(args):
+    """([(output directory, files)], warnings, what) for --board or --system: a system writes
+    generated/<board>/ for each of its boards (A125)."""
+    if args.system:
+        system = Path(args.system)
+        per_board, warnings = generate.generate_system(system, ROOT)
+        base = Path(args.out) if getattr(args, "out", None) else system.parent / "generated"
+        return [(base / name, files) for name, files in sorted(per_board.items())], warnings, system
     board = Path(args.board)
-    out = Path(args.out) if args.out else board / "generated"
     files, warnings = generate.generate(board, ROOT)
-    out.mkdir(parents=True, exist_ok=True)
-    for name, text in files.items():
-        (out / name).write_text(text, encoding="utf-8")
+    out = Path(args.out) if getattr(args, "out", None) else board / "generated"
+    return [(out, files)], warnings, board
+
+
+def cmd_generate(args):
+    outputs, warnings, _ = _target(args)
+    for out, files in outputs:
+        out.mkdir(parents=True, exist_ok=True)
+        for name, text in files.items():
+            (out / name).write_text(text, encoding="utf-8")
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
-    print(f"emb-hwgen: wrote {len(files)} files to {os.path.relpath(out, ROOT)}")
+    for out, files in outputs:
+        print(f"emb-hwgen: wrote {len(files)} files to {os.path.relpath(out, ROOT)}")
     return 0
 
 
@@ -48,10 +76,18 @@ def cmd_check(args):
             print(f"emb-hwgen: {r} has no boards/ directory (a board root holds boards/<vendor>/<board>/)", file=sys.stderr)
             return 2
     boards = [b for r in roots for b in _boards(r)]
-    for board in boards:
-        files, _ = generate.generate(board, ROOT)
-        gen = board / "generated"
-        names = set(files) | {p.name for p in gen.iterdir() if p.is_file()}
+    systems = [s for r in roots for s in _systems(r)]
+    jobs = [(b / "generated", generate.generate(b, ROOT)[0], f"--board {os.path.relpath(b, ROOT)}") for b in boards]
+    for s in systems:
+        per_board, _ = generate.generate_system(s, ROOT)
+        how = f"--system {os.path.relpath(s, ROOT)}"
+        jobs += [(s.parent / "generated" / name, files, how) for name, files in sorted(per_board.items())]
+        base = s.parent / "generated"
+        for extra in sorted(p for p in base.iterdir() if p.is_dir() and p.name not in per_board) if base.is_dir() else []:
+            bad += 1
+            print(f"{os.path.relpath(extra, ROOT)}: not a board of {os.path.relpath(s, ROOT)}; remove it")
+    for gen, files, how in jobs:
+        names = set(files) | ({p.name for p in gen.iterdir() if p.is_file()} if gen.is_dir() else set())
         for name in sorted(names):
             path = gen / name
             have = path.read_text(encoding="utf-8") if path.is_file() else None
@@ -63,7 +99,7 @@ def cmd_check(args):
             if want is None:
                 print(f"{rel}: not an output of emb-hwgen; remove it")
             elif have is None:
-                print(f"{rel}: missing; run emb-hwgen.py generate --board {os.path.relpath(board, ROOT)}")
+                print(f"{rel}: missing; run emb-hwgen.py generate {how}")
             else:
                 sys.stdout.writelines(difflib.unified_diff(have.splitlines(True), want.splitlines(True),
                                                            f"{rel} (committed)", f"{rel} (generated)"))
@@ -72,30 +108,35 @@ def cmd_check(args):
     problems = [p for r in roots for p in facts.check(r)]
     for p in problems:
         print(p)
-    print(f"emb-hwgen check: {len(boards)} board(s), {bad} stale file(s), {len(problems)} hardware fact(s) outside a description")
+    print(f"emb-hwgen check: {len(boards)} board(s), {len(systems)} system(s), {bad} stale file(s), "
+          f"{len(problems)} hardware fact(s) outside a description")
     return 1 if bad or problems else 0
 
 
 def cmd_validate(args):
-    _, warnings = generate.generate(Path(args.board), ROOT)
+    _, warnings, what = _target(args)
     for w in warnings:
         print(f"warning: {w}", file=sys.stderr)
-    print(f"emb-hwgen: {args.board} is valid")
+    print(f"emb-hwgen: {what} is valid")
     return 0
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    g = sub.add_parser("generate", help="write a board's generated outputs")
-    g.add_argument("--board", required=True, help="the board directory, holding board.yaml")
-    g.add_argument("--out", help="output directory (default: <board>/generated)")
+    g = sub.add_parser("generate", help="write a board's or an application's generated outputs")
+    which = g.add_mutually_exclusive_group(required=True)
+    which.add_argument("--board", help="the board directory, holding board.yaml")
+    which.add_argument("--system", help="an application's system.yaml (SPEC-014 §5, A125)")
+    g.add_argument("--out", help="output directory (default: generated/ beside the board.yaml or system.yaml)")
     c = sub.add_parser("check", help="regenerate every board and compare with the committed outputs (HW-003), "
                        "and look for hardware facts outside the descriptions (HW-001)")
     c.add_argument("--board-root", action="append", default=[],
                    help="check the boards under DIR/boards/ instead of the tree's (repeatable)")
-    v = sub.add_parser("validate", help="validate a board and its SoC without writing anything")
-    v.add_argument("--board", required=True)
+    v = sub.add_parser("validate", help="validate a board and its SoC, or a system, without writing anything")
+    which = v.add_mutually_exclusive_group(required=True)
+    which.add_argument("--board")
+    which.add_argument("--system")
     args = ap.parse_args(argv)
     try:
         return {"generate": cmd_generate, "check": cmd_check, "validate": cmd_validate}[args.cmd](args)
