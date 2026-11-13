@@ -23,6 +23,8 @@ get_filename_component(EMB_BOARD_GENERATED_DIR "${CMAKE_CURRENT_LIST_DIR}/.." AB
 set(EMB_BOARD_CONF "${EMB_BOARD_GENERATED_DIR}/config/board.conf")
 set(EMB_BOARD_HW_JSON "${EMB_BOARD_GENERATED_DIR}/docs/hw.json")
 set(EMB_BOARD_BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}")  # build/CMakeLists.txt
+set(EMB_BOARD_SRC_DIR "${EMB_BOARD_GENERATED_DIR}/src")  # its pin table and boot block
+set(EMB_BOARD_LINKER_DIR "${EMB_BOARD_GENERATED_DIR}/linker")
 # the SoC family's board support and drivers build this board (build/CMakeLists.txt)
 set(EMB_SOC_DIR "${EMB_BASE}/soc/nordic/nrf51")
 set(EMB_BOARD_INCLUDE_DIRS "${EMB_BOARD_GENERATED_DIR}/include" "${EMB_SOC_DIR}/include")

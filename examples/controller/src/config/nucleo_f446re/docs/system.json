@@ -1,0 +1,123 @@
+{
+  "board": "nucleo_f446re",
+  "boards": [
+    "nucleo_f446re",
+    "nucleo_f446ze"
+  ],
+  "conf": [
+    "controller.conf"
+  ],
+  "config": {
+    "CONFIG_EMB_ARCH_STACK_MIN": 256,
+    "CONFIG_EMB_PRIORITY_COUNT": 32,
+    "CONFIG_EMB_PROFILE": "base",
+    "CONFIG_EMB_TASK": true
+  },
+  "devices": {},
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "i2c_targets": [],
+  "includes": [
+    "controller.h"
+  ],
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
+    },
+    {
+      "path": "boards/st/nucleo_f446re/board.yaml",
+      "sha256": "d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+    },
+    {
+      "path": "examples/controller/controller.conf",
+      "sha256": "f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1"
+    },
+    {
+      "path": "examples/controller/system.yaml",
+      "sha256": "2a91f71f1de638aa1ffaa18f0f76fc3ccde44d2560aef98a9a48120775773af3"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f4.yaml",
+      "sha256": "796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446.yaml",
+      "sha256": "f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446re.yaml",
+      "sha256": "b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4"
+    }
+  ],
+  "interrupts": [],
+  "name": "controller",
+  "objects": [
+    {
+      "capacity": 8,
+      "doc": "ADC1's handler to the control thread",
+      "item": "sample_t",
+      "item_size": null,
+      "name": "samples",
+      "type": "msgq"
+    },
+    {
+      "capacity": 64,
+      "doc": "USART2's handler to the command thread",
+      "item": null,
+      "item_size": 1,
+      "name": "rx_bytes",
+      "type": "msgq"
+    },
+    {
+      "doc": "the replies and the telemetry share USART2",
+      "name": "console",
+      "protocol": "inherit",
+      "type": "mutex"
+    }
+  ],
+  "profile": "base",
+  "scaffold": false,
+  "schema_version": 0,
+  "spi_targets": [],
+  "tasks": [],
+  "threads": [
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "filters each sample, drives the heater; the highest",
+      "entry": "control",
+      "flags": [],
+      "name": "control_thread",
+      "priority": 6,
+      "stack": 1024
+    },
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "the console's commands",
+      "entry": "command",
+      "flags": [],
+      "name": "command_thread",
+      "priority": 4,
+      "stack": 1024
+    },
+    {
+      "arg": "NULL",
+      "autostart": true,
+      "doc": "a TLM line a second; feeds the watchdog",
+      "entry": "telemetry",
+      "flags": [],
+      "name": "telemetry_thread",
+      "priority": 2,
+      "stack": 1024
+    }
+  ],
+  "watchdog": null
+}

@@ -278,14 +278,14 @@ The draft is the package file's `gpio.ports` and the `alternate_functions` of th
 
 ## Applications: the system description
 
-An application's `system.yaml` (SPEC-014 §5, A125) names its boards, Kconfig fragments, threads, kernel objects, device settings, SPI and I2C targets and watchdog. `generate --system` resolves it on each of its boards and writes `generated/<board>/` beside it. The board's outputs are rendered again with the system's device settings, and `system.h`, `system.c`, `system.json` and `system.md` are added. `check` finds every `system.yaml` in the tree, outside build directories, and compares each board's directory as it does a board's.
+An application's `system.yaml` (SPEC-014 §5, A125) names its boards, Kconfig fragments, threads, tasks, kernel objects, device settings, SPI and I2C targets, watchdog and interrupt handlers. `generate --system` resolves it on each of its boards and writes MPLAB Harmony's configuration folder, `src/config/<board>/`, beside it (A130): `definitions.h`, `configuration.h`, `initialization.c` (`SYS_Initialize()` and the static definitions), `tasks.c` (the tasks and `SYS_Tasks()`), and `interrupts.h` and `interrupts.c` when the system has interrupt handlers. The board's outputs are rendered again with the system's device settings under `peripheral/`, `linker/`, `build/` and `docs/`, beside `system.json` and `system.md`; `board.cmake` gives their folders to the SoC's build (`EMB_BOARD_SRC_DIR`, `EMB_BOARD_LINKER_DIR`). The application's own files, `CMakeLists.txt`, `src/main.c`, each task's `src/<task>.c` and `.h` and `src/interrupt_handlers.c`, are written in Harmony's templates and names (`emit_system.py`). A generate that finds A126's `generated/` or `src/tasks/` beside the system warns that their edits are to be moved. `check` finds every `system.yaml` in the tree, outside build directories, and compares each board's folder as it does a board's.
 
 - **Device settings:** the system's settings replace the board description's values before the board is resolved, each keeping its own line. An error about one therefore names `system.yaml`.
 - **Configuration:** comes from `tools/kconfig/embconfig.py`, run over the board's fragment, the profile's and the system's, as the build runs it.
 - **Limits:** the target and watchdog checks read `limits:` in `drivers/bindings.yaml`, the figures each driver enforces.
 - **Several boards:** with more than one board, an error found on one names it.
 
-The build takes the system with `EMB_SYSTEM`, picks a board with `EMB_BOARD` (the first of `system.json`'s `boards` by default), compiles `system.c` with the application, and, with `EMB_STACK_ROOTS` on Cortex-M, runs `stack_bound.py --system` after the link. The tests are `hw/gen/test_system.py`.
+The build takes the system with `EMB_SYSTEM`, picks a board with `EMB_BOARD` (the first of `system.json`'s `boards` by default), compiles `initialization.c`, `tasks.c` and `interrupts.c` with the application, and, with `EMB_STACK_ROOTS` on Cortex-M, runs `stack_bound.py --system` after the link. The tests are `hw/gen/test_system.py`.
 
 ## A board outside the tree
 

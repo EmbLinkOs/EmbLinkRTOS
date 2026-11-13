@@ -1,0 +1,120 @@
+{
+  "board": "nucleo_f446re",
+  "boards": [
+    "nucleo_f446re",
+    "pico2_w"
+  ],
+  "conf": [],
+  "config": {
+    "CONFIG_EMB_ARCH_STACK_MIN": 256,
+    "CONFIG_EMB_PRIORITY_COUNT": 32,
+    "CONFIG_EMB_PROFILE": "base",
+    "CONFIG_EMB_TASK": true
+  },
+  "devices": {},
+  "generator": {
+    "name": "emb-hwgen",
+    "version": "0.1.0"
+  },
+  "i2c_targets": [],
+  "includes": [],
+  "inputs": [
+    {
+      "path": "arch/cortex_m/arch.yaml",
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
+    },
+    {
+      "path": "boards/st/nucleo_f446re/board.yaml",
+      "sha256": "d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea"
+    },
+    {
+      "path": "drivers/bindings.yaml",
+      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+    },
+    {
+      "path": "examples/tasks/system.yaml",
+      "sha256": "202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f4.yaml",
+      "sha256": "796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446.yaml",
+      "sha256": "f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a"
+    },
+    {
+      "path": "soc/st/stm32f4/stm32f446re.yaml",
+      "sha256": "b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4"
+    }
+  ],
+  "interrupts": [
+    {
+      "doc": "",
+      "handler": "WAKE_InterruptHandler",
+      "irq": 61,
+      "level": 1,
+      "name": "wake",
+      "source": null
+    }
+  ],
+  "name": "tasks_demo",
+  "objects": [],
+  "profile": "base",
+  "scaffold": true,
+  "schema_version": 0,
+  "spi_targets": [],
+  "tasks": [
+    {
+      "doc": "",
+      "entry": [
+        "open"
+      ],
+      "event": null,
+      "events": [
+        "open",
+        "close",
+        "jam"
+      ],
+      "exit": [
+        "open"
+      ],
+      "initial": "closed",
+      "model": "event",
+      "name": "door",
+      "period_ms": 0,
+      "priority": 5,
+      "queue": 8,
+      "stack": 1024,
+      "states": [
+        "closed",
+        "open",
+        "jammed"
+      ],
+      "timeouts": {
+        "open": 2000
+      }
+    },
+    {
+      "doc": "",
+      "entry": [],
+      "event": null,
+      "events": [],
+      "exit": [],
+      "initial": "dark",
+      "model": "periodic",
+      "name": "blink",
+      "period_ms": 500,
+      "priority": 2,
+      "queue": 8,
+      "stack": 512,
+      "states": [
+        "dark",
+        "lit"
+      ],
+      "timeouts": {}
+    }
+  ],
+  "threads": [],
+  "watchdog": null
+}

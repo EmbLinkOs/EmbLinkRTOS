@@ -9,7 +9,7 @@
 
     stack_bound.py --elf build/controller/controller.elf --build build/controller \\
                    --roots examples/controller/stack-roots.json [--objdump arm-none-eabi-objdump] \\
-                   [--system examples/controller/generated/nucleo_f446re/system.json] [--json out.json]
+                   [--system examples/controller/src/config/nucleo_f446re/docs/system.json] [--json out.json]
 
 With --system, the threads a system description declares (SPEC-014 §5, A125) are taken from
 its generated system.json, each with its entry and its stack: the roots file then lists only

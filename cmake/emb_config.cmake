@@ -24,17 +24,17 @@ foreach(_r ${EMB_BOARD_ROOT})
   list(APPEND _emb_roots "${_r}")
 endforeach()
 # An application with a system description (SPEC-014 §5, A125): its board is one of the
-# system's, generated with the system's settings into generated/<board>/ beside it; EMB_BOARD
-# picks it, the system's first board by default.
+# system's, generated with the system's settings into src/config/<board>/ beside it (A130);
+# EMB_BOARD picks it, the system's first board by default.
 set(EMB_SYSTEM "" CACHE FILEPATH "The application's system.yaml (SPEC-014 §5), relative to its source tree")
 set(_emb_board_cmake "")
 set(_all "")
 if(EMB_SYSTEM)
   get_filename_component(EMB_SYSTEM "${EMB_SYSTEM}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
   get_filename_component(EMB_SYSTEM_DIR "${EMB_SYSTEM}" DIRECTORY)
-  file(GLOB _sys_json "${EMB_SYSTEM_DIR}/generated/*/docs/system.json")
+  file(GLOB _sys_json "${EMB_SYSTEM_DIR}/src/config/*/docs/system.json")
   if(NOT _sys_json)
-    message(FATAL_ERROR "EMB_SYSTEM: ${EMB_SYSTEM} has no generated/<board>/; "
+    message(FATAL_ERROR "EMB_SYSTEM: ${EMB_SYSTEM} has no src/config/<board>/; "
                         "run python3 -I hw/gen/emb-hwgen.py generate --system ${EMB_SYSTEM}")
   endif()
   list(GET _sys_json 0 _one)
@@ -53,9 +53,9 @@ if(EMB_SYSTEM)
     string(REPLACE ";" " " _names "${_sys_boards}")
     message(FATAL_ERROR "EMB_BOARD='${EMB_BOARD}' is not one of the system's boards: ${_names}")
   endif()
-  set(_emb_board_cmake "${EMB_SYSTEM_DIR}/generated/${EMB_BOARD}/build/board.cmake")
+  set(_emb_board_cmake "${EMB_SYSTEM_DIR}/src/config/${EMB_BOARD}/build/board.cmake")
   if(NOT EXISTS "${_emb_board_cmake}")
-    message(FATAL_ERROR "EMB_SYSTEM: no generated/${EMB_BOARD}/; "
+    message(FATAL_ERROR "EMB_SYSTEM: no src/config/${EMB_BOARD}/; "
                         "run python3 -I hw/gen/emb-hwgen.py generate --system ${EMB_SYSTEM}")
   endif()
   set(_emb_roots "")
@@ -96,6 +96,14 @@ if(NOT DEFINED EMB_BOARD_HW_JSON)
 endif()
 if(NOT DEFINED EMB_BOARD_BUILD_DIR)
   set(EMB_BOARD_BUILD_DIR "${EMB_BOARD_DIR}")
+endif()
+# a generated board's pin table and linker script: src/ and linker/ in a board's own
+# generated/ (A126), peripheral/ and linker/ in an application's src/config/<board>/ (A130)
+if(NOT DEFINED EMB_BOARD_SRC_DIR)
+  set(EMB_BOARD_SRC_DIR "${EMB_BOARD_DIR}/src")
+endif()
+if(NOT DEFINED EMB_BOARD_LINKER_DIR)
+  set(EMB_BOARD_LINKER_DIR "${EMB_BOARD_DIR}/linker")
 endif()
 if(DEFINED EMB_BOARD_HW_INPUTS)
   # a generated board: refuse outputs older than their descriptions (HW-003), and reconfigure

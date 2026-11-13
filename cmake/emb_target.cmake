@@ -16,12 +16,13 @@ set(EMB_STACK_ROOTS "" CACHE FILEPATH "The application's stack-roots.json, for t
 function(emb_add_executable name)
   _emb_add_image(${name} ${ARGN})
   if(EMB_SYSTEM)
-    # the system's static definitions and targets (SPEC-014 §5.1), and its headers' directory
-    target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/system.c")
-    if(EXISTS "${EMB_BOARD_DIR}/src/tasks.c")
-      target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/tasks.c")  # the system's tasks (SPEC-020)
+    # the system's configuration folder (A130): SYS_Initialize() and the system's objects, the
+    # tasks and SYS_Tasks(), the application's interrupts, and definitions.h and configuration.h
+    target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/initialization.c" "${EMB_BOARD_DIR}/tasks.c")
+    if(EXISTS "${EMB_BOARD_DIR}/interrupts.c")
+      target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/interrupts.c")
     endif()
-    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}/include" "${EMB_SYSTEM_DIR}" "${EMB_SYSTEM_DIR}/src")
+    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}" "${EMB_SYSTEM_DIR}/src" "${EMB_SYSTEM_DIR}")
     _emb_stack_check(${name})
   endif()
   if(CONFIG_EMB_ARCH STREQUAL "native")

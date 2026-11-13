@@ -211,28 +211,34 @@ After the link, the build compares each thread's `stack` with the worst case the
 
 There are no `USER CODE` regions. `check` verifies that the baseline is what the descriptions give now, and that no conflict is left. The tree's own boards are checked strictly in CI (`check --strict`): their files must equal the baseline, since a board's facts belong in its description.
 
-**The layout.** An application's files:
+**The layout.** An application's files, in MPLAB Harmony v3's form ([A130](AMENDMENTS-M4.md), which replaced A126's `generated/<board>/` and `src/tasks/`):
 
 ```text
 my_app/
   system.yaml
   CMakeLists.txt              the application's build: generated, editable
   src/
-    main.c                    generated, editable: the board and kernel start, the tasks' start
-    tasks/<task>.c, .h        generated, editable: each task's handlers
-  generated/
-    .base/                    the baseline: what the generator last wrote (do not edit)
-    <board>/
-      config/                 board.conf
-      include/                system.h, tasks.h, hw_config.h, soc_devices.h
-      src/                    system.c, tasks.c, soc_devices.c, board_pins.c, boot_block.c
-      linker/                 regions.ld, embld.opts
-      build/                  board.cmake, CMakeLists.txt
-      docs/                   board.md, system.md, build_report.md, hw.json, system.json
+    main.c                    generated, editable: SYS_Initialize(NULL), then SYS_Tasks()
+    <task>.c, <task>.h        generated, editable: each task in Harmony's application template
+    interrupt_handlers.c      generated, editable: the application's interrupt handlers
+    config/
+      .base/                  the baseline: what the generator last wrote (do not edit)
+      <board>/                Harmony's configuration folder, one per board
+        definitions.h         the one header the application includes
+        configuration.h       the system's settings as macros
+        initialization.c      SYS_Initialize(), and the system's static definitions
+        tasks.c               the tasks' threads, queues and dispatch, and SYS_Tasks()
+        interrupts.h, .c      SYS_INT_Initialize(), and the interrupt lines in use
+        peripheral/           hw_config.h, soc_devices.h, soc_devices.c, board_pins.c, boot_block.c
+        linker/               regions.ld, embld.opts
+        build/                board.cmake, CMakeLists.txt, board.conf
+        docs/                 board.md, system.md, build_report.md, hw.json, system.json
 ```
 
-- **Shared files:** `main.c`, the task files and `CMakeLists.txt` serve every board.
-- **Per board:** `generated/<board>/` holds each board's own outputs.
+- **Shared files:** `main.c`, the task files, `interrupt_handlers.c` and `CMakeLists.txt` serve every board.
+- **Per board:** `src/config/<board>/` holds each board's own outputs.
+- **Templates and names (A130):** the files carry Harmony's banner, `Section:` headings and a block for each function. Application code takes Harmony's names: `SYS_Initialize()`, `SYS_Tasks()`, `<TASK>_Initialize()`, `<TASK>_Tasks()`, `<TASK>_STATES`, `<TASK>_EVENTS`, `<TASK>_DATA` and its instance `<task>Data`.
+- **Interrupts (A130):** a system's `interrupts:` lists the application's own handlers, `- { name, irq, handler, level }`. `irq` is a line's number, a SoC peripheral's `<peripheral>.<interrupt>`, or either by board name for a system on several SoCs. The generator refuses a line the SoC lacks, one a board device's driver connects, and a level the port does not implement.
 - **Boards:** a board's own `generated/` has the same six folders (`boards/<vendor>/<board>/generated/config/` and so on).
 
 ## 6. Generated outputs

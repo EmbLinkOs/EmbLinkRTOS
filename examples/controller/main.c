@@ -36,10 +36,10 @@
  * @author  Junior Deogracias
  * @date    2026-11-07 (created)
  */
+#include "definitions.h"
+
 #include <emb/arch.h>
 #include <emb/emb.h>
-
-#include "system.h"
 
 #include <emb_board.h>
 #include <emb_stm32_drivers.h>
@@ -77,7 +77,7 @@ static const emb_stm32_pin_t markers[] = {
 /* What the threads and the handlers share. Each field has one writer; the readers take a
  * snapshot, and a torn read of a counter is at most one update old. */
 static volatile struct {
-    uint32_t samples;        /* processed by the control thread */
+    uint32_t processed;      /* samples processed by the control thread */
     uint32_t missed;         /* receive timeouts: no sample for three periods */
     uint32_t deadline_miss;  /* processing ended after the next sample was due */
     uint32_t shed;           /* samples skipped in degraded mode */
@@ -253,7 +253,7 @@ void control(void *arg)
         if (done - s.cycles > st.proc_max) {
             st.proc_max = done - s.cycles;
         }
-        st.samples++;
+        st.processed++;
         /* the deadline: the next processed sample's arrival, one period away (two when degraded) */
         if (done - s.cycles > period * (st.degraded != 0u ? 2u : 1u)) {
             st.deadline_miss++;
@@ -441,7 +441,7 @@ void telemetry(void *arg)
         out(" heater=");
         out_u32(st.heater);
         out(" samples=");
-        out_u32(st.samples);
+        out_u32(st.processed);
         out(" missed=");
         out_u32(st.missed);
         out(" deadline_miss=");

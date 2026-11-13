@@ -118,6 +118,49 @@
         "$ref": "#/$defs/i2c_target"
       }
     },
+    "interrupts": {
+      "type": "array",
+      "description": "the application's own interrupt handlers (A130), connected by SYS_Initialize()",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "irq",
+          "handler"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/c_ident"
+          },
+          "irq": {
+            "description": "the line: its number, a SoC peripheral's <peripheral>.<interrupt>, or either by board name, for a system on several SoCs",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/irq_line"
+              },
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/irq_line"
+                }
+              }
+            ]
+          },
+          "handler": {
+            "$ref": "#/$defs/c_ident"
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "its priority level (emb_irq_set_level()); default: the port's"
+          },
+          "doc": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "watchdog": {
       "type": "object",
       "required": [
@@ -139,6 +182,18 @@
     }
   },
   "$defs": {
+    "irq_line": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\.[A-Za-z_][A-Za-z0-9_]*$"
+        }
+      ]
+    },
     "c_ident": {
       "type": "string",
       "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
@@ -443,10 +498,6 @@
         "period": {
           "$ref": "#/$defs/duration",
           "description": "the periodic model's period"
-        },
-        "data": {
-          "$ref": "#/$defs/c_ident",
-          "description": "the task's own data, a C type in its header"
         },
         "event": {
           "$ref": "#/$defs/c_ident",

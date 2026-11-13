@@ -1059,7 +1059,7 @@ class Diagnostics(unittest.TestCase):
 
     def test_a_system_validated_and_generated(self):
         """--system takes --format json too (A125): an application's description, its warnings, the
-        files written beside it and under generated/<board>/."""
+        files written beside it and under src/config/<board>/ (A130)."""
         doc = self.run_json("validate", "--system", str(ROOT / "examples/tasks/system.yaml"))
         self.assertEqual((doc["status"], doc["command"]), ("ok", "validate"))
         d = Path(tempfile.mkdtemp(prefix="hwgen-diag-sys-"))
@@ -1069,7 +1069,7 @@ class Diagnostics(unittest.TestCase):
         doc = self.run_json("generate", "--system", str(system))
         self.assertEqual(doc["status"], "ok")
         names = {Path(f).name for f in doc["files"]}
-        self.assertTrue({"system.h", "main.c"} <= names, names)
+        self.assertTrue({"definitions.h", "initialization.c", "main.c", "door.c"} <= names, names)
         self.assertEqual(self.run_json("generate", "--system", str(system))["files"], [])  # unchanged
 
     def test_generate_reports_a_merge_conflict(self):

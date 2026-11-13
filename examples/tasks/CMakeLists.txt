@@ -17,4 +17,4 @@ find_package(EmbLinkRTOS REQUIRED)
 project(tasks_demo LANGUAGES C)
 
 emb_kernel()
-emb_add_executable(tasks_demo src/main.c src/tasks/door.c src/tasks/blink.c)
+emb_add_executable(tasks_demo src/main.c src/door.c src/blink.c src/interrupt_handlers.c)

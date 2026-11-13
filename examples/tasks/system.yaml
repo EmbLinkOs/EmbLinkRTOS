@@ -4,9 +4,10 @@
 # This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
 # Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
 
-# Tasks (SPEC-020): a door, driven by events with a state's timeout, and a blinker, by its
-# period. hw/gen/emb-hwgen.py generate --system examples/tasks/system.yaml writes the
-# application's CMakeLists.txt, src/main.c and src/tasks/, then generated/<board>/.
+# Tasks (SPEC-020) in MPLAB Harmony's form (A130): a door, driven by events with a state's
+# timeout, and a blinker, by its period. hw/gen/emb-hwgen.py generate --system
+# examples/tasks/system.yaml writes the application's CMakeLists.txt, src/main.c and each task's
+# src/<task>.c and .h, then each board's configuration folder, src/config/<board>/.
 schema_version: 0
 kind: system
 name: tasks_demo
@@ -23,7 +24,6 @@ tasks:
     entry: [open]
     exit: [open]
     timeout: { open: 2s }
-    data: door_data_t
   - name: blink
     model: periodic
     period: 500ms
@@ -31,3 +31,11 @@ tasks:
     stack: 512
     states: [dark, lit]
     initial: dark
+# the application's own interrupt (A130): a line no peripheral raises on either SoC (the F446's
+# 61, the RP2350's SPAREIRQ_IRQ_0); the blinker raises it every fourth blink, and its handler
+# opens the door
+interrupts:
+  - name: wake
+    irq: { nucleo_f446re: 61, pico2_w: 46 }
+    handler: WAKE_InterruptHandler
+    level: 1
