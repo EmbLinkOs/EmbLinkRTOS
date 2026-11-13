@@ -1,0 +1,91 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 16,
+      "name": "uart_loop_writes_by_dma",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "uart_loop_overrun_is_reported",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "uart_loop_break_arrives_as_a_framing_error",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 6,
+      "name": "uart_loop_a_kilobyte_intact",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 5,
+      "name": "uart_loop_idle_line_ends_a_read",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 4,
+      "name": "uart_loop_ring_keeps_what_arrives",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "uart_loop_echo_full_duplex",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-13T05:35:00Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "9461e3c42192b75e",
+    "profile": "base",
+    "suite": "test_uart_loop"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/wt/hil/build/pico-gcc/tests/conformance/test_uart_loop.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_uart_loop.uf2": "71667d147d23b2eb423226bb1c96741c3239bf39b7b455a263a0290f4329a2ec"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "34dde4f3d84c0082aa1f0763aed41d6506ba1d06",
+    "dirty": false
+  },
+  "image": "test_uart_loop.elf",
+  "image_sha256": "594e29b279202bb07d90f07b94d45a1f78f73b8a7275a896fb139be63e59ed12",
+  "isr_stack": {
+    "size": 2048,
+    "used": 228
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-13T05:34:58Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 7
+  }
+}

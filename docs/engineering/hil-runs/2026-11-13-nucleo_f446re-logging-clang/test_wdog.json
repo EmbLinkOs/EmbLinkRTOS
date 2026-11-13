@@ -1,0 +1,59 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "nucleo_f446re",
+  "cases": [
+    {
+      "asserts": 13,
+      "name": "wdog_refusals",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 122,
+      "name": "wdog_feeds_until_a_party_misses",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-13T05:28:33Z",
+  "evidence": {
+    "board": "nucleo_f446re",
+    "checked": "1",
+    "config": "aa8dd55373872741",
+    "profile": "base",
+    "suite": "test_wdog"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 4,
+  "flash_command": [
+    "openocd",
+    "-f",
+    "board/st_nucleo_f4.cfg",
+    "-c",
+    "program /Users/teooff1700/EmbLinkRTOS/build/wt/hil/build/nucleo-clang/tests/conformance/test_wdog.elf verify reset exit"
+  ],
+  "flashed_sha256": {
+    "test_wdog.elf": "c18067062465b924d306e8d465aee9383e03176d31eb6c21269b128742601ec3"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "34dde4f3d84c0082aa1f0763aed41d6506ba1d06",
+    "dirty": false
+  },
+  "image": "test_wdog.elf",
+  "image_sha256": "c18067062465b924d306e8d465aee9383e03176d31eb6c21269b128742601ec3",
+  "isr_stack": {
+    "size": 2048,
+    "used": 280
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "STM32F446RE",
+  "started": "2026-11-13T05:28:31Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 2
+  }
+}

@@ -99,7 +99,7 @@
   "misra-c2012-21.8": 2,
   "misra-c2012-22.8": 1,
   "misra-c2012-22.9": 1,
-  "misra-c2012-8.7": 22,
+  "misra-c2012-8.7": 20,
   "misra-c2012-8.9": 1
  },
  "arch/riscv/include/emb_arch.h": {
@@ -164,7 +164,7 @@
  },
  "boards/native/native/board.c": {
   "misra-c2012-21.6": 2,
-  "misra-c2012-8.7": 4
+  "misra-c2012-8.7": 3
  },
  "boards/native/native/include/emb_board.h": {
   "misra-c2012-2.5": 1
@@ -390,7 +390,7 @@
   "misra-config": 2
  },
  "generated/include/emb/config.h": {
-  "misra-c2012-2.5": 78
+  "misra-c2012-2.5": 98
  },
  "generated/include/emb/storage.h": {
   "misra-c2012-19.2": 20,
@@ -398,7 +398,7 @@
   "misra-c2012-5.6": 16
  },
  "include/emb/api_ids.h": {
-  "misra-c2012-2.5": 187
+  "misra-c2012-2.5": 201
  },
  "include/emb/compiler.h": {
   "misra-c2012-17.8": 3,
@@ -415,7 +415,7 @@
   "misra-c2012-21.1": 2
  },
  "include/emb/compiler/gcc.h": {
-  "misra-c2012-2.5": 5,
+  "misra-c2012-2.5": 3,
   "misra-c2012-20.10": 2,
   "misra-c2012-20.7": 1
  },
@@ -478,6 +478,9 @@
  "include/emb/fault.h": {
   "misra-c2012-2.4": 1
  },
+ "include/emb/frame.h": {
+  "misra-c2012-2.5": 6
+ },
  "include/emb/irq.h": {
   "misra-c2012-2.3": 1,
   "misra-c2012-2.5": 1,
@@ -488,6 +491,13 @@
   "misra-c2012-20.10": 2,
   "misra-c2012-20.12": 1,
   "misra-c2012-20.7": 1
+ },
+ "include/emb/log.h": {
+  "misra-c2012-2.3": 1,
+  "misra-c2012-2.4": 1,
+  "misra-c2012-2.5": 54,
+  "misra-c2012-20.10": 9,
+  "misra-c2012-20.7": 2
  },
  "include/emb/msgq.h": {
   "misra-c2012-19.2": 1,
@@ -545,7 +555,8 @@
   "misra-c2012-5.6": 1
  },
  "include/emb/trace.h": {
-  "misra-c2012-2.4": 1
+  "misra-c2012-2.4": 1,
+  "misra-c2012-2.5": 3
  },
  "include/emb/types.h": {
   "misra-c2012-19.2": 1,
@@ -630,7 +641,7 @@
   "misra-c2012-12.1": 11,
   "misra-c2012-2.5": 1,
   "misra-c2012-8.11": 1,
-  "misra-c2012-8.7": 14
+  "misra-c2012-8.7": 13
  },
  "kernel/fault/crash.c": {
   "misra-c2012-10.5": 1,
@@ -822,7 +833,7 @@
  },
  "kernel/trace/trace.c": {
   "misra-c2012-11.1": 1,
-  "misra-c2012-8.7": 2
+  "misra-c2012-8.7": 1
  },
  "kernel/wait/wait.c": {
   "misra-c2012-10.8": 1,
@@ -866,8 +877,9 @@
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 2,
   "misra-c2012-11.4": 1,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 2,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-8.6": 1,
   "misra-c2012-8.7": 2
  },
@@ -877,8 +889,9 @@
  "soc/microchip/atmega/board.c": {
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 2,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 1,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-8.7": 4
  },
  "soc/microchip/atmega/include/emb_board.h": {
@@ -888,8 +901,9 @@
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 7,
   "misra-c2012-11.4": 6,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 2,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-8.6": 1,
   "misra-c2012-8.7": 2
  },
@@ -900,8 +914,9 @@
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 3,
   "misra-c2012-11.4": 4,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 2,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-8.6": 2,
   "misra-c2012-8.7": 2
  },
@@ -911,9 +926,10 @@
  "soc/rpi/rp2350/board.c": {
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 1,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 2,
   "misra-c2012-12.2": 5,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-2.5": 3,
   "misra-c2012-8.6": 2,
   "misra-c2012-8.7": 2
@@ -928,8 +944,9 @@
  "soc/st/stm32f4/board.c": {
   "misra-c2012-10.2": 1,
   "misra-c2012-10.8": 1,
+  "misra-c2012-11.5": 1,
   "misra-c2012-12.1": 2,
-  "misra-c2012-17.8": 2,
+  "misra-c2012-17.8": 1,
   "misra-c2012-8.6": 2,
   "misra-c2012-8.7": 2
  },
@@ -939,5 +956,34 @@
  "soc/st/stm32f4/include/emb_stm32_pins.h": {
   "misra-c2012-20.10": 1,
   "misra-c2012-8.11": 1
+ },
+ "subsys/console/console.c": {
+  "misra-c2012-2.5": 1,
+  "misra-c2012-8.7": 2
+ },
+ "subsys/logging/log.c": {
+  "misra-c2012-10.4": 2,
+  "misra-c2012-10.7": 3,
+  "misra-c2012-10.8": 4,
+  "misra-c2012-11.4": 2,
+  "misra-c2012-11.5": 1,
+  "misra-c2012-17.1": 30,
+  "misra-c2012-19.2": 2,
+  "misra-c2012-2.5": 2,
+  "misra-c2012-8.7": 9,
+  "misra-c2012-8.9": 8,
+  "misra-config": 1
+ },
+ "subsys/trace/ring.c": {
+  "misra-c2012-10.4": 1,
+  "misra-c2012-11.5": 1,
+  "misra-c2012-2.5": 2,
+  "misra-c2012-8.7": 4,
+  "misra-c2012-8.9": 2
+ },
+ "subsys/transport/frame.c": {
+  "misra-c2012-10.8": 1,
+  "misra-c2012-11.5": 2,
+  "misra-c2012-8.7": 4
  }
 }

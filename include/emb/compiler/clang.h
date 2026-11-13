@@ -24,15 +24,16 @@
     ((__clang_major__ * 10000) + (__clang_minor__ * 100) + __clang_patchlevel__)
 
 /* NOLINTBEGIN(portability-no-assembler,hicpp-no-assembler): CS-1.5, the compiler layer */
-#define EMB_INLINE        inline
-#define EMB_ALWAYS_INLINE inline __attribute__((always_inline))
-#define EMB_NOINLINE      __attribute__((noinline))
-#define EMB_NORETURN      __attribute__((noreturn))
-#define EMB_UNUSED        __attribute__((unused))
-#define EMB_USED          __attribute__((used))
-#define EMB_WEAK          __attribute__((weak))
-#define EMB_ALIAS(sym)    __attribute__((alias(#sym)))
-#define EMB_SECTION(name) __attribute__((section(name)))
+#define EMB_INLINE              inline
+#define EMB_ALWAYS_INLINE       inline __attribute__((always_inline))
+#define EMB_NOINLINE            __attribute__((noinline))
+#define EMB_NORETURN            __attribute__((noreturn))
+#define EMB_UNUSED              __attribute__((unused))
+#define EMB_USED                __attribute__((used))
+#define EMB_WEAK                __attribute__((weak))
+#define EMB_PRINTF_FORMAT(f, a) __attribute__((format(printf, f, a)))
+#define EMB_ALIAS(sym)          __attribute__((alias(#sym)))
+#define EMB_SECTION(name)       __attribute__((section(name)))
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
 /* Mach-O AddressSanitizer pads section globals with redzones, which a table walk would
@@ -80,6 +81,7 @@
 #define EMB_FLASH_CONST          const __ATTR_PROGMEM__
 #define EMB_FLASH_READ_U8(p)     pgm_read_byte(p)
 #define EMB_FLASH_READ_U16(p)    pgm_read_word(p)
+#define EMB_FLASH_READ_U32(p)    pgm_read_dword(p)
 #define EMB_FLASH_READ_PTR(p)    ((void *)pgm_read_word(p))
 #define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)pgm_read_word(pp))
 #define EMB_TABLE_SECTION(name)  ".progmem." name

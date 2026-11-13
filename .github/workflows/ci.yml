@@ -358,7 +358,7 @@ jobs:
           packages: clang-format-18 python3-yaml
       - name: clang-format
         run: |
-          find include kernel arch boards soc drivers samples tests \( -name '*.c' -o -name '*.h' \) -print0 \
+          find include kernel arch boards soc drivers subsys samples tests \( -name '*.c' -o -name '*.h' \) -print0 \
             | xargs -0 clang-format-18 --dry-run -Werror
       - name: Banned constructs
         run: python3 -I scripts/check-banned.py
@@ -384,6 +384,14 @@ jobs:
         run: python3 -I -m unittest discover -s tools/esp -p 'test_*.py' -v
       - name: Debug descriptor reader (OBS-008, A107)
         run: python3 -I -m unittest discover -s tools/descriptor -p 'test_*.py' -v
+      - name: Framed byte streams, the host's side (SPEC-015 §7)
+        run: python3 -I -m unittest discover -s tools/transport -p 'test_*.py' -v
+      - name: Log decoder's tests (A127)
+        run: python3 -I -m unittest discover -s tools/logdec -p 'test_*.py' -v
+      - name: Trace converter's tests (A128)
+        run: python3 -I -m unittest discover -s tools/trace -p 'test_*.py' -v
+      - name: The emb command-line tool's tests (BLD-005)
+        run: python3 -I -m unittest discover -s tools/emb -p 'test_*.py' -v
       - name: EmbSIM runner, its project mode (SIM-002)
         run: python3 -I -m unittest discover -s tools/embsim -p 'test_*.py' -v
       - name: UF2 writer (A79)
@@ -807,7 +815,7 @@ jobs:
         timeout-minutes: 15
         uses: ./.github/actions/apt-install # archives cached, then scripts/ci-apt-install.sh
         with:
-          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml
+          packages: ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf qemu-system-misc gcc-avr avr-libc binutils-avr python3-yaml babeltrace2
       - name: Copy the examples out of the tree
         run: |
           cp -r examples/hello_app "$RUNNER_TEMP/hello_app"
@@ -837,6 +845,46 @@ jobs:
             --qemu-args "-M mps2-an386 -semihosting-config enable=on,target=native -kernel" build/blinky-mps2_an386/blinky.elf
           python3 -I tools/qemu/run_qemu.py --qemu qemu-system-riscv32 --until "blinky: off" --timeout 60 \
             --qemu-args "-M virt -bios none -kernel" build/blinky-riscv32_virt/blinky.elf
+      - name: Logging with both backends print the same lines (A127)
+        run: |
+          cp -r examples/logging "$RUNNER_TEMP/logging"
+          for b in native mps2_an386 riscv32_virt; do
+            cmake -S "$RUNNER_TEMP/logging" -B "build/logging-$b" -G Ninja -DEmbLinkRTOS_DIR="$PWD/cmake" -DEMB_BOARD=$b
+            cmake --build "build/logging-$b"
+            cmake -S "$RUNNER_TEMP/logging" -B "build/logging-$b-framed" -G Ninja -DEmbLinkRTOS_DIR="$PWD/cmake" \
+                  -DEMB_BOARD=$b -DEMB_SET=EMB_CONSOLE_FRAMED=y
+            cmake --build "build/logging-$b-framed"
+          done
+          build/logging-native/logging > logging-native.log
+          build/logging-native-framed/logging > logging-native-framed.bin
+          for v in "" -framed; do
+            timeout 60 qemu-system-arm -M mps2-an386 -semihosting-config enable=on,target=native -nographic \
+              -monitor none -serial stdio -kernel "build/logging-mps2_an386$v/logging.elf" > "logging-mps2_an386$v.bin"
+            timeout 60 qemu-system-riscv32 -M virt -bios none -nographic -monitor none -serial stdio \
+              -kernel "build/logging-riscv32_virt$v/logging.elf" > "logging-riscv32_virt$v.bin"
+          done
+          mv logging-mps2_an386.bin logging-mps2_an386.log
+          mv logging-riscv32_virt.bin logging-riscv32_virt.log
+          python3 -I tools/logdec/backends_agree.py --plain logging-native.log --framed logging-native-framed.bin \
+                  --elf build/logging-native-framed/logging
+          for b in mps2_an386 riscv32_virt; do
+            python3 -I tools/logdec/backends_agree.py --plain "logging-$b.log" --framed "logging-$b-framed.bin" \
+                    --elf "build/logging-$b-framed/logging.elf"
+          done
+      - name: The trace ring dumped under QEMU, turned into CTF that Babeltrace 2 reads (A128)
+        run: |
+          cp -r examples/tracing "$RUNNER_TEMP/tracing"
+          cmake -S "$RUNNER_TEMP/tracing" -B build/tracing-mps2_an386 -G Ninja -DEmbLinkRTOS_DIR="$PWD/cmake" \
+                -DEMB_BOARD=mps2_an386
+          cmake --build build/tracing-mps2_an386
+          timeout 60 qemu-system-arm -M mps2-an386 -semihosting-config enable=on,target=native -nographic \
+            -monitor none -serial stdio -kernel build/tracing-mps2_an386/tracing.elf > tracing.bin
+          python3 -I tools/trace/trace.py tracing.bin --ctf build/trace-ctf --perfetto build/trace.json
+          babeltrace2 build/trace-ctf > trace-ctf.txt
+          n=$(wc -l < trace-ctf.txt)
+          echo "babeltrace2 read $n events"; head -5 trace-ctf.txt
+          test "$n" -ge 100
+          python3 -I -c "import json; d = json.load(open('build/trace.json')); assert len(d['traceEvents']) >= 100"
       - name: Build the reference controller for both NUCLEO-F446 boards (it runs on the board, not here)
         run: |
           cp -r examples/controller "$RUNNER_TEMP/controller"

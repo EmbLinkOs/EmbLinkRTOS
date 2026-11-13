@@ -1,0 +1,169 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
+menu "Subsystems"
+
+config EMB_FRAME
+	bool "Framed byte streams: COBS, a channel and a CRC-16 (SPEC-015 §7)"
+	default y
+	help
+	  OBS-019. emb_frame_encode() and a stream decoder that resynchronizes at
+	  each zero delimiter, for the log, trace, crash, shell and update channels
+	  over one byte stream. Linked only into an image that calls it.
+
+config EMB_CONSOLE_FRAMED
+	bool "Framed console: every stream on the console in frames (A127)"
+	depends on EMB_FRAME && EMB_MUTEX
+	default n
+	help
+	  Everything on the console travels in SPEC-015 §7 frames, each preceded
+	  by a zero: the board's text on channel 3, log records on 0, trace on 1,
+	  crash records on 2. `emb monitor` decodes and shows them. Off, the
+	  console is plain text, which the test runners and any terminal read.
+
+config EMB_LOG
+	bool "Logging (SPEC-015 §2, A127), linked only when a call references it"
+	depends on !EMB_ARCH_AVR
+	default y
+	help
+	  EMB_LOG_ERR() to EMB_LOG_DBG(): a call packs its arguments into a
+	  ring in the caller, from any context and without waiting, and a log
+	  thread sends the records on. Records that do not fit are dropped and
+	  counted (OBS-003). The ring and the thread come with the first call:
+	  an image that logs nothing has neither. Not on AVR in M4.3: the
+	  formatter and its stack do not fit the Uno's 2 KB beside a test.
+
+if EMB_LOG
+
+choice EMB_LOG_BACKEND
+	prompt "Log backend (08 Q13)"
+	default EMB_LOG_DEFERRED if EMB_CONSOLE_FRAMED && !EMB_PROFILE_TINY
+	default EMB_LOG_TEXT
+
+config EMB_LOG_DEFERRED
+	bool "Deferred: the record is sent and the host formats it from the ELF (ADR-009)"
+	depends on EMB_CONSOLE_FRAMED && !EMB_ARCH_AVR
+
+config EMB_LOG_TEXT
+	bool "Plain text: the log thread formats the record on the target"
+
+endchoice
+
+config EMB_LOG_LEVEL_MAX
+	int "Most detailed level compiled: 1 errors, 2 warnings, 3 information, 4 debug"
+	default 3
+	range 0 4
+
+config EMB_LOG_RING_SIZE
+	int "Log ring, bytes (a power of two)"
+	default 256 if EMB_PROFILE_TINY
+	default 1024
+	range 64 65536
+
+config EMB_LOG_STR_MAX
+	int "Longest string argument a record keeps, bytes"
+	default 16 if EMB_PROFILE_TINY
+	default 32
+	range 1 255
+
+config EMB_LOG_HEXDUMP_MAX
+	int "Longest hexdump a record keeps, bytes"
+	default 16 if EMB_PROFILE_TINY
+	default 64
+	range 1 1024
+
+config EMB_LOG_TIMESTAMP
+	bool "Records carry the kernel clock's ticks"
+	default y
+
+config EMB_LOG_THREAD
+	bool "A log thread sends the records"
+	depends on EMB_SEM
+	default n if EMB_SCHED_TABLE
+	default y
+	help
+	  Off, the records leave only when the application calls
+	  emb_log_flush(), from a thread of its own. The table scheduler's
+	  priorities hold one thread each, so a log thread would take one of
+	  the application's: there it is off by default.
+
+config EMB_LOG_THREAD_PRIORITY
+	int "Log thread priority; 0 selects the lowest application priority"
+	depends on EMB_LOG_THREAD
+	default 0
+	range 0 255
+
+config EMB_LOG_THREAD_STACK
+	int "Log thread stack, bytes"
+	depends on EMB_LOG_THREAD
+	default 1024
+	range EMB_ARCH_STACK_MIN 65536
+
+config EMB_LOG_FLOAT
+	bool "The plain-text backend formats %f, %e and %g"
+	depends on EMB_LOG_TEXT
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  Off, a floating-point conversion prints as "(float)" and the
+	  formatter carries no floating-point code: on a small part it is the
+	  largest piece. The deferred backend formats on the host and needs
+	  nothing on the target.
+
+config EMB_LOG_LINE_MAX
+	int "Longest line the plain-text backend formats, bytes"
+	depends on EMB_LOG_TEXT
+	default 64 if EMB_PROFILE_TINY
+	default 128
+	range 16 1024
+
+endif # EMB_LOG
+
+config EMB_TRACE_RING
+	bool "Trace ring: the kernel's events in RAM, sent on channel 1 (A128)"
+	depends on EMB_TRACE
+	default y
+	help
+	  emb_trace_start() makes the ring the trace sink: each kernel event is
+	  kept as a 20-byte record with the cycle counter's time, the newest
+	  overwriting the oldest. emb_trace_dump() sends them framed on channel
+	  1, and tools/trace writes CTF and Perfetto's JSON from them. Linked
+	  only when the application calls emb_trace_start().
+
+if EMB_TRACE_RING
+
+config EMB_TRACE_RING_EVENTS
+	int "Events the ring keeps (a power of two)"
+	default 64 if EMB_PROFILE_TINY
+	default 256
+	range 8 65536
+
+config EMB_TRACE_STREAM
+	bool "Stream: a thread sends the events as they come, every period"
+	depends on EMB_CONSOLE_FRAMED
+	default n
+
+config EMB_TRACE_STREAM_MS
+	int "Stream period, milliseconds"
+	depends on EMB_TRACE_STREAM
+	default 100
+	range 1 60000
+
+config EMB_TRACE_STREAM_PRIORITY
+	int "Stream thread priority; 0 selects the lowest application priority"
+	depends on EMB_TRACE_STREAM
+	default 0
+	range 0 255
+
+config EMB_TRACE_STREAM_STACK
+	int "Stream thread stack, bytes"
+	depends on EMB_TRACE_STREAM
+	default 1024
+	range EMB_ARCH_STACK_MIN 65536
+
+endif # EMB_TRACE_RING
+
+endmenu

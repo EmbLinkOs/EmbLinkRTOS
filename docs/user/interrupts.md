@@ -45,12 +45,13 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-134 functions, from the headers' `@ctx` tags.
+147 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
 | `emb_check_status()` | `<emb/kernel.h>` | no |
 | `emb_cond_attr_default()` | `<emb/cond.h>` | no |
+| `emb_console_frame()` | `<emb/console.h>` | yes, in a thread outside a critical section: for the console, held by another thread's frame |
 | `emb_context()` | `<emb/context.h>` | no |
 | `emb_device_caps()` | `<emb/device.h>` | no |
 | `emb_device_ready()` | `<emb/device.h>` | no |
@@ -112,6 +113,10 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_event_set()` | `<emb/event.h>` | no |
 | `emb_fault()` | `<emb/fault.h>` | no |
 | `emb_fault_hook()` | `<emb/fault.h>` | no |
+| `emb_frame_decode_byte()` | `<emb/frame.h>` | no |
+| `emb_frame_decoder_init()` | `<emb/frame.h>` | no |
+| `emb_frame_encode()` | `<emb/frame.h>` | no |
+| `emb_frame_write()` | `<emb/frame.h>` | no |
 | `emb_in_isr()` | `<emb/context.h>` | no |
 | `emb_instant_add()` | `<emb/time.h>` | no |
 | `emb_instant_before()` | `<emb/time.h>` | no |
@@ -126,6 +131,11 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_irq_pend()` | `<emb/irq.h>` | no |
 | `emb_irq_unlock()` | `<emb/irq.h>` | no |
 | `emb_isr_stack_info()` | `<emb/irq.h>` | no |
+| `emb_log_flush()` | `<emb/log.h>` | no |
+| `emb_log_format_check()` | `<emb/log.h>` | no |
+| `emb_log_level_set()` | `<emb/log.h>` | no |
+| `emb_log_stats_get()` | `<emb/log.h>` | no |
+| `emb_log_write()` | `<emb/log.h>` | no |
 | `emb_msgq_attr_default()` | `<emb/msgq.h>` | no |
 | `emb_msgq_count()` | `<emb/msgq.h>` | no |
 | `emb_msgq_free()` | `<emb/msgq.h>` | no |
@@ -170,6 +180,9 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_timer_start_at()` | `<emb/timer.h>` | no |
 | `emb_timer_start_periodic()` | `<emb/timer.h>` | no |
 | `emb_timer_stop()` | `<emb/timer.h>` | no |
+| `emb_trace_dump()` | `<emb/trace.h>` | yes, in a thread: for the console |
+| `emb_trace_stats_get()` | `<emb/trace.h>` | no |
+| `emb_trace_stop()` | `<emb/trace.h>` | no |
 | `emb_version_string()` | `<emb/version.h>` | no |
 | `emb_wallclock_adjust()` | `<emb/wallclock.h>` | no |
 | `emb_wallclock_get()` | `<emb/wallclock.h>` | no |

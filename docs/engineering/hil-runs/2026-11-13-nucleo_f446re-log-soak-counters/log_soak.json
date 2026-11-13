@@ -1,0 +1,30 @@
+{
+ "board": "nucleo_f446re",
+ "capture": {
+  "bytes": 1653366,
+  "sample": "log_soak.head.bin.gz: the first 262144 bytes, gzip",
+  "sha256": "2492f38212236c2502404047349049efc68160d2d06aac28ed25bef67f3b6c41"
+ },
+ "damaged_frames": 0,
+ "decode_errors": 0,
+ "dropped_counted": 11100,
+ "frames": 24841,
+ "git": {
+  "commit": "34dde4f3d84c0082aa1f0763aed41d6506ba1d06",
+  "dirty": false
+ },
+ "image": "log_soak.elf",
+ "log_records": 49306,
+ "minutes": 5.0,
+ "missing_not_counted": 0,
+ "numbered_records": 29988,
+ "outcome": "passed",
+ "started": "2026-11-13T05:29:07Z",
+ "target_counters": {
+  "log": "records 48547 dropped 10915 sent 48546 high 1020",
+  "trace": "recorded 1006911 overwritten 962511 sent 42954"
+ },
+ "trace_events": 43670,
+ "trace_gaps": 3839,
+ "trace_packets": 3840
+}

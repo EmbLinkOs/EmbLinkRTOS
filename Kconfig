@@ -12,3 +12,4 @@ mainmenu "EmbLinkRTOS configuration"
 
 source "arch/Kconfig"
 source "kernel/Kconfig"
+source "subsys/Kconfig"

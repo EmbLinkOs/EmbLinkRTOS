@@ -36,6 +36,11 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **rtc_oscillator**: an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second | 3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
 | **entropy_bytes**: bytes of one entropy read | the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read | application | application | no | base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore | SPEC-017 §11, A124; test_entropy, test_entropy_board |
 | **task_handlers**: a task's state handlers, entry and exit handlers | the application's: each runs to completion, one at a time (KRN-TSK-001) | the application's handlers; the task's thread priority bounds what they delay | application | no | base, isolated: the task runtime (CONFIG_EMB_TASK); tiny: none | SPEC-020 §4, §5; tests/conformance/test_task.c |
+| **frame_bytes**: bytes of one frame: the payload encoded, or the frame decoded | the caller's: the payload it passes to emb_frame_encode(), and for a decoded frame the decoder's buffer, past which the frame is dropped | application: the buffers the caller gives | admission | no | every profile; the CRC is bitwise, eight steps a byte | SPEC-015 §7; OBS-019; test_frame |
+| **console_line**: the console's line time: bytes written polled at its baud rate | the frame's bytes, each one character time (87 us at 115200 baud) | application: what it sends, and the board's console rate | application | no | every profile; a thread holds the console's mutex while it writes a frame, so other threads' frames wait (A127) | SPEC-015 §7; A127 |
+| **log_record**: one log record's bytes: its arguments, strings and hexdump | at most eight arguments; a string cut at CONFIG_EMB_LOG_STR_MAX, a hexdump at CONFIG_EMB_LOG_HEXDUMP_MAX | configuration: CONFIG_EMB_LOG_STR_MAX, CONFIG_EMB_LOG_HEXDUMP_MAX | configuration | no | every profile with logging; the reservation is the only masked part, a bounded number of instructions | SPEC-015 §2.3; OBS-003; A127; test_log |
+| **log_ring**: records in the log ring | the ring's bytes: CONFIG_EMB_LOG_RING_SIZE | configuration: CONFIG_EMB_LOG_RING_SIZE | configuration | no | every profile with logging; a record is copied out with interrupts enabled | SPEC-015 §2.3; A127; test_log |
+| **trace_ring**: events in the trace ring | CONFIG_EMB_TRACE_RING_EVENTS, each 20 bytes | configuration: CONFIG_EMB_TRACE_RING_EVENTS | configuration | no | every profile with the trace ring; an event is read with interrupts masked, 20 bytes at a time | SPEC-015 §3; A128; test_trace_ring |
 
 ## Public functions
 
@@ -47,6 +52,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_cond_signal()` | O(1) selection, plus profile-specific timeout removal and scheduling | timeouts, reschedule |
 | `emb_cond_wait()` | O(waiters + timeouts) enqueue, a full mutex release, then the cost of emb_mutex_lock() | waiters, timeouts, owned, pi_depth, reschedule |
 | `emb_cond_wait_until()` | as emb_cond_wait() | waiters, timeouts, owned, pi_depth, reschedule |
+| `emb_console_frame()` | O(len) plus the console's line time | frame_bytes, console_line |
 | `emb_device_init()` | O(dependencies) plus the driver's init | device_deps, drivers |
 | `emb_device_init_list()` | O(count) plus the drivers' init | devices, device_deps, drivers |
 | `emb_device_resume()` | O(1) plus the driver's resume | drivers |
@@ -107,8 +113,13 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_flash_area_erase()` | O(flash_sectors) of the flash's own time, plus the lock's priority inheritance | flash_sectors, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_flash_area_program()` | O(flash_bytes) of the flash's own time, plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
 | `emb_flash_area_read()` | O(flash_bytes) plus the lock's priority inheritance | flash_bytes, drivers, owned, waiters, pi_depth, timeouts |
+| `emb_frame_decode_byte()` | O(len) at a delimiter, for the CRC; O(1) otherwise | frame_bytes |
+| `emb_frame_encode()` | O(len) | frame_bytes |
+| `emb_frame_write()` | O(len) plus the sink's | frame_bytes, callbacks |
 | `emb_isr_stack_info()` | O(stack) scan | stack |
 | `emb_kernel_init()` | O(init table) | init_table |
+| `emb_log_flush()` | O(records in the ring) plus the console's line time | log_ring, console_line |
+| `emb_log_write()` | O(1) critical section to reserve; O(arguments plus their strings) copy outside it | log_record |
 | `emb_msgq_destroy()` | O(waiters) with EMB_OBJ_ABORT_WAITERS | batch_wake, reschedule |
 | `emb_msgq_init()` | O(1); O(active message queues) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_msgq_peek()` | O(1) plus an item copy | item_copy |
@@ -149,6 +160,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_timer_start_at()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_start_periodic()` | O(armed timers) insertion | armed_timers |
 | `emb_timer_stop_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_trace_dump()` | O(events in the ring) plus the console's line time | trace_ring, console_line |
 | `emb_wdog_start()` | O(1); O(active timers) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_wdog_unwatch()` | O(wdog_parties): the list walked to unlink it | wdog_parties |
 | `emb_work_cancel_sync()` | O(1); O(waiters + timeouts) finite wait enqueue | waiters, timeouts |

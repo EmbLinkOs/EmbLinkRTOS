@@ -1,0 +1,41 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_frame.elf sha256 5b147777f902c4e96556bced1d0a3e0f0fb310a0c7fce023bfd254aaab762f8f
+EVIDENCE v1 suite=test_frame config=aa8dd55373872741 profile=base board=nucleo_f446re checked=1
+TEST frame_encoding_matches_the_host_tool
+  -> ok
+  req OBS-019
+CASE frame_encoding_matches_the_host_tool outcome=passed asserts=9 skips=0
+TEST frame_runs_at_the_cobs_boundary
+  -> ok
+  req OBS-019
+CASE frame_runs_at_the_cobs_boundary outcome=passed asserts=39 skips=0
+TEST frame_round_trip_through_the_decoder
+  -> ok
+  req OBS-019
+CASE frame_round_trip_through_the_decoder outcome=passed asserts=12 skips=0
+TEST frame_decoder_resynchronizes
+  -> ok
+  req OBS-019
+CASE frame_decoder_resynchronizes outcome=passed asserts=17 skips=0
+TEST frame_decoder_drops_an_overrun
+  -> ok
+  req OBS-019
+CASE frame_decoder_drops_an_overrun outcome=passed asserts=6 skips=0
+TEST frame_misuse_is_refused
+  -> ok
+  req OBS-019
+CASE frame_misuse_is_refused outcome=passed asserts=8 skips=0
+TEST frame_random_stream_with_damage
+  -> ok
+  req OBS-019
+CASE frame_random_stream_with_damage outcome=passed asserts=383 skips=0
+TEST frame_write_streams_the_encoders_bytes
+  -> ok
+  req OBS-019
+CASE frame_write_streams_the_encoders_bytes outcome=passed asserts=122 skips=0
+TEST frame_write_misuse_is_refused
+  -> ok
+  req OBS-019
+CASE frame_write_misuse_is_refused outcome=passed asserts=5 skips=0
+ISR_STACK size=2048 used=176
+9 tests, 0 failed, 0 skipped, 129 ticks
+EMB_TEST_END

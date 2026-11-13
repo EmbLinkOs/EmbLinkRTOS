@@ -1459,6 +1459,90 @@
       "name": "emb_task_stats_get",
       "header": "task.h",
       "state": "active"
+    },
+    {
+      "id": 247,
+      "name": "emb_frame_encode",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 248,
+      "name": "emb_frame_decoder_init",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 249,
+      "name": "emb_frame_decode_byte",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 250,
+      "name": "emb_frame_write",
+      "header": "frame.h",
+      "state": "active"
+    },
+    {
+      "id": 251,
+      "name": "emb_log_write",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 252,
+      "name": "emb_log_level_set",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 253,
+      "name": "emb_log_flush",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 254,
+      "name": "emb_log_stats_get",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 255,
+      "name": "emb_console_frame",
+      "header": "console.h",
+      "state": "active"
+    },
+    {
+      "id": 256,
+      "name": "emb_log_format_check",
+      "header": "log.h",
+      "state": "active"
+    },
+    {
+      "id": 257,
+      "name": "emb_trace_start",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 258,
+      "name": "emb_trace_stop",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 259,
+      "name": "emb_trace_dump",
+      "header": "trace.h",
+      "state": "active"
+    },
+    {
+      "id": 260,
+      "name": "emb_trace_stats_get",
+      "header": "trace.h",
+      "state": "active"
     }
   ]
 }

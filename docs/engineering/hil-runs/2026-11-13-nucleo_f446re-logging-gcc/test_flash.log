@@ -1,0 +1,30 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem31103 at 115200 baud, image test_flash.elf sha256 8e2d171d7a29292d1101323fef70b0b3a6a1a80df86e9934ea0bdac16ab3c417
+EVIDENCE v1 suite=test_flash config=aa8dd55373872741 profile=base board=nucleo_f446re checked=1
+TEST flash_polled_calls
+  -> ok
+  req DRV-007
+CASE flash_polled_calls outcome=passed asserts=6 skips=0
+TEST flash_power_loss_tears_an_operation
+  -> ok
+  req DRV-001
+CASE flash_power_loss_tears_an_operation outcome=passed asserts=15 skips=0
+TEST flash_area_stays_inside
+  -> ok
+  req DRV-001
+CASE flash_area_stays_inside outcome=passed asserts=10 skips=0
+TEST flash_refusals
+  fault checks that reset the board: 4
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_refusals outcome=passed asserts=14 skips=0
+TEST flash_program_read_erase
+  -> ok
+  req DRV-001 DRV-003
+CASE flash_program_read_erase outcome=passed asserts=10 skips=0
+TEST flash_geometry_and_sectors
+  -> ok
+  req DRV-001
+CASE flash_geometry_and_sectors outcome=passed asserts=9 skips=0
+ISR_STACK size=2048 used=264
+6 tests, 0 failed, 0 skipped, 35 ticks
+EMB_TEST_END

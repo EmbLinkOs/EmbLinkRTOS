@@ -17,6 +17,9 @@
 
 #include <emb/compiler.h>
 
+#include <stddef.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -26,6 +29,7 @@ extern "C" {
 void emb_board_init(void);
 void emb_board_led_toggle(void);
 void emb_board_puts(const char *s);
+void emb_board_write(const void *buf, size_t len); /* raw bytes (A127) */
 void emb_board_put_u32(uint32_t v);
 
 #ifdef __cplusplus

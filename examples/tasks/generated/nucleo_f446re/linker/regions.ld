@@ -95,4 +95,15 @@ SECTIONS
   __emb_test_retained_start = __emb_test_retained_end - 32;
   __stack_top = __emb_isr_stack_end;
   ASSERT(end <= __emb_test_retained_start, "RAM overflow: .data and .bss reach the retained memory")
+
+  /* the log's call sites (A127): kept in the ELF for tools/logdec and out of the image. At
+     address 0, from which a record's identifier is its metadata's offset plus 8; the first 8
+     bytes stay empty, so no metadata is at address 0, the null pointer. Last, since setting
+     its address moves the location counter. */
+  emb_log 0 (INFO) : {
+    __start_emb_log = .;
+    . += 8;
+    KEEP(*(emb_log))
+    __stop_emb_log = .;
+  }
 }

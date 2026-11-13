@@ -38,8 +38,13 @@ macro(emb_kernel)
   add_subdirectory("${EMB_BASE}/include" "${_emb_bin}/include")
   add_subdirectory("${EMB_BASE}/arch/${CONFIG_EMB_ARCH}" "${_emb_bin}/arch/${CONFIG_EMB_ARCH}")
   add_subdirectory("${EMB_BASE}/kernel" "${_emb_bin}/kernel")
+  add_subdirectory("${EMB_BASE}/subsys" "${_emb_bin}/subsys")
   emb_check_native_abi()
   add_subdirectory("${EMB_BOARD_BUILD_DIR}" "${_emb_bin}/boards/${EMB_BOARD}")
+  # emb_board_puts() is the console's (subsys/console, A127), which writes through the board's
+  # emb_board_write(): the two static libraries need each other, and CMake repeats them
+  target_link_libraries(emb_board PRIVATE emb_subsys)
+  target_link_libraries(emb_subsys PRIVATE emb_board emb_kernel emb_kernel_private) # embk/: the build id
 
   # the board's QEMU machine, for run_<image> and the test runner (SIM-002)
   if(NOT CONFIG_EMB_ARCH STREQUAL "native" AND EMB_BOARD_QEMU_ARGS)

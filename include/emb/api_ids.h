@@ -247,5 +247,19 @@
 #define EMB_API_ID_TASK_POST_EVENT               0x00F4u
 #define EMB_API_ID_TASK_STATE                    0x00F5u
 #define EMB_API_ID_TASK_STATS_GET                0x00F6u
+#define EMB_API_ID_FRAME_ENCODE                  0x00F7u
+#define EMB_API_ID_FRAME_DECODER_INIT            0x00F8u
+#define EMB_API_ID_FRAME_DECODE_BYTE             0x00F9u
+#define EMB_API_ID_FRAME_WRITE                   0x00FAu
+#define EMB_API_ID_LOG_WRITE                     0x00FBu
+#define EMB_API_ID_LOG_LEVEL_SET                 0x00FCu
+#define EMB_API_ID_LOG_FLUSH                     0x00FDu
+#define EMB_API_ID_LOG_STATS_GET                 0x00FEu
+#define EMB_API_ID_CONSOLE_FRAME                 0x00FFu
+#define EMB_API_ID_LOG_FORMAT_CHECK              0x0100u
+#define EMB_API_ID_TRACE_START                   0x0101u
+#define EMB_API_ID_TRACE_STOP                    0x0102u
+#define EMB_API_ID_TRACE_DUMP                    0x0103u
+#define EMB_API_ID_TRACE_STATS_GET               0x0104u
 
 #endif /* EMB_API_IDS_H */

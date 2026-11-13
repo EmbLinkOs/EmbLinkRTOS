@@ -26,11 +26,12 @@ ENABLE_PREPROCESSING = YES
 MACRO_EXPANSION = YES
 EXPAND_ONLY_PREDEF = YES
 PREDEFINED = "EMB_DECLARE_HANDLE(name)=struct name { uintptr_t raw; }" \
-             "EMB_ALIGNED(n)=" \
+             "EMB_ALIGNED(n)=" "EMB_PRINTF_FORMAT(f,a)=" \
              EMB_NORETURN= EMB_INLINE=inline EMB_ALWAYS_INLINE=inline \
              CONFIG_EMB_SEM=1 CONFIG_EMB_MUTEX=1 CONFIG_EMB_NOTIFY=1 \
              CONFIG_EMB_IRQ_DYNAMIC=1 CONFIG_EMB_TLS_SLOTS=1 CONFIG_EMB_THREAD_LIST=1 \
-             CONFIG_EMB_STACK_STATS=1 CONFIG_EMB_STATUS_NAMES=1 CONFIG_EMB_TRACE=1
+             CONFIG_EMB_STACK_STATS=1 CONFIG_EMB_STATUS_NAMES=1 CONFIG_EMB_TRACE=1 \
+             CONFIG_EMB_LOG=1
 ALIASES = "ctx=Context:" "blocks=Blocking:" "time=Timing:" "owns=Ownership:" \
           "config=Configuration:" "req=Requirements:" "since=Since:" "stable=Stability:" \
           "isr-note=ISR note:"
