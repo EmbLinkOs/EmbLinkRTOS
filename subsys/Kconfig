@@ -26,14 +26,15 @@ config EMB_CONSOLE_FRAMED
 
 config EMB_LOG
 	bool "Logging (SPEC-015 §2, A127), linked only when a call references it"
-	depends on EMB_SEM
+	depends on !EMB_ARCH_AVR
 	default y
 	help
 	  EMB_LOG_ERR() to EMB_LOG_DBG(): a call packs its arguments into a
 	  ring in the caller, from any context and without waiting, and a log
 	  thread sends the records on. Records that do not fit are dropped and
 	  counted (OBS-003). The ring and the thread come with the first call:
-	  an image that logs nothing has neither.
+	  an image that logs nothing has neither. Not on AVR in M4.3: the
+	  formatter and its stack do not fit the Uno's 2 KB beside a test.
 
 if EMB_LOG
 
@@ -78,15 +79,39 @@ config EMB_LOG_TIMESTAMP
 	bool "Records carry the kernel clock's ticks"
 	default y
 
+config EMB_LOG_THREAD
+	bool "A log thread sends the records"
+	depends on EMB_SEM
+	default n if EMB_SCHED_TABLE
+	default y
+	help
+	  Off, the records leave only when the application calls
+	  emb_log_flush(), from a thread of its own. The table scheduler's
+	  priorities hold one thread each, so a log thread would take one of
+	  the application's: there it is off by default.
+
 config EMB_LOG_THREAD_PRIORITY
 	int "Log thread priority; 0 selects the lowest application priority"
+	depends on EMB_LOG_THREAD
 	default 0
 	range 0 255
 
 config EMB_LOG_THREAD_STACK
 	int "Log thread stack, bytes"
+	depends on EMB_LOG_THREAD
 	default 1024
 	range EMB_ARCH_STACK_MIN 65536
+
+config EMB_LOG_FLOAT
+	bool "The plain-text backend formats %f, %e and %g"
+	depends on EMB_LOG_TEXT
+	default n if EMB_PROFILE_TINY
+	default y
+	help
+	  Off, a floating-point conversion prints as "(float)" and the
+	  formatter carries no floating-point code: on a small part it is the
+	  largest piece. The deferred backend formats on the host and needs
+	  nothing on the target.
 
 config EMB_LOG_LINE_MAX
 	int "Longest line the plain-text backend formats, bytes"

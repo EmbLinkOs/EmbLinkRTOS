@@ -114,7 +114,7 @@ typedef void (*emb_frame_sink_t)(void *ctx, const uint8_t *bytes, size_t len);
  *
  * @ctx      thread isr prekernel
  * @blocks   no
- * @time     O(len) plus @sink's
+ * @time     O(len) plus the sink's
  * @owns     none
  * @config   CONFIG_EMB_FRAME
  * @req      OBS-019

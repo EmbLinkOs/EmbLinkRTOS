@@ -67,8 +67,9 @@
 #if CONFIG_EMB_LOG_DEFERRED
 #define ID_MAX 4u
 #else
-#define ID_MAX ((uint32_t)sizeof(void *)) /* the plain-text record carries its metadata's address \
-                                           */
+#define ID_MAX                                                                         \
+    ((uint32_t)sizeof(void *)) /* the plain-text record carries its metadata's address \
+                                */
 #endif
 #if CONFIG_EMB_LOG_TIMESTAMP
 #define TS_BYTES 4u
@@ -92,12 +93,14 @@ EMB_STATIC_ASSERT(RECORD_MAX <= 0x7FFFu, "a record's length fits its header");
 EMB_STATIC_ASSERT(((2u * HDR_BYTES) + RECORD_MAX + DROPPED_MAX) <= RING_SIZE,
                   "the log ring holds the largest record and a dropped record");
 
+#if CONFIG_EMB_LOG_THREAD
 #if CONFIG_EMB_LOG_THREAD_PRIORITY == 0
 #define LOG_PRIORITY EMB_PRIORITY_MIN
 #else
 #define LOG_PRIORITY ((uint8_t)CONFIG_EMB_LOG_THREAD_PRIORITY)
 EMB_STATIC_ASSERT(CONFIG_EMB_LOG_THREAD_PRIORITY < CONFIG_EMB_PRIORITY_COUNT,
                   "CONFIG_EMB_LOG_THREAD_PRIORITY is not an application priority");
+#endif
 #endif
 
 /* ---- the ring ---------------------------------------------------------------------- */
@@ -109,9 +112,11 @@ static uint32_t ring_tail;   /* the oldest byte not taken: the free space ends h
 static uint32_t ring_claims; /* moved by each consumer's claim, so a preempted one can tell */
 static uint32_t ring_lost;   /* records refused since the last one that fitted */
 static emb_log_stats_t ring_stats;
+static bool flushing; /* emb_log_flush() is sending: a nested one leaves it to it */
+#if CONFIG_EMB_LOG_THREAD
 static bool log_ready; /* the log thread's semaphore exists */
-static bool flushing;  /* emb_log_flush() is sending: a nested one leaves it to it */
 static emb_sem_t log_sem;
+#endif
 
 static void ring_set(uint32_t pos, uint8_t b)
 {
@@ -151,9 +156,11 @@ static void put_le(rec_writer_t *w, uint64_t v, uint32_t bytes)
 
 static void log_wake(void)
 {
+#if CONFIG_EMB_LOG_THREAD
     if (log_ready && (emb_context() != EMB_CONTEXT_PREKERNEL)) {
         (void)emb_sem_give(log_sem); /* binary and saturating: a wake already pending stays one */
     }
+#endif
 }
 
 static uint32_t now_ticks(void)
@@ -626,6 +633,22 @@ static void out_pad(out_t *o, char c, uint32_t n)
     }
 }
 
+/* A character of a format or a module's name: in program memory on a Harvard core. */
+static char fch(const char *s, uint32_t i)
+{
+    return (char)EMB_FLASH_READ_U8((const uint8_t *)&s[i]);
+}
+
+/* A name from program memory, as out_z(). */
+static void out_zf(out_t *o, const char *s)
+{
+    uint32_t i = 0u;
+    while ((fch(s, i) != '\0') && (o->len < o->room)) { /* bounded by the line */
+        out_c(o, fch(s, i));
+        i++;
+    }
+}
+
 /* A record's arguments, read in order. */
 typedef struct rd {
     const uint8_t *p;
@@ -733,6 +756,7 @@ static void out_int(out_t *o, const spec_t *sp, int64_t sv, uint64_t uv, char co
     out_field(o, sp, sign, digits, nd);
 }
 
+#if CONFIG_EMB_LOG_FLOAT
 /* Fixed point for %f (and %e and %g, which print as %f here): up to nine decimals. */
 static void out_double(out_t *o, const spec_t *sp, double d)
 {
@@ -800,6 +824,7 @@ static void out_double(out_t *o, const spec_t *sp, double d)
         out_field(o, &fs, sign, digits, nd);
     }
 }
+#endif
 
 static bool is_digit(char c)
 {
@@ -887,24 +912,24 @@ static void format(out_t *o, const char *fmt, uint32_t sig, rd_t *r)
 {
     uint32_t k = 0u;
     uint32_t i = 0u;
-    while (fmt[i] != '\0') { /* bounded by the format */
+    while (fch(fmt, i) != '\0') { /* bounded by the format */
         spec_t sp = {0u, -1, false, false, false, false, false};
         uint32_t h = 0u;
         arg_t a;
         char conv;
-        if (fmt[i] != '%') {
-            out_c(o, fmt[i]);
+        if (fch(fmt, i) != '%') {
+            out_c(o, fch(fmt, i));
             i++;
             continue;
         }
         i++;
-        if (fmt[i] == '%') {
+        if (fch(fmt, i) == '%') {
             out_c(o, '%');
             i++;
             continue;
         }
         for (;;) { /* bounded by the format: its flags */
-            char f = fmt[i];
+            char f = fch(fmt, i);
             if (f == '-') {
                 sp.left = true;
             } else if (f == '0') {
@@ -920,26 +945,27 @@ static void format(out_t *o, const char *fmt, uint32_t sig, rd_t *r)
             }
             i++;
         }
-        while (is_digit(fmt[i])) { /* bounded by the format */
-            sp.width = (sp.width * 10u) + (uint32_t)(fmt[i] - '0');
+        while (is_digit(fch(fmt, i))) { /* bounded by the format */
+            sp.width = (sp.width * 10u) + (uint32_t)(fch(fmt, i) - '0');
             i++;
         }
-        if (fmt[i] == '.') {
+        if (fch(fmt, i) == '.') {
             i++;
             sp.prec = 0;
-            while (is_digit(fmt[i])) { /* bounded by the format */
-                sp.prec = (sp.prec * 10) + (int32_t)(fmt[i] - '0');
+            while (is_digit(fch(fmt, i))) { /* bounded by the format */
+                sp.prec = (sp.prec * 10) + (int32_t)(fch(fmt, i) - '0');
                 i++;
             }
         }
-        while ((fmt[i] == 'h') || (fmt[i] == 'l') || (fmt[i] == 'z') || (fmt[i] == 'j') ||
-               (fmt[i] == 't') || (fmt[i] == 'L')) { /* bounded by the format */
-            if (fmt[i] == 'h') {
+        while ((fch(fmt, i) == 'h') || (fch(fmt, i) == 'l') || (fch(fmt, i) == 'z') ||
+               (fch(fmt, i) == 'j') || (fch(fmt, i) == 't') ||
+               (fch(fmt, i) == 'L')) { /* bounded by the format */
+            if (fch(fmt, i) == 'h') {
                 h++;
             }
             i++;
         }
-        conv = fmt[i];
+        conv = fch(fmt, i);
         if (conv == '\0') {
             break;
         }
@@ -965,7 +991,11 @@ static void format(out_t *o, const char *fmt, uint32_t sig, rd_t *r)
             out_field(o, &cs, "", &ch, 1u);
         } else if ((conv == 'f') || (conv == 'F') || (conv == 'e') || (conv == 'E') ||
                    (conv == 'g') || (conv == 'G')) {
+#if CONFIG_EMB_LOG_FLOAT
             out_double(o, &sp, (a.type == EMB_LOG_T_DOUBLE) ? a.d : (double)a.s);
+#else
+            out_z(o, "(float)"); /* CONFIG_EMB_LOG_FLOAT is off */
+#endif
         } else {
             narrow(&a, h, conv);
             out_int(o, &sp, a.s, a.u, conv);
@@ -978,12 +1008,12 @@ static void line_send(const char *line, uint32_t n)
 #if CONFIG_EMB_CONSOLE_FRAMED
     (void)emb_console_frame(EMB_FRAME_CHANNEL_SHELL, line, n);
 #else
-    emb_board_write(line, n);
+    emb_board_write(line, (size_t)n);
 #endif
 }
 
 /* "[seconds.milliseconds] E module: message" */
-static void line_head(out_t *o, uint32_t ts, char level, const char *module)
+static void line_head(out_t *o, uint32_t ts, char level, const char *module, bool module_in_flash)
 {
 #if CONFIG_EMB_LOG_TIMESTAMP
     uint64_t ms = ((uint64_t)ts * (uint64_t)CONFIG_EMB_TICK_NS) / 1000000u;
@@ -999,7 +1029,11 @@ static void line_head(out_t *o, uint32_t ts, char level, const char *module)
 #endif
     out_c(o, level);
     out_c(o, ' ');
-    out_z(o, module);
+    if (module_in_flash) {
+        out_zf(o, module);
+    } else {
+        out_z(o, module);
+    }
     out_z(o, ": ");
 }
 
@@ -1022,16 +1056,24 @@ size_t embs_log_line(const uint8_t *rec, size_t n, char *line, size_t cap)
     id = (uintptr_t)rd_le(&r, ID_MAX);
     ts = (uint32_t)rd_le(&r, TS_BYTES);
     if (id == EMB_LOG_ID_DROPPED) {
-        line_head(&o, ts, 'W', "emb_log");
-        format(&o, "%u records dropped", EMB_LOG_T_UINT, &r);
+        spec_t plain = {0u, -1, false, false, false, false, false};
+        uint64_t lost = rd_le(&r, 2u);
+        line_head(&o, ts, 'W', "emb_log", false);
+        out_int(&o, &plain, (int64_t)lost, lost, 'u');
+        out_z(&o, " records dropped");
     } else if (id >= EMB_LOG_ID_FIRST) {
+        /* the call site's metadata: in program memory on a Harvard core */
         const emb_log_meta_t *m = (const emb_log_meta_t *)id;
-        line_head(&o, ts, levels[(m->level <= EMB_LOG_LEVEL_DBG) ? m->level : 0u], m->module);
-        if (m->sig == EMB_LOG_T_HEX) {
+        uint8_t level = EMB_FLASH_READ_U8(&m->level);
+        uint32_t sig = EMB_FLASH_READ_U32(&m->sig);
+        const char *fmt = (const char *)EMB_FLASH_READ_PTR(&m->format);
+        const char *module = (const char *)EMB_FLASH_READ_PTR(&m->module);
+        line_head(&o, ts, levels[(level <= EMB_LOG_LEVEL_DBG) ? level : 0u], module, true);
+        if (sig == EMB_LOG_T_HEX) {
             uint32_t len = (uint32_t)rd_le(&r, 2u);
             uint32_t i;
             spec_t sp = {2u, -1, false, true, false, false, false};
-            out_z(&o, m->format);
+            out_zf(&o, fmt);
             out_c(&o, ':');
             for (i = 0u; (i < len) && (r.at < r.n); i++) { /* bounded by the record */
                 out_c(&o, ' ');
@@ -1039,14 +1081,14 @@ size_t embs_log_line(const uint8_t *rec, size_t n, char *line, size_t cap)
                 r.at++;
             }
         } else {
-            format(&o, m->format, m->sig, &r);
+            format(&o, fmt, sig, &r);
         }
     } else {
         return 0u; /* the stream's own records that only the deferred backend sends */
     }
     o.buf[o.len] = '\n';
     o.len++;
-    return o.len;
+    return (size_t)o.len;
 }
 
 /* Formats and sends the committed records, one line each. */
@@ -1054,7 +1096,7 @@ static void drain(consumer_t *c)
 {
     uint32_t n = 0u;
     while (ring_take(c->rec, RECORD_MAX, &n) == TAKE_DONE) { /* bounded by the ring */
-        size_t len = embs_log_line(c->rec, n, c->line, sizeof(c->line));
+        size_t len = embs_log_line(c->rec, (size_t)n, c->line, sizeof(c->line));
         if (len != 0u) {
             line_send(c->line, (uint32_t)len);
         }
@@ -1108,8 +1150,10 @@ uint32_t embs_log_id_bytes(void)
 
 /* ---- the log thread and the flush ------------------------------------------------- */
 
-static consumer_t thread_consumer;
 static consumer_t flush_consumer;
+
+#if CONFIG_EMB_LOG_THREAD
+static consumer_t thread_consumer;
 static emb_sem_storage_t log_sem_storage;
 static emb_thread_storage_t log_thread_storage;
 EMB_THREAD_STACK(log_stack, CONFIG_EMB_LOG_THREAD_STACK);
@@ -1122,6 +1166,7 @@ static void log_thread(void *arg)
         drain(&thread_consumer);
     }
 }
+#endif
 
 void emb_log_flush(void)
 {
@@ -1140,6 +1185,7 @@ void emb_log_flush(void)
 
 static void log_init(void)
 {
+#if CONFIG_EMB_LOG_THREAD
     emb_sem_attr_t sa;
     emb_thread_attr_t ta;
     emb_thread_t th;
@@ -1147,9 +1193,11 @@ static void log_init(void)
     sa.name = "emb_log";
     (void)emb_check_status(emb_sem_init(&log_sem_storage, &sa, &log_sem), "emb_log semaphore");
     log_ready = true;
+#endif
 #if CONFIG_EMB_LOG_DEFERRED
     put_start();
 #endif
+#if CONFIG_EMB_LOG_THREAD
     emb_thread_attr_default(&ta);
     ta.name = "emb_log";
     ta.stack = log_stack;
@@ -1158,6 +1206,7 @@ static void log_init(void)
     (void)emb_check_status(emb_thread_init(&log_thread_storage, &ta, log_thread, NULL, &th),
                            "emb_log thread");
     (void)emb_check_status(emb_thread_start(th), "emb_log thread");
+#endif
 }
 EMB_INIT_TABLE_ENTRY(log_init);
 

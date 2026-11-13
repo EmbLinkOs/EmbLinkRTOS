@@ -107,11 +107,13 @@ typedef struct emb_log_header {
     uint8_t reserved_[2];
 } emb_log_header_t;
 
-/* Where a call site's metadata and names go. */
+/* Where a call site's metadata and names go: the emb_log section with the deferred backend,
+ * read-only data with the plain-text one, in program memory on a Harvard core (SPEC-012 §8). */
 #if CONFIG_EMB_LOG_DEFERRED
 #define EMB_LOG_SECTION_ EMB_SECTION(EMB_TABLE_SECTION("emb_log"))
+#define EMB_LOG_CONST_   const EMB_LOG_SECTION_
 #else
-#define EMB_LOG_SECTION_
+#define EMB_LOG_CONST_ EMB_FLASH_CONST
 #endif
 
 /* A call site's file, which only the deferred backend keeps. */
@@ -139,7 +141,7 @@ typedef struct emb_log_header {
  */
 #if CONFIG_EMB_LOG
 #define EMB_LOG_MODULE_DEFINE(m, lvl)                             \
-    EMB_LOG_SECTION_ const char emb_log_name_##m##_[] = #m;       \
+    EMB_LOG_CONST_ char emb_log_name_##m##_[] = #m;               \
     emb_log_module_t emb_log_module_##m##_ = {EMB_LOG_LEVEL_DBG}; \
     enum {                                                        \
         emb_log_file_level_##m##_ = (lvl)                         \
@@ -157,11 +159,11 @@ typedef struct emb_log_header {
  * @lvl: The most detailed level this file compiles for it.
  */
 #if CONFIG_EMB_LOG
-#define EMB_LOG_MODULE_DECLARE(m, lvl)                        \
-    extern EMB_LOG_SECTION_ const char emb_log_name_##m##_[]; \
-    extern emb_log_module_t emb_log_module_##m##_;            \
-    enum {                                                    \
-        emb_log_file_level_##m##_ = (lvl)                     \
+#define EMB_LOG_MODULE_DECLARE(m, lvl)                \
+    extern EMB_LOG_CONST_ char emb_log_name_##m##_[]; \
+    extern emb_log_module_t emb_log_module_##m##_;    \
+    enum {                                            \
+        emb_log_file_level_##m##_ = (lvl)             \
     }
 #else
 #define EMB_LOG_MODULE_DECLARE(m, lvl) EMB_LOG_MODULE_DEFINE(m, lvl)
@@ -190,15 +192,15 @@ typedef struct emb_log_header {
      ((unsigned)(lvl) <= (unsigned)EMB_LOG_LEVEL_LIMIT_))
 
 #if CONFIG_EMB_LOG_DEFERRED
-#define EMB_LOG_META_(lvl, m, fmt, sig)                                 \
-    static EMB_LOG_SECTION_ const char emb_log_fmt_[] = fmt;            \
-    static EMB_LOG_SECTION_ const char emb_log_file_[] = EMB_LOG_FILE_; \
-    static EMB_LOG_SECTION_ const emb_log_meta_t emb_log_meta_ = {      \
+#define EMB_LOG_META_(lvl, m, fmt, sig)                         \
+    static EMB_LOG_CONST_ char emb_log_fmt_[] = fmt;            \
+    static EMB_LOG_CONST_ char emb_log_file_[] = EMB_LOG_FILE_; \
+    static EMB_LOG_CONST_ emb_log_meta_t emb_log_meta_ = {      \
         emb_log_fmt_, emb_log_file_, emb_log_name_##m##_, (uint32_t)__LINE__, (sig), (lvl), {0u}}
 #else
-#define EMB_LOG_META_(lvl, m, fmt, sig)           \
-    static const char emb_log_fmt_[] = fmt;       \
-    static const emb_log_meta_t emb_log_meta_ = { \
+#define EMB_LOG_META_(lvl, m, fmt, sig)                    \
+    static EMB_LOG_CONST_ char emb_log_fmt_[] = fmt;       \
+    static EMB_LOG_CONST_ emb_log_meta_t emb_log_meta_ = { \
         emb_log_fmt_, NULL, emb_log_name_##m##_, (uint32_t)__LINE__, (sig), (lvl), {0u}}
 #endif
 

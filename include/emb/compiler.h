@@ -163,6 +163,7 @@ extern "C" {
 #define EMB_FLASH_CONST          const
 #define EMB_FLASH_READ_U8(p)     (*(p))
 #define EMB_FLASH_READ_U16(p)    (*(p))
+#define EMB_FLASH_READ_U32(p)    (*(p))
 #define EMB_FLASH_READ_PTR(p)    (*(p))
 #define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)(*(pp)))
 #endif

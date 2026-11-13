@@ -25,8 +25,8 @@
 
 EMB_LOG_MODULE_DEFINE(t, EMB_LOG_LEVEL_INF);
 
-static uint8_t rec[512];
-static char line[256];
+static uint8_t rec[160]; /* the cases' records are short */
+static char line[128];
 
 /* Empties the ring: records from earlier cases or from the start. */
 static void drain(void)
@@ -93,7 +93,11 @@ EMB_TEST(log_text_formats)
     EMB_LOG_INF(t, "%lld %llu %ld %lu", -1LL, 18446744073709551615ULL, -70000L, 70000UL);
     EXPECT_LINE("I t: -1 18446744073709551615 -70000 70000\n");
     EMB_LOG_INF(t, "%.2f %.0f %.0f %f", 3.14159, 2.5, 3.5, -0.5); /* a half to the even */
+#if CONFIG_EMB_LOG_FLOAT
     EXPECT_LINE("I t: 3.14 2 4 -0.500000\n");
+#else
+    EXPECT_LINE("I t: (float) (float) (float) (float)\n");
+#endif
     EMB_LOG_INF(t, "%hhx %hd", 0x1FF, 70000);
     EXPECT_LINE("I t: ff 4464\n");
     EMB_LOG_INF(t, "<%.3s|%4s>", "abcdef", "z");
@@ -136,7 +140,7 @@ EMB_TEST(log_overflow_drops_and_counts)
 {
     emb_log_stats_t before;
     emb_log_stats_t after;
-    uint32_t i;
+    unsigned i;
     uint32_t kept = 0u;
     uint32_t dropped;
     uint32_t idb = embs_log_id_bytes();

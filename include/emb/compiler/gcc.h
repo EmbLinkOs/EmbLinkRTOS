@@ -74,6 +74,7 @@
 #define EMB_FLASH_CONST          const __attribute__((__progmem__))
 #define EMB_FLASH_READ_U8(p)     pgm_read_byte(p)
 #define EMB_FLASH_READ_U16(p)    pgm_read_word(p)
+#define EMB_FLASH_READ_U32(p)    pgm_read_dword(p)
 #define EMB_FLASH_READ_PTR(p)    ((void *)pgm_read_word(p))
 #define EMB_FLASH_READ_FNPTR(pp) ((uintptr_t)pgm_read_word(pp))
 #define EMB_TABLE_SECTION(name)  ".progmem." name
