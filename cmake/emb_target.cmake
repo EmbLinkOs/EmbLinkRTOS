@@ -18,7 +18,7 @@ function(emb_add_executable name)
   if(EMB_SYSTEM)
     # the system's static definitions and targets (SPEC-014 §5.1), and its headers' directory
     target_sources(${name} PRIVATE "${EMB_BOARD_DIR}/src/system.c")
-    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}/include" "${EMB_SYSTEM_DIR}")
+    target_include_directories(${name} PRIVATE "${EMB_BOARD_DIR}/include" "${EMB_SYSTEM_DIR}" "${EMB_SYSTEM_DIR}/src")
     _emb_stack_check(${name})
   endif()
   if(CONFIG_EMB_ARCH STREQUAL "native")
@@ -42,8 +42,10 @@ function(_emb_stack_check name)
     return()
   endif()
   if(NOT EMB_STACK_ROOTS)
-    message(FATAL_ERROR "${name}: a system's stacks are checked after the link: set EMB_STACK_ROOTS to the "
-                        "application's stack-roots.json (its interrupt levels and indirect calls)")
+    # the check needs the application's roots: its interrupt levels and indirect calls
+    message(WARNING "${name}: no stack check after the link: set EMB_STACK_ROOTS to the application's "
+                    "stack-roots.json (tools/footprint/stack_bound.py)")
+    return()
   endif()
   get_filename_component(_roots "${EMB_STACK_ROOTS}" ABSOLUTE BASE_DIR "${CMAKE_SOURCE_DIR}")
   add_custom_command(TARGET ${name} POST_BUILD

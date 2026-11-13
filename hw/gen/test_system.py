@@ -131,8 +131,10 @@ class SeveralBoards(Base):
         self.assertEqual(system.boards(path, ROOT), ["st/nucleo_f446re", "st/nucleo_f446ze"])
         self.assertEqual(system.resolve(path, ROOT, "st/nucleo_f446ze")["board"]["name"], "nucleo_f446ze")
         per_board, _ = generate.generate_system(path, ROOT)
-        self.assertEqual(sorted(per_board), ["nucleo_f446re", "nucleo_f446ze"])
+        self.assertEqual(sorted(per_board), ["_app", "nucleo_f446re", "nucleo_f446ze"])  # and the application's files
         for name, files in per_board.items():
+            if name == "_app":
+                continue
             self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink, NULL, 3u, 512u, 0u);", files["src/system.c"])
             self.assertIn("EMB_SEM_DEFINE(ticks, 0u, 10u);", files["src/system.c"])
             self.assertIn(f'"board": "{name}"', files["docs/system.json"])
@@ -222,6 +224,103 @@ class Regenerate(Base):
         self.assertIn("conflict", out)
         from emb_hwgen import writer
         self.assertTrue(writer.has_conflict(c.read_text(encoding="utf-8")))
+
+
+TASKS = """\
+schema_version: 0
+kind: system
+name: tasks_demo
+board: st/nucleo_f446re
+tasks:
+  - name: door
+    priority: 5
+    stack: 1K
+    events: [open, close]
+    states: [closed, open]
+    initial: closed
+    entry: [open]
+    exit: [open]
+    timeout: { open: 2s }
+    data: door_data_t
+  - name: blink
+    model: periodic
+    period: 500ms
+    priority: 2
+    stack: 512
+    states: [dark, lit]
+    initial: dark
+"""
+
+
+class Tasks(Base):
+    """SPEC-020 in the system description: the checks, tasks.h and tasks.c, and the application's
+    own files (A126)."""
+
+    def setUp(self):
+        super().setUp()
+        self.text = TASKS
+
+    def generate(self):
+        path = self.dir / "system.yaml"
+        path.write_text(self.text, encoding="utf-8")
+        return generate.generate_system(path, ROOT)[0]
+
+    def test_tables_and_threads(self):
+        files = self.generate()
+        h, c = files["nucleo_f446re"]["include/tasks.h"], files["nucleo_f446re"]["src/tasks.c"]
+        self.assertIn("#define DOOR_OPEN ((emb_state_t)1u)", h)
+        self.assertIn("#define DOOR_EV_CLOSE (EMB_EV_USER + 1u)", h)
+        self.assertIn("door_data_t data;", h)
+        self.assertIn("emb_state_t door_on_open(door_t *self, const emb_task_event_t *ev);", h)
+        self.assertIn("emb_state_t blink_on_lit(blink_t *self);", h)
+        self.assertIn("void door_exit_open(door_t *self);", h)
+        self.assertIn('#include "tasks/door.h"', h)
+        self.assertIn("static const uint32_t door_timeouts[2] = {0u, 2000u};", c)
+        self.assertIn("EMB_THREAD_DEFINE(blink_thread, blink_main, NULL, 2u, 512u, 0u);", c)
+        self.assertIn("next = door_on_open(&door, &door_event);", c)
+        self.assertIn('#include "tasks.h"', files["nucleo_f446re"]["include/system.h"])
+
+    def test_the_application_files(self):
+        app = self.generate()["_app"]
+        self.assertEqual(sorted(app), ["CMakeLists.txt", "src/main.c", "src/tasks/blink.c", "src/tasks/door.c",
+                                       "src/tasks/door.h"])
+        self.assertIn("emb_add_executable(tasks_demo src/main.c src/tasks/door.c src/tasks/blink.c)", app["CMakeLists.txt"])
+        self.assertIn('set(EMB_SYSTEM "${CMAKE_CURRENT_LIST_DIR}/system.yaml"', app["CMakeLists.txt"])
+        self.assertIn("$ENV{EMBLINKRTOS}/cmake", app["CMakeLists.txt"])  # outside the tree: no machine path
+        self.assertIn("emb_kernel_start();", app["src/main.c"])
+        self.assertIn("return DOOR_OPEN;", app["src/tasks/door.c"])
+        self.assertIn("door_data_t;", app["src/tasks/door.h"])
+
+    def test_no_scaffold(self):
+        self.text = TASKS.replace("board: st/nucleo_f446re", "board: st/nucleo_f446re\nscaffold: false")
+        self.assertNotIn("_app", self.generate())
+
+    def expect_task(self, edit, needle, path, message):
+        self.text = TASKS.replace(*edit)
+        self.expect(needle, path, message)
+
+    def test_initial_not_a_state(self):
+        self.expect_task(("initial: closed", "initial: ajar"), "initial: ajar", "tasks.door.initial", "not one of its states")
+
+    def test_entry_not_a_state(self):
+        self.expect_task(("entry: [open]", "entry: [ajar]"), "entry: [ajar]", "tasks.door.entry", "not one of its states")
+
+    def test_periodic_takes_no_events(self):
+        self.expect_task(("    period: 500ms\n", "    period: 500ms\n    events: [x]\n"), "events: [x]",
+                         "tasks.blink.events", "a periodic task takes no events")
+
+    def test_event_task_takes_no_period(self):
+        self.expect_task(("    timeout: { open: 2s }\n", "    timeout: { open: 2s }\n    period: 1s\n"), "period: 1s",
+                         "tasks.door.period", "an event task takes no period")
+
+    def test_needs_the_option(self):
+        (self.dir / "app.conf").write_text("CONFIG_EMB_TASK=n\n", encoding="utf-8")
+        self.expect_task(("board: st/nucleo_f446re", "board: st/nucleo_f446re\nconf: [app.conf]"), "name: door",
+                         "tasks.door", "needs CONFIG_EMB_TASK")
+
+    def test_yaml_booleans_are_explained(self):
+        self.expect_task(("states: [dark, lit]\n    initial: dark", "states: [off, on]\n    initial: off"),
+                         "states: [off, on]", "tasks.blink.states[0]", "quote the name")
 
 
 class Negative(Base):

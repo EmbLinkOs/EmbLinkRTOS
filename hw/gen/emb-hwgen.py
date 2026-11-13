@@ -55,8 +55,14 @@ def _system_placements(system, per_board, out=None):
     """[(path, text, baseline path)] for a system's outputs: generated/<board>/ for each board, the
     baseline under generated/.base/<board>/ (A126)."""
     gen = Path(out) if out else system.parent / "generated"
-    return [(gen / board / name, text, gen / ".base" / board / name)
-            for board, files in sorted(per_board.items()) for name, text in sorted(files.items())]
+    out_list = []
+    for board, files in sorted(per_board.items()):
+        for name, text in sorted(files.items()):
+            if board == generate.APP:  # the application's own files, beside system.yaml
+                out_list.append((system.parent / name, text, gen / ".base" / board / name))
+            else:
+                out_list.append((gen / board / name, text, gen / ".base" / board / name))
+    return out_list
 
 
 def _target(args):

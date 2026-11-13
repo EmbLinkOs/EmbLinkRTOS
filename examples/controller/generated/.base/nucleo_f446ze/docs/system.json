@@ -10,7 +10,8 @@
   "config": {
     "CONFIG_EMB_ARCH_STACK_MIN": 256,
     "CONFIG_EMB_PRIORITY_COUNT": 32,
-    "CONFIG_EMB_PROFILE": "base"
+    "CONFIG_EMB_PROFILE": "base",
+    "CONFIG_EMB_TASK": true
   },
   "devices": {},
   "generator": {
@@ -40,7 +41,7 @@
     },
     {
       "path": "examples/controller/system.yaml",
-      "sha256": "7a80a78e2f7c8ba43b5169b40ba32b78b759699cf350ce9a65d54ac2c449b5b6"
+      "sha256": "2a91f71f1de638aa1ffaa18f0f76fc3ccde44d2560aef98a9a48120775773af3"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -81,8 +82,10 @@
     }
   ],
   "profile": "base",
+  "scaffold": false,
   "schema_version": 0,
   "spi_targets": [],
+  "tasks": [],
   "threads": [
     {
       "arg": "NULL",

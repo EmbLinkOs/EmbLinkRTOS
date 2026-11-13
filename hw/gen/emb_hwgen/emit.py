@@ -981,4 +981,7 @@ def render(resolved):
                         "system.c": lambda r: emit_system.system_c(r, c),
                         "system.json": emit_system.system_json,
                         "system.md": lambda r: emit_system.system_md(r, _md_stamp(r))})
+        if resolved["system"]["tasks"]:  # SPEC-020
+            outputs.update({"tasks.h": lambda r: emit_system.tasks_h(r, c),
+                            "tasks.c": lambda r: emit_system.tasks_c(r, c)})
     return {placed(name): _file_header(name, fn(resolved)) for name, fn in sorted(outputs.items())}

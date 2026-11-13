@@ -12,6 +12,7 @@ name: controller
 boards: [st/nucleo_f446re, st/nucleo_f446ze]
 conf: [controller.conf]
 includes: [controller.h]
+scaffold: false   # its main.c and CMakeLists.txt are hand-written
 threads:
   - { name: control_thread, entry: control, priority: 6, stack: 1K, doc: "filters each sample, drives the heater; the highest" }
   - { name: command_thread, entry: command, priority: 4, stack: 1K, doc: "the console's commands" }

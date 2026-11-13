@@ -5,9 +5,10 @@
 # Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
 
 """Resolve a board and render every output: the generator's one entry point."""
+import os
 from pathlib import Path
 
-from . import HwError, emit, load, model, system
+from . import HwError, emit, emit_system, load, model, system
 
 
 def generate(board_dir, root):
@@ -44,6 +45,23 @@ def generate_system(system_path, root):
             continue
         out[resolved["board"]["name"]] = emit.render(resolved)
         warnings += [w for w in resolved["warnings"] if w not in warnings]
+        if APP not in out and resolved["system"]["scaffold"]:
+            # the application's own files, for every board alike: from the first board's resolution
+            out[APP] = {name: emit._file_header(name.rsplit("/", 1)[-1], text)
+                        for name, text in emit_system.app_files(resolved, _rtos_cmake(system_path, root)).items()}
     if errors:
         raise HwError(errors)
     return out, warnings
+
+
+# The key generate_system() gives the application's own files under (A126): not a board's name,
+# which starts with a letter.
+APP = "_app"
+
+
+def _rtos_cmake(system_path, root):
+    """The RTOS's cmake/ from the application: relative in the tree, else from $EMBLINKRTOS (HW-013)."""
+    if load.inside(system_path, root):
+        rel = os.path.relpath(Path(root).resolve() / "cmake", Path(system_path).resolve().parent)
+        return "${CMAKE_CURRENT_LIST_DIR}/" + Path(rel).as_posix()
+    return "$ENV{EMBLINKRTOS}/cmake"

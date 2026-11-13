@@ -46,10 +46,20 @@ def duration_ms(value):
     return int(m.group(1)) * (1000 if m.group(2) == "s" else 1)
 
 
+def schema_errors(m):
+    """The system description's schema errors, located; YAML's booleans explained."""
+    out = []
+    for path, msg in schema.validate(m.data, schema.load_schema("system")):
+        if msg.endswith("found a boolean") and "string" in msg:
+            msg += " (YAML reads on, off, yes and no as booleans: quote the name)"
+        out.append(f"{m.at(path)}: {msg}")
+    return out
+
+
 def boards(system_path, root):
     """The board references a system description names, in order: boards:, or board: alone."""
     m = load.flatten(Path(system_path), root)
-    errors = [f"{m.at(p)}: {msg}" for p, msg in schema.validate(m.data, schema.load_schema("system"))]
+    errors = schema_errors(m)
     if ("board" in m.data) == ("boards" in m.data):
         errors.append(f"{m.at('(root)')}: name the product's board (board:) or its boards (boards:), one of them")
     if errors:
@@ -77,8 +87,7 @@ class System:
         system_path = Path(system_path)
         self.dir = system_path.parent
         self.model = load.flatten(system_path, self.root)
-        for path, msg in schema.validate(self.model.data, schema.load_schema("system")):
-            self.err(path, msg)
+        self.errors += schema_errors(self.model)
         if self.errors:
             raise HwError(self.errors)
         s = self.model.data
@@ -99,12 +108,13 @@ class System:
         cfg = self._config(r, board_dir)
         threads = self._threads(cfg)
         objects = self._objects(cfg, threads)
+        tasks = self._tasks(cfg)
         devices = {d["name"]: d for d in r["devices"]}
         self._baud(r, devices)
         spi = self._spi_targets(r, devices)
         i2c = self._i2c_targets(devices)
         wdog = self._watchdog(devices)
-        self._names(threads, objects, spi, i2c)
+        self._names(threads, objects, spi, i2c, tasks)
         if self.errors:
             raise HwError(self.errors)
         r["system"] = {
@@ -116,6 +126,8 @@ class System:
             "includes": s.get("includes", []),
             "conf": s.get("conf", []),
             "threads": threads,
+            "tasks": tasks,
+            "scaffold": s.get("scaffold", True),
             "objects": objects,
             "devices": self._settings(r),
             "spi_targets": spi,
@@ -273,10 +285,52 @@ class System:
             out.append(rec)
         return out
 
-    def _names(self, threads, objects, spi, i2c):
+    def _tasks(self, cfg):
+        """Threads written as state machines (SPEC-020): their states, events, handlers and model."""
+        out = []
+        for t in self.model.data.get("tasks", []):
+            at = f"tasks.{t['name']}"
+            model = t.get("model", "event")
+            if cfg.get("CONFIG_EMB_TASK") is not True:
+                self.err(at, "a task needs CONFIG_EMB_TASK, which the configuration leaves out")
+            self._priority(cfg, f"{at}.priority", t["priority"])
+            self._stack(cfg, f"{at}.stack", t["stack"])
+            states, events = t["states"], t.get("events", [])
+            for key, names in (("states", states), ("events", events)):
+                dup = sorted({n for n in names if names.count(n) > 1})
+                if dup:
+                    self.err(f"{at}.{key}", f"{', '.join(dup)} named twice")
+            if t["initial"] not in states:
+                self.err(f"{at}.initial", f"{t['initial']!r} is not one of its states")
+            for key in ("entry", "exit"):
+                for n in t.get(key, []):
+                    if n not in states:
+                        self.err(f"{at}.{key}", f"{n!r} is not one of its states")
+            timeouts = {}
+            for n, d in sorted(t.get("timeout", {}).items()):
+                if n not in states:
+                    self.err(f"{at}.timeout.{n}", f"{n!r} is not one of its states")
+                timeouts[n] = duration_ms(d)
+            if model == "periodic":
+                if "period" not in t:
+                    self.err(at, "a periodic task needs its period")
+                for key in ("queue", "events", "timeout", "event"):
+                    if key in t:
+                        self.err(f"{at}.{key}", f"a periodic task takes no {key}: it runs by its period, not by events")
+            elif "period" in t:
+                self.err(f"{at}.period", "an event task takes no period: model: periodic for one")
+            out.append({"name": t["name"], "model": model, "priority": t["priority"], "stack": t["stack"],
+                        "queue": t.get("queue", 8), "events": events, "states": states, "initial": t["initial"],
+                        "entry": t.get("entry", []), "exit": t.get("exit", []), "timeouts": timeouts,
+                        "period_ms": duration_ms(t["period"]) if "period" in t else 0,
+                        "data": t.get("data"), "event": t.get("event"), "doc": t.get("doc", "")})
+        return out
+
+    def _names(self, threads, objects, spi, i2c, tasks=()):
         """Every name becomes a C symbol: one of each in the file."""
         seen = {}
-        for section, items in (("threads", threads), ("objects", objects), ("spi_targets", spi), ("i2c_targets", i2c)):
+        for section, items in (("threads", threads), ("objects", objects), ("spi_targets", spi), ("i2c_targets", i2c),
+                               ("tasks", tasks)):
             for item in items:
                 if item["name"] in seen:
                     self.err(f"{section}.{item['name']}", f"{item['name']!r} is already the name of {seen[item['name']]}")
@@ -392,7 +446,7 @@ class System:
 
 
 # what system.json and system.md show of the resolved configuration
-_CONFIG_SHOWN = ("CONFIG_EMB_PRIORITY_COUNT", "CONFIG_EMB_ARCH_STACK_MIN", "CONFIG_EMB_PROFILE")
+_CONFIG_SHOWN = ("CONFIG_EMB_PRIORITY_COUNT", "CONFIG_EMB_ARCH_STACK_MIN", "CONFIG_EMB_PROFILE", "CONFIG_EMB_TASK")
 
 
 def resolve(system_path, root, board_ref=None):
