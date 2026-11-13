@@ -149,13 +149,24 @@ objects:
   - { name: bus_lock, type: mutex, protocol: ceiling, users: [control_thread, command_thread] }
   - { name: ready, type: sem, initial: 0, max: 1 }
 devices:
-  usart2: { baud: 115200 }       # the product's settings for the board's devices
-  iwdg: { timeout: 500ms }
+  usart2: { baud: 115200, rx_buffer: 128 }   # the product's settings for the board's devices
+spi_targets:
+  - { name: flash, bus: spi2, hz: 8MHz, mode: 0, cs: 0 }
+i2c_targets:
+  - { name: env, bus: i2c1, address: 0x76, speed: fast }
+watchdog: { device: iwdg, timeout: 500ms }
 ```
 
 **Threads** (`EMB_THREAD_DEFINE`): `name`, `entry` (a C function `void entry(void *arg)`), `priority`, `stack` (bytes, `K` allowed), and optionally `arg` (a C expression), `autostart` (default true) and `flags` (the `EMB_THREAD_*` flag names). **Objects**, one per static definition macro: `mutex` (`protocol`: `none`, `inherit` or `ceiling`; a ceiling mutex names its `users`, threads of this file, and the generator sets its ceiling to the highest of their priorities), `sem` (`initial`, `max`), `cond`, `event` (`initial`), `msgq` (`item`, a C type taken with `sizeof`, or `item_size` in bytes; `capacity`), `timer` (`callback`, `arg`) and `workq` (`priority`, `stack`). Every name is a C identifier, unique in the file, and becomes the handle's name.
 
-**Devices:** each key names a device of the board's description, and its value sets the options of that device's binding, the fields the binding fills from the device (`device.<option>`, SPEC-016 §8). The value replaces the board's for this product. What the board fixes cannot be set here: the device's compatible, its pins, chip selects, bus, address and DMA channels. A value is checked as the board's is: its type from the binding, and where the class has a rule, against the hardware (a baud rate the peripheral's clock cannot divide to within 2 %, a watchdog timeout outside its prescaler's range).
+**Devices:** each key names a device of the board's description, and its value sets the options of that device's binding, the fields the binding fills from the device (`device.<option>`, SPEC-016 §8: today a UART's `baud` and `rx_buffer`, the RP2350 TRNG's `sample_count`). The value replaces the board's for this product. What the board fixes cannot be set here: the device's compatible, its pins, chip selects, bus, address and DMA channels. A value is checked as the board's is, by its binding, and a baud rate also against the hardware: the peripheral's clock must divide to it within 2 %.
+
+**Bus targets and the watchdog** are not settings of a device but what the application passes to the class's calls (SPEC-017): an SPI target's clock, mode and chip select travel with each transfer, an I2C target's address and speed too, and a watchdog's timeout with `emb_drv_wdt_start()`. The system names them, the generator checks them, and they become constants the application passes:
+- `spi_targets`: `name`, `bus` (an SPI controller device), `hz`, `mode` (0 to 3), `cs` (an index into the controller's chip selects in the board description, or absent for none) and `bits` (default 8); a `const emb_drv_spi_target_t`. Checked: the clock within what the controller's dividers make from its peripheral clock, and one target per chip select.
+- `i2c_targets`: `name`, `bus` (an I2C controller device), `address` (7 bits, 0x08 to 0x77), `speed` (`standard`, `fast` or `fast_plus`); a `const emb_drv_i2c_target_t`. Checked: the address unique on its bus, and the speed one the controller's binding lists.
+- `watchdog`: `device` (a watchdog class device) and `timeout`; `EMB_SYSTEM_WATCHDOG_TIMEOUT_MS`, checked within the driver's range.
+
+A binding states the limits these checks use, with the figures its driver enforces (`limits:` in `drivers/bindings.yaml`: an SPI controller's divider range, an I2C controller's speeds, a watchdog's timeout range).
 
 **Kconfig options stay in their fragments** (`.conf`), which `conf:` names so the generator can resolve them with the board's defaults and check against them; the build uses the same fragments.
 
@@ -168,8 +179,8 @@ devices:
 | Output | Content |
 |---|---|
 | the board's outputs (§6) | rendered again with the product's device settings; the application builds against these, not the board's |
-| `system.h` | the handles (`extern emb_thread_t control_thread;` and so on) and the entry functions' declarations, for the application's sources |
-| `system.c` | one static definition macro per thread and object, with the computed ceilings; the kernel creates them from its initialization table (SPEC-001 §6.4) |
+| `system.h` | the handles (`extern emb_thread_t control_thread;` and so on), the entry functions' declarations, the targets (`extern const emb_drv_spi_target_t flash;`) and the watchdog's timeout, for the application's sources |
+| `system.c` | one static definition macro per thread and object, with the computed ceilings, and the targets' constants; the kernel creates the objects from its initialization table (SPEC-001 §6.4) |
 | `system.json` | the resolved system: every thread, object and device setting, each with where it came from (system or board), for tools such as EmbLink Studio |
 | `system.md` | the system's reference page: threads by priority with their stacks, objects, ceilings, device settings and their origin |
 
@@ -177,7 +188,7 @@ devices:
 
 ### 5.2 Checks
 
-At generation, beside the board's (§7), the generator refuses, naming file, line and node (HW-002): a name that is not a C identifier or is used twice; a priority outside `CONFIG_EMB_PRIORITY_COUNT`, or shared between threads where the profile needs unique priorities (tiny); an object type its Kconfig option leaves out; a ceiling mutex user that is not a thread of the file; a device the board does not have, or an option its binding does not take; a device setting the hardware cannot meet; a stack below the port's minimum (`EMB_THREAD_STACK_MIN`).
+At generation, beside the board's (§7), the generator refuses, naming file, line and node (HW-002): a name that is not a C identifier or is used twice; a priority outside `CONFIG_EMB_PRIORITY_COUNT`, or shared between threads where the profile needs unique priorities (tiny); an object type its Kconfig option leaves out; a ceiling mutex user that is not a thread of the file; a device the board does not have, or an option its binding does not take; a device setting the hardware cannot meet; a target on a device that is not a controller of its class, outside its binding's limits, sharing a chip select or an I2C address; a watchdog timeout outside its driver's range; a stack below the port's minimum (`EMB_THREAD_STACK_MIN`).
 
 After the link, the build compares each thread's `stack` with the worst case the stack tool computes from the image (`tools/footprint/stack_bound.py`), from the thread's entry and the roots the application lists for calls the call graph cannot see (`stack-roots.json`). A stack below its worst case **fails the build**, naming the thread, both figures and the deepest call chain. The memory report covers the image as linked, C definitions included.
 
