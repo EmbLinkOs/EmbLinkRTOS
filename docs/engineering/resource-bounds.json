@@ -292,6 +292,16 @@
       "masked": false,
       "profiles": "base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore",
       "evidence": "SPEC-017 \u00a711, A124; test_entropy, test_entropy_board"
+    },
+    {
+      "id": "task_handlers",
+      "input": "a task's state handlers, entry and exit handlers",
+      "bound": "the application's: each runs to completion, one at a time (KRN-TSK-001)",
+      "limit": "the application's handlers; the task's thread priority bounds what they delay",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base, isolated: the task runtime (CONFIG_EMB_TASK); tiny: none",
+      "evidence": "SPEC-020 \u00a74, \u00a75; tests/conformance/test_task.c"
     }
   ],
   "apis": {
@@ -789,6 +799,21 @@
       "waiters",
       "pi_depth",
       "timeouts"
+    ],
+    "emb_task_run": [
+      "item_copy",
+      "task_handlers"
+    ],
+    "emb_task_post": [
+      "item_copy"
+    ],
+    "emb_task_post_wait": [
+      "item_copy",
+      "waiters",
+      "timeouts"
+    ],
+    "emb_task_post_event": [
+      "item_copy"
     ]
   }
 }

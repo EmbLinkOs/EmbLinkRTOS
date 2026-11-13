@@ -241,5 +241,11 @@
 #define EMB_API_ID_DRV_ENTROPY_LOCK_INIT         0x00EEu
 #define EMB_API_ID_DRV_ENTROPY_READ              0x00EFu
 #define EMB_API_ID_DRV_ENTROPY_READ_RAW          0x00F0u
+#define EMB_API_ID_TASK_RUN                      0x00F1u
+#define EMB_API_ID_TASK_POST                     0x00F2u
+#define EMB_API_ID_TASK_POST_WAIT                0x00F3u
+#define EMB_API_ID_TASK_POST_EVENT               0x00F4u
+#define EMB_API_ID_TASK_STATE                    0x00F5u
+#define EMB_API_ID_TASK_STATS_GET                0x00F6u
 
 #endif /* EMB_API_IDS_H */

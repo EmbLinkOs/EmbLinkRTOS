@@ -35,6 +35,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | **flash_sectors**: the sectors of one erase, and the geometry's sectors a lookup walks | the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's | the board's description | configuration | yes | base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122) | SPEC-017 §9, A122; test_flash, test_flash_board |
 | **rtc_oscillator**: an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second | 3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms | the driver's wait | structural | no | base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks | SPEC-017 §10, A123; test_rtc_board |
 | **entropy_bytes**: bytes of one entropy read | the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read | application | application | no | base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore | SPEC-017 §11, A124; test_entropy, test_entropy_board |
+| **task_handlers**: a task's state handlers, entry and exit handlers | the application's: each runs to completion, one at a time (KRN-TSK-001) | the application's handlers; the task's thread priority bounds what they delay | application | no | base, isolated: the task runtime (CONFIG_EMB_TASK); tiny: none | SPEC-020 §4, §5; tests/conformance/test_task.c |
 
 ## Public functions
 
@@ -130,6 +131,10 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_sem_init()` | O(1); O(active semaphores) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |
 | `emb_sem_take()` | O(1) fast path; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
 | `emb_sem_take_until()` | O(1) fast path; O(waiters + timeouts) finite wait enqueue | waiters, timeouts |
+| `emb_task_post()` | O(1) plus an item copy | item_copy |
+| `emb_task_post_event()` | O(1) plus an item copy | item_copy |
+| `emb_task_post_wait()` | O(1) plus an item copy; O(waiters + timeouts) finite wait enqueue | item_copy, waiters, timeouts |
+| `emb_task_run()` | unbounded until its thread is canceled; each step O(1) plus an item copy and its handlers' | item_copy, task_handlers |
 | `emb_thread_exit()` | O(owned mutexes) | owned, pi_depth, timeouts |
 | `emb_thread_foreach()` | O(threads) plus callback costs and any reschedule at final unlock | live_threads, callbacks, reschedule |
 | `emb_thread_init()` | bounded scan of at most 254 IDs + O(live threads) with CONFIG_EMB_THREAD_LIST + stack fill when configured | thread_ids, live_threads, stack |

@@ -3,7 +3,7 @@
 **Implementation and release scope:** [Project status](../STATUS.md) records the implemented subset; [roadmap](../architecture/07-roadmap.md) defines release gates. Nothing in this specification is implemented yet; the configurator phase implements it.
 
 **Status:** Accepted 2026-11-13 by the project owner ("accept as written"), with the decisions of §10.
-**Requirements:** KRN-THR (threads), KRN-SYN (message queues); new requirements are listed in §9.
+**Requirements:** `docs/requirements/KRN-TSK.md` (KRN-TSK-001 to 004); KRN-THR, KRN-IPC, KRN-TIM.
 **Builds on:** SPEC-008 (threads), SPEC-005 §5 (message queues), SPEC-003 (time), SPEC-014 §5 (the system description, A125, A126).
 
 ---
@@ -34,7 +34,7 @@ tasks:
     exit: [measuring]             # states with an exit handler
     timeout: { measuring: 100ms } # a state left with no event for this long gets EMB_EV_TIMEOUT
     data: sensor_data_t           # the task's own data, a C type; optional
-    event: null                   # a C type replacing emb_event_t for this task; optional
+    event: null                   # a C type replacing emb_task_event_t for this task; optional
   - name: blink
     model: periodic
     period: 500ms
@@ -49,10 +49,10 @@ Every name is a C identifier, unique among the system's threads, objects, tasks 
 ## 3. Events
 
 ```c
-typedef struct emb_event {
+typedef struct emb_task_event {
     uint32_t id;    /* an EMB_EV_* id below EMB_EV_USER, or the task's own */
     uint32_t value; /* the event's datum */
-} emb_event_t;
+} emb_task_event_t;
 ```
 
 - The ids below `EMB_EV_USER` (16) are the runtime's: `EMB_EV_ENTRY`, `EMB_EV_EXIT` and `EMB_EV_TIMEOUT`.
@@ -65,7 +65,7 @@ typedef struct emb_event {
 The generator writes, for each task, `<TASK>_<STATE>` constants (`SENSOR_IDLE`), the task's type `<task>_t` (its runtime part, then its `data`), and declarations of the handlers the application defines:
 
 ```c
-emb_state_t sensor_on_idle(sensor_t *self, const emb_event_t *ev); /* event model: per event */
+emb_state_t sensor_on_idle(sensor_t *self, const emb_task_event_t *ev); /* event model: per event */
 emb_state_t blink_on_on(blink_t *self);                             /* periodic model: per period */
 void sensor_enter_measuring(sensor_t *self);                        /* listed in entry: */
 void sensor_exit_measuring(sensor_t *self);                         /* listed in exit: */
@@ -87,9 +87,10 @@ emb_status_t emb_task_post(emb_task_t *task, uint32_t id, uint32_t value);  /* t
 emb_status_t emb_task_post_wait(emb_task_t *task, uint32_t id, uint32_t value, emb_timeout_t timeout);
 emb_status_t emb_task_post_event(emb_task_t *task, const void *event);      /* a task's own event type */
 emb_state_t  emb_task_state(const emb_task_t *task);
-emb_status_t emb_task_stats(const emb_task_t *task, emb_task_stats_t *out); /* events, drops, timeouts, overruns */
+emb_status_t emb_task_stats_get(const emb_task_t *task, emb_task_stats_t *out); /* events, drops, timeouts, overruns */
 ```
 
+- **Stopping a task:** cancel its thread (`emb_thread_cancel()`, SPEC-008 §7). The wait ends with `EMB_ECANCELED`, the current state's exit handler runs, and `emb_task_run()` returns, so the thread ends.
 - **A full queue:** `emb_task_post()` from an ISR or with no wait returns `EMB_EAGAIN` and counts a drop. Events are never silently lost.
 - **Handles:** each task is reached by its generated handle, `&sensor.task` or the macro `SENSOR_TASK`.
 - **Calling contracts:** the API's tags follow SPEC-001 §9.
@@ -113,7 +114,7 @@ All three are editable, and regeneration merges (A126). Adding a state in `syste
 - **Generator tests:** each rule of §2, the generated tables, and a merge that adds a state's handler into an edited task file.
 - **On hardware:** an example with an event task and a periodic task, on the NUCLEO-F446RE and the Pico 2 W.
 
-## 9. Requirements to add
+## 9. Requirements (`KRN-TSK.md`)
 
 - KRN-TSK-001: a task runs one handler at a time and never loses a posted event.
 - KRN-TSK-002: a transition runs the exit handler, then the entry handler, then arms the timeout.
