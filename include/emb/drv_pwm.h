@@ -82,7 +82,7 @@ typedef struct emb_drv_pwm_api {
  * @dev:       A device of the PWM class.
  * @channel:   Which, from 0.
  * @period_ns: The period; the device's other running channels' too.
- * @pulse_ns:  The pulse's width, at most @period_ns: 0 for a low output, @period_ns for a high
+ * @pulse_ns:  The pulse's width, at most the period: 0 for a low output, the period for a high
  *             one (inverted, the reverse).
  * @flags:     EMB_DRV_PWM_INVERTED, or 0.
  * @got:       Receives the period and pulse the hardware makes, the nearest to those asked;
