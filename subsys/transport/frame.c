@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Framed byte streams (SPEC-015 §7, OBS-019): COBS over the channel byte, the payload and a
- * CRC-16, ended by a zero. Consistent Overhead Byte Stuffing (Cheshire and Baker, 1999) writes
- * each run of up to 254 nonzero bytes after a code byte holding the run's length plus one;
- * a code below 0xFF stands for a zero after its run, except at the frame's end.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    frame.c
+ * @brief   Framed byte streams (SPEC-015 §7, OBS-019).
+ *
+ * @details
+ * COBS over the channel byte, the payload and a CRC-16, ended by a zero. Consistent Overhead Byte
+ * Stuffing (Cheshire and Baker, 1999) writes each run of up to 254 nonzero bytes after a code byte
+ * holding the run's length plus one; a code below 0xFF stands for a zero after its run, except at
+ * the frame's end.
+ *
+ * @see     include/emb/frame.h
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #include <emb/frame.h>
 

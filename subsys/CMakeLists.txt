@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # emb_subsys: the subsystems over the kernel (transports, and in M4 logging, trace and update),
 # each behind its CONFIG_EMB_* symbol, compiled like the kernel and linked into every image,
 # which keeps only what it calls. With none selected it is an empty interface library.

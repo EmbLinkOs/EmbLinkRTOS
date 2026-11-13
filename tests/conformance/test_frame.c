@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Framed byte streams (SPEC-015 §7; OBS-019): the encoder against vectors the host tool
- * (tools/transport/frame.py) produces from the specification, and the stream decoder's
- * resynchronization, CRC and overrun handling. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_frame.c
+ * @brief   Framed byte streams (SPEC-015 §7; OBS-019).
+ *
+ * @details
+ * The encoder against vectors the host tool (tools/transport/frame.py) produces from the
+ * specification, and the stream decoder's resynchronization, CRC and overrun handling.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #include <emb/frame.h>
 
 #include <emb_test.h>

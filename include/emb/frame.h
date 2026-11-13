@@ -1,9 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Framed byte streams (SPEC-015 §7, OBS-019): one frame is COBS(channel, payload, CRC-16)
- * and a zero delimiter, so a byte-stream transport (a UART, USB CDC, a network socket)
- * carries the log, the trace, the crash record, the shell and the update protocol over one
- * line, and a decoder that joins mid-stream finds the next frame at the next zero. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    frame.h
+ * @brief   Framed byte streams (SPEC-015 §7, OBS-019).
+ *
+ * @details
+ * One frame is COBS(channel, payload, CRC-16) and a zero delimiter, so a byte-stream transport (a
+ * UART, USB CDC, a network socket) carries the log, the trace, the crash record, the shell and the
+ * update protocol over one line, and a decoder that joins mid-stream finds the next frame at the
+ * next zero.
+ *
+ * @see     subsys/transport/frame.c
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #ifndef EMB_FRAME_H
 #define EMB_FRAME_H
 

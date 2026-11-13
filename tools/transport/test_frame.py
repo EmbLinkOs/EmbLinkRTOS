@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The host's framing (SPEC-015 §7, OBS-019): the vectors tests/conformance/test_frame.c checks
 the target's encoder against, round trips, and the stream decoder's resynchronization."""
 import random
