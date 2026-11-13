@@ -66,6 +66,8 @@ static uint64_t count_of(uintptr_t base)
     uint32_t high = REG32(base + TIMER_TIMERAWH);
     uint32_t low = REG32(base + TIMER_TIMERAWL);
     uint32_t again = REG32(base + TIMER_TIMERAWH);
+    /* two reads of a volatile register, which a carry between them makes differ */
+    /* cppcheck-suppress knownConditionTrueFalse */
     if (again != high) {
         low = REG32(base + TIMER_TIMERAWL);
         high = again;
@@ -73,12 +75,14 @@ static uint64_t count_of(uintptr_t base)
     return ((uint64_t)high << 32) | low;
 }
 
+/* the interrupt's handler, whose argument is emb_isr_fn_t's */
+/* cppcheck-suppress constParameterCallback */
 static void rp2350_alarm_isr(void *arg)
 {
     const emb_rp2350_alarm_t *alarm = (const emb_rp2350_alarm_t *)arg;
     const emb_rp2350_timer_config_t *cfg = timer_config(alarm->dev);
     emb_rp2350_timer_data_t *d = timer_data(alarm->dev);
-    uint32_t bit = 1u << alarm->channel;
+    uint32_t bit = (uint32_t)1u << alarm->channel;
     bool due = false;
     emb_irq_key_t key = emb_irq_lock(); /* an alarm armed from a higher interrupt waits */
     REG32(cfg->base + TIMER_INTR) = bit;
@@ -149,7 +153,7 @@ static uint32_t rp2350_timer_rate(const emb_device_t *dev)
 
 static void disarm_alarm(uintptr_t base, uint8_t channel)
 {
-    uint32_t bit = 1u << channel;
+    uint32_t bit = (uint32_t)1u << channel;
     REG32(base + TIMER_INTE + CLR_ALIAS) = bit;
     REG32(base + TIMER_ARMED) = bit;
     REG32(base + TIMER_INTR) = bit;
@@ -161,7 +165,7 @@ static void disarm_alarm(uintptr_t base, uint8_t channel)
 static emb_status_t rp2350_timer_arm(const emb_device_t *dev, uint8_t channel, uint64_t at)
 {
     uintptr_t base = timer_config(dev)->base;
-    uint32_t bit = 1u << channel;
+    uint32_t bit = (uint32_t)1u << channel;
     timer_data(dev)->target[channel] = at;
     REG32(base + TIMER_INTR) = bit;
     REG32(base + TIMER_INTE + SET_ALIAS) = bit;

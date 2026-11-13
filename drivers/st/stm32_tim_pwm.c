@@ -44,31 +44,32 @@
 #define TIM_ARR   0x2Cu
 #define TIM_CCR1  0x34u /* CCR2 to CCR4 follow, 4 bytes apart */
 
-#define CR1_CEN    (1u << 0)
-#define CR1_URS    (1u << 2) /* only an overflow raises the update interrupt: not a slave reset */
-#define CR1_ARPE   (1u << 7)
-#define UPDATE     (1u << 0) /* DIER.UIE, SR.UIF */
-#define EGR_UG     (1u << 0)
-#define OC_MASK    0xFFu     /* a channel's byte in CCMRx: CCxS, OCxFE, OCxPE, OCxM, OCxCE */
-#define OC_PWM1    (6u << 4) /* OCxM 110 */
-#define OC_INACT   (4u << 4) /* OCxM 100: forced to the inactive level */
-#define OC_PRELOAD (1u << 3) /* OCxPE */
-#define IC_DIRECT  1u        /* CCxS 01: the channel's own input */
-#define IC_OTHER   2u        /* CCxS 10: the paired channel's input */
-#define SMS_RESET  4u        /* SMCR.SMS 100: the trigger resets the counter */
-#define TS_TI1FP1  (5u << 4)
-#define TS_TI2FP2  (6u << 4)
+#define CR1_CEN ((uint32_t)1u << 0)
+#define CR1_URS \
+    ((uint32_t)1u << 2) /* only an overflow raises the update interrupt: not a slave reset */
+#define CR1_ARPE   ((uint32_t)1u << 7)
+#define UPDATE     ((uint32_t)1u << 0) /* DIER.UIE, SR.UIF */
+#define EGR_UG     ((uint32_t)1u << 0)
+#define OC_MASK    0xFFu /* a channel's byte in CCMRx: CCxS, OCxFE, OCxPE, OCxM, OCxCE */
+#define OC_PWM1    ((uint32_t)6u << 4) /* OCxM 110 */
+#define OC_INACT   ((uint32_t)4u << 4) /* OCxM 100: forced to the inactive level */
+#define OC_PRELOAD ((uint32_t)1u << 3) /* OCxPE */
+#define IC_DIRECT  ((uint32_t)1u)      /* CCxS 01: the channel's own input */
+#define IC_OTHER   ((uint32_t)2u)      /* CCxS 10: the paired channel's input */
+#define SMS_RESET  ((uint32_t)4u)      /* SMCR.SMS 100: the trigger resets the counter */
+#define TS_TI1FP1  ((uint32_t)5u << 4)
+#define TS_TI2FP2  ((uint32_t)6u << 4)
 #define PSC_MAX    65536u
 #define NS         1000000000u
 
 /* A channel's bit in DIER (CCxIE) and in SR (CCxIF): bits 1 to 4. */
-static uint32_t cc_bit(uint8_t channel)
+static uint32_t pwm_cc_bit(uint8_t channel)
 {
-    return 1u << (1u + (uint32_t)channel);
+    return (uint32_t)1u << (1u + (uint32_t)channel);
 }
 
 /* MISRA Dev CS-12: rules 11.3 and 11.5, a device's configuration and RAM by its driver's type. */
-static const emb_stm32_tim_config_t *tim_config(const emb_device_t *dev)
+static const emb_stm32_tim_config_t *pwm_tim_config(const emb_device_t *dev)
 {
     return (const emb_stm32_tim_config_t *)dev->config;
 }
@@ -79,7 +80,7 @@ static emb_stm32_pwm_data_t *pwm_data(const emb_device_t *dev)
 }
 
 /* The counts in one wrap of the counter. */
-static uint64_t span(const emb_stm32_tim_config_t *cfg)
+static uint64_t pwm_span(const emb_stm32_tim_config_t *cfg)
 {
     return (uint64_t)1u << ((cfg->bits >= 32u) ? 32u : cfg->bits);
 }
@@ -96,7 +97,7 @@ static uint32_t ns_of(uint64_t clocks, uint32_t hz)
 }
 
 /* A channel's output mode, its byte in CCMR1 or CCMR2. */
-static void oc_mode(uintptr_t base, uint8_t channel, uint32_t mode)
+static void pwm_oc_mode(uintptr_t base, uint8_t channel, uint32_t mode)
 {
     uintptr_t reg = base + TIM_CCMR1 + (4u * ((uint32_t)channel >> 1));
     uint32_t shift = 8u * ((uint32_t)channel & 1u);
@@ -106,21 +107,21 @@ static void oc_mode(uintptr_t base, uint8_t channel, uint32_t mode)
 static void stm32_pwm_isr(void *arg)
 {
     emb_stm32_pwm_data_t *d = (emb_stm32_pwm_data_t *)arg;
-    const emb_stm32_tim_config_t *cfg = tim_config(d->dev);
+    const emb_stm32_tim_config_t *cfg = pwm_tim_config(d->dev);
     uintptr_t base = cfg->base;
     uint8_t rise_ch = d->input;
     uint8_t fall_ch = (uint8_t)(1u - d->input);
     uint32_t flags = REG32(base + TIM_SR) & REG32(base + TIM_DIER);
     bool wrapped = (flags & UPDATE) != 0u;
-    uint64_t wrap = span(cfg);
-    if ((flags & cc_bit(fall_ch)) != 0u) {
+    uint64_t wrap = pwm_span(cfg);
+    if ((flags & pwm_cc_bit(fall_ch)) != 0u) {
         uint32_t v = REG32(base + TIM_CCR1 + (4u * (uint32_t)fall_ch)); /* clears its flag */
         /* a wrap not yet counted came before the edge when the edge's count is low */
         uint64_t w = d->wraps + ((wrapped && ((uint64_t)v < (wrap / 2u))) ? 1u : 0u);
-        d->fall = (w * wrap) + v;
-        d->fell = 1u;
+        d->fall_count = (w * wrap) + v;
+        d->fallen = 1u;
     }
-    if ((flags & cc_bit(rise_ch)) != 0u) {
+    if ((flags & pwm_cc_bit(rise_ch)) != 0u) {
         uint32_t v = REG32(base + TIM_CCR1 + (4u * (uint32_t)rise_ch));
         /* a wrap pending now came before this edge: after it, the counter restarted from 0 */
         uint64_t w = d->wraps + (wrapped ? 1u : 0u);
@@ -128,15 +129,15 @@ static void stm32_pwm_isr(void *arg)
             REG32(base + TIM_SR) = ~UPDATE;
             wrapped = false;
         }
-        if ((d->rises != 0u) && (d->fell != 0u)) {
+        if ((d->rises != 0u) && (d->fallen != 0u)) {
             d->period = (w * wrap) + v;
-            d->pulse = d->fall;
+            d->pulse = d->fall_count;
             REG32(base + TIM_DIER) = 0u; /* one whole cycle: done */
             (void)emb_sem_give(d->done);
         }
         d->rises = 1u;
         d->wraps = 0u;
-        d->fell = 0u;
+        d->fallen = 0u;
     }
     if (wrapped) {
         REG32(base + TIM_SR) = ~UPDATE;
@@ -146,7 +147,7 @@ static void stm32_pwm_isr(void *arg)
 
 static emb_status_t stm32_pwm_init(const emb_device_t *dev)
 {
-    const emb_stm32_tim_config_t *cfg = tim_config(dev);
+    const emb_stm32_tim_config_t *cfg = pwm_tim_config(dev);
     emb_stm32_pwm_data_t *d = pwm_data(dev);
     emb_sem_attr_t attr;
     emb_status_t st;
@@ -183,17 +184,17 @@ static emb_status_t stm32_pwm_init(const emb_device_t *dev)
 static emb_status_t stm32_pwm_set(const emb_device_t *dev, uint8_t channel, uint32_t period_ns,
                                   uint32_t pulse_ns, uint32_t flags, emb_drv_pwm_wave_t *got)
 {
-    const emb_stm32_tim_config_t *cfg = tim_config(dev);
+    const emb_stm32_tim_config_t *cfg = pwm_tim_config(dev);
     emb_stm32_pwm_data_t *d = pwm_data(dev);
     uintptr_t base = cfg->base;
-    bool alone = (d->pwm.running & (uint8_t) ~(1u << channel)) == 0u;
+    bool alone = (d->pwm.running & (uint8_t) ~((uint32_t)1u << channel)) == 0u;
     uint32_t prescale = d->prescale;
     uint64_t top;
     uint64_t compare;
     uint32_t polarity = 2u << (4u * (uint32_t)channel); /* CCxP */
     if (alone) {
         uint64_t clocks = clocks_of(period_ns, cfg->clock_hz);
-        prescale = (uint32_t)((clocks + span(cfg) - 1u) / span(cfg));
+        prescale = (uint32_t)((clocks + pwm_span(cfg) - 1u) / pwm_span(cfg));
         if (prescale == 0u) {
             prescale = 1u;
         }
@@ -211,10 +212,10 @@ static emb_status_t stm32_pwm_set(const emb_device_t *dev, uint8_t channel, uint
         compare = top;
     }
     REG32(base + TIM_CCR1 + (4u * (uint32_t)channel)) = (uint32_t)compare;
-    oc_mode(base, channel, OC_PWM1 | OC_PRELOAD);
+    pwm_oc_mode(base, channel, OC_PWM1 | OC_PRELOAD);
     REG32(base + TIM_CCER) = (REG32(base + TIM_CCER) & ~(polarity)) |
                              (((flags & EMB_DRV_PWM_INVERTED) != 0u) ? polarity : 0u) |
-                             (1u << (4u * (uint32_t)channel)); /* CCxE */
+                             ((uint32_t)1u << (4u * (uint32_t)channel)); /* CCxE */
     if (alone) {
         d->prescale = prescale;
         REG32(base + TIM_SMCR) = 0u; /* a capture's slave reset, gone */
@@ -233,14 +234,14 @@ static emb_status_t stm32_pwm_set(const emb_device_t *dev, uint8_t channel, uint
 
 static void stm32_pwm_stop(const emb_device_t *dev, uint8_t channel)
 {
-    oc_mode(tim_config(dev)->base, channel, OC_INACT); /* its polarity still applies */
+    pwm_oc_mode(pwm_tim_config(dev)->base, channel, OC_INACT); /* its polarity still applies */
 }
 
 /* Under the device's lock; no channel of the device outputs, as the capture resets the counter. */
 static emb_status_t stm32_pwm_capture(const emb_device_t *dev, uint8_t channel,
                                       emb_drv_pwm_wave_t *wave, emb_timeout_t timeout)
 {
-    const emb_stm32_tim_config_t *cfg = tim_config(dev);
+    const emb_stm32_tim_config_t *cfg = pwm_tim_config(dev);
     emb_stm32_pwm_data_t *d = pwm_data(dev);
     uintptr_t base = cfg->base;
     emb_irq_key_t key;
@@ -259,20 +260,21 @@ static emb_status_t stm32_pwm_capture(const emb_device_t *dev, uint8_t channel,
     REG32(base + TIM_CCMR1) = (channel == 0u) ? (IC_DIRECT | (IC_OTHER << 8))
                                               : (IC_OTHER | (IC_DIRECT << 8));
     /* the rising edge on the input's own channel, the falling edge on the other: CCxP */
-    REG32(base + TIM_CCER) = (channel == 0u) ? ((1u << 0) | (1u << 4) | (1u << 5))
-                                             : ((1u << 0) | (1u << 1) | (1u << 4));
+    REG32(base + TIM_CCER) =
+        (channel == 0u) ? (((uint32_t)1u << 0) | ((uint32_t)1u << 4) | ((uint32_t)1u << 5))
+                        : (((uint32_t)1u << 0) | ((uint32_t)1u << 1) | ((uint32_t)1u << 4));
     REG32(base + TIM_SMCR) = ((channel == 0u) ? TS_TI1FP1 : TS_TI2FP2) | SMS_RESET;
     REG32(base + TIM_PSC) = 0u;
-    REG32(base + TIM_ARR) = (uint32_t)(span(cfg) - 1u);
+    REG32(base + TIM_ARR) = (uint32_t)(pwm_span(cfg) - 1u);
     REG32(base + TIM_EGR) = EGR_UG;
     REG32(base + TIM_SR) = 0u;
     d->prescale = 1u;
     d->input = channel;
     d->rises = 0u;
-    d->fell = 0u;
+    d->fallen = 0u;
     d->wraps = 0u;
     (void)emb_sem_take(d->done, EMB_NO_WAIT); /* a give a timed-out capture left */
-    REG32(base + TIM_DIER) = UPDATE | cc_bit(0u) | cc_bit(1u);
+    REG32(base + TIM_DIER) = UPDATE | pwm_cc_bit(0u) | pwm_cc_bit(1u);
     REG32(base + TIM_CR1) = CR1_URS | CR1_CEN;
     emb_irq_unlock(key);
     st = emb_sem_take(d->done, timeout);

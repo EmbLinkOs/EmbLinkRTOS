@@ -42,14 +42,14 @@ static emb_drv_counter_data_t *counter_part(const emb_device_t *dev)
     return (emb_drv_counter_data_t *)dev->data;
 }
 
-static bool has_channel(const emb_device_t *dev, uint8_t channel)
+static bool counter_has_channel(const emb_device_t *dev, uint8_t channel)
 {
     return channel < counter_part(dev)->channels;
 }
 
 /* Arm a channel's alarm, interrupts locked: its callback, its count and its period. */
-static emb_status_t arm_locked(const emb_device_t *dev, uint8_t channel, uint64_t at,
-                               uint64_t period, emb_drv_counter_fn_t fn, void *arg)
+static emb_status_t counter_arm_locked(const emb_device_t *dev, uint8_t channel, uint64_t at,
+                                       uint64_t period, emb_drv_counter_fn_t fn, void *arg)
 {
     emb_drv_counter_alarm_t *a = &counter_part(dev)->alarm[channel];
     emb_status_t st;
@@ -129,11 +129,11 @@ emb_status_t emb_drv_counter_alarm_set(const emb_device_t *dev, uint8_t channel,
     if (!emb_device_ready(dev)) {
         return EMB_ESTATE;
     }
-    if (!has_channel(dev, channel)) {
+    if (!counter_has_channel(dev, channel)) {
         return EMB_EINVAL;
     }
     key = embk_irq_lock();
-    st = arm_locked(dev, channel, at, 0u, fn, arg);
+    st = counter_arm_locked(dev, channel, at, 0u, fn, arg);
     embk_irq_unlock(key);
     return st;
 }
@@ -148,27 +148,27 @@ emb_status_t emb_drv_counter_periodic(const emb_device_t *dev, uint8_t channel, 
     if (!emb_device_ready(dev)) {
         return EMB_ESTATE;
     }
-    if (!has_channel(dev, channel) || (period < 2u)) {
+    if (!counter_has_channel(dev, channel) || (period < 2u)) {
         return EMB_EINVAL;
     }
     key = embk_irq_lock();
-    st = arm_locked(dev, channel, counter_api(dev)->now(dev) + period, period, fn, arg);
+    st = counter_arm_locked(dev, channel, counter_api(dev)->now(dev) + period, period, fn, arg);
     embk_irq_unlock(key);
     return st;
 }
 
 /* Disarm a channel's alarm of one kind: one-shot (periodic false) or periodic. */
-static emb_status_t disarm(const emb_device_t *dev, uint8_t channel, bool periodic)
+static emb_status_t counter_disarm(const emb_device_t *dev, uint8_t channel, bool periodic)
 {
     emb_drv_counter_alarm_t *a;
     emb_irq_key_t key;
     emb_status_t st = EMB_ESTATE;
-    if (!has_channel(dev, channel)) {
+    if (!counter_has_channel(dev, channel)) {
         return EMB_EINVAL;
     }
     a = &counter_part(dev)->alarm[channel];
     key = embk_irq_lock();
-    if ((a->armed != 0u) && ((a->period != 0u) == periodic)) {
+    if ((a->armed != 0u) && (periodic ? (a->period != 0u) : (a->period == 0u))) {
         a->armed = 0u;
         counter_api(dev)->disarm(dev, channel);
         st = EMB_OK;
@@ -181,14 +181,14 @@ emb_status_t emb_drv_counter_alarm_cancel(const emb_device_t *dev, uint8_t chann
 {
     EMBK_API_REQUIRE(EMB_API_ID_DRV_COUNTER_ALARM_CANCEL, is_counter(dev), EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 1u);
-    return disarm(dev, channel, false);
+    return counter_disarm(dev, channel, false);
 }
 
 emb_status_t emb_drv_counter_periodic_stop(const emb_device_t *dev, uint8_t channel)
 {
     EMBK_API_REQUIRE(EMB_API_ID_DRV_COUNTER_PERIODIC_STOP, is_counter(dev), EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 1u);
-    return disarm(dev, channel, true);
+    return counter_disarm(dev, channel, true);
 }
 
 emb_status_t emb_drv_counter_started(const emb_device_t *dev, uint8_t channels)
@@ -223,7 +223,7 @@ emb_status_t emb_drv_counter_fired(const emb_device_t *dev, uint8_t channel)
     emb_irq_key_t key;
     EMBK_API_REQUIRE(EMB_API_ID_DRV_COUNTER_FIRED, is_counter(dev), EMB_FAULT_API_ARGUMENT,
                      EMB_EINVAL, 1u);
-    if (!has_channel(dev, channel)) {
+    if (!counter_has_channel(dev, channel)) {
         return EMB_EINVAL;
     }
     a = &counter_part(dev)->alarm[channel];

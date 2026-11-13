@@ -58,12 +58,15 @@ void emb_rp2350_pins_apply(const emb_rp2350_pin_t *pins, unsigned count)
         }
         REG(IO_GPIO_CTRL(p->gpio)) = p->funcsel;
         uint32_t pad = REG(PADS_GPIO(p->gpio)) & ~(PAD_ISO | PAD_OD | PAD_IE);
-        if (p->pull == EMB_RP2350_PULL_UP) {
+        switch (p->pull) {
+        case EMB_RP2350_PULL_UP:
             pad = (pad & ~PAD_PDE) | PAD_PUE;
-        } else if (p->pull == EMB_RP2350_PULL_NONE) {
+            break;
+        case EMB_RP2350_PULL_NONE:
             pad &= ~(PAD_PDE | PAD_PUE);
-        } else {
-            /* the pad's reset pull-down stays */
+            break;
+        default: /* the pad's reset pull-down stays */
+            break;
         }
         if (p->funcsel == FUNCSEL_NULL) {
             pad |= PAD_OD; /* an analog input: no digital output either, as the ADC chapter asks */

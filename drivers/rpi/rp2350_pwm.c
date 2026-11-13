@@ -42,14 +42,14 @@
 #define PWM_CC  0x0Cu /* A bits 15:0, B bits 31:16 */
 #define PWM_TOP 0x10u
 
-#define CSR_EN      (1u << 0)
-#define CSR_A_INV   (1u << 2)
-#define CSR_B_INV   (1u << 3)
-#define CSR_LEVEL   (1u << 4) /* DIVMODE 01: count while B is high */
-#define CSR_RISE    (2u << 4) /* DIVMODE 10: count B's rising edges */
-#define DIV16_MIN   16u       /* 1.0 */
-#define DIV16_MAX   4095u     /* 255 and 15/16 */
-#define COUNT_MAX   65536u    /* TOP's 16 bits */
+#define CSR_EN      ((uint32_t)1u << 0)
+#define CSR_A_INV   ((uint32_t)1u << 2)
+#define CSR_B_INV   ((uint32_t)1u << 3)
+#define CSR_LEVEL   ((uint32_t)1u << 4) /* DIVMODE 01: count while B is high */
+#define CSR_RISE    (2u << 4)           /* DIVMODE 10: count B's rising edges */
+#define DIV16_MIN   16u                 /* 1.0 */
+#define DIV16_MAX   4095u               /* 255 and 15/16 */
+#define COUNT_MAX   65536u              /* TOP's 16 bits */
 #define GATE_MIN_MS 4u
 #define GATE_MAX_MS 50u
 #define PROBE_US    500u /* the first, short count of edges, which sizes the divider */
@@ -99,11 +99,12 @@ static emb_status_t rp2350_pwm_set(const emb_device_t *dev, uint8_t channel, uin
     const emb_rp2350_pwm_config_t *cfg = pwm_config(dev);
     emb_rp2350_pwm_data_t *d = pwm_data(dev);
     uintptr_t base = cfg->base;
-    bool alone = (d->pwm.running & (uint8_t) ~(1u << channel)) == 0u;
+    bool alone = (d->pwm.running & (uint8_t) ~((uint32_t)1u << channel)) == 0u;
     uint32_t div16 = d->div16;
     uint64_t top;
     uint64_t compare;
     uint32_t inv = (channel == 0u) ? CSR_A_INV : CSR_B_INV;
+    uint32_t inverted = flags & EMB_DRV_PWM_INVERTED;
     uint32_t shift = 16u * (uint32_t)channel;
     if (alone) {
         uint64_t sixteenths = clocks_of(period_ns, cfg->clock_hz) * 16u;
@@ -130,7 +131,7 @@ static emb_status_t rp2350_pwm_set(const emb_device_t *dev, uint8_t channel, uin
     if (compare >= COUNT_MAX) {
         /* high throughout at the longest TOP: the compare cannot pass it, so invert a low */
         REG32(base + PWM_CC) &= ~(0xFFFFu << shift);
-        flags ^= EMB_DRV_PWM_INVERTED;
+        inverted ^= EMB_DRV_PWM_INVERTED;
     }
     if (alone) {
         d->div16 = div16;
@@ -139,8 +140,7 @@ static emb_status_t rp2350_pwm_set(const emb_device_t *dev, uint8_t channel, uin
         REG32(base + PWM_TOP) = (uint32_t)(top - 1u);
         REG32(base + PWM_CTR) = 0u;
     }
-    REG32(base + PWM_CSR) = (REG32(base + PWM_CSR) & ~inv) |
-                            (((flags & EMB_DRV_PWM_INVERTED) != 0u) ? inv : 0u) | CSR_EN;
+    REG32(base + PWM_CSR) = (REG32(base + PWM_CSR) & ~inv) | ((inverted != 0u) ? inv : 0u) | CSR_EN;
     if (got != NULL) {
         got->period_ns = ns_of((top * div16) / 16u, cfg->clock_hz);
         got->pulse_ns = ns_of((compare * div16) / 16u, cfg->clock_hz);
@@ -179,7 +179,7 @@ static bool next_change(uintptr_t base, uint32_t from, emb_cycle_t start, uint32
 }
 
 /* Spin for @cycles of the CPU's counter. */
-static void spin(uint32_t cycles)
+static void pwm_spin(uint32_t cycles)
 {
     emb_cycle_t start = emb_arch_cycles();
     while ((emb_cycle_t)(emb_arch_cycles() - start) < cycles) { /* bounded: cycles */
@@ -245,7 +245,7 @@ static emb_status_t rp2350_pwm_capture(const emb_device_t *dev, uint8_t channel,
     limit = (uint32_t)(((uint64_t)cps * gate_ms) / 1000u); /* an edge's longest wait */
     /* the edges in a short probe size the divider, so that the gate's count fits in 16 bits */
     count_from_zero(base, CSR_RISE, DIV16_MIN);
-    spin((uint32_t)(((uint64_t)cps * PROBE_US) / 1000000u));
+    pwm_spin((uint32_t)(((uint64_t)cps * PROBE_US) / 1000000u));
     edges = REG32(base + PWM_CTR);
     div16 = divider_for(edges * ((gate_ms * 1000u) / PROBE_US) * 2u); /* twice: a margin */
     /* the period: whole counts of edges between two of the counter's changes */
@@ -278,7 +278,7 @@ static emb_status_t rp2350_pwm_capture(const emb_device_t *dev, uint8_t channel,
     t0 = emb_arch_cycles();
     emb_irq_unlock(key);
     if (((gate * NS) / cps) > (3u * (uint64_t)CONFIG_EMB_TICK_NS)) { /* sleep all but the end */
-        (void)emb_thread_sleep(EMB_TICKS(((gate * NS) / cps) / CONFIG_EMB_TICK_NS - 2u));
+        (void)emb_thread_sleep(EMB_TICKS((((gate * NS) / cps) / CONFIG_EMB_TICK_NS) - 2u));
     }
     key = emb_irq_lock();
     while ((emb_cycle_t)(emb_arch_cycles() - t0) < gate) { /* bounded: the gate's end */

@@ -145,12 +145,12 @@ typedef struct emb_stm32_pwm_data {
     const emb_device_t *dev; /* for the interrupt handler */
     uint32_t prescale;
     uint64_t wraps;
-    uint64_t fall;
+    uint64_t fall_count;
     uint64_t period;
     uint64_t pulse;
-    uint8_t rises; /* rising edges seen: the first starts the cycle */
-    uint8_t fell;  /* a falling edge since the last rising one */
-    uint8_t input; /* the channel captured: 0 or 1 */
+    uint8_t rises;  /* rising edges seen: the first starts the cycle */
+    uint8_t fallen; /* a falling edge since the last rising one */
+    uint8_t input;  /* the channel captured: 0 or 1 */
     uint8_t reserved_[5];
 } emb_stm32_pwm_data_t;
 #endif

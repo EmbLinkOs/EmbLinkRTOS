@@ -42,21 +42,21 @@
 #define TIM_ARR   0x2Cu
 #define TIM_CCR1  0x34u /* CCR2 to CCR4 follow, 4 bytes apart */
 
-#define CR1_CEN  (1u << 0)
-#define CR1_URS  (1u << 2) /* only an overflow raises the update interrupt, not UG */
-#define UPDATE   (1u << 0) /* DIER.UIE, SR.UIF */
-#define EGR_UG   (1u << 0)
+#define CR1_CEN  ((uint32_t)1u << 0)
+#define CR1_URS  ((uint32_t)1u << 2) /* only an overflow raises the update interrupt, not UG */
+#define UPDATE   ((uint32_t)1u << 0) /* DIER.UIE, SR.UIF */
+#define EGR_UG   ((uint32_t)1u << 0)
 #define PSC_MAX  65536u /* the prescaler divides by 1 to 65536 */
 #define CHANNELS 4u     /* the most: TIM2 to TIM5's */
 
 /* A channel's bit in DIER (CCxIE) and in SR (CCxIF), the same: bits 1 to 4. */
-static uint32_t cc_bit(uint8_t channel)
+static uint32_t counter_cc_bit(uint8_t channel)
 {
-    return 1u << (1u + (uint32_t)channel);
+    return (uint32_t)1u << (1u + (uint32_t)channel);
 }
 
 /* MISRA Dev CS-12: rules 11.3 and 11.5, a device's configuration and RAM by its driver's type. */
-static const emb_stm32_tim_config_t *tim_config(const emb_device_t *dev)
+static const emb_stm32_tim_config_t *counter_tim_config(const emb_device_t *dev)
 {
     return (const emb_stm32_tim_config_t *)dev->config;
 }
@@ -67,7 +67,7 @@ static emb_stm32_counter_data_t *counter_data(const emb_device_t *dev)
 }
 
 /* The counts in one wrap of the hardware's counter. */
-static uint64_t span(const emb_stm32_tim_config_t *cfg)
+static uint64_t counter_span(const emb_stm32_tim_config_t *cfg)
 {
     return (uint64_t)1u << ((cfg->bits >= 32u) ? 32u : cfg->bits);
 }
@@ -80,72 +80,73 @@ static uint64_t now_locked(const emb_stm32_tim_config_t *cfg, const emb_stm32_co
     uint32_t count = REG32(cfg->base + TIM_CNT);
     if ((REG32(cfg->base + TIM_SR) & UPDATE) != 0u) {
         count = REG32(cfg->base + TIM_CNT);
-        high += span(cfg);
+        high += counter_span(cfg);
     }
     return high + count;
 }
 
 /* A pending channel's compare, programmed once its count is in the counter's current epoch,
  * interrupts locked. */
-static void program(const emb_stm32_tim_config_t *cfg, emb_stm32_counter_data_t *d, uint8_t channel)
+static void counter_program(const emb_stm32_tim_config_t *cfg, emb_stm32_counter_data_t *d,
+                            uint8_t channel)
 {
     uint64_t at = d->target[channel];
-    uint8_t bit = (uint8_t)(1u << channel);
-    if (((d->pending & bit) == 0u) || (at >= (d->high + span(cfg)))) {
+    uint8_t bit = (uint8_t)((uint32_t)1u << channel);
+    if (((d->pending & bit) == 0u) || (at >= (d->high + counter_span(cfg)))) {
         return; /* not pending, or in a later epoch */
     }
     REG32(cfg->base + TIM_CCR1 + (4u * (uint32_t)channel)) =
         (at > d->high) ? (uint32_t)(at - d->high) : 0u;
-    REG32(cfg->base + TIM_SR) = ~cc_bit(channel); /* rc_w0: the other flags stay */
-    REG32(cfg->base + TIM_DIER) |= cc_bit(channel);
+    REG32(cfg->base + TIM_SR) = ~counter_cc_bit(channel); /* rc_w0: the other flags stay */
+    REG32(cfg->base + TIM_DIER) |= counter_cc_bit(channel);
     d->pending &= (uint8_t)~bit;
 }
 
-static void disarm_locked(const emb_stm32_tim_config_t *cfg, emb_stm32_counter_data_t *d,
-                          uint8_t channel)
+static void counter_cc_disarm(const emb_stm32_tim_config_t *cfg, emb_stm32_counter_data_t *d,
+                              uint8_t channel)
 {
-    REG32(cfg->base + TIM_DIER) &= ~cc_bit(channel);
-    REG32(cfg->base + TIM_SR) = ~cc_bit(channel);
-    d->pending &= (uint8_t) ~(1u << channel);
+    REG32(cfg->base + TIM_DIER) &= ~counter_cc_bit(channel);
+    REG32(cfg->base + TIM_SR) = ~counter_cc_bit(channel);
+    d->pending &= (uint8_t) ~((uint32_t)1u << channel);
 }
 
-/* Whether a programmed channel's count is reached: its compare has matched, or the count is
+/* Whether a programmed channel's count is counter_reached: its compare has matched, or the count is
  * past it (the match came before it was programmed, in the update interrupt). */
-static bool reached(const emb_stm32_tim_config_t *cfg, const emb_stm32_counter_data_t *d,
-                    uint8_t channel)
+static bool counter_reached(const emb_stm32_tim_config_t *cfg, const emb_stm32_counter_data_t *d,
+                            uint8_t channel)
 {
-    return ((d->pending & (1u << channel)) == 0u) &&
-           ((REG32(cfg->base + TIM_DIER) & cc_bit(channel)) != 0u) &&
+    return ((d->pending & ((uint32_t)1u << channel)) == 0u) &&
+           ((REG32(cfg->base + TIM_DIER) & counter_cc_bit(channel)) != 0u) &&
            (now_locked(cfg, d) >= d->target[channel]);
 }
 
 static void stm32_counter_isr(void *arg)
 {
     emb_stm32_counter_data_t *d = (emb_stm32_counter_data_t *)arg;
-    const emb_stm32_tim_config_t *cfg = tim_config(d->dev);
+    const emb_stm32_tim_config_t *cfg = counter_tim_config(d->dev);
     uint32_t due = 0u;
     uint8_t ch;
     emb_irq_key_t key = emb_irq_lock(); /* an alarm armed from a higher interrupt waits */
     uint32_t flags = REG32(cfg->base + TIM_SR) & REG32(cfg->base + TIM_DIER);
     if ((flags & UPDATE) != 0u) {
         REG32(cfg->base + TIM_SR) = ~UPDATE;
-        d->high += span(cfg);
+        d->high += counter_span(cfg);
         for (ch = 0u; ch < d->counter.channels; ch++) { /* bounded by CHANNELS */
-            program(cfg, d, ch);                        /* those whose epoch begins */
+            counter_program(cfg, d, ch);                /* those whose epoch begins */
         }
     }
     for (ch = 0u; ch < d->counter.channels; ch++) { /* bounded by CHANNELS */
-        if ((flags & cc_bit(ch)) != 0u) {
-            REG32(cfg->base + TIM_SR) = ~cc_bit(ch);
+        if ((flags & counter_cc_bit(ch)) != 0u) {
+            REG32(cfg->base + TIM_SR) = ~counter_cc_bit(ch);
         }
-        if (reached(cfg, d, ch)) {
-            REG32(cfg->base + TIM_DIER) &= ~cc_bit(ch);
-            due |= 1u << ch;
+        if (counter_reached(cfg, d, ch)) {
+            REG32(cfg->base + TIM_DIER) &= ~counter_cc_bit(ch);
+            due |= counter_cc_bit(ch);
         }
     }
     emb_irq_unlock(key);
     for (ch = 0u; ch < CHANNELS; ch++) { /* bounded */
-        if ((due & (1u << ch)) != 0u) {
+        if ((due & counter_cc_bit(ch)) != 0u) {
             (void)emb_drv_counter_fired(d->dev, ch);
         }
     }
@@ -153,7 +154,7 @@ static void stm32_counter_isr(void *arg)
 
 static emb_status_t stm32_counter_init(const emb_device_t *dev)
 {
-    const emb_stm32_tim_config_t *cfg = tim_config(dev);
+    const emb_stm32_tim_config_t *cfg = counter_tim_config(dev);
     emb_stm32_counter_data_t *d = counter_data(dev);
     uintptr_t base = cfg->base;
     if ((cfg->rate_hz == 0u) || ((cfg->clock_hz % cfg->rate_hz) != 0u) ||
@@ -172,7 +173,7 @@ static emb_status_t stm32_counter_init(const emb_device_t *dev)
     }
     REG32(base + TIM_CCER) = 0u;
     REG32(base + TIM_PSC) = (cfg->clock_hz / cfg->rate_hz) - 1u;
-    REG32(base + TIM_ARR) = (uint32_t)(span(cfg) - 1u);
+    REG32(base + TIM_ARR) = (uint32_t)(counter_span(cfg) - 1u);
     REG32(base + TIM_CNT) = 0u;
     REG32(base + TIM_EGR) = EGR_UG; /* the prescaler loaded now */
     REG32(base + TIM_SR) = 0u;
@@ -188,31 +189,31 @@ static emb_status_t stm32_counter_init(const emb_device_t *dev)
 static uint64_t stm32_counter_now(const emb_device_t *dev)
 {
     emb_irq_key_t key = emb_irq_lock();
-    uint64_t count = now_locked(tim_config(dev), counter_data(dev));
+    uint64_t count = now_locked(counter_tim_config(dev), counter_data(dev));
     emb_irq_unlock(key);
     return count;
 }
 
 static uint32_t stm32_counter_rate(const emb_device_t *dev)
 {
-    return tim_config(dev)->rate_hz;
+    return counter_tim_config(dev)->rate_hz;
 }
 
 /* Interrupts are locked by the class. Armed, then checked: a count that passed before its
  * compare was programmed is refused; one whose compare matched meanwhile fires. */
 static emb_status_t stm32_counter_arm(const emb_device_t *dev, uint8_t channel, uint64_t at)
 {
-    const emb_stm32_tim_config_t *cfg = tim_config(dev);
+    const emb_stm32_tim_config_t *cfg = counter_tim_config(dev);
     emb_stm32_counter_data_t *d = counter_data(dev);
     d->target[channel] = at;
-    d->pending |= (uint8_t)(1u << channel);
-    program(cfg, d, channel);
+    d->pending |= (uint8_t)((uint32_t)1u << channel);
+    counter_program(cfg, d, channel);
     if (now_locked(cfg, d) >= at) {
-        if (((d->pending & (1u << channel)) == 0u) &&
-            ((REG32(cfg->base + TIM_SR) & cc_bit(channel)) != 0u)) {
+        if (((d->pending & ((uint32_t)1u << channel)) == 0u) &&
+            ((REG32(cfg->base + TIM_SR) & counter_cc_bit(channel)) != 0u)) {
             return EMB_OK; /* matched as it was armed: the interrupt fires it */
         }
-        disarm_locked(cfg, d, channel);
+        counter_cc_disarm(cfg, d, channel);
         return EMB_EPAST;
     }
     return EMB_OK;
@@ -220,7 +221,7 @@ static emb_status_t stm32_counter_arm(const emb_device_t *dev, uint8_t channel, 
 
 static void stm32_counter_disarm(const emb_device_t *dev, uint8_t channel)
 {
-    disarm_locked(tim_config(dev), counter_data(dev), channel);
+    counter_cc_disarm(counter_tim_config(dev), counter_data(dev), channel);
 }
 
 const emb_drv_counter_api_t emb_stm32_counter_api = {

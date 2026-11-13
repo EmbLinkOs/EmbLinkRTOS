@@ -41,7 +41,7 @@ static emb_drv_pwm_data_t *pwm_part(const emb_device_t *dev)
 
 static uint8_t bit_of(uint8_t channel)
 {
-    return (uint8_t)(1u << channel);
+    return (uint8_t)((uint32_t)1u << channel);
 }
 
 emb_status_t emb_drv_pwm_set(const emb_device_t *dev, uint8_t channel, uint32_t period_ns,
