@@ -465,17 +465,28 @@ class Resolver:
         return devs, [d for m in table.models for d in m.docs]
 
     def _loopbacks(self, board, devs):
-        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside, or an
-        I2C device wired to a peer by two nets, SCL to SCL and SDA to SDA."""
+        """simulation.loopbacks: a UART or SPI device wired by two ports or looped inside; an I2C
+        device wired to a peer by two nets, SCL to SCL and SDA to SDA; a PWM output wired to a
+        peer's capture input, their channels and the two ports (A129); an ADC's input wired high
+        and one low, their numbers and each one's net to a rail (A129)."""
         classes = {d["name"]: d["class"] for d in devs}
         for i, loop in enumerate(board.data.get("simulation", {}).get("loopbacks", [])):
             at = f"simulation.loopbacks[{i}]"
             cls = classes.get(loop["device"])
-            if cls == "i2c":
+            if cls == "pwm":
+                if (classes.get(loop.get("peer")) != "pwm" or "ports" not in loop or "channels" not in loop
+                        or "nets" in loop or "internal" in loop):
+                    self.err(board, at, "a PWM loopback names its peer, the capture's PWM device, the two channels "
+                                        "and the two ports wired")
+            elif cls == "adc":
+                if "channels" not in loop or "nets" not in loop or "peer" in loop or "ports" in loop or "internal" in loop:
+                    self.err(board, at, "an ADC loopback names its inputs, high then low, and two nets: each one's "
+                                        "port to a rail")
+            elif cls == "i2c":
                 if classes.get(loop.get("peer")) != "i2c" or "nets" not in loop or "ports" in loop or "internal" in loop:
                     self.err(board, at, "an I2C loopback names its peer, another I2C device, and two nets")
             elif cls not in ("uart", "spi"):
-                self.err(board, at, f"{loop['device']} is not a UART, SPI or I2C device of the board")
+                self.err(board, at, f"{loop['device']} is not a UART, SPI, I2C, PWM or ADC device of the board")
             elif ("ports" in loop) == ("internal" in loop) or "peer" in loop or "nets" in loop:
                 self.err(board, at, "a loopback names two ports or internal: true, one of them")
 

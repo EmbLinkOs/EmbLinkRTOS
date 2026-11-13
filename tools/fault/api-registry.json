@@ -1626,6 +1626,54 @@
       "name": "emb_drv_pwm_started",
       "header": "drv_pwm.h",
       "state": "active"
+    },
+    {
+      "id": 275,
+      "name": "emb_drv_adc_read",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 276,
+      "name": "emb_drv_adc_read_polled",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 277,
+      "name": "emb_drv_adc_to_mv",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 278,
+      "name": "emb_drv_adc_temperature",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 279,
+      "name": "emb_drv_adc_sample_start",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 280,
+      "name": "emb_drv_adc_sample_stop",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 281,
+      "name": "emb_drv_adc_started",
+      "header": "drv_adc.h",
+      "state": "active"
+    },
+    {
+      "id": 282,
+      "name": "emb_drv_adc_sampled",
+      "header": "drv_adc.h",
+      "state": "active"
     }
   ]
 }

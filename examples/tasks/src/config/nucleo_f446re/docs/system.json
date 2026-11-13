@@ -25,11 +25,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704"
+      "sha256": "551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "examples/tasks/system.yaml",
@@ -41,7 +41,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9"
+      "sha256": "f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",

@@ -27,6 +27,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_adc.h>
 #include <emb/drv_counter.h>
 #include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
@@ -36,9 +37,7 @@
 #include <emb/drv_wdt.h>
 #include <emb/sem.h>
 #endif
-#if CONFIG_EMB_DRV_DMA
-#include <emb/drv_dma.h>
-#endif
+#include <emb/drv_dma.h> /* a device's DMA channel is in its configuration, DMA or not */
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,6 +66,26 @@ typedef struct emb_rp2350_timer_config {
     uint32_t irq2;
     uint32_t irq3;
 } emb_rp2350_timer_config_t;
+
+/* The ADC (datasheet §12.4): its registers, clk_adc, the board's reference, its inputs and the
+ * temperature sensor's; its samples by DMA where the board gives a channel (dma: [rx]). */
+typedef struct emb_rp2350_adc_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* clk_adc, PLL_USB's 48 MHz */
+    uint32_t vref_mv;
+    uint32_t bits;
+    uint32_t inputs;
+    uint32_t temperature;
+    emb_drv_dma_chan_t dma_rx;
+} emb_rp2350_adc_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ADC
+/* Its RAM: the class's, first. */
+typedef struct emb_rp2350_adc_data {
+    emb_drv_adc_data_t adc;
+    const emb_device_t *dev;
+} emb_rp2350_adc_data_t;
+#endif
 
 /* A PWM slice (datasheet §12.5): its five registers, its number, and clk_sys, which it counts. */
 typedef struct emb_rp2350_pwm_config {
@@ -175,6 +194,8 @@ typedef struct emb_rp2350_dma_channel {
     uint8_t width;
     uint8_t side; /* which side advances: 0 none, 1 the read, 2 the write */
     uint8_t running;
+    uint8_t circular; /* the job repeats: its halves reported (A129) */
+    uint8_t half;     /* a circular job's half under way: 0 the first, 1 the second */
 } emb_rp2350_dma_channel_t;
 
 /* The DMA controller's RAM. */
@@ -192,6 +213,12 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 /* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
  * reaching all but the oscillators, and the reset's cause from its REASON register. */
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
+#endif
+
+#if CONFIG_EMB_DRV_ADC
+/* The ADC class's operations (SPEC-017 §11c): one conversion; the temperature sensor from the
+ * datasheet's slope; a round robin of ascending inputs paced by its own divider, drained by DMA. */
+extern const emb_drv_adc_api_t emb_rp2350_adc_api;
 #endif
 
 #if CONFIG_EMB_DRV_PWM

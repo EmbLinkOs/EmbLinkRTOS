@@ -25,11 +25,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638"
+      "sha256": "345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "examples/tasks/system.yaml",

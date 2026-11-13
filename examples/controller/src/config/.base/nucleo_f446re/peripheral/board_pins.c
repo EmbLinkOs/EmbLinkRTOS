@@ -18,9 +18,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
+ *     551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
  *   drivers/bindings.yaml
- *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   examples/controller/controller.conf
  *     f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1
  *   examples/controller/system.yaml
@@ -28,7 +28,7 @@
  *   soc/st/stm32f4/stm32f4.yaml
  *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
+ *     f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -44,10 +44,14 @@ const emb_stm32_pin_t emb_board_pins[] = {
     {EMB_STM32_PORT(A), 2u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
     /* PA3: pins.usart2.rx (usart2_rx) */
     {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
+    /* PA4: pins.adc1.in4 (adc1_in4) */
+    {EMB_STM32_PORT(A), 4u, EMB_STM32_PIN_ANALOG, 0u, 0u, 0u},
     /* PA5: leds.user (output) */
     {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
     /* PA6: pins.tim3.ch1 (tim3_ch1) */
     {EMB_STM32_PORT(A), 6u, EMB_STM32_PIN_AF, 2u, 0u, 0u},
+    /* PB0: pins.adc1.in8 (adc1_in8) */
+    {EMB_STM32_PORT(B), 0u, EMB_STM32_PIN_ANALOG, 0u, 0u, 0u},
     /* PB3: pins.i2c2.sda (i2c2_sda) */
     {EMB_STM32_PORT(B), 3u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
     /* PB6: pins.tim4.ch1 (tim4_ch1) */

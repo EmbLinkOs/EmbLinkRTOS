@@ -116,6 +116,30 @@ if(CONFIG_EMB_DEVICE)
       endif()
     endif()
   endif()
+  if(CONFIG_EMB_DRV_ADC)
+    emb_add_test(test_adc test_adc.c) # SPEC-017 §11c
+    # an ADC with one input wired to the 3.3 V rail and one to ground: on the bench
+    # (EMB_TEST_ADC_LOOP=<device>:<high>,<low>: adc1:4,8 on the NUCLEO-F446RE, adc:0,1 on the Pico
+    # 2 W), or the board's EmbSIM nets to its rails
+    set(EMB_TEST_ADC_LOOP "" CACHE STRING "An ADC's input wired high and one low, for test_adc_board")
+    set(_emb_adc_loop "${EMB_TEST_ADC_LOOP}")
+    if(NOT _emb_adc_loop AND EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_ADC_LOOP)
+      list(GET EMB_BOARD_EMBSIM_ADC_LOOP 0 _emb_adc_loop)
+      list(GET EMB_BOARD_EMBSIM_ADC_LOOP 1 _emb_adc_net0)
+      list(GET EMB_BOARD_EMBSIM_ADC_LOOP 2 _emb_adc_net1)
+      set(EMB_EMBSIM_ARGS_test_adc_board --net "${_emb_adc_net0}" --net "${_emb_adc_net1}" --until 3s)
+    endif()
+    if(_emb_adc_loop)
+      string(REGEX MATCH "^([a-z0-9_]+):([0-9]+),([0-9]+)$" _emb_adc_ok "${_emb_adc_loop}")
+      if(NOT _emb_adc_ok)
+        message(FATAL_ERROR "EMB_TEST_ADC_LOOP='${_emb_adc_loop}': <device>:<high>,<low>, such as adc1:4,8")
+      endif()
+      emb_add_test(test_adc_board test_adc_board.c)
+      target_compile_definitions(test_adc_board PRIVATE "EMB_TEST_ADC=(&emb_dev_${CMAKE_MATCH_1})"
+                                                        "EMB_TEST_ADC_HIGH=${CMAKE_MATCH_2}u"
+                                                        "EMB_TEST_ADC_LOW=${CMAKE_MATCH_3}u")
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_COUNTER)
     emb_add_test(test_counter test_counter.c) # SPEC-017 §11a
     # the board's own counters: every one it has

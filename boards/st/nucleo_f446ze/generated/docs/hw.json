@@ -363,7 +363,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -371,7 +371,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9"
+      "sha256": "f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2"
     },
     {
       "path": "soc/st/stm32f4/stm32f446ze.yaml",
@@ -997,6 +997,7 @@
         "size": 1024
       },
       {
+        "adc_trigger": 6,
         "base": 1073741824,
         "clock": {
           "bit": 0,
@@ -1014,6 +1015,7 @@
         "size": 1024
       },
       {
+        "adc_trigger": 8,
         "base": 1073742848,
         "clock": {
           "bit": 1,

@@ -19,6 +19,7 @@
  * @author  teo1747
  * @date    2026-11-13 (created)
  */
+#include <emb_board.h>
 #include <emb_test.h>
 #include <soc_devices.h>
 
@@ -39,6 +40,44 @@ static bool near(uint32_t a, uint32_t b, uint32_t tol)
     return ((a > b) ? (a - b) : (b - a)) <= tol;
 }
 
+/* A number on the console, for the record of what each wave measured. */
+static void put_u32(uint32_t v)
+{
+    char text[11];
+    unsigned n = 0u;
+    char out[12];
+    unsigned i;
+    do { /* bounded: ten digits */
+        text[n] = (char)('0' + (char)(v % 10u));
+        n++;
+        v /= 10u;
+    } while ((v != 0u) && (n < sizeof(text)));
+    for (i = 0u; i < n; i++) { /* bounded */
+        out[i] = text[n - 1u - i];
+    }
+    out[n] = '\0';
+    emb_board_puts(out);
+}
+
+/* "PWM <period> <pulse>: made <period> <pulse>, captured <period> <pulse>", in ns */
+static void note(uint32_t period_ns, uint32_t pulse_ns, const emb_drv_pwm_wave_t *got,
+                 const emb_drv_pwm_wave_t *wave)
+{
+    emb_board_puts("PWM ");
+    put_u32(period_ns);
+    emb_board_puts(" ");
+    put_u32(pulse_ns);
+    emb_board_puts(": made ");
+    put_u32(got->period_ns);
+    emb_board_puts(" ");
+    put_u32(got->pulse_ns);
+    emb_board_puts(", captured ");
+    put_u32(wave->period_ns);
+    emb_board_puts(" ");
+    put_u32(wave->pulse_ns);
+    emb_board_puts("\n");
+}
+
 static void loop_once(uint32_t period_ns, uint32_t pulse_ns, uint32_t flags)
 {
     emb_drv_pwm_wave_t got = {0u, 0u};
@@ -48,6 +87,7 @@ static void loop_once(uint32_t period_ns, uint32_t pulse_ns, uint32_t flags)
     EMB_ASSERT_TRUE(near(got.period_ns, period_ns, tolerance(period_ns))); /* its nearest */
     (void)emb_thread_sleep(EMB_MS(2u));                                    /* a few periods out */
     EMB_ASSERT_OK(emb_drv_pwm_capture(IN, IN_CH, &wave, WAIT));
+    note(period_ns, pulse_ns, &got, &wave);
     high = ((flags & EMB_DRV_PWM_INVERTED) != 0u) ? (got.period_ns - got.pulse_ns) : got.pulse_ns;
     EMB_ASSERT_TRUE(near(wave.period_ns, got.period_ns, tolerance(got.period_ns)));
     EMB_ASSERT_TRUE(near(wave.pulse_ns, high, tolerance(got.period_ns)));
@@ -58,10 +98,15 @@ EMB_TEST(pwm_loop_waves_captured_back)
 {
     EMB_TEST_REQ("DRV-001");
     EMB_ASSERT_TRUE(emb_device_ready(OUT) && emb_device_ready(IN));
-    loop_once(1000000u, 250000u, 0u);   /* 1 kHz, a quarter */
-    loop_once(100000u, 50000u, 0u);     /* 10 kHz, a half */
+    loop_once(1000000u, 250000u, 0u); /* 1 kHz, a quarter */
+    loop_once(100000u, 50000u, 0u);   /* 10 kHz, a half */
+}
+
+EMB_TEST(pwm_loop_fast_and_slow)
+{
+    EMB_TEST_REQ("DRV-001");
     loop_once(20000u, 15000u, 0u);      /* 50 kHz, three quarters */
-    loop_once(10000000u, 1000000u, 0u); /* 100 Hz, a tenth */
+    loop_once(10000000u, 1000000u, 0u); /* 100 Hz, a tenth: 13 wraps of a 16-bit counter */
 }
 
 EMB_TEST(pwm_loop_inverted)

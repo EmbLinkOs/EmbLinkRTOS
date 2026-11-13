@@ -37,10 +37,12 @@
 
 #define CR_EN        (1u << 0)
 #define CR_DMEIE     (1u << 1)
+#define CR_HTIE      ((uint32_t)1u << 3)
 #define CR_TEIE      (1u << 2)
 #define CR_TCIE      (1u << 4)
 #define CR_DIR_M2P   (1u << 6)
 #define CR_DIR_M2M   (2u << 6)
+#define CR_CIRC      ((uint32_t)1u << 8)
 #define CR_PINC      (1u << 9)
 #define CR_MINC      (1u << 10)
 #define CR_PSIZE     11u
@@ -113,8 +115,21 @@ static void stm32_dma_isr(void *arg)
     emb_status_t status;
     uint32_t moved;
     stm32_dma_clear(base, st->index);
-    if ((st->running == 0u) || ((flags & (FLAG_TC | FLAG_TE | FLAG_DME)) == 0u)) {
+    if ((st->running == 0u) || ((flags & (FLAG_TC | FLAG_HT | FLAG_TE | FLAG_DME)) == 0u)) {
         return; /* a flag of a job already stopped, or a FIFO note in direct mode */
+    }
+    if ((st->circular == 0u) && ((flags & (FLAG_TC | FLAG_TE | FLAG_DME)) == 0u)) {
+        return; /* a half, which only a circular job reports */
+    }
+    if ((st->circular != 0u) && ((flags & (FLAG_TE | FLAG_DME)) == 0u)) {
+        /* a circular job goes on: each half's end, in order, the first before the second */
+        if ((flags & FLAG_HT) != 0u) {
+            st->done(st->arg, EMB_OK, st->count / 2u);
+        }
+        if ((flags & FLAG_TC) != 0u) {
+            st->done(st->arg, EMB_OK, st->count);
+        }
+        return;
     }
     status = ((flags & (FLAG_TE | FLAG_DME)) != 0u) ? EMB_EXFER : EMB_OK;
     moved = st->count - REG32(stream + SXNDTR);
@@ -192,8 +207,12 @@ static emb_status_t stm32_dma_start(const emb_device_t *dev, const emb_drv_dma_c
         REG32(stream + SXM0AR) = (uint32_t)(to_periph ? job->src : job->dst);
         REG32(stream + SXFCR) = 0u; /* direct mode */
     }
+    if ((job->flags & EMB_DRV_DMA_CIRCULAR) != 0u) {
+        cr |= CR_CIRC | CR_HTIE; /* NDTR reloads at the end, and each half interrupts */
+    }
     REG32(stream + SXNDTR) = job->count;
     stm32_dma_clear(cfg->base, ch->channel);
+    st->circular = ((job->flags & EMB_DRV_DMA_CIRCULAR) != 0u) ? 1u : 0u;
     st->done = done;
     st->arg = arg;
     st->count = job->count;
@@ -231,7 +250,7 @@ static emb_status_t stm32_dma_stop(const emb_device_t *dev, const emb_drv_dma_ch
 }
 
 const emb_drv_dma_api_t emb_stm32_dma_api = {
-    {stm32_dma_init, NULL, NULL, NULL, NULL, EMB_DRV_DMA_CAP_MEM_TO_MEM},
+    {stm32_dma_init, NULL, NULL, NULL, NULL, EMB_DRV_DMA_CAP_MEM_TO_MEM | EMB_DRV_DMA_CAP_CIRCULAR},
     stm32_dma_start,
     stm32_dma_stop,
 };

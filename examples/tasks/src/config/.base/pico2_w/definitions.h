@@ -26,9 +26,9 @@
       arch/cortex_m/arch.yaml
         c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
       boards/rpi/pico2_w/board.yaml
-        f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638
+        345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
       drivers/bindings.yaml
-        8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+        c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
       examples/tasks/system.yaml
         202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
       soc/rpi/rp2350/rp2350.yaml

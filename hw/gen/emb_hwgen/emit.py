@@ -498,8 +498,17 @@ def board_cmake(r):
         if d.get("cs"):  # its chip selects, EMB_SOC_<DEVICE>_CS<n> in soc_devices.h
             out += f"set(EMB_BOARD_{d['name'].upper()}_CS_COUNT {len(d['cs'])})\n"
     for loop in r["board"].get("simulation", {}).get("loopbacks", []):
-        cls = classes[loop["device"]].upper()  # checked by the resolver: a UART, SPI or I2C device
-        if "nets" in loop:
+        cls = classes[loop["device"]].upper()  # checked by the resolver: its class's shape
+        if cls == "PWM":
+            # an output wired to a capture input: their channels, and the two ports (A129)
+            ch = loop["channels"]
+            out += (f"set(EMB_BOARD_EMBSIM_PWM_LOOP \"{loop['device']}:{ch[0]},{loop['peer']}:{ch[1]}\" "
+                    f"\"{','.join(loop['ports'])}\")\n")
+        elif cls == "ADC":
+            # an input wired high and one low: their numbers, and each one's net to a rail (A129)
+            nets = " ".join(f'"{a},{b}"' for a, b in loop["nets"])
+            out += f"set(EMB_BOARD_EMBSIM_ADC_LOOP \"{loop['device']}:{loop['channels'][0]},{loop['channels'][1]}\" {nets})\n"
+        elif "nets" in loop:
             # two I2C controllers joined line to line, for the class's loop test
             nets = " ".join(f'"{a},{b}"' for a, b in loop["nets"])
             out += f"set(EMB_BOARD_EMBSIM_{cls}_LOOP {loop['device']} {loop['peer']} {nets})\n"

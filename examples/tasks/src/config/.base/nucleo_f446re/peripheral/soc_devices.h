@@ -15,15 +15,15 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
+ *     551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
  *   drivers/bindings.yaml
- *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/st/stm32f4/stm32f4.yaml
  *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
+ *     f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -32,7 +32,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 17u
+#define EMB_SOC_DEVICE_COUNT 19u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -44,6 +44,7 @@ extern const emb_device_t emb_dev_iwdg;
 extern const emb_device_t emb_dev_rtc;
 extern const emb_device_t emb_dev_flash;
 extern const emb_device_t emb_dev_dma1;
+extern const emb_device_t emb_dev_dma2;
 extern const emb_device_t emb_dev_gpiob;
 extern const emb_device_t emb_dev_gpioc;
 extern const emb_device_t emb_dev_usart2;
@@ -55,6 +56,7 @@ extern const emb_device_t emb_dev_tim5;
 extern const emb_device_t emb_dev_tim9;
 extern const emb_device_t emb_dev_tim3;
 extern const emb_device_t emb_dev_tim4;
+extern const emb_device_t emb_dev_adc1;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
@@ -63,6 +65,7 @@ extern const emb_device_t emb_dev_tim4;
 #define EMB_SOC_HAS_RTC    1
 #define EMB_SOC_HAS_FLASH  1
 #define EMB_SOC_HAS_DMA1   1
+#define EMB_SOC_HAS_DMA2   1
 #define EMB_SOC_HAS_GPIOB  1
 #define EMB_SOC_HAS_GPIOC  1
 #define EMB_SOC_HAS_USART2 1
@@ -74,6 +77,7 @@ extern const emb_device_t emb_dev_tim4;
 #define EMB_SOC_HAS_TIM9   1
 #define EMB_SOC_HAS_TIM3   1
 #define EMB_SOC_HAS_TIM4   1
+#define EMB_SOC_HAS_ADC1   1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_iwdg)
@@ -108,6 +112,7 @@ extern const emb_device_t emb_dev_tim4;
 #define EMB_SOC_USART2_DMA_TX {&emb_dev_dma1, 6u, 4u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}
 #define EMB_SOC_SPI2_DMA_TX {&emb_dev_dma1, 4u, 0u, {0u, 0u}}
+#define EMB_SOC_ADC1_DMA_RX {&emb_dev_dma2, 0u, 0u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

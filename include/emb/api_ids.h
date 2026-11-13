@@ -275,5 +275,13 @@
 #define EMB_API_ID_DRV_PWM_CAPTURE               0x0110u
 #define EMB_API_ID_DRV_PWM_CHANNELS              0x0111u
 #define EMB_API_ID_DRV_PWM_STARTED               0x0112u
+#define EMB_API_ID_DRV_ADC_READ                  0x0113u
+#define EMB_API_ID_DRV_ADC_READ_POLLED           0x0114u
+#define EMB_API_ID_DRV_ADC_TO_MV                 0x0115u
+#define EMB_API_ID_DRV_ADC_TEMPERATURE           0x0116u
+#define EMB_API_ID_DRV_ADC_SAMPLE_START          0x0117u
+#define EMB_API_ID_DRV_ADC_SAMPLE_STOP           0x0118u
+#define EMB_API_ID_DRV_ADC_STARTED               0x0119u
+#define EMB_API_ID_DRV_ADC_SAMPLED               0x011Au
 
 #endif /* EMB_API_IDS_H */

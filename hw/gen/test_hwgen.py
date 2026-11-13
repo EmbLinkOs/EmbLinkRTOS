@@ -480,6 +480,10 @@ class Bank(unittest.TestCase):
         self.assertIn("    .clock_hz = 180000000u,      /* peripheral.timer_clock_hz */", c)  # TIM9 on APB2
         self.assertIn("    .channels = 2u,              /* peripheral.timer_channels */", c)
         self.assertIn("    .channels = 4u,              /* peripheral.timer_channels, its default */", c)  # TIM5
+        cmake = nucleo["build/board.cmake"]  # the PWM loop and the ADC's rails under EmbSIM (A129)
+        self.assertIn('set(EMB_BOARD_EMBSIM_PWM_LOOP "tim3:0,tim4:0" "D12,D10")', cmake)
+        self.assertIn('set(EMB_BOARD_EMBSIM_ADC_LOOP "adc1:4,8" "A2,3V3" "A3,GND")', cmake)
+        self.assertIn("    .trigger_select = 6u,                        /* takes.trigger.adc_trigger */", c)
 
     def test_line_beyond_the_bank(self):
         f = f"{PICO}/board.yaml"
@@ -517,8 +521,7 @@ class Bank(unittest.TestCase):
     def test_analog_pin(self):
         """A129: an ADC's input is claimed by its signal alone (GPIO26, adc_in0), the pad's input
         and digital function off, no pull."""
-        f = f"{PICO}/board.yaml"
-        self.root.edit(f, "pins:\n", "pins:\n  adc: { in0: GPIO26 }\n")
+        f = f"{PICO}/board.yaml"  # the board's own: adc: { in0: GPIO26, in1: GPIO27 }
         files, _ = generate.generate(self.root.dir / PICO, self.root.dir)
         self.assertIn("{26u, 31u, 0u, EMB_RP2350_PULL_NONE, EMB_RP2350_OUT_NONE},", files["src/board_pins.c"])
         self.root.edit(f, "in0: GPIO26", "in0: GPIO26.f4")
@@ -838,7 +841,18 @@ class Devices(unittest.TestCase):
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, ports: [A0, A1] }", "{ device: console, internal: true }")
         self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["build/board.cmake"])
         self.root.edit(f"{BOARD}/board.yaml", "{ device: console, internal: true }", "{ device: rcc, internal: true }")
-        self.expect(r"rcc is not a UART, SPI or I2C device", needle="device: rcc", path="simulation.loopbacks[0]")
+        self.expect(r"rcc is not a UART, SPI, I2C, PWM or ADC device", needle="device: rcc", path="simulation.loopbacks[0]")
+
+    def test_pwm_and_adc_loopbacks_checked(self):
+        """A129: a PWM loop names its peer, its channels and its ports; an ADC's, its inputs and
+        their nets to the rails."""
+        Path(self.root.dir / "drivers" / "bindings.yaml").write_text(
+            (ROOT / "drivers" / "bindings.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+        f = f"{BOARD}/board.yaml"
+        self.root.edit(f, "{ name: rcc }", "{ name: rcc }\n  - { name: tim3, class: pwm }\n  - { name: tim4, class: pwm }")
+        self.root.edit(f, "simulation:\n", "simulation:\n  loopbacks: [ { device: tim3, peer: tim4, ports: [D12, D10] } ]\n")
+        self.expect(r"a PWM loopback names its peer, the capture's PWM device, the two channels and the two ports",
+                    needle="device: tim3, peer", path="simulation.loopbacks[0]")
 
     def test_loopback_names_one_way(self):
         self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console } ]\n")

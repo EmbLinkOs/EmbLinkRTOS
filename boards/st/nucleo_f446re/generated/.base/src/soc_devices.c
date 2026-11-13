@@ -16,13 +16,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
+ *     551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
  *   drivers/bindings.yaml
- *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/st/stm32f4/stm32f4.yaml
  *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
+ *     f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -161,6 +161,36 @@ const emb_device_t emb_dev_dma1 = {
     .state = &dma1_state,
     .data = &dma1_data,
     .deps = dma1_deps,
+    .class_id = EMB_DRV_CLASS_DMA,
+    .level = EMB_DEVICE_EARLY,
+    .dep_count = 1u,
+};
+
+/* dma2: st,stm32-dma, dma, EARLY */
+static const emb_stm32_dma_config_t dma2_config = {
+    .base = 0x40026400u,         /* peripheral.base */
+    .clken_offset = 0x00000030u, /* peripheral.clock.enable_offset */
+    .clken_bit = 22u,            /* peripheral.clock.bit */
+    .irq0 = 56u,                 /* peripheral.irqs.s0 */
+    .irq1 = 57u,                 /* peripheral.irqs.s1 */
+    .irq2 = 58u,                 /* peripheral.irqs.s2 */
+    .irq3 = 59u,                 /* peripheral.irqs.s3 */
+    .irq4 = 60u,                 /* peripheral.irqs.s4 */
+    .irq5 = 68u,                 /* peripheral.irqs.s5 */
+    .irq6 = 69u,                 /* peripheral.irqs.s6 */
+    .irq7 = 70u,                 /* peripheral.irqs.s7 */
+    .memory = true,              /* peripheral.dma.memory */
+};
+static emb_device_state_t dma2_state;
+static emb_stm32_dma_data_t dma2_data;
+static const emb_device_t *const dma2_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_dma2 = {
+    .name = "dma2",
+    .api = &emb_stm32_dma_api.dev,
+    .config = &dma2_config,
+    .state = &dma2_state,
+    .data = &dma2_data,
+    .deps = dma2_deps,
     .class_id = EMB_DRV_CLASS_DMA,
     .level = EMB_DEVICE_EARLY,
     .dep_count = 1u,
@@ -441,6 +471,42 @@ const emb_device_t emb_dev_tim4 = {
     .dep_count = 1u,
 };
 
+/* adc1: st,stm32f4-adc, adc, KERNEL */
+static const emb_stm32_adc_config_t adc1_config = {
+    .base = 0x40012000u,                         /* peripheral.base */
+    .common = 0x40012300u,                       /* takes.common.base */
+    .calibration = 0x1FFF7A2Au,                  /* takes.cal.base */
+    .trigger = 0x40000000u,                      /* takes.trigger.base */
+    .trigger_hz = 90000000u,                     /* takes.trigger.timer_clock_hz */
+    .trigger_clken_offset = 0x00000040u,         /* takes.trigger.clock.enable_offset */
+    .trigger_clken_bit = 0u,                     /* takes.trigger.clock.bit */
+    .trigger_select = 6u,                        /* takes.trigger.adc_trigger */
+    .clock_hz = 90000000u,                       /* peripheral.clock_hz */
+    .clken_offset = 0x00000044u,                 /* peripheral.clock.enable_offset */
+    .clken_bit = 8u,                             /* peripheral.clock.bit */
+    .irq = 18u,                                  /* peripheral.irqs.global */
+    .vref_mv = 3300u,                            /* device.vref_mv, its default */
+    .bits = 12u,                                 /* peripheral.adc.bits */
+    .inputs = 16u,                               /* peripheral.adc.inputs */
+    .temperature = 18u,                          /* peripheral.adc.temperature */
+    .vrefint = 17u,                              /* peripheral.adc.vrefint */
+    .dma_rx = {&emb_dev_dma2, 0u, 0u, {0u, 0u}}, /* dma.rx */
+};
+static emb_device_state_t adc1_state;
+static emb_stm32_adc_data_t adc1_data;
+static const emb_device_t *const adc1_deps[] = {&emb_dev_dma2, &emb_dev_rcc};
+const emb_device_t emb_dev_adc1 = {
+    .name = "adc1",
+    .api = &emb_stm32_adc_api.dev,
+    .config = &adc1_config,
+    .state = &adc1_state,
+    .data = &adc1_data,
+    .deps = adc1_deps,
+    .class_id = EMB_DRV_CLASS_ADC,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 2u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
@@ -449,20 +515,22 @@ static const emb_device_t *const devices[] = {
     &emb_dev_rtc,    /* 3: EARLY */
     &emb_dev_flash,  /* 4: EARLY */
     &emb_dev_dma1,   /* 5: EARLY */
-    &emb_dev_gpiob,  /* 6: EARLY */
-    &emb_dev_gpioc,  /* 7: EARLY */
-    &emb_dev_usart2, /* 8: EARLY */
-    &emb_dev_uart4,  /* 9: EARLY */
-    &emb_dev_spi2,   /* 10: KERNEL */
-    &emb_dev_i2c1,   /* 11: KERNEL */
-    &emb_dev_i2c2,   /* 12: KERNEL */
-    &emb_dev_tim5,   /* 13: KERNEL */
-    &emb_dev_tim9,   /* 14: KERNEL */
-    &emb_dev_tim3,   /* 15: KERNEL */
-    &emb_dev_tim4,   /* 16: KERNEL */
+    &emb_dev_dma2,   /* 6: EARLY */
+    &emb_dev_gpiob,  /* 7: EARLY */
+    &emb_dev_gpioc,  /* 8: EARLY */
+    &emb_dev_usart2, /* 9: EARLY */
+    &emb_dev_uart4,  /* 10: EARLY */
+    &emb_dev_spi2,   /* 11: KERNEL */
+    &emb_dev_i2c1,   /* 12: KERNEL */
+    &emb_dev_i2c2,   /* 13: KERNEL */
+    &emb_dev_tim5,   /* 14: KERNEL */
+    &emb_dev_tim9,   /* 15: KERNEL */
+    &emb_dev_tim3,   /* 16: KERNEL */
+    &emb_dev_tim4,   /* 17: KERNEL */
+    &emb_dev_adc1,   /* 18: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 17u, 10u};
+const emb_device_table_t emb_board_device_table = {devices, 19u, 11u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

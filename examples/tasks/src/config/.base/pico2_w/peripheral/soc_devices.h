@@ -15,9 +15,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638
+ *     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
  *   drivers/bindings.yaml
- *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/rpi/rp2350/rp2350.yaml
@@ -30,7 +30,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 15u
+#define EMB_SOC_DEVICE_COUNT 16u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -51,6 +51,7 @@ extern const emb_device_t emb_dev_i2c1;
 extern const emb_device_t emb_dev_timer1;
 extern const emb_device_t emb_dev_pwm7;
 extern const emb_device_t emb_dev_pwm0;
+extern const emb_device_t emb_dev_adc;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_CLOCKS   1
@@ -68,6 +69,7 @@ extern const emb_device_t emb_dev_pwm0;
 #define EMB_SOC_HAS_TIMER1   1
 #define EMB_SOC_HAS_PWM7     1
 #define EMB_SOC_HAS_PWM0     1
+#define EMB_SOC_HAS_ADC      1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_watchdog)
@@ -101,6 +103,7 @@ extern const emb_device_t emb_dev_pwm0;
 #define EMB_SOC_UART1_DMA_TX {&emb_dev_dma, 2u, 30u, {0u, 0u}}
 #define EMB_SOC_SPI1_DMA_RX {&emb_dev_dma, 1u, 27u, {0u, 0u}}
 #define EMB_SOC_SPI1_DMA_TX {&emb_dev_dma, 0u, 26u, {0u, 0u}}
+#define EMB_SOC_ADC_DMA_RX {&emb_dev_dma, 3u, 48u, {0u, 0u}}
 /* clang-format on */
 
 /* the SPI devices' chip selects (devices[].cs), emb_drv_gpio_line_t initializers; the pin

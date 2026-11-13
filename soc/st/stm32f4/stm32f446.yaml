@@ -72,14 +72,15 @@ peripherals:
       irqs: [ { name: pvd, number: 1 } ] }
   - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,
       irqs: [ { name: global, number: 5 } ] }
-  # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §17): its update event is ADC1's trigger
+  # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §17): its update event, as TRGO, is
+  # ADC1's trigger, EXTSEL 0110 (§13.13.3); TIM3's is 1000
   - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, counter_bits: 32,
-      clock: { bus: apb1, bit: 0 },
+      adc_trigger: 6, clock: { bus: apb1, bit: 0 },
       irqs: [ { name: global, number: 28 } ] }
   # TIM3 and TIM4, 16-bit, and TIM5, 32-bit, the same general-purpose timers on APB1 (RM0390 §17,
   # Table 38): four channels each, for PWM, capture and compare
   - { name: tim3, compatible: "st,stm32-tim", base: 0x40000400, size: 0x400, counter_bits: 16,
-      clock: { bus: apb1, bit: 1 },
+      adc_trigger: 8, clock: { bus: apb1, bit: 1 },
       irqs: [ { name: global, number: 29 } ] }
   - { name: tim4, compatible: "st,stm32-tim", base: 0x40000800, size: 0x400, counter_bits: 16,
       clock: { bus: apb1, bit: 2 },

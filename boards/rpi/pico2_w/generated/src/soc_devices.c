@@ -16,9 +16,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638
+ *     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
  *   drivers/bindings.yaml
- *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+ *     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
  *   soc/rpi/rp2350/rp2350.yaml
  *     80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5
  *   soc/rpi/rp2350/rp2350a.yaml
@@ -361,6 +361,31 @@ const emb_device_t emb_dev_pwm0 = {
     .dep_count = 1u,
 };
 
+/* adc: rpi,rp2350-adc, adc, KERNEL */
+static const emb_rp2350_adc_config_t adc_config = {
+    .base = 0x400A0000u,                         /* peripheral.base */
+    .clock_hz = 48000000u,                       /* peripheral.clock_hz */
+    .vref_mv = 3300u,                            /* device.vref_mv, its default */
+    .bits = 12u,                                 /* peripheral.adc.bits */
+    .inputs = 4u,                                /* peripheral.adc.inputs */
+    .temperature = 4u,                           /* peripheral.adc.temperature */
+    .dma_rx = {&emb_dev_dma, 3u, 48u, {0u, 0u}}, /* dma.rx */
+};
+static emb_device_state_t adc_state;
+static emb_rp2350_adc_data_t adc_data;
+static const emb_device_t *const adc_deps[] = {&emb_dev_clocks, &emb_dev_io_bank0, &emb_dev_dma};
+const emb_device_t emb_dev_adc = {
+    .name = "adc",
+    .api = &emb_rp2350_adc_api.dev,
+    .config = &adc_config,
+    .state = &adc_state,
+    .data = &adc_data,
+    .deps = adc_deps,
+    .class_id = EMB_DRV_CLASS_ADC,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 3u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
@@ -378,9 +403,10 @@ static const emb_device_t *const devices[] = {
     &emb_dev_timer1,   /* 12: KERNEL */
     &emb_dev_pwm7,     /* 13: KERNEL */
     &emb_dev_pwm0,     /* 14: KERNEL */
+    &emb_dev_adc,      /* 15: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 15u, 8u};
+const emb_device_table_t emb_board_device_table = {devices, 16u, 8u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

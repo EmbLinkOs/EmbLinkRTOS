@@ -58,6 +58,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_init_list()` | O(count) plus the drivers' init | devices, device_deps, drivers |
 | `emb_device_resume()` | O(1) plus the driver's resume | drivers |
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
+| `emb_drv_adc_sampled()` | O(1) plus the callback | callbacks |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
 | `emb_drv_counter_fired()` | O(1) plus the callback | callbacks |

@@ -121,6 +121,17 @@
         ],
         "doc": "slice 0, PWM capture on B, GPIO17 (pin 22)",
         "name": "pwm0"
+      },
+      {
+        "deps": [
+          "clocks",
+          "io_bank0"
+        ],
+        "dma": [
+          "rx"
+        ],
+        "doc": "the ADC on clk_adc, 48 MHz from PLL_USB: GPIO26 (pin 31, input 0) and GPIO27 (pin 32, input 1); the HIL suite wires pin 31 to 3V3 OUT and pin 32 to AGND",
+        "name": "adc"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -145,6 +156,10 @@
       }
     },
     "pins": {
+      "adc": {
+        "in0": "GPIO26",
+        "in1": "GPIO27"
+      },
       "i2c0": {
         "scl": "GPIO9.f3",
         "sda": "GPIO8.f3"
@@ -501,6 +516,31 @@
         "level": "kernel",
         "name": "pwm0",
         "peripheral": "pwm0"
+      },
+      {
+        "class": "adc",
+        "compatible": "rpi,rp2350-adc",
+        "deps": [
+          "clocks",
+          "io_bank0",
+          "dma"
+        ],
+        "fields": {
+          "base": 1074397184,
+          "bits": 12,
+          "clock_hz": 48000000,
+          "dma_rx": {
+            "dma": "dma",
+            "request": 48,
+            "stream": 3
+          },
+          "inputs": 4,
+          "temperature": 4,
+          "vref_mv": 3300
+        },
+        "level": "kernel",
+        "name": "adc",
+        "peripheral": "adc"
       }
     ],
     "kconfig": {
@@ -685,6 +725,24 @@
         "pin": "GPIO17",
         "port": "",
         "signal": "pwm0_b"
+      },
+      {
+        "gpio": "io_bank0",
+        "mode": "analog",
+        "number": 26,
+        "owner": "pins.adc.in0",
+        "pin": "GPIO26",
+        "port": "",
+        "signal": "adc_in0"
+      },
+      {
+        "gpio": "io_bank0",
+        "mode": "analog",
+        "number": 27,
+        "owner": "pins.adc.in1",
+        "pin": "GPIO27",
+        "port": "",
+        "signal": "adc_in1"
       }
     ],
     "profile": "base",
@@ -708,11 +766,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638"
+      "sha256": "345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
+      "sha256": "c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     },
     {
       "path": "examples/tasks/system.yaml",

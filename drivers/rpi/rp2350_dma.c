@@ -33,19 +33,23 @@
 #define INTS0       0x40Cu
 #define CHAN_ABORT  0x464u
 
-#define CTRL_EN          (1u << 0)
-#define CTRL_DATA_SIZE   2u
-#define CTRL_INCR_READ   (1u << 4)
-#define CTRL_INCR_WRITE  (1u << 6)
-#define CTRL_CHAIN_TO    13u
-#define CTRL_TREQ_SEL    17u
-#define CTRL_BUSY        (1u << 26)
-#define CTRL_WRITE_ERROR (1u << 29)
-#define CTRL_READ_ERROR  (1u << 30)
-#define CTRL_AHB_ERROR   (1u << 31)
-#define COUNT_MASK       ((1u << 28) - 1u) /* TRANS_COUNT's count, its low 28 bits */
-#define TREQ_FORCE       63u               /* always ready: memory to memory */
-#define ABORT_POLL       100000u           /* bounded: the transfers in flight retire */
+#define CTRL_EN           (1u << 0)
+#define CTRL_DATA_SIZE    2u
+#define CTRL_INCR_READ    (1u << 4)
+#define CTRL_INCR_WRITE   (1u << 6)
+#define CTRL_RING_SIZE    8u         /* the ring: 2^n bytes, its address's low n bits */
+#define CTRL_RING_WRITE   (1u << 12) /* RING_SEL: the ring is the write address's */
+#define CTRL_CHAIN_TO     13u
+#define CTRL_TREQ_SEL     17u
+#define CTRL_BUSY         (1u << 26)
+#define CTRL_WRITE_ERROR  (1u << 29)
+#define CTRL_READ_ERROR   (1u << 30)
+#define CTRL_AHB_ERROR    (1u << 31)
+#define COUNT_MASK        ((1u << 28) - 1u)    /* TRANS_COUNT's count, its low 28 bits */
+#define MODE_TRIGGER_SELF ((uint32_t)1u << 28) /* TRANS_COUNT's mode: it triggers itself again */
+#define RING_MAX          15u                  /* 32 KiB */
+#define TREQ_FORCE        63u                  /* always ready: memory to memory */
+#define ABORT_POLL        100000u              /* bounded: the transfers in flight retire */
 
 static const emb_rp2350_dma_config_t *rp2350_dma_config(const emb_device_t *dev)
 {
@@ -62,14 +66,14 @@ static emb_rp2350_dma_data_t *rp2350_dma_data(const emb_device_t *dev)
 #define SIDE_WRITE 2u
 
 /* The items a channel moved: by how far its advancing address got, which an abort leaves as
- * it was; by its count when neither side advances. */
+ * it was, within its ring for a circular job; by its count when neither side advances. */
 static uint32_t rp2350_dma_moved(uintptr_t r, const emb_rp2350_dma_channel_t *ch)
 {
     if (ch->side == SIDE_WRITE) {
-        return (REG32(r + WRITE_ADDR) - ch->start) / ch->width;
+        return ((REG32(r + WRITE_ADDR) - ch->start) / ch->width) % ch->count;
     }
     if (ch->side == SIDE_READ) {
-        return (REG32(r + READ_ADDR) - ch->start) / ch->width;
+        return ((REG32(r + READ_ADDR) - ch->start) / ch->width) % ch->count;
     }
     return ch->count - (REG32(r + TRANS_COUNT) & COUNT_MASK);
 }
@@ -89,6 +93,12 @@ static void rp2350_dma_isr(void *arg)
             continue;
         }
         ctrl = REG32(r + CTRL_TRIG);
+        if ((ch->circular != 0u) && ((ctrl & CTRL_AHB_ERROR) == 0u)) {
+            /* a circular job goes on, triggering itself: the half it just finished */
+            ch->half ^= 1u;
+            ch->done(ch->arg, EMB_OK, (ch->half != 0u) ? (ch->count / 2u) : ch->count);
+            continue;
+        }
         if ((ctrl & CTRL_AHB_ERROR) != 0u) {
             REG32(r + CTRL_TRIG) = ctrl & ~CTRL_EN; /* stopped, its error bits cleared */
         }
@@ -131,8 +141,21 @@ static emb_status_t rp2350_dma_start(const emb_device_t *dev, const emb_drv_dma_
     uint32_t ctrl;
     bool fixed = (job->flags & EMB_DRV_DMA_FIXED_MEM) != 0u;
     emb_irq_key_t key;
+    uint32_t ring = 0u;
+    bool circular = (job->flags & EMB_DRV_DMA_CIRCULAR) != 0u;
     if ((c >= EMB_RP2350_DMA_CHANNELS) || (job->count > COUNT_MASK)) {
         return EMB_EINVAL;
+    }
+    if (circular) {
+        /* its memory a power of two bytes, aligned to its size: the address ring wraps it */
+        uint32_t bytes = job->count * job->width;
+        uintptr_t mem = (job->dir == EMB_DRV_DMA_FROM_PERIPH) ? job->dst : job->src;
+        while ((ring < RING_MAX) && (((uint32_t)1u << ring) < bytes)) { /* bounded: RING_MAX */
+            ring++;
+        }
+        if ((((uint32_t)1u << ring) != bytes) || ((mem & (bytes - 1u)) != 0u)) {
+            return EMB_EINVAL;
+        }
     }
     r = cfg->base + (CH_STEP * c);
     ctrl = CTRL_EN | (rp2350_dma_size(job->width) << CTRL_DATA_SIZE) |
@@ -143,6 +166,10 @@ static emb_status_t rp2350_dma_start(const emb_device_t *dev, const emb_drv_dma_
         ctrl |= (fixed ? 0u : CTRL_INCR_READ) | ((uint32_t)ch->request << CTRL_TREQ_SEL);
     } else {
         ctrl |= (fixed ? 0u : CTRL_INCR_WRITE) | ((uint32_t)ch->request << CTRL_TREQ_SEL);
+    }
+    if (circular) {
+        ctrl |= (ring << CTRL_RING_SIZE) |
+                ((job->dir == EMB_DRV_DMA_FROM_PERIPH) ? CTRL_RING_WRITE : 0u);
     }
     key = emb_irq_lock();
     if (d->channels[c].running != 0u) {
@@ -164,9 +191,12 @@ static emb_status_t rp2350_dma_start(const emb_device_t *dev, const emb_drv_dma_
         d->channels[c].start = 0u;
     }
     d->channels[c].running = 1u;
+    d->channels[c].circular = circular ? 1u : 0u;
+    d->channels[c].half = 0u;
     REG32(r + READ_ADDR) = (uint32_t)job->src;
     REG32(r + WRITE_ADDR) = (uint32_t)job->dst;
-    REG32(r + TRANS_COUNT) = job->count; /* mode 0: once */
+    /* once (mode 0); a circular job a half at a time, triggering itself again at each end */
+    REG32(r + TRANS_COUNT) = circular ? (MODE_TRIGGER_SELF | (job->count / 2u)) : job->count;
     REG32(cfg->base + INTS0) = 1u << c;
     REG32(cfg->base + INTE0) |= 1u << c;
     REG32(r + CTRL_TRIG) = ctrl; /* the trigger: it starts */
@@ -209,7 +239,8 @@ static emb_status_t rp2350_dma_stop(const emb_device_t *dev, const emb_drv_dma_c
 }
 
 const emb_drv_dma_api_t emb_rp2350_dma_api = {
-    {rp2350_dma_init, NULL, NULL, NULL, NULL, EMB_DRV_DMA_CAP_MEM_TO_MEM},
+    {rp2350_dma_init, NULL, NULL, NULL, NULL,
+     EMB_DRV_DMA_CAP_MEM_TO_MEM | EMB_DRV_DMA_CAP_CIRCULAR},
     rp2350_dma_start,
     rp2350_dma_stop,
 };

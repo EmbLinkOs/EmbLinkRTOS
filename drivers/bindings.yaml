@@ -75,6 +75,36 @@ bindings:
       dma_tx: dma.tx
     buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
+  st,stm32f4-adc:
+    class: adc
+    level: kernel
+    sources: [drivers/st/stm32_adc.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_adc_api.dev
+    config: emb_stm32_adc_config_t
+    data: emb_stm32_adc_data_t
+    takes: { trigger: "st,stm32-tim", common: "st,stm32f4-adc-common", cal: "st,stm32f4-factory-cal" }
+    fields:
+      base: peripheral.base
+      common: takes.common.base
+      calibration: takes.cal.base
+      trigger: takes.trigger.base
+      trigger_hz: takes.trigger.timer_clock_hz
+      trigger_clken_offset: takes.trigger.clock.enable_offset
+      trigger_clken_bit: takes.trigger.clock.bit
+      trigger_select: takes.trigger.adc_trigger
+      clock_hz: peripheral.clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      vref_mv: { from: device.vref_mv, default: 3300 }
+      bits: peripheral.adc.bits
+      inputs: peripheral.adc.inputs
+      temperature: peripheral.adc.temperature
+      vrefint: peripheral.adc.vrefint
+      dma_rx: dma.rx
+    doc: ADC1, its conversions and temperature sensor, sequences paced by a timer's TRGO and moved by DMA (SPEC-017 §11c, A129)
   st,stm32-tim:counter:
     class: counter
     level: kernel
@@ -325,6 +355,24 @@ bindings:
       irq2: peripheral.irqs.alarm2
       irq3: peripheral.irqs.alarm3
     doc: TIMER0 and TIMER1 as counters, 64 bits of their tick, an alarm on each of the four (SPEC-017 §11a, A129)
+  rpi,rp2350-adc:
+    class: adc
+    level: kernel
+    sources: [drivers/rpi/rp2350_adc.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_adc_api.dev
+    config: emb_rp2350_adc_config_t
+    data: emb_rp2350_adc_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.clock_hz
+      vref_mv: { from: device.vref_mv, default: 3300 }
+      bits: peripheral.adc.bits
+      inputs: peripheral.adc.inputs
+      temperature: peripheral.adc.temperature
+      dma_rx: dma.rx
+    doc: the ADC, its conversions and temperature sensor, round robins paced by its divider and drained by DMA (SPEC-017 §11c, A129)
   rpi,rp2350-pwm:
     class: pwm
     level: kernel

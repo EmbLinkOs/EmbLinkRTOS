@@ -140,3 +140,40 @@ int emb_rp2350_clock_init(void)
     REG(CLK_PERI_CTRL) = CLK_PERI_ENABLE;
     return 0;
 }
+
+#ifdef EMB_HW_PLL_USB_M
+/* ---- PLL_USB and clk_adc (datasheet §8.1, §8.6; A129) ------------------------------------ */
+#define PLLU_CS        (EMB_HW_PLL_USB_BASE + 0x00u)
+#define PLLU_PWR       (EMB_HW_PLL_USB_BASE + 0x04u)
+#define PLLU_FBDIV_INT (EMB_HW_PLL_USB_BASE + 0x08u)
+#define PLLU_PRIM      (EMB_HW_PLL_USB_BASE + 0x0Cu)
+#define CLK_ADC_CTRL   (EMB_HW_CLOCKS_BASE + 0x6Cu)
+#define CLK_ADC_DIV    (EMB_HW_CLOCKS_BASE + 0x70u)
+#define CLK_ADC_ENABLE ((uint32_t)1u << 11) /* AUXSRC 0: clksrc_pll_usb */
+
+int emb_rp2350_clk_adc_start(void)
+{
+    if (((REG(CLK_ADC_CTRL) & CLK_ADC_ENABLE) != 0u) && ((REG(PLLU_CS) & PLL_CS_LOCK) != 0u)) {
+        return 0; /* already running: another driver started it */
+    }
+    REG(CLK_ADC_CTRL) = 0u; /* off while its source changes */
+    REG(RESETS_RESET + SET_ALIAS) = EMB_RP2350_RESET_PLL_USB;
+    REG(RESETS_RESET + CLR_ALIAS) = EMB_RP2350_RESET_PLL_USB;
+    if (poll_set(RESETS_RESET_DONE, EMB_RP2350_RESET_PLL_USB, EMB_RP2350_RESET_PLL_USB) != 0) {
+        return -1;
+    }
+    /* as PLL_SYS is started: the VCO locked, then the post-dividers */
+    REG(PLLU_CS) = EMB_HW_PLL_USB_M;
+    REG(PLLU_FBDIV_INT) = EMB_HW_PLL_USB_N;
+    REG(PLLU_PWR + CLR_ALIAS) = PLL_PWR_PD | PLL_PWR_VCOPD;
+    if (poll_set(PLLU_CS, PLL_CS_LOCK, PLL_CS_LOCK) != 0) {
+        return -1;
+    }
+    REG(PLLU_PRIM) = ((uint32_t)EMB_HW_PLL_USB_POSTDIV1 << PLL_PRIM_POSTDIV1) |
+                     ((uint32_t)EMB_HW_PLL_USB_POSTDIV2 << PLL_PRIM_POSTDIV2);
+    REG(PLLU_PWR + CLR_ALIAS) = PLL_PWR_POSTDIVPD;
+    REG(CLK_ADC_DIV) = CLK_DIV_ONE;
+    REG(CLK_ADC_CTRL) = CLK_ADC_ENABLE;
+    return 0;
+}
+#endif

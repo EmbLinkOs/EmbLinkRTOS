@@ -9,9 +9,9 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/rpi/pico2_w/board.yaml
-#     f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638
+#     345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d
 #   drivers/bindings.yaml
-#     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+#     c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
 #   examples/tasks/system.yaml
 #     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
 #   soc/rpi/rp2350/rp2350.yaml
@@ -36,6 +36,7 @@ set(EMB_BOARD_RESETS_IN hil) # restart the image with RAM kept (test_crash_reset
 set(EMB_BOARD_UART1_DMA tx)
 set(EMB_BOARD_SPI1_DMA rx tx)
 set(EMB_BOARD_SPI1_CS_COUNT 1)
+set(EMB_BOARD_ADC_DMA rx)
 set(EMB_BOARD_FLASH_IMAGE uf2) # what the SoC's boot ROM loads (A79)
 set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)
 # the board's devices (soc_devices.c) and the drivers they use, and only those (SPEC-016 §8)
@@ -53,6 +54,7 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${EMB_BASE}/drivers/snps/dw_i2c.c"
     "${EMB_BASE}/drivers/rpi/rp2350_timer.c"
     "${EMB_BASE}/drivers/rpi/rp2350_pwm.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_adc.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/rpi/include"
@@ -62,8 +64,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
-    "boards/rpi/pico2_w/board.yaml=f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638"
-    "drivers/bindings.yaml=8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
+    "boards/rpi/pico2_w/board.yaml=345279a53c444bc45e7fcc1a0cb5ab47b32a7699534f5484ea80d73f7a0bdf6d"
+    "drivers/bindings.yaml=c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede"
     "examples/tasks/system.yaml=202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da"
     "soc/rpi/rp2350/rp2350.yaml=80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5"
     "soc/rpi/rp2350/rp2350a.yaml=22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c"

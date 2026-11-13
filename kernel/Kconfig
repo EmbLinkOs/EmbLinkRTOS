@@ -347,6 +347,15 @@ config EMB_DRV_PWM
 	  of a device sharing its period; and an input's period and pulse
 	  measured, one cycle exactly or averaged over many.
 
+config EMB_DRV_ADC
+	bool "The ADC class (SPEC-017 §11c, A129)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  One conversion of an input, its millivolts against the board's
+	  reference, the internal temperature sensor; and a sequence of inputs
+	  sampled at a rate into a buffer by DMA, a callback at each half.
+
 config EMB_DRV_ENTROPY
 	bool "The entropy class (SPEC-017 §11)"
 	depends on EMB_DEVICE

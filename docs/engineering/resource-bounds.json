@@ -905,6 +905,9 @@
     ],
     "emb_drv_pwm_capture": [
       "pwm_input"
+    ],
+    "emb_drv_adc_sampled": [
+      "callbacks"
     ]
   }
 }

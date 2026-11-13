@@ -16,6 +16,15 @@
 - Drivers: the STM32's general-purpose timers (`drivers/st/stm32_tim_pwm.c`: PWM mode 1, one cycle captured exactly in PWM input mode; the NUCLEO-F446RE's TIM3 out on D12 and TIM4 in on D10) and the RP2350's slices (`drivers/rpi/rp2350_pwm.c`: A and B out, B averaged over a gate; the Pico 2 W's slice 7 out on GPIO14 and slice 0 in on GPIO17).
 - `test_pwm_loop`, an output wired to a capture input, configured by `EMB_TEST_PWM_LOOP`.
 
+### Added (the ADC class, and circular DMA, 2026-11-13)
+
+- `<emb/drv_adc.h>`, behind `CONFIG_EMB_DRV_ADC` (SPEC-017 §11c, [A129](docs/specs/AMENDMENTS-M4.md)): one conversion, waiting or polled from any context; a count's millivolts against the board's reference; the internal temperature sensor; and a sequence of inputs sampled at a rate into a buffer by DMA, a callback at each half, `EMB_EOVERRUN` when the hardware loses samples.
+- Drivers: the STM32F4's ADC1 (`drivers/st/stm32_adc.c`: paced by TIM2's TRGO, moved by DMA2, its temperature from the factory calibration, set up by each request so the reference controller keeps driving it by hand) and the RP2350's ADC (`drivers/rpi/rp2350_adc.c`: on clk_adc, 48 MHz from PLL_USB, a round robin drained through its FIFO by DMA).
+- The DMA class's circular jobs (`EMB_DRV_DMA_CIRCULAR`, SPEC-017 §7): the STM32's circular mode, and on the RP2350 one channel that triggers itself again over its address ring.
+- The board's devices: the NUCLEO-F446RE's ADC1 on A2 and A3 and DMA2; the Pico 2 W's ADC on GPIO26 and GPIO27. `test_adc_board`, configured by `EMB_TEST_ADC_LOOP`.
+- EmbSIM runs the PWM loop (D12 to D10) and the ADC's inputs (A2 to 3V3, A3 to GND) on the NUCLEO-F446RE in CI: `simulation.loopbacks` takes a PWM pair and an ADC's rails.
+- The benchmarks read the board's `hw.json` from its `docs/`, where A126 put it.
+
 ### Changed (applications in MPLAB Harmony's form, 2026-11-13)
 
 - An application's generated files follow MPLAB Harmony v3 ([A130](docs/specs/AMENDMENTS-M4.md)). Each board's are in Harmony's configuration folder, `src/config/<board>/`: `definitions.h`, `configuration.h`, `initialization.c` with `SYS_Initialize()`, `tasks.c` with the tasks and `SYS_Tasks()`, `interrupts.c`, and the board's own outputs under `peripheral/`, `linker/`, `build/` and `docs/`. `system.h`, `system.c` and `tasks.h` are gone.

@@ -28,15 +28,15 @@
       arch/cortex_m/arch.yaml
         c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
       boards/st/nucleo_f446re/board.yaml
-        9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
+        551c524379751d359bdd87501269d6cab33edf84d212d2f6632ffe9567ec71d0
       drivers/bindings.yaml
-        8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
+        c06d1a914adb21d0e314c79b3611ac6859eefeac1957d6914cccfc5531ad6ede
       examples/tasks/system.yaml
         202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
       soc/st/stm32f4/stm32f4.yaml
         796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
       soc/st/stm32f4/stm32f446.yaml
-        bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
+        f0c9a37f6017c87d0efe215a3561f65494ba52383f2d0c10419b0ab5035f77f2
       soc/st/stm32f4/stm32f446re.yaml
         b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  *******************************************************************************/
