@@ -20,6 +20,8 @@
  *   emb flash -B build/console_echo-pico2_w
  *   printf 'hello\n' > /dev/cu.usbmodem31103   # and watch: "echo 5: HELLO"
  *
+ * A line "exit" ends it.
+ *
  * @author  Junior Deogracias
  * @date    2026-11-13 (created)
  */
@@ -54,6 +56,11 @@ static void echo(void *arg)
             }
         }
         line[got] = '\0';
+        if ((got >= 4u) && (line[0] == 'E') && (line[1] == 'X') && (line[2] == 'I') &&
+            (line[3] == 'T')) {
+            emb_board_puts("echo: done\n");
+            emb_board_exit(0); /* built for HIL on the Pico 2 W: back to BOOTSEL */
+        }
         emb_board_puts("echo ");
         emb_board_put_u32((uint32_t)got);
         emb_board_puts((st == EMB_OK) ? ": " : " (damaged): ");
