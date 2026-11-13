@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Arm PrimeCell SSP PL022 (Arm DDI 0194H) as an SPI controller of the SPI class (SPEC-017
- * §5), the RP2350's SPI and the one QEMU's MPS2 machines model. Motorola frames, controller
- * mode, eight frames in flight through its FIFOs.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_pl022.h
+ * @brief   Arm PrimeCell SSP PL022 (Arm DDI 0194H) as an SPI controller of the SPI class (SPEC-017
+ *          §5), the RP2350's SPI and the one QEMU's MPS2 machines model.
+ *
+ * @details
+ * Motorola frames, controller mode, eight frames in flight through its FIFOs.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #ifndef EMB_PL022_H
 #define EMB_PL022_H

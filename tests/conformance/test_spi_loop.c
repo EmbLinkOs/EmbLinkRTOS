@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The SPI class on a real controller (SPEC-017 §5; DRV-004 to DRV-006), its MOSI looped to
- * its MISO: by a wire on the bench and in EmbSIM, or inside the controller where it has a
- * loopback mode and the emulator models it (QEMU's PL022). Built where one of these exists:
- * EMB_TEST_SPI_LOOP names the device (tests/conformance/CMakeLists.txt). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_spi_loop.c
+ * @brief   The SPI class on a real controller (SPEC-017 §5; DRV-004 to DRV-006), its MOSI looped to
+ *          its MISO.
+ *
+ * @details
+ * By a wire on the bench and in EmbSIM, or inside the controller where it has a loopback mode and
+ * the emulator models it (QEMU's PL022). Built where one of these exists: EMB_TEST_SPI_LOOP names
+ * the device (tests/conformance/CMakeLists.txt).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <soc_devices.h>
 #include <string.h>

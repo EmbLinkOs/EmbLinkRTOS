@@ -1,9 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The software watchdog (FLT-004, SPEC-017 §8, A121): it feeds the hardware watchdog only while
- * every party it watches has checked in within its window. A party that misses its window is
- * written into the crash record (EMB_FAULT_WATCHDOG, its id the code), and the hardware
- * watchdog, no longer fed, resets the part: the service never resets it itself. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wdog.h
+ * @brief   The software watchdog (FLT-004, SPEC-017 §8, A121).
+ *
+ * @details
+ * It feeds the hardware watchdog only while every party it watches has checked in within its
+ * window. A party that misses its window is written into the crash record (EMB_FAULT_WATCHDOG, its
+ * id the code), and the hardware watchdog, no longer fed, resets the part: the service never resets
+ * it itself.
+ *
+ * @see     kernel/fault/wdog.c
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_WDOG_H
 #define EMB_WDOG_H
 

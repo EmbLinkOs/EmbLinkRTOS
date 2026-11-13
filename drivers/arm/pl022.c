@@ -1,12 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Arm PrimeCell SSP PL022 (Arm DDI 0194H) as an SPI controller (SPEC-017 §5). One routine
- * moves a transfer on: it drains the receive FIFO and keeps the transmit FIFO full, at most
- * eight frames in flight so the receive FIFO never overruns. start() runs it once, and a
- * transfer it finishes there (QEMU's model moves frames at once) ends with start()'s status
- * (A115); otherwise the receive FIFO's level and timeout interrupts run it until the last
- * frame is back.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    pl022.c
+ * @brief   Arm PrimeCell SSP PL022 (Arm DDI 0194H) as an SPI controller (SPEC-017 §5).
+ *
+ * @details
+ * One routine moves a transfer on: it drains the receive FIFO and keeps the transmit FIFO full, at
+ * most eight frames in flight so the receive FIFO never overruns. start() runs it once, and a
+ * transfer it finishes there (QEMU's model moves frames at once) ends with start()'s status (A115);
+ * otherwise the receive FIFO's level and timeout interrupts run it until the last frame is back.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #include <emb_pl022.h>
 

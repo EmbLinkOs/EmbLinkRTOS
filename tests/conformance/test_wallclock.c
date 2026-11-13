@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The wall clock (SPEC-003 §10, KRN-TIM-031, A123): the monotonic clock plus an offset, which
- * setting and adjusting change without moving any deadline. A board's RTC may have seeded it
- * at boot, so its being unset is not assumed. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_wallclock.c
+ * @brief   The wall clock (SPEC-003 §10, KRN-TIM-031, A123).
+ *
+ * @details
+ * The monotonic clock plus an offset, which setting and adjusting change without moving any
+ * deadline. A board's RTC may have seeded it at boot, so its being unset is not assumed.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/wallclock.h>
 
 #include <emb_test.h>

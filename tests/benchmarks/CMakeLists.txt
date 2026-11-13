@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Benchmarks (05 §4.4, R-003 §6): built for every port, published only from hardware runs.
 emb_add_executable(bench_switch bench_switch.c)
 if(CONFIG_EMB_ARCH_CORTEX_M OR CONFIG_EMB_ARCH_RISCV OR CONFIG_EMB_ARCH_XTENSA)

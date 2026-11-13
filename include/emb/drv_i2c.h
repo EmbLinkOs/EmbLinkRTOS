@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The I2C class (SPEC-017 §6): as a controller, transactions of write and read segments to a
- * target's address, joined by repeated starts and ended by a stop; as a target, the
- * transactions another controller makes to this one's own address. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_i2c.h
+ * @brief   The I2C class (SPEC-017 §6).
+ *
+ * @details
+ * As a controller, transactions of write and read segments to a target's address, joined by
+ * repeated starts and ended by a stop; as a target, the transactions another controller makes to
+ * this one's own address.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_I2C_H
 #define EMB_DRV_I2C_H
 

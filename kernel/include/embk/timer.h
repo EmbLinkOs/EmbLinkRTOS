@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Software timer objects (SPEC-003 §7). Included by the layout probe, so it names the
- * public handle only as an incomplete type. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    timer.h
+ * @brief   Software timer objects (SPEC-003 §7).
+ *
+ * @details
+ * Included by the layout probe, so it names the public handle only as an incomplete type.
+ *
+ * @see     kernel/time/timer.c
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMBK_TIMER_H
 #define EMBK_TIMER_H
 

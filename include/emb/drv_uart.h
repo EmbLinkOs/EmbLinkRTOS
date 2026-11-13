@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The UART class (SPEC-017 §4): requests to write and read bytes, their blocking wrappers,
- * the polled calls the console and the fault report use, and the receive core every UART
- * driver shares: a ring that keeps bytes no read is waiting for, and the read in progress. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_uart.h
+ * @brief   The UART class (SPEC-017 §4).
+ *
+ * @details
+ * Requests to write and read bytes, their blocking wrappers, the polled calls the console and the
+ * fault report use, and the receive core every UART driver shares: a ring that keeps bytes no read
+ * is waiting for, and the read in progress.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_UART_H
 #define EMB_DRV_UART_H
 

@@ -1,7 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The wall clock (SPEC-003 §10, KRN-TIM-031, A123): the monotonic clock in nanoseconds plus an
- * offset, kept under the kernel's lock; nothing in the kernel reads it. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wallclock.c
+ * @brief   The wall clock (SPEC-003 §10, KRN-TIM-031, A123).
+ *
+ * @details
+ * The monotonic clock in nanoseconds plus an offset, kept under the kernel's lock; nothing in the
+ * kernel reads it.
+ *
+ * @see     include/emb/wallclock.h
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/time.h>
 #include <emb/wallclock.h>
 

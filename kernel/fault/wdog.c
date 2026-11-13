@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The software watchdog (FLT-004, A121): a periodic timer, its callback in the timer interrupt,
- * looks at every party watched and feeds the hardware watchdog only when none is past its
- * window. The first party found past it is written into the crash record, and the feeding
- * stops for good: the hardware watchdog resets the part. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wdog.c
+ * @brief   The software watchdog (FLT-004, A121).
+ *
+ * @details
+ * A periodic timer, its callback in the timer interrupt, looks at every party watched and feeds the
+ * hardware watchdog only when none is past its window. The first party found past it is written
+ * into the crash record, and the feeding stops for good: the hardware watchdog resets the part.
+ *
+ * @see     include/emb/wdog.h
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_wdt.h>
 #include <emb/timer.h>
 #include <emb/wdog.h>

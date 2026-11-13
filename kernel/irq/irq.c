@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Interrupt management API (SPEC-002 §8.2): controller operations through the port. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    irq.c
+ * @brief   Interrupt management API (SPEC-002 §8.2): controller operations through the port.
+ *
+ * @see     include/emb/irq.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb/irq.h>
 
 #include <embk/kernel.h>

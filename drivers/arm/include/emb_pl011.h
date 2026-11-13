@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Arm PrimeCell UART PL011 (Arm DDI 0183G), as the RP2350 has it: a polled transmit for the
- * board's console, and the device the generator binds to "arm,pl011" (SPEC-016 §8). The UART
- * class's requests come with SPEC-017 §4.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_pl011.h
+ * @brief   Arm PrimeCell UART PL011 (Arm DDI 0183G), as the RP2350 has it.
+ *
+ * @details
+ * A polled transmit for the board's console, and the device the generator binds to "arm,pl011"
+ * (SPEC-016 §8). The UART class's requests come with SPEC-017 §4.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
  */
 #ifndef EMB_PL011_H
 #define EMB_PL011_H

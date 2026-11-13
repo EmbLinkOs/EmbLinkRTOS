@@ -1,10 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The differential runner (TEST-008, SPEC-004 §13, SPEC-013 §7): executes one scenario of
- * the reference model's catalogue on the native port under a given schedule of interrupt
- * raises and ticks, then prints the kernel's trace and every operation's result so that
- * tools/model/bridge.py can replay the run through the model and compare the outcomes.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    diff_runner.c
+ * @brief   The differential runner (TEST-008, SPEC-004 §13, SPEC-013 §7).
+ *
+ * @details
+ * Executes one scenario of the reference model's catalogue on the native port under a given
+ * schedule of interrupt raises and ticks, then prints the kernel's trace and every operation's
+ * result so that tools/model/bridge.py can replay the run through the model and compare the
+ * outcomes.
  *
  * Usage: diff_runner '<scenario>' [--schedule 'isr0@12,tick@30,...']
  *
@@ -32,6 +41,9 @@
  *   dresched q w delay | dcancel w
  * A schedule entry fires right after the n-th trace event (or in idle, if that event never
  * comes): "isr<i>@n" raises ISR i, "tick@n" advances virtual time by one tick.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb/emb.h>
 

@@ -1,12 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RP2350's watchdog (datasheet §12.9; registers and the enable sequence as pico-sdk
- * 2.1.1's hardware/regs/watchdog.h and hardware_watchdog name them) as a watchdog class device
- * (SPEC-017 §8): it counts down a microsecond tick from clk_ref, the TICKS block's, and resets
- * everything but the oscillators (PSM WDSEL). It caused a reset when REASON says its timer did
- * and SCRATCH4 still holds the mark start() left there, as pico-sdk's
- * watchdog_enable_caused_reboot() checks: the boot ROM's own reboots (picotool's, BOOTSEL's)
- * go through the watchdog too, with a mark of their own. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rp2350_watchdog.c
+ * @brief   The RP2350's watchdog (datasheet §12.9; registers and the enable sequence as pico-sdk
+ *          2.1.1's hardware/regs/watchdog.h and hardware_watchdog name them) as a watchdog class
+ *          device (SPEC-017 §8).
+ *
+ * @details
+ * It counts down a microsecond tick from clk_ref, the TICKS block's, and resets everything but the
+ * oscillators (PSM WDSEL). It caused a reset when REASON says its timer did and SCRATCH4 still
+ * holds the mark start() left there, as pico-sdk's watchdog_enable_caused_reboot() checks: the boot
+ * ROM's own reboots (picotool's, BOOTSEL's) go through the watchdog too, with a mark of their own.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_rp2350_devices.h>
 #include <hw_config.h>
 

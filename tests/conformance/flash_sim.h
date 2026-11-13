@@ -1,9 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* A NOR flash in RAM, a flash class device (SPEC-017 §9, A122), for the tests on every target:
- * a program clears bits and never sets them, an erase sets a whole sector to 0xFF, and power
- * can be lost at any operation, tearing it, after which every operation fails until power
- * comes back (BOOT-007's injection). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    flash_sim.h
+ * @brief   A NOR flash in RAM, a flash class device (SPEC-017 §9, A122), for the tests on every
+ *          target.
+ *
+ * @details
+ * A program clears bits and never sets them, an erase sets a whole sector to 0xFF, and power can be
+ * lost at any operation, tearing it, after which every operation fails until power comes back
+ * (BOOT-007's injection).
+ *
+ * @see     flash_sim.c
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef FLASH_SIM_H
 #define FLASH_SIM_H
 

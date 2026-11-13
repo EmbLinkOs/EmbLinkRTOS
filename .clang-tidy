@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # EmbLinkRTOS static-analysis configuration (docs/CODING-STANDARD.md §12, §13).
 # A check is disabled only here, with a reason, never per line except for the
 # recorded deviations of CODING-STANDARD §12, which use NOLINT(<check>) naming them.

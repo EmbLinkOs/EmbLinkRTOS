@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Event flags (SPEC-005 §5): a word of bits that threads wait on with ANY or ALL of a
- * mask. A waiter keeps its mask in wake_data and its mode in the thread's bit-wait mode
- * (A38), so the control block does not grow. Set walks the waiters in queue order in one
- * section, hands each satisfied one its bits and clears them first for a CLEAR waiter.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    event.c
+ * @brief   Event flags (SPEC-005 §5): a word of bits that threads wait on with ANY or ALL of a
+ *          mask.
+ *
+ * @details
+ * A waiter keeps its mask in wake_data and its mode in the thread's bit-wait mode (A38), so the
+ * control block does not grow. Set walks the waiters in queue order in one section, hands each
+ * satisfied one its bits and clears them first for a CLEAR waiter.
+ *
+ * @see     include/emb/event.h
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/event.h>
 #include <emb/storage.h>

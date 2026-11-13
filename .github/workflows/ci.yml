@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Build matrix of 05 §2.2 and §5: native GCC and Clang (checked, release, tiny, sanitizers),
 # Cortex-M with arm-none-eabi-gcc and RISC-V with riscv64-unknown-elf-gcc run under QEMU,
 # AVR with avr-gcc run under QEMU and on EmbSIM's Arduino Uno, the Cortex-M4F suite on EmbSIM's
@@ -408,6 +412,10 @@ jobs:
             --conf boards/arduino/arduino_uno/generated/config/board.conf --conf configs/tiny.conf --print > /dev/null
       - name: IRQ configuration and encoding regressions
         run: python3 -I -m unittest discover -s tools/kconfig -p 'test_*.py' -v
+      - name: File headers (CS-11.1)
+        run: |
+          python3 -I -m unittest discover -s tools/dev -p 'test_*.py' -v
+          python3 -I tools/dev/file_headers.py --check
       - name: Crash record decoder
         run: python3 -I -m unittest discover -s tools/crashdec -p 'test_*.py' -v
       - name: Hardware-in-the-loop runner (a pseudo-terminal for the board)

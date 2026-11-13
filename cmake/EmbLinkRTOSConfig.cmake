@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # find_package(EmbLinkRTOS): the RTOS as a CMake package, for an application kept outside its
 # tree (docs/user/application.md, A91). Call it before project(): when no toolchain file is
 # given, it picks the one for EMB_BOARD's architecture, which project() then loads. After

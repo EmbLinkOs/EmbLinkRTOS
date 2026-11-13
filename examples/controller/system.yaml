@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The reference controller's system (SPEC-014 §5, A125): its threads and objects, which
 # hw/gen/emb-hwgen.py generate --system writes into generated/<board>/system.c.
 schema_version: 0

@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RTC class (SPEC-017 §10, A123): its checks over a driver's operations, the one alarm's
- * callback, and the wall clock seeded from a set RTC when its device starts. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rtc.c
+ * @brief   The RTC class (SPEC-017 §10, A123).
+ *
+ * @details
+ * Its checks over a driver's operations, the one alarm's callback, and the wall clock seeded from a
+ * set RTC when its device starts.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_rtc.h>
 #if CONFIG_EMB_WALLCLOCK
 #include <emb/wallclock.h>

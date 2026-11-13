@@ -1,6 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Counting semaphores (SPEC-005 §4). No owner, no inheritance, ISR-safe give. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sem.h
+ * @brief   Counting semaphores (SPEC-005 §4).
+ *
+ * @details
+ * No owner, no inheritance, ISR-safe give.
+ *
+ * @see     kernel/sync/sem.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_SEM_H
 #define EMB_SEM_H
 

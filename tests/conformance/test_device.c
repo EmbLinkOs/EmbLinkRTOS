@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Devices and driver requests (SPEC-016; DRV-001 to 006). A fake driver whose requests end
- * from a software interrupt, as a peripheral's would. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_device.c
+ * @brief   Devices and driver requests (SPEC-016; DRV-001 to 006).
+ *
+ * @details
+ * A fake driver whose requests end from a software interrupt, as a peripheral's would.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

@@ -1,8 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The M3a reference controller (docs/adoption.md) on the NUCLEO-F446RE: an interrupt-driven
- * controller in the base profile, with trusted threads.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    main.c
+ * @brief   The M3a reference controller (docs/adoption.md) on the NUCLEO-F446RE.
+ *
+ * @details
+ * An interrupt-driven controller in the base profile, with trusted threads.
  *
  * - Acquisition: TIM2's update event starts an ADC1 conversion of the chip's temperature
  *   sensor in hardware, at CTL_RATE_HZ; the conversion's interrupt timestamps the reading and
@@ -24,6 +32,9 @@
  * - Marker pins for a logic analyzer: TIM2 toggles PA0 at each sampling trigger, in hardware;
  *   PA10 is high during the ADC's handler, PA8 while the control thread processes a sample,
  *   PA9 while a thread holds the console. Each is one register write.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-07 (created)
  */
 #include <emb/arch.h>
 #include <emb/emb.h>

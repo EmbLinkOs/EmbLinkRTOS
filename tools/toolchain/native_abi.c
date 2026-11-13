@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Compile with both compilers; compare markers, never link or execute this object.
- * Offset + 1 is encoded as a size with alignment 1 so offset zero is representable
- * by the existing storage generator. Member widths are compared separately.
- * This is a maintained layout inventory, supplemented by executed ABI crossings.
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    native_abi.c
+ * @brief   Compile with both compilers; compare markers, never link or execute this object.
+ *
+ * @details
+ * Offset + 1 is encoded as a size with alignment 1 so offset zero is representable by the existing
+ * storage generator. Member widths are compared separately. This is a maintained layout inventory,
+ * supplemented by executed ABI crossings.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-14 (created)
  */
 #include <embk/ipc.h>
 #include <embk/kernel.h>

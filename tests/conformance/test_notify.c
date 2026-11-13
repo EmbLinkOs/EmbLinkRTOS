@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Notification conformance (SPEC-006 §2, §3; KRN-NOTIF-001 to 006, 009, 013, 014). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_notify.c
+ * @brief   Notification conformance (SPEC-006 §2, §3; KRN-NOTIF-001 to 006, 009, 013, 014).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb_test.h>
 
 #define B0    EMB_NOTIFY_BIT(0)

@@ -1,10 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The I2C class on real controllers (SPEC-017 §6; DRV-004 to DRV-006): two of the chip's own
- * joined SCL to SCL and SDA to SDA, one the controller, the other a target answering its own
- * address, on the bench's wires or EmbSIM's. Built where they exist: EMB_TEST_I2C_LOOP names
- * the two devices (tests/conformance/CMakeLists.txt). The lines' pull-ups are the chip's own,
- * which the pin table turns on: 100 kHz and 400 kHz on short wires. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_i2c_loop.c
+ * @brief   The I2C class on real controllers (SPEC-017 §6; DRV-004 to DRV-006).
+ *
+ * @details
+ * Two of the chip's own joined SCL to SCL and SDA to SDA, one the controller, the other a target
+ * answering its own address, on the bench's wires or EmbSIM's. Built where they exist:
+ * EMB_TEST_I2C_LOOP names the two devices (tests/conformance/CMakeLists.txt). The lines' pull-ups
+ * are the chip's own, which the pin table turns on: 100 kHz and 400 kHz on short wires.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <soc_devices.h>
 #include <string.h>

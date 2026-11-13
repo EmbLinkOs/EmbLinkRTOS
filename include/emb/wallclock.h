@@ -1,9 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The wall clock (SPEC-003 §10, KRN-TIM-031, A123): calendar time as nanoseconds since the Unix
- * epoch (UTC), the kernel's monotonic clock plus an offset. Setting or adjusting it changes the
- * offset only: no timeout, timer or deadline moves, and nothing in the kernel reads it. A
- * board's RTC seeds it at boot when its time is set (SPEC-017 §10). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wallclock.h
+ * @brief   The wall clock (SPEC-003 §10, KRN-TIM-031, A123).
+ *
+ * @details
+ * Calendar time as nanoseconds since the Unix epoch (UTC), the kernel's monotonic clock plus an
+ * offset. Setting or adjusting it changes the offset only: no timeout, timer or deadline moves, and
+ * nothing in the kernel reads it. A board's RTC seeds it at boot when its time is set (SPEC-017
+ * §10).
+ *
+ * @see     kernel/time/wallclock.c
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_WALLCLOCK_H
 #define EMB_WALLCLOCK_H
 

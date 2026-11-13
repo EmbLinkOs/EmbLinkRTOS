@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The I2C class (SPEC-017 §6): its requests and blocking wrappers over the device core. A
- * controller's transactions run on lane 0, the transactions it answers as a target on
- * lane 1 (A114). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    i2c.c
+ * @brief   The I2C class (SPEC-017 §6): its requests and blocking wrappers over the device core.
+ *
+ * @details
+ * A controller's transactions run on lane 0, the transactions it answers as a target on lane 1
+ * (A114).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_i2c.h>
 
 #include <embk/drv_bus.h>

@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The watchdog class (SPEC-017 §8): a hardware watchdog started once with its timeout, fed from
- * any context, never stopped; and whether it caused the last reset. FLT-004's software
- * watchdog is its feeder in a system that uses one. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_wdt.h
+ * @brief   The watchdog class (SPEC-017 §8).
+ *
+ * @details
+ * A hardware watchdog started once with its timeout, fed from any context, never stopped; and
+ * whether it caused the last reset. FLT-004's software watchdog is its feeder in a system that uses
+ * one.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_WDT_H
 #define EMB_DRV_WDT_H
 

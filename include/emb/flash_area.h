@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Flash partitions (SPEC-017 §9, SPEC-014 §4, A122): each of the board's flash_partitions, its
- * flash device, offset and size, generated into soc_devices.c as EMB_FLASH_AREA_<NAME>.
- * Offsets given to these calls count from the partition's start, and nothing outside it can
- * be reached through them. MCUboot's flash map is built on them (ADR-058). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    flash_area.h
+ * @brief   Flash partitions (SPEC-017 §9, SPEC-014 §4, A122).
+ *
+ * @details
+ * Each of the board's flash_partitions, its flash device, offset and size, generated into
+ * soc_devices.c as EMB_FLASH_AREA_<NAME>. Offsets given to these calls count from the partition's
+ * start, and nothing outside it can be reached through them. MCUboot's flash map is built on them
+ * (ADR-058).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_FLASH_AREA_H
 #define EMB_FLASH_AREA_H
 

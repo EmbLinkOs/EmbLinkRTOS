@@ -1,13 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The NUCLEO-F446RE as a 3.3 V USB-UART for another board's console (docs/engineering/hil.md):
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    relay.c
+ * @brief   The NUCLEO-F446RE as a 3.3 V USB-UART for another board's console
+ *          (docs/engineering/hil.md).
+ *
+ * @details
  * USART1 receives on PA10 (CN10 pin 33) and every byte goes out of USART2 (PA2) to the ST-LINK's
  * virtual COM port, both at 115200 8N1. The header pins named PA2 and PA3 (CN10 pins 35 and 37,
- * Arduino D1 and D0) are not connected to the STM32 on a stock board (SB62 and SB63 open), which
- * is why the relay exists. PA10 idles high through a pull-up when nothing drives it; a break
- * (the line held low) is not relayed. The green LED (PA5) toggles on each byte.
- * build.sh links it with the board's own clock, pin and USART drivers and its regions.ld.
+ * Arduino D1 and D0) are not connected to the STM32 on a stock board (SB62 and SB63 open), which is
+ * why the relay exists. PA10 idles high through a pull-up when nothing drives it; a break (the line
+ * held low) is not relayed. The green LED (PA5) toggles on each byte. build.sh links it with the
+ * board's own clock, pin and USART drivers and its regions.ld.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-07 (created)
  */
 #include <stdint.h>
 

@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for RP2350 boards described in YAML (A79), on the Arm cores in the Secure
- * state, over the RP2350 drivers (drivers/rpi) and the PL011's (drivers/arm): the clocks from
- * the crystal, the pins from the generated table, the console on a PL011 UART, and the run's
- * end back in the boot ROM's loader. Bases and frequencies come from hw_config.h.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for RP2350 boards described in YAML (A79), on the Arm cores in the Secure
+ *          state, over the RP2350 drivers (drivers/rpi) and the PL011's (drivers/arm).
+ *
+ * @details
+ * The clocks from the crystal, the pins from the generated table, the console on a PL011 UART, and
+ * the run's end back in the boot ROM's loader. Bases and frequencies come from hw_config.h.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/fault.h>
 

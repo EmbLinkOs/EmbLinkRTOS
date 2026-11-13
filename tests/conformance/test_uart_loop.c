@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The UART class receiving on real hardware (SPEC-017 §4; DRV-004 to DRV-006): a UART whose
- * transmit pin is wired to its own receive pin, so every byte it sends comes back through
- * its receiver, its interrupt and the class's receive core. Built only where the bench has
- * the wire: EMB_TEST_UART_LOOP names the device (tests/conformance/CMakeLists.txt). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_uart_loop.c
+ * @brief   The UART class receiving on real hardware (SPEC-017 §4; DRV-004 to DRV-006).
+ *
+ * @details
+ * A UART whose transmit pin is wired to its own receive pin, so every byte it sends comes back
+ * through its receiver, its interrupt and the class's receive core. Built only where the bench has
+ * the wire: EMB_TEST_UART_LOOP names the device (tests/conformance/CMakeLists.txt).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <soc_devices.h>
 #include <string.h>

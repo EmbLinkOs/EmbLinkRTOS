@@ -1,13 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * What FreeRTOS's build of bench_compare needs on the Pico 2 W, and the EmbLinkRTOS build gets
- * from its port and board: the vector table and reset, linked by the board's own regions.ld with
- * its IMAGE_DEF block, and the board's own support (soc/rpi/rp2350/board.c) for the 150 MHz
- * clock, the pins and the UART0 console, so both kernels run on the same clocks. bench_end()
- * reboots into BOOTSEL, as a test image does, for picotool's next load.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bench_platform.c
+ * @brief   What FreeRTOS's build of bench_compare needs on the Pico 2 W, and the EmbLinkRTOS build
+ *          gets from its port and board.
+ *
+ * @details
+ * The vector table and reset, linked by the board's own regions.ld with its IMAGE_DEF block, and
+ * the board's own support (soc/rpi/rp2350/board.c) for the 150 MHz clock, the pins and the UART0
+ * console, so both kernels run on the same clocks. bench_end() reboots into BOOTSEL, as a test
+ * image does, for picotool's next load.
  *
  *   BENCH_TEST_IRQ the board's test line (EMB_HW_TEST_IRQ), bench_compare's interrupt
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-06 (created)
  */
 #include "FreeRTOS.h"
 

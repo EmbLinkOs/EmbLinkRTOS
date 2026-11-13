@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * RISC-V port header, RV32 machine mode (contract SPEC-011 §3, §6; docs/ports/riscv.md):
- * the critical-section primitives, the handler declaration macros, and the port's types.
- * The critical section clears mstatus.MIE; the key is the previous MIE bit.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch.h
+ * @brief   RISC-V port header, RV32 machine mode (contract SPEC-011 §3, §6; docs/ports/riscv.md).
+ *
+ * @details
+ * The critical-section primitives, the handler declaration macros, and the port's types. The
+ * critical section clears mstatus.MIE; the key is the previous MIE bit.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #ifndef EMB_RISCV_EMB_ARCH_H
 #define EMB_RISCV_EMB_ARCH_H

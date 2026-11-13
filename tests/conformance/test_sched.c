@@ -1,7 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Scheduler conformance (03 §2, SPEC-002 §5, §6; KRN-SCH-001 to 008, 016 to 019, 026, 037,
- * 041). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_sched.c
+ * @brief   Scheduler conformance (03 §2, SPEC-002 §5, §6; KRN-SCH-001 to 008, 016 to 019, 026, 037,
+ *          041).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #include <emb_test.h>
 
 static void mark_and_exit(void *arg)

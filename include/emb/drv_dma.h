@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The DMA class (SPEC-017 §7, A119): channels a driver's device was given at generation, a job
- * started on one, its end delivered to the driver in the DMA interrupt. Not for applications:
- * a SPI or UART driver uses it for long transfers, and its own request is what an application
- * waits on. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    drv_dma.h
+ * @brief   The DMA class (SPEC-017 §7, A119).
+ *
+ * @details
+ * Channels a driver's device was given at generation, a job started on one, its end delivered to
+ * the driver in the DMA interrupt. Not for applications: a SPI or UART driver uses it for long
+ * transfers, and its own request is what an application waits on.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DRV_DMA_H
 #define EMB_DRV_DMA_H
 

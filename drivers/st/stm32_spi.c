@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The STM32 SPI as a controller of the SPI class (SPEC-017 §5; RM0390 Rev 6 §26): its own
- * chip-select input managed by software (SSM, SSI), so it is never a mode fault; one frame
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_spi.c
+ * @brief   The STM32 SPI as a controller of the SPI class (SPEC-017 §5; RM0390 Rev 6 §26).
+ *
+ * @details
+ * Its own chip-select input managed by software (SSM, SSI), so it is never a mode fault; one frame
  * in flight, the receive interrupt storing each frame and sending the next.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
  */
 #include <emb_stm32_devices.h>
 #include <emb_stm32_drivers.h>

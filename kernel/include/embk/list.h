@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Intrusive circular doubly linked list with a sentinel head. Every operation is O(1)
- * except iteration. A node that is not in any list has next == NULL, which is how
- * the kernel tells an armed timeout node from a free one. No locking: the caller's
- * lock domain protects the list (CODING-STANDARD CS-2.6).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    list.h
+ * @brief   Intrusive circular doubly linked list with a sentinel head.
+ *
+ * @details
+ * Every operation is O(1) except iteration. A node that is not in any list has next == NULL, which
+ * is how the kernel tells an armed timeout node from a free one. No locking: the caller's lock
+ * domain protects the list (CODING-STANDARD CS-2.6).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMBK_LIST_H
 #define EMBK_LIST_H

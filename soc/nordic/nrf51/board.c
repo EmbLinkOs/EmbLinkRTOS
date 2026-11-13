@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for nRF51 boards described in YAML (A86), as QEMU models the micro:bit: the
- * console on the UART, the run's end through Arm semihosting. Bases from hw_config.h; the
- * UART's register offsets from the nRF51 reference manual and QEMU's hw/char/nrf51_uart.c.
- * An emulation reference, like the MPS2 boards: PSELTXD is left at its reset value, so on a
- * physical micro:bit the console's pin would still have to be selected.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for nRF51 boards described in YAML (A86), as QEMU models the micro:bit.
+ *
+ * @details
+ * The console on the UART, the run's end through Arm semihosting. Bases from hw_config.h; the
+ * UART's register offsets from the nRF51 reference manual and QEMU's hw/char/nrf51_uart.c. An
+ * emulation reference, like the MPS2 boards: PSELTXD is left at its reset value, so on a physical
+ * micro:bit the console's pin would still have to be selected.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/fault.h>
 

@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The flash class (SPEC-017 §9, A122): its checks over a driver's operations (bounds, the write
- * unit, whole sectors), a program read back, an erase sector by sector, and the device's lock
- * around each operation; and the partitions on top (<emb/flash_area.h>). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    flash.c
+ * @brief   The flash class (SPEC-017 §9, A122).
+ *
+ * @details
+ * Its checks over a driver's operations (bounds, the write unit, whole sectors), a program read
+ * back, an erase sector by sector, and the device's lock around each operation; and the partitions
+ * on top (<emb/flash_area.h>).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_flash.h>
 #include <emb/flash_area.h>
 

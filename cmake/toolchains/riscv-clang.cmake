@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # RV32 with Clang and LLD (ADR-053): Clang compiles for --target=riscv32-unknown-elf against
 # picolibc's headers, and links with LLD against picolibc and libgcc from the riscv64-unknown-elf
 # GCC's multilib for the board's ISA and ABI (cmake/emb_flags.cmake finds the directory). The

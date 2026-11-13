@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Writing generated files without losing edits (SPEC-014 §5.3, A126).
 
 Every generated file may be edited. The generator keeps what it last wrote, the baseline, in a

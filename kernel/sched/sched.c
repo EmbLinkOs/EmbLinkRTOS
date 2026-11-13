@@ -1,10 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Fixed-priority preemptive scheduler with FIFO within a level (03 §2, KRN-SCH-001
- * to 008, 041). Base profile: one FIFO list per priority under a bitmap of
- * EMBK_WORD_BITS-bit words with a summary word when more than one is needed. Tiny
- * profile (ADR-036): a table of one thread per priority and a one-word ready set.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sched.c
+ * @brief   Fixed-priority preemptive scheduler with FIFO within a level (03 §2, KRN-SCH-001 to 008,
+ *          041).
+ *
+ * @details
+ * Base profile: one FIFO list per priority under a bitmap of EMBK_WORD_BITS-bit words with a
+ * summary word when more than one is needed. Tiny profile (ADR-036): a table of one thread per
+ * priority and a one-word ready set.
  *
  * With the table, priorities are unique at the base level but not at the effective
  * level (inheritance and ceilings raise an owner to a blocked waiter's level, and two
@@ -19,6 +28,9 @@
  * it leaves the structure when it blocks, suspends or exits.
  *
  * Lock: every function here runs with the scheduler domain held.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <embk/kernel.h>
 #include <embk/sched.h>

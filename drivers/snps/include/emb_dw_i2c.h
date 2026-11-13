@@ -1,7 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The Synopsys DesignWare I2C controller, DW_apb_i2c (the RP2350's I2C0 and I2C1, datasheet
- * §12.2), as a device of the I2C class (SPEC-017 §6). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_dw_i2c.h
+ * @brief   The Synopsys DesignWare I2C controller, DW_apb_i2c (the RP2350's I2C0 and I2C1,
+ *          datasheet §12.2), as a device of the I2C class (SPEC-017 §6).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMB_DW_I2C_H
 #define EMB_DW_I2C_H
 

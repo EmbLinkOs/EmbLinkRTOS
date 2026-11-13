@@ -24,35 +24,35 @@
   "inputs": [
     {
       "path": "arch/cortex_m/arch.yaml",
-      "sha256": "9bef19ece048832364390ddf6129944c8e8828b6cdd2f6a25d64613b14130c2b"
+      "sha256": "c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "38e4d2e65780c0790c92cf2b169be7f0df3e53a384dea3b991fdc8a07bee236b"
+      "sha256": "d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "2027e4379e2a7f6593162f47be353f46700c31db9561aec85c5104e28f5f15e4"
+      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
     },
     {
       "path": "examples/controller/controller.conf",
-      "sha256": "414484d4e194b1af84841326878ce4ed19f98a53fdd5664d0e71eb3f0a14ec8e"
+      "sha256": "f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1"
     },
     {
       "path": "examples/controller/system.yaml",
-      "sha256": "c6a5f5a0f6130a20762458ceedaf90dcc16620bb2ed783279b5401249b3bcfd1"
+      "sha256": "7a80a78e2f7c8ba43b5169b40ba32b78b759699cf350ce9a65d54ac2c449b5b6"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
-      "sha256": "5b3d7afcdf380bfb9fa69c01eecec931b48a0943ce31f9e2e57f374ea7849219"
+      "sha256": "3db4a0a65c9624d865d4ed7fc6354bf95054d0c465b76a2091f06aeac3d7375f"
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "9892c948abe52f23fe8d16976721d400f960c1ac88b20f6fe93fe27ecf2d552f"
+      "sha256": "0d5cc7f5fce4c51be71678987720c85c6e76e05473ff8a78ea5035394316c055"
     },
     {
       "path": "soc/st/stm32f4/stm32f446re.yaml",
-      "sha256": "98a586f0779ef4b1649b95e8fdb138806d6632c6a844bca95573797d29b32bdd"
+      "sha256": "b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4"
     }
   ],
   "name": "controller",

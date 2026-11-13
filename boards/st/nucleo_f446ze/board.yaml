@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Board description (SPEC-014 §4): NUCLEO-F446ZE, MB1137 (UM1974). The second board on the
 # STM32F446: it has no C of its own (SPEC-014 §11). Uncurated until checked on a physical board.
 schema_version: 0

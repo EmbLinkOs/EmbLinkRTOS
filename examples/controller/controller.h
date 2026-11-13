@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* What the controller's system description (system.yaml) names and its generated system.c
- * needs: the samples queue's item. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    controller.h
+ * @brief   What the controller's system description (system.yaml) names and its generated system.c
+ *          needs.
+ *
+ * @details
+ * The samples queue's item.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-13 (created)
+ */
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 

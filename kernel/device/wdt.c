@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The watchdog class (SPEC-017 §8): its checks over a driver's operations, and whether it was
- * started, which the class keeps so every driver behaves alike. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wdt.c
+ * @brief   The watchdog class (SPEC-017 §8).
+ *
+ * @details
+ * Its checks over a driver's operations, and whether it was started, which the class keeps so every
+ * driver behaves alike.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_wdt.h>
 
 #include <embk/kernel.h>

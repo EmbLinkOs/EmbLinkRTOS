@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The DMA class (SPEC-017 §7, A119): its checks over a driver's channel operations. Channels
- * run at once, each its own, so a job does not go through the device's request queue. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    dma.c
+ * @brief   The DMA class (SPEC-017 §7, A119): its checks over a driver's channel operations.
+ *
+ * @details
+ * Channels run at once, each its own, so a job does not go through the device's request queue.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/drv_dma.h>
 
 #include <embk/kernel.h>

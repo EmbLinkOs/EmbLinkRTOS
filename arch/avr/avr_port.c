@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * AVR port, ATmega328P (SPEC-012): Timer1 periodic tick, interrupt mask table, idle,
- * faults. Tickless mode is not implemented in this milestone (the configuration
- * refuses it); the contract functions it needs exist and are never called.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    avr_port.c
+ * @brief   AVR port, ATmega328P (SPEC-012): Timer1 periodic tick, interrupt mask table, idle,
+ *          faults.
+ *
+ * @details
+ * Tickless mode is not implemented in this milestone (the configuration refuses it); the contract
+ * functions it needs exist and are never called.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h>
 #include <emb/context.h>

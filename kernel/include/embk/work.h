@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Work queue objects (SPEC-006 §4). Included by the layout probe, so it names the public
- * work item only as an incomplete type. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    work.h
+ * @brief   Work queue objects (SPEC-006 §4).
+ *
+ * @details
+ * Included by the layout probe, so it names the public work item only as an incomplete type.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMBK_WORK_H
 #define EMBK_WORK_H
 

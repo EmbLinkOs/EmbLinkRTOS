@@ -1,17 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The compiler portability macros of SPEC-001 §10 (BLD-002, PORT-ABI-002). Generic
- * code uses only these names for compiler-specific behavior. The per-compiler header
- * defines what it can; everything left undefined takes the fallback below, so a new
- * compiler compiles the kernel with <emb/compiler/generic.h> and loses only
- * optimizations and diagnostics, never correctness. Additions beyond the SPEC-001
- * list, recorded here: EMB_FALLTHROUGH (CODING-STANDARD CS-7.3), EMB_TRAP,
- * EMB_IS_CONSTANT and EMB_IF_CONSTANT (compile-time time conversions, SPEC-001 §7.3),
- * EMB_MEMCPY and EMB_MEMSET (freestanding builtins, CS-1.2), EMB_FLASH_CONST and
- * EMB_FLASH_READ_* (SPEC-012 §8, defined by the AVR port header, no-ops elsewhere),
- * EMB_TABLE_BOUNDS, EMB_TABLE_START and EMB_TABLE_STOP (registration tables, 09 §7),
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    compiler.h
+ * @brief   The compiler portability macros of SPEC-001 §10 (BLD-002, PORT-ABI-002).
+ *
+ * @details
+ * Generic code uses only these names for compiler-specific behavior. The per-compiler header
+ * defines what it can; everything left undefined takes the fallback below, so a new compiler
+ * compiles the kernel with <emb/compiler/generic.h> and loses only optimizations and diagnostics,
+ * never correctness. Additions beyond the SPEC-001 list, recorded here: EMB_FALLTHROUGH
+ * (CODING-STANDARD CS-7.3), EMB_TRAP, EMB_IS_CONSTANT and EMB_IF_CONSTANT (compile-time time
+ * conversions, SPEC-001 §7.3), EMB_MEMCPY and EMB_MEMSET (freestanding builtins, CS-1.2),
+ * EMB_FLASH_CONST and EMB_FLASH_READ_* (SPEC-012 §8, defined by the AVR port header, no-ops
+ * elsewhere), EMB_TABLE_BOUNDS, EMB_TABLE_START and EMB_TABLE_STOP (registration tables, 09 §7),
  * EMB_LAYOUT_MARKER (the storage probe, SPEC-009; no fallback).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_COMPILER_H
 #define EMB_COMPILER_H

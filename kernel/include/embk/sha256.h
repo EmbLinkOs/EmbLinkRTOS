@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* SHA-256 (FIPS 180-4), inside the kernel: the entropy class's conditioning function
- * (SPEC-017 §11, A124; NIST SP 800-90B §3.1.5.1.1 lists it as vetted). Not a public
- * cryptography API: applications bring their own. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    sha256.h
+ * @brief   SHA-256 (FIPS 180-4), inside the kernel.
+ *
+ * @details
+ * The entropy class's conditioning function (SPEC-017 §11, A124; NIST SP 800-90B §3.1.5.1.1 lists
+ * it as vetted). Not a public cryptography API: applications bring their own.
+ *
+ * @see     kernel/device/sha256.c
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #ifndef EMBK_SHA256_H
 #define EMBK_SHA256_H
 

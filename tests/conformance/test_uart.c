@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The UART class (SPEC-017 §4; DRV-004 to DRV-007): its requests, wrappers and polled calls,
- * and the receive core drivers share, through a fake loopback UART whose transmitter is a
- * software interrupt that feeds each byte back to its own receiver. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_uart.c
+ * @brief   The UART class (SPEC-017 §4; DRV-004 to DRV-007).
+ *
+ * @details
+ * Its requests, wrappers and polled calls, and the receive core drivers share, through a fake
+ * loopback UART whose transmitter is a software interrupt that feeds each byte back to its own
+ * receiver.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

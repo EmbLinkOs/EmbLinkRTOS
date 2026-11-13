@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The crash record (SPEC-015 §4, OBS-016, A71 to A73). A kernel fault writes a record of
- * itself into memory the port's reset leaves alone, before the fault hook and the fault
- * action; the next boot validates it (magic, version, length, CRC-32) and these calls
- * return or discard it. The record's bytes (raw) are the wire format tools/crashdec
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    crash.h
+ * @brief   The crash record (SPEC-015 §4, OBS-016, A71 to A73).
+ *
+ * @details
+ * A kernel fault writes a record of itself into memory the port's reset leaves alone, before the
+ * fault hook and the fault action; the next boot validates it (magic, version, length, CRC-32) and
+ * these calls return or discard it. The record's bytes (raw) are the wire format tools/crashdec
  * decodes: version 1 on 32-bit and native ports, the small version 2 on AVR.
+ *
+ * @see     kernel/fault/crash.c
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #ifndef EMB_CRASH_H
 #define EMB_CRASH_H

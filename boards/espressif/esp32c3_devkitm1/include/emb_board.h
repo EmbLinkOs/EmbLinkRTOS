@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* esp32c3_devkitm1 board interface: console on UART0 (the CP2102N's port). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_board.h
+ * @brief   esp32c3_devkitm1 board interface: console on UART0 (the CP2102N's port).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
+ */
 #ifndef EMB_BOARD_H
 #define EMB_BOARD_H
 

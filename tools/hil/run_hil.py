@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Run a test image on a physical board (hardware in the loop) and read its console.
 
     run_hil.py IMAGE --hw-json BOARD/generated/docs/hw.json --port /dev/ttyACM0

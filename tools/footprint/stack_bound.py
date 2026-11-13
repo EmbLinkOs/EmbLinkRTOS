@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """A static worst-case stack bound for each thread and the interrupt stack (KRN-MEM-009).
 
     stack_bound.py --elf build/controller/controller.elf --build build/controller \\

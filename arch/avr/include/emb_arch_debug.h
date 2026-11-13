@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The avr port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch_debug.h
+ * @brief   The avr port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107).
+ *
+ * @details
  * The AVR frame is not described yet: the descriptor is off by default on AVR, whose constants live
  * in RAM. Interrupts run on the interrupted context's stack (A90). Only kernel/debug/descriptor.c
  * includes this.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #ifndef EMB_ARCH_DEBUG_H
 #define EMB_ARCH_DEBUG_H

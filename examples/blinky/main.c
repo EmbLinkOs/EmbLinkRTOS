@@ -1,8 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Firat Hajiyev */
 /*
- * Toggle the board LED every 500 ms. The absolute deadline keeps the
- * transitions on a fixed schedule instead of accumulating loop overhead.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    main.c
+ * @brief   Toggle the board LED every 500 ms.
+ *
+ * @details
+ * The absolute deadline keeps the transitions on a fixed schedule instead of accumulating loop
+ * overhead.
+ *
+ * @author  Firat Hajiyev
+ * @date    2026-11-08 (created)
  */
 #include <emb/emb.h>
 

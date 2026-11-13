@@ -1,14 +1,25 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The kernel under asynchronous interrupts (SPEC-013 §5, A93): the native port's injector
- * lands ticks, and a test interrupt every fourth time, at whatever statement the running
- * thread is on, as a board's interrupts do, and never only at a gate crossing. A producer
- * and a consumer pass numbered items through a message queue and share a mutex, a thread
- * takes what the interrupt gives, and a timer counts in the tick's interrupt, until 5,000
- * interrupts have landed where they hit. The run checks that nothing is lost, duplicated
- * or reordered; the invariant checker
- * (CONFIG_EMB_NATIVE_INVARIANTS) checks the scheduler at every crossing throughout.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_async_irq.c
+ * @brief   The kernel under asynchronous interrupts (SPEC-013 §5, A93).
+ *
+ * @details
+ * The native port's injector lands ticks, and a test interrupt every fourth time, at whatever
+ * statement the running thread is on, as a board's interrupts do, and never only at a gate
+ * crossing. A producer and a consumer pass numbered items through a message queue and share a
+ * mutex, a thread takes what the interrupt gives, and a timer counts in the tick's interrupt, until
+ * 5,000 interrupts have landed where they hit. The run checks that nothing is lost, duplicated or
+ * reordered; the invariant checker (CONFIG_EMB_NATIVE_INVARIANTS) checks the scheduler at every
+ * crossing throughout.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb_native.h>
 #include <emb_test.h>

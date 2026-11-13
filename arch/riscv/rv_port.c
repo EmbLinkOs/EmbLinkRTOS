@@ -1,16 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * RISC-V port, RV32 machine mode (docs/ports/riscv.md; contract SPEC-011): the trap
- * handler, startup, idle, faults. The frame and the switch are in rv_switch.S; the tick,
- * the interrupt controller and the cycle counter are the SoC's: the CLINT (rv_clint.c,
- * QEMU virt) or the ESP32-C3's SYSTIMER and interrupt matrix (rv_esp32c3.c), behind
- * rv_soc.h.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    rv_port.c
+ * @brief   RISC-V port, RV32 machine mode (docs/ports/riscv.md; contract SPEC-011).
+ *
+ * @details
+ * The trap handler, startup, idle, faults. The frame and the switch are in rv_switch.S; the tick,
+ * the interrupt controller and the cycle counter are the SoC's: the CLINT (rv_clint.c, QEMU virt)
+ * or the ESP32-C3's SYSTIMER and interrupt matrix (rv_esp32c3.c), behind rv_soc.h.
  *
  * Switching is direct, as on AVR: emb_arch_switch_to() saves the caller's frame and
  * resumes the next one with mret; the trap entry saves the interrupted frame, runs the
  * handler on the interrupt stack, and resumes the context the kernel's interrupt exit
  * returns. Handlers run with MIE clear (no nesting in this milestone).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include "rv_soc.h"
 

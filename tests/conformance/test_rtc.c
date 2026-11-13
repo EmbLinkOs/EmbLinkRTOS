@@ -1,8 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The RTC class (SPEC-017 §10, A123): its checks over a driver's operations, through a fake RTC
- * whose time the test moves and whose alarm the test fires: one alarm, re-armed from its own
- * callback, canceled, disarmed by a set; backup registers; the wall clock seeded at start. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_rtc.c
+ * @brief   The RTC class (SPEC-017 §10, A123).
+ *
+ * @details
+ * Its checks over a driver's operations, through a fake RTC whose time the test moves and whose
+ * alarm the test fires: one alarm, re-armed from its own callback, canceled, disarmed by a set;
+ * backup registers; the wall clock seeded at start.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

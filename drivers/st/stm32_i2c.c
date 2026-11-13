@@ -1,7 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4 I2C (RM0390 Rev 6 §24) as an I2C class device (SPEC-017 §6), by interrupt.
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_i2c.c
+ * @brief   The STM32F4 I2C (RM0390 Rev 6 §24) as an I2C class device (SPEC-017 §6), by interrupt.
  *
+ * @details
  * As a controller each segment is a start (or a repeated start), the address with its
  * direction, then its bytes, and the last ends with a stop. A read's acknowledge is managed
  * as §24.3.3 asks: one byte, ACK off before ADDR is cleared; two, POS with ACK off and both
@@ -9,7 +17,11 @@
  * As a target the controller acknowledges its address (OAR1) only while a listen waits: ADDR
  * starts its transaction, RXNE and TXE move its bytes, and the controller's stop (STOPF, the
  * target receiving) or its not-acknowledge of the last byte read (AF, the target sending)
- * ends it. */
+ * ends it.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb/irq.h>
 
 #include <emb_stm32_devices.h>

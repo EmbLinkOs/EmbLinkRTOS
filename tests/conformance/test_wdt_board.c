@@ -1,9 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The board's watchdog (SPEC-017 §8; FLT-004): started, fed for half a second, then starved,
- * it resets the board, and after the reset it says it did. The reset check (EMB_ASSERT_RESETS)
- * needs a board that resumes a case after a reset; elsewhere it is skipped. Built where the
- * board has a watchdog device (EMB_SOC_WATCHDOG_DEVICE). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_wdt_board.c
+ * @brief   The board's watchdog (SPEC-017 §8; FLT-004).
+ *
+ * @details
+ * Started, fed for half a second, then starved, it resets the board, and after the reset it says it
+ * did. The reset check (EMB_ASSERT_RESETS) needs a board that resumes a case after a reset;
+ * elsewhere it is skipped. Built where the board has a watchdog device (EMB_SOC_WATCHDOG_DEVICE).
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <soc_devices.h>
 

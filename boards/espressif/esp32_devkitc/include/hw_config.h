@@ -1,7 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Hardware configuration of esp32_devkitc (ESP-WROOM-32). Hand-written from Espressif's ESP32
- * Technical Reference Manual v5.x and ESP-IDF v5.4's components/soc/esp32 register headers. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    hw_config.h
+ * @brief   Hardware configuration of esp32_devkitc (ESP-WROOM-32).
+ *
+ * @details
+ * Hand-written from Espressif's ESP32 Technical Reference Manual v5.x and ESP-IDF v5.4's
+ * components/soc/esp32 register headers.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
+ */
 #ifndef HW_CONFIG_H
 #define HW_CONFIG_H
 

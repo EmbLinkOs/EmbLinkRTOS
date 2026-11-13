@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # STM32F446RE: the F446 die with 512 KiB of flash in the LQFP64 package. The bonded pins
 # come from ST's open pin data (STM32F446R(C-E)Tx.xml): no PB11, only PD2 on port D.
 schema_version: 0

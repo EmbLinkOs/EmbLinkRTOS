@@ -1,13 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The Cortex-M port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107): the
- * switch frame PendSV leaves on a thread's stack (cm_vectors.c) and the interrupt stack.
- * From the saved sp upward: the thread's PSPLIM on Armv8-M Mainline, r4 to r11,
- * EXC_RETURN, s16 to s31 when EXC_RETURN bit 4 is clear, then the exception's hardware
- * frame (r0 to r3, r12, lr, pc, xPSR, and s0 to s15, FPSCR and a reserved word when the
- * frame is the extended one), and one word more when xPSR bit 9 says the hardware aligned
- * the stack. Only kernel/debug/descriptor.c includes this.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch_debug.h
+ * @brief   The Cortex-M port's part of the debug descriptor (PORT-012, SPEC-011 §14, A107).
+ *
+ * @details
+ * The switch frame PendSV leaves on a thread's stack (cm_vectors.c) and the interrupt stack. From
+ * the saved sp upward: the thread's PSPLIM on Armv8-M Mainline, r4 to r11, EXC_RETURN, s16 to s31
+ * when EXC_RETURN bit 4 is clear, then the exception's hardware frame (r0 to r3, r12, lr, pc, xPSR,
+ * and s0 to s15, FPSCR and a reserved word when the frame is the extended one), and one word more
+ * when xPSR bit 9 says the hardware aligned the stack. Only kernel/debug/descriptor.c includes
+ * this.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #ifndef EMB_ARCH_DEBUG_H
 #define EMB_ARCH_DEBUG_H

@@ -1,9 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The STM32F4's independent watchdog (RM0390 Rev 6 §19) as a watchdog class device (SPEC-017
- * §8): once started it cannot be stopped, and it resets the part when not reloaded within its
- * timeout. Its LSI clock lies between 17 and 47 kHz (DS10693 §6.3.8); the timeout is counted at
- * 47 kHz, so the part is never reset before it. The reset's cause is RCC_CSR's, read once. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_iwdg.c
+ * @brief   The STM32F4's independent watchdog (RM0390 Rev 6 §19) as a watchdog class device
+ *          (SPEC-017 §8).
+ *
+ * @details
+ * Once started it cannot be stopped, and it resets the part when not reloaded within its timeout.
+ * Its LSI clock lies between 17 and 47 kHz (DS10693 §6.3.8); the timeout is counted at 47 kHz, so
+ * the part is never reset before it. The reset's cause is RCC_CSR's, read once.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_stm32_devices.h>
 #include <emb_stm32_drivers.h>
 

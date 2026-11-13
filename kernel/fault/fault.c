@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel faults (03 §10, SPEC-001 §5.3): record, hook, act. The crash record (SPEC-015
- * §4) is written first, before any recovery action (FLT-001); then the hook receives the
- * information and the configured action follows.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    fault.c
+ * @brief   Kernel faults (03 §10, SPEC-001 §5.3): record, hook, act.
+ *
+ * @details
+ * The crash record (SPEC-015 §4) is written first, before any recovery action (FLT-001); then the
+ * hook receives the information and the configured action follows.
+ *
+ * @see     include/emb/fault.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/fault.h>
 #include <emb/kernel.h>

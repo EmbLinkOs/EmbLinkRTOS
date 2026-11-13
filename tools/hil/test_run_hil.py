@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """run_hil tests without a board: a pseudo-terminal stands in for the ST-LINK's serial port
 and a stand-in flash command signals a thread that plays the board's console output."""
 import io

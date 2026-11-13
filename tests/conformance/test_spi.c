@@ -1,8 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* The SPI controller class (SPEC-017 §5; DRV-004 to DRV-006): its requests and blocking
- * wrapper, through a fake controller whose transfers end in a software interrupt, each frame
- * looped back as a wire from MOSI to MISO would. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_spi.c
+ * @brief   The SPI controller class (SPEC-017 §5; DRV-004 to DRV-006).
+ *
+ * @details
+ * Its requests and blocking wrapper, through a fake controller whose transfers end in a software
+ * interrupt, each frame looped back as a wire from MOSI to MISO would.
+ *
+ * @author  teo1747
+ * @date    2026-11-13 (created)
+ */
 #include <emb_test.h>
 #include <string.h>
 

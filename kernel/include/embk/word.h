@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The kernel's bitmap word (ADR-036, SPEC-012 §2): CONFIG_EMB_ARCH_WORD_BITS wide,
- * one bit per priority level (ready set) or per thread (tiny wait queues). The
- * highest set bit is the highest priority; finding it is one builtin on 32- and
- * 64-bit cores and a four-step nibble lookup on AVR (SPEC-012 §6).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    word.h
+ * @brief   The kernel's bitmap word (ADR-036, SPEC-012 §2).
+ *
+ * @details
+ * CONFIG_EMB_ARCH_WORD_BITS wide, one bit per priority level (ready set) or per thread (tiny wait
+ * queues). The highest set bit is the highest priority; finding it is one builtin on 32- and 64-bit
+ * cores and a four-step nibble lookup on AVR (SPEC-012 §6).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMBK_WORD_H
 #define EMBK_WORD_H
