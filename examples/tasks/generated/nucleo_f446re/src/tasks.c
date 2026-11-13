@@ -84,7 +84,7 @@ static void door_exit(emb_state_t state)
 static const emb_task_desc_t door_desc = {"door", door_dispatch, door_enter, door_exit, &door_event, &door_task_queue,
                                        door_timeouts, 0u, (uint16_t)sizeof(emb_task_event_t), DOOR_CLOSED,
                                        DOOR_STATE_COUNT, EMB_TASK_EVENT, 0u};
-door_t door = {{&door_desc, {0u, 0u, 0u, 0u, 0u}, DOOR_CLOSED, {0u, 0u}}};
+door_t door = {.task = {.desc = &door_desc, .state = DOOR_CLOSED}};
 
 static void door_main(void *arg)
 {
@@ -117,7 +117,7 @@ static emb_state_t blink_dispatch(emb_state_t state, uint8_t why)
 static const emb_task_desc_t blink_desc = {"blink", blink_dispatch, NULL, NULL, NULL, NULL,
                                        NULL, 500u, 0u, BLINK_DARK,
                                        BLINK_STATE_COUNT, EMB_TASK_PERIODIC, 0u};
-blink_t blink = {{&blink_desc, {0u, 0u, 0u, 0u, 0u}, BLINK_DARK, {0u, 0u}}};
+blink_t blink = {.task = {.desc = &blink_desc, .state = BLINK_DARK}};
 
 static void blink_main(void *arg)
 {

@@ -267,7 +267,8 @@ def tasks_c(r, c_comment):
         out += (f"\nstatic const emb_task_desc_t {n}_desc = {{\"{n}\", {n}_dispatch, {enter}, {leave}, {evbuf}, {queue},\n"
                 f"                                       {timeouts}, {t['period_ms']}u, {size}, {N}_{_up(t['initial'])},\n"
                 f"                                       {N}_STATE_COUNT, {model}, 0u}};\n")
-        out += f"{n}_t {n} = {{{{&{n}_desc, {{0u, 0u, 0u, 0u, 0u}}, {N}_{_up(t['initial'])}, {{0u, 0u}}}}}};\n"
+        # designated: the counters, and the task's data, start at zero
+        out += f"{n}_t {n} = {{.task = {{.desc = &{n}_desc, .state = {N}_{_up(t['initial'])}}}}};\n"
         out += f"\nstatic void {n}_main(void *arg)\n{{\n    (void)arg;\n    emb_task_run(&{n}.task);\n}}\n"
         out += f"\nEMB_THREAD_DEFINE({n}_thread, {n}_main, NULL, {t['priority']}u, {t['stack']}u, 0u);\n"
     return out
