@@ -72,11 +72,10 @@ static emb_trace_stats_t trace_stats;
 static void ring_sink(const emb_trace_event_t *ev, void *ctx)
 {
     emb_irq_key_t key;
-    trace_rec_t *r;
     (void)ctx;
     key = emb_irq_lock();
     if (recording) {
-        r = &trace_ring[ring_next & RING_MASK];
+        trace_rec_t *r = &trace_ring[ring_next & RING_MASK];
         r->ts = (uint32_t)emb_arch_cycles();
         r->id = ev->id;
         r->cpu = ev->cpu;
