@@ -48,6 +48,8 @@ devices:
   - { name: i2c1, doc: "I2C1 on D15 (PB8, SCL) and D14 (PB9, SDA); the HIL suite wires it to I2C2" }
   - { name: i2c2, doc: "I2C2 on D6 (PB10, SCL) and D3 (PB3, SDA), the HIL suite's target for I2C1" }
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
+  - { name: tim5, class: counter, doc: "TIM5, 32 bits at 1 MHz: the counter class's (A129); TIM2 stays the controller's ADC trigger" }
+  - { name: tim9, class: counter, doc: "TIM9, 16 bits at 1 MHz: it wraps every 65.5 ms, so its tests widen the count on the board" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:

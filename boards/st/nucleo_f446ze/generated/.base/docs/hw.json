@@ -363,7 +363,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+      "sha256": "bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",
@@ -371,7 +371,7 @@
     },
     {
       "path": "soc/st/stm32f4/stm32f446.yaml",
-      "sha256": "f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a"
+      "sha256": "bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9"
     },
     {
       "path": "soc/st/stm32f4/stm32f446ze.yaml",
@@ -1063,6 +1063,24 @@
         ],
         "name": "tim5",
         "size": 1024
+      },
+      {
+        "base": 1073823744,
+        "clock": {
+          "bit": 16,
+          "bus": "apb2"
+        },
+        "compatible": "st,stm32-tim",
+        "counter_bits": 16,
+        "irqs": [
+          {
+            "name": "global",
+            "number": 24
+          }
+        ],
+        "name": "tim9",
+        "size": 1024,
+        "timer_channels": 2
       },
       {
         "base": 1073897472,

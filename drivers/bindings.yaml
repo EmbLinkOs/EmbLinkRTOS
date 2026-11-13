@@ -13,7 +13,10 @@
 # clock.enable_offset, and clock_hz, the frequency it is clocked at), device.<key> (the board
 # device's own properties; device.bus is a reference to the bus device), board.<path> or
 # soc.<path> (the SoC description's own facts: soc.gpio.lines), or pins.<signal> (the GPIO line
-# carrying the device's pin: an I2C bus's SCL and SDA, which its recovery drives by hand).
+# carrying the device's pin: an I2C bus's SCL and SDA, which its recovery drives by hand), or
+# takes.<key>.<field> (a peripheral the device takes besides its own: an ADC's pacing timer). A
+# field may have a default, { from: <expression>, default: <value> }. A peripheral several
+# classes can drive has a binding for each, keyed <compatible>:<class> (A129).
 schema_version: 0
 kind: bindings
 bindings:
@@ -72,6 +75,25 @@ bindings:
       dma_tx: dma.tx
     buffers: { rx: { size: device.rx_buffer, default: 64 } }
     doc: the console, polled, with the UART class's requests to come (SPEC-017 §4)
+  st,stm32-tim:counter:
+    class: counter
+    level: kernel
+    sources: [drivers/st/stm32_tim_counter.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_counter_api.dev
+    config: emb_stm32_tim_config_t
+    data: emb_stm32_counter_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.timer_clock_hz
+      rate_hz: { from: device.rate_hz, default: 1000000 }
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      bits: peripheral.counter_bits
+      channels: { from: peripheral.timer_channels, default: 4 }
+    doc: general-purpose timers as counters, widened to 64 bits, an alarm on each compare channel (SPEC-017 §11a, A129)
   arm,pl011:
     class: uart
     level: early
@@ -267,6 +289,24 @@ bindings:
     data: emb_rp2350_trng_data_t
     fields: { base: peripheral.base, irq: peripheral.irqs.irq, sample_count: device.sample_count }
     doc: the RP2350's TRNG (SPEC-017 §11), every health test on; KERNEL, as its read waits on a semaphore
+  rpi,rp2350-timer:
+    class: counter
+    level: kernel
+    sources: [drivers/rpi/rp2350_timer.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_timer_api.dev
+    config: emb_rp2350_timer_config_t
+    data: emb_rp2350_timer_data_t
+    fields:
+      base: peripheral.base
+      index: peripheral.index
+      rate_hz: { from: device.rate_hz, default: 1000000 }
+      irq0: peripheral.irqs.alarm0
+      irq1: peripheral.irqs.alarm1
+      irq2: peripheral.irqs.alarm2
+      irq3: peripheral.irqs.alarm3
+    doc: TIMER0 and TIMER1 as counters, 64 bits of their tick, an alarm on each of the four (SPEC-017 §11a, A129)
   rpi,rp2350-qmi:
     class: flash
     level: early

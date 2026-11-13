@@ -7,7 +7,7 @@
 
 /**
  * @file    stm32_tim.c
- * @brief   STM32 general-purpose timer as a periodic trigger (RM0390 Rev 6 §18).
+ * @brief   STM32 general-purpose timer as a periodic trigger (RM0390 Rev 6 §17).
  *
  * @details
  * Its update event drives TRGO, which another peripheral (ADC1's regular conversions) takes as its

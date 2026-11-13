@@ -15,13 +15,13 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
+ *     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
  *   soc/st/stm32f4/stm32f4.yaml
  *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a
+ *     bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -30,7 +30,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 13u
+#define EMB_SOC_DEVICE_COUNT 15u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -49,6 +49,8 @@ extern const emb_device_t emb_dev_uart4;
 extern const emb_device_t emb_dev_spi2;
 extern const emb_device_t emb_dev_i2c1;
 extern const emb_device_t emb_dev_i2c2;
+extern const emb_device_t emb_dev_tim5;
+extern const emb_device_t emb_dev_tim9;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
@@ -64,12 +66,19 @@ extern const emb_device_t emb_dev_i2c2;
 #define EMB_SOC_HAS_SPI2   1
 #define EMB_SOC_HAS_I2C1   1
 #define EMB_SOC_HAS_I2C2   1
+#define EMB_SOC_HAS_TIM5   1
+#define EMB_SOC_HAS_TIM9   1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_iwdg)
 
 /* the board's RTC device: the first of its class */
 #define EMB_SOC_RTC_DEVICE (&emb_dev_rtc)
+
+/* the board's counters: the first of their class, and all of them (SPEC-017 §11a) */
+#define EMB_SOC_COUNTER_DEVICE  (&emb_dev_tim5)
+#define EMB_SOC_COUNTER_DEVICES &emb_dev_tim5, &emb_dev_tim9
+#define EMB_SOC_COUNTER_COUNT   2u
 
 /* the console's UART device (the board's console:) */
 #define EMB_SOC_CONSOLE_DEVICE (&emb_dev_usart2)

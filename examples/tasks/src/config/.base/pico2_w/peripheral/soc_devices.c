@@ -16,9 +16,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/rpi/pico2_w/board.yaml
- *     dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0
+ *     7f67d8f9e559e31b72de1c518676487b5ee54067cbd55465c4b5f45a1f334584
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/rpi/rp2350/rp2350.yaml
@@ -297,6 +297,30 @@ const emb_device_t emb_dev_i2c1 = {
     .dep_count = 1u,
 };
 
+/* timer1: rpi,rp2350-timer, counter, KERNEL */
+static const emb_rp2350_timer_config_t timer1_config = {
+    .base = 0x400B8000u, /* peripheral.base */
+    .index = 1u,         /* peripheral.index */
+    .rate_hz = 1000000u, /* device.rate_hz, its default */
+    .irq0 = 4u,          /* peripheral.irqs.alarm0 */
+    .irq1 = 5u,          /* peripheral.irqs.alarm1 */
+    .irq2 = 6u,          /* peripheral.irqs.alarm2 */
+    .irq3 = 7u,          /* peripheral.irqs.alarm3 */
+};
+static emb_device_state_t timer1_state;
+static emb_rp2350_timer_data_t timer1_data;
+const emb_device_t emb_dev_timer1 = {
+    .name = "timer1",
+    .api = &emb_rp2350_timer_api.dev,
+    .config = &timer1_config,
+    .state = &timer1_state,
+    .data = &timer1_data,
+    .deps = NULL,
+    .class_id = EMB_DRV_CLASS_COUNTER,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 0u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_clocks,   /* 0: EARLY */
@@ -311,9 +335,10 @@ static const emb_device_t *const devices[] = {
     &emb_dev_spi1,     /* 9: KERNEL */
     &emb_dev_i2c0,     /* 10: KERNEL */
     &emb_dev_i2c1,     /* 11: KERNEL */
+    &emb_dev_timer1,   /* 12: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 12u, 8u};
+const emb_device_table_t emb_board_device_table = {devices, 13u, 8u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

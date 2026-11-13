@@ -49,6 +49,7 @@ devices:
   - { name: i2c0, deps: [io_bank0], doc: "I2C0 on GPIO8 (pin 11, SDA) and GPIO9 (pin 12, SCL); the HIL suite wires it to I2C1" }
   - { name: i2c1, deps: [io_bank0], doc: "I2C1 on GPIO6 (pin 9, SDA) and GPIO7 (pin 10, SCL), the HIL suite's target for I2C0" }
   - { name: uart1, baud: 115200, deps: [io_bank0], dma: [tx], doc: "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
+  - { name: timer1, doc: "TIMER1, 64 bits at 1 MHz: the counter class's (A129); TIMER0 is left for M4.4's tickless time" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:
   - { name: app, base: 0x10000000, size: 4032K }       # the first 4 MiB less 64 KiB

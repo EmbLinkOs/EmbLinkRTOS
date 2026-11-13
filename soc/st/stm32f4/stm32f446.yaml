@@ -72,11 +72,11 @@ peripherals:
       irqs: [ { name: pvd, number: 1 } ] }
   - { name: rcc, compatible: "st,stm32f4-rcc", base: 0x40023800, size: 0x400,
       irqs: [ { name: global, number: 5 } ] }
-  # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §18): its update event is ADC1's trigger
+  # TIM2, a 32-bit general-purpose timer on APB1 (RM0390 §17): its update event is ADC1's trigger
   - { name: tim2, compatible: "st,stm32-tim", base: 0x40000000, size: 0x400, counter_bits: 32,
       clock: { bus: apb1, bit: 0 },
       irqs: [ { name: global, number: 28 } ] }
-  # TIM3 and TIM4, 16-bit, and TIM5, 32-bit, the same general-purpose timers on APB1 (RM0390 §18,
+  # TIM3 and TIM4, 16-bit, and TIM5, 32-bit, the same general-purpose timers on APB1 (RM0390 §17,
   # Table 38): four channels each, for PWM, capture and compare
   - { name: tim3, compatible: "st,stm32-tim", base: 0x40000400, size: 0x400, counter_bits: 16,
       clock: { bus: apb1, bit: 1 },
@@ -87,6 +87,11 @@ peripherals:
   - { name: tim5, compatible: "st,stm32-tim", base: 0x40000C00, size: 0x400, counter_bits: 32,
       clock: { bus: apb1, bit: 3 },
       irqs: [ { name: global, number: 50 } ] }
+  # TIM9, a 16-bit general-purpose timer on APB2 with two channels (RM0390 §18): the same
+  # registers as TIM2's but CCMR2, CCR3 and CCR4; its interrupt is shared with TIM1's break
+  - { name: tim9, compatible: "st,stm32-tim", base: 0x40014000, size: 0x400, counter_bits: 16,
+      timer_channels: 2, clock: { bus: apb2, bit: 16 },
+      irqs: [ { name: global, number: 24 } ] }
   # the DMA controllers (RM0390 §9), on AHB1, an interrupt per stream (SVD 1.9): each request on
   # the streams Tables 28 and 29 list it on, with its channel select (dma_requests: A119, the
   # tables cross-checked with EmbSIM's STM32F446 model); DMA2 alone copies memory to memory

@@ -788,6 +788,12 @@ def soc_devices_h(r):
         if rtc is not None:
             out += "\n/* the board's RTC device: the first of its class */\n"
             out += f"#define EMB_SOC_RTC_DEVICE (&emb_dev_{rtc['name']})\n"
+        counters = [d for d in r["devices"] if d["class"] == "counter"]
+        if counters:
+            out += "\n/* the board's counters: the first of their class, and all of them (SPEC-017 §11a) */\n"
+            out += f"#define EMB_SOC_COUNTER_DEVICE  (&emb_dev_{counters[0]['name']})\n"
+            out += "#define EMB_SOC_COUNTER_DEVICES " + ", ".join(f"&emb_dev_{d['name']}" for d in counters) + "\n"
+            out += f"#define EMB_SOC_COUNTER_COUNT   {len(counters)}u\n"
         ent = next((d for d in r["devices"] if d["class"] == "entropy"), None)
         if ent is not None:
             out += "\n/* the board's entropy source: the first of its class (SPEC-017 §11) */\n"
@@ -874,7 +880,7 @@ def soc_devices_c(r):
             width = max(len(f".{f['field']} = {f['c']},") for f in d["fields"])
             for f in d["fields"]:
                 init = f".{f['field']} = {f['c']},"
-                out += f"    {init.ljust(width)} /* {f['expr']} */\n"
+                out += f"    {init.ljust(width)} /* {f['expr']}{', its default' if f.get('default') else ''} */\n"
             out += "};\n"
             if geometry:
                 out += "/* clang-format on */\n"

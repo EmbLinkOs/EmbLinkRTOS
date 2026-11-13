@@ -116,6 +116,16 @@ if(CONFIG_EMB_DEVICE)
       endif()
     endif()
   endif()
+  if(CONFIG_EMB_DRV_COUNTER)
+    emb_add_test(test_counter test_counter.c) # SPEC-017 §11a
+    # the board's own counters: every one it has
+    if(EXISTS "${EMB_BOARD_DIR}/include/soc_devices.h")
+      file(STRINGS "${EMB_BOARD_DIR}/include/soc_devices.h" _emb_counter REGEX "EMB_SOC_COUNTER_DEVICES")
+      if(_emb_counter)
+        emb_add_test(test_counter_board test_counter_board.c)
+      endif()
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_RTC)
     emb_add_test(test_rtc test_rtc.c) # SPEC-017 §10
     # the board's own RTC: its time, its alarm, across a reset

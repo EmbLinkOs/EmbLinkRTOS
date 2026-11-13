@@ -3,6 +3,13 @@
 - The STM32F446's description gains TIM3, TIM4 and TIM5 and their channels' pins, its ADC1's inputs, temperature sensor, internal reference and DMA2 streams, and the analog function of PA0 to PA7, PB0, PB1 and PC0 to PC5. The RP2350's gains its ADC, the PWM block's twelve slices, TIMER0 and TIMER1, PLL_USB at 48 MHz for clk_adc, each line's PWM function and the ADC's inputs on GPIO26 to GPIO29 ([A129](docs/specs/AMENDMENTS-M4.md)).
 - The generator takes a binding per class for a peripheral several classes can drive, keyed `compatible:class`, and a board device's `class:` picks one; it computes the STM32F4 timers' doubled clock, solves a PLL of a fixed rate, configures analog pins, and reads a timer's `counter_bits` and an ADC's `adc:` facts ([hwgen](docs/engineering/hwgen.md)).
 
+### Added (the counter class, 2026-11-13)
+
+- `<emb/drv_counter.h>`, behind `CONFIG_EMB_DRV_COUNTER` (SPEC-017 §11a, [A129](docs/specs/AMENDMENTS-M4.md)): a free-running counter at a known rate, widened to 64 bits; one-shot alarms on its channels at an absolute count, never early, `EMB_EPAST` for one already passed; and periodic callbacks without drift, late periods skipped. Each callback runs in the counter's interrupt.
+- Drivers: the STM32's general-purpose timers (`drivers/st/stm32_tim_counter.c`; the NUCLEO-F446RE's TIM5, 32 bits, and TIM9, 16), and the RP2350's TIMER0 and TIMER1 (`drivers/rpi/rp2350_timer.c`; the Pico 2 W's TIMER1).
+- The status codes of the counter and PWM classes: `EMB_EPAST` (−96) and `EMB_ENOSIGNAL` (−100).
+- The NUCLEO-F446RE's description gains TIM9, two channels (`timer_channels:`), and a binding's fields read a peripheral's number, `peripheral.index` (TIMER1's tick generator).
+
 ### Changed (applications in MPLAB Harmony's form, 2026-11-13)
 
 - An application's generated files follow MPLAB Harmony v3 ([A130](docs/specs/AMENDMENTS-M4.md)). Each board's are in Harmony's configuration folder, `src/config/<board>/`: `definitions.h`, `configuration.h`, `initialization.c` with `SYS_Initialize()`, `tasks.c` with the tasks and `SYS_Tasks()`, `interrupts.c`, and the board's own outputs under `peripheral/`, `linker/`, `build/` and `docs/`. `system.h`, `system.c` and `tasks.h` are gone.

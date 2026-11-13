@@ -44,6 +44,9 @@ The driver range is −64 to −127 (API-010). M4's classes take −64 to −95,
 | Flash | −84 to −87 | `EMB_EWRPROT` −84, `EMB_EVERIFY` −85 |
 | RTC | −88 to −91 | `EMB_ENOTSET` −88, `EMB_EOSCFAIL` −89 |
 | Entropy | −92 to −95 | `EMB_EHEALTH` −92 |
+| Counter | −96 to −99 | `EMB_EPAST` −96 |
+| PWM | −100 to −103 | `EMB_ENOSIGNAL` −100 |
+| ADC | −104 to −107 | none yet; samples lost are `EMB_EOVERRUN` |
 
 The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EMB_ECANCELED`, `EMB_EBUSY`, `EMB_ENOTSUP`, `EMB_EINVAL`) serve every class.
 
@@ -227,6 +230,23 @@ The common codes of SPEC-016 §10 (`EMB_ESTATE`, `EMB_EIO`, `EMB_ETIMEDOUT`, `EM
 The first run found the raw blocks failing the byte chi-square and the runs test, which is why the class conditions them.
 
 These are sanity checks of the driver and of gross faults in the source, not a certification of the source.
+
+## 11a. Counter (A129)
+
+| Checklist | |
+|---|---|
+| Dependencies | its timer's clock: the STM32F4's timer kernel clock, twice a divided APB bus's (A129), divided by the prescaler; the RP2350's tick generator in the TICKS block, from the crystal |
+| Requests | `emb_drv_counter_now()`, the count since the device started, widened to 64 bits; `emb_drv_counter_rate()`, its counts per second; `emb_drv_counter_channels()`; `emb_drv_counter_alarm_set()` at an absolute count and `_alarm_cancel()`; `emb_drv_counter_periodic()` and `_periodic_stop()` |
+| Blocking | none: every request is immediate, and may be made from an interrupt |
+| Interrupts | each callback runs in the counter's interrupt: the STM32 timer's global interrupt, for its update and its compare channels; the RP2350's alarm interrupt, one line per alarm |
+| DMA | none |
+| Concurrency | one alarm per channel, one-shot or periodic: arming one already armed is refused with `EMB_EBUSY`. A one-shot alarm is disarmed before its callback runs, which may arm it again; a periodic one is armed for its next period first, and its callback may stop it |
+| Timeouts | an alarm never fires before its count. A periodic callback's next period is due one period after the last was due, not after it ran, so it does not drift; periods passed while the interrupt was held off are skipped, and the callback's count shows the gap. A period the counter cannot keep, its next count passed every time it is armed, stops after four tries |
+| Width | the STM32F446's TIM2 and TIM5 count 32 bits and TIM3, TIM4 and TIM9 16, widened by the update interrupt's count of wraps; an alarm is programmed once its count falls in the current wrap, and fires only at its whole count. The RP2350's timers count 64 bits, and their alarms compare the low 32: one more than 2^32 counts away matches early, and its interrupt arms it again |
+| Errors | `EMB_EPAST` (the alarm's count has already passed, now or while it was armed: nothing is armed), `EMB_EINVAL` (no such channel; a period of 0 or 1; at initialization, a rate the hardware cannot make exactly), `EMB_EBUSY` |
+| Capabilities | `64BIT`: the hardware counts 64 bits |
+
+**Drivers:** `drivers/st/stm32_tim_counter.c`: TIM2 to TIM5, and TIM9 to TIM14 with their fewer channels (`timer_channels:` in the SoC's description), at the device's `rate_hz`, 1 MHz by default, which the prescaler must make exactly. Their compare channels drive no pin. `drivers/rpi/rp2350_timer.c`: TIMER0 and TIMER1, each on its tick generator at the device's rate, 1 MHz by default, which the crystal must divide exactly. M4.4's tickless time will take one counter of each board; the boards' devices leave TIM2, the controller's ADC trigger, and TIMER0 free. **Evidence:** the class's fake on the host. On EmbSIM's NUCLEO-F446RE in CI and on both boards, for every counter the board has (TIM5 and TIM9; TIMER1): its rate against the kernel's clock; its count rising, across TIM9's wraps; one-shot alarms 0.5 ms, 3 ms and 200 ms ahead, never early and at most 200 counts late; every channel in order; a passed count refused; a canceled alarm; a periodic callback over 100 periods of 1 ms, each a period after the last.
 
 ## 12. Optional parts
 

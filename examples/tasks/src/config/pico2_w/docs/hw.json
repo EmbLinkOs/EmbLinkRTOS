@@ -103,6 +103,10 @@
         ],
         "doc": "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)",
         "name": "uart1"
+      },
+      {
+        "doc": "TIMER1, 64 bits at 1 MHz: the counter class's (A129); TIMER0 is left for M4.4's tickless time",
+        "name": "timer1"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -430,6 +434,23 @@
         "level": "kernel",
         "name": "i2c1",
         "peripheral": "i2c1"
+      },
+      {
+        "class": "counter",
+        "compatible": "rpi,rp2350-timer",
+        "deps": [],
+        "fields": {
+          "base": 1074495488,
+          "index": 1,
+          "irq0": 4,
+          "irq1": 5,
+          "irq2": 6,
+          "irq3": 7,
+          "rate_hz": 1000000
+        },
+        "level": "kernel",
+        "name": "timer1",
+        "peripheral": "timer1"
       }
     ],
     "kconfig": {
@@ -617,11 +638,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "dad0ef7259e41ef3bd8fa07ea1c1f36040254a443deaf30d963b4fb14b5354a0"
+      "sha256": "7f67d8f9e559e31b72de1c518676487b5ee54067cbd55465c4b5f45a1f334584"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+      "sha256": "bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
     },
     {
       "path": "examples/tasks/system.yaml",

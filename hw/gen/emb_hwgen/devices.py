@@ -76,6 +76,9 @@ def _peripheral_view(p, soc, clk):
     timer's on its bus (timer_clock_hz), or the PLL's it names in clocked_by."""
     view = {k: v for k, v in p.items() if k not in ("irqs", "clock", "doc", "curated")}
     view["irqs"] = {i["name"]: i["number"] for i in p.get("irqs", [])}
+    index = re.search(r"(\d+)$", p["name"])
+    if index:  # its number among its kind: timer1's 1, a PWM slice's (A129)
+        view["index"] = int(index.group(1))
     gate = p.get("clock")
     if gate is not None:
         bus = next((b for b in soc.get("clocks", {}).get("buses", []) if b["name"] == gate["bus"]), {})
@@ -349,7 +352,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
         for field, spec in b.get("fields", {}).items():
             expr, default = (spec, None) if isinstance(spec, str) else (spec["from"], spec["default"])
             v = _lookup(ctx, expr)
-            if v is None and default is not None:
+            defaulted = v is None and default is not None
+            if defaulted:
                 v = default  # the device does not give it (A129)
             if v is None and expr.startswith("dma."):
                 v = {"dma": None}  # a request the board gives no channel: none
@@ -360,7 +364,8 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             if v is None or isinstance(v, (list,)) or (isinstance(v, dict) and not ({"device", "line", "dma", "flash_geometry"} & set(v))):
                 err(f"devices.{n}", f"the {d['compatible']} binding's field {field} reads {expr}, which this device does not have")
                 continue
-            fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)})
+            fields.append({"field": field, "expr": expr, "value": v, "c": c_value(v, expr)}
+                          | ({"default": True} if defaulted else {}))
         buffers = []
         for bname, spec in b.get("buffers", {}).items():
             size = _lookup(ctx, spec["size"])

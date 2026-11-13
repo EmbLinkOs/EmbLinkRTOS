@@ -47,7 +47,7 @@ enum emb_status_code {
     EMB_EINTR = -17,     /* reserved; not returned in 1.0 */
     EMB_EDEADLK =
         -32, /* the lock would complete a cycle; first kernel-reserved code (SPEC-005 §3.1) */
-    /* the driver classes' codes, four per class (SPEC-017 §3, DRV-008); -96 to -127 later */
+    /* the driver classes' codes, four per class (SPEC-017 §3, DRV-008); -108 to -127 later */
     EMB_EFRAMING = -64,   /* UART: a character without its stop bit */
     EMB_EPARITY = -65,    /* UART: a parity error */
     EMB_EOVERRUN = -66,   /* UART: bytes lost, the receiver or its ring full */
@@ -63,6 +63,8 @@ enum emb_status_code {
     EMB_ENOTSET = -88,    /* RTC: the time was never set since power-up */
     EMB_EOSCFAIL = -89,   /* RTC: its oscillator stopped */
     EMB_EHEALTH = -92,    /* entropy: the source failed its health test */
+    EMB_EPAST = -96,      /* counter: the alarm's count has already passed (A129) */
+    EMB_ENOSIGNAL = -100, /* PWM: no signal to capture before the timeout (A129) */
     EMB_EAPP_BASE = -128  /* application-defined codes from here down to -255 */
 };
 

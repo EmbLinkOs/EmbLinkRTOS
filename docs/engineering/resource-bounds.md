@@ -59,6 +59,7 @@ Every cost input named by a public function's `@time` annotation, with how it is
 | `emb_device_suspend()` | O(1) plus the driver's suspend | drivers |
 | `emb_drv_cancel()` | O(queued requests) plus the driver's stop | device_queue, drivers |
 | `emb_drv_complete()` | O(1) plus the next request's start | drivers |
+| `emb_drv_counter_fired()` | O(1) plus the callback | callbacks |
 | `emb_drv_dma_start()` | O(regions): the memory checked against the board's DMA regions | dma_regions, drivers |
 | `emb_drv_dma_stop()` | O(1); the controller's own stop, a few bus cycles | dma_regions, drivers |
 | `emb_drv_entropy_lock_init()` | O(1); O(active mutexes) list lookup with CONFIG_EMB_OBJ_LIST | active_objects |

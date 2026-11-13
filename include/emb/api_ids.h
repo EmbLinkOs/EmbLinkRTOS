@@ -261,5 +261,14 @@
 #define EMB_API_ID_TRACE_STOP                    0x0102u
 #define EMB_API_ID_TRACE_DUMP                    0x0103u
 #define EMB_API_ID_TRACE_STATS_GET               0x0104u
+#define EMB_API_ID_DRV_COUNTER_NOW               0x0105u
+#define EMB_API_ID_DRV_COUNTER_RATE              0x0106u
+#define EMB_API_ID_DRV_COUNTER_CHANNELS          0x0107u
+#define EMB_API_ID_DRV_COUNTER_ALARM_SET         0x0108u
+#define EMB_API_ID_DRV_COUNTER_ALARM_CANCEL      0x0109u
+#define EMB_API_ID_DRV_COUNTER_PERIODIC          0x010Au
+#define EMB_API_ID_DRV_COUNTER_PERIODIC_STOP     0x010Bu
+#define EMB_API_ID_DRV_COUNTER_STARTED           0x010Cu
+#define EMB_API_ID_DRV_COUNTER_FIRED             0x010Du
 
 #endif /* EMB_API_IDS_H */

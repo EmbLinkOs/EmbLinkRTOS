@@ -18,9 +18,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     d756f3a7f19dc7da82ee3afc168dc54946312c5a9990720953c0fedcdece54ea
+ *     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
  *   drivers/bindings.yaml
- *     d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49
+ *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
  *   examples/controller/controller.conf
  *     f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1
  *   examples/controller/system.yaml
@@ -28,7 +28,7 @@
  *   soc/st/stm32f4/stm32f4.yaml
  *     796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd
  *   soc/st/stm32f4/stm32f446.yaml
- *     f886e45e3f9c4f81d64fd1021b5efc3d2d8d2f0d07fd4f985c101bcc8d26bd5a
+ *     bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9
  *   soc/st/stm32f4/stm32f446re.yaml
  *     b9a88d0a94aa17ee83317a3a56f7c194ec1b3107dfb3e82e453122dc1c48f6d4
  */
@@ -345,6 +345,58 @@ const emb_device_t emb_dev_i2c2 = {
     .dep_count = 1u,
 };
 
+/* tim5: st,stm32-tim, counter, KERNEL */
+static const emb_stm32_tim_config_t tim5_config = {
+    .base = 0x40000C00u,         /* peripheral.base */
+    .clock_hz = 90000000u,       /* peripheral.timer_clock_hz */
+    .rate_hz = 1000000u,         /* device.rate_hz, its default */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 3u,             /* peripheral.clock.bit */
+    .irq = 50u,                  /* peripheral.irqs.global */
+    .bits = 32u,                 /* peripheral.counter_bits */
+    .channels = 4u,              /* peripheral.timer_channels, its default */
+};
+static emb_device_state_t tim5_state;
+static emb_stm32_counter_data_t tim5_data;
+static const emb_device_t *const tim5_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_tim5 = {
+    .name = "tim5",
+    .api = &emb_stm32_counter_api.dev,
+    .config = &tim5_config,
+    .state = &tim5_state,
+    .data = &tim5_data,
+    .deps = tim5_deps,
+    .class_id = EMB_DRV_CLASS_COUNTER,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* tim9: st,stm32-tim, counter, KERNEL */
+static const emb_stm32_tim_config_t tim9_config = {
+    .base = 0x40014000u,         /* peripheral.base */
+    .clock_hz = 180000000u,      /* peripheral.timer_clock_hz */
+    .rate_hz = 1000000u,         /* device.rate_hz, its default */
+    .clken_offset = 0x00000044u, /* peripheral.clock.enable_offset */
+    .clken_bit = 16u,            /* peripheral.clock.bit */
+    .irq = 24u,                  /* peripheral.irqs.global */
+    .bits = 16u,                 /* peripheral.counter_bits */
+    .channels = 2u,              /* peripheral.timer_channels */
+};
+static emb_device_state_t tim9_state;
+static emb_stm32_counter_data_t tim9_data;
+static const emb_device_t *const tim9_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_tim9 = {
+    .name = "tim9",
+    .api = &emb_stm32_counter_api.dev,
+    .config = &tim9_config,
+    .state = &tim9_state,
+    .data = &tim9_data,
+    .deps = tim9_deps,
+    .class_id = EMB_DRV_CLASS_COUNTER,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
@@ -360,9 +412,11 @@ static const emb_device_t *const devices[] = {
     &emb_dev_spi2,   /* 10: KERNEL */
     &emb_dev_i2c1,   /* 11: KERNEL */
     &emb_dev_i2c2,   /* 12: KERNEL */
+    &emb_dev_tim5,   /* 13: KERNEL */
+    &emb_dev_tim9,   /* 14: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 13u, 10u};
+const emb_device_table_t emb_board_device_table = {devices, 15u, 10u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

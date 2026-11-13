@@ -27,6 +27,7 @@
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_counter.h>
 #include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
@@ -53,6 +54,35 @@ typedef struct emb_rp2350_io_bank_config {
     uintptr_t base;
     uint32_t lines; /* GPIO0 to GPIO<lines - 1>: 30 on the RP2350A */
 } emb_rp2350_io_bank_config_t;
+
+/* TIMER0 or TIMER1 (datasheet §12.8): its registers, its tick generator in the TICKS block
+ * (index), its rate, and its four alarms' interrupts (A129). */
+typedef struct emb_rp2350_timer_config {
+    uintptr_t base;
+    uint32_t index;
+    uint32_t rate_hz; /* counts per second: 1 MHz unless the board says */
+    uint32_t irq0;
+    uint32_t irq1;
+    uint32_t irq2;
+    uint32_t irq3;
+} emb_rp2350_timer_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_COUNTER
+/* An alarm's interrupt: its timer and its number. */
+typedef struct emb_rp2350_alarm {
+    const emb_device_t *dev;
+    uint8_t channel;
+    uint8_t reserved_[3];
+} emb_rp2350_alarm_t;
+
+/* A timer's RAM: the class's, first; each alarm's whole count, the hardware comparing the low
+ * 32 bits; each alarm interrupt's argument. */
+typedef struct emb_rp2350_timer_data {
+    emb_drv_counter_data_t counter;
+    uint64_t target[EMB_DRV_COUNTER_CHANNELS_MAX];
+    emb_rp2350_alarm_t alarm[EMB_DRV_COUNTER_CHANNELS_MAX];
+} emb_rp2350_timer_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_ENTROPY
 /* The TRNG (datasheet §12.12): its registers, its interrupt, and the clocks between samples. */
@@ -146,6 +176,12 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 /* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
  * reaching all but the oscillators, and the reset's cause from its REASON register. */
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
+#endif
+
+#if CONFIG_EMB_DRV_COUNTER
+/* The counter class's operations (SPEC-017 §11a): TIMER0 or TIMER1, 64-bit counts of their
+ * tick, an alarm on each of the four alarms. */
+extern const emb_drv_counter_api_t emb_rp2350_timer_api;
 #endif
 
 #if CONFIG_EMB_DRV_ENTROPY

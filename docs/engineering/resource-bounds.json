@@ -889,6 +889,9 @@
     "emb_trace_dump": [
       "trace_ring",
       "console_line"
+    ],
+    "emb_drv_counter_fired": [
+      "callbacks"
     ]
   }
 }

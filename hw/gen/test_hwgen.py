@@ -462,6 +462,25 @@ class Bank(unittest.TestCase):
         self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["build/board.cmake"])
         self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["src/boot_block.c"])
 
+    def test_counters_on_both_boards(self):
+        """A129: the counter class's devices, a peripheral's index (timer1's 1, for its tick
+        generator), a field's default marked, and the board's counters for its tests."""
+        pico, _ = generate.generate(ROOT / PICO, ROOT)
+        c = pico["src/soc_devices.c"]
+        self.assertIn("    .index = 1u,         /* peripheral.index */", c)
+        self.assertIn("    .rate_hz = 1000000u, /* device.rate_hz, its default */", c)
+        self.assertIn("    .irq3 = 7u,          /* peripheral.irqs.alarm3 */", c)
+        self.assertIn("#define EMB_SOC_COUNTER_DEVICES &emb_dev_timer1", pico["include/soc_devices.h"])
+        nucleo, _ = generate.generate(ROOT / BOARD, ROOT)
+        h = nucleo["include/soc_devices.h"]
+        self.assertIn("#define EMB_SOC_COUNTER_DEVICE  (&emb_dev_tim5)", h)
+        self.assertIn("#define EMB_SOC_COUNTER_DEVICES &emb_dev_tim5, &emb_dev_tim9", h)
+        self.assertIn("#define EMB_SOC_COUNTER_COUNT   2u", h)
+        c = nucleo["src/soc_devices.c"]
+        self.assertIn("    .clock_hz = 180000000u,      /* peripheral.timer_clock_hz */", c)  # TIM9 on APB2
+        self.assertIn("    .channels = 2u,              /* peripheral.timer_channels */", c)
+        self.assertIn("    .channels = 4u,              /* peripheral.timer_channels, its default */", c)  # TIM5
+
     def test_line_beyond_the_bank(self):
         f = f"{PICO}/board.yaml"
         self.root.edit(f, "tx: GPIO0.f2", "tx: GPIO30.f2")

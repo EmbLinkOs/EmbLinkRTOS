@@ -168,7 +168,7 @@
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "d3c336ac05548e0addd1faac18f3dff70576d8069f11d89e6a761cf5c6132b49"
+      "sha256": "bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
     },
     {
       "path": "soc/arm/mps2/an505.yaml",

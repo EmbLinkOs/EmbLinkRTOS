@@ -1542,6 +1542,60 @@
       "name": "emb_trace_stats_get",
       "header": "trace.h",
       "state": "active"
+    },
+    {
+      "id": 261,
+      "name": "emb_drv_counter_now",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 262,
+      "name": "emb_drv_counter_rate",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 263,
+      "name": "emb_drv_counter_channels",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 264,
+      "name": "emb_drv_counter_alarm_set",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 265,
+      "name": "emb_drv_counter_alarm_cancel",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 266,
+      "name": "emb_drv_counter_periodic",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 267,
+      "name": "emb_drv_counter_periodic_stop",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 268,
+      "name": "emb_drv_counter_started",
+      "header": "drv_counter.h",
+      "state": "active"
+    },
+    {
+      "id": 269,
+      "name": "emb_drv_counter_fired",
+      "header": "drv_counter.h",
+      "state": "active"
     }
   ]
 }

@@ -353,7 +353,7 @@ const char *emb_status_name(emb_status_t status)
         return names[-status];
     }
     static const char *const drivers[] = {
-        /* -64 to -95, SPEC-017 §3; NULL where no class has a code yet */
+        /* -64 to -107, SPEC-017 §3; NULL where no class has a code yet */
         "EMB_EFRAMING", "EMB_EPARITY",  "EMB_EOVERRUN",
         NULL,           "EMB_ECRC",     "EMB_EMODEFAULT",
         NULL,           NULL,           "EMB_ENACK",
@@ -364,12 +364,16 @@ const char *emb_status_name(emb_status_t status)
         "EMB_EVERIFY",  NULL,           NULL,
         "EMB_ENOTSET",  "EMB_EOSCFAIL", NULL,
         NULL,           "EMB_EHEALTH",  NULL,
+        NULL,           NULL,           "EMB_EPAST",
+        NULL,           NULL,           NULL,
+        "EMB_ENOSIGNAL", NULL,          NULL,
+        NULL,           NULL,           NULL,
         NULL,           NULL,
     };
     if (status == EMB_EDEADLK) {
         return "EMB_EDEADLK";
     }
-    if (status <= -64 && status >= -95 && drivers[-status - 64] != NULL) {
+    if (status <= -64 && status >= -107 && drivers[-status - 64] != NULL) {
         return drivers[-status - 64];
     }
     return "EMB_E?";

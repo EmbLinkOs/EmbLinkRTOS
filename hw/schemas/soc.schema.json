@@ -236,6 +236,12 @@
             "description": "a timer's counter width in bits (A129): the counter, PWM and ADC classes' drivers widen and scale by it",
             "enum": [16, 24, 32, 64]
           },
+          "timer_channels": {
+            "description": "a timer's capture and compare channels, where it has fewer than four (A129): TIM9 and TIM12's 2",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
           "clocked_by": {
             "$ref": "#/$defs/ident",
             "description": "the PLL with an output_hz its kernel clock comes from, where that is not its bus (A129): a binding reads the rate as peripheral.clock_hz"

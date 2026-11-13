@@ -22,6 +22,7 @@
 
 #include <emb/config.h>
 #include <emb/device.h>
+#include <emb/drv_counter.h>
 #include <emb/drv_dma.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
@@ -102,6 +103,33 @@ typedef struct emb_stm32_spi_data {
     uint8_t fill;            /* the ones a transfer with no transmit buffer sends, DMA's source */
     uint8_t sink;            /* where a transfer with no receive buffer's frames go */
 } emb_stm32_spi_data_t;
+#endif
+
+/* A general-purpose timer, TIM2 to TIM5 (RM0390 §17) or TIM9 to TIM14 (§18): a counter's or
+ * PWM's (A129). */
+typedef struct emb_stm32_tim_config {
+    uintptr_t base;
+    uint32_t clock_hz; /* its kernel clock: twice its APB bus's when that is divided */
+    uint32_t rate_hz;  /* a counter's counts per second: 1 MHz unless the board says */
+    uint32_t clken_offset;
+    uint32_t clken_bit;
+    uint32_t irq;
+    uint32_t bits;     /* its counter's width: 32 (TIM2, TIM5) or 16 */
+    uint32_t channels; /* 4 on TIM2 to TIM5, 2 on TIM9 and TIM12, 1 on TIM10, 11, 13 and 14 */
+} emb_stm32_tim_config_t;
+
+#if CONFIG_EMB_DRV_COUNTER
+/* A counter's RAM: the class's, first; the counts of the overflows so far, which widen the
+ * hardware's to 64 bits; and each channel's count, those not yet in the counter's epoch
+ * pending until it is. */
+typedef struct emb_stm32_counter_data {
+    emb_drv_counter_data_t counter;
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint64_t high;
+    uint64_t target[EMB_DRV_COUNTER_CHANNELS_MAX];
+    uint8_t pending;
+    uint8_t reserved_[7];
+} emb_stm32_counter_data_t;
 #endif
 
 /* The independent watchdog (RM0390 §19), clocked by the LSI: no clock gate. */
@@ -221,6 +249,12 @@ extern const emb_device_api_t emb_stm32_spi_api;
  * the timeout needs, and the reset's cause from RCC_CSR (emb_stm32f4_reset_flags_take()). */
 extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
 #endif
+#if CONFIG_EMB_DRV_COUNTER
+/* The counter class's operations (SPEC-017 §11a): a general-purpose timer at its rate, widened
+ * to 64 bits by the update interrupt, an alarm on each of its compare channels. */
+extern const emb_drv_counter_api_t emb_stm32_counter_api;
+#endif
+
 #if CONFIG_EMB_DRV_RTC
 /* The RTC class's operations (SPEC-017 §10): the calendar in the backup domain on the LSE,
  * alarm A, the 20 backup registers. */
