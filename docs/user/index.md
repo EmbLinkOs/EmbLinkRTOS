@@ -13,6 +13,7 @@ concepts
 tasks
 synchronization
 configuration
+logging
 debugging
 ```
 
