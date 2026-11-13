@@ -194,6 +194,47 @@ At generation, beside the board's (§7), the generator refuses, naming file, lin
 
 After the link, the build compares each thread's `stack` with the worst case the stack tool computes from the image (`tools/footprint/stack_bound.py`), from the thread's entry and the roots the application lists for calls the call graph cannot see (`stack-roots.json`). A stack below its worst case **fails the build**, naming the thread, both figures and the deepest call chain. The memory report covers the image as linked, C definitions included.
 
+### 5.3 Tasks, editable outputs and the layout
+
+*Proposed by [A126](AMENDMENTS-M4.md) on 2026-11-13, for the project owner's acceptance. Where it differs from §5.1, it replaces it.*
+
+**Tasks.** A system's `tasks:` declares threads written as state machines ([SPEC-020](SPEC-020-tasks.md)): each task has its model (event or periodic), states, events and handlers, and the generator writes their tables and threads.
+
+**Every generated file is editable.** The generator keeps what it last wrote, its *baseline*, in `generated/.base/`, committed with the outputs. On regeneration, each file is handled as follows:
+
+| The generated text | The file on disk | What happens |
+|---|---|---|
+| unchanged since the baseline | anything | untouched: the edits stay |
+| changed | as the baseline (not edited) | rewritten |
+| changed | edited | three-way merge of the baseline, the file and the new text: the edits and the change both kept |
+| changed | edited on the same lines | conflict markers in the file; `generate` reports it, and `check` fails until it is resolved |
+
+There are no `USER CODE` regions. `check` verifies that the baseline is what the descriptions give now, and that no conflict is left. The tree's own boards are checked strictly in CI (`check --strict`): their files must equal the baseline, since a board's facts belong in its description.
+
+**The layout.** An application's files:
+
+```text
+my_app/
+  system.yaml
+  CMakeLists.txt              the application's build: generated, editable
+  src/
+    main.c                    generated, editable: the board and kernel start, the tasks' start
+    tasks/<task>.c, .h        generated, editable: each task's handlers
+  generated/
+    .base/                    the baseline: what the generator last wrote (do not edit)
+    <board>/
+      config/                 board.conf
+      include/                system.h, tasks.h, hw_config.h, soc_devices.h
+      src/                    system.c, tasks.c, soc_devices.c, board_pins.c, boot_block.c
+      linker/                 regions.ld, embld.opts
+      build/                  board.cmake, CMakeLists.txt
+      docs/                   board.md, system.md, build_report.md, hw.json, system.json
+```
+
+- **Shared files:** `main.c`, the task files and `CMakeLists.txt` serve every board.
+- **Per board:** `generated/<board>/` holds each board's own outputs.
+- **Boards:** a board's own `generated/` has the same six folders (`boards/<vendor>/<board>/generated/config/` and so on).
+
 ## 6. Generated outputs
 
 | Output | Content | Consumer | Spec |
