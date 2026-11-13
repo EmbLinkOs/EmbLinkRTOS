@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """crashdec: decode a crash record (SPEC-015 §4, OBS-016, A71 to A73).
 
     crashdec.py RECORD [--elf IMAGE.elf [--tool-prefix arm-none-eabi-] [--force]] [--json]
@@ -30,7 +34,8 @@ sys.path.insert(0, str(ROOT / "tools" / "fault"))
 import decode as api_decode  # noqa: E402  (the API ID decoder, tools/fault/decode.py)
 
 MAGIC = b"EMBC"
-RESET = {1: "reboot", 2: "halt"}
+# EMB_CRASH_RESET_*: what the kernel did after writing the record
+RESET = {1: "reboot", 2: "halt", 3: "the hardware watchdog's reset, no longer fed"}
 THREAD_NONE = 0xFFFF
 
 # version: (length, field layout after the 8-byte header, excluding the CRC)

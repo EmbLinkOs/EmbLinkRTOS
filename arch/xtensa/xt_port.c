@@ -1,7 +1,16 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Xtensa port, the classic ESP32's PRO_CPU (docs/ports/xtensa.md, ADR-054; contract SPEC-011).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    xt_port.c
+ * @brief   Xtensa port, the classic ESP32's PRO_CPU (docs/ports/xtensa.md, ADR-054; contract
+ *          SPEC-011).
+ *
+ * @details
  * The vectors, the level-1 entry and reset are in xt_vectors.S.
  *
  * Every switch happens in the level-1 entry, as Cortex-M's happen in PendSV: a thread's switch
@@ -21,6 +30,9 @@
  *
  * Register addresses from ESP-IDF v5.4's components/soc/esp32/register/soc/ (dport_reg.h,
  * rtc_cntl_reg.h, timer_group_reg.h).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb/arch.h>
 #include <emb/context.h>

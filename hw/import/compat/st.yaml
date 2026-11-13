@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The SVD importer's table for STMicroelectronics (SPEC-014 §8, hw/import/svd.py): which
 # `compatible` a peripheral of an ST SVD gets, and where its clock gate is. The first rule that
 # matches a peripheral applies; `family` limits a rule to one family. A peripheral no rule

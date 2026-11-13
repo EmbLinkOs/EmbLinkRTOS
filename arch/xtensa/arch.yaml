@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Port manifest for Xtensa (format: SPEC-011 §2): the classic ESP32's LX6, one core (PRO_CPU),
 # the windowed ABI, level-1 interrupts only (ADR-054). The FPU, the second core and the higher
 # interrupt levels come later.

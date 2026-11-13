@@ -45,24 +45,60 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-90 functions, from the headers' `@ctx` tags.
+130 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
 | `emb_check_status()` | `<emb/kernel.h>` | no |
 | `emb_cond_attr_default()` | `<emb/cond.h>` | no |
 | `emb_context()` | `<emb/context.h>` | no |
+| `emb_device_caps()` | `<emb/device.h>` | no |
 | `emb_device_ready()` | `<emb/device.h>` | no |
 | `emb_device_state()` | `<emb/device.h>` | no |
 | `emb_device_status()` | `<emb/device.h>` | no |
 | `emb_drv_cancel()` | `<emb/device.h>` | no |
 | `emb_drv_complete()` | `<emb/device.h>` | no |
+| `emb_drv_dma_start()` | `<emb/drv_dma.h>` | no |
+| `emb_drv_dma_stop()` | `<emb/drv_dma.h>` | no |
+| `emb_drv_entropy_board()` | `<emb/drv_entropy.h>` | no |
+| `emb_drv_flash_geometry_get()` | `<emb/drv_flash.h>` | no |
+| `emb_drv_flash_sector()` | `<emb/drv_flash.h>` | no |
+| `emb_drv_gpio_assert()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_configure()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_read()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_gpio_write()` | `<emb/drv_gpio.h>` | no |
+| `emb_drv_i2c_req_listen()` | `<emb/drv_i2c.h>` | no |
+| `emb_drv_i2c_req_transfer()` | `<emb/drv_i2c.h>` | no |
+| `emb_drv_i2c_submit()` | `<emb/drv_i2c.h>` | no |
 | `emb_drv_on_callback()` | `<emb/device.h>` | no |
 | `emb_drv_on_notify()` | `<emb/device.h>` | no |
 | `emb_drv_on_sem()` | `<emb/device.h>` | no |
 | `emb_drv_on_work()` | `<emb/device.h>` | no |
 | `emb_drv_request_init()` | `<emb/device.h>` | no |
+| `emb_drv_rtc_alarm_cancel()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_rtc_alarm_fired()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_rtc_alarm_set()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_rtc_backup_read()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_rtc_backup_write()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_rtc_get()` | `<emb/drv_rtc.h>` | no |
+| `emb_drv_spi_begin()` | `<emb/drv_spi.h>` | no |
+| `emb_drv_spi_end()` | `<emb/drv_spi.h>` | no |
+| `emb_drv_spi_req_transfer()` | `<emb/drv_spi.h>` | no |
+| `emb_drv_spi_submit()` | `<emb/drv_spi.h>` | no |
 | `emb_drv_submit()` | `<emb/device.h>` | no |
+| `emb_drv_uart_poll_read()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_poll_write()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_req_break()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_req_read()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_req_write()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_byte()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_error()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_idle()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_start()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_rx_stop()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_uart_submit()` | `<emb/drv_uart.h>` | no |
+| `emb_drv_wdt_caused_reset()` | `<emb/drv_wdt.h>` | no |
+| `emb_drv_wdt_feed()` | `<emb/drv_wdt.h>` | no |
 | `emb_duration_is_saturated()` | `<emb/time.h>` | no |
 | `emb_duration_to_ns()` | `<emb/time.h>` | no |
 | `emb_dwork_cancel()` | `<emb/work.h>` | no |
@@ -131,6 +167,10 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_timer_start_periodic()` | `<emb/timer.h>` | no |
 | `emb_timer_stop()` | `<emb/timer.h>` | no |
 | `emb_version_string()` | `<emb/version.h>` | no |
+| `emb_wallclock_adjust()` | `<emb/wallclock.h>` | no |
+| `emb_wallclock_get()` | `<emb/wallclock.h>` | no |
+| `emb_wallclock_set()` | `<emb/wallclock.h>` | no |
+| `emb_wdog_checkin()` | `<emb/wdog.h>` | no |
 | `emb_work_cancel()` | `<emb/work.h>` | no |
 | `emb_work_init()` | `<emb/work.h>` | no |
 | `emb_work_state()` | `<emb/work.h>` | no |

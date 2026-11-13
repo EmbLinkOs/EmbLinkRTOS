@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Interrupt latency, software-triggered (SPEC-002 §10, R-003 T7): the cycles from
- * emb_irq_pend() on the board's test line to the entry of the handler emb_irq_connect()
- * bound, through the port's kernel-aware entry and dispatch, over many runs; minimum,
- * maximum and average. The pend is the start the cycle counter can see; an external trigger
- * measured with a logic analyzer (docs/engineering/hil.md) adds the pin and the NVIC's own
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bench_irq.c
+ * @brief   Interrupt latency, software-triggered (SPEC-002 §10, R-003 T7).
+ *
+ * @details
+ * The cycles from emb_irq_pend() on the board's test line to the entry of the handler
+ * emb_irq_connect() bound, through the port's kernel-aware entry and dispatch, over many runs;
+ * minimum, maximum and average. The pend is the start the cycle counter can see; an external
+ * trigger measured with a logic analyzer (docs/engineering/hil.md) adds the pin and the NVIC's own
  * latency. A number is evidence only from hardware (SIM-003).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/arch.h> /* the cycle counter is a port-contract function */
 #include <emb/emb.h>

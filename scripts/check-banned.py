@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Tree-wide check for constructs the coding standard bans (CODING-STANDARD CS-1.3, CS-1.5,
 CS-1.6, CS-11.4): compiler thread-local storage, alloca, setjmp, computed goto, the
 cleanup attribute, inline assembly outside the ports and compiler layer, compiler

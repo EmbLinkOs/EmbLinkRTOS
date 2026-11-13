@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The classic ESP32's Xtensa LX6 with Espressif's Clang (espressif/llvm-project), its newlib
 # and LLD (ADR-053, ADR-054): clang from the clang-esp release on PATH, with the libs-clang-esp
 # and lld-esp archives unpacked beside it. Upstream LLVM's Xtensa target is experimental and

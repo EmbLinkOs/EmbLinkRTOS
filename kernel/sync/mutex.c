@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Mutexes with priority inheritance and ceilings (SPEC-005 §2, §3). Effective
- * priority is recomputed from the owned mutexes' first waiters and ceilings; the walk
- * along the owner chain is bounded by CONFIG_EMB_PI_MAX_DEPTH and shared with deadlock
- * detection. The wait queue of an INHERIT mutex carries EMBK_WAIT_INHERIT so that the
- * wait protocol tells the owner about every dequeue (KRN-SYNC-014).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    mutex.c
+ * @brief   Mutexes with priority inheritance and ceilings (SPEC-005 §2, §3).
+ *
+ * @details
+ * Effective priority is recomputed from the owned mutexes' first waiters and ceilings; the walk
+ * along the owner chain is bounded by CONFIG_EMB_PI_MAX_DEPTH and shared with deadlock detection.
+ * The wait queue of an INHERIT mutex carries EMBK_WAIT_INHERIT so that the wait protocol tells the
+ * owner about every dequeue (KRN-SYNC-014).
+ *
+ * @see     include/emb/mutex.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/mutex.h>
 #include <emb/storage.h>

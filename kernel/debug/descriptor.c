@@ -1,9 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The debug descriptor (SPEC-015 §5, OBS-008, A107): the kernel's private layout, written
- * out as addresses and offsets for tools/descriptor and debugger plugins. Nothing in the
- * kernel reads it; emb_kernel_init() refers to it so that the linker keeps it.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    descriptor.c
+ * @brief   The debug descriptor (SPEC-015 §5, OBS-008, A107).
+ *
+ * @details
+ * The kernel's private layout, written out as addresses and offsets for tools/descriptor and
+ * debugger plugins. Nothing in the kernel reads it; emb_kernel_init() refers to it so that the
+ * linker keeps it.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-08 (created)
  */
 #include <emb/debug.h>
 #include <emb/version.h>

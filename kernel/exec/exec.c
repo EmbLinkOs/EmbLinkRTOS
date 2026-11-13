@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel execution core: per-CPU state (SPEC-002 §2), initialization and start
- * (SPEC-008 §4, SPEC-011 §4), context queries (SPEC-001 §5.1), the checked-build
- * critical-section wrappers (SPEC-002 §4.1, §12), the scheduler lock (SPEC-002 §5),
- * the interrupt entry and exit hooks (SPEC-002 §6.2), and the initialization table
- * (SPEC-001 §6.4).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    exec.c
+ * @brief   Kernel execution core.
+ *
+ * @details
+ * per-CPU state (SPEC-002 §2), initialization and start (SPEC-008 §4, SPEC-011 §4), context queries
+ * (SPEC-001 §5.1), the checked-build critical-section wrappers (SPEC-002 §4.1, §12), the scheduler
+ * lock (SPEC-002 §5), the interrupt entry and exit hooks (SPEC-002 §6.2), and the initialization
+ * table (SPEC-001 §6.4).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h>
 #include <emb/irq.h>
@@ -341,8 +352,25 @@ const char *emb_status_name(emb_status_t status)
     if (status <= 0 && status >= -17) {
         return names[-status];
     }
+    static const char *const drivers[] = {
+        /* -64 to -95, SPEC-017 §3; NULL where no class has a code yet */
+        "EMB_EFRAMING", "EMB_EPARITY",  "EMB_EOVERRUN",
+        NULL,           "EMB_ECRC",     "EMB_EMODEFAULT",
+        NULL,           NULL,           "EMB_ENACK",
+        "EMB_EARBLOST", "EMB_EBUSERR",  NULL,
+        "EMB_EXFER",    NULL,           NULL,
+        NULL,           "EMB_EWINDOW",  NULL,
+        NULL,           NULL,           "EMB_EWRPROT",
+        "EMB_EVERIFY",  NULL,           NULL,
+        "EMB_ENOTSET",  "EMB_EOSCFAIL", NULL,
+        NULL,           "EMB_EHEALTH",  NULL,
+        NULL,           NULL,
+    };
     if (status == EMB_EDEADLK) {
         return "EMB_EDEADLK";
+    }
+    if (status <= -64 && status >= -95 && drivers[-status - 64] != NULL) {
+        return drivers[-status - 64];
     }
     return "EMB_E?";
 #else

@@ -1,6 +1,10 @@
 #!/bin/sh
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # FreeRTOS's build of tests/benchmarks/bench_compare.c for the Arduino Uno: the comparison of
 # R-003 §6 (the review's F14). Fetches FreeRTOS-Kernel V11.1.0 at its pinned commit, uses its
 # ATmega port with the tick on Timer0 at 1 kHz (the port's default is the watchdog at 15 ms;

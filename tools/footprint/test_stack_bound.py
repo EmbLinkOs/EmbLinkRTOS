@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The stack bound's prologue reading, call graph and depth, on synthetic disassembly."""
 import sys
 import unittest
@@ -56,6 +60,13 @@ class Graph(unittest.TestCase):
         self.assertEqual(depth, 4 + 40)  # a's 4, then d2's 40 beats b's 8
         self.assertEqual(path, ["a", "d2"])
         self.assertTrue(fp)  # c, through b, uses the FPU
+
+    def test_optional_targets_only_where_linked(self):
+        graph = {"usart_isr": {}, "spi_isr": {}}
+        self.assertEqual(sb.listed_targets(["usart_isr", "spi_isr?", "i2c_isr?"], graph),
+                         ["spi_isr", "usart_isr"])
+        # a plain name stays even when absent, so that Bound reports it
+        self.assertEqual(sb.listed_targets(["typo_isr"], graph), ["typo_isr"])
 
     def test_unresolved_and_recursion(self):
         g = {"x": {"calls": {"y"}, "indirect": True, "fp": False},

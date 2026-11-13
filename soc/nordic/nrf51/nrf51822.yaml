@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # nRF51822, the variant QEMU's micro:bit models: 256 KiB of flash in 1 KiB pages, 16 KiB of SRAM
 # (nrf51_soc.c: NRF51822_FLASH_PAGES, NRF51822_SRAM_PAGES).
 schema_version: 0

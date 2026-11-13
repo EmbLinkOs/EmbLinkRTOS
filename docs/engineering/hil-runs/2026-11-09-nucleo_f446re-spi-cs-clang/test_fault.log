@@ -1,0 +1,14 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_fault.elf sha256 db15b511024690b170aa0d0bc2854a9389a78977300abe53d11180d160936487
+EVIDENCE v1 suite=test_fault config=0912f8545cffda7d profile=base board=nucleo_f446re checked=1
+TEST fault_successful_check_preserves_status
+  -> ok
+  req API-015 API-017
+CASE fault_successful_check_preserves_status outcome=passed asserts=3 skips=0
+TEST fault_status_policy_is_preserved
+  fault checks that reset the board: 2
+  -> ok
+  req API-015
+CASE fault_status_policy_is_preserved outcome=passed asserts=2 skips=0
+ISR_STACK size=2048 used=164
+2 tests, 0 failed, 0 skipped, 13 ticks
+EMB_TEST_END

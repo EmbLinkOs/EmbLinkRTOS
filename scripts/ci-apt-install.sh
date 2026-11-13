@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 #
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+#
 # CI's package installation, bounded and retried: scripts/ci-apt-install.sh PACKAGE...
 #
 # The runners' Azure mirror has stalled in the middle of a download (gcc-arm-none-eabi's 57 MB,
@@ -15,6 +18,13 @@
 # With CI_APT_CACHE set (.github/actions/apt-install, which restores and saves that directory
 # with actions/cache), the archives are kept there: a later run with the same packages
 # downloads only the indexes, unless the mirror has a newer version.
+#
+# Only the network is cut at four minutes: the indexes and the download. The installation that
+# follows reads the downloaded archives and has ten minutes, as unpacking QEMU, the cross
+# compilers and avr-libc can take longer than four on a slow runner. Cutting it there left dpkg
+# interrupted, and every retry then failed at once ("dpkg was interrupted, you must manually run
+# 'sudo dpkg --configure -a'", cm0-microbit-clang on #143); a retry now finishes an interrupted
+# installation first.
 set -u
 [ $# -gt 0 ] || { echo "usage: $0 PACKAGE..." >&2; exit 2; }
 APT="-o Acquire::Retries=3 -o Acquire::http::Timeout=30"
@@ -38,9 +48,13 @@ while [ $attempt -le 3 ]; do
             [ -f "$f" ] && sudo sed -i 's|http://azure\.archive\.ubuntu\.com|http://archive.ubuntu.com|g' "$f"
         done
     fi
+    if [ $attempt -gt 1 ]; then  # an attempt cut during installation leaves dpkg to finish
+        sudo timeout 600 dpkg --configure -a || echo "ci-apt-install: dpkg --configure -a failed"
+    fi
     # shellcheck disable=SC2086 # $APT is a list of options
     if sudo timeout 240 apt-get $APT update &&
-       sudo timeout 240 apt-get $APT install -y --no-install-recommends "$@"; then
+       sudo timeout 240 apt-get $APT install -y --no-install-recommends --download-only "$@" &&
+       sudo timeout 600 apt-get $APT install -y --no-install-recommends "$@"; then
         cache_readable
         exit 0
     fi

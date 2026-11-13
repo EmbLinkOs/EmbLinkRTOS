@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The v0.1 §41.3 first-execution sequence as a conformance test (M1 exit criterion):
- * two threads hand over with notifications, a third wakes on the timer every tick,
- * for a large number of switches; every hand-over and every tick is accounted for.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_first_execution.c
+ * @brief   The v0.1 §41.3 first-execution sequence as a conformance test (M1 exit criterion).
+ *
+ * @details
+ * Two threads hand over with notifications, a third wakes on the timer every tick, for a large
+ * number of switches; every hand-over and every tick is accounted for.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb_test.h>
 

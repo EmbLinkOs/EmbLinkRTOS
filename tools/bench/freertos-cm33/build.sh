@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 #
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+#
 # FreeRTOS's build of tests/benchmarks/bench_compare.c for the Raspberry Pi Pico 2 W (RP2350,
 # Cortex-M33), as tools/bench/freertos-cm4/build.sh for the NUCLEO: FreeRTOS-Kernel V11.1.0 at its
 # pinned commit, its GCC/ARM_CM33_NTZ port in the Secure state, the flags of

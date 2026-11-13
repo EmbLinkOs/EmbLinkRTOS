@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Event flags (SPEC-005 §5): a word of bits, ANY or ALL waits, ISR-safe set and clear. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    event.h
+ * @brief   Event flags (SPEC-005 §5): a word of bits, ANY or ALL waits, ISR-safe set and clear.
+ *
+ * @see     kernel/sync/event.c
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMB_EVENT_H
 #define EMB_EVENT_H
 

@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Minimal megaAVR drivers: a polled USART and port pins. Register offsets and bits are driver
- * knowledge (ATmega328P datasheet DS40002061B); every base address, pin and frequency comes from
- * the board's generated hw_config.h (SPEC-014, HW-001, A69). Inline, so that the constant bases
- * fold into single IN, OUT, LDS and STS instructions and the divisor into a constant, as on an
- * 8-bit part with 32 KiB of flash they must.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_avr_drivers.h
+ * @brief   Minimal megaAVR drivers: a polled USART and port pins.
+ *
+ * @details
+ * Register offsets and bits are driver knowledge (ATmega328P datasheet DS40002061B); every base
+ * address, pin and frequency comes from the board's generated hw_config.h (SPEC-014, HW-001, A69).
+ * Inline, so that the constant bases fold into single IN, OUT, LDS and STS instructions and the
+ * divisor into a constant, as on an 8-bit part with 32 KiB of flash they must.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #ifndef EMB_AVR_DRIVERS_H
 #define EMB_AVR_DRIVERS_H

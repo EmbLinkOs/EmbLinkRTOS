@@ -1,15 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The slim idle context (ADR-050): the table profile without an idle thread allocates
- * only the prefix of a control block that the scheduler, the switch path and diagnostics
- * read for idle. Every other translation unit declares embk_idle_thread as a full
- * embk_thread_t (embk/sched.h) and touches only these leading fields of it, so this file
- * must not include that header.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    idle_context.c
+ * @brief   The slim idle context (ADR-050).
+ *
+ * @details
+ * The table profile without an idle thread allocates only the prefix of a control block that the
+ * scheduler, the switch path and diagnostics read for idle. Every other translation unit declares
+ * embk_idle_thread as a full embk_thread_t (embk/sched.h) and touches only these leading fields of
+ * it, so this file must not include that header.
  *
  * MISRA Dev CS-12: rules 8.3/8.4, the definition's type differs from the declaration on
  * purpose. An LTO build (EMB_LTO, ADR-056) would see the mismatch, so it leaves this file out
  * and defines the full control block (embk/sched.h).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <embk/kernel.h>
 

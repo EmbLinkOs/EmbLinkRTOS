@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # STM32F4 family base (SPEC-014 §3): the facts every part of the family shares. Not a part of
 # its own: a part file extends a die file, which extends this one.
 schema_version: 0

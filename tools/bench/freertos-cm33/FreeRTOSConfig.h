@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * FreeRTOS's configuration for bench_compare on the Pico 2 W (RP2350, Cortex-M33,
- * tools/bench/freertos-cm33/), as the NUCLEO's (tools/bench/freertos-cm4/FreeRTOSConfig.h):
- * matched to the EmbLinkRTOS side it is compared with. Static allocation only, preemption without
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    FreeRTOSConfig.h
+ * @brief   FreeRTOS's configuration for bench_compare on the Pico 2 W (RP2350, Cortex-M33,
+ *          tools/bench/freertos-cm33/), as the NUCLEO's
+ *          (tools/bench/freertos-cm4/FreeRTOSConfig.h).
+ *
+ * @details
+ * Matched to the EmbLinkRTOS side it is compared with. Static allocation only, preemption without
  * time slicing, 32-bit ticks at 1 kHz, and no assertions, stack-overflow checks, trace, hooks or
  * software timers. build.sh gives the CPU clock and the board's NVIC priority bits.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H

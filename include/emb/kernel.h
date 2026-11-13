@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel initialization and start (SPEC-001 §13, SPEC-008 §4, SPEC-011 §4), the
- * generated initialization table of EMB_*_DEFINE objects (SPEC-001 §6.4), and
- * EMB_CHECK(). This header is an addition to the SPEC-001 §8 list.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    kernel.h
+ * @brief   Kernel initialization and start (SPEC-001 §13, SPEC-008 §4, SPEC-011 §4), the generated
+ *          initialization table of EMB_*_DEFINE objects (SPEC-001 §6.4), and EMB_CHECK().
+ *
+ * @details
+ * This header is an addition to the SPEC-001 §8 list.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_KERNEL_H
 #define EMB_KERNEL_H

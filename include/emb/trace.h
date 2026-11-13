@@ -1,10 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Kernel trace points (SPEC-015 catalogue, M1 subset). With CONFIG_EMB_TRACE every
- * kernel event is delivered to one registered sink; the native port's test harness
- * forwards them to the reference-model bridge (SPEC-013 §8). The CTF encoding and
- * the packetized rings of SPEC-015 come with the observability milestone.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    trace.h
+ * @brief   Kernel trace points (SPEC-015 catalogue, M1 subset).
+ *
+ * @details
+ * With CONFIG_EMB_TRACE every kernel event is delivered to one registered sink; the native port's
+ * test harness forwards them to the reference-model bridge (SPEC-013 §8). The CTF encoding and the
+ * packetized rings of SPEC-015 come with the observability milestone.
+ *
+ * @see     kernel/trace/trace.c
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_TRACE_H
 #define EMB_TRACE_H

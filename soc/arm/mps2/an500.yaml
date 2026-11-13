@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # MPS2 AN500: a Cortex-M7 with double-precision FPU in the MPS2 FPGA (QEMU machine mps2-an500),
 # the emulated Cortex-M7 reference (A83). QEMU 11.1's hw/arm/mps2.c gives it the AN385/AN386
 # memory map, UARTs, FPGA I/O and 32 interrupt lines, and an MPU of 16 regions; it models no

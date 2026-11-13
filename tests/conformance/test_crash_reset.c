@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The crash record across a real reset (SPEC-015 §4, OBS-016, ARCH-AVR-008): on the first
- * boot the test raises a fault whose hook resets the part (emb_arch_system_reset), after the
- * kernel wrote the record and before the fault action; on the second boot the framework runs
- * the case again, finds the record, checks it and clears it. Built only where the runner
- * shows the second boot of the same image with RAM kept (EMB_BOARD_RESETS_IN). Its own image,
- * since the second boot runs every case of the image from the top.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_crash_reset.c
+ * @brief   The crash record across a real reset (SPEC-015 §4, OBS-016, ARCH-AVR-008).
+ *
+ * @details
+ * On the first boot the test raises a fault whose hook resets the part (emb_arch_system_reset),
+ * after the kernel wrote the record and before the fault action; on the second boot the framework
+ * runs the case again, finds the record, checks it and clears it. Built only where the runner shows
+ * the second boot of the same image with RAM kept (EMB_BOARD_RESETS_IN). Its own image, since the
+ * second boot runs every case of the image from the top.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include "crash_print.h"
 

@@ -1,14 +1,27 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32F4 GPIO (RM0390 Rev 6 §7.4): the board's pin table and output setting and toggling. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32f4_gpio.c
+ * @brief   STM32F4 GPIO (RM0390 Rev 6 §7.4): the board's pin table and output setting and toggling.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
+ */
 #include <emb_stm32_drivers.h>
 #include <hw_config.h>
 
-#define REG32(a)   (*(volatile uint32_t *)(uintptr_t)(a))
-#define GPIO_MODER 0x00u
-#define GPIO_ODR   0x14u
-#define GPIO_BSRR  0x18u
-#define GPIO_AFRL  0x20u /* pins 0 to 7; AFRH (0x24) holds 8 to 15 */
+#define REG32(a)    (*(volatile uint32_t *)(uintptr_t)(a))
+#define GPIO_MODER  0x00u
+#define GPIO_OTYPER 0x04u
+#define GPIO_PUPDR  0x0Cu
+#define GPIO_ODR    0x14u
+#define GPIO_BSRR   0x18u
+#define GPIO_AFRL   0x20u /* pins 0 to 7; AFRH (0x24) holds 8 to 15 */
 
 void emb_stm32_pins_apply(const emb_stm32_pin_t *pins, unsigned count)
 {
@@ -17,6 +30,17 @@ void emb_stm32_pins_apply(const emb_stm32_pin_t *pins, unsigned count)
         const emb_stm32_pin_t *p = &pins[i];
         uint32_t pin = p->pin;
         emb_stm32_clock_enable(p->clken_offset, p->clken_bit);
+        if ((p->mode == EMB_STM32_PIN_OUTPUT) && (p->level != 0u)) { /* the level before the mode */
+            REG32(p->port_base + GPIO_BSRR) = 1u << pin;
+        }
+        /* the output type and pull exactly, before the pin drives: the table's again after a
+         * driver borrowed the line (EMB_DRV_GPIO_FUNCTION) */
+        REG32(p->port_base + GPIO_OTYPER) =
+            (REG32(p->port_base + GPIO_OTYPER) & ~(1u << pin)) |
+            (((p->flags & EMB_STM32_PIN_OPEN_DRAIN) != 0u) ? (1u << pin) : 0u);
+        REG32(p->port_base + GPIO_PUPDR) =
+            (REG32(p->port_base + GPIO_PUPDR) & ~(3u << (pin * 2u))) |
+            (((p->flags & EMB_STM32_PIN_PULL_UP) != 0u) ? (1u << (pin * 2u)) : 0u);
         if (p->mode == EMB_STM32_PIN_AF) { /* the function first, so the pin never shows another */
             uintptr_t afr = p->port_base + GPIO_AFRL + ((pin >> 3) * 4u);
             uint32_t shift = (pin & 7u) * 4u;

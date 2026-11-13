@@ -1,0 +1,56 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_msgq.elf sha256 ac54d7e316ee71ea5016baba7a47a40f805c60bbb2bd905d4c95b9485a2f8d78
+EVIDENCE v1 suite=test_msgq config=5b99d51dd1b8f662 profile=base board=pico2_w checked=1
+TEST msgq_fifo_order_counts_and_peek
+  -> ok
+  req KRN-IPC-010 KRN-IPC-019
+CASE msgq_fifo_order_counts_and_peek outcome=passed asserts=25 skips=0
+TEST msgq_send_front_is_received_first_and_never_waits
+  -> ok
+  req KRN-IPC-012
+CASE msgq_send_front_is_received_first_and_never_waits outcome=passed asserts=9 skips=0
+TEST msgq_waiting_receivers_get_items_directly_in_priority_order
+  -> ok
+  req KRN-IPC-010 KRN-IPC-005 KRN-WAIT-001
+CASE msgq_waiting_receivers_get_items_directly_in_priority_order outcome=passed asserts=11 skips=0
+TEST msgq_receive_refills_the_freed_slot_from_a_waiting_sender
+  -> ok
+  req KRN-IPC-010 KRN-IPC-011
+CASE msgq_receive_refills_the_freed_slot_from_a_waiting_sender outcome=passed asserts=12 skips=0
+TEST msgq_waits_time_out_and_cancel_without_storing
+  -> ok
+  req KRN-IPC-010 KRN-WAIT-004 KRN-WAIT-017
+CASE msgq_waits_time_out_and_cancel_without_storing outcome=passed asserts=15 skips=0
+TEST msgq_isr_send_and_receive_never_wait
+  -> ok
+  req KRN-IPC-003 KRN-IPC-010 KRN-IRQ-010
+CASE msgq_isr_send_and_receive_never_wait outcome=passed asserts=13 skips=0
+TEST msgq_destroy_aborts_receivers_and_senders
+  -> ok
+  req KRN-OBJ-001 KRN-WAIT-018
+CASE msgq_destroy_aborts_receivers_and_senders outcome=passed asserts=11 skips=0
+TEST msgq_destroy_with_waiters_is_misuse
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-001 API-013
+CASE msgq_destroy_with_waiters_is_misuse outcome=passed asserts=7 skips=0
+TEST msgq_init_validates_the_ring
+  fault checks that reset the board: 6
+  -> ok
+  req KRN-IPC-011 KRN-IPC-019 API-015
+CASE msgq_init_validates_the_ring outcome=passed asserts=6 skips=0
+TEST msgq_binding_fires_on_empty_to_nonempty_only
+  -> ok
+  req KRN-IPC-018 KRN-NOTIF-004 KRN-NOTIF-013
+CASE msgq_binding_fires_on_empty_to_nonempty_only outcome=passed asserts=15 skips=0
+TEST msgq_storage_reuse_requires_destroy
+  fault checks that reset the board: 1
+  -> ok
+  req KRN-OBJ-007 KRN-OBJ-011
+CASE msgq_storage_reuse_requires_destroy outcome=passed asserts=3 skips=0
+TEST msgq_define_constructs_in_init_table
+  -> ok
+  req API-021 KRN-OBJ-009
+CASE msgq_define_constructs_in_init_table outcome=passed asserts=6 skips=0
+ISR_STACK size=2048 used=176
+12 tests, 0 failed, 0 skipped, 25 ticks
+EMB_TEST_END

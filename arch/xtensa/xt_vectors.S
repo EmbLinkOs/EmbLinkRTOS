@@ -1,9 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Xtensa LX6 vectors, the level-1 entry and reset (docs/ports/xtensa.md, ADR-054): the classic
- * ESP32's PRO_CPU, the windowed ABI. VECBASE takes the table, 1 KB aligned at the start of IRAM;
- * the offsets are the LX6's as the ESP32's core-isa.h gives them.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    xt_vectors.S
+ * @brief   Xtensa LX6 vectors, the level-1 entry and reset (docs/ports/xtensa.md, ADR-054).
+ *
+ * @details
+ * The classic ESP32's PRO_CPU, the windowed ABI. VECBASE takes the table, 1 KB aligned at the start
+ * of IRAM; the offsets are the LX6's as the ESP32's core-isa.h gives them.
  *
  * Every context switch happens in the level-1 entry, so one frame serves the interrupt, the
  * switch and the initial frame. It is 128 bytes below the interrupted stack pointer:
@@ -20,6 +28,9 @@
  * thread's, whose windows were spilled the same way when it was switched out. With
  * WINDOWSTART reduced to the current window, the resumed thread's returns refill its windows
  * from its own stack (window underflow).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb/config.h>
 

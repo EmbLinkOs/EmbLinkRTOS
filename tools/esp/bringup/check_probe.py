@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Check the ESP32 bring-up probe's flash image, whichever toolchain built it (ADR-052, ADR-053):
 an ESP32 image (magic 0xE9, chip ID 0), every segment inside the IRAM or DRAM region esp32.ld
 names, the entry in IRAM, and the probe's message in a DRAM segment, since IRAM takes only

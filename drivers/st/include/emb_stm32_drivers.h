@@ -1,9 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Minimal STM32F4 drivers: clock-tree bring-up, clock gates, pins and a polled USART. Register
- * offsets and bit layouts are driver knowledge (RM0390 Rev 6); every base address, gate, pin and
- * frequency comes from the board's generated hw_config.h (SPEC-014, HW-001, A69).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_stm32_drivers.h
+ * @brief   Minimal STM32F4 drivers: clock-tree bring-up, clock gates, pins and a polled USART.
+ *
+ * @details
+ * Register offsets and bit layouts are driver knowledge (RM0390 Rev 6); every base address, gate,
+ * pin and frequency comes from the board's generated hw_config.h (SPEC-014, HW-001, A69).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #ifndef EMB_STM32_DRIVERS_H
 #define EMB_STM32_DRIVERS_H
@@ -48,15 +59,16 @@ void emb_stm32_usart_flush(uintptr_t base);
 void emb_stm32_usart_rx_irq_enable(uintptr_t base);
 int emb_stm32_usart_getc_isr(uintptr_t base);
 
-/* The last reset's cause (RCC_CSR), then cleared: EMB_STM32F4_RESET_* bits. */
-#define EMB_STM32F4_RESET_BOR  (1u << 25)
-#define EMB_STM32F4_RESET_PIN  (1u << 26)
-#define EMB_STM32F4_RESET_POR  (1u << 27)
-#define EMB_STM32F4_RESET_SOFT (1u << 28)
-#define EMB_STM32F4_RESET_IWDG (1u << 29)
-#define EMB_STM32F4_RESET_WWDG (1u << 30)
-#define EMB_STM32F4_RESET_LPWR (1u << 31)
-#define EMB_STM32F4_RESET_MASK (0x7Fu << 25) /* bits 25 to 31 */
+/* The last reset's cause (RCC_CSR), EMB_STM32F4_RESET_* bits: read and cleared by the first
+ * call, which every later call repeats. */
+#define EMB_STM32F4_RESET_BOR  ((uint32_t)1u << 25)
+#define EMB_STM32F4_RESET_PIN  ((uint32_t)1u << 26)
+#define EMB_STM32F4_RESET_POR  ((uint32_t)1u << 27)
+#define EMB_STM32F4_RESET_SOFT ((uint32_t)1u << 28)
+#define EMB_STM32F4_RESET_IWDG ((uint32_t)1u << 29)
+#define EMB_STM32F4_RESET_WWDG ((uint32_t)1u << 30)
+#define EMB_STM32F4_RESET_LPWR ((uint32_t)1u << 31)
+#define EMB_STM32F4_RESET_MASK ((uint32_t)0x7Fu << 25) /* bits 25 to 31 */
 uint32_t emb_stm32f4_reset_flags_take(void);
 
 /* A general-purpose timer's input clock from its APB bus's clock and divider (RM0390 §6.2). */

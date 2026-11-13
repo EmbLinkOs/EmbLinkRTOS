@@ -1,7 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Devices and driver requests (SPEC-016): the device instance, its lifecycle, and the
- * request/completion core every driver class is built on. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    device.h
+ * @brief   Devices and driver requests (SPEC-016).
+ *
+ * @details
+ * The device instance, its lifecycle, and the request/completion core every driver class is built
+ * on.
+ *
+ * @see     kernel/device/device.c
+ * @author  Junior Deogracias
+ * @date    2026-11-09 (created)
+ */
 #ifndef EMB_DEVICE_H
 #define EMB_DEVICE_H
 
@@ -53,27 +68,37 @@ struct emb_drv_request;
 typedef struct emb_device_api {
     /* Bring the hardware up; EMB_OK makes the device READY, anything else FAILED. */
     emb_status_t (*init)(const struct emb_device *dev);
-    /* Begin the request now at the head of the device's queue. The driver later calls
-     * emb_drv_complete() for it, from an interrupt or a thread. */
-    void (*start)(const struct emb_device *dev, struct emb_drv_request *req);
+    /* Begin the request now at the head of its lane's queue. Returns EMB_EBUSY when the
+     * request runs on, and the driver later calls emb_drv_complete() for it, from an
+     * interrupt or a thread; or the request's final status, with req->done set, when it
+     * finished here. start() never calls emb_drv_complete() for the request it was given,
+     * so completion never recurses into it (A115). */
+    emb_status_t (*start)(const struct emb_device *dev, struct emb_drv_request *req);
     /* Stop the head request in progress, then complete it (emb_drv_complete) with what it
      * transferred. May be NULL for a device whose requests complete inside start(). */
     void (*stop)(const struct emb_device *dev, struct emb_drv_request *req);
     /* Power transitions; NULL means the device has nothing to do. */
     emb_status_t (*suspend)(const struct emb_device *dev);
     emb_status_t (*resume)(const struct emb_device *dev);
+    /* The class's capability bits this driver has (EMB_DRV_<CLASS>_CAP_*, SPEC-016 §11). */
+    uint32_t caps;
 } emb_device_api_t;
 
-/* RAM: the device's lifecycle and its request queue. Lock domain: the device's critical
+/* A device's request lanes (AMENDMENTS-M4 A114): each a queue of its own, its head started
+ * whatever the other lane does, so a full-duplex device (a UART) writes while it reads. A
+ * class that needs one lane uses lane 0. */
+#define EMB_DRV_LANES 2u
+
+/* RAM: the device's lifecycle and its request queues. Lock domain: the device's critical
  * section (SPEC-016 §6). */
 typedef struct emb_device_ram {
     uint8_t lifecycle; /* EMB_DEVICE_* */
     uint8_t power;     /* the device's power state (SPEC-018) */
-    uint8_t busy;      /* the head request has been started */
+    uint8_t busy;      /* bit n: lane n's head request has been started */
     uint8_t reserved_;
-    int16_t last_status;          /* what made it FAILED, or EMB_OK */
-    struct emb_drv_request *head; /* the queue, first in first out */
-    struct emb_drv_request *tail;
+    int16_t last_status;                         /* what made it FAILED, or EMB_OK */
+    struct emb_drv_request *head[EMB_DRV_LANES]; /* each lane's queue, first in first out */
+    struct emb_drv_request *tail[EMB_DRV_LANES];
 } emb_device_state_t;
 
 /* A device: emitted by the generator (SPEC-016 §8), const, reached by symbol. */
@@ -108,6 +133,26 @@ typedef struct emb_device_table {
 
 extern const emb_device_table_t emb_board_device_table;
 
+/**
+ * emb_device_caps() - The capabilities a device's driver has.
+ * @dev: The device.
+ *
+ * @ctx      thread isr prekernel
+ * @blocks   no
+ * @time     O(1)
+ * @owns     none
+ * @config   CONFIG_EMB_DEVICE
+ * @req      DRV-002
+ * @since    0.3
+ * @stable   no
+ *
+ * An operation that needs a capability the device lacks returns EMB_ENOTSUP; nothing is
+ * emulated in its place (SPEC-016 §11).
+ *
+ * Return: the class's EMB_DRV_<CLASS>_CAP_* bits; 0 for a NULL @dev.
+ */
+uint32_t emb_device_caps(const emb_device_t *dev);
+
 /* ---- requests and completion (SPEC-016 §5) ---------------------------------------- */
 
 /* Completion targets (DRV-005). */
@@ -127,6 +172,7 @@ typedef struct emb_drv_request {
     uint32_t done;                /* bytes or items completed, also on error and cancel */
     uint8_t target;               /* EMB_DRV_TARGET_* */
     uint8_t phase;                /* the core's: idle, queued, started, stopping, done */
+    uint8_t lane;                 /* the device's lane it queues on: 0, or 1 (A114) */
     emb_notify_bits_t bits;       /* EMB_DRV_TARGET_NOTIFY */
     emb_thread_t thread;          /* EMB_DRV_TARGET_NOTIFY */
     emb_sem_t sem;                /* EMB_DRV_TARGET_SEM */

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The differential runner (TEST-008): native only, needs the trace sink and every object.
 if(CONFIG_EMB_ARCH_NATIVE AND CONFIG_EMB_TRACE AND CONFIG_EMB_SEM AND CONFIG_EMB_MUTEX AND CONFIG_EMB_NOTIFY)
   emb_add_executable(diff_runner diff_runner.c)

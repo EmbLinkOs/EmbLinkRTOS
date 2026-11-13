@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Work queue conformance (SPEC-006 §4; KRN-WQ-001, 002, 004 to 006, 008 to 011). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_workq.c
+ * @brief   Work queue conformance (SPEC-006 §4; KRN-WQ-001, 002, 004 to 006, 008 to 011).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #include <emb_test.h>
 #if CONFIG_EMB_TIMER
 #include <embk/time.h> /* white-box: the expiry pass's steps (dwork_rescheduled_during_its_expiry) */

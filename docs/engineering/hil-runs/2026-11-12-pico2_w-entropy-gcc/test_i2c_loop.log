@@ -1,0 +1,33 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_i2c_loop.elf sha256 96c23f517895b14114cf8698547814ffb78965b48ee72d1aae3b0c74e70c77a3
+EVIDENCE v1 suite=test_i2c_loop config=1aafec98e5605967 profile=base board=pico2_w checked=1
+TEST i2c_loop_recovers_a_stuck_target
+  -> ok
+  req DRV-006
+CASE i2c_loop_recovers_a_stuck_target outcome=passed asserts=88 skips=0
+TEST i2c_loop_listen_times_out
+  -> ok
+  req DRV-006
+CASE i2c_loop_listen_times_out outcome=passed asserts=2 skips=0
+TEST i2c_loop_fast_mode
+  -> ok
+  req DRV-004
+CASE i2c_loop_fast_mode outcome=passed asserts=5 skips=0
+TEST i2c_loop_target_drops_beyond_its_buffer
+  -> ok
+  req DRV-006
+CASE i2c_loop_target_drops_beyond_its_buffer outcome=passed asserts=6 skips=0
+TEST i2c_loop_nobody_answers
+  -> ok
+  req DRV-006
+CASE i2c_loop_nobody_answers outcome=passed asserts=6 skips=0
+TEST i2c_loop_register_reads_of_every_length
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_loop_register_reads_of_every_length outcome=passed asserts=32 skips=0
+TEST i2c_loop_write_to_the_target
+  -> ok
+  req DRV-004 DRV-005
+CASE i2c_loop_write_to_the_target outcome=passed asserts=8 skips=0
+ISR_STACK size=2048 used=216
+7 tests, 0 failed, 0 skipped, 162 ticks
+EMB_TEST_END

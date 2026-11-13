@@ -74,6 +74,17 @@
           "bus": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "deps": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" } },
           "level": { "enum": ["early", "kernel"] },
+          "dma": {
+            "description": "the device's DMA request lines to give channels, by name (tx, rx): the generator assigns each a channel no other device has (A119)",
+            "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+          },
+          "cs": {
+            "description": "chip selects, GPIO lines active low unless active: high: a device on an SPI bus names its own, an SPI controller may list spares (SPEC-014 §4, A116)",
+            "oneOf": [
+              { "$ref": "#/$defs/chip_select" },
+              { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/chip_select" } }
+            ]
+          },
           "doc": { "type": "string" }
         },
         "additionalProperties": { "oneOf": [ { "type": "integer" }, { "type": "string" }, { "type": "boolean" } ] }
@@ -123,7 +134,23 @@
       "properties": {
         "embsim": { "type": "string" },
         "qemu": { "type": "array", "items": { "type": "string" } },
-        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim", "hil"] } }
+        "resets_in": { "type": "array", "items": { "enum": ["qemu", "embsim", "hil"] } },
+        "loopbacks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["device"],
+            "additionalProperties": false,
+            "properties": {
+              "device": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+              "ports": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } },
+              "internal": { "const": true },
+              "peer": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+              "nets": { "type": "array", "minItems": 2, "maxItems": 2,
+                        "items": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" } } }
+            }
+          }
+        }
       }
     },
     "defaults": {
@@ -132,6 +159,11 @@
     }
   },
   "$defs": {
+    "chip_select": { "oneOf": [
+      { "type": "string" },
+      { "type": "object", "required": ["pin"], "additionalProperties": false,
+        "properties": { "pin": { "type": "string" }, "active": { "enum": ["low", "high"] } } }
+    ] },
     "ident": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*$" },
     "pin": { "type": "string", "pattern": "^(P[A-K](1[0-5]|[0-9])(\\.af(1[0-5]|[0-9]))?|GPIO([1-5][0-9]|6[0-3]|[0-9])(\\.f([12][0-9]|3[01]|[0-9]))?)$" },
     "oscillator": {

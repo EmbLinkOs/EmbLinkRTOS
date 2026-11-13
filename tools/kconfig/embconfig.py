@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """embconfig: the EmbLinkRTOS configuration tool (05 §2.1, ADR-005, BLD-007).
 
 Reads a Kconfig tree (the subset documented in tools/kconfig/README.md), an

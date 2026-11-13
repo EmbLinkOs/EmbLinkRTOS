@@ -1,0 +1,26 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem31103 at 115200 baud, image test_rtc.elf sha256 e39d8738046152cb8a0c81bb7cb29c2efc718925a6549ccdeb662c19e0f960f8
+EVIDENCE v1 suite=test_rtc config=1aafec98e5605967 profile=base board=pico2_w checked=1
+TEST rtc_seeds_the_wall_clock
+  -> ok
+  req KRN-TIM-031
+CASE rtc_seeds_the_wall_clock outcome=passed asserts=3 skips=0
+TEST rtc_backup_and_misuse
+  fault checks that reset the board: 3
+  -> ok
+  req DRV-001
+CASE rtc_backup_and_misuse outcome=passed asserts=8 skips=0
+TEST rtc_alarm_canceled_and_set_disarms
+  -> ok
+  req DRV-001
+CASE rtc_alarm_canceled_and_set_disarms outcome=passed asserts=10 skips=0
+TEST rtc_alarm_once_and_again
+  -> ok
+  req DRV-001
+CASE rtc_alarm_once_and_again outcome=passed asserts=10 skips=0
+TEST rtc_get_set_and_not_set
+  -> ok
+  req DRV-001
+CASE rtc_get_set_and_not_set outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=216
+5 tests, 0 failed, 0 skipped, 42 ticks
+EMB_TEST_END

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """emb-hwgen tests: golden outputs and determinism (HW-003, HW-013), the clock solver, and one
 negative description per validation rule, each checking the file, line and node path the
 error names (HW-002, HW-011)."""
@@ -20,6 +24,9 @@ from emb_hwgen import HwError, diagnostics, facts, generate, load, model, schema
 BOARD = "boards/st/nucleo_f446re"
 UNO = "boards/arduino/arduino_uno"
 PICO = "boards/rpi/pico2_w"
+# the NUCLEO-F446RE's partitions, as its description lists them: the tests replace them whole
+NUCLEO_PARTITIONS = ("- { name: app, base: 0x08000000, size: 384K }        # sectors 0 to 6\n"
+                     "  - { name: storage, base: 0x08060000, size: 128K }    # sector 7")
 
 
 def assert_every_error_parses(test, errors):
@@ -150,25 +157,25 @@ class Negative(unittest.TestCase):
         self.expect(die, self.root.line_of(die, "name: sram2"), "memory.regions.sram2", "overlaps sram1")
 
     def test_partition_off_sector_boundary(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 20K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "erase-sector")
 
     def test_app_partition_must_start_where_the_core_boots(self):
         """A82: a Cortex-M core takes its vector table from the boot region's start; an image
         elsewhere (MCUboot's slot 0) would need a bootloader."""
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: boot, base: 0x08000000, size: 128K, reserved: true }\n  - { name: app, base: 0x08020000, size: 384K }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app, base: 0x08020000"), "flash_partitions.app",
                     "the core boots from 0x08000000")
 
     def test_partition_outside_flash(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 1M }")
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: app"), "flash_partitions.app", "outside flash")
 
     def test_overlapping_partitions(self):
-        self.root.edit(f"{BOARD}/board.yaml", "- { name: app, base: 0x08000000, size: 512K }",
+        self.root.edit(f"{BOARD}/board.yaml", NUCLEO_PARTITIONS,
                        "- { name: app, base: 0x08000000, size: 128K }\n  - { name: data, base: 0x08010000, size: 64K }")
         # 0x08010000 + 64K is sector 4 exactly: inside app (0 to 4 is 128K)
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: data"), "flash_partitions.data", "overlaps app")
@@ -261,6 +268,172 @@ class Negative(unittest.TestCase):
         self.expect(f"{BOARD}/board.yaml", self.board_line("name: nucleo_f446rx"), "name", "differs from its directory")
 
 
+class ChipSelects(unittest.TestCase):
+    """devices[].cs (SPEC-017 §5, A116): an SPI device's chip selects, each a line of one of the
+    board's GPIO devices, named in soc_devices.h and set up deasserted by the pin table."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def files(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        return files
+
+    def expect(self, needle, path, message):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        want = f"{self.board}:{self.root.line_of(self.board, needle)}: {path}: "
+        hits = [e for e in cm.exception.errors if e.startswith(want) and re.search(message, e)]
+        self.assertTrue(hits, f"expected '{want}...{message}', got:\n" + "\n".join(cm.exception.errors))
+
+    def test_active_low_by_default(self):
+        files = self.files()
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 1u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 1u, 0u},", files["board_pins.c"])  # starts high
+        self.assertIn("set(EMB_BOARD_SPI2_CS_COUNT 1)", files["board.cmake"])
+
+    def test_active_high(self):
+        self.root.edit(self.board, "cs: [PB12]", "cs: [{ pin: PB12, active: high }]")
+        files = self.files()
+        self.assertIn("#define EMB_SOC_SPI2_CS0 {&emb_dev_gpiob, 12u, 0u, {0u, 0u}} /* PB12 */", files["soc_devices.h"])
+        self.assertIn("{EMB_STM32_PORT(B), 12u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},", files["board_pins.c"])  # starts low
+
+    def test_needs_the_ports_device(self):
+        self.root.edit(self.board, '  - { name: gpiob, doc: "SPI2\'s chip select, PB12" }\n', "")
+        self.expect("cs: [PB12]", "devices.spi2.cs[0]", "PB12 is a line of gpiob, which the board does not list")
+
+    def test_only_spi_devices(self):
+        self.root.edit(self.board, "{ name: uart4,", "{ name: uart4, cs: [PB1],")
+        self.expect("name: uart4", "devices.uart4.cs", "not an SPI controller or a device on one")
+
+    def test_a_device_on_the_bus_names_its_own(self):
+        """SPEC-014 §4's example: a target device on an SPI controller names its chip select."""
+        self.root.edit(self.board, "  - { name: uart4,", "  - { name: nor, compatible: \"acme,flash\", bus: spi2, cs: PB1 }\n  - { name: uart4,")
+        (self.root.dir / "drivers" / "bindings.yaml").write_text(
+            (self.root.dir / "drivers" / "bindings.yaml").read_text() +
+            "  acme,flash: { class: flash, level: kernel, sources: [drivers/acme/flash.c], header: flash.h, api: flash_api, config: flash_config_t }\n",
+            encoding="utf-8")
+        files = self.files()
+        self.assertIn("#define EMB_SOC_NOR_CS {&emb_dev_gpiob, 1u, 1u, {0u, 0u}} /* PB1 */", files["soc_devices.h"])
+        self.root.edit(self.board, "bus: spi2, cs: PB1 }", "bus: spi2, cs: [PB1, PB2] }")
+        self.expect("name: nor", "devices.nor.cs", "a device on an SPI bus has one chip select")
+
+    def test_a_pin_has_one_owner(self):
+        self.root.edit(self.board, "cs: [PB12]", "cs: [PB13]")  # SPI2's clock
+        self.expect("cs: [PB13]", "devices.spi2.cs[0]", "PB13 is already assigned")
+
+
+class DmaChannels(unittest.TestCase):
+    """devices[].dma and peripherals[].dma_requests (A119): each request a board asks for gets
+    a channel no other device has, named in the configuration and soc_devices.h."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def errors(self):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        return cm.exception.errors
+
+    def test_assigned_and_named(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        self.assertIn(".dma_tx = {&emb_dev_dma1, 4u, 0u, {0u, 0u}}, /* dma.tx */", files["soc_devices.c"])
+        self.assertIn("#define EMB_SOC_SPI2_DMA_RX {&emb_dev_dma1, 3u, 0u, {0u, 0u}}", files["soc_devices.h"])
+        self.assertIn("set(EMB_BOARD_SPI2_DMA rx tx)", files["board.cmake"])
+        self.assertIn("{0x20000000u, 0x0001C000u}, /* sram1 */", files["soc_devices.c"])  # where DMA reaches
+
+    def test_a_stream_two_devices_want(self):
+        # UART4's transmit is on DMA1 stream 4 alone, which SPI2's transmit took first
+        self.root.edit(self.board, "{ name: uart4,", "{ name: uart4, dma: [tx],")
+        self.assertTrue(any("devices.uart4.dma" in e and "every channel it can use is taken" in e
+                            for e in self.errors()), self.errors())
+
+    def test_a_controller_the_board_lacks(self):
+        self.root.edit(self.board, '  - { name: dma1, doc: "DMA1: SPI2\'s transfers, and the console\'s writes" }\n', "")
+        self.assertTrue(any("devices.spi2.dma" in e and "does not list in devices" in e for e in self.errors()))
+        self.assertTrue(any("devices.usart2.dma" in e for e in self.errors()))
+
+    def test_a_request_the_device_lacks(self):
+        self.root.edit(self.board, "dma: [tx, rx],", "dma: [tx, sideways],")
+        self.assertTrue(any("has no DMA request 'sideways'" in e for e in self.errors()))
+
+    def test_a_stream_the_controller_lacks(self):
+        self.root.edit("soc/st/stm32f4/stm32f446.yaml", "dma_requests: { tx: dma1.s4c0, rx: dma1.s3c0 }",
+                       "dma_requests: { tx: dma1.s9c0, rx: dma1.s3c0 }")
+        self.assertTrue(any("peripherals.spi2.dma_requests.tx" in e and "8 streams" in e for e in self.errors()))
+
+
+class FlashGeometry(unittest.TestCase):
+    """A flash device's geometry (A122): the SoC's sectors, listed or of one size up to the
+    board's chip size, in its configuration; the partitions on it, EMB_FLASH_AREA_<NAME>; and the
+    RAM code section the RP2350's flash routines run from."""
+
+    def setUp(self):
+        self.root = Root(boards=(BOARD, PICO))
+        self.addCleanup(self.root.close)
+
+    def errors(self, board):
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve(board)
+        return cm.exception.errors
+
+    def test_listed_sectors_and_partitions(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        c, h = files["soc_devices.c"], files["soc_devices.h"]
+        self.assertIn("static const uint32_t flash_sectors[8] = {0x4000u, 0x4000u, 0x4000u, 0x4000u, "
+                      "0x10000u, 0x20000u, 0x20000u, 0x20000u};", c)
+        self.assertIn(".geometry = {0x08000000u, 0x00080000u, flash_sectors, 0u, 8u, 1u, 0xFFu, {0u, 0u, 0u}},", c)
+        self.assertIn('const emb_flash_area_t emb_flash_area_storage = {"storage", &emb_dev_flash, 0x00060000u, '
+                      "0x00020000u};", c)
+        self.assertIn("#define EMB_FLASH_AREA_STORAGE (&emb_flash_area_storage)", h)
+        self.assertIn("#include <emb/flash_area.h>", h)
+        self.assertIn("*(.ramfunc .ramfunc.*)", files["regions.ld"])
+
+    def test_uniform_sectors_up_to_the_chip(self):
+        files, _ = generate.generate(self.root.dir / PICO, self.root.dir)
+        c = files["soc_devices.c"]
+        self.assertIn(".geometry = {0x10000000u, 0x00400000u, NULL, 4096u, 1024u, 256u, 0xFFu, {0u, 0u, 0u}},", c)
+        self.assertIn('{"storage", &emb_dev_flash, 0x003F0000u, 0x00010000u};', c)
+
+    def test_listed_sectors_cover_the_region(self):
+        self.root.edit(f"{BOARD}/board.yaml", "{ name: flash, peripheral: flash_if,", "{ name: flash, peripheral: flash_if, size: 256K,")
+        self.assertTrue(any("devices.flash.size" in e and "whole region" in e for e in self.errors(BOARD)))
+
+    def test_a_size_of_whole_sectors(self):
+        self.root.edit(f"{PICO}/board.yaml", "peripheral: qmi, size: 4M,", "peripheral: qmi, size: 4097K,")
+        self.assertTrue(any("devices.flash.size" in e and "4096-byte sectors" in e for e in self.errors(PICO)))
+
+    def test_a_size_beyond_the_window(self):
+        self.root.edit(f"{PICO}/board.yaml", "peripheral: qmi, size: 4M,", "peripheral: qmi, size: 32M,")
+        self.assertTrue(any("devices.flash.size" in e and "within its region xip" in e for e in self.errors(PICO)))
+
+
+class PinLines(unittest.TestCase):
+    """A binding's pins.<signal> (A118): the GPIO line a device's pin is on, in its
+    configuration and as EMB_SOC_<DEVICE>_<SIGNAL>, for an I2C bus's recovery."""
+
+    def setUp(self):
+        self.root = Root()
+        self.addCleanup(self.root.close)
+        self.board = f"{BOARD}/board.yaml"
+
+    def test_lines_in_the_configuration_and_the_header(self):
+        files, _ = generate.generate(self.root.dir / BOARD, self.root.dir)
+        self.assertIn(".scl = {&emb_dev_gpiob, 8u, 0u, {0u, 0u}}, /* pins.scl */", files["soc_devices.c"])
+        self.assertIn("#define EMB_SOC_I2C2_SDA {&emb_dev_gpiob, 3u, 0u, {0u, 0u}} /* PB3 */", files["soc_devices.h"])
+
+    def test_a_port_without_its_gpio_device(self):
+        self.root.edit(self.board, "  - { name: gpiob, doc: \"SPI2's chip select, PB12\" }\n", "")
+        with self.assertRaises(HwError) as cm:
+            self.root.resolve()
+        self.assertTrue(any("devices.i2c1" in e and "reads pins.scl" in e for e in cm.exception.errors),
+                        "\n".join(cm.exception.errors))
+
+
 class Bank(unittest.TestCase):
     """A79: a SoC with one numbered GPIO bank (the RP2350): GPIO<n>.f<k> pins, the bank's line
     count, its function selects, and the RP2350 pin table."""
@@ -279,8 +452,12 @@ class Bank(unittest.TestCase):
 
     def test_pin_table(self):
         files, _ = generate.generate(ROOT / PICO, ROOT)
-        self.assertIn("{0u, 2u, 1u},", files["board_pins.c"])  # GPIO0, function 2 (UART0 TX), input enabled
-        self.assertIn("{1u, 2u, 1u},", files["board_pins.c"])
+        self.assertIn("{0u, 2u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # UART0 TX
+        self.assertIn("{1u, 2u, 1u, EMB_RP2350_PULL_UP, EMB_RP2350_OUT_NONE},", files["board_pins.c"])  # RX idles high
+        # SPI1's chip select: an SIO output, its input on so it reads back, starting deasserted
+        self.assertIn("{13u, 5u, 1u, EMB_RP2350_PULL_RESET, EMB_RP2350_OUT_HIGH},", files["board_pins.c"])
+        self.assertIn("#define EMB_SOC_SPI1_CS0 {&emb_dev_io_bank0, 13u, 1u, {0u, 0u}} /* GPIO13 */",
+                      files["soc_devices.h"])
         self.assertIn("set(EMB_BOARD_FLASH_IMAGE uf2)", files["board.cmake"])
         self.assertIn("set(EMB_BOARD_UF2_FAMILY 0xE48BFF59)", files["board.cmake"])
         self.assertIn("0x10210142u, /* item IMAGE_TYPE (0x42), one word: 0x1021 */", files["boot_block.c"])
@@ -458,6 +635,7 @@ class Devices(unittest.TestCase):
         (self.root.dir / "drivers" / "bindings.yaml").write_text(BINDINGS, encoding="utf-8")
         board = self.root.dir / BOARD / "board.yaml"
         text = re.sub(r"^devices:\n(?:  - .*\n)+", "", board.read_text(encoding="utf-8"), flags=re.M)
+        text = re.sub(r"^  # [^\n]*\n  loopbacks:\n(?:    - .*\n)+|^  loopbacks:\n(?:    - .*\n)+", "", text, flags=re.M)
         board.write_text(text.replace("leds:", DEVICES + "leds:", 1), encoding="utf-8")
 
     def tearDown(self):
@@ -517,6 +695,40 @@ class Devices(unittest.TestCase):
 
     def test_deterministic(self):
         self.assertEqual(self.files(), self.files())
+
+    def test_buffers(self):
+        """A binding's buffers: sized by a device property or the binding's default, emitted as
+        RAM beside the configuration, which names them and their sizes."""
+        self.root.edit("drivers/bindings.yaml", "data: usart_data_t,",
+                       "data: usart_data_t, buffers: { rx: { size: device.rx_buffer, default: 64 } },")
+        c = self.files()["soc_devices.c"]
+        self.assertIn("static uint8_t console_rx[64];", c)
+        self.assertIn("    .rx = console_rx,", c)
+        self.assertIn("    .rx_size = 64u,", c)
+        self.root.edit(f"{BOARD}/board.yaml", "peripheral: usart2, baud: 115200 }",
+                       "peripheral: usart2, baud: 115200, rx_buffer: 256 }")
+        self.assertIn("static uint8_t console_rx[256];", self.files()["soc_devices.c"])
+        self.root.edit(f"{BOARD}/board.yaml", "rx_buffer: 256", "rx_buffer: 70000")
+        self.expect(r"buffer rx needs a size of 1 to 65535", needle="name: console", path="devices.console")
+
+    def test_loopbacks(self):
+        """simulation.loopbacks: a UART or SPI device, wired by two ports or looped inside."""
+        self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console, ports: [A0, A1] } ]\n")
+        self.assertIn('set(EMB_BOARD_EMBSIM_UART_LOOP console "A0,A1")', self.files()["board.cmake"])
+        self.root.edit(f"{BOARD}/board.yaml", "{ device: console, ports: [A0, A1] }", "{ device: console, internal: true }")
+        self.assertIn("set(EMB_BOARD_UART_LOOP_INTERNAL console)", self.files()["board.cmake"])
+        self.root.edit(f"{BOARD}/board.yaml", "{ device: console, internal: true }", "{ device: rcc, internal: true }")
+        self.expect(r"rcc is not a UART, SPI or I2C device", needle="device: rcc", path="simulation.loopbacks[0]")
+
+    def test_loopback_names_one_way(self):
+        self.root.edit(f"{BOARD}/board.yaml", "simulation:\n", "simulation:\n  loopbacks: [ { device: console } ]\n")
+        self.expect(r"two ports or internal: true", needle="device: console }", path="simulation.loopbacks[0]")
+
+    def test_presence_and_console_macros(self):
+        h = self.files()["soc_devices.h"]
+        self.assertIn("#define EMB_SOC_HAS_SENSOR  1", h)
+        self.assertIn("#define EMB_SOC_HAS_CONSOLE 1", h)
+        self.assertIn("#define EMB_SOC_CONSOLE_DEVICE (&emb_dev_console)", h)  # the device on usart2
 
     def test_board_without_devices(self):
         """Every board defines its device table, so a board's devices can never be left out by

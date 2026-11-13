@@ -1,0 +1,47 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_irq_priority.elf sha256 b3fe5fb41a14a708e4e042a3a6b2d9f04bd829f5fe63cc78a5f53abc5b45419e
+EVIDENCE v1 suite=test_irq_priority config=0912f8545cffda7d profile=base board=nucleo_f446re checked=1
+TEST irq_priority_accepts_advertised_endpoints
+  -> ok
+  req KRN-IRQ-028 KRN-IRQ-029
+CASE irq_priority_accepts_advertised_endpoints outcome=passed asserts=2 skips=0
+TEST irq_priority_rejects_out_of_range_level
+  fault checks that reset the board: 2
+  -> ok
+  req API-015 KRN-IRQ-028
+CASE irq_priority_rejects_out_of_range_level outcome=passed asserts=2 skips=0
+TEST irq_priority_rejects_unknown_number
+  fault checks that reset the board: 1
+  -> ok
+  req API-015 KRN-IRQ-029
+CASE irq_priority_rejects_unknown_number outcome=passed asserts=1 skips=0
+TEST irq_priority_port_rejects_invalid_inputs
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_port_rejects_invalid_inputs outcome=passed asserts=2 skips=0
+TEST irq_priority_encodings_and_invalid_write_guard
+  -> ok
+  req KRN-IRQ-028 KRN-IRQ-031
+CASE irq_priority_encodings_and_invalid_write_guard outcome=passed asserts=37 skips=0
+TEST irq_priority_higher_generic_level_wins_pending_order
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_higher_generic_level_wins_pending_order outcome=passed asserts=18 skips=0
+TEST irq_priority_higher_generic_level_preempts_lower
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_higher_generic_level_preempts_lower outcome=passed asserts=16 skips=0
+TEST irq_priority_nested_interrupt_reschedules_work_in_a_timer_callback
+  -> ok
+  req KRN-WQ-007 KRN-TIM-025 KRN-IRQ-012
+CASE irq_priority_nested_interrupt_reschedules_work_in_a_timer_callback outcome=passed asserts=25 skips=0
+TEST irq_priority_equal_levels_do_not_preempt
+  -> ok
+  req KRN-IRQ-028
+CASE irq_priority_equal_levels_do_not_preempt outcome=passed asserts=16 skips=0
+TEST irq_priority_highest_kernel_level_is_masked
+  -> ok
+  req KRN-IRQ-018 KRN-IRQ-028
+CASE irq_priority_highest_kernel_level_is_masked outcome=passed asserts=17 skips=0
+ISR_STACK size=2048 used=276
+10 tests, 0 failed, 0 skipped, 129 ticks
+EMB_TEST_END

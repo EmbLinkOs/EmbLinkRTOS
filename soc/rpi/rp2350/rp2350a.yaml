@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # RP2350A: the RP2350 in the QFN-60 package, with GPIO0 to GPIO29 (RP2350 datasheet, pin
 # locations; pico-sdk's PICO_RP2350A).
 schema_version: 0

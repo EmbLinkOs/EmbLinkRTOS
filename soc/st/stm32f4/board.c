@@ -1,11 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for every STM32F4 board described in YAML: the emb_board.h interface over the
- * STM32F4 drivers, with the clock tree, pins, console and LED from the board's generated
- * hw_config.h and board_pins.c (SPEC-014). A hardware target: the run ends in a WFI loop with
- * interrupts masked, since a part with no debugger attached has nowhere to exit to (an emulator
- * ends the run at the console's EMB_TEST_END).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for every STM32F4 board described in YAML.
+ *
+ * @details
+ * The emb_board.h interface over the STM32F4 drivers, with the clock tree, pins, console and LED
+ * from the board's generated hw_config.h and board_pins.c (SPEC-014). A hardware target: the run
+ * ends in a WFI loop with interrupts masked, since a part with no debugger attached has nowhere to
+ * exit to (an emulator ends the run at the console's EMB_TEST_END).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/fault.h>
 
@@ -69,6 +80,12 @@ void emb_board_exit(int code)
     (void)code; /* no host to report it to */
     emb_stm32_usart_flush(EMB_HW_CONSOLE_BASE);
     emb_cm_halt();
+}
+
+/* Before any reset (emb_arch_system_reset): the console's last byte leaves first. */
+void emb_board_reset_prepare(void)
+{
+    emb_stm32_usart_flush(EMB_HW_CONSOLE_BASE);
 }
 
 void emb_board_fault_report(const emb_fault_info_t *info)

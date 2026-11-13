@@ -1,6 +1,19 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Condition variables (SPEC-005 §6): wait with a mutex released atomically, no stored signal. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    cond.h
+ * @brief   Condition variables (SPEC-005 §6): wait with a mutex released atomically, no stored
+ *          signal.
+ *
+ * @see     kernel/sync/cond.c
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMB_COND_H
 #define EMB_COND_H
 

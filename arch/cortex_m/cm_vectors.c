@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Cortex-M vector table, reset entry, PendSV, and fault entry (docs/ports/cortex_m.md).
- * The board's linker script places .vectors at the boot address and defines the
- * symbols used here: __stack_top (the top of the interrupt stack, MSP, A90), __data_load,
- * __data_start, __data_end, __bss_start, __bss_end.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    cm_vectors.c
+ * @brief   Cortex-M vector table, reset entry, PendSV, and fault entry (docs/ports/cortex_m.md).
+ *
+ * @details
+ * The board's linker script places .vectors at the boot address and defines the symbols used here:
+ * __stack_top (the top of the interrupt stack, MSP, A90), __data_load, __data_start, __data_end,
+ * __bss_start, __bss_end.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #include <emb/arch.h>
 

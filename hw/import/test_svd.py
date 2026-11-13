@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """SVD importer tests (HW-004, HW-012, A77): the draft from a synthetic embsvd export, its
 validity and YAML, the comparison that never writes, and the refusals. With embsvd on PATH a
 synthetic SVD runs end to end; with EMB_SVD_STM32F446 naming ST's STM32F446 SVD (v2.0, from

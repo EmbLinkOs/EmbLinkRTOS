@@ -1,0 +1,42 @@
+hil: board nucleo_f446re, soc STM32F446RE, probe openocd -f board/st_nucleo_f4.cfg, port /dev/cu.usbmodem11103 at 115200 baud, image test_spi.elf sha256 53fd5692eb46599ed24be9c70af1f3b6e18552b487f6439e0cc589ead9141288
+EVIDENCE v1 suite=test_spi config=58171f48454d7671 profile=base board=nucleo_f446re checked=1
+TEST spi_other_threads_wait_for_a_held_bus
+  -> ok
+  req DRV-004
+CASE spi_other_threads_wait_for_a_held_bus outcome=passed asserts=15 skips=0
+TEST spi_held_bus_refuses_another_target
+  -> ok
+  req DRV-004
+CASE spi_held_bus_refuses_another_target outcome=passed asserts=10 skips=0
+TEST spi_held_bus_keeps_the_chip_select
+  -> ok
+  req DRV-004
+CASE spi_held_bus_keeps_the_chip_select outcome=passed asserts=15 skips=0
+TEST spi_chip_select_around_each_transfer
+  -> ok
+  req DRV-004
+CASE spi_chip_select_around_each_transfer outcome=passed asserts=11 skips=0
+TEST spi_misuse_faults
+  fault checks that reset the board: 5
+  -> ok
+  req DRV-004
+CASE spi_misuse_faults outcome=passed asserts=7 skips=0
+TEST spi_unsupported_and_stopped
+  -> ok
+  req DRV-006
+CASE spi_unsupported_and_stopped outcome=passed asserts=7 skips=0
+TEST spi_transfers_run_in_order
+  -> ok
+  req DRV-004
+CASE spi_transfers_run_in_order outcome=passed asserts=10 skips=0
+TEST spi_without_buffers
+  -> ok
+  req DRV-005
+CASE spi_without_buffers outcome=passed asserts=7 skips=0
+TEST spi_transfer_loops_back
+  -> ok
+  req DRV-004 DRV-005
+CASE spi_transfer_loops_back outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=192
+9 tests, 0 failed, 0 skipped, 62 ticks
+EMB_TEST_END

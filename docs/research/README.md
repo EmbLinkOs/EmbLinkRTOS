@@ -7,6 +7,7 @@ Research records answer "what do other systems do, what does the outside world r
 | [R-001](R-001-rtos-mechanism-comparison.md) | RTOS mechanism comparison across FreeRTOS, ThreadX, Zephyr, RTEMS, NuttX, ChibiOS RT and NIL, uC/OS-III, Hubris, Tock, Embassy, RIOT: scheduler, context switch and interrupts, time, wait and wake, inheritance, IPC, isolation, observability, configuration and quality, scorecard of gaps | Record, 2026-10-07 |
 | [R-002](R-002-market-certification-and-positioning.md) | Who uses what, measured performance in the public record, safety certification landscape, regulation (EU CRA, memory-safety roadmaps), scheduling ideas from QNX, seL4 MCS, RTIC, ThreadX | Record, 2026-10-07 |
 | [R-003](R-003-differentiation.md) | Differentiation: the nine claims, complaint checklist, adopt/avoid/beat decisions, measurable targets T1 to T14, the cross-RTOS benchmark harness, ADR-026 to ADR-037, owner's answers | Record; decisions accepted 2026-10-07 |
+| [R-004](R-004-ecosystem-addons-configurator-integrations.md) | The ecosystem: the repositories (the RTOS with the configurator engine, a parts repository, an editor extension), the module contract and project manifest that link them, the configurator (YAML as the single source, generated data and calls), the sensor class and application blocks, integrations with other platforms and tools, roadmap phase E, questions for the owner | Draft for the owner's design session, 2026-11-10 |
 
 ## Per-kernel source notes
 

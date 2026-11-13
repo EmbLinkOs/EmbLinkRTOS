@@ -1,9 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Linker script for the classic ESP32 booted by its ROM from an image at flash offset 0x1000
- * (tools/esp/esp_image.py --chip esp32): the ROM copies each segment to its run address and
- * calls the entry, so everything runs from internal SRAM and .data needs no copy (ADR-052).
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    esp32.ld
+ * @brief   Linker script for the classic ESP32 booted by its ROM from an image at flash offset
+ *          0x1000 (tools/esp/esp_image.py --chip esp32).
+ *
+ * @details
+ * The ROM copies each segment to its run address and calls the entry, so everything runs from
+ * internal SRAM and .data needs no copy (ADR-052).
  *
  *   - code in SRAM0's instruction side from 0x40080400, the port's vector table first, at the
  *     1 KB boundary VECBASE needs; the instruction RAM takes only 32-bit accesses, so nothing
@@ -13,6 +22,9 @@
  *     and stack while it loads the image.
  *
  * The kernel's registration tables are bracketed by name (SPEC-001 §6.4, HW-006).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 ENTRY(call_start_cpu0)
 

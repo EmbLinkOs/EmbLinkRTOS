@@ -1,12 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The R-003 T1 and T2 reference program (tiny profile, release build): the scheduler,
- * notifications, sleep and timeouts, one semaphore type; no mutex, no logging. Its link
- * map is what the footprint gate measures (tools/footprint, TEST-011). The program also
- * runs: a producer and a consumer hand units through a semaphore and a notification,
- * both with timeouts, while a third thread wakes every tick. The console lines are
- * board code, not kernel code, and do not count.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    main.c
+ * @brief   The R-003 T1 and T2 reference program (tiny profile, release build).
+ *
+ * @details
+ * The scheduler, notifications, sleep and timeouts, one semaphore type; no mutex, no logging. Its
+ * link map is what the footprint gate measures (tools/footprint, TEST-011). The program also runs:
+ * a producer and a consumer hand units through a semaphore and a notification, both with timeouts,
+ * while a third thread wakes every tick. The console lines are board code, not kernel code, and do
+ * not count.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/emb.h>
 

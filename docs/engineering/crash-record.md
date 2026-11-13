@@ -11,7 +11,7 @@ A kernel fault leaves a record of itself for the next boot ([SPEC-015 §4](../sp
 4. It calls the hook.
 5. It takes the configured action: halt, or reboot through `emb_arch_reset()`.
 
-Because the record is written before the hook, a hook that resets the part (as `test_crash_reset` does) still leaves the record behind. `emb_kernel_init()` validates the record once, checking magic, version, length and CRC-32. A record that does not check is ignored.
+Because the record is written before the hook, a hook that resets the part (as `test_crash_reset` does) still leaves the record behind. The software watchdog of FLT-004 (A121) writes a record too, without a fault: when a party misses its window, the record carries class `EMB_FAULT_WATCHDOG`, the party's id as its code, the thread that watched it, and `reset_reason` 3 (`EMB_CRASH_RESET_WATCHDOG`). The hardware watchdog, no longer fed, then resets the part. `emb_kernel_init()` validates the record once, checking magic, version, length and CRC-32. A record that does not check is ignored.
 
 | Field | Version 1 (32-bit, native) | Version 2 (AVR) |
 |---|---|---|
@@ -94,6 +94,6 @@ The record is off by default on the tiny profile ([A73](../specs/AMENDMENTS-M3.m
 
 - No flight recorder or partition mini-records: the flight recorder needs the trace rings. Software faults carry no registers.
 - The build id is fixed at configure time: two dirty builds of one commit, configuration and toolchain share it. Since 2026-11-08 it includes the toolchain: two compilers, or one with and without LTO, give one commit different ids, since their records' addresses mean something only against their own image.
-- `reset_reason` is the kernel's action, not the SoC's reset cause.
+- `reset_reason` is the kernel's action: reboot (1), halt (2), or leaving the hardware watchdog to reset the part (3). It is not the SoC's reset cause; the watchdog class's `emb_drv_wdt_caused_reset()` reports that one.
 - The F446's backup SRAM is not used.
 - Nothing has been run on a physical board.

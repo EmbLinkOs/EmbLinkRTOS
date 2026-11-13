@@ -1,13 +1,22 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * esp32_devkitc (an ESP32 development board with the ESP-WROOM-32 module: the DevKitC and its
- * "ESP-32S" copies) as its boot ROM leaves it after loading this image from flash offset
- * 0x1000: the CPU on the 40 MHz crystal, UART0 at 115200 on GPIO1/3, which the board's
- * USB-serial bridge carries. Register addresses from Espressif's ESP32 Technical Reference
- * Manual (UART, chapter 13) and ESP-IDF v5.4's soc/esp32 headers. The board has no LED the
- * CPU drives on every maker's copy: emb_board_led_toggle() keeps its state only. A hardware
- * target: the run ends in a waiti loop with interrupts masked.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   esp32_devkitc (an ESP32 development board with the ESP-WROOM-32 module: the DevKitC and
+ *          its "ESP-32S" copies) as its boot ROM leaves it after loading this image from flash
+ *          offset 0x1000.
+ *
+ * @details
+ * The CPU on the 40 MHz crystal, UART0 at 115200 on GPIO1/3, which the board's USB-serial bridge
+ * carries. Register addresses from Espressif's ESP32 Technical Reference Manual (UART, chapter 13)
+ * and ESP-IDF v5.4's soc/esp32 headers. The board has no LED the CPU drives on every maker's copy:
+ * emb_board_led_toggle() keeps its state only. A hardware target: the run ends in a waiti loop with
+ * interrupts masked.
  *
  * emb_board_init() moves the CPU to 160 MHz, ESP-IDF's default, as ESP-IDF v6.1's
  * rtc_clk_cpu_freq_set_config() does it from the 40 MHz crystal (esp_hw_support/port/esp32/
@@ -30,11 +39,16 @@
  * which this board's reset leaves in them, so the board writes the three divider registers only.
  * The register state then matches ESP-IDF's, and the CPU runs at 160 MHz (CCOUNT against the host's
  * clock: 80 million cycles in 0.50 s).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-05 (created)
  */
 #include <emb/config.h>
 #include <emb/fault.h>
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
+#include <emb/drv_dma.h>
+#include <emb/drv_entropy.h>
 #endif
 
 #include <emb_arch.h>
@@ -211,4 +225,15 @@ void emb_board_fault_report(const emb_fault_info_t *info)
 #if CONFIG_EMB_DEVICE
 /* No devices yet: the board has no description to generate them from (SPEC-016 §8). */
 const emb_device_table_t emb_board_device_table = {NULL, 0u, 0u};
+#endif
+
+#if CONFIG_EMB_DRV_DMA
+/* No DMA controller is described for this board: the DMA class refuses every buffer. */
+const emb_drv_dma_region_t emb_board_dma_regions[1] = {{0u, 0u}};
+const unsigned emb_board_dma_region_count = 0u;
+#endif
+
+#if CONFIG_EMB_DRV_ENTROPY
+/* No entropy device yet: the RNG has no driver, and nothing stands in for it (SEC-012). */
+const emb_device_t *const emb_board_entropy = NULL;
 #endif

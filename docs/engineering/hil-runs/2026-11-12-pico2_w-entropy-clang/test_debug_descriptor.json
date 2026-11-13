@@ -1,0 +1,73 @@
+{
+  "baud": 115200,
+  "bench": [],
+  "board": "pico2_w",
+  "cases": [
+    {
+      "asserts": 12,
+      "name": "debug_descriptor_header",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 7,
+      "name": "debug_descriptor_finds_the_running_thread",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 2,
+      "name": "debug_descriptor_isr_stack",
+      "outcome": "passed",
+      "skips": 0
+    },
+    {
+      "asserts": 82,
+      "name": "debug_descriptor_reads_thread_states",
+      "outcome": "passed",
+      "skips": 0
+    }
+  ],
+  "ended": "2026-11-12T22:47:11Z",
+  "evidence": {
+    "board": "pico2_w",
+    "checked": "1",
+    "config": "1aafec98e5605967",
+    "profile": "base",
+    "suite": "test_debug_descriptor"
+  },
+  "exit": 0,
+  "fault_checks_by_reset": 0,
+  "flash_command": [
+    "picotool",
+    "load",
+    "-v",
+    "-x",
+    "/Users/teooff1700/EmbLinkRTOS/build/pico-clang/tests/conformance/test_debug_descriptor.uf2",
+    "-t",
+    "uf2"
+  ],
+  "flashed_sha256": {
+    "test_debug_descriptor.uf2": "3147497ce39885fe941a8981a4968e4281ea7d78cfae9d1cd6b9272a78c68fe5"
+  },
+  "format": "emb-hil-run v1",
+  "git": {
+    "commit": "2a7e2eda58d2f4216ff84cacf5263e82fe645397",
+    "dirty": false
+  },
+  "image": "test_debug_descriptor.elf",
+  "image_sha256": "453b98af6218dedd43c00223283838d6dfa41d70c03a91c52789f121b16ea43a",
+  "isr_stack": {
+    "size": 2048,
+    "used": 188
+  },
+  "outcome": "passed",
+  "port": "/dev/cu.usbmodem31103",
+  "soc": "RP2350A",
+  "started": "2026-11-12T22:47:09Z",
+  "summary": {
+    "failed": 0,
+    "skipped": 0,
+    "tests": 4
+  }
+}

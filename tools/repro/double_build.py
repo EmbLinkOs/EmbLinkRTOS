@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """The double build of BLD-004: the same commit built in two places must give the same images.
 
     double_build.py [--preset NAME]... [--app DIR:BOARD[:TOOLCHAIN_FILE]]... [--work DIR] [--keep]

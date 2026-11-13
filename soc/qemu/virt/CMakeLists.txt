@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # emb_board for a QEMU RISC-V virt board described in YAML (SPEC-014): the board support,
 # compiled against the board's generated hw_config.h, with its generated linker script.
 # EMB_BOARD_DIR is the board's generated/ directory.

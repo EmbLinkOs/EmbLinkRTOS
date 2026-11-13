@@ -1,6 +1,18 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Message queues (SPEC-007 §2): fixed-size items copied by value through a caller's ring. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    msgq.h
+ * @brief   Message queues (SPEC-007 §2): fixed-size items copied by value through a caller's ring.
+ *
+ * @see     kernel/ipc/msgq.c
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
+ */
 #ifndef EMB_MSGQ_H
 #define EMB_MSGQ_H
 

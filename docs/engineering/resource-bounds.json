@@ -202,6 +202,96 @@
       "masked": false,
       "profiles": "called outside the device's critical section; completion delivery too",
       "evidence": "SPEC-016 \u00a75; SPEC-017"
+    },
+    {
+      "id": "uart_bytes",
+      "input": "bytes of one UART request, or of a polled call",
+      "bound": "the caller's: the length it passes; a read also stops at the ring's bytes when it starts",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_UART; the ring is drained into a starting read in the device's critical section",
+      "evidence": "SPEC-017 \u00a74; test_uart"
+    },
+    {
+      "id": "spi_frames",
+      "input": "frames of one SPI transfer",
+      "bound": "the caller's: the length it passes; the controller is serviced at most a FIFO's frames per interrupt",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_SPI; frames move in the driver's interrupt, outside the device's critical section",
+      "evidence": "SPEC-017 \u00a75; test_spi, test_spi_loop"
+    },
+    {
+      "id": "i2c_bytes",
+      "input": "bytes and segments of one I2C transaction or listen",
+      "bound": "the caller's: the segments and lengths it passes, each segment checked once at submit; a listen stops storing at its buffer's size",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_I2C; bytes move in the driver's interrupts, one byte or a FIFO's worth at a time",
+      "evidence": "SPEC-017 \u00a76; test_i2c, test_i2c_loop"
+    },
+    {
+      "id": "dma_regions",
+      "input": "the board's DMA regions a job's memory is checked against, and a channel's stop",
+      "bound": "the regions its description marks dma, two on the STM32F446 and one on the RP2350; a stop waits at most the beat in flight, bounded by a poll count",
+      "limit": "the board's description",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_DMA; a job starts, and a stop runs, in the controller's critical section",
+      "evidence": "SPEC-017 \u00a77; test_dma, test_spi_loop"
+    },
+    {
+      "id": "wdog_parties",
+      "input": "the parties the software watchdog watches",
+      "bound": "the application's: one per emb_wdog_watch() not undone; the timer interrupt walks them every quarter of the hardware timeout, and unwatch to unlink one",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_WDOG; the walk and the unlink run in the critical section",
+      "evidence": "FLT-004, A121; test_wdog, test_wdog_board"
+    },
+    {
+      "id": "flash_bytes",
+      "input": "bytes of one flash read or program, and their read-back",
+      "bound": "the caller's: the length it passes, within the flash or the partition; a program is read back in 32-byte pieces",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_FLASH; the STM32F446 programs with interrupts held off while its CPU stalls, the RP2350 a 256-byte page at a time with them off; the clock catches up after each (A122)",
+      "evidence": "SPEC-017 \u00a79, A122; test_flash, test_flash_board"
+    },
+    {
+      "id": "flash_sectors",
+      "input": "the sectors of one erase, and the geometry's sectors a lookup walks",
+      "bound": "the description's: 8 on the STM32F446, 1024 of 4 KiB on the Pico 2 W's flash; an erase holds interrupts off one sector at a time, up to 4 s for a 128 KiB sector of the STM32F446 and some 45 ms for one of the RP2350's",
+      "limit": "the board's description",
+      "enforcement": "configuration",
+      "masked": true,
+      "profiles": "base with CONFIG_EMB_DRV_FLASH; the clock catches up after each sector (A122)",
+      "evidence": "SPEC-017 \u00a79, A122; test_flash, test_flash_board"
+    },
+    {
+      "id": "rtc_oscillator",
+      "input": "an RTC set: the wait for its oscillator after power-up, and for the hardware to take a fraction of a second",
+      "bound": "3 s for the oscillator, in 10 ms sleeps: the STM32F446's LSE starts within 2 s (its datasheet), and the RP2350's tick is the crystal's, already running; 100 ms for the STM32F446's shift of the subseconds, in 1 ms sleeps, measured at some 23 ms",
+      "limit": "the driver's wait",
+      "enforcement": "structural",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_RTC; the caller sleeps between checks",
+      "evidence": "SPEC-017 \u00a710, A123; test_rtc_board"
+    },
+    {
+      "id": "entropy_bytes",
+      "input": "bytes of one entropy read",
+      "bound": "the caller's: the length it passes, read a block at a time within its timeout; a block the source's health test fails ends the read",
+      "limit": "application",
+      "enforcement": "application",
+      "masked": false,
+      "profiles": "base with CONFIG_EMB_DRV_ENTROPY; the read waits for each block on the driver's semaphore",
+      "evidence": "SPEC-017 \u00a711, A124; test_entropy, test_entropy_board"
     }
   ],
   "apis": {
@@ -486,6 +576,219 @@
     ],
     "emb_drv_wait": [
       "drivers"
+    ],
+    "emb_drv_uart_submit": [
+      "drivers"
+    ],
+    "emb_drv_uart_write": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_read": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_poll_write": [
+      "uart_bytes"
+    ],
+    "emb_drv_uart_poll_read": [
+      "uart_bytes"
+    ],
+    "emb_drv_uart_rx_byte": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_idle": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_error": [
+      "drivers"
+    ],
+    "emb_drv_uart_rx_start": [
+      "uart_bytes",
+      "drivers"
+    ],
+    "emb_drv_uart_rx_stop": [
+      "drivers"
+    ],
+    "emb_drv_spi_submit": [
+      "drivers"
+    ],
+    "emb_drv_spi_transfer": [
+      "spi_frames",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_spi_acquire": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_spi_release": [
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_spi_bus_init": [
+      "active_objects"
+    ],
+    "emb_drv_i2c_submit": [
+      "i2c_bytes",
+      "drivers"
+    ],
+    "emb_drv_i2c_transfer": [
+      "i2c_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_i2c_write_read": [
+      "i2c_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_i2c_listen": [
+      "i2c_bytes",
+      "drivers"
+    ],
+    "emb_drv_i2c_acquire": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_i2c_release": [
+      "owned",
+      "pi_depth",
+      "timeouts",
+      "reschedule"
+    ],
+    "emb_drv_i2c_bus_init": [
+      "active_objects"
+    ],
+    "emb_drv_i2c_recover": [
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_dma_start": [
+      "dma_regions",
+      "drivers"
+    ],
+    "emb_drv_dma_stop": [
+      "dma_regions",
+      "drivers"
+    ],
+    "emb_wdog_start": [
+      "active_objects"
+    ],
+    "emb_wdog_unwatch": [
+      "wdog_parties"
+    ],
+    "emb_drv_flash_lock_init": [
+      "active_objects"
+    ],
+    "emb_drv_rtc_alarm_fired": [
+      "callbacks"
+    ],
+    "emb_drv_rtc_set": [
+      "rtc_oscillator",
+      "drivers"
+    ],
+    "emb_drv_entropy_lock_init": [
+      "active_objects"
+    ],
+    "emb_drv_entropy_read": [
+      "entropy_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_entropy_read_raw": [
+      "entropy_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_sector": [
+      "flash_sectors"
+    ],
+    "emb_drv_flash_read": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_program": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_erase": [
+      "flash_sectors",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_drv_flash_poll_read": [
+      "flash_bytes",
+      "drivers"
+    ],
+    "emb_drv_flash_poll_program": [
+      "flash_bytes",
+      "drivers"
+    ],
+    "emb_drv_flash_poll_erase": [
+      "flash_sectors",
+      "drivers"
+    ],
+    "emb_flash_area_read": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_flash_area_program": [
+      "flash_bytes",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
+    ],
+    "emb_flash_area_erase": [
+      "flash_sectors",
+      "drivers",
+      "owned",
+      "waiters",
+      "pi_depth",
+      "timeouts"
     ]
   }
 }

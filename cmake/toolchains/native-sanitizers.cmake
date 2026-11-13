@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # Host build with AddressSanitizer and UndefinedBehaviorSanitizer (SPEC-013 §7).
 # ThreadSanitizer is a separate leg (native-tsan) because it cannot combine with ASan.
 # GCC by default: its runtimes ship with the compiler; pass -DEMB_SANITIZER_CC=clang

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
 #
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+#
 # Build bench_compare against ESP-IDF's FreeRTOS for the classic ESP32 (A96):
 #   . $IDF_PATH/export.sh && tools/bench/freertos-esp32/build.sh [OUTDIR]
 # (default build/freertos-esp32). ESP-IDF must be installed for the esp32 target; CI uses

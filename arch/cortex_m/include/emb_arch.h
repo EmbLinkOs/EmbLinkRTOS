@@ -1,13 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Cortex-M port header (contract SPEC-011 §3, §6; docs/ports/cortex_m.md): the
- * critical-section primitives, the handler declaration macros, and the port's types.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    emb_arch.h
+ * @brief   Cortex-M port header (contract SPEC-011 §3, §6; docs/ports/cortex_m.md).
+ *
+ * @details
+ * The critical-section primitives, the handler declaration macros, and the port's types.
  *
  * The kernel's critical section raises BASEPRI to CONFIG_EMB_CM_KERNEL_BASEPRI, so an
  * interrupt with a higher priority (a smaller priority byte) is never masked by the
  * kernel: a zero-latency interrupt that may not call it (SPEC-002 §3). The key is the
  * previous BASEPRI. Armv6-M has no BASEPRI and will use PRIMASK (M3-B).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
  */
 #ifndef EMB_CORTEX_M_EMB_ARCH_H
 #define EMB_CORTEX_M_EMB_ARCH_H

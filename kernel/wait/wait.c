@@ -1,11 +1,23 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The wait and wake protocol (SPEC-004): three bounded sections to block, a wake that
- * never spins, a generation that makes stale timeouts and cancels harmless, and one
- * path for every wake source. Uniprocessor implementation: the wait-state transitions
- * run inside the critical section (SPEC-004 §12, no compare-and-set needed), and the
- * three lock domains are the same critical section (§8), released between sections.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    wait.c
+ * @brief   The wait and wake protocol (SPEC-004).
+ *
+ * @details
+ * Three bounded sections to block, a wake that never spins, a generation that makes stale timeouts
+ * and cancels harmless, and one path for every wake source. Uniprocessor implementation: the
+ * wait-state transitions run inside the critical section (SPEC-004 §12, no compare-and-set needed),
+ * and the three lock domains are the same critical section (§8), released between sections.
+ *
+ * @see     kernel/include/embk/wait.h
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <embk/kernel.h>
 #include <embk/sched.h>

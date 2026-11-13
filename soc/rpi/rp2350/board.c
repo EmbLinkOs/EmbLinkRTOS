@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Board support for RP2350 boards described in YAML (A79), on the Arm cores in the Secure
- * state, over the RP2350 drivers (drivers/rpi) and the PL011's (drivers/arm): the clocks from
- * the crystal, the pins from the generated table, the console on a PL011 UART, and the run's
- * end back in the boot ROM's loader. Bases and frequencies come from hw_config.h.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    board.c
+ * @brief   Board support for RP2350 boards described in YAML (A79), on the Arm cores in the Secure
+ *          state, over the RP2350 drivers (drivers/rpi) and the PL011's (drivers/arm).
+ *
+ * @details
+ * The clocks from the crystal, the pins from the generated table, the console on a PL011 UART, and
+ * the run's end back in the boot ROM's loader. Bases and frequencies come from hw_config.h.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
  */
 #include <emb/fault.h>
 
@@ -24,7 +35,9 @@ void emb_board_init(void)
 {
     int clocked = emb_rp2350_clock_init();
     (void)emb_rp2350_unreset(EMB_RP2350_RESET_IO_BANK0 | EMB_RP2350_RESET_PADS_BANK0 |
-                             EMB_RP2350_RESET_UART0 | EMB_RP2350_RESET_UART1);
+                             EMB_RP2350_RESET_UART0 | EMB_RP2350_RESET_UART1 |
+                             EMB_RP2350_RESET_SPI0 | EMB_RP2350_RESET_SPI1 | EMB_RP2350_RESET_I2C0 |
+                             EMB_RP2350_RESET_I2C1 | EMB_RP2350_RESET_DMA);
     emb_rp2350_pins_apply(emb_board_pins, emb_board_pin_count);
     /* the polled console, before anything else; its device (uart0, SPEC-016) finds it running
      * at its rate and leaves it as it is */
@@ -77,8 +90,8 @@ void emb_board_put_u32(uint32_t v)
 #define REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL  0x2u
 #define REBOOT2_FLAG_NO_RETURN_ON_SUCCESS 0x100u
 /* the lookup returns the function's address; as an integer, so that ISO C converts it */
-typedef uintptr_t (*rom_table_lookup_fn)(uint32_t code, uint32_t mask);
-typedef int (*rom_reboot_fn)(uint32_t flags, uint32_t delay_ms, uint32_t p0, uint32_t p1);
+typedef uintptr_t (*rom_table_lookup_fn_t)(uint32_t code, uint32_t mask);
+typedef int (*rom_reboot_fn_t)(uint32_t flags, uint32_t delay_ms, uint32_t p0, uint32_t p1);
 
 /* Back to the boot ROM's USB loader, both interfaces on, so that picotool can load the next
  * image without the BOOTSEL button (tools/hil/run_hil.py). The table pointer is read through a
@@ -87,10 +100,10 @@ static void reboot_to_bootsel(void)
 {
     const volatile uint16_t *volatile table =
         (const volatile uint16_t *)(uintptr_t)ROM_TABLE_LOOKUP;
-    rom_table_lookup_fn lookup = (rom_table_lookup_fn)(uintptr_t)*table;
+    rom_table_lookup_fn_t lookup = (rom_table_lookup_fn_t)(uintptr_t)*table;
     uintptr_t fn = lookup(ROM_FUNC_REBOOT, RT_FLAG_FUNC_ARM_SEC);
     if (fn != 0u) {
-        rom_reboot_fn reboot = (rom_reboot_fn)fn;
+        rom_reboot_fn_t reboot = (rom_reboot_fn_t)fn;
         (void)reboot(REBOOT2_FLAG_REBOOT_TYPE_BOOTSEL | REBOOT2_FLAG_NO_RETURN_ON_SUCCESS, 10u, 0u,
                      0u);
     }
@@ -107,6 +120,12 @@ void emb_board_exit(int code)
     reboot_to_bootsel();
 #endif
     emb_cm_halt();
+}
+
+/* Before any reset (emb_arch_system_reset): the console's FIFO leaves first. */
+void emb_board_reset_prepare(void)
+{
+    emb_pl011_flush(EMB_HW_CONSOLE_BASE);
 }
 
 void emb_board_fault_report(const emb_fault_info_t *info)

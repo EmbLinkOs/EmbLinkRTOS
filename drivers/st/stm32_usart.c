@@ -1,7 +1,20 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* STM32 USART (RM0390 Rev 6 §25.6): the console's polled transmit, and an interrupt-driven
- * receive for commands. */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    stm32_usart.c
+ * @brief   STM32 USART (RM0390 Rev 6 §25.6).
+ *
+ * @details
+ * The console's polled transmit, and an interrupt-driven receive for commands.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-04 (created)
+ */
 #include <emb_stm32_drivers.h>
 
 #define REG32(a)  (*(volatile uint32_t *)(uintptr_t)(a))

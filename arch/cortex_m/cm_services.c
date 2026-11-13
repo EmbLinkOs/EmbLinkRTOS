@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Cortex-M port services for boards and tests (emb_cortex_m.h). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    cm_services.c
+ * @brief   Cortex-M port services for boards and tests (emb_cortex_m.h).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-09 (created)
+ */
 #include <emb_cortex_m.h>
 
 void emb_cm_semihosting_exit(int code)

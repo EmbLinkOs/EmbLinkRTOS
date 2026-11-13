@@ -1,0 +1,13 @@
+hil: board pico2_w, soc RP2350A, probe picotool load -v, port /dev/cu.usbmodem11103 at 115200 baud, image test_crash_reset.elf sha256 e063618427f9d569f6daba472436db70b6256178c2b717eff977a5ead9819479
+EVIDENCE v1 suite=test_crash_reset config=df5c8385dd9f1b46 profile=base board=pico2_w checked=1
+TEST crash_record_survives_reset
+crash_record_survives_reset: first boot, faulting
+EVIDENCE v1 suite=test_crash_reset config=df5c8385dd9f1b46 profile=base board=pico2_w checked=1
+TEST crash_record_survives_reset
+EMB_CRASH 454d424301005c00df907f33bc52e110f7a79db03ca7efbf6a1775ec302e322e300000000c00000000000000020000000b00ed5e000000000000000000000000a301001000000000000000000000000000000000000000005163dbce
+  -> ok
+  req OBS-016 KRN-IRQ-030 ARCH-AVR-008
+CASE crash_record_survives_reset outcome=passed asserts=7 skips=0
+ISR_STACK size=2048 used=208
+1 tests, 0 failed, 0 skipped, 37 ticks
+EMB_TEST_END

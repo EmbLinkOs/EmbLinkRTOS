@@ -1,12 +1,24 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * Software timers (SPEC-003 §7). An armed timer sits in its own deadline list (ADR-047),
- * which the expiry pass merges with the thread timeouts. A periodic timer re-arms from
- * its previous deadline before its callback runs, so expiry k falls at first + k * period;
- * periods already past at expiry are skipped in closed form and counted as overruns. The
- * callback runs on the timer's work queue, where an expiry whose previous callback is still
- * queued coalesces into it (an overrun), or with EMB_TIMER_ISR_CONTEXT in the expiry pass.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    timer.c
+ * @brief   Software timers (SPEC-003 §7).
+ *
+ * @details
+ * An armed timer sits in its own deadline list (ADR-047), which the expiry pass merges with the
+ * thread timeouts. A periodic timer re-arms from its previous deadline before its callback runs, so
+ * expiry k falls at first + k * period; periods already past at expiry are skipped in closed form
+ * and counted as overruns. The callback runs on the timer's work queue, where an expiry whose
+ * previous callback is still queued coalesces into it (an overrun), or with EMB_TIMER_ISR_CONTEXT
+ * in the expiry pass.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-27 (created)
  */
 #include <emb/storage.h>
 #include <emb/timer.h>

@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The C library's headers of a GNU toolchain, for a Clang toolchain file that compiles against
 # that library (arm-none-eabi-clang, riscv-clang): the first directory of the GCC driver's
 # #include <...> search list that holds stdio.h. GCC's own directories (stddef.h, include-fixed)

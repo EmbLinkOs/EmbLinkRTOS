@@ -1,10 +1,21 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * AVR context frame and switch (SPEC-012 §4): one 35-byte frame layout for the switch,
- * the interrupt epilogue, and the initial frame; the switch is a naked routine whose
- * whole length is the masked section. Register conventions: avr-gcc passes the first
- * pointer argument in r24:r25 and the second in r22:r23; r1 is the zero register.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    avr_context.c
+ * @brief   AVR context frame and switch (SPEC-012 §4).
+ *
+ * @details
+ * One 35-byte frame layout for the switch, the interrupt epilogue, and the initial frame; the
+ * switch is a naked routine whose whole length is the masked section. Register conventions: avr-gcc
+ * passes the first pointer argument in r24:r25 and the second in r22:r23; r1 is the zero register.
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #include <emb/arch.h>
 

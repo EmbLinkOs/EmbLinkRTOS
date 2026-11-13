@@ -1,5 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 # The classic ESP32's Xtensa LX6 with Espressif's GCC and GNU ld (ADR-052, ADR-053, ADR-054):
 # xtensa-esp32-elf-gcc from Espressif's crosstool-NG releases, the same board script as embld.
 set(CMAKE_SYSTEM_NAME Generic)

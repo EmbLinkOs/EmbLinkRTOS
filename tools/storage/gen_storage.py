@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Junior Deogracias
+#
+# This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+# Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+
 """Generate <emb/storage.h> from the layout probe (SPEC-001 §6.2, SPEC-009, ADR-006).
 
 kernel/object/storage_probe.c makes the compiler write, for every object type, a marker

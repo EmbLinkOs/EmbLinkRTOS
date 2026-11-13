@@ -1,6 +1,17 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
-/* Generic priority limits and Cortex-M controller ordering (SPEC-002 §8). */
+/*
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    test_irq_priority.c
+ * @brief   Generic priority limits and Cortex-M controller ordering (SPEC-002 §8).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-21 (created)
+ */
 #include <emb/arch.h>
 
 #include <emb_test.h>

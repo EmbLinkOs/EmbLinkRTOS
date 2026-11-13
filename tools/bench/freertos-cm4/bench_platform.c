@@ -1,14 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * What FreeRTOS's build of bench_compare needs on a Cortex-M4 board, and the EmbLinkRTOS build
- * gets from its port and board: the vector table and reset, linked by the board's own
- * regions.ld, and the console. On the NUCLEO-F446RE the clock, the pins and USART2 are set by
- * the board's own drivers (drivers/st/, board_pins.c), so both kernels run at the same 180 MHz
- * with the same console; on QEMU's MPS2 AN386 the console is the CMSDK UART0.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    bench_platform.c
+ * @brief   What FreeRTOS's build of bench_compare needs on a Cortex-M4 board, and the EmbLinkRTOS
+ *          build gets from its port and board.
+ *
+ * @details
+ * The vector table and reset, linked by the board's own regions.ld, and the console. On the
+ * NUCLEO-F446RE the clock, the pins and USART2 are set by the board's own drivers (drivers/st/,
+ * board_pins.c), so both kernels run at the same 180 MHz with the same console; on QEMU's MPS2
+ * AN386 the console is the CMSDK UART0.
  *
  *   BENCH_NUCLEO   1 for the NUCLEO-F446RE, 0 for the AN386
  *   BENCH_TEST_IRQ the board's test line (EMB_HW_TEST_IRQ), bench_compare's interrupt
+ *
+ * @author  Junior Deogracias
+ * @date    2026-11-06 (created)
  */
 #include "FreeRTOS.h"
 

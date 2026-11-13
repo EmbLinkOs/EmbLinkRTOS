@@ -1,15 +1,26 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 /* Copyright 2026 Junior Deogracias */
 /*
- * The architecture port contract (SPEC-011): the emb_arch_* functions every port
- * implements and the kernel calls. Not public API (SPEC-001 §1); the umbrella header
- * does not include it. The port's own header <emb_arch.h> supplies the inline
- * primitives (critical sections), the EMB_ISR macros, and EMB_ARCH_TCB_EXTENSION.
+ * This file is part of EmbLinkRTOS, a deterministic real-time kernel for microcontrollers.
+ * Licensed under the Apache License, Version 2.0; see the LICENSE file at the repository root.
+ */
+
+/**
+ * @file    arch.h
+ * @brief   The architecture port contract (SPEC-011).
+ *
+ * @details
+ * The emb_arch_* functions every port implements and the kernel calls. Not public API (SPEC-001
+ * §1); the umbrella header does not include it. The port's own header <emb_arch.h> supplies the
+ * inline primitives (critical sections), the EMB_ISR macros, and EMB_ARCH_TCB_EXTENSION.
  *
  * Deviation from SPEC-011 §4 recorded here: emb_arch_kernel_start() receives the
  * first thread and the idle context instead of a bare stack pointer, so that a port
  * without an idle thread (CONFIG_EMB_IDLE_THREAD=n) can turn the pre-kernel stack
  * into the idle context's stack itself (SPEC-012 §3).
+ *
+ * @author  Junior Deogracias
+ * @date    2026-10-07 (created)
  */
 #ifndef EMB_ARCH_H
 #define EMB_ARCH_H
@@ -115,9 +126,12 @@ void embk_isr_enter(void); /* kernel-aware interrupt entry: depth++ */
  * SPEC-013 §8, A93): the native port calls it at gate crossings with CONFIG_EMB_NATIVE_INVARIANTS.
  */
 void embk_invariants_check(void);
-embk_thread_t *embk_isr_exit(void);    /* outermost exit: the thread to switch to, or NULL */
-void embk_time_timer_isr(void);        /* SPEC-003 §4.3 */
-void embk_time_on_wake(void);          /* tickless: at the outermost exit of a wake-up interrupt */
+embk_thread_t *embk_isr_exit(void); /* outermost exit: the thread to switch to, or NULL */
+void embk_time_timer_isr(void);     /* SPEC-003 §4.3 */
+void embk_time_on_wake(void);       /* tickless: at the outermost exit of a wake-up interrupt */
+/* Periodic tick: ticks that passed with interrupts held off beyond the one SysTick delivers
+ * (A122); added at the next tick interrupt, interrupts held off. Tickless: nothing to do. */
+void embk_time_ticks_missed(emb_tick_t n);
 void embk_isr_dispatch(emb_irq_t irq); /* CONFIG_EMB_IRQ_DYNAMIC: run the connected handler */
 EMB_NORETURN void embk_thread_launch(emb_thread_entry_t entry,
                                      void *arg); /* every initial frame enters here;
