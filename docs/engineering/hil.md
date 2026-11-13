@@ -71,12 +71,19 @@ The Pico 2 W's USB port is the boot ROM's loader, not a console. The console is 
 
 **Or the NUCLEO-F446RE's ST-LINK, through a relay.** Its morpho headers are male, so female-female jumper wires fit, and its ST-LINK has a virtual COM port. The STM32 relays the other board's UART to it in software, because on a stock NUCLEO the header pins named PA2 and PA3 (CN10 pins 35 and 37, Arduino D1 and D0) are not connected to the STM32: solder bridges SB62 and SB63 are open, and the ST-LINK keeps PA2 and PA3 for itself.
 
-`tools/hil/nucleo-uart-relay/build.sh --flash` programs the relay: USART1 receives on PA10, and every byte goes out of USART2 to the ST-LINK's port, at 115200 8N1. The green LED toggles on each byte. Hold the NUCLEO with its USB connector at the top, and use the right-hand double header, CN10, in its inner column, the one nearer the STM32:
+`tools/hil/nucleo-uart-relay/build.sh --flash` programs the relay. It works both ways, every byte as it is, at 115200 8N1: what the other board sends on PA10 (USART1 RX) goes out to the ST-LINK's port, and what the host sends to the port goes out of PA9 (USART1 TX) to the other board. Each way has a ring of its own, so a busy direction never holds up the other. The green LED toggles on each byte from the other board. Hold the NUCLEO with its USB connector at the top, and use the right-hand double header, CN10, in its inner column, the one nearer the STM32:
 
 | Wire | From | To |
 |---|---|---|
 | 1 | Pico 2 W pin 1, GPIO0 (UART0 TX) | CN10 pin 33, PA10: the inner column's 17th pin from the top, the third from the bottom |
 | 2 | Pico 2 W pin 3, GND | CN10 pin 9: the inner column's 5th pin from the top. The 4th is AVDD, the STM32's 3.3 V: a ground wire there shorts it. |
+| 3 | CN10 pin 21, PA9: the inner column's 11th pin from the top | Pico 2 W pin 2, GPIO1 (UART0 RX): the host's way to the board, for the shell and update channels |
+
+**Bench controls.** The relay also drives three pins for the bench, which later phases wire up: a reset (CN10 pin 23, PA8, to the Pico 2 W's RUN, pin 30), a power cut (CN10 pin 29, PB5, to its 3V3_EN, pin 37) and a wake-up pulse (CN10 pin 27, PB4). The reset and the power cut are released as inputs, so the Pico's own pull-ups hold its pins; the wake pin is driven low between pulses. The host commands them with SPEC-015 §7 frames on channel 15, which the relay reads from the host's stream and still passes on (an image under test leaves channel 15 alone): `reset` (20 ms low), `power off`, `power on`, `power cycle <ms>`, `wake <us>` and `ping`. Each is answered with a channel-15 frame, `ok <command>` or `? <command>`, sent between two of the other board's frames so it never cuts one:
+
+```sh
+python3 -c "import sys; sys.path.insert(0, 'tools/transport'); import frame; sys.stdout.buffer.write(b'\0' + frame.encode(15, b'reset'))" > /dev/cu.usbmodem31103
+```
 
 The console is then the NUCLEO's port, `/dev/cu.usbmodem*`. A wire one pin off is easy to place. Before the first run, put the other board's TX on PA5 (the 6th pin) for a moment: if the board drives it high, the NUCLEO's green LED lights.
 
