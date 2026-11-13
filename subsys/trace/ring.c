@@ -35,6 +35,7 @@
 #include <emb/frame.h>
 #include <emb/irq.h>
 #include <emb/kernel.h>
+#include <emb/sched.h>
 #include <emb/storage.h>
 #include <emb/thread.h>
 #include <emb/time.h>

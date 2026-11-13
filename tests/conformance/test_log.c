@@ -219,3 +219,102 @@ EMB_TEST(log_flush_sends_what_is_committed)
     EMB_ASSERT_EQ(after.sent - before.sent, 2u);
     EMB_ASSERT_EQ(take(), 0u);
 }
+
+/* ---- producers at once: threads at three priorities and an interrupt ---------------------- */
+
+#define PRODUCERS    3u
+#define PER_PRODUCER 300u
+#define ISR_RECORDS  50u
+
+static volatile unsigned producers_done;
+static volatile unsigned isr_written;
+
+static void produce(void *arg)
+{
+    unsigned id = (unsigned)(uintptr_t)arg;
+    unsigned i;
+    for (i = 0u; i < PER_PRODUCER; i++) { /* bounded: the records it writes */
+        EMB_LOG_INF(t, "p %u %u", id, i);
+        if ((i % 16u) == 15u) {
+            (void)emb_thread_sleep(EMB_MS(1)); /* let the others and the reader in */
+        }
+    }
+    producers_done = producers_done + 1u;
+}
+
+static void isr_produces(void *arg)
+{
+    (void)arg;
+    EMB_LOG_INF(t, "p %u %u", PRODUCERS, isr_written);
+    isr_written = isr_written + 1u;
+}
+
+EMB_THREAD_DEFINE(producer_a, produce, (void *)(uintptr_t)0u, 2u, 1024u, EMB_THREAD_NO_AUTOSTART);
+EMB_THREAD_DEFINE(producer_b, produce, (void *)(uintptr_t)1u, 3u, 1024u, EMB_THREAD_NO_AUTOSTART);
+EMB_THREAD_DEFINE(producer_c, produce, (void *)(uintptr_t)2u, 4u, 1024u, EMB_THREAD_NO_AUTOSTART);
+
+static uint32_t rec_u(size_t at, uint32_t bytes)
+{
+    uint32_t v = 0u;
+    uint32_t k;
+    for (k = 0u; k < bytes; k++) { /* bounded: at most four bytes */
+        v |= (uint32_t)rec[at + k] << (8u * k);
+    }
+    return v;
+}
+
+EMB_TEST(log_producers_at_once_keep_their_order)
+{
+    uint32_t idb = embs_log_id_bytes();
+    uint32_t ts = CONFIG_EMB_LOG_TIMESTAMP ? 4u : 0u;
+    uint32_t next[PRODUCERS + 1u] = {0u, 0u, 0u, 0u};
+    uint32_t kept = 0u;
+    uint32_t dropped = 0u;
+    uint32_t spins = 0u;
+    bool ended = false;
+    EMB_TEST_REQ("OBS-003");
+    drain();
+    emb_test_irq_connect(1u, isr_produces, NULL);
+    EMB_ASSERT_OK(emb_thread_start(producer_a));
+    EMB_ASSERT_OK(emb_thread_start(producer_b));
+    EMB_ASSERT_OK(emb_thread_start(producer_c));
+    /* The reader runs below the producers and never blocks, so the log thread, at its priority
+     * or below, cannot take a record from it: it reads whenever the producers sleep, and spins a
+     * tick when the ring is empty (on native, where time moves only when told, that moves it). */
+    for (;;) { /* bounded: the producers end, then the ring empties */
+        size_t n;
+        if ((isr_written < ISR_RECORDS) && ((spins++ % 7u) == 0u)) {
+            emb_test_irq_raise(1u);
+            emb_test_irq_settle();
+        }
+        n = take();
+        if (n == 0u) {
+            if ((producers_done < PRODUCERS) || (isr_written < ISR_RECORDS)) {
+                emb_test_spin_ticks(1u); /* a tick passes: the producers' sleeps end */
+                continue;
+            }
+            if (ended) {
+                break;
+            }
+            EMB_LOG_INF(t, "end"); /* brings the count of any records dropped last */
+            ended = true;
+            continue;
+        }
+        if (rec_u(0u, (idb < 4u) ? idb : 4u) == EMB_LOG_ID_DROPPED) {
+            dropped += rec_u(idb + ts, 2u);
+        } else if (n == (idb + ts)) {
+            /* the end */
+        } else {
+            /* "p <producer> <i>": each producer's records in its own order, none torn */
+            uint32_t who = rec_u(idb + ts, 4u);
+            uint32_t i = rec_u(idb + ts + 4u, 4u);
+            EMB_ASSERT_EQ(n, idb + ts + 8u);
+            EMB_ASSERT_TRUE(who <= PRODUCERS);
+            EMB_ASSERT_TRUE(i >= next[who]);
+            next[who] = i + 1u;
+            kept++;
+        }
+    }
+    EMB_ASSERT_EQ(kept + dropped, (PRODUCERS * PER_PRODUCER) + ISR_RECORDS);
+    EMB_ASSERT_TRUE(kept > 0u);
+}
