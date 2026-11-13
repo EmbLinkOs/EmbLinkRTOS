@@ -33,6 +33,8 @@ pins:
   spi1: { sck: GPIO10.f1, mosi: GPIO11.f1, miso: GPIO12.f1 } # pins 14, 15 and 16
   i2c0: { sda: GPIO8.f3, scl: GPIO9.f3 }   # pins 11 and 12
   i2c1: { sda: GPIO6.f3, scl: GPIO7.f3 }   # pins 9 and 10
+  pwm7: { a: GPIO14.f4 }                   # pin 19: PWM out
+  pwm0: { b: GPIO17.f4 }                   # pin 22: PWM capture
 console: { device: uart0, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices; the RP2350's blocks have
 # no clock gates in the description, so the order is stated
@@ -50,6 +52,8 @@ devices:
   - { name: i2c1, deps: [io_bank0], doc: "I2C1 on GPIO6 (pin 9, SDA) and GPIO7 (pin 10, SCL), the HIL suite's target for I2C0" }
   - { name: uart1, baud: 115200, deps: [io_bank0], dma: [tx], doc: "a spare UART, its writes by DMA; the HIL suite's loopback wires GPIO4 (pin 6) to GPIO5 (pin 7)" }
   - { name: timer1, doc: "TIMER1, 64 bits at 1 MHz: the counter class's (A129); TIMER0 is left for M4.4's tickless time" }
+  - { name: pwm7, deps: [io_bank0], doc: "slice 7, PWM out on A, GPIO14 (pin 19); the HIL suite wires it to pin 22" }
+  - { name: pwm0, deps: [io_bank0], doc: "slice 0, PWM capture on B, GPIO17 (pin 22)" }
 # the RP2350's 4 MiB QSPI flash (W25Q32RV), behind the XIP window
 flash_partitions:
   - { name: app, base: 0x10000000, size: 4032K }       # the first 4 MiB less 64 KiB

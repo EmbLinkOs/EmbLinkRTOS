@@ -270,5 +270,10 @@
 #define EMB_API_ID_DRV_COUNTER_PERIODIC_STOP     0x010Bu
 #define EMB_API_ID_DRV_COUNTER_STARTED           0x010Cu
 #define EMB_API_ID_DRV_COUNTER_FIRED             0x010Du
+#define EMB_API_ID_DRV_PWM_SET                   0x010Eu
+#define EMB_API_ID_DRV_PWM_STOP                  0x010Fu
+#define EMB_API_ID_DRV_PWM_CAPTURE               0x0110u
+#define EMB_API_ID_DRV_PWM_CHANNELS              0x0111u
+#define EMB_API_ID_DRV_PWM_STARTED               0x0112u
 
 #endif /* EMB_API_IDS_H */

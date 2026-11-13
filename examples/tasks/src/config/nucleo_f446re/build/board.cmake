@@ -9,9 +9,9 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/st/nucleo_f446re/board.yaml
-#     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
+#     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
 #   drivers/bindings.yaml
-#     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+#     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
 #   examples/tasks/system.yaml
 #     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
 #   soc/st/stm32f4/stm32f4.yaml
@@ -54,6 +54,7 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${EMB_BASE}/drivers/st/stm32_spi.c"
     "${EMB_BASE}/drivers/st/stm32_i2c.c"
     "${EMB_BASE}/drivers/st/stm32_tim_counter.c"
+    "${EMB_BASE}/drivers/st/stm32_tim_pwm.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/st/include"
@@ -61,8 +62,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
-    "boards/st/nucleo_f446re/board.yaml=20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196"
-    "drivers/bindings.yaml=bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
+    "boards/st/nucleo_f446re/board.yaml=9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704"
+    "drivers/bindings.yaml=8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
     "examples/tasks/system.yaml=202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da"
     "soc/st/stm32f4/stm32f4.yaml=796886c294250aa81151a620d80d0e43b5ee8e1bf53a07d1d7e2c62e95214dbd"
     "soc/st/stm32f4/stm32f446.yaml=bc475c4bf8703f3bc028f963f6ddf5f1ca508dc726629ea28cca8b38679318f9"

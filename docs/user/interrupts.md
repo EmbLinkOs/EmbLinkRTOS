@@ -45,7 +45,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 
 <!-- isr-safe:begin (tools/docs/isr_table.py) -->
 
-155 functions, from the headers' `@ctx` tags.
+158 functions, from the headers' `@ctx` tags.
 
 | Function | Header | Blocks |
 |---|---|---|
@@ -83,6 +83,9 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_drv_on_notify()` | `<emb/device.h>` | no |
 | `emb_drv_on_sem()` | `<emb/device.h>` | no |
 | `emb_drv_on_work()` | `<emb/device.h>` | no |
+| `emb_drv_pwm_channels()` | `<emb/drv_pwm.h>` | no |
+| `emb_drv_pwm_set()` | `<emb/drv_pwm.h>` | no |
+| `emb_drv_pwm_stop()` | `<emb/drv_pwm.h>` | no |
 | `emb_drv_request_init()` | `<emb/device.h>` | no |
 | `emb_drv_rtc_alarm_cancel()` | `<emb/drv_rtc.h>` | no |
 | `emb_drv_rtc_alarm_fired()` | `<emb/drv_rtc.h>` | no |

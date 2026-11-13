@@ -126,6 +126,30 @@ if(CONFIG_EMB_DEVICE)
       endif()
     endif()
   endif()
+  if(CONFIG_EMB_DRV_PWM)
+    emb_add_test(test_pwm test_pwm.c) # SPEC-017 §11b
+    # a PWM output wired to a capture input: on the bench (EMB_TEST_PWM_LOOP=<output>:<channel>,
+    # <input>:<channel>: tim3:0,tim4:0 on the NUCLEO-F446RE, pwm7:0,pwm0:1 on the Pico 2 W), or the
+    # board's EmbSIM wire
+    set(EMB_TEST_PWM_LOOP "" CACHE STRING "A PWM output wired to a capture input, for test_pwm_loop")
+    set(_emb_pwm_loop "${EMB_TEST_PWM_LOOP}")
+    if(NOT _emb_pwm_loop AND EMB_TEST_EMULATOR STREQUAL "embsim" AND EMB_BOARD_EMBSIM_PWM_LOOP)
+      list(GET EMB_BOARD_EMBSIM_PWM_LOOP 0 _emb_pwm_loop)
+      list(GET EMB_BOARD_EMBSIM_PWM_LOOP 1 _emb_pwm_net)
+      set(EMB_EMBSIM_ARGS_test_pwm_loop --net "${_emb_pwm_net}" --until 3s)
+    endif()
+    if(_emb_pwm_loop)
+      string(REGEX MATCH "^([a-z0-9_]+):([0-9]),([a-z0-9_]+):([0-9])$" _emb_pwm_ok "${_emb_pwm_loop}")
+      if(NOT _emb_pwm_ok)
+        message(FATAL_ERROR "EMB_TEST_PWM_LOOP='${_emb_pwm_loop}': <output>:<channel>,<input>:<channel>, such as tim3:0,tim4:0")
+      endif()
+      emb_add_test(test_pwm_loop test_pwm_loop.c)
+      target_compile_definitions(test_pwm_loop PRIVATE "EMB_TEST_PWM_OUT=(&emb_dev_${CMAKE_MATCH_1})"
+                                                       "EMB_TEST_PWM_OUT_CH=${CMAKE_MATCH_2}u"
+                                                       "EMB_TEST_PWM_IN=(&emb_dev_${CMAKE_MATCH_3})"
+                                                       "EMB_TEST_PWM_IN_CH=${CMAKE_MATCH_4}u")
+    endif()
+  endif()
   if(CONFIG_EMB_DRV_RTC)
     emb_add_test(test_rtc test_rtc.c) # SPEC-017 §10
     # the board's own RTC: its time, its alarm, across a reset

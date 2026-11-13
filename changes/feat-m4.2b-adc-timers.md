@@ -10,6 +10,12 @@
 - The status codes of the counter and PWM classes: `EMB_EPAST` (−96) and `EMB_ENOSIGNAL` (−100).
 - The NUCLEO-F446RE's description gains TIM9, two channels (`timer_channels:`), and a binding's fields read a peripheral's number, `peripheral.index` (TIMER1's tick generator).
 
+### Added (the PWM class, 2026-11-13)
+
+- `<emb/drv_pwm.h>`, behind `CONFIG_EMB_DRV_PWM` (SPEC-017 §11b, [A129](docs/specs/AMENDMENTS-M4.md)): a device's output channels set by period and pulse in nanoseconds, rounded to the nearest the hardware makes and reported back, sharing the device's period, inverted on request; and an input's period and pulse captured, `EMB_ENOSIGNAL` when no whole cycle comes.
+- Drivers: the STM32's general-purpose timers (`drivers/st/stm32_tim_pwm.c`: PWM mode 1, one cycle captured exactly in PWM input mode; the NUCLEO-F446RE's TIM3 out on D12 and TIM4 in on D10) and the RP2350's slices (`drivers/rpi/rp2350_pwm.c`: A and B out, B averaged over a gate; the Pico 2 W's slice 7 out on GPIO14 and slice 0 in on GPIO17).
+- `test_pwm_loop`, an output wired to a capture input, configured by `EMB_TEST_PWM_LOOP`.
+
 ### Changed (applications in MPLAB Harmony's form, 2026-11-13)
 
 - An application's generated files follow MPLAB Harmony v3 ([A130](docs/specs/AMENDMENTS-M4.md)). Each board's are in Harmony's configuration folder, `src/config/<board>/`: `definitions.h`, `configuration.h`, `initialization.c` with `SYS_Initialize()`, `tasks.c` with the tasks and `SYS_Tasks()`, `interrupts.c`, and the board's own outputs under `peripheral/`, `linker/`, `build/` and `docs/`. `system.h`, `system.c` and `tasks.h` are gone.

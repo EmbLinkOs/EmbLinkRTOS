@@ -31,6 +31,8 @@ pins:
   spi2: { sck: PB13.af5, miso: PB14.af5, mosi: PB15.af5 } # CN10-30, -28 and -26
   i2c1: { scl: PB8.af4, sda: PB9.af4 }   # D15 and D14
   i2c2: { scl: PB10.af4, sda: PB3.af4 }  # D6 and D3
+  tim3: { ch1: PA6.af2 }                 # D12: PWM out
+  tim4: { ch1: PB6.af2 }                 # D10: PWM capture
 console: { device: usart2, baud: 115200 }
 # the board's devices (SPEC-016), initialized with the EARLY devices: the clock tree, the
 # GPIO ports in use and the console
@@ -50,6 +52,8 @@ devices:
   - { name: uart4, baud: 115200, doc: "a spare UART; the HIL suite's loopback wires A0 (PA0, TX) to A1 (PA1, RX)" }
   - { name: tim5, class: counter, doc: "TIM5, 32 bits at 1 MHz: the counter class's (A129); TIM2 stays the controller's ADC trigger" }
   - { name: tim9, class: counter, doc: "TIM9, 16 bits at 1 MHz: it wraps every 65.5 ms, so its tests widen the count on the board" }
+  - { name: tim3, class: pwm, doc: "TIM3, PWM out on channel 1, D12 (PA6); the HIL suite wires it to D10" }
+  - { name: tim4, class: pwm, doc: "TIM4, PWM capture on channel 1, D10 (PB6)" }
 leds: [ { name: user, gpio: PA5, active: high, doc: LD2 } ]
 buttons: [ { name: user, gpio: PC13, active: low, doc: B1 } ]
 flash_partitions:

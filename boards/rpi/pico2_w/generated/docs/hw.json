@@ -107,6 +107,20 @@
       {
         "doc": "TIMER1, 64 bits at 1 MHz: the counter class's (A129); TIMER0 is left for M4.4's tickless time",
         "name": "timer1"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "slice 7, PWM out on A, GPIO14 (pin 19); the HIL suite wires it to pin 22",
+        "name": "pwm7"
+      },
+      {
+        "deps": [
+          "io_bank0"
+        ],
+        "doc": "slice 0, PWM capture on B, GPIO17 (pin 22)",
+        "name": "pwm0"
       }
     ],
     "doc": "The console on UART0 at 115200 baud on GPIO0 (TX, pin 1) and GPIO1 (RX, pin 2). The CPU runs at 150 MHz from PLL_SYS (the 12 MHz crystal x 125 / 5 / 2, pico-sdk's factors), and clk_peri, the UARTs' clock, follows clk_sys. The user LED is on the CYW43439 wireless chip, which has no driver yet, so the board has no LED. Images are UF2 files, copied to the boot ROM's USB drive (hold BOOTSEL while plugging in), or loaded by picotool while the board is in BOOTSEL; a test image built for the board (EMB_TEST_EMULATOR=hil) reboots into BOOTSEL when it ends, so tools/hil/run_hil.py loads the next one without the button.",
@@ -138,6 +152,12 @@
       "i2c1": {
         "scl": "GPIO7.f3",
         "sda": "GPIO6.f3"
+      },
+      "pwm0": {
+        "b": "GPIO17.f4"
+      },
+      "pwm7": {
+        "a": "GPIO14.f4"
       },
       "spi1": {
         "miso": "GPIO12.f1",
@@ -451,6 +471,36 @@
         "level": "kernel",
         "name": "timer1",
         "peripheral": "timer1"
+      },
+      {
+        "class": "pwm",
+        "compatible": "rpi,rp2350-pwm",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074430092,
+          "clock_hz": 150000000,
+          "index": 7
+        },
+        "level": "kernel",
+        "name": "pwm7",
+        "peripheral": "pwm7"
+      },
+      {
+        "class": "pwm",
+        "compatible": "rpi,rp2350-pwm",
+        "deps": [
+          "io_bank0"
+        ],
+        "fields": {
+          "base": 1074429952,
+          "clock_hz": 150000000,
+          "index": 0
+        },
+        "level": "kernel",
+        "name": "pwm0",
+        "peripheral": "pwm0"
       }
     ],
     "kconfig": {
@@ -615,6 +665,26 @@
         "pin": "GPIO13",
         "port": "",
         "signal": "spi1_cs0"
+      },
+      {
+        "af": 4,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 14,
+        "owner": "pins.pwm7.a",
+        "pin": "GPIO14",
+        "port": "",
+        "signal": "pwm7_a"
+      },
+      {
+        "af": 4,
+        "gpio": "io_bank0",
+        "mode": "af",
+        "number": 17,
+        "owner": "pins.pwm0.b",
+        "pin": "GPIO17",
+        "port": "",
+        "signal": "pwm0_b"
       }
     ],
     "profile": "base",
@@ -638,11 +708,11 @@
     },
     {
       "path": "boards/rpi/pico2_w/board.yaml",
-      "sha256": "7f67d8f9e559e31b72de1c518676487b5ee54067cbd55465c4b5f45a1f334584"
+      "sha256": "f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
+      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
     },
     {
       "path": "soc/rpi/rp2350/rp2350.yaml",

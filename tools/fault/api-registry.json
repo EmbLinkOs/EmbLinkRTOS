@@ -1596,6 +1596,36 @@
       "name": "emb_drv_counter_fired",
       "header": "drv_counter.h",
       "state": "active"
+    },
+    {
+      "id": 270,
+      "name": "emb_drv_pwm_set",
+      "header": "drv_pwm.h",
+      "state": "active"
+    },
+    {
+      "id": 271,
+      "name": "emb_drv_pwm_stop",
+      "header": "drv_pwm.h",
+      "state": "active"
+    },
+    {
+      "id": 272,
+      "name": "emb_drv_pwm_capture",
+      "header": "drv_pwm.h",
+      "state": "active"
+    },
+    {
+      "id": 273,
+      "name": "emb_drv_pwm_channels",
+      "header": "drv_pwm.h",
+      "state": "active"
+    },
+    {
+      "id": 274,
+      "name": "emb_drv_pwm_started",
+      "header": "drv_pwm.h",
+      "state": "active"
     }
   ]
 }

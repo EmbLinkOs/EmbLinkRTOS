@@ -26,8 +26,10 @@
 #include <emb/drv_dma.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_pwm.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
+#include <emb/sem.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -130,6 +132,27 @@ typedef struct emb_stm32_counter_data {
     uint8_t pending;
     uint8_t reserved_[7];
 } emb_stm32_counter_data_t;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* A PWM device's RAM: the class's, first; the prescaler its outputs share; and a capture's
+ * state: the semaphore its interrupt gives, the counter's wraps since the input's last rising
+ * edge, the falling edge's count, and the last whole cycle, in timer clocks. */
+typedef struct emb_stm32_pwm_data {
+    emb_drv_pwm_data_t pwm;
+    emb_sem_storage_t done_storage;
+    emb_sem_t done;
+    const emb_device_t *dev; /* for the interrupt handler */
+    uint32_t prescale;
+    uint64_t wraps;
+    uint64_t fall;
+    uint64_t period;
+    uint64_t pulse;
+    uint8_t rises; /* rising edges seen: the first starts the cycle */
+    uint8_t fell;  /* a falling edge since the last rising one */
+    uint8_t input; /* the channel captured: 0 or 1 */
+    uint8_t reserved_[5];
+} emb_stm32_pwm_data_t;
 #endif
 
 /* The independent watchdog (RM0390 §19), clocked by the LSI: no clock gate. */
@@ -253,6 +276,12 @@ extern const emb_drv_wdt_api_t emb_stm32_iwdg_api;
 /* The counter class's operations (SPEC-017 §11a): a general-purpose timer at its rate, widened
  * to 64 bits by the update interrupt, an alarm on each of its compare channels. */
 extern const emb_drv_counter_api_t emb_stm32_counter_api;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* The PWM class's operations (SPEC-017 §11b): a general-purpose timer's channels in PWM mode 1,
+ * and one cycle of an input on channel 0 or 1 captured exactly in PWM input mode. */
+extern const emb_drv_pwm_api_t emb_stm32_pwm_api;
 #endif
 
 #if CONFIG_EMB_DRV_RTC

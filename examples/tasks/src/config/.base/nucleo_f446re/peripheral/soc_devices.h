@@ -15,9 +15,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
+ *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
  *   drivers/bindings.yaml
- *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+ *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/st/stm32f4/stm32f4.yaml
@@ -32,7 +32,7 @@
 
 #include <emb/config.h>
 
-#define EMB_SOC_DEVICE_COUNT 15u
+#define EMB_SOC_DEVICE_COUNT 17u
 
 #if CONFIG_EMB_DEVICE
 #include <emb/device.h>
@@ -53,6 +53,8 @@ extern const emb_device_t emb_dev_i2c1;
 extern const emb_device_t emb_dev_i2c2;
 extern const emb_device_t emb_dev_tim5;
 extern const emb_device_t emb_dev_tim9;
+extern const emb_device_t emb_dev_tim3;
+extern const emb_device_t emb_dev_tim4;
 
 /* which devices the board has, for code that uses one only where it exists */
 #define EMB_SOC_HAS_RCC    1
@@ -70,6 +72,8 @@ extern const emb_device_t emb_dev_tim9;
 #define EMB_SOC_HAS_I2C2   1
 #define EMB_SOC_HAS_TIM5   1
 #define EMB_SOC_HAS_TIM9   1
+#define EMB_SOC_HAS_TIM3   1
+#define EMB_SOC_HAS_TIM4   1
 
 /* the board's watchdog device: the first of its class */
 #define EMB_SOC_WATCHDOG_DEVICE (&emb_dev_iwdg)

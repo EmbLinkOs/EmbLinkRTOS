@@ -248,6 +248,23 @@ These are sanity checks of the driver and of gross faults in the source, not a c
 
 **Drivers:** `drivers/st/stm32_tim_counter.c`: TIM2 to TIM5, and TIM9 to TIM14 with their fewer channels (`timer_channels:` in the SoC's description), at the device's `rate_hz`, 1 MHz by default, which the prescaler must make exactly. Their compare channels drive no pin. `drivers/rpi/rp2350_timer.c`: TIMER0 and TIMER1, each on its tick generator at the device's rate, 1 MHz by default, which the crystal must divide exactly. M4.4's tickless time will take one counter of each board; the boards' devices leave TIM2, the controller's ADC trigger, and TIMER0 free. **Evidence:** the class's fake on the host. On EmbSIM's NUCLEO-F446RE in CI and on both boards, for every counter the board has (TIM5 and TIM9; TIMER1): its rate against the kernel's clock; its count rising, across TIM9's wraps; one-shot alarms 0.5 ms, 3 ms and 200 ms ahead, never early and at most 200 counts late; every channel in order; a passed count refused; a canceled alarm; a periodic callback over 100 periods of 1 ms, each a period after the last.
 
+## 11b. PWM (A129)
+
+| Checklist | |
+|---|---|
+| Dependencies | its timer's clock: the STM32F4's timer kernel clock; the RP2350's clk_sys; its pins, an output's and an input's alternate function (`pins:`) |
+| Requests | `emb_drv_pwm_set()`, a channel's period and pulse in nanoseconds with a polarity flag (`EMB_DRV_PWM_INVERTED`), rounded to the nearest the hardware makes and reported back; `emb_drv_pwm_stop()`; `emb_drv_pwm_capture()`, an input's period and pulse; `emb_drv_pwm_channels()` |
+| Blocking | `set` and `stop` are immediate, from a thread or an interrupt; `capture` blocks its thread for the input's cycles, up to its timeout, under the device's lock |
+| Interrupts | the STM32's capture: the timer's interrupt, at each edge and wrap, until a cycle is whole. The RP2350's needs none |
+| DMA | none |
+| Concurrency | a device's running channels share its period: a `set` at another period while another channel runs is refused with `EMB_EBUSY`; alone, a channel takes the new period at once. A running channel takes a new pulse at its next period, without a glitch. A channel outputs or captures, not both; the STM32's capture resets its timer's counter, so it is refused while any of its timer's channels outputs |
+| Timeouts | a capture with no whole cycle before its timeout gives `EMB_ENOSIGNAL`: a steady input, high or low, has none |
+| Resolution | an output's pulse in steps of its timer's clock through the smallest prescaler that brings the period within the counter: 11 ns on the STM32F446's TIM3 at 90 MHz for periods to 728 µs, 6.7 ns on the RP2350's slices for periods to 437 µs, coarser beyond. The STM32 captures one cycle exactly at the timer's clock, the counter's wraps counted for long ones (A129). The RP2350 averages over a gate (`CAP_CAPTURE_AVERAGED`): edges counted between two of its counter's changes, timed by the CPU's cycle counter, for the period, and clk_sys counted while the input is high, over exactly that many periods, for the pulse; the gate is a quarter of the timeout, from 4 to 50 ms |
+| Errors | `EMB_ENOSIGNAL`, `EMB_ENOTSUP` (no capture on the channel: the STM32 captures on channels 0 and 1, the RP2350 on B, channel 1), `EMB_EBUSY`, `EMB_EINVAL` (a period of 0, beyond the hardware's reach or shorter than two counts, or a pulse longer than its period) |
+| Capabilities | `CAPTURE`, `CAPTURE_AVERAGED` |
+
+**Drivers:** `drivers/st/stm32_tim_pwm.c`: a general-purpose timer's channels in PWM mode 1, the period and compares preloaded; a stopped channel forced to its inactive level, which its polarity sets. Its capture is PWM input mode: the input's rising edge resets the counter through the slave controller and is captured on its own channel, the falling edge on the other. `drivers/rpi/rp2350_pwm.c`: a slice's A and B, its divider in sixteenths, the compares and TOP double-buffered; B its input. **Evidence:** the class's fake on the host. On both boards, an output wired to a capture input (the NUCLEO-F446RE's TIM3 channel 1 on D12 to TIM4 channel 1 on D10; the Pico 2 W's slice 7 A on GPIO14 to slice 0 B on GPIO17): waves from 50 kHz to 100 Hz captured back within a thousandth of the period and 60 ns, inverted too; a steady output with no cycle; a running output not captured. The logic analyzer records both outputs.
+
 ## 12. Optional parts
 
 Drivers for external parts on these classes, written once the class is in: `drivers/sensor/bme280.c` on I2C (EmbSIM models it) and `drivers/flash/jedec_spi_nor.c` on SPI. A part is a device with a `bus:` (SPEC-014 §4) and its own `compatible`.

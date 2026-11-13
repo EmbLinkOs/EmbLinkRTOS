@@ -94,6 +94,24 @@ bindings:
       bits: peripheral.counter_bits
       channels: { from: peripheral.timer_channels, default: 4 }
     doc: general-purpose timers as counters, widened to 64 bits, an alarm on each compare channel (SPEC-017 §11a, A129)
+  st,stm32-tim:pwm:
+    class: pwm
+    level: kernel
+    sources: [drivers/st/stm32_tim_pwm.c]
+    include: drivers/st/include
+    header: emb_stm32_devices.h
+    api: emb_stm32_pwm_api.dev
+    config: emb_stm32_tim_config_t
+    data: emb_stm32_pwm_data_t
+    fields:
+      base: peripheral.base
+      clock_hz: peripheral.timer_clock_hz
+      clken_offset: peripheral.clock.enable_offset
+      clken_bit: peripheral.clock.bit
+      irq: peripheral.irqs.global
+      bits: peripheral.counter_bits
+      channels: { from: peripheral.timer_channels, default: 4 }
+    doc: general-purpose timers' channels in PWM mode 1, and one cycle of an input captured exactly (SPEC-017 §11b, A129)
   arm,pl011:
     class: uart
     level: early
@@ -307,6 +325,17 @@ bindings:
       irq2: peripheral.irqs.alarm2
       irq3: peripheral.irqs.alarm3
     doc: TIMER0 and TIMER1 as counters, 64 bits of their tick, an alarm on each of the four (SPEC-017 §11a, A129)
+  rpi,rp2350-pwm:
+    class: pwm
+    level: kernel
+    sources: [drivers/rpi/rp2350_pwm.c]
+    include: drivers/rpi/include
+    header: emb_rp2350_devices.h
+    api: emb_rp2350_pwm_api.dev
+    config: emb_rp2350_pwm_config_t
+    data: emb_rp2350_pwm_data_t
+    fields: { base: peripheral.base, index: peripheral.index, clock_hz: peripheral.clock_hz }
+    doc: a PWM slice's outputs A and B, and its input B averaged over a gate time (SPEC-017 §11b, A129)
   rpi,rp2350-qmi:
     class: flash
     level: early

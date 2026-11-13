@@ -106,6 +106,16 @@
         "class": "counter",
         "doc": "TIM9, 16 bits at 1 MHz: it wraps every 65.5 ms, so its tests widen the count on the board",
         "name": "tim9"
+      },
+      {
+        "class": "pwm",
+        "doc": "TIM3, PWM out on channel 1, D12 (PA6); the HIL suite wires it to D10",
+        "name": "tim3"
+      },
+      {
+        "class": "pwm",
+        "doc": "TIM4, PWM capture on channel 1, D10 (PB6)",
+        "name": "tim4"
       }
     ],
     "doc": "The STM32F446RE at 180 MHz from the PLL, its input the ST-LINK's 8 MHz MCO on PH0 in HSE bypass (solder bridges SB16 and SB50 as shipped). The console is USART2, which the ST-LINK carries as its virtual COM port.",
@@ -154,6 +164,12 @@
         "miso": "PB14.af5",
         "mosi": "PB15.af5",
         "sck": "PB13.af5"
+      },
+      "tim3": {
+        "ch1": "PA6.af2"
+      },
+      "tim4": {
+        "ch1": "PB6.af2"
       },
       "uart4": {
         "rx": "PA1.af8",
@@ -575,6 +591,44 @@
         "level": "kernel",
         "name": "tim9",
         "peripheral": "tim9"
+      },
+      {
+        "class": "pwm",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073742848,
+          "bits": 16,
+          "channels": 4,
+          "clken_bit": 1,
+          "clken_offset": 64,
+          "clock_hz": 90000000,
+          "irq": 29
+        },
+        "level": "kernel",
+        "name": "tim3",
+        "peripheral": "tim3"
+      },
+      {
+        "class": "pwm",
+        "compatible": "st,stm32-tim",
+        "deps": [
+          "rcc"
+        ],
+        "fields": {
+          "base": 1073743872,
+          "bits": 16,
+          "channels": 4,
+          "clken_bit": 2,
+          "clken_offset": 64,
+          "clock_hz": 90000000,
+          "irq": 30
+        },
+        "level": "kernel",
+        "name": "tim4",
+        "peripheral": "tim4"
       }
     ],
     "kconfig": {
@@ -673,6 +727,16 @@
         "port": "A"
       },
       {
+        "af": 2,
+        "gpio": "gpioa",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.tim3.ch1",
+        "pin": "PA6",
+        "port": "A",
+        "signal": "tim3_ch1"
+      },
+      {
         "af": 4,
         "gpio": "gpiob",
         "mode": "af",
@@ -681,6 +745,16 @@
         "pin": "PB3",
         "port": "B",
         "signal": "i2c2_sda"
+      },
+      {
+        "af": 2,
+        "gpio": "gpiob",
+        "mode": "af",
+        "number": 6,
+        "owner": "pins.tim4.ch1",
+        "pin": "PB6",
+        "port": "B",
+        "signal": "tim4_ch1"
       },
       {
         "af": 4,
@@ -782,11 +856,11 @@
     },
     {
       "path": "boards/st/nucleo_f446re/board.yaml",
-      "sha256": "20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196"
+      "sha256": "9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704"
     },
     {
       "path": "drivers/bindings.yaml",
-      "sha256": "bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
+      "sha256": "8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
     },
     {
       "path": "soc/st/stm32f4/stm32f4.yaml",

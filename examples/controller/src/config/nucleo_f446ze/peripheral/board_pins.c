@@ -20,7 +20,7 @@
  *   boards/st/nucleo_f446ze/board.yaml
  *     1525ea206692663af174039e30776d6a9a9b30275c9e5c9bdabf14ac0b70aa19
  *   drivers/bindings.yaml
- *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+ *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
  *   examples/controller/controller.conf
  *     f7354e5137f5ea50fbd1d5829ff4f5eb88a044100d871d6a8fd7d976339a75f1
  *   examples/controller/system.yaml

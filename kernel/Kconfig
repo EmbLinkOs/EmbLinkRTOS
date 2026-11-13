@@ -338,6 +338,15 @@ config EMB_DRV_COUNTER
 	  alarms on its channels and periodic callbacks without drift, each in
 	  the counter's interrupt.
 
+config EMB_DRV_PWM
+	bool "The PWM class (SPEC-017 §11b, A129)"
+	depends on EMB_DEVICE
+	default y
+	help
+	  Output channels set by period and pulse in nanoseconds, the channels
+	  of a device sharing its period; and an input's period and pulse
+	  measured, one cycle exactly or averaged over many.
+
 config EMB_DRV_ENTROPY
 	bool "The entropy class (SPEC-017 §11)"
 	depends on EMB_DEVICE

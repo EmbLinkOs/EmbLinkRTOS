@@ -16,9 +16,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
+ *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
  *   drivers/bindings.yaml
- *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+ *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/st/stm32f4/stm32f4.yaml
@@ -393,6 +393,56 @@ const emb_device_t emb_dev_tim9 = {
     .dep_count = 1u,
 };
 
+/* tim3: st,stm32-tim, pwm, KERNEL */
+static const emb_stm32_tim_config_t tim3_config = {
+    .base = 0x40000400u,         /* peripheral.base */
+    .clock_hz = 90000000u,       /* peripheral.timer_clock_hz */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 1u,             /* peripheral.clock.bit */
+    .irq = 29u,                  /* peripheral.irqs.global */
+    .bits = 16u,                 /* peripheral.counter_bits */
+    .channels = 4u,              /* peripheral.timer_channels, its default */
+};
+static emb_device_state_t tim3_state;
+static emb_stm32_pwm_data_t tim3_data;
+static const emb_device_t *const tim3_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_tim3 = {
+    .name = "tim3",
+    .api = &emb_stm32_pwm_api.dev,
+    .config = &tim3_config,
+    .state = &tim3_state,
+    .data = &tim3_data,
+    .deps = tim3_deps,
+    .class_id = EMB_DRV_CLASS_PWM,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
+/* tim4: st,stm32-tim, pwm, KERNEL */
+static const emb_stm32_tim_config_t tim4_config = {
+    .base = 0x40000800u,         /* peripheral.base */
+    .clock_hz = 90000000u,       /* peripheral.timer_clock_hz */
+    .clken_offset = 0x00000040u, /* peripheral.clock.enable_offset */
+    .clken_bit = 2u,             /* peripheral.clock.bit */
+    .irq = 30u,                  /* peripheral.irqs.global */
+    .bits = 16u,                 /* peripheral.counter_bits */
+    .channels = 4u,              /* peripheral.timer_channels, its default */
+};
+static emb_device_state_t tim4_state;
+static emb_stm32_pwm_data_t tim4_data;
+static const emb_device_t *const tim4_deps[] = {&emb_dev_rcc};
+const emb_device_t emb_dev_tim4 = {
+    .name = "tim4",
+    .api = &emb_stm32_pwm_api.dev,
+    .config = &tim4_config,
+    .state = &tim4_state,
+    .data = &tim4_data,
+    .deps = tim4_deps,
+    .class_id = EMB_DRV_CLASS_PWM,
+    .level = EMB_DEVICE_KERNEL,
+    .dep_count = 1u,
+};
+
 /* in initialization order */
 static const emb_device_t *const devices[] = {
     &emb_dev_rcc,    /* 0: EARLY */
@@ -410,9 +460,11 @@ static const emb_device_t *const devices[] = {
     &emb_dev_i2c2,   /* 12: KERNEL */
     &emb_dev_tim5,   /* 13: KERNEL */
     &emb_dev_tim9,   /* 14: KERNEL */
+    &emb_dev_tim3,   /* 15: KERNEL */
+    &emb_dev_tim4,   /* 16: KERNEL */
 };
 
-const emb_device_table_t emb_board_device_table = {devices, 15u, 10u};
+const emb_device_table_t emb_board_device_table = {devices, 17u, 10u};
 
 #if CONFIG_EMB_DRV_ENTROPY
 /* the board's entropy source, or none: nothing stands in for one (SPEC-017 §11, SEC-012) */

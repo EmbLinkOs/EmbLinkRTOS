@@ -9,9 +9,9 @@
 #   arch/cortex_m/arch.yaml
 #     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
 #   boards/rpi/pico2_w/board.yaml
-#     7f67d8f9e559e31b72de1c518676487b5ee54067cbd55465c4b5f45a1f334584
+#     f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638
 #   drivers/bindings.yaml
-#     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+#     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
 #   examples/tasks/system.yaml
 #     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
 #   soc/rpi/rp2350/rp2350.yaml
@@ -52,6 +52,7 @@ set(EMB_BOARD_DRIVER_SOURCES
     "${EMB_BASE}/drivers/arm/pl022.c"
     "${EMB_BASE}/drivers/snps/dw_i2c.c"
     "${EMB_BASE}/drivers/rpi/rp2350_timer.c"
+    "${EMB_BASE}/drivers/rpi/rp2350_pwm.c"
 )
 set(EMB_BOARD_DRIVER_INCLUDE_DIRS
     "${EMB_BASE}/drivers/rpi/include"
@@ -61,8 +62,8 @@ set(EMB_BOARD_DRIVER_INCLUDE_DIRS
 # the inputs this directory was generated from, for the configure-time staleness check
 set(EMB_BOARD_HW_INPUTS
     "arch/cortex_m/arch.yaml=c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d"
-    "boards/rpi/pico2_w/board.yaml=7f67d8f9e559e31b72de1c518676487b5ee54067cbd55465c4b5f45a1f334584"
-    "drivers/bindings.yaml=bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63"
+    "boards/rpi/pico2_w/board.yaml=f9063a553d5f2574f744b2822f60f3230499789343103fa856e5e012c2f18638"
+    "drivers/bindings.yaml=8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9"
     "examples/tasks/system.yaml=202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da"
     "soc/rpi/rp2350/rp2350.yaml=80773a9c9cfb1c62cd322e397111a11d7f48fce3c0febc76bf7d5571018977a5"
     "soc/rpi/rp2350/rp2350a.yaml=22395e35ed229020b5c9c7586af50cfaa07960a09905776eb4713ff28051eb3c"

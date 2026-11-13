@@ -35,6 +35,7 @@
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
 #include <emb/drv_i2c.h>
+#include <emb/drv_pwm.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_spi.h>
 #include <emb/drv_wdt.h>

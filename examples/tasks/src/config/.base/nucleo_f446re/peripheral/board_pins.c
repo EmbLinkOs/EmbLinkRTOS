@@ -16,9 +16,9 @@
  *   arch/cortex_m/arch.yaml
  *     c5c8e451c09717dee1713d07f8311b6d507e3b4c66c42d93e0ce11da6ec76d6d
  *   boards/st/nucleo_f446re/board.yaml
- *     20fe6b4032040fed9a40b7296076b0535bc9537898fd158cf0231fdc966d1196
+ *     9adf4c0a044da8d7013184caee6ac0e9fe964132c01590342f44473e7dc7a704
  *   drivers/bindings.yaml
- *     bad0a82a395485a6609c0dcc784758c70746b24eda6e84d79235b76c1c769a63
+ *     8ebddec3b88fbfaa96769bf53f915ef6e916352d5abf4b9f676210fcb918d2c9
  *   examples/tasks/system.yaml
  *     202cff4815e97ab763dc14c61b0b694ee9381307eb46687f9caaea3465a913da
  *   soc/st/stm32f4/stm32f4.yaml
@@ -42,8 +42,12 @@ const emb_stm32_pin_t emb_board_pins[] = {
     {EMB_STM32_PORT(A), 3u, EMB_STM32_PIN_AF, 7u, 0u, 0u},
     /* PA5: leds.user (output) */
     {EMB_STM32_PORT(A), 5u, EMB_STM32_PIN_OUTPUT, 0u, 0u, 0u},
+    /* PA6: pins.tim3.ch1 (tim3_ch1) */
+    {EMB_STM32_PORT(A), 6u, EMB_STM32_PIN_AF, 2u, 0u, 0u},
     /* PB3: pins.i2c2.sda (i2c2_sda) */
     {EMB_STM32_PORT(B), 3u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
+    /* PB6: pins.tim4.ch1 (tim4_ch1) */
+    {EMB_STM32_PORT(B), 6u, EMB_STM32_PIN_AF, 2u, 0u, 0u},
     /* PB8: pins.i2c1.scl (i2c1_scl) */
     {EMB_STM32_PORT(B), 8u, EMB_STM32_PIN_AF, 4u, 0u, EMB_STM32_PIN_I2C},
     /* PB9: pins.i2c1.sda (i2c1_sda) */

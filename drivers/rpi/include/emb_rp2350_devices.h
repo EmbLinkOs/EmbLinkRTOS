@@ -31,6 +31,7 @@
 #include <emb/drv_entropy.h>
 #include <emb/drv_flash.h>
 #include <emb/drv_gpio.h>
+#include <emb/drv_pwm.h>
 #include <emb/drv_rtc.h>
 #include <emb/drv_wdt.h>
 #include <emb/sem.h>
@@ -66,6 +67,21 @@ typedef struct emb_rp2350_timer_config {
     uint32_t irq2;
     uint32_t irq3;
 } emb_rp2350_timer_config_t;
+
+/* A PWM slice (datasheet §12.5): its five registers, its number, and clk_sys, which it counts. */
+typedef struct emb_rp2350_pwm_config {
+    uintptr_t base;
+    uint32_t index;
+    uint32_t clock_hz;
+} emb_rp2350_pwm_config_t;
+
+#if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_PWM
+/* A slice's RAM: the class's, first; the divider its two outputs share, in sixteenths. */
+typedef struct emb_rp2350_pwm_data {
+    emb_drv_pwm_data_t pwm;
+    uint32_t div16;
+} emb_rp2350_pwm_data_t;
+#endif
 
 #if CONFIG_EMB_DEVICE && CONFIG_EMB_DRV_COUNTER
 /* An alarm's interrupt: its timer and its number. */
@@ -176,6 +192,12 @@ extern const emb_drv_dma_api_t emb_rp2350_dma_api;
 /* The watchdog class's operations (SPEC-017 §8): a microsecond tick from clk_ref, the reset
  * reaching all but the oscillators, and the reset's cause from its REASON register. */
 extern const emb_drv_wdt_api_t emb_rp2350_watchdog_api;
+#endif
+
+#if CONFIG_EMB_DRV_PWM
+/* The PWM class's operations (SPEC-017 §11b): a slice's outputs A and B (channels 0 and 1), and
+ * its input B measured as an average over a gate time (CAP_CAPTURE_AVERAGED). */
+extern const emb_drv_pwm_api_t emb_rp2350_pwm_api;
 #endif
 
 #if CONFIG_EMB_DRV_COUNTER
