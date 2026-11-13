@@ -79,6 +79,32 @@ class Elf:
                 if name and shndx not in (0, 0xFFF1):
                     self.symbols.setdefault(name, (value, sz, shndx))
 
+    # R_*_RELATIVE by machine: x86-64, AArch64, RISC-V (RELA: the value is the addend)
+    RELATIVE = {62: 8, 183: 1027, 243: 3}
+
+    def relative_addends(self):
+        """A position-independent image's pointers, which the file may hold as zeros with the value
+        in a RELATIVE relocation's addend (Linux native builds are PIE): {address: value}."""
+        kind = self.RELATIVE.get(self.machine)
+        out = {}
+        if kind is None:
+            return out
+        e = self.end
+        for s in self.sections:
+            if s["type"] != 4:  # SHT_RELA
+                continue
+            size = 12 if self.cls == 1 else 24
+            for off in range(s["offset"], s["offset"] + s["size"], size):
+                if self.cls == 1:
+                    r_offset, r_info, r_addend = struct.unpack_from(e + "IIi", self.data, off)
+                    rtype = r_info & 0xFF
+                else:
+                    r_offset, r_info, r_addend = struct.unpack_from(e + "QQq", self.data, off)
+                    rtype = r_info & 0xFFFFFFFF
+                if rtype == kind:
+                    out[r_offset] = r_addend
+        return out
+
     def section(self, name):
         return next((s for s in self.sections if s["name"] == name), None)
 
@@ -133,6 +159,7 @@ class LogDb:
         self.timestamps = bool(flags & 1)
         self.build_id = elf.symbol_bytes("emb_build_id")
         self.end = elf.end
+        self._relative = elf.relative_addends()
         self._metas = {}
 
     def meta(self, rid):
@@ -141,7 +168,9 @@ class LogDb:
         p, e = self.ptr_size, self.end
         raw = self.elf.read(self.base + rid - ID_FIRST, 3 * p + 9, self.sec)
         pf = e + ("I" if p == 4 else "Q")
-        fmt, file, module = (struct.unpack_from(pf, raw, i * p)[0] for i in range(3))
+        at = self.base + rid - ID_FIRST
+        fmt, file, module = (struct.unpack_from(pf, raw, i * p)[0] or self._relative.get(at + i * p, 0)
+                             for i in range(3))
         line, sig = struct.unpack_from(e + "II", raw, 3 * p)
         level = raw[3 * p + 8]
         m = Meta(self.elf.cstring(fmt, self.sec), self.elf.cstring(file, self.sec) if file else "",
