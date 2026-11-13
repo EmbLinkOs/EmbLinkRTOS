@@ -49,6 +49,7 @@ Rules:
 | KRN-SYNC | Synchronization | [`KRN-SYNC.md`](KRN-SYNC.md) | Complete; Accepted 2026-10-07 (work item 5). v0.1 §8.6 and 03 §5.2 identifiers restated |
 | KRN-NOTIF | Notifications and binding | [`KRN-NOTIF.md`](KRN-NOTIF.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.1 identifiers restated |
 | KRN-WQ | Work queues and delayed work | [`KRN-WQ.md`](KRN-WQ.md) | Complete; Accepted 2026-10-07 (work item 6). 03 §6.2 identifiers restated |
+| KRN-TSK | Tasks: threads written as state machines | [`KRN-TSK.md`](KRN-TSK.md) | Accepted 2026-11-13 with SPEC-020 |
 | KRN-IPC | Inter-thread communication | [`KRN-IPC.md`](KRN-IPC.md) | Complete; Accepted 2026-10-07 (work item 6b). v0.1 §9.4 and 03 §6.5, §6.6 identifiers restated |
 | KRN-OBJ | Objects, lifecycle, storage | [`KRN-OBJ.md`](KRN-OBJ.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.4 identifiers restated |
 | KRN-CAP | Handles and capabilities | [`KRN-CAP.md`](KRN-CAP.md) | Complete; Accepted 2026-10-07 (work item 8). 03 §7.2 identifiers restated |

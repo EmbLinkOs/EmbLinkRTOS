@@ -1423,6 +1423,42 @@
       "name": "emb_drv_entropy_read_raw",
       "header": "drv_entropy.h",
       "state": "active"
+    },
+    {
+      "id": 241,
+      "name": "emb_task_run",
+      "header": "task.h",
+      "state": "active"
+    },
+    {
+      "id": 242,
+      "name": "emb_task_post",
+      "header": "task.h",
+      "state": "active"
+    },
+    {
+      "id": 243,
+      "name": "emb_task_post_wait",
+      "header": "task.h",
+      "state": "active"
+    },
+    {
+      "id": 244,
+      "name": "emb_task_post_event",
+      "header": "task.h",
+      "state": "active"
+    },
+    {
+      "id": 245,
+      "name": "emb_task_state",
+      "header": "task.h",
+      "state": "active"
+    },
+    {
+      "id": 246,
+      "name": "emb_task_stats_get",
+      "header": "task.h",
+      "state": "active"
     }
   ]
 }

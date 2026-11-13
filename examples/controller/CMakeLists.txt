@@ -19,6 +19,10 @@ set(EmbLinkRTOS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../cmake" CACHE PATH "The RTOS
 set(EMB_BOARD "nucleo_f446re" CACHE STRING "The controller's board: an STM32F446 board")
 # a fault reboots the part with its crash record kept (controller.conf)
 set(EMB_CONF "${CMAKE_CURRENT_LIST_DIR}/controller.conf" CACHE STRING "Configuration fragments")
+# its threads and objects (system.yaml, generated into generated/<board>/), and the roots the
+# stack check after the link needs (A125)
+set(EMB_SYSTEM "${CMAKE_CURRENT_LIST_DIR}/system.yaml" CACHE FILEPATH "The controller's system description")
+set(EMB_STACK_ROOTS "${CMAKE_CURRENT_LIST_DIR}/stack-roots.json" CACHE FILEPATH "Its stack check's roots")
 find_package(EmbLinkRTOS REQUIRED) # before project(): picks the board's toolchain
 
 project(controller LANGUAGES C)

@@ -50,6 +50,16 @@
             }
           }
         },
+        "limits": {
+          "description": "what the driver accepts, for the system description's checks (SPEC-014 \u00a75, A125): an SPI controller's clock dividers, an I2C controller's speeds, a watchdog's timeout",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "divider": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 1 } },
+            "speeds": { "type": "array", "minItems": 1, "items": { "enum": ["standard", "fast", "fast_plus"] } },
+            "timeout_ms": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "integer", "minimum": 1 } }
+          }
+        },
         "doc": { "type": "string" }
       }
     }

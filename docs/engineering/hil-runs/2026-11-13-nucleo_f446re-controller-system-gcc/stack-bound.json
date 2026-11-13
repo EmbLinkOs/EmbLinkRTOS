@@ -1,0 +1,596 @@
+{
+  "threads": {
+    "control_thread": {
+      "entry": "control",
+      "calls": 412,
+      "switch": 72,
+      "bound": 484,
+      "fp": false,
+      "size": 1024,
+      "path": [
+        {
+          "function": "control",
+          "frame": 56,
+          "from": "su"
+        },
+        {
+          "function": "emb_msgq_receive",
+          "frame": 40,
+          "from": "su"
+        },
+        {
+          "function": "receive_common",
+          "frame": 40,
+          "from": "su"
+        },
+        {
+          "function": "embk_block_on",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_wait_commit",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_switch_away",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_select",
+          "frame": 16,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_remove_ready",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_fault_raise",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "raise_info",
+          "frame": 32,
+          "from": "su"
+        },
+        {
+          "function": "embk_crash_record_write",
+          "frame": 120,
+          "from": "su"
+        },
+        {
+          "function": "emb_arch_crash_regs",
+          "frame": 20,
+          "from": "su"
+        }
+      ]
+    },
+    "command_thread": {
+      "entry": "command",
+      "calls": 460,
+      "switch": 72,
+      "bound": 532,
+      "fp": false,
+      "size": 1024,
+      "path": [
+        {
+          "function": "command",
+          "frame": 104,
+          "from": "su"
+        },
+        {
+          "function": "emb_msgq_receive",
+          "frame": 40,
+          "from": "su"
+        },
+        {
+          "function": "receive_common",
+          "frame": 40,
+          "from": "su"
+        },
+        {
+          "function": "embk_block_on",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_wait_commit",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_switch_away",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_select",
+          "frame": 16,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_remove_ready",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_fault_raise",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "raise_info",
+          "frame": 32,
+          "from": "su"
+        },
+        {
+          "function": "embk_crash_record_write",
+          "frame": 120,
+          "from": "su"
+        },
+        {
+          "function": "emb_arch_crash_regs",
+          "frame": 20,
+          "from": "su"
+        }
+      ]
+    },
+    "telemetry_thread": {
+      "entry": "telemetry",
+      "calls": 404,
+      "switch": 208,
+      "bound": 612,
+      "fp": true,
+      "size": 1024,
+      "path": [
+        {
+          "function": "telemetry",
+          "frame": 64,
+          "from": "su"
+        },
+        {
+          "function": "emb_thread_sleep_until",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "sleep_until_deadline",
+          "frame": 40,
+          "from": "su"
+        },
+        {
+          "function": "embk_block_on",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_wait_commit",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_switch_away",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_select",
+          "frame": 16,
+          "from": "su"
+        },
+        {
+          "function": "embk_sched_remove_ready",
+          "frame": 8,
+          "from": "su"
+        },
+        {
+          "function": "embk_fault_raise",
+          "frame": 24,
+          "from": "su"
+        },
+        {
+          "function": "raise_info",
+          "frame": 32,
+          "from": "su"
+        },
+        {
+          "function": "embk_crash_record_write",
+          "frame": 120,
+          "from": "su"
+        },
+        {
+          "function": "emb_arch_crash_regs",
+          "frame": 20,
+          "from": "su"
+        }
+      ]
+    }
+  },
+  "isr": {
+    "levels": [
+      {
+        "name": "PendSV (the switch, lowest)",
+        "roots": [
+          "embn_cm_pendsv"
+        ],
+        "calls": 0,
+        "frame": 0,
+        "fp": true,
+        "path": [
+          {
+            "function": "embn_cm_pendsv",
+            "frame": 0,
+            "from": "su"
+          }
+        ]
+      },
+      {
+        "name": "peripheral interrupts (ADC1, USART2)",
+        "roots": [
+          "embn_cm_irq_entry"
+        ],
+        "calls": 492,
+        "frame": 108,
+        "fp": false,
+        "path": [
+          {
+            "function": "embn_cm_irq_entry",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "embk_isr_dispatch",
+            "frame": 8,
+            "from": "su"
+          },
+          {
+            "function": "stm32_dma_isr",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "stm32_spi_dma_tx_done",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "stm32_spi_dma_end",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "emb_drv_complete",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "run_lane",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "stm32_spi_start",
+            "frame": 64,
+            "from": "su"
+          },
+          {
+            "function": "emb_drv_dma_start",
+            "frame": 40,
+            "from": "su"
+          },
+          {
+            "function": "stm32_dma_start",
+            "frame": 48,
+            "from": "su"
+          },
+          {
+            "function": "emb_irq_unlock",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "embk_fault_raise_api",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "raise_info",
+            "frame": 32,
+            "from": "su"
+          },
+          {
+            "function": "embk_crash_record_write",
+            "frame": 120,
+            "from": "su"
+          },
+          {
+            "function": "emb_arch_crash_regs",
+            "frame": 20,
+            "from": "su"
+          }
+        ]
+      },
+      {
+        "name": "SysTick",
+        "roots": [
+          "embn_cm_systick"
+        ],
+        "calls": 352,
+        "frame": 108,
+        "fp": false,
+        "path": [
+          {
+            "function": "embn_cm_systick",
+            "frame": 8,
+            "from": "su"
+          },
+          {
+            "function": "embk_time_timer_isr",
+            "frame": 56,
+            "from": "su"
+          },
+          {
+            "function": "embk_timer_expired",
+            "frame": 48,
+            "from": "su"
+          },
+          {
+            "function": "embk_work_submit_locked",
+            "frame": 8,
+            "from": "su"
+          },
+          {
+            "function": "embk_notify_set_locked",
+            "frame": 0,
+            "from": "su"
+          },
+          {
+            "function": "notify_set_live.constprop.0",
+            "frame": 4,
+            "from": "prologue"
+          },
+          {
+            "function": "embk_wait_wake",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "embk_mutex_on_waiters_changed",
+            "frame": 0,
+            "from": "su"
+          },
+          {
+            "function": "embk_prio_propagate",
+            "frame": 16,
+            "from": "su"
+          },
+          {
+            "function": "embk_fault_raise",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "raise_info",
+            "frame": 32,
+            "from": "su"
+          },
+          {
+            "function": "embk_crash_record_write",
+            "frame": 120,
+            "from": "su"
+          },
+          {
+            "function": "emb_arch_crash_regs",
+            "frame": 20,
+            "from": "su"
+          }
+        ]
+      },
+      {
+        "name": "faults",
+        "roots": [
+          "embn_cm_fault_entry"
+        ],
+        "calls": 204,
+        "frame": 108,
+        "fp": false,
+        "path": [
+          {
+            "function": "embn_cm_fault_entry",
+            "frame": 0,
+            "from": "su"
+          },
+          {
+            "function": "embn_cm_fault",
+            "frame": 8,
+            "from": "su"
+          },
+          {
+            "function": "embk_fault_raise_hw",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "raise_info",
+            "frame": 32,
+            "from": "su"
+          },
+          {
+            "function": "embk_crash_record_write",
+            "frame": 120,
+            "from": "su"
+          },
+          {
+            "function": "emb_arch_crash_regs",
+            "frame": 20,
+            "from": "su"
+          }
+        ]
+      },
+      {
+        "name": "NMI",
+        "roots": [
+          "embn_cm_nmi"
+        ],
+        "calls": 204,
+        "frame": 108,
+        "fp": false,
+        "path": [
+          {
+            "function": "embn_cm_nmi",
+            "frame": 8,
+            "from": "su"
+          },
+          {
+            "function": "embk_fault_raise_hw",
+            "frame": 24,
+            "from": "su"
+          },
+          {
+            "function": "raise_info",
+            "frame": 32,
+            "from": "su"
+          },
+          {
+            "function": "embk_crash_record_write",
+            "frame": 120,
+            "from": "su"
+          },
+          {
+            "function": "emb_arch_crash_regs",
+            "frame": 20,
+            "from": "su"
+          }
+        ]
+      }
+    ],
+    "nesting": 1684,
+    "boot": 540,
+    "boot_path": [
+      {
+        "function": "embn_cm_reset",
+        "frame": 8
+      },
+      {
+        "function": "main",
+        "frame": 160
+      },
+      {
+        "function": "emb_kernel_init",
+        "frame": 32
+      },
+      {
+        "function": "embk_device_init_level",
+        "frame": 16
+      },
+      {
+        "function": "emb_device_init",
+        "frame": 24
+      },
+      {
+        "function": "stm32_i2c_init",
+        "frame": 24
+      },
+      {
+        "function": "emb_drv_i2c_bus_init",
+        "frame": 8
+      },
+      {
+        "function": "embk_bus_init",
+        "frame": 24
+      },
+      {
+        "function": "emb_mutex_init",
+        "frame": 48
+      },
+      {
+        "function": "embk_fault_raise_api",
+        "frame": 24
+      },
+      {
+        "function": "raise_info",
+        "frame": 32
+      },
+      {
+        "function": "embk_crash_record_write",
+        "frame": 120
+      },
+      {
+        "function": "emb_arch_crash_regs",
+        "frame": 20
+      }
+    ],
+    "bound": 1684,
+    "size": 2048
+  },
+  "problems": [],
+  "resolved": {
+    "embk_isr_dispatch": [
+      "stm32_spi_isr",
+      "stm32_i2c_ev_isr",
+      "stm32_i2c_er_isr",
+      "stm32_dma_isr",
+      "stm32_rtc_isr",
+      "adc_isr",
+      "usart_isr",
+      "stm32_usart_isr"
+    ],
+    "emb_kernel_init": [
+      "console_init_",
+      "rx_bytes_init_",
+      "samples_init_",
+      "telemetry_thread_init_",
+      "command_thread_init_",
+      "control_thread_init_"
+    ],
+    "raise_info": [],
+    "timer_work": [],
+    "embk_timer_expired": [],
+    "emb_device_init": [
+      "stm32_spi_init",
+      "stm32_i2c_init",
+      "stm32_dma_init",
+      "stm32_iwdg_init",
+      "stm32_flash_init",
+      "stm32_rtc_init",
+      "rcc_init",
+      "gpio_init",
+      "usart_init"
+    ],
+    "run_lane": [
+      "stm32_spi_start",
+      "stm32_i2c_start",
+      "usart_start"
+    ],
+    "emb_drv_gpio_write": [
+      "stm32_gpio_write"
+    ],
+    "emb_drv_dma_start": [
+      "stm32_dma_start"
+    ],
+    "emb_drv_rtc_alarm_fired": [],
+    "emb_drv_rtc_started": [
+      "stm32_rtc_get"
+    ],
+    "emb_drv_dma_stop": [
+      "stm32_dma_stop"
+    ],
+    "stm32_dma_isr": [
+      "stm32_spi_dma_rx_done",
+      "stm32_spi_dma_tx_done",
+      "usart_dma_done"
+    ],
+    "emb_drv_gpio_read": [
+      "stm32_gpio_read"
+    ],
+    "emb_drv_gpio_configure": [
+      "stm32_gpio_configure"
+    ],
+    "deliver": []
+  }
+}

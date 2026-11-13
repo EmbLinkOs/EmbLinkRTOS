@@ -1,0 +1,2 @@
+   text	   data	    bss	    dec	    hex	filename
+  30360	     24	   8432	  38816	   97a0	controller.elf

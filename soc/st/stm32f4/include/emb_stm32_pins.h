@@ -7,7 +7,7 @@
 
 /**
  * @file    emb_stm32_pins.h
- * @brief   The pin table emb-hwgen writes into a board's generated/board_pins.c (SPEC-014 §6).
+ * @brief   The pin table emb-hwgen writes into a board's generated/src/board_pins.c (SPEC-014 §6).
  *
  * @author  Junior Deogracias
  * @date    2026-11-04 (created)

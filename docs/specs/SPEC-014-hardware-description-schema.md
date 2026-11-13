@@ -127,27 +127,113 @@ A device's `cs` is a chip select (A116): a GPIO pin, active low unless written `
 
 ## 5. System schema
 
+*Rewritten by [A125](AMENDMENTS-M4.md), accepted by the project owner on 2026-11-13; it replaces the sketch this section held. Partitions, shares, trace, log and images join the schema with the phases that implement them (M3b, M4.3, M4.5).*
+
+The system description, `system.yaml` beside the application's sources, says what a product does with its board: its threads, its kernel objects, and the settings it wants from the board's devices. The board description keeps what the PCB fixes. Two products on one board differ only in their system descriptions.
+
 ```yaml
 schema_version: 0
 kind: system
-name: sensor_node
-board: st/stm32f407g_disc1.yaml
-profile: isolated                      # tiny | base | isolated | multicore | native
-config: { CONFIG_EMB_PRIORITY_COUNT: 32, CONFIG_EMB_LOG_LEVEL_DEFAULT: info }
-partitions: [ ... ]                    # SPEC-010 §2
-kernel_partition:
-  threads: [ { name: main, entry: app_main, priority: 10, stack: 2K } ]
-  objects: [ { name: cmds, type: msgq, item_size: 16, capacity: 8 } ]
-ceiling_mutexes:                       # SPEC-005 §3.4, ADR-030
-  - { name: bus_lock, users: [kernel_partition.main, sensors.acq] }
-shares: { window_ms: 100 }             # ADR-029 partition shares; per-partition percent in partitions[]
-trace: { ring_kb: 8, classes: [sched, sync, irq] }
-log: { mode: deferred, transport: itm }
-images:                                # ADR-008 slots per board partition
-  - { name: app, slot: slot0, cores: [0] }
+name: controller
+boards: [st/nucleo_f446re, st/nucleo_f446ze]   # <vendor>/<board> of the tree, or a directory; board: for one
+conf: [controller.conf]          # the application's Kconfig fragments, read for the checks below
+includes: [controller.h]         # headers the generated sources need (item types, entry functions)
+threads:
+  - { name: control_thread, entry: control, priority: 6, stack: 1K }
+  - { name: command_thread, entry: command, priority: 4, stack: 1K }
+  - { name: telemetry_thread, entry: telemetry, priority: 2, stack: 1K, autostart: true }
+objects:
+  - { name: samples, type: msgq, item: sample_t, capacity: 8 }
+  - { name: rx_bytes, type: msgq, item_size: 1, capacity: 64 }
+  - { name: console, type: mutex, protocol: inherit }
+  - { name: bus_lock, type: mutex, protocol: ceiling, users: [control_thread, command_thread] }
+  - { name: ready, type: sem, initial: 0, max: 1 }
+devices:
+  usart2: { baud: 115200, rx_buffer: 128 }   # the product's settings for the board's devices
+spi_targets:
+  - { name: flash, bus: spi2, hz: 8MHz, mode: 0, cs: 0 }
+i2c_targets:
+  - { name: env, bus: i2c1, address: 0x76, speed: fast }
+watchdog: { device: iwdg, timeout: 500ms }
 ```
 
-The system file is where the generator learns every statically declared thread and object, so it can size kstores, build capability tables, compute ceilings, and order the init table (SPEC-009 §5.2, SPEC-010 §3).
+**Threads** (`EMB_THREAD_DEFINE`): `name`, `entry` (a C function `void entry(void *arg)`), `priority`, `stack` (bytes, `K` allowed), and optionally `arg` (a C expression), `autostart` (default true) and `flags` (the `EMB_THREAD_*` flag names). **Objects**, one per static definition macro: `mutex` (`protocol`: `none`, `inherit` or `ceiling`; a ceiling mutex names its `users`, threads of this file, and the generator sets its ceiling to the highest of their priorities), `sem` (`initial`, `max`), `cond`, `event` (`initial`), `msgq` (`item`, a C type taken with `sizeof`, or `item_size` in bytes; `capacity`), `timer` (`callback`, `arg`) and `workq` (`priority`, `stack`). Every name is a C identifier, unique in the file, and becomes the handle's name.
+
+**Devices:** each key names a device of the board's description, and its value sets the options of that device's binding, the fields the binding fills from the device (`device.<option>`, SPEC-016 §8: today a UART's `baud` and `rx_buffer`, the RP2350 TRNG's `sample_count`). The value replaces the board's for this product. What the board fixes cannot be set here: the device's compatible, its pins, chip selects, bus, address and DMA channels. A value is checked as the board's is, by its binding, and a baud rate also against the hardware: the peripheral's clock must divide to it within 2 %.
+
+**Bus targets and the watchdog** are not settings of a device but what the application passes to the class's calls (SPEC-017): an SPI target's clock, mode and chip select travel with each transfer, an I2C target's address and speed too, and a watchdog's timeout with `emb_drv_wdt_start()`. The system names them, the generator checks them, and they become constants the application passes:
+- `spi_targets`: `name`, `bus` (an SPI controller device), `hz`, `mode` (0 to 3), `cs` (an index into the controller's chip selects in the board description, or absent for none) and `bits` (default 8); a `const emb_drv_spi_target_t`. Checked: the clock within what the controller's dividers make from its peripheral clock, and one target per chip select.
+- `i2c_targets`: `name`, `bus` (an I2C controller device), `address` (7 bits, 0x08 to 0x77), `speed` (`standard`, `fast` or `fast_plus`); a `const emb_drv_i2c_target_t`. Checked: the address unique on its bus, and the speed one the controller's binding lists.
+- `watchdog`: `device` (a watchdog class device) and `timeout`; `EMB_SYSTEM_WATCHDOG_TIMEOUT_MS`, checked within the driver's range.
+
+A binding states the limits these checks use, with the figures its driver enforces (`limits:` in `drivers/bindings.yaml`: an SPI controller's divider range, an I2C controller's speeds, a watchdog's timeout range).
+
+**Boards:** `boards:` lists the boards the product runs on, or `board:` names its one board. The system is checked against each, and an error found on one of several names it. `profile:` chooses the kernel profile where the board's default is not the product's.
+
+**Kconfig options stay in their fragments** (`.conf`), which `conf:` names so the generator can resolve them with the board's defaults and check against them; the build uses the same fragments.
+
+**Threads and objects may also be defined in C** with the same macros. The generator does not see them: their names are the linker's to keep apart, and the checks after the link (below) cover them.
+
+### 5.1 What the generator writes
+
+`emb-hwgen generate --system <dir>/system.yaml` resolves each board with the system and writes `generated/<board>/` beside `system.yaml`, committed with it and kept current by `emb-hwgen check` (HW-003), as a board's outputs are. The build takes the system with `EMB_SYSTEM` and one of its boards with `EMB_BOARD`, the first by default:
+
+| Output | Content |
+|---|---|
+| the board's outputs (§6) | rendered again with the product's device settings; the application builds against these, not the board's |
+| `system.h` | the handles (`extern emb_thread_t control_thread;` and so on), the entry functions' declarations, the targets (`extern const emb_drv_spi_target_t flash;`) and the watchdog's timeout, for the application's sources |
+| `system.c` | one static definition macro per thread and object, with the computed ceilings, and the targets' constants; the kernel creates the objects from its initialization table (SPEC-001 §6.4) |
+| `system.json` | the resolved system: every thread, object and device setting, each with where it came from (system or board), for tools such as EmbLink Studio |
+| `system.md` | the system's reference page: threads by priority with their stacks, objects, ceilings, device settings and their origin |
+
+§6's `ceilings.h` and `init_order.c` are not written yet: `system.c` holds the computed ceilings, and the kernel's initialization table orders the objects. Generated files hold data and macro calls only: the code they set in motion is the kernel's and the drivers'. They are never edited, and have no user regions.
+
+### 5.2 Checks
+
+At generation, beside the board's (§7), the generator refuses, naming file, line and node (HW-002): a name that is not a C identifier or is used twice; a priority outside `CONFIG_EMB_PRIORITY_COUNT`, or shared between threads where the profile needs unique priorities (tiny); an object type its Kconfig option leaves out; a ceiling mutex user that is not a thread of the file; a device the board does not have, or an option its binding does not take; a device setting the hardware cannot meet; a target on a device that is not a controller of its class, outside its binding's limits, sharing a chip select or an I2C address; a watchdog timeout outside its driver's range; a stack below the port's minimum (`EMB_THREAD_STACK_MIN`).
+
+After the link, the build compares each thread's `stack` with the worst case the stack tool computes from the image (`tools/footprint/stack_bound.py`), from the thread's entry and the roots the application lists for calls the call graph cannot see (`stack-roots.json`). A stack below its worst case **fails the build**, naming the thread, both figures and the deepest call chain. The memory report covers the image as linked, C definitions included.
+
+### 5.3 Tasks, editable outputs and the layout
+
+*Added by [A126](AMENDMENTS-M4.md), accepted by the project owner on 2026-11-13. Where it differs from §5.1, it replaces it.*
+
+**Tasks.** A system's `tasks:` declares threads written as state machines ([SPEC-020](SPEC-020-tasks.md)): each task has its model (event or periodic), states, events and handlers, and the generator writes their tables and threads.
+
+**Every generated file is editable.** The generator keeps what it last wrote, its *baseline*, in `generated/.base/`, committed with the outputs. On regeneration, each file is handled as follows:
+
+| The generated text | The file on disk | What happens |
+|---|---|---|
+| unchanged since the baseline | anything | untouched: the edits stay |
+| changed | as the baseline (not edited) | rewritten |
+| changed | edited | three-way merge of the baseline, the file and the new text: the edits and the change both kept |
+| changed | edited on the same lines | conflict markers in the file; `generate` reports it, and `check` fails until it is resolved |
+
+There are no `USER CODE` regions. `check` verifies that the baseline is what the descriptions give now, and that no conflict is left. The tree's own boards are checked strictly in CI (`check --strict`): their files must equal the baseline, since a board's facts belong in its description.
+
+**The layout.** An application's files:
+
+```text
+my_app/
+  system.yaml
+  CMakeLists.txt              the application's build: generated, editable
+  src/
+    main.c                    generated, editable: the board and kernel start, the tasks' start
+    tasks/<task>.c, .h        generated, editable: each task's handlers
+  generated/
+    .base/                    the baseline: what the generator last wrote (do not edit)
+    <board>/
+      config/                 board.conf
+      include/                system.h, tasks.h, hw_config.h, soc_devices.h
+      src/                    system.c, tasks.c, soc_devices.c, board_pins.c, boot_block.c
+      linker/                 regions.ld, embld.opts
+      build/                  board.cmake, CMakeLists.txt
+      docs/                   board.md, system.md, build_report.md, hw.json, system.json
+```
+
+- **Shared files:** `main.c`, the task files and `CMakeLists.txt` serve every board.
+- **Per board:** `generated/<board>/` holds each board's own outputs.
+- **Boards:** a board's own `generated/` has the same six folders (`boards/<vendor>/<board>/generated/config/` and so on).
 
 ## 6. Generated outputs
 

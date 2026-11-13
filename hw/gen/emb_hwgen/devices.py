@@ -320,7 +320,9 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             if size is None:
                 size = spec.get("default")
             if not isinstance(size, int) or isinstance(size, bool) or not 1 <= size <= 65535:
-                err(f"devices.{n}", f"the {d['compatible']} binding's buffer {bname} needs a size of 1 to 65535 "
+                # at the option itself where the device gives it: a system's setting names its own line
+                at = f"devices.{n}.{spec['size'][len('device.'):]}" if spec["size"].startswith("device.") else f"devices.{n}"
+                err(at, f"the {d['compatible']} binding's buffer {bname} needs a size of 1 to 65535 "
                                     f"bytes from {spec['size']}" + ("" if "default" in spec else ", which has no default"))
                 continue
             buffers.append({"name": bname, "size": size})
@@ -345,6 +347,12 @@ def resolve(board, soc, clk, bindings, err, pins=None):
             "fields": fields,
             "buffers": buffers,
             "props": {k: v for k, v in e.items() if k not in DEVICE_KEYS},
+            # what a system description may set (A125): the options the binding reads from the
+            # device, and the limits its driver states for targets and timeouts
+            "options": sorted({x[len("device."):].split(".")[0] for x in
+                               list(b.get("fields", {}).values()) + [v["size"] for v in b.get("buffers", {}).values()]
+                               if x.startswith("device.") and x != "device.bus"}),
+            "limits": b.get("limits", {}),
         })
     return out
 

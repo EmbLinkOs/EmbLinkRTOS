@@ -1,0 +1,10 @@
+{
+  "format": "emb-tasks-demo v1",
+  "board": "pico2_w",
+  "compiler": "Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1)",
+  "image": "tasks_demo.elf",
+  "image_sha256": "cdb3c493504a4eb5fb93f8a930b08a06bec328a1d2ad5c6b8a4a79fb0a32ba38",
+  "git": {"commit": "b3ae7131013d9bdc0b2b6b1ea05ca4c53e7b00e0", "dirty": false},
+  "seconds": 21,
+  "console": "console.log, through the NUCLEO-F446RE UART relay"
+}

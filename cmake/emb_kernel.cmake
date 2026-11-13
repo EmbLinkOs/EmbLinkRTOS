@@ -39,7 +39,7 @@ macro(emb_kernel)
   add_subdirectory("${EMB_BASE}/arch/${CONFIG_EMB_ARCH}" "${_emb_bin}/arch/${CONFIG_EMB_ARCH}")
   add_subdirectory("${EMB_BASE}/kernel" "${_emb_bin}/kernel")
   emb_check_native_abi()
-  add_subdirectory("${EMB_BOARD_DIR}" "${_emb_bin}/boards/${EMB_BOARD}")
+  add_subdirectory("${EMB_BOARD_BUILD_DIR}" "${_emb_bin}/boards/${EMB_BOARD}")
 
   # the board's QEMU machine, for run_<image> and the test runner (SIM-002)
   if(NOT CONFIG_EMB_ARCH STREQUAL "native" AND EMB_BOARD_QEMU_ARGS)
