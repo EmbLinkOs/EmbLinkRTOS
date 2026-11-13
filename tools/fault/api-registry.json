@@ -1479,7 +1479,7 @@
     },
     {
       "id": 256,
-      "name": "emb_log_format_check_",
+      "name": "emb_log_format_check",
       "header": "log.h",
       "state": "active"
     },

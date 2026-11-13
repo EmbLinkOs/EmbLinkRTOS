@@ -250,7 +250,7 @@
 #define EMB_API_ID_LOG_FLUSH                     0x00FDu
 #define EMB_API_ID_LOG_STATS_GET                 0x00FEu
 #define EMB_API_ID_CONSOLE_FRAME                 0x00FFu
-#define EMB_API_ID_LOG_FORMAT_CHECK_             0x0100u
+#define EMB_API_ID_LOG_FORMAT_CHECK              0x0100u
 #define EMB_API_ID_TRACE_START                   0x0101u
 #define EMB_API_ID_TRACE_STOP                    0x0102u
 #define EMB_API_ID_TRACE_DUMP                    0x0103u

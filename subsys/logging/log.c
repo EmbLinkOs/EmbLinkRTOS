@@ -105,13 +105,13 @@ EMB_STATIC_ASSERT(CONFIG_EMB_LOG_THREAD_PRIORITY < CONFIG_EMB_PRIORITY_COUNT,
 
 /* ---- the ring ---------------------------------------------------------------------- */
 
-static uint8_t ring[RING_SIZE];
+static uint8_t log_ring[RING_SIZE];
 /* Lock domain: the critical section (emb_irq_lock), for every variable below. */
 static uint32_t ring_head;   /* the next byte to reserve */
 static uint32_t ring_tail;   /* the oldest byte not taken: the free space ends here */
 static uint32_t ring_claims; /* moved by each consumer's claim, so a preempted one can tell */
 static uint32_t ring_lost;   /* records refused since the last one that fitted */
-static emb_log_stats_t ring_stats;
+static emb_log_stats_t log_stats;
 static bool flushing; /* emb_log_flush() is sending: a nested one leaves it to it */
 #if CONFIG_EMB_LOG_THREAD
 static bool log_ready; /* the log thread's semaphore exists */
@@ -120,12 +120,12 @@ static emb_sem_t log_sem;
 
 static void ring_set(uint32_t pos, uint8_t b)
 {
-    ring[pos & RING_MASK] = b;
+    log_ring[pos & RING_MASK] = b;
 }
 
 static uint8_t ring_at(uint32_t pos)
 {
-    return ring[pos & RING_MASK];
+    return log_ring[pos & RING_MASK];
 }
 
 /* A record's header, its committed bit clear. */
@@ -140,7 +140,7 @@ typedef struct rec_writer {
     uint32_t pos;
 } rec_writer_t;
 
-static void put8(rec_writer_t *w, uint8_t b)
+static void rec_put8(rec_writer_t *w, uint8_t b)
 {
     ring_set(w->pos, b);
     w->pos++;
@@ -150,7 +150,7 @@ static void put_le(rec_writer_t *w, uint64_t v, uint32_t bytes)
 {
     uint32_t i;
     for (i = 0u; i < bytes; i++) { /* bounded: at most eight bytes */
-        put8(w, (uint8_t)(v >> (8u * i)));
+        rec_put8(w, (uint8_t)(v >> (8u * i)));
     }
 }
 
@@ -190,15 +190,15 @@ static bool ring_reserve(uint32_t len, uint32_t dropped_len, uint32_t *pos, uint
         }
         hdr_write(ring_head + extra, len);
         ring_head += need;
-        if ((used + need) > ring_stats.high_water) {
-            ring_stats.high_water = used + need;
+        if ((used + need) > log_stats.high_water) {
+            log_stats.high_water = used + need;
         }
         *ts = now_ticks();
     } else {
         if (ring_lost != UINT32_MAX) {
             ring_lost++;
         }
-        ring_stats.dropped++;
+        log_stats.dropped++;
     }
     emb_irq_unlock(key);
     return ok;
@@ -213,7 +213,7 @@ static void ring_commit(uint32_t pos, uint32_t len)
     EMB_COMPILER_BARRIER(); /* the record's bytes before the bit that publishes them */
     ring_set(pos + 1u, (uint8_t)(((len >> 8) & LEN_HI_MASK) | HDR_COMMITTED));
     key = emb_irq_lock();
-    ring_stats.records++;
+    log_stats.records++;
     at_tail = pos == ring_tail;
     emb_irq_unlock(key);
     if (at_tail) {
@@ -304,6 +304,8 @@ static uint32_t args_size(uint32_t sig, va_list *ap)
         if ((t == EMB_LOG_T_END) || (t > EMB_LOG_T_HEX)) {
             break;
         }
+        /* NOLINTBEGIN(bugprone-branch-clone): the cases differ in the type va_arg reads, which the
+         * check does not compare */
         switch (t) {
         case EMB_LOG_T_INT:
             (void)va_arg(*ap, int);
@@ -348,6 +350,7 @@ static uint32_t args_size(uint32_t sig, va_list *ap)
             break;
         }
         }
+        /* NOLINTEND(bugprone-branch-clone) */
     }
     return size;
 }
@@ -357,7 +360,7 @@ static void put_bytes(rec_writer_t *w, const void *src, uint32_t n)
     const uint8_t *p = (const uint8_t *)src;
     uint32_t i;
     for (i = 0u; i < n; i++) { /* bounded by n */
-        put8(w, p[i]);
+        rec_put8(w, p[i]);
     }
 }
 
@@ -369,6 +372,8 @@ static void args_write(rec_writer_t *w, uint32_t sig, va_list *ap)
         if ((t == EMB_LOG_T_END) || (t > EMB_LOG_T_HEX)) {
             break;
         }
+        /* NOLINTBEGIN(bugprone-branch-clone): the cases differ in the type va_arg reads, which the
+         * check does not compare */
         switch (t) {
         case EMB_LOG_T_INT:
             put_le(w, (uint64_t)(int64_t)va_arg(*ap, int), 4u);
@@ -396,7 +401,7 @@ static void args_write(rec_writer_t *w, uint32_t sig, va_list *ap)
         case EMB_LOG_T_STR: {
             const char *s = va_arg(*ap, const char *);
             uint32_t n = str_len(s);
-            put8(w, (uint8_t)n);
+            rec_put8(w, (uint8_t)n);
             put_bytes(w, s, n);
             break;
         }
@@ -413,12 +418,13 @@ static void args_write(rec_writer_t *w, uint32_t sig, va_list *ap)
             } else {
                 uint32_t i;
                 for (i = 0u; i < n; i++) { /* bounded by HEX_MAX: nothing to dump, zeros */
-                    put8(w, 0u);
+                    rec_put8(w, 0u);
                 }
             }
             break;
         }
         }
+        /* NOLINTEND(bugprone-branch-clone) */
     }
 }
 
@@ -477,7 +483,7 @@ emb_status_t emb_log_stats_get(emb_log_stats_t *out)
         return EMB_EINVAL;
     }
     key = emb_irq_lock();
-    *out = ring_stats;
+    *out = log_stats;
     emb_irq_unlock(key);
     return EMB_OK;
 }
@@ -525,7 +531,7 @@ static take_result_t ring_take(uint8_t *buf, uint32_t cap, uint32_t *len)
         taken = (ring_claims == claim) && (ring_tail == at);
         if (taken) {
             ring_tail = at + HDR_BYTES + n;
-            ring_stats.sent++;
+            log_stats.sent++;
         }
         emb_irq_unlock(key);
         if (taken) {
@@ -579,7 +585,7 @@ static void put_start(void)
         w.pos = pos + HDR_BYTES;
         put_head(&w, EMB_LOG_ID_START, ts);
         for (i = 0u; i < EMB_CRASH_BUILD_ID_SIZE; i++) { /* bounded: 20 bytes */
-            put8(&w, EMB_FLASH_READ_U8(&emb_build_id[i]));
+            rec_put8(&w, EMB_FLASH_READ_U8(&emb_build_id[i]));
         }
         put_le(&w, (uint32_t)CONFIG_EMB_TICK_NS, 4u);
         ring_commit(pos, len);
@@ -718,11 +724,12 @@ static uint32_t to_digits(uint64_t v, uint32_t base, bool upper, char *buf)
     uint32_t n = 0u;
     uint32_t i;
     const char *set = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+    uint64_t left = v;
     do { /* bounded: at most 22 digits of a 64-bit value */
-        tmp[n] = set[v % base];
+        tmp[n] = set[left % base];
         n++;
-        v /= base;
-    } while (v != 0u);
+        left /= base;
+    } while (left != 0u);
     for (i = 0u; i < n; i++) { /* bounded by n */
         buf[i] = tmp[n - 1u - i];
     }
@@ -758,23 +765,21 @@ static void out_int(out_t *o, const spec_t *sp, int64_t sv, uint64_t uv, char co
 
 #if CONFIG_EMB_LOG_FLOAT
 /* Fixed point for %f (and %e and %g, which print as %f here): up to nine decimals. */
-static void out_double(out_t *o, const spec_t *sp, double d)
+static void out_double(out_t *o, const spec_t *sp, double value)
 {
     static const uint32_t pow10[10] = {1u,      10u,      100u,      1000u,      10000u,
                                        100000u, 1000000u, 10000000u, 100000000u, 1000000000u};
     char digits[40];
     uint32_t nd;
     uint32_t prec = (sp->prec < 0) ? 6u : (((uint32_t)sp->prec > 9u) ? 9u : (uint32_t)sp->prec);
-    const char *sign = "";
+    const char *sign;
     uint64_t ip;
     uint64_t fp;
-    bool neg = d < 0.0;
-    if (d != d) { /* NaN */
+    bool neg = value < 0.0;
+    double d = neg ? -value : value;
+    if (value != value) { /* NaN */
         out_field(o, sp, "", "nan", 3u);
         return;
-    }
-    if (neg) {
-        d = -d;
     }
     sign = neg ? "-" : (sp->plus ? "+" : (sp->space ? " " : ""));
     if (d >= 1.8e19) { /* beyond a 64-bit integer part, infinity included */
@@ -902,7 +907,7 @@ static void narrow(arg_t *a, uint32_t h, char conv)
     }
     a->u &= (h == 2u) ? 0xFFu : 0xFFFFu;
     if ((conv == 'd') || (conv == 'i')) {
-        a->s = sign_extend(a->u, h == 2u ? 1u : 2u);
+        a->s = sign_extend(a->u, (h == 2u) ? 1u : 2u);
     } else {
         a->s = (int64_t)a->u;
     }

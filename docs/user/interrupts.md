@@ -132,7 +132,7 @@ Calling anything else from a handler is misuse: in a checked build it faults wit
 | `emb_irq_unlock()` | `<emb/irq.h>` | no |
 | `emb_isr_stack_info()` | `<emb/irq.h>` | no |
 | `emb_log_flush()` | `<emb/log.h>` | no |
-| `emb_log_format_check_()` | `<emb/log.h>` | no |
+| `emb_log_format_check()` | `<emb/log.h>` | no |
 | `emb_log_level_set()` | `<emb/log.h>` | no |
 | `emb_log_stats_get()` | `<emb/log.h>` | no |
 | `emb_log_write()` | `<emb/log.h>` | no |

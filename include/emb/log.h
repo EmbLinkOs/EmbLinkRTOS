@@ -209,7 +209,7 @@ typedef struct emb_log_header {
     do {                                                                                   \
         if (EMB_LOG_ON_(lvl, m)) {                                                         \
             EMB_LOG_META_(lvl, m, EMB_LOG_FIRST_(__VA_ARGS__), EMB_LOG_SIG_(__VA_ARGS__)); \
-            (void)sizeof(emb_log_format_check_(__VA_ARGS__), 0);                           \
+            (void)sizeof(emb_log_format_check(__VA_ARGS__), 0);                            \
             if ((uint8_t)(lvl) <= emb_log_module_##m##_.level) {                           \
                 emb_log_write(&emb_log_meta_,                                              \
                               EMB_LOG_SIG_(__VA_ARGS__) EMB_LOG_REST_(__VA_ARGS__));       \
@@ -228,10 +228,10 @@ typedef struct emb_log_header {
     } while (0)
 #else
 /* logging off: the arguments are still checked against the format, and nothing is emitted */
-#define EMB_LOG_AT_(lvl, m, ...)                             \
-    do {                                                     \
-        (void)sizeof(emb_log_format_check_(__VA_ARGS__), 0); \
-        (void)emb_log_file_level_##m##_;                     \
+#define EMB_LOG_AT_(lvl, m, ...)                            \
+    do {                                                    \
+        (void)sizeof(emb_log_format_check(__VA_ARGS__), 0); \
+        (void)emb_log_file_level_##m##_;                    \
     } while (0)
 #define EMB_LOG_HEX_(lvl, m, buf, len, label) \
     do {                                      \
@@ -297,7 +297,7 @@ typedef struct emb_log_header {
 #define EMB_LOG_REST_9(f, a, b, c, d, e, g, h, k) , (a), (b), (c), (d), (e), (g), (h), (k)
 
 /**
- * emb_log_format_check_() - Never called or defined: how a call's format is checked.
+ * emb_log_format_check() - Never called or defined: how a call's format is checked.
  * @format: The call's format.
  * @...:    Its arguments.
  *
@@ -313,7 +313,7 @@ typedef struct emb_log_header {
  * The log macros name it inside sizeof with the call's format and arguments, so the compiler
  * checks them as it checks printf's, and nothing is evaluated.
  */
-void emb_log_format_check_(const char *format, ...) EMB_PRINTF_FORMAT(1, 2);
+void emb_log_format_check(const char *format, ...) EMB_PRINTF_FORMAT(1, 2);
 
 /**
  * emb_log_write() - Pack one record into the log ring: what a call site calls.

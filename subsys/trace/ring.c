@@ -63,11 +63,11 @@ typedef struct trace_rec {
     uint32_t a[3];
 } trace_rec_t;
 
-static trace_rec_t ring[RING_EVENTS];
+static trace_rec_t trace_ring[RING_EVENTS];
 /* Lock domain: the critical section (emb_irq_lock), for every variable below. */
 static uint32_t ring_next; /* the next event's number: events [next - size, next) are kept */
 static bool recording;
-static emb_trace_stats_t ring_stats;
+static emb_trace_stats_t trace_stats;
 
 static void ring_sink(const emb_trace_event_t *ev, void *ctx)
 {
@@ -76,7 +76,7 @@ static void ring_sink(const emb_trace_event_t *ev, void *ctx)
     (void)ctx;
     key = emb_irq_lock();
     if (recording) {
-        r = &ring[ring_next & RING_MASK];
+        r = &trace_ring[ring_next & RING_MASK];
         r->ts = (uint32_t)emb_arch_cycles();
         r->id = ev->id;
         r->cpu = ev->cpu;
@@ -85,7 +85,7 @@ static void ring_sink(const emb_trace_event_t *ev, void *ctx)
         r->a[1] = (uint32_t)ev->a1;
         r->a[2] = (uint32_t)ev->a2;
         ring_next++;
-        ring_stats.recorded++;
+        trace_stats.recorded++;
     }
     emb_irq_unlock(key);
 }
@@ -113,7 +113,7 @@ emb_status_t emb_trace_stats_get(emb_trace_stats_t *out)
         return EMB_EINVAL;
     }
     key = emb_irq_lock();
-    *out = ring_stats;
+    *out = trace_stats;
     emb_irq_unlock(key);
     return EMB_OK;
 }
@@ -131,7 +131,7 @@ bool embs_trace_read(uint32_t seq, uint8_t out[EMB_TRACE_RECORD_SIZE])
     emb_irq_key_t key = emb_irq_lock();
     bool kept = ((ring_next - seq) - 1u) < RING_EVENTS; /* seq in [next - size, next) */
     if (kept) {
-        const trace_rec_t *r = &ring[seq & RING_MASK];
+        const trace_rec_t *r = &trace_ring[seq & RING_MASK];
         uint32_t i;
         uint32_t k;
         uint32_t w[5];
@@ -186,13 +186,14 @@ static void send_events(uint8_t *packet, uint32_t *from, uint32_t end)
         uint32_t n = 0u;
         while ((*from != end) && !embs_trace_read(*from, slot)) { /* bounded by end */
             emb_irq_key_t key = emb_irq_lock();
-            ring_stats.overwritten++;
+            trace_stats.overwritten++;
             emb_irq_unlock(key);
             (*from)++;
         }
         first = *from;
         while ((n < PACKET_EVENTS) && (*from != end) &&
-               embs_trace_read(*from, &slot[n * EMB_TRACE_RECORD_SIZE])) { /* bounded by a packet */
+               embs_trace_read(
+                   *from, &slot[(size_t)n * EMB_TRACE_RECORD_SIZE])) { /* bounded by a packet */
             n++;
             (*from)++;
         }
@@ -202,7 +203,7 @@ static void send_events(uint8_t *packet, uint32_t *from, uint32_t end)
             (void)emb_console_frame(EMB_FRAME_CHANNEL_TRACE, packet,
                                     PACKET_HEADER + (n * EMB_TRACE_RECORD_SIZE));
             key = emb_irq_lock();
-            ring_stats.sent += n;
+            trace_stats.sent += n;
             emb_irq_unlock(key);
         }
     }
@@ -307,7 +308,7 @@ static void stream_thread(void *arg)
         end = embs_trace_next();
         if ((end - from) > RING_EVENTS) { /* lapped: what was overwritten is lost */
             emb_irq_key_t key = emb_irq_lock();
-            ring_stats.overwritten += (end - from) - RING_EVENTS;
+            trace_stats.overwritten += (end - from) - RING_EVENTS;
             emb_irq_unlock(key);
             from = end - RING_EVENTS;
         }
