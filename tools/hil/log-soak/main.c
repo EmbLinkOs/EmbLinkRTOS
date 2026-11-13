@@ -57,7 +57,9 @@ static void bursts(void *arg)
 
 static void counters(void *arg)
 {
-    emb_instant_t next = emb_time_now();
+    /* half a second off the bursts' schedule: at the same tick the ring is full of a burst, and
+     * these two records would be dropped every time */
+    emb_instant_t next = emb_instant_add(emb_time_now(), EMB_MS(500));
     (void)arg;
     EMB_CHECK(emb_trace_start());
     for (;;) {

@@ -16,6 +16,6 @@
 - The NUCLEO relay works both ways and drives a reset, a power cut and a wake pin for the bench, on channel-15 frames.
 - Examples: `logging`, `tracing`, `console_echo`; `tools/hil/log-soak` and `log_soak.py`, the framed console's soak.
 
-### Changed
+### Changed (logging and the trace, 2026-11-13)
 
 - A127 and A128, proposed; logging is not offered on AVR in M4.3.
